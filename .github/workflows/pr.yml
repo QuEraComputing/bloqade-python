@@ -17,28 +17,28 @@ jobs:
 
       - name: Bandit
         uses: dciborow/pyaction@0.0.13
-        with:          
+        with:
           bandit: true
 
       - name: Pylint
         uses: dciborow/pyaction@0.0.13
         with:
           pylint: true
-          
+
       - name: Pyright
         uses: dciborow/pyaction@0.0.13
-        with:          
+        with:
           pyright: true
-          
+
       - name: Flake8
         uses: dciborow/pyaction@0.0.13
-        with:          
+        with:
           flake8: true
 
   testing:
     runs-on: ubuntu-latest
-    steps:    
+    steps:
       - name: Pytest
         uses: dciborow/pyaction@0.0.13
-        with:          
+        with:
           testing: true
