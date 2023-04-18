@@ -9,27 +9,27 @@ class Scalar:
 class Literal(Scalar):
     value: real.Real
 
-@dataclass
+@dataclass(frozen=True)
 class Negative(Scalar):
     value: Scalar
 
-@dataclass
+@dataclass(frozen=True)
 class Default(Scalar):
     var: real.Real
     value: float
 
-@dataclass
+@dataclass(frozen=True)
 class Reduce(Scalar):
     head: str
     literal: float
     args: Dict[Scalar, int]
 
-@dataclass
+@dataclass(frozen=True)
 class Slice(Scalar):
     duration: Scalar
     interval: Scalar
 
-@dataclass
+@dataclass(frozen=True)
 class Interval(Scalar):
     start: Scalar
     stop: Scalar
