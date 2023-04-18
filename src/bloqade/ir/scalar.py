@@ -5,6 +5,7 @@ import bloqade.ir.real as real
 class Scalar:
     pass
 
+
 @dataclass(frozen=True)
 class Literal(Scalar):
     value: real.Real
