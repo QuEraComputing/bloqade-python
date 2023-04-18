@@ -1,4 +1,12 @@
-from bloqade.ir.scalar import Scalar, Literal, Negative, Default, Reduce, Slice, Interval
+from bloqade.ir.scalar import (
+    Scalar,
+    Literal,
+    Negative,
+    Default,
+    Reduce,
+    Slice,
+    Interval,
+)
 import bloqade.ir.real as real
 
 x = [Negative(Literal(i)) for i in range(10)]
