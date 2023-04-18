@@ -2,13 +2,20 @@
 name = "bloqade"
 version = "0.1.0"
 description = ""
-authors = ["Roger-luo <rogerluo.rl18@gmail.com>"]
+authors = ["QuEra Computing <rluo@quera.com>"]
 readme = "README.md"
 packages = [{include = "bloqade", from = "src"}]
 
 [tool.poetry.dependencies]
 python = "^3.9"
+pydantic = "^1.10.7"
+numpy = "^1.24.2"
 
+
+[tool.poetry.group.dev.dependencies]
+ipython = "^8.12.0"
+matplotlib = "^3.7.1"
+pytest = "^7.3.1"
 
 [build-system]
 requires = ["poetry-core"]
