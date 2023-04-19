@@ -85,7 +85,7 @@ class ScalarLang:
                 return Reduce(head="+", literal=value, args={scalar: 1})
 
             case (lhs, rhs) if (lhs == rhs):
-                return Reduce(head="+", literal=value, args={lhs: 2})
+                return Reduce(head="+", literal=0, args={lhs: 2})
 
             case _:
                 return Reduce(head="+", literal=0, args={self: 1, other: 1})
