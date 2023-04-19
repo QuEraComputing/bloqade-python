@@ -1,0 +1,6 @@
+[deps]
+BloqadePulses = "0de71646-f3a7-4d06-84bf-5571f5bdaff0"
+PythonCall = "6099a3de-0909-46bc-b1f4-468b9a2dfc0d"
+
+[compat]
+PythonCall = "=0.9.12"
