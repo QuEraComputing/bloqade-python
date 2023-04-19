@@ -3,40 +3,61 @@ from typing import Dict
 import bloqade.ir.real as real
 
 
-class Scalar:
-    pass
+class ScalarLang:
+    def __add__(self, other):
+        if not isinstance(other, ScalarLang):
+            raise ValueError("Cannot add non-ScalarLang objects.")
+        
+        match (self, other):
+            case (
+                    Scalar(value=real.Literal(value=lhs)), 
+                    Scalar(value=real.Literal(value=rhs))
+                ):
+                return Scalar(value=real.Literal(value=(lhs+rhs)))
+            case _:
+                return Reduce(
+                    head="+", 
+                    literal=0, 
+                    args={self:1, other:1}
+                )
+                
+    def __neg__(self):
+        match self:
+            case Negative(value=value):
+                return value
+            case _:
+                return Negative(self)
 
 
 @dataclass(frozen=True)
-class Literal(Scalar):
+class Scalar(ScalarLang):
     value: real.Real
 
+@dataclass(frozen=True)
+class Negative(ScalarLang):
+    value: ScalarLang
+
 
 @dataclass(frozen=True)
-class Negative(Scalar):
-    value: Scalar
-
-
-@dataclass(frozen=True)
-class Default(Scalar):
+class Default(ScalarLang):
     var: real.Real
     value: float
 
 
 @dataclass(frozen=True)
-class Reduce(Scalar):
+class Reduce(ScalarLang):
     head: str
     literal: float
-    args: Dict[Scalar, int]
+    args: Dict[ScalarLang, int]
 
 
 @dataclass(frozen=True)
-class Slice(Scalar):
-    duration: Scalar
-    interval: Scalar
+class Slice(ScalarLang):
+    duration: ScalarLang
+    interval: ScalarLang
 
 
 @dataclass(frozen=True)
-class Interval(Scalar):
-    start: Scalar
-    stop: Scalar
+class Interval(ScalarLang):
+    start: ScalarLang
+    stop: ScalarLang

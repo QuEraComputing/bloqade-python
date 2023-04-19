@@ -1,6 +1,5 @@
 from bloqade.ir.scalar import (
     Scalar,
-    Literal,
     Negative,
     Default,
     Reduce,
@@ -9,15 +8,20 @@ from bloqade.ir.scalar import (
 )
 import bloqade.ir.real as real
 
-x = [Negative(Literal(i)) for i in range(10)]
-print(x[0])
+a = Scalar(value=real.Variable("a")) + Scalar(value=real.Literal(1.0))
 
-match x:
-    case Literal(value):
-        print(value)
-    case Negative(value):
-        print(value)
-    case [Negative(Literal(0)), *xs]:
-        print(x)
-    case _:
-        print("default")
+print(-a)
+
+
+# x = [Negative(Literal(i)) for i in range(10)]
+# print(x[0])
+
+# match x:
+#     case Literal(value):
+#         print(value)
+#     case Negative(value):
+#         print(value)
+#     case [Negative(Literal(0)), *xs]:
+#         print(x)
+#     case _:
+#         print("default")
