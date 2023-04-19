@@ -10,12 +10,18 @@
     ],
     "terminal.integrated.env.osx": {
         "PYTHONPATH": "${workspaceFolder}/src",
+        "JULIA_PYTHONCALL_EXE": "${workspaceFolder}/venv/bin/python",
+        "JULIA_CONDAPKG_BACKEND": "Null",
     },
     "terminal.integrated.env.linux": {
         "PYTHONPATH": "${workspaceFolder}/src",
+        "JULIA_PYTHONCALL_EXE": "${workspaceFolder}/venv/bin/python",
+        "JULIA_CONDAPKG_BACKEND": "Null",
     },
     "terminal.integrated.env.windows": {
         "PYTHONPATH": "${workspaceFolder}/src",
+        "JULIA_PYTHONCALL_EXE": "${workspaceFolder}/venv/bin/python",
+        "JULIA_CONDAPKG_BACKEND": "Null",
     },
     "python.analysis.typeCheckingMode": "basic",
 }
