@@ -1,63 +1,172 @@
 from dataclasses import dataclass
 from typing import Dict
-import bloqade.ir.real as real
+from bloqade.ir.real import Real, Literal, Variable
 
+
+def merge_dicts(lhs: Dict, rhs: Dict):
+    if len(rhs) < len(lhs):
+        lhs, rhs = (rhs, lhs)
+        
+    rhs = dict(rhs) # copy data
+    for (key, value) in lhs.items():
+        new_value = rhs.get(key, 0) + value
+        if new_value == 0:
+            del rhs[key]
+        else:
+            rhs[key] = new_value
+            
+    return rhs
 
 class ScalarLang:
     def __add__(self, other):
         if not isinstance(other, ScalarLang):
-            raise ValueError("Cannot add non-ScalarLang objects.")
+            raise ValueError('Cannot add non-ScalarLang objects.')
         
         match (self, other):
-            case (
-                    Scalar(value=real.Literal(value=lhs)), 
-                    Scalar(value=real.Literal(value=rhs))
-                ):
-                return Scalar(value=real.Literal(value=(lhs+rhs)))
+            case ((scalar, Scalar(Literal(0.0))) | \
+                (Scalar(Literal(0.0)), scalar) ):
+                return scalar
+            
+            case (Scalar(Literal(lhs)), Scalar(Literal(rhs))):
+                return Scalar(value=Literal(value=(lhs+rhs)))
+            
+            case (scalar, Negative(value=neg)) | \
+                (Negative(value=neg), scalar) if neg == scalar:
+                return Scalar(value=Literal(value=0.0))
+            
+            case (Negative(lhs), Negative(rhs)):
+                return Negative(value=(lhs+rhs))
+                
+            case (Negative(scalar), Reduce(head='+') as reduce) | \
+                (Reduce(head='+') as reduce, Negative(scalar)):
+                new_args = dict(reduce.args)
+                new_args[scalar] = reduce.args.get(scalar, 0) - 1
+                return Reduce(
+                    head='+',
+                    literal=reduce.literal,
+                    args=new_args
+                )
+                
+            case (Reduce(head='+') as lhs, Reduce(head='+') as rhs):
+                new_args = merge_dicts(lhs.args, rhs.args)
+                if len(new_args) == 0:
+                    return Scalar(value=Literal(lhs.literal+rhs.literal))
+                else:
+                    return Reduce(
+                        head='+',
+                        literal=lhs.literal+rhs.literal,
+                        args=new_args
+                    )
+            case (Reduce(head="+") as reduce, Scalar(Literal(value))) | \
+                (Scalar(Literal(value)), Reduce(head="+") as reduce):
+                return Reduce(
+                    head='+',
+                    literal=reduce.literal+value,
+                    args=reduce.args
+                )
+                    
+            case (Reduce(head="+") as reduce, scalar) | \
+                (scalar, Reduce(head="+") as reduce):
+                new_args = dict(reduce.args)
+                new_args[scalar] = reduce.args.get(scalar, 0) + 1
+                if len(new_args) == 0:
+                    return Scalar(
+                        value=Literal(
+                            value=reduce.literal
+                        )
+                    )
+                return Reduce(
+                    head='+',
+                    literal=reduce.literal,
+                    args=new_args
+                )
+                    
             case _:
                 return Reduce(
-                    head="+", 
+                    head='+', 
                     literal=0, 
                     args={self:1, other:1}
                 )
                 
     def __neg__(self):
         match self:
-            case Negative(value=value):
+            case Scalar(Literal(0.0)):
+                return self
+            
+            # pass negative through there variants makes for less canoicalization in addition
+            case Scalar(Literal(value)):
+                return Scalar(value=Literal(value=-value))
+            
+            case Reduce(head='+', literal=literal, args=args):
+                return Reduce(
+                    head = '+',
+                    literal = -literal,
+                    args = {k:-v for k,v in args.items()}
+                )
+                 
+            case Negative(value):
                 return value
+            
             case _:
                 return Negative(self)
 
-
+    def __sub__(self, other):
+        return self + (-other)
+        
 @dataclass(frozen=True)
 class Scalar(ScalarLang):
-    value: real.Real
+    value: Real
+    
+    def julia_adt(self):
+        return ir_types.Scalar(self.value.julia_adt())
 
 @dataclass(frozen=True)
 class Negative(ScalarLang):
     value: ScalarLang
 
+    def julia_adt(self):
+        return ir_types.Negative(self.value.julia_adt())
 
 @dataclass(frozen=True)
 class Default(ScalarLang):
-    var: real.Real
+    var: Variable
     value: float
-
+    
+    def julia_adt(self):
+        return ir_types.Default(self.var.julia_adt(), self.value)
 
 @dataclass(frozen=True)
 class Reduce(ScalarLang):
     head: str
     literal: float
     args: Dict[ScalarLang, int]
+    
+    def julia_adt(self):
+        return ir_types.Reduce(
+            self.head, 
+            self.literal, 
+            jl.DictValue(k.julia_adt():v for k,v in self.args.items())
+        )
 
+@dataclass(frozen=True)
+class Interval(ScalarLang):
+    first: ScalarLang
+    last: ScalarLang
+
+    def julia_adt(self):
+        return ir_types.Interval(
+            self.first.julia_adt(), 
+            self.last.julia_adt()
+        )
 
 @dataclass(frozen=True)
 class Slice(ScalarLang):
     duration: ScalarLang
-    interval: ScalarLang
+    interval: Interval
+    
+    def julia_adt(self):
+        return ir_types.Slice(
+            self.duration.julia_adt(), 
+            self.interval.julia_adt()
+        )
 
-
-@dataclass(frozen=True)
-class Interval(ScalarLang):
-    start: ScalarLang
-    stop: ScalarLang

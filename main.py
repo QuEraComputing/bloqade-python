@@ -10,7 +10,7 @@ import bloqade.ir.real as real
 
 a = Scalar(value=real.Variable("a")) + Scalar(value=real.Literal(1.0))
 
-print(-a)
+print(a - a)
 
 
 # x = [Negative(Literal(i)) for i in range(10)]
