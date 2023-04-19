@@ -6,7 +6,7 @@ class Real:
 
 
 @dataclass(frozen=True)
-class Litreal(Real):
+class Literal(Real):
     value: float
 
 
