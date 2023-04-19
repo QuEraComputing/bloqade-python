@@ -2,3 +2,4 @@ poetry.lock
 __pycache__
 .venv
 。pytest_cache
+Manifest.toml
