@@ -9,8 +9,9 @@ from bloqade.ir.scalar import (
 )
 import bloqade.ir.real as real
 
+
 def is_scalar(value):
-    return isinstance(value, ScalarLang)        
+    return isinstance(value, ScalarLang)
 
 
 x = Scalar(value=real.Variable("a")) + Scalar(value=real.Literal(1.0))
