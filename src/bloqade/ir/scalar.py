@@ -30,22 +30,12 @@ class ScalarLang:
             case (Scalar(Literal(lhs)), Scalar(Literal(rhs))):
                 return Scalar(value=Literal(value=(lhs+rhs)))
             
-            case (scalar, Negative(value=neg)) | \
-                (Negative(value=neg), scalar) if neg == scalar:
+            case (scalar, Negative(neg)) | \
+                (Negative(neg), scalar) if neg == scalar:
                 return Scalar(value=Literal(value=0.0))
             
             case (Negative(lhs), Negative(rhs)):
-                return Negative(value=(lhs+rhs))
-                
-            case (Negative(scalar), Reduce(head='+') as reduce) | \
-                (Reduce(head='+') as reduce, Negative(scalar)):
-                new_args = dict(reduce.args)
-                new_args[scalar] = reduce.args.get(scalar, 0) - 1
-                return Reduce(
-                    head='+',
-                    literal=reduce.literal,
-                    args=new_args
-                )
+                return -(lhs + rhs)
                 
             case (Reduce(head='+') as lhs, Reduce(head='+') as rhs):
                 new_args = merge_dicts(lhs.args, rhs.args)
@@ -57,6 +47,7 @@ class ScalarLang:
                         literal=lhs.literal+rhs.literal,
                         args=new_args
                     )
+             
             case (Reduce(head="+") as reduce, Scalar(Literal(value))) | \
                 (Scalar(Literal(value)), Reduce(head="+") as reduce):
                 return Reduce(
@@ -64,23 +55,61 @@ class ScalarLang:
                     literal=reduce.literal+value,
                     args=reduce.args
                 )
+                
+            case (Reduce(head='+') as reduce, Negative(scalar)) | \
+                (Negative(scalar), Reduce(head='+') as reduce):
+                new_args = merge_dicts(reduce.args,{scalar:-1})
+                if len(new_args) == 0:
+                    return Scalar(value=Literal(value=reduce.literal))
+                else:
+                    return Reduce(
+                        head='+',
+                        literal=reduce.literal,
+                        args=new_args
+                    )
                     
             case (Reduce(head="+") as reduce, scalar) | \
                 (scalar, Reduce(head="+") as reduce):
-                new_args = dict(reduce.args)
-                new_args[scalar] = reduce.args.get(scalar, 0) + 1
+                new_args = merge_dicts(reduce.args,{scalar:1})
                 if len(new_args) == 0:
-                    return Scalar(
-                        value=Literal(
-                            value=reduce.literal
-                        )
+                    return Scalar(value=Literal(value=reduce.literal))
+                else:
+                    return Reduce(
+                        head='+',
+                        literal=reduce.literal,
+                        args=new_args
                     )
+            case (Negative(scalar), Scalar(Literal(value))) | \
+                (Scalar(Literal(value)), Negative(scalar)):
                 return Reduce(
                     head='+',
-                    literal=reduce.literal,
-                    args=new_args
+                    literal=value,
+                    args={scalar:-1}
+                )  
+                                  
+            case (Negative(neg), scalar) | \
+                (scalar, Negative(neg)):
+                return Reduce(
+                    head='+',
+                    literal=0.0,
+                    args={neg:-1,scalar:1}
+                )
+                
+            case (Scalar(Literal(value)), scalar) | \
+                (scalar, Scalar(Literal(value))):
+                return Reduce(
+                    head='+',
+                    literal=value,
+                    args={scalar:1}
                 )
                     
+            case (lhs, rhs) if (lhs == rhs):
+                return Reduce(
+                    head='+',
+                    literal=value,
+                    args={lhs:2}
+                )
+                
             case _:
                 return Reduce(
                     head='+', 
@@ -118,14 +147,16 @@ class Scalar(ScalarLang):
     value: Real
     
     def julia_adt(self):
-        return ir_types.Scalar(self.value.julia_adt())
+        return NotImplemented
+        # return ir_types.Scalar(self.value.julia_adt())
 
 @dataclass(frozen=True)
 class Negative(ScalarLang):
     value: ScalarLang
 
     def julia_adt(self):
-        return ir_types.Negative(self.value.julia_adt())
+        return NotImplemented
+        # return ir_types.Negative(self.value.julia_adt())
 
 @dataclass(frozen=True)
 class Default(ScalarLang):
@@ -133,7 +164,8 @@ class Default(ScalarLang):
     value: float
     
     def julia_adt(self):
-        return ir_types.Default(self.var.julia_adt(), self.value)
+        return NotImplemented
+        # return ir_types.Default(self.var.julia_adt(), self.value)
 
 @dataclass(frozen=True)
 class Reduce(ScalarLang):
@@ -142,11 +174,12 @@ class Reduce(ScalarLang):
     args: Dict[ScalarLang, int]
     
     def julia_adt(self):
-        return ir_types.Reduce(
-            self.head, 
-            self.literal, 
-            jl.DictValue(k.julia_adt():v for k,v in self.args.items())
-        )
+        return NotImplemented
+        # return ir_types.Reduce(
+        #     self.head, 
+        #     self.literal, 
+        #     jl.DictValue(k.julia_adt():v for k,v in self.args.items())
+        # )
 
 @dataclass(frozen=True)
 class Interval(ScalarLang):
@@ -154,10 +187,11 @@ class Interval(ScalarLang):
     last: ScalarLang
 
     def julia_adt(self):
-        return ir_types.Interval(
-            self.first.julia_adt(), 
-            self.last.julia_adt()
-        )
+        return NotImplemented
+        # return ir_types.Interval(
+        #     self.first.julia_adt(), 
+        #     self.last.julia_adt()
+        # )
 
 @dataclass(frozen=True)
 class Slice(ScalarLang):
@@ -165,8 +199,9 @@ class Slice(ScalarLang):
     interval: Interval
     
     def julia_adt(self):
-        return ir_types.Slice(
-            self.duration.julia_adt(), 
-            self.interval.julia_adt()
-        )
+        return NotImplemented
+        # return ir_types.Slice(
+        #     self.duration.julia_adt(), 
+        #     self.interval.julia_adt()
+        # )
 
