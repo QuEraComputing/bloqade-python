@@ -1,23 +1,36 @@
-[tool.poetry]
+[project]
 name = "bloqade"
-version = "0.1.0"
-description = ""
-authors = ["QuEra Computing <rluo@quera.com>"]
+version = "0.2.7"
+description = "neutral atom software development kit"
+authors = [
+    {name = "Roger-luo", email = "info@quera.com"},
+]
+dependencies = [
+    "juliacall>=0.9.12",
+    "numpy>=1.24.2",
+    "matplotlib>=3.7.1",
+    "pydantic>=1.10.7",
+]
+requires-python = ">=3.10"
 readme = "README.md"
-packages = [{include = "bloqade", from = "src"}]
-
-[tool.poetry.dependencies]
-python = "^3.9"
-pydantic = "^1.10.7"
-numpy = "^1.24.2"
-
-
-[tool.poetry.group.dev.dependencies]
-ipython = "^8.12.0"
-matplotlib = "^3.7.1"
-pytest = "^7.3.1"
-black = "^23.3.0"
+license = {text = "MIT"}
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+[tool.pdm]
+[tool.pdm.dev-dependencies]
+dev = [
+    "twine>=4.0.2",
+    "ipython>=8.12.0",
+    "black>=23.3.0",
+    "pytest>=7.3.1",
+    "mypy>=1.2.0",
+]
+
+[tool.pdm.scripts]
+_.env_file = "./.env"
+upload = "python -m twine upload -r bloqade dist/*"
+build = {cmd = "pdm build"}
+publish = {composite = ["build", "upload"]}
