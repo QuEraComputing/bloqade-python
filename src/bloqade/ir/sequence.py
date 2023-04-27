@@ -6,17 +6,19 @@ from typing import List
 from ..julia.prelude import *
 from juliacall import AnyValue # type: ignore
 
-class LevelCoupling(str, Enum, ToJulia):
-    Rydberg = "rydberg"
-    Hyperfine = "hyperfine"
+@dataclass(frozen=True)
+class LevelCoupling(ToJulia):
+    pass
 
-    def julia(self) -> AnyValue:
-        if self.value == 'rydberg':
-            return IRTypes.Rydberg
-        elif self.value == 'hyperfine':
-            return IRTypes.Hyperfine
-        else:
-            raise AssertionError
+@dataclass(frozen=True)
+class Rydberg(LevelCoupling):
+    def julia(self):
+        return IRTypes.Rydberg
+
+@dataclass(frozen=True)
+class Hyperfine(LevelCoupling):
+    def julia(self):
+        return IRTypes.Hyperfine
 
 @dataclass(frozen=True)
 class SequenceExpr(ToJulia):
