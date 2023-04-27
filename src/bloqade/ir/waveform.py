@@ -6,6 +6,7 @@ from .shape import Shape
 from .scalar import Scalar, Interval
 from ..julia.prelude import *
 
+
 @dataclass(frozen=True)
 class Waveform:
     """

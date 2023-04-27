@@ -3,6 +3,7 @@ from .scalar import Scalar
 from ..julia.prelude import *
 from typing import List
 
+
 @dataclass(frozen=True)
 class Shape(ToJulia):
     """

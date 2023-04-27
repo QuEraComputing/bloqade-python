@@ -4,21 +4,25 @@ from .pulse import PulseExpr
 from .scalar import Interval
 from typing import List
 from ..julia.prelude import *
-from juliacall import AnyValue # type: ignore
+from juliacall import AnyValue  # type: ignore
+
 
 @dataclass(frozen=True)
 class LevelCoupling(ToJulia):
     pass
+
 
 @dataclass(frozen=True)
 class Rydberg(LevelCoupling):
     def julia(self):
         return IRTypes.Rydberg
 
+
 @dataclass(frozen=True)
 class Hyperfine(LevelCoupling):
     def julia(self):
         return IRTypes.Hyperfine
+
 
 @dataclass(frozen=True)
 class SequenceExpr(ToJulia):
@@ -30,9 +34,8 @@ class Append(SequenceExpr):
     value: List[SequenceExpr]
 
     def julia(self) -> AnyValue:
-        return IRTypes.SequenceLang.Append(
-            Vector[IRTypes.SequenceLang](self.value)
-        )
+        return IRTypes.SequenceLang.Append(Vector[IRTypes.SequenceLang](self.value))
+
 
 @dataclass(frozen=True)
 class Sequence(SequenceExpr):
@@ -42,6 +45,7 @@ class Sequence(SequenceExpr):
         return IRTypes.SequenceLang.Sequence(
             Dict[IRTypes.LevelCoupling, IRTypes.PulseLang](self.value)
         )
+
 
 @dataclass(frozen=True)
 class NamedSequence(SequenceExpr):
