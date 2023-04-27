@@ -8,7 +8,7 @@ If you want to setup locally for development, you can just cloning the repositor
 environment with [pdm](https://pdm.fming.dev/latest/).
 
 ```sh
-poetry install
+pdm install
 ```
 
 ## Current Issues: The latency of the Python SDK is too large
