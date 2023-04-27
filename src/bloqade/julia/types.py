@@ -3,11 +3,13 @@ from typing import TypeVar, List, Dict, Any
 from dataclasses import dataclass
 from .to_julia import ToJulia
 
-PythonCall = Main.seval('PythonCall')
+PythonCall = Main.seval("PythonCall")
+
 
 @dataclass(frozen=True)
 class JLTypeVar:
     name: str
+
 
 class JLType:
     """Superclass for all Julia types."""
@@ -34,16 +36,14 @@ class JLType:
 
     def __getitem__(self, *typeparams: Any) -> Any:
         return JLType(self.expr, *typeparams)
-    
     def __repr__(self) -> str:
         repr = self.expr
         if self.typeparams:
-            repr += '[' + ','.join(map(str, self.typeparams)) + ']'
+            repr += "[" + ",".join(map(str, self.typeparams)) + "]"
         return repr
 
 
 class JLVectorType(JLType):
-
     def __init__(self, expr, *typeparams) -> None:
         super().__init__(expr, *typeparams)
 
@@ -70,10 +70,10 @@ class JLDictType(JLType):
         for k, v in x.items():
             ret[k.julia()] = v.julia()
         return ret
-    
     def __getitem__(self, *typeparams: Any) -> Any:
         assert len(self.typeparams) + len(typeparams) == 2
         return JLDictType(self.expr, *typeparams)
+
 
 Int32 = JLType("Int32")
 Int64 = JLType("Int64")

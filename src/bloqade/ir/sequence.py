@@ -21,6 +21,7 @@ class Hyperfine(LevelCoupling):
     def julia(self):
         return IRTypes.Hyperfine
 
+
 @dataclass(frozen=True)
 class SequenceExpr(ToJulia):
     pass
@@ -31,9 +32,8 @@ class Append(SequenceExpr):
     value: List[SequenceExpr]
 
     def julia(self) -> AnyValue:
-        return IRTypes.SequenceLang.Append(
-            Vector[IRTypes.SequenceLang](self.value)
-        )
+        return IRTypes.SequenceLang.Append(Vector[IRTypes.SequenceLang](self.value))
+
 
 @dataclass(frozen=True)
 class Sequence(SequenceExpr):
@@ -43,6 +43,7 @@ class Sequence(SequenceExpr):
         return IRTypes.SequenceLang.Sequence(
             Dict[IRTypes.LevelCoupling, IRTypes.PulseLang](self.value)
         )
+
 
 @dataclass(frozen=True)
 class NamedSequence(SequenceExpr):
