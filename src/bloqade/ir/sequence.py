@@ -11,10 +11,12 @@ from juliacall import AnyValue  # type: ignore
 class LevelCoupling(ToJulia):
     pass
 
+
 @dataclass(frozen=True)
 class Rydberg(LevelCoupling):
     def julia(self):
         return IRTypes.Rydberg
+
 
 @dataclass(frozen=True)
 class Hyperfine(LevelCoupling):

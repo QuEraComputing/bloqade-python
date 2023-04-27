@@ -36,6 +36,7 @@ class JLType:
 
     def __getitem__(self, *typeparams: Any) -> Any:
         return JLType(self.expr, *typeparams)
+
     def __repr__(self) -> str:
         repr = self.expr
         if self.typeparams:
@@ -85,5 +86,5 @@ ComplexF64 = JLType("ComplexF64")
 String = JLType("String")
 Bool = JLType("Bool")
 Symbol = JLType("Symbol")
-Vector = JLVectorType('Vector')
+Vector = JLVectorType("Vector")
 Dict = JLDictType("Dict")
