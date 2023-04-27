@@ -7,6 +7,7 @@ from bloqade.julia.prelude import *
 from bloqade.hardware.to_quera import TimeSeriesType
 
 
+
 @dataclass(frozen=True)
 class Waveform:
     """

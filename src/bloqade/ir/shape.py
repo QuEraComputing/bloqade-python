@@ -6,7 +6,7 @@ from bloqade.julia.prelude import *
 
 
 @dataclass(frozen=True)
-class Shape(ToJulia, ToTimeSeries):
+class Shape(ToJulia):
     """
     <shape> ::= <linear shape>
       | <constant shape>

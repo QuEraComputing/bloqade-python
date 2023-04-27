@@ -10,17 +10,21 @@ from quera_ahs_utils.quera_ir.task_specification import GlobalField, LocalField
 class FieldName(ToJulia):
     pass
 
+
 class RabiFrequencyAmplitude(FieldName):
     def julia(self) -> AnyValue:
         return IRTypes.RabiFrequencyAmplitude
-    
+
+
 class RabiFrequencyPhase(FieldName):
     def julia(self) -> AnyValue:
         return IRTypes.RabiFrequencyPhase
 
+
 class Detuning(FieldName):
     def julia(self) -> AnyValue:
         return IRTypes.Detuning
+
 
 @dataclass(frozen=True)
 class Location(ToJulia):
@@ -29,6 +33,7 @@ class Location(ToJulia):
     def julia(self) -> AnyValue:
         return Int64(self.value)
 
+
 @dataclass(frozen=True)
 class SpatialModulation(ToJulia):
     pass
@@ -36,7 +41,6 @@ class SpatialModulation(ToJulia):
 
 @dataclass(frozen=True)
 class Global(SpatialModulation):
-    
     def julia(self) -> AnyValue:
         return IRTypes.Global
 
@@ -48,6 +52,7 @@ class RunTimeVector(SpatialModulation):
     def julia(self) -> AnyValue:
         return IRTypes.RuntimeVector(Symbol(self.name))
 
+
 @dataclass(frozen=True)
 class ScaledLocations(SpatialModulation):
     value: dict[Location, Scalar]
@@ -56,6 +61,7 @@ class ScaledLocations(SpatialModulation):
         return IRTypes.ScaledLocations(
             Dict[IRTypes.Location, IRTypes.ScalarLang](self.value)
         )
+
 
 @dataclass(frozen=True)
 class Field(ToJulia):

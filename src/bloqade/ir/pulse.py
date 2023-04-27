@@ -6,6 +6,7 @@ from bloqade.julia.prelude import *
 
 from pydantic.dataclasses import dataclass
 
+
 @dataclass(frozen=True)
 class Pulse:
     """
