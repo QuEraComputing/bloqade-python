@@ -1,9 +1,10 @@
 from pydantic.dataclasses import dataclass
+from src.bloqade.ir.field import RabiFrequencyPhase
 from .scalar import Scalar
-from .waveform import Waveform
+from .waveform import piecewise_linear, Waveform
 from ..julia.prelude import *
 from enum import Enum
-
+from quera_ahs_utils.quera_ir.task_specification import GlobalField, LocalField
 
 @dataclass(frozen=True)
 class FieldName(ToJulia):
@@ -68,3 +69,58 @@ class Field(ToJulia):
         return IRTypes.FieldLang.Field(
             Dict[IRTypes.SpatialModulation, IRTypes.WaveformLang](self.value)
         )
+    
+    def quera(
+        self,
+        field_name: FieldName, 
+        **kwargs
+    ) -> Union[GlobalField, LocalField]:
+        
+        match field_name:
+            case RabiFrequencyAmplitude():
+                # checks
+                if len(self.values) > 1: 
+                    raise TypeError
+                
+                if not Global in self.values:
+                    raise TypeError
+                
+                waveform, = self.values.values()
+                times, values = waveform.piecewise_linear(**kwargs)
+                
+                return GlobalField(
+                    times = times,
+                    values = values
+                )
+                
+            case RabiFrequencyPhase():
+                # checks
+                if len(self.values) > 1: 
+                    raise TypeError
+                
+                if not Global in self.values:
+                    raise TypeError
+                
+                waveform, = self.values.values()
+                times, values = waveform.piecewise_constant(**kwargs)
+                
+                return GlobalField(
+                    times = times,
+                    values = values
+                )
+            
+            case Detuning():
+                # checks
+                if len(self.values) > 1: 
+                    raise TypeError
+                
+                if not Global in self.values:
+                    raise TypeError
+                
+                waveform, = self.values.values()
+                times, values = waveform.piecewise_linear(**kwargs)
+                
+                return GlobalField(
+                    times = times,
+                    values = values
+                )

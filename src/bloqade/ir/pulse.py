@@ -5,7 +5,7 @@ from typing import List
 from ..julia.prelude import *
 
 @dataclass(frozen=True)
-class PulseExpr:
+class Pulse:
     """
     <expr> ::= <pulse>
       | <append>
@@ -13,42 +13,42 @@ class PulseExpr:
       | <named>
     """
 
-    def append(self, other: "PulseExpr") -> "PulseExpr":
-        return PulseExpr.canonicalize(Append([self, other]))
+    def append(self, other: "Pulse") -> "Pulse":
+        return Pulse.canonicalize(Append([self, other]))
 
-    def slice(self, interval: Interval) -> "PulseExpr":
-        return PulseExpr.canonicalize(Slice(self, interval))
+    def slice(self, interval: Interval) -> "Pulse":
+        return Pulse.canonicalize(Slice(self, interval))
 
     @staticmethod
-    def canonicalize(expr: "PulseExpr") -> "PulseExpr":
+    def canonicalize(expr: "Pulse") -> "Pulse":
         return expr
 
 
 @dataclass(frozen=True)
-class Append(PulseExpr):
+class Append(Pulse):
     """
     <append> ::= <expr>+
     """
 
-    value: List[PulseExpr]
+    value: List[Pulse]
 
 
 @dataclass(frozen=True)
-class Pulse(PulseExpr):
+class Instruction(Pulse):
     """
     <pulse> ::= (<field name> <field>)+
     """
 
     value: dict[FieldName, Field]
-
+        
 
 @dataclass(frozen=True)
-class NamedPulse(PulseExpr):
+class NamedPulse(Pulse):
     name: str
-    pulse: PulseExpr
+    pulse: Pulse
 
 
 @dataclass(frozen=True)
-class Slice(PulseExpr):
-    pulse: PulseExpr
+class Slice(Pulse):
+    pulse: Pulse
     interval: Interval

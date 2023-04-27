@@ -1,6 +1,6 @@
 from pydantic.dataclasses import dataclass
 from enum import Enum
-from .pulse import PulseExpr
+from .pulse import Pulse
 from .scalar import Interval
 from typing import List
 from ..julia.prelude import *
@@ -21,13 +21,13 @@ class Hyperfine(LevelCoupling):
         return IRTypes.Hyperfine
 
 @dataclass(frozen=True)
-class SequenceExpr(ToJulia):
+class Sequence(ToJulia):
     pass
 
 
 @dataclass(frozen=True)
-class Append(SequenceExpr):
-    value: List[SequenceExpr]
+class Append(Sequence):
+    value: List[Sequence]
 
     def julia(self) -> AnyValue:
         return IRTypes.SequenceLang.Append(
@@ -35,17 +35,17 @@ class Append(SequenceExpr):
         )
 
 @dataclass(frozen=True)
-class Sequence(SequenceExpr):
-    value: dict[LevelCoupling, PulseExpr]
+class Instruction(Sequence):
+    value: dict[LevelCoupling, Pulse]
 
     def julia(self) -> AnyValue:
-        return IRTypes.SequenceLang.Sequence(
+        return IRTypes.SequenceLang.Instruction(
             Dict[IRTypes.LevelCoupling, IRTypes.PulseLang](self.value)
         )
 
 @dataclass(frozen=True)
-class NamedSequence(SequenceExpr):
-    sequence: SequenceExpr
+class NamedSequence(Sequence):
+    sequence: Sequence
     name: str
 
     def julia(self) -> AnyValue:
@@ -56,8 +56,8 @@ class NamedSequence(SequenceExpr):
 
 
 @dataclass(frozen=True)
-class Slice(SequenceExpr):
-    sequence: SequenceExpr
+class Slice(Sequence):
+    sequence: Sequence
     interval: Interval
 
     def julia(self) -> AnyValue:

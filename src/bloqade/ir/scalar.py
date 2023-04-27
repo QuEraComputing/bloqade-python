@@ -28,6 +28,9 @@ class Scalar(ToJulia):
     <real> ::= <literal> | <var>
     ```
     """
+    
+    def __call__(self,**variable_reference):
+        return NotImplemented
 
     def __add__(self, other: "Scalar") -> "Scalar":
         expr = Add(lhs=self, rhs=other)
