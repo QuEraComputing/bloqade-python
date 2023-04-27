@@ -4,7 +4,8 @@ from .pulse import PulseExpr
 from .scalar import Interval
 from typing import List
 from ..julia.prelude import *
-from juliacall import AnyValue # type: ignore
+from juliacall import AnyValue  # type: ignore
+
 
 @dataclass(frozen=True)
 class LevelCoupling(ToJulia):
