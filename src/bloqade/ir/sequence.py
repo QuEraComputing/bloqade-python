@@ -1,9 +1,10 @@
+from bloqade.julia.prelude import *
+from bloqade.ir.pulse import Pulse
+from bloqade.ir.scalar import Interval
+
 from pydantic.dataclasses import dataclass
 from enum import Enum
-from .pulse import Pulse
-from .scalar import Interval
 from typing import List
-from ..julia.prelude import *
 from juliacall import AnyValue # type: ignore
 
 @dataclass(frozen=True)

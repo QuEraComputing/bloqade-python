@@ -65,17 +65,6 @@ class Instruction(Waveform):
     shape: Shape
     duration: Scalar
     
-    def piecewise_linear(self, **kwargs):
-        values = self.shape.piecewise_linear(**kwargs)
-        times = [0.0, self.duration.eval(**kwargs)]
-        
-        return times, values
-
-    def piecewise_constant(self, **kwargs):
-        values = self.shape.piecewise_constant(**kwargs)
-        times = [0.0, self.duration.eval(**kwargs)]
-        
-        return times, values
 
 @dataclass(frozen=True)
 class Smooth(Waveform):
@@ -104,7 +93,6 @@ class Append(Waveform):
     """
 
     waveforms: List[Waveform]
-
 
 @dataclass(frozen=True)
 class Negative(Waveform):

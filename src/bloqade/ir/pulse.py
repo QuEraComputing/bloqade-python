@@ -1,8 +1,10 @@
-from pydantic.dataclasses import dataclass
-from .scalar import Interval
-from .field import Field, FieldName
+import bloqade.ir.scalar as scalar
+from bloqade.ir.scalar import Interval
+from bloqade.ir.field import Field, FieldName, RabiFrequencyAmplitude, RabiFrequencyPhase, Detuning
 from typing import List
-from ..julia.prelude import *
+from bloqade.julia.prelude import *
+
+from pydantic.dataclasses import dataclass
 
 @dataclass(frozen=True)
 class Pulse:
@@ -21,6 +23,7 @@ class Pulse:
 
     @staticmethod
     def canonicalize(expr: "Pulse") -> "Pulse":
+        # TODO: update canonicalization rules for appending pulses
         return expr
 
 
