@@ -5,11 +5,21 @@ from ..julia.prelude import *
 from enum import Enum
 
 
-class FieldName(str, Enum, ToJulia):
-    RabiFrequencyAmplitude = "rabi_frequency_amplitude"
-    RabiFrequencyPhase = "rabi_frequency_phase"
-    Detuning = "detuning"
+@dataclass(frozen=True)
+class FieldName(ToJulia):
+    pass
 
+class RabiFrequencyAmplitude(FieldName):
+    def julia(self) -> AnyValue:
+        return IRTypes.RabiFrequencyAmplitude
+    
+class RabiFrequencyPhase(FieldName):
+    def julia(self) -> AnyValue:
+        return IRTypes.RabiFrequencyPhase
+
+class Detuning(FieldName):
+    def julia(self) -> AnyValue:
+        return IRTypes.Detuning
 
 @dataclass(frozen=True)
 class Location(ToJulia):
