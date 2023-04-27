@@ -1,0 +1,11 @@
+{
+    "julia": "1.8",
+    "packages": {
+        "BloqadePulses": {
+            "uuid": "0de71646-f3a7-4d06-84bf-5571f5bdaff0",
+            "version": "0.1",
+            "path": "../../..",
+            "dev": true
+        }
+    }
+}
