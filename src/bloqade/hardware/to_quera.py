@@ -1,4 +1,6 @@
 from enum import Enum
+from bloqade.ir.field import FieldName
+from typing import Dict, Optional
 
 class TimeSeriesType(str, Enum):
     PiecewiseLinear = "piecewise_linear"
@@ -6,6 +8,6 @@ class TimeSeriesType(str, Enum):
     
 
 class ToQuEra:
-
-    def quera(self, *args, **kwargs):
-        return NotImplemented
+    
+    def quera(self):
+        raise NotImplementedError(f"QuEra AHS feature doesn't support {self.__class__}")
