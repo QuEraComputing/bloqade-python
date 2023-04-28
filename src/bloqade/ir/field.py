@@ -1,8 +1,10 @@
 from pydantic.dataclasses import dataclass
+from src.bloqade.ir.field import RabiFrequencyPhase
 from .scalar import Scalar
-from .waveform import Waveform
+from .waveform import piecewise_linear, Waveform
 from ..julia.prelude import *
 from enum import Enum
+from quera_ahs_utils.quera_ir.task_specification import GlobalField, LocalField
 
 
 @dataclass(frozen=True)
