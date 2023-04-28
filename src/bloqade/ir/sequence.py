@@ -6,7 +6,6 @@ from enum import Enum
 from typing import List
 
 
-@dataclass(frozen=True)
 class LevelCoupling(str, Enum):
     Rydberg = "rydberg"
     Hyperfine = "hyperfine"
