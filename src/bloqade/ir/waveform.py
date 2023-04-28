@@ -152,7 +152,7 @@ class Poly(Instruction):
             # call clock_s on each element of the scalars,
             # then apply the proper powers
             for exponent, scalar_expr in enumerate(self.checkpoints):
-                value += scalar_expr(**kwargs) * clock_s^exponent
+                value += scalar_expr(**kwargs) * clock_s**exponent
 
             return value
     
