@@ -13,6 +13,11 @@ class Task:
 
     def submit(self, token=None) -> "TaskResult":
         # TODO: do a real task result
+        # 1. run the corresponding codegen
+        # 2. submit the codegen to the backend
+        # NOTE: this needs to be implemented separately for each backend
+        #       class, e.g the `submit` method for BraketTask, QuEraTask,
+        #       SimuTask
         return TaskResult()
 
 class BraketTask(Task):
@@ -41,6 +46,10 @@ class TaskResult:
         return TaskReport(self)
 
 
+# NOTE: this is only the basic report, we should provide
+#      a way to customize the report class, 
+#      e.g result.plot() returns a `TaskPlotReport` class instead
+
 class TaskReport:
 
     def __init__(self, result: TaskResult) -> None:
@@ -66,6 +75,9 @@ class TaskReport:
     def markdown(self) -> str:
         return self.dataframe.to_markdown()
 
+
+# NOTE: this is just a dummy type bundle geometry and sequence
+#       information together and forward them to backends.
 class Program:
 
     def __init__(self, lattice: "Lattice", seq: Sequence) -> None:
