@@ -1,8 +1,5 @@
 from pydantic.dataclasses import dataclass
 from pydantic import validator
-from typing import Self, Union
-
-PythonType = Union[int, float, bool, Self ]
 
 
 @dataclass(frozen=True)
@@ -183,8 +180,12 @@ class Variable(Real):
 
     @validator('name')
     def name_validator(cls, v):
-        if v == "config_file":
-            raise ValueError('"config_file" is a reserved token, cannot create variable with that name')
+        match v:
+            case "config_file":
+                raise ValueError(f'"{v}" is a reserved token, cannot create variable with that name')
+            case "clock_s":
+                raise ValueError(f'"{v}" is a reserved token, cannot create variable with that name')
+                
                 
         return v
         
