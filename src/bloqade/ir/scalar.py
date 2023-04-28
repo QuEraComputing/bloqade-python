@@ -1,4 +1,8 @@
 from pydantic.dataclasses import dataclass
+from pydantic import validator
+from typing import Self, Union
+
+PythonType = Union[int, float, bool, Self ]
 
 @dataclass(frozen=True)
 class Scalar:
@@ -176,6 +180,13 @@ class Variable(Real):
     def __repr__(self) -> str:
         return f"{self.name}"
 
+    @validator('name')
+    def name_validator(cls, v):
+        if v == "config_file":
+            raise ValueError('"config_file" is a reserved token, cannot create variable with that name')
+                
+        return v
+        
 
 @dataclass(frozen=True)
 class Negative(Scalar):
