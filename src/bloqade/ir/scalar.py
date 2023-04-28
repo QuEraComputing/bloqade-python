@@ -178,17 +178,20 @@ class Variable(Real):
     def __repr__(self) -> str:
         return f"{self.name}"
 
-    @validator('name')
+    @validator("name")
     def name_validator(cls, v):
         match v:
             case "config_file":
-                raise ValueError(f'"{v}" is a reserved token, cannot create variable with that name')
+                raise ValueError(
+                    f'"{v}" is a reserved token, cannot create variable with that name'
+                )
             case "clock_s":
-                raise ValueError(f'"{v}" is a reserved token, cannot create variable with that name')
-                
-                
+                raise ValueError(
+                    f'"{v}" is a reserved token, cannot create variable with that name'
+                )
+
         return v
-        
+
 
 @dataclass(frozen=True)
 class Negative(Scalar):

@@ -3,13 +3,16 @@ from typing import Any, Union, List
 from enum import Enum
 from bloqade.ir.scalar import Scalar, Interval, cast
 
+
 class AlignedValue(str, Enum):
     Left = "left_value"
     Right = "right_value"
 
+
 class Alignment(str, Enum):
     Left = "left_aligned"
     Right = "right_aligned"
+
 
 @dataclass(frozen=True)
 class Waveform:
@@ -25,14 +28,13 @@ class Waveform:
 
     def __call__(self, clock_s: float, **kwargs) -> Any:
         raise NotImplementedError
-    
+
     def add(self, other: "Waveform") -> "Waveform":
         return self.canonicalize(Add(self, other))
-    
-    def align(self,
-            alignment: Alignment,
-            value: Union[None, AlignedValue, Scalar] = None
-        ) -> "Waveform":
+
+    def align(
+        self, alignment: Alignment, value: Union[None, AlignedValue, Scalar] = None
+    ) -> "Waveform":
         if value is None:
             if alignment == Alignment.Left:
                 value = AlignedValue.Left
@@ -42,9 +44,9 @@ class Waveform:
                 raise ValueError(f"Invalid alignment: {alignment}")
         return self.canonicalize(AlignedWaveform(self, alignment, value))
 
-    def smooth(self, kernel: str = 'gaussian') -> "Waveform":
+    def smooth(self, kernel: str = "gaussian") -> "Waveform":
         return self.canonicalize(Smooth(kernel, self))
-    
+
     # def duration(self) -> Scalar:
     #     pass
 
@@ -90,6 +92,7 @@ class AlignedWaveform(Waveform):
 @dataclass(frozen=True)
 class Instruction(Waveform):
     duration: Scalar
+
 
 @dataclass(frozen=True)
 class Linear(Instruction):
