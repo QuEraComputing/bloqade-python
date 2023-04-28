@@ -1,5 +1,5 @@
 from pydantic.dataclasses import dataclass
-from typing import List
+from typing import Any, List
 
 from bloqade.ir.scalar import Scalar
 
@@ -12,7 +12,8 @@ class Shape:
       | <poly>
     """
 
-    pass
+    def __call__(self, t: float) -> float:
+        raise NotImplementedError
 
 
 @dataclass(frozen=True)
