@@ -1,10 +1,10 @@
 from pydantic.dataclasses import dataclass
-from ..julia import IRTypes, ToJulia
-from juliacall import AnyValue  # type: ignore
+from typing import Self, Union
 
+PythonType = Union[int, float, bool, Self ]
 
 @dataclass(frozen=True)
-class Scalar(ToJulia):
+class Scalar:
     """Base class for all scalar expressions.
 
     ```bnf
@@ -29,15 +29,38 @@ class Scalar(ToJulia):
     ```
     """
 
-    def __call__(self, **variable_reference):
-        return NotImplemented
+    def __call__(self, **kwargs):
+        match self:
+            case Literal(value):
+                return value
+            case Variable(name):
+                return kwargs[name]
+            case Negative(expr):
+                return -expr(**kwargs)
+            case Add(lhs, rhs):
+                return lhs(**kwargs) + rhs(**kwargs)
+            case Mul(lhs, rhs):
+                return lhs(**kwargs) * rhs(**kwargs)
+            case Div(lhs, rhs):
+                return lhs(**kwargs) / rhs(**kwargs)
+            case Min(exprs):
+                return min(map(lambda expr: expr(**kwargs), exprs))
+            case Max(exprs):
+                return max(map(lambda expr: expr(**kwargs), exprs))
+            case Slice(expr, Interval(start, end)):
+                ret = end - start
+                ret <= expr(**kwargs)
+                return ret
+            case _:
+                raise Exception(f"Unknown scalar expression: {self} ({type(self)})")
+
 
     def __add__(self, other: "Scalar") -> "Scalar":
         expr = Add(lhs=self, rhs=other)
         return Scalar.canonicalize(expr)
 
     def __sub__(self, other: "Scalar") -> "Scalar":
-        expr = Add(lhs=self, rhs=-other)
+        expr = Add(lhs=self, rhs=-cast(other))
         return Scalar.canonicalize(expr)
 
     def __mul__(self, other: "Scalar") -> "Scalar":
@@ -47,12 +70,28 @@ class Scalar(ToJulia):
     def __neg__(self) -> "Scalar":
         return Scalar.canonicalize(Negative(self))
 
-    def min(self, other: "Scalar") -> "Scalar":
-        expr = Min(exprs=frozenset({self, other}))
+    def add(self, other: PythonType) -> Self:
+        expr = Add(lhs=self, rhs=cast(other))
         return Scalar.canonicalize(expr)
 
-    def max(self, other: "Scalar") -> "Scalar":
-        expr = Max(exprs=frozenset({self, other}))
+    def sub(self, other: PythonType) -> Self:
+        expr = Add(lhs=self, rhs=-cast(other))
+        return Scalar.canonicalize(expr)
+
+    def mul(self, other: PythonType) -> Self:
+        expr = Mul(lhs=self, rhs=cast(other))
+        return Scalar.canonicalize(expr)
+
+    def div(self, other: PythonType) -> Self:
+        expr = Div(lhs=self, rhs=cast(other))
+        return Scalar.canonicalize(expr)
+
+    def min(self, other: PythonType) -> "Scalar":
+        expr = Min(exprs=frozenset({self, cast(other)}))
+        return Scalar.canonicalize(expr)
+
+    def max(self, other: PythonType) -> "Scalar":
+        expr = Max(exprs=frozenset({self, cast(other)}))
         return Scalar.canonicalize(expr)
 
     @staticmethod
@@ -105,6 +144,17 @@ class Scalar(ToJulia):
                 return expr
 
 
+def cast(py) -> Scalar:
+    match py:
+        case int(x) | float(x) | bool(x):
+            return Literal(x)
+        case str(x):
+            return Variable(x)
+        case Scalar(x):
+            return x
+        case _:
+            raise TypeError(f"Cannot cast {py} to Scalar")
+
 class Real(Scalar):
     """Base class for all real expressions."""
 
@@ -118,9 +168,6 @@ class Literal(Real):
     def __repr__(self) -> str:
         return f"{self.value}"
 
-    def julia(self) -> AnyValue:
-        return IRTypes.Scalar(IRTypes.Literal(self.value))
-
 
 @dataclass(frozen=True)
 class Variable(Real):
@@ -128,9 +175,6 @@ class Variable(Real):
 
     def __repr__(self) -> str:
         return f"{self.name}"
-
-    def julia(self) -> AnyValue:
-        return IRTypes.Scalar(IRTypes.Variable(IRTypes.Symbol(self.name)))
 
 
 @dataclass(frozen=True)
@@ -140,25 +184,19 @@ class Negative(Scalar):
     def __repr__(self) -> str:
         return f"-{self.expr}"
 
-    def julia(self) -> AnyValue:
-        return IRTypes.Negative(self.expr.julia())
-
 
 @dataclass(frozen=True)
-class Interval(Scalar):
+class Interval:
     start: Scalar
     end: Scalar
 
     def __repr__(self) -> str:
         return f"{self.start}..{self.end}"
 
-    def julia(self):
-        return IRTypes.Interval(self.start.julia(), self.end.julia())
-
 
 @dataclass(frozen=True)
 class Slice(Scalar):
-    expr: Scalar
+    expr: Scalar # duration
     interval: Interval
 
     def __repr__(self) -> str:
@@ -173,9 +211,6 @@ class Add(Scalar):
     def __repr__(self) -> str:
         return f"{self.lhs} + {self.rhs}"
 
-    def julia(self) -> AnyValue:
-        return IRTypes.Add(self.lhs.julia(), self.rhs.julia())
-
 
 @dataclass(frozen=True)
 class Mul(Scalar):
@@ -185,6 +220,13 @@ class Mul(Scalar):
     def __repr__(self) -> str:
         return f"{self.lhs} * {self.rhs}"
 
+@dataclass(frozen=True)
+class Div(Scalar):
+    lhs: Scalar
+    rhs: Scalar
+
+    def __repr__(self) -> str:
+        return f"{self.lhs} / {self.rhs}"
 
 @dataclass(frozen=True)
 class Min(Scalar):
