@@ -6,7 +6,6 @@ __all__ = [
     "Interval",
     "Variable",
     "Literal",
-    "Shape",
     "Linear",
     "Constant",
     "Poly",

@@ -200,11 +200,19 @@ class Negative(Scalar):
 
 @dataclass(frozen=True)
 class Interval:
-    start: Scalar
-    end: Scalar
+    start: Scalar | None
+    end: Scalar | None
 
     def __repr__(self) -> str:
-        return f"{self.start}..{self.end}"
+        match (self.start, self.end):
+            case (None, None):
+                raise ValueError("Interval must have at least one bound")
+            case (None, end):
+                return f":{end}"
+            case (start, None):
+                return f"{start}:"
+            case (start, end):
+                return f"{self.start}:{self.end}"
 
 
 @dataclass(frozen=True)
