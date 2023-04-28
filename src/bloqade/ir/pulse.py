@@ -3,13 +3,8 @@ from bloqade.ir.scalar import Interval
 from bloqade.ir.field import (
     Field,
     FieldName,
-    RabiFrequencyAmplitude,
-    RabiFrequencyPhase,
-    Detuning,
 )
 from typing import List
-from bloqade.julia.prelude import *
-
 from pydantic.dataclasses import dataclass
 
 

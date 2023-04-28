@@ -2,11 +2,10 @@ from pydantic.dataclasses import dataclass
 from typing import List
 
 from bloqade.ir.scalar import Scalar
-from bloqade.julia.prelude import *
 
 
 @dataclass(frozen=True)
-class Shape(ToJulia):
+class Shape:
     """
     <shape> ::= <linear shape>
       | <constant shape>
@@ -25,9 +24,6 @@ class Linear(Shape):
     start: Scalar
     stop: Scalar
 
-    def julia(self):
-        return IRTypes.Linear(self.start.julia(), self.stop.julia())
-
 
 @dataclass(frozen=True)
 class Constant(Shape):
@@ -37,9 +33,6 @@ class Constant(Shape):
 
     value: Scalar
 
-    def julia(self):
-        return IRTypes.Constant(self.value.julia())
-
 
 @dataclass(frozen=True)
 class Poly(Shape):
@@ -48,6 +41,3 @@ class Poly(Shape):
     """
 
     checkpoints: List[Scalar]
-
-    def julia(self):
-        return IRTypes.Poly(Vector[IRTypes.ScalarLang](self.checkpoints))

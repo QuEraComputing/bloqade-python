@@ -3,7 +3,6 @@ from typing import Union, List, Tuple
 from enum import Enum
 from bloqade.ir.shape import Shape
 from bloqade.ir.scalar import Scalar, Interval
-from bloqade.julia.prelude import *
 from bloqade.hardware.to_quera import TimeSeriesType
 
 
