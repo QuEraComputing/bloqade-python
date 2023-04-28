@@ -58,12 +58,35 @@ class AlignedWaveform(Waveform):
 
 @dataclass(frozen=True)
 class Instruction(Waveform):
+    duration: Scalar
+
+
+@dataclass(frozen=True)
+class Linear(Instruction):
     """
-    <instruction> ::= <shape> <scalar expr>
+    <linear> ::= 'linear' <scalar expr> <scalar expr>
     """
 
-    shape: Shape
-    duration: Scalar
+    start: Scalar
+    stop: Scalar
+
+
+@dataclass(frozen=True)
+class Constant(Instruction):
+    """
+    <constant> ::= 'constant' <scalar expr> <scalar expr>
+    """
+
+    value: Scalar
+
+
+@dataclass(frozen=True)
+class Poly(Instruction):
+    """
+    <poly> ::= <scalar>+
+    """
+
+    checkpoints: List[Scalar]
 
 
 @dataclass(frozen=True)

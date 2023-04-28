@@ -5,6 +5,7 @@ from pydantic.dataclasses import dataclass
 from enum import Enum
 from typing import List
 
+
 @dataclass(frozen=True)
 class LevelCoupling:
     pass
