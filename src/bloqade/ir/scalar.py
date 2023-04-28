@@ -215,6 +215,26 @@ class Interval:
     start: Scalar | None
     stop: Scalar | None
 
+    @staticmethod
+    def from_slice(s: slice) -> "Interval":
+        match s:
+            case slice(start=None, stop=None, step=None):
+                raise ValueError("Slice must have at least one argument")
+            case slice(start=None, stop=None, step=_):
+                raise ValueError("Slice step must be None")
+            case slice(start=None, stop=stop, step=None):
+                return Interval(None, cast(stop))
+            case slice(start=None, stop=stop, step=_):
+                raise ValueError("Slice step must be None")
+            case slice(start=start, stop=None, step=None):
+                return Interval(cast(start), None)
+            case slice(start=start, stop=None, step=_):
+                raise ValueError("Slice step must be None")
+            case slice(start=start, stop=stop, step=None):
+                return Interval(cast(start), cast(stop))
+            case slice(start=start, stop=stop, step=_):
+                raise ValueError("Slice step must be None")
+
     def __repr__(self) -> str:
         match (self.start, self.stop):
             case (None, None):

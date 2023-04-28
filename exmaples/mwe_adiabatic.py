@@ -17,33 +17,33 @@ anneal_time = cast("anneal_time")
 zero = cast(0.0)
 
 # syntax options
-detuning_wf = wf.Instruction(Constant(initial_detuning), up_time)\
+detuning_wf = wf.Sequence(Constant(initial_detuning), up_time)\
     .append(
-        wf.Instruction(Linear(initial_detuning, final_detuning), anneal_time)
+        wf.Sequence(Linear(initial_detuning, final_detuning), anneal_time)
     )\
     .append(
-        wf.Instruction(Constant(final_detuning), up_time)
+        wf.Sequence(Constant(final_detuning), up_time)
     )
 
 wf.concatenate(
     [
-        wf.Instruction(Constant(initial_detuning), up_time),
-        wf.Instruction(Linear(initial_detuning, final_detuning), anneal_time),
-        wf.Instruction(Constant(final_detuning), up_time)
+        wf.Sequence(Constant(initial_detuning), up_time),
+        wf.Sequence(Linear(initial_detuning, final_detuning), anneal_time),
+        wf.Sequence(Constant(final_detuning), up_time)
     ]
 )
 
-detuning_wf = wf.Instruction(Constant(initial_detuning), up_time)\
+detuning_wf = wf.Sequence(Constant(initial_detuning), up_time)\
     .extend([
-        wf.Instruction(Linear(initial_detuning, final_detuning), anneal_time),
-        wf.Instruction(Constant(final_detuning), up_time)
+        wf.Sequence(Linear(initial_detuning, final_detuning), anneal_time),
+        wf.Sequence(Constant(final_detuning), up_time)
     ])
 
 rabi_wf = wf.concatenate(
     [
-        wf.Instruction(Linear(zero, rabi_amplitude_max), up_time),
-        wf.Instruction(Constant(rabi_amplitude_max, rabi_amplitude_max), anneal_time),
-         wf.Instruction(Linear(rabi_amplitude_max, zero), up_time)
+        wf.Sequence(Linear(zero, rabi_amplitude_max), up_time),
+        wf.Sequence(Constant(rabi_amplitude_max, rabi_amplitude_max), anneal_time),
+         wf.Sequence(Linear(rabi_amplitude_max, zero), up_time)
     ]
 )
     
@@ -58,7 +58,7 @@ adiabatic_pulse = pulse.Instruction(
         }
     )
 
-adiabatic_sequence = sequence.Instruction(
+adiabatic_sequence = sequence.Sequence(
     Rydberg: adiabatic_pulse
 )
 

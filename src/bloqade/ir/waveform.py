@@ -62,24 +62,7 @@ class Waveform:
         return self.canonicalize(Negative(self))
 
     def __getitem__(self, s: slice) -> "Waveform":
-        match s:
-            case slice(start=None, stop=None, step=None):
-                raise ValueError("Slice must have at least one argument")
-            case slice(start=None, stop=None, step=_):
-                raise ValueError("Slice step must be None")
-            case slice(start=None, stop=stop, step=None):
-                expr = Slice(self, Interval(None, cast(stop)))
-            case slice(start=None, stop=stop, step=_):
-                raise ValueError("Slice step must be None")
-            case slice(start=start, stop=None, step=None):
-                expr = Slice(self, Interval(cast(start), None))
-            case slice(start=start, stop=None, step=_):
-                raise ValueError("Slice step must be None")
-            case slice(start=start, stop=stop, step=None):
-                expr = Slice(self, Interval(cast(start), cast(stop)))
-            case slice(start=start, stop=stop, step=_):
-                raise ValueError("Slice step must be None")
-        return self.canonicalize(expr)
+        return self.canonicalize(Slice(self, Interval.from_slice(s)))
 
     @property
     def duration(self) -> Scalar:
@@ -87,7 +70,7 @@ class Waveform:
             return self._duration
 
         match self:
-            case Instruction(duration=duration):
+            case Sequence(duration=duration):
                 self._duration = duration
             case AlignedWaveform(waveform=waveform, alignment=_, value=_):
                 self._duration =  waveform.duration()
@@ -125,12 +108,12 @@ class AlignedWaveform(Waveform):
 
 
 @dataclass
-class Instruction(Waveform):
+class Sequence(Waveform):
     pass
 
 
 @dataclass(init=False)
-class Linear(Instruction):
+class Linear(Sequence):
     """
     <linear> ::= 'linear' <scalar expr> <scalar expr>
     """
@@ -158,7 +141,7 @@ class Linear(Instruction):
 
 
 @dataclass(init=False)
-class Constant(Instruction):
+class Constant(Sequence):
     """
     <constant> ::= 'constant' <scalar expr>
     """
@@ -182,7 +165,7 @@ class Constant(Instruction):
 
 
 @dataclass(init=False)
-class Poly(Instruction):
+class Poly(Sequence):
     """
     <poly> ::= <scalar>+
     """
