@@ -6,6 +6,7 @@ from ..julia.prelude import *
 from enum import Enum
 from quera_ahs_utils.quera_ir.task_specification import GlobalField, LocalField
 
+
 @dataclass(frozen=True)
 class FieldName(ToJulia):
     pass

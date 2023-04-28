@@ -12,7 +12,7 @@ class Shape(ToJulia):
       | <constant shape>
       | <poly>
     """
-    
+
     pass
 
 

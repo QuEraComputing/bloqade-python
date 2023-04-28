@@ -29,10 +29,10 @@ class JLType:
 
     def __call__(self, x) -> Any:
         if self.typeparams:
-            type = self.obj[*self.typeparams]
+            jl_type = self.obj[*self.typeparams]
         else:
-            type = self.obj
-        return PythonCall.pyconvert(type, x)
+            jl_type = self.obj
+        return PythonCall.pyconvert(jl_type, x)
 
     def __getitem__(self, *typeparams: Any) -> Any:
         return JLType(self.expr, *typeparams)
@@ -60,10 +60,11 @@ class JLVectorType(JLType):
         assert self.typeparams == []
         return JLVectorType(*typeparams)
 
-class JLDictType(JLType):
 
+class JLDictType(JLType):
     def __init__(self, expr, *typeparams) -> None:
         super().__init__(expr, *typeparams)
+
     def __call__(self, x: Dict[ToJulia, ToJulia]) -> Any:
         type = self.obj[*self.typeparams]
         ret = type()

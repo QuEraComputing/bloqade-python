@@ -28,8 +28,8 @@ class Scalar(ToJulia):
     <real> ::= <literal> | <var>
     ```
     """
-    
-    def __call__(self,**variable_reference):
+
+    def __call__(self, **variable_reference):
         return NotImplemented
 
     def __add__(self, other: "Scalar") -> "Scalar":
@@ -67,11 +67,11 @@ class Scalar(ToJulia):
                     case _:
                         expr = Scalar.canonicalize(expr)
                         new_exprs.add(expr)
-                        
+
             if len(new_exprs) > 1:
                 return op(exprs=frozenset(new_exprs))
             else:
-                new_expr, = new_exprs
+                (new_expr,) = new_exprs
                 return new_expr
 
         match expr:

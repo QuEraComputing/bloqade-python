@@ -7,7 +7,6 @@ from bloqade.julia.prelude import *
 from bloqade.hardware.to_quera import TimeSeriesType
 
 
-
 @dataclass(frozen=True)
 class Waveform:
     """
@@ -21,20 +20,18 @@ class Waveform:
     """
 
     def to_time_series(
-            self, 
-            time_series_type: TimeSeriesType, 
-            **kwargs
-        ) -> Tuple[List[float],List[float]]:
+        self, time_series_type: TimeSeriesType, **kwargs
+    ) -> Tuple[List[float], List[float]]:
         match time_series_type:
             case TimeSeriesType.PiecewiseLinear:
                 return self.piecewise_linear(**kwargs)
             case TimeSeriesType.PiecewiseConstant:
                 return self.piecewise_constant(**kwargs)
-    
-    def piecewise_linear(self, **kwargs) -> Tuple[List[float],List[float]]:
+
+    def piecewise_linear(self, **kwargs) -> Tuple[List[float], List[float]]:
         return NotImplemented
-    
-    def piecewise_constant(self, **kwargs) -> Tuple[List[float],List[float]]:
+
+    def piecewise_constant(self, **kwargs) -> Tuple[List[float], List[float]]:
         return NotImplemented
 
 
@@ -62,10 +59,10 @@ class Instruction(Waveform):
     """
     <instruction> ::= <shape> <scalar expr>
     """
-    
+
     shape: Shape
     duration: Scalar
-    
+
 
 @dataclass(frozen=True)
 class Smooth(Waveform):
@@ -94,6 +91,7 @@ class Append(Waveform):
     """
 
     waveforms: List[Waveform]
+
 
 @dataclass(frozen=True)
 class Negative(Waveform):

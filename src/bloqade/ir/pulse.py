@@ -1,6 +1,12 @@
 import bloqade.ir.scalar as scalar
 from bloqade.ir.scalar import Interval
-from bloqade.ir.field import Field, FieldName, RabiFrequencyAmplitude, RabiFrequencyPhase, Detuning
+from bloqade.ir.field import (
+    Field,
+    FieldName,
+    RabiFrequencyAmplitude,
+    RabiFrequencyPhase,
+    Detuning,
+)
 from typing import List
 from bloqade.julia.prelude import *
 
@@ -44,7 +50,7 @@ class Instruction(Pulse):
     """
 
     value: dict[FieldName, Field]
-        
+
 
 @dataclass(frozen=True)
 class NamedPulse(Pulse):
