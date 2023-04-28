@@ -20,6 +20,9 @@ class Task:
         #       SimuTask
         return TaskResult()
 
+
+# NOTE: this will contain the schema object and the program object
+#       after codegen happens.
 class BraketTask(Task):
     
     def __init__(self, prog: "Program", nshots: int) -> None:
