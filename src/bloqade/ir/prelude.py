@@ -1,5 +1,4 @@
 from .scalar import *
-from .shape import *
 from .waveform import *
 
 __all__ = [
