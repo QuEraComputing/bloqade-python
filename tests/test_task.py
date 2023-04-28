@@ -11,3 +11,5 @@ seq = Sequence({
 })
 
 print(lattice.square((3, 3)).run(seq).braket(nshots=1000).submit().report().dataframe)
+print('bitstring')
+print(lattice.square((3, 3)).run(seq).braket(nshots=1000).submit().report().bitstring)
