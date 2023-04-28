@@ -1,5 +1,5 @@
-from bloqade.ir.pulse import PulseExpr, Pulse
-from bloqade.ir.scalar import Interval, cast
+from .pulse import PulseExpr, Pulse
+from .scalar import Interval, cast
 
 from pydantic.dataclasses import dataclass
 from enum import Enum

@@ -1,9 +1,8 @@
 from dataclasses import InitVar
 from pydantic.dataclasses import dataclass
-from pydantic import Field
 from typing import Any, Union, List
 from enum import Enum
-from bloqade.ir.scalar import Scalar, Interval, cast
+from .scalar import Scalar, Interval, cast
 
 
 class AlignedValue(str, Enum):

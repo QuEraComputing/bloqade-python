@@ -58,9 +58,7 @@ adiabatic_pulse = pulse.Instruction(
         }
     )
 
-adiabatic_sequence = sequence.Sequence(
-    Rydberg: adiabatic_pulse
-)
+adiabatic_sequence = sequence.Sequence(Rydberg: adiabatic_pulse)
 
 lattice = square_lattice(6,6,lattice_spacing = cast("lattice_spacing"))
 
