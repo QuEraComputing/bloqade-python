@@ -2,6 +2,7 @@ from pydantic.dataclasses import dataclass
 from .scalar import Scalar
 from .waveform import Waveform
 
+
 @dataclass(frozen=True)
 class FieldName:
     pass
@@ -38,9 +39,11 @@ class Global(SpatialModulation):
 class RunTimeVector(SpatialModulation):
     name: str
 
+
 @dataclass(frozen=True)
 class ScaledLocations(SpatialModulation):
     value: dict[Location, Scalar]
+
 
 @dataclass(frozen=True)
 class Field:

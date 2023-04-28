@@ -1,5 +1,5 @@
 from pydantic.dataclasses import dataclass
-from typing import Union, List, Tuple
+from typing import Any, Union, List, Tuple
 from enum import Enum
 from bloqade.ir.shape import Shape
 from bloqade.ir.scalar import Scalar, Interval
@@ -17,6 +17,9 @@ class Waveform:
         | <scale>
         | <add>
     """
+
+    def __call__(self, t: float, **kwargs) -> Any:
+        pass
 
     def to_time_series(
         self, time_series_type: TimeSeriesType, **kwargs
@@ -55,12 +58,35 @@ class AlignedWaveform(Waveform):
 
 @dataclass(frozen=True)
 class Instruction(Waveform):
+    duration: Scalar
+
+
+@dataclass(frozen=True)
+class Linear(Instruction):
     """
-    <instruction> ::= <shape> <scalar expr>
+    <linear> ::= 'linear' <scalar expr> <scalar expr>
     """
 
-    shape: Shape
-    duration: Scalar
+    start: Scalar
+    stop: Scalar
+
+
+@dataclass(frozen=True)
+class Constant(Instruction):
+    """
+    <constant> ::= 'constant' <scalar expr> <scalar expr>
+    """
+
+    value: Scalar
+
+
+@dataclass(frozen=True)
+class Poly(Instruction):
+    """
+    <poly> ::= <scalar>+
+    """
+
+    checkpoints: List[Scalar]
 
 
 @dataclass(frozen=True)
