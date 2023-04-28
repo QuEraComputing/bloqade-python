@@ -117,22 +117,36 @@ class Linear(Instruction):
     start: Scalar
     stop: Scalar
 
-    # TODO: implement
     def __call__(self, clock_s: float, **kwargs) -> Any:
-        raise NotImplementedError
+        start_value = self.start(**kwargs)
+        stop_value = self.stop(**kwargs)
+
+        if clock_s > self.duration(**kwargs):
+            return 0.0
+        else:
+            return ((stop_value - start_value)/self.duration(**kwargs)) * clock_s
+    
+    def __repr__(self) -> str:
+        return f"linear {self.start} {self.stop}"
 
 
 @dataclass(frozen=True)
 class Constant(Instruction):
     """
-    <constant> ::= 'constant' <scalar expr> <scalar expr>
+    <constant> ::= 'constant' <scalar expr>
     """
 
     value: Scalar
 
-    # TODO: implement
     def __call__(self, clock_s: float, **kwargs) -> Any:
-        raise NotImplementedError
+        constant_value = self.value(**kwargs)
+        if clock_s > self.duration(**kwargs):
+            return 0.0
+        else:
+            return constant_value
+    
+    def __repr__(self) -> str:
+        return f"constant {self.value}"
 
 
 @dataclass(frozen=True)
@@ -145,7 +159,19 @@ class Poly(Instruction):
 
     # TODO: implement
     def __call__(self, clock_s: float, **kwargs) -> Any:
-        raise NotImplementedError
+        # b + x + x^2 + ... + x^n-1 + x^n
+        if clock_s > self.duration(**kwargs):
+            return 0.0
+        else:
+            # call clock_s on each element of the scalars,
+            # then apply the proper powers
+            for exponent, scalar_expr in enumerate(self.checkpoints):
+                value += scalar_expr(**kwargs) * clock_s**exponent
+
+            return value
+    
+    def __repr__(self) -> str:
+        return f"{', '.join(map(str, self.checkpoints))}"
 
 
 @dataclass(frozen=True)
