@@ -17,23 +17,18 @@ class Waveform:
         | <add>
     """
 
-    def __call__(self, t: float, **kwargs) -> Any:
-        pass
+    def __call__(self, clock_s: float, **kwargs) -> Any:
+        raise NotImplementedError
+    
+    def add(self, other: "Waveform") -> "Waveform":
+        return self.canonicalize(Add(self, other))
+    
+    def align(self, waveform: "Waveform", alignment: str) -> "Waveform":
+        return self.canonicalize(AlignedWaveform(waveform, alignment, AlignedValue.Left))
 
-    def to_time_series(
-        self, time_series_type: TimeSeriesType, **kwargs
-    ) -> Tuple[List[float], List[float]]:
-        match time_series_type:
-            case TimeSeriesType.PiecewiseLinear:
-                return self.piecewise_linear(**kwargs)
-            case TimeSeriesType.PiecewiseConstant:
-                return self.piecewise_constant(**kwargs)
-
-    def piecewise_linear(self, **kwargs) -> Tuple[List[float], List[float]]:
-        return NotImplemented
-
-    def piecewise_constant(self, **kwargs) -> Tuple[List[float], List[float]]:
-        return NotImplemented
+    @staticmethod
+    def canonicalize(expr: "Waveform") -> "Waveform":
+        return expr
 
 
 class AlignedValue(str, Enum):
@@ -59,7 +54,6 @@ class AlignedWaveform(Waveform):
 class Instruction(Waveform):
     duration: Scalar
 
-
 @dataclass(frozen=True)
 class Linear(Instruction):
     """
@@ -68,6 +62,10 @@ class Linear(Instruction):
 
     start: Scalar
     stop: Scalar
+
+    # TODO: implement
+    def __call__(self, clock_s: float, **kwargs) -> Any:
+        raise NotImplementedError
 
 
 @dataclass(frozen=True)
@@ -78,6 +76,10 @@ class Constant(Instruction):
 
     value: Scalar
 
+    # TODO: implement
+    def __call__(self, clock_s: float, **kwargs) -> Any:
+        raise NotImplementedError
+
 
 @dataclass(frozen=True)
 class Poly(Instruction):
@@ -86,6 +88,10 @@ class Poly(Instruction):
     """
 
     checkpoints: List[Scalar]
+
+    # TODO: implement
+    def __call__(self, clock_s: float, **kwargs) -> Any:
+        raise NotImplementedError
 
 
 @dataclass(frozen=True)
@@ -97,6 +103,10 @@ class Smooth(Waveform):
     kernel: str
     waveform: Waveform
 
+    # TODO: implement
+    def __call__(self, clock_s: float, **kwargs) -> Any:
+        raise NotImplementedError
+
 
 @dataclass(frozen=True)
 class Slice(Waveform):
@@ -107,6 +117,10 @@ class Slice(Waveform):
     waveform: Waveform
     interval: Interval
 
+    # TODO: implement
+    def __call__(self, clock_s: float, **kwargs) -> Any:
+        raise NotImplementedError
+
 
 @dataclass(frozen=True)
 class Append(Waveform):
@@ -116,6 +130,10 @@ class Append(Waveform):
 
     waveforms: List[Waveform]
 
+    # TODO: implement
+    def __call__(self, clock_s: float, **kwargs) -> Any:
+        raise NotImplementedError
+
 
 @dataclass(frozen=True)
 class Negative(Waveform):
@@ -124,6 +142,10 @@ class Negative(Waveform):
     """
 
     waveform: Waveform
+
+    # TODO: implement
+    def __call__(self, clock_s: float, **kwargs) -> Any:
+        return -self.waveform(clock_s, **kwargs)
 
 
 @dataclass(frozen=True)
@@ -135,6 +157,9 @@ class Scale(Waveform):
     scalar: Scalar
     waveform: Waveform
 
+    def __call__(self, clock_s: float, **kwargs) -> Any:
+        return self.scalar(**kwargs) * self.waveform(clock_s, **kwargs)
+
 
 @dataclass(frozen=True)
 class Add(Waveform):
@@ -144,3 +169,6 @@ class Add(Waveform):
 
     left: Waveform
     right: Waveform
+
+    def __call__(self, clock_s: float, **kwargs) -> Any:
+        return self.left(clock_s, **kwargs) + self.right(clock_s, **kwargs)
