@@ -1,7 +1,4 @@
 from pydantic.dataclasses import dataclass
-from typing import Self, Union
-
-PythonType = Union[int, float, bool, Self ]
 
 @dataclass(frozen=True)
 class Scalar:
@@ -34,7 +31,10 @@ class Scalar:
             case Literal(value):
                 return value
             case Variable(name):
-                return kwargs[name]
+                if name in kwargs:    
+                    return kwargs[name]
+                else:
+                    raise Exception(f"Unknown variable: {name}")
             case Negative(expr):
                 return -expr(**kwargs)
             case Add(lhs, rhs):
@@ -70,27 +70,27 @@ class Scalar:
     def __neg__(self) -> "Scalar":
         return Scalar.canonicalize(Negative(self))
 
-    def add(self, other: PythonType) -> Self:
+    def add(self, other) -> "Scalar":
         expr = Add(lhs=self, rhs=cast(other))
         return Scalar.canonicalize(expr)
 
-    def sub(self, other: PythonType) -> Self:
+    def sub(self, other) -> "Scalar":
         expr = Add(lhs=self, rhs=-cast(other))
         return Scalar.canonicalize(expr)
 
-    def mul(self, other: PythonType) -> Self:
+    def mul(self, other) -> "Scalar":
         expr = Mul(lhs=self, rhs=cast(other))
         return Scalar.canonicalize(expr)
 
-    def div(self, other: PythonType) -> Self:
+    def div(self, other) -> "Scalar":
         expr = Div(lhs=self, rhs=cast(other))
         return Scalar.canonicalize(expr)
 
-    def min(self, other: PythonType) -> "Scalar":
+    def min(self, other) -> "Scalar":
         expr = Min(exprs=frozenset({self, cast(other)}))
         return Scalar.canonicalize(expr)
 
-    def max(self, other: PythonType) -> "Scalar":
+    def max(self, other) -> "Scalar":
         expr = Max(exprs=frozenset({self, cast(other)}))
         return Scalar.canonicalize(expr)
 
