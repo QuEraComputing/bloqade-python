@@ -22,6 +22,9 @@ class GlobalModulation(SpatialModulation):
     def __hash__(self) -> int:
         return hash(self.__class__)
 
+    def __repr__(self) -> str:
+        return 'Global'
+
 Global = GlobalModulation()
 
 @dataclass
