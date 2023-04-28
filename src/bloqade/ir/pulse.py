@@ -2,6 +2,7 @@ import bloqade.ir.scalar as scalar
 from bloqade.ir.scalar import Interval
 from bloqade.ir.field import Field
 from typing import List
+from enum import Enum
 from pydantic.dataclasses import dataclass
 
 @dataclass(frozen=True)
