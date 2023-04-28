@@ -4,23 +4,6 @@ from .waveform import Waveform
 
 
 @dataclass(frozen=True)
-class FieldName:
-    pass
-
-
-class RabiFrequencyAmplitude(FieldName):
-    pass
-
-
-class RabiFrequencyPhase(FieldName):
-    pass
-
-
-class Detuning(FieldName):
-    pass
-
-
-@dataclass(frozen=True)
 class Location:
     value: int
 
