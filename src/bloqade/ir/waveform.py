@@ -1,7 +1,6 @@
 from pydantic.dataclasses import dataclass
 from typing import Any, Union, List, Tuple
 from enum import Enum
-from bloqade.ir.shape import Shape
 from bloqade.ir.scalar import Scalar, Interval
 from bloqade.hardware.to_quera import TimeSeriesType
 
