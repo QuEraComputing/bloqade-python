@@ -1,12 +1,14 @@
 import bloqade.ir.scalar as scalar
 from bloqade.ir.scalar import Interval
-from bloqade.ir.field import (
-    Field,
-    FieldName,
-)
+from bloqade.ir.field import Field
 from typing import List
 from pydantic.dataclasses import dataclass
 
+@dataclass(frozen=True)
+class FieldName(str, Enum):
+    RabiFrequencyAmplitude = "rabi_frequency_amplitude"
+    RabiFrequencyPhase = "rabi_frequency_phase"
+    Detuning = "detuning"
 
 @dataclass(frozen=True)
 class Pulse:
