@@ -47,8 +47,11 @@ class Waveform:
     def smooth(self, kernel: str = "gaussian") -> "Waveform":
         return self.canonicalize(Smooth(kernel, self))
 
-    # def duration(self) -> Scalar:
-    #     pass
+    def scale(self, value: Scalar) -> "Waveform":
+        return self.canonicalize(Scale(value, self))
+    
+    def __neg__(self) -> "Waveform":
+        return self.canonicalize(Negative(self))
 
     def __getitem__(self, s: slice) -> "Waveform":
         match s:
@@ -69,6 +72,17 @@ class Waveform:
             case slice(start=start, stop=stop, step=_):
                 raise ValueError("Slice step must be None")
         return self.canonicalize(expr)
+
+    def duration(self) -> Scalar:
+        match self:
+            case Instruction(duration=duration):
+                return duration
+            case AlignedWaveform(waveform=waveform, alignment=_, value=_):
+                return waveform.duration()
+            case Slice(waveform=waveform, interval=interval):
+                return interval.end - interval.start
+            case _:
+                raise ValueError(f"Cannot compute duration of {self}")
 
     @staticmethod
     def canonicalize(expr: "Waveform") -> "Waveform":
