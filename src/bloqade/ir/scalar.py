@@ -151,6 +151,8 @@ def cast(py) -> Scalar:
             return Literal(x)
         case str(x):
             return Variable(x)
+        case [*xs]:
+            return list(map(cast, *xs))
         case Scalar(x):
             return x
         case _:
