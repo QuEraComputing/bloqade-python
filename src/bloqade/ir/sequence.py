@@ -10,36 +10,32 @@ class LevelCoupling(str, Enum):
     Rydberg = "rydberg"
     Hyperfine = "hyperfine"
 
-@dataclass(frozen=True)
+
+@dataclass
 class Sequence:
     pass
 
-@dataclass(frozen=True)
+
+@dataclass
 class Append(Sequence):
     value: List[Sequence]
 
 
-
-@dataclass(frozen=True)
+@dataclass
 class Instruction(Sequence):
     value: dict[LevelCoupling, Pulse]
 
-    def __call__(
-        self, 
-        clock_s: float, 
-        level_coupling: LevelCoupling,
-        *args, 
-        **kwargs
-    ):
+    def __call__(self, clock_s: float, level_coupling: LevelCoupling, *args, **kwargs):
         return self.value[level_coupling](clock_s, *args, **kwargs)
 
 
-@dataclass(frozen=True)
+@dataclass
 class NamedSequence(Sequence):
     sequence: Sequence
     name: str
 
-@dataclass(frozen=True)
+
+@dataclass
 class Slice(Sequence):
     sequence: Sequence
     interval: Interval

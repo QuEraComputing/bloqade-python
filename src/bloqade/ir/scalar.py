@@ -1,5 +1,6 @@
 from pydantic.dataclasses import dataclass
 from pydantic import validator
+from typing import Optional
 
 
 @dataclass(frozen=True)
@@ -146,6 +147,13 @@ class Scalar:
 
 
 def cast(py) -> Scalar:
+    ret = trycast(py)
+    if ret is None:
+        raise TypeError(f"Cannot cast {py} to Scalar")
+    else:
+        return ret
+
+def trycast(py) -> Optional[Scalar]:
     match py:
         case int(x) | float(x) | bool(x):
             return Literal(x)
@@ -153,11 +161,10 @@ def cast(py) -> Scalar:
             return Variable(x)
         case [*xs]:
             return list(map(cast, *xs))
-        case Scalar(x):
-            return x
+        case Scalar():
+            return py
         case _:
-            raise TypeError(f"Cannot cast {py} to Scalar")
-
+            return
 
 class Real(Scalar):
     """Base class for all real expressions."""

@@ -5,13 +5,15 @@ from typing import List
 from enum import Enum
 from pydantic.dataclasses import dataclass
 
-@dataclass(frozen=True)
+
+@dataclass
 class FieldName(str, Enum):
     RabiFrequencyAmplitude = "rabi_frequency_amplitude"
     RabiFrequencyPhase = "rabi_frequency_phase"
     Detuning = "detuning"
 
-@dataclass(frozen=True)
+
+@dataclass
 class Pulse:
     """
     <expr> ::= <pulse>
@@ -32,7 +34,7 @@ class Pulse:
         return expr
 
 
-@dataclass(frozen=True)
+@dataclass
 class Append(Pulse):
     """
     <append> ::= <expr>+
@@ -41,7 +43,7 @@ class Append(Pulse):
     value: List[Pulse]
 
 
-@dataclass(frozen=True)
+@dataclass
 class Instruction(Pulse):
     """
     <pulse> ::= (<field name> <field>)+
@@ -50,13 +52,13 @@ class Instruction(Pulse):
     value: dict[FieldName, Field]
 
 
-@dataclass(frozen=True)
+@dataclass
 class NamedPulse(Pulse):
     name: str
     pulse: Pulse
 
 
-@dataclass(frozen=True)
+@dataclass
 class Slice(Pulse):
     pulse: Pulse
     interval: Interval

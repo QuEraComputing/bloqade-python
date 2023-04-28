@@ -3,32 +3,32 @@ from .scalar import Scalar
 from .waveform import Waveform
 
 
-@dataclass(frozen=True)
+@dataclass
 class Location:
     value: int
 
 
-@dataclass(frozen=True)
+@dataclass
 class SpatialModulation:
     pass
 
 
-@dataclass(frozen=True)
+@dataclass
 class Global(SpatialModulation):
     pass
 
 
-@dataclass(frozen=True)
+@dataclass
 class RunTimeVector(SpatialModulation):
     name: str
 
 
-@dataclass(frozen=True)
+@dataclass
 class ScaledLocations(SpatialModulation):
     value: dict[Location, Scalar]
 
 
-@dataclass(frozen=True)
+@dataclass
 class Field:
     """
     <field> ::= ('field' <spatial modulation>  <padded waveform>)*
