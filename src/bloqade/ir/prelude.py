@@ -3,6 +3,7 @@ from .waveform import *
 from .field import *
 from .pulse import *
 from .sequence import *
+from .lattice import *
 
 __all__ = [
     "Scalar",
@@ -33,4 +34,6 @@ __all__ = [
     "rydberg",
     "hyperfine",
     "Sequence",
+    "Lattice",
+    "ListOfPosition",
 ]
