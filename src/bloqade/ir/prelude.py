@@ -1,6 +1,8 @@
 from .scalar import *
 from .waveform import *
 from .field import *
+from .pulse import *
+from .sequence import *
 
 __all__ = [
     "Scalar",
@@ -12,7 +14,7 @@ __all__ = [
     "Poly",
     "Waveform",
     "AlignedWaveform",
-    "Instruction",
+    "Sequence",
     "Smooth",
     "Slice",
     "Append",
@@ -23,4 +25,12 @@ __all__ = [
     "RunTimeVector",
     "ScaledLocations",
     "ScaledLocations",
+    "Pulse",
+    "FieldName",
+    "rabi",
+    "detuning",
+    "LevelCoupling",
+    "rydberg",
+    "hyperfine",
+    "Sequence",
 ]
