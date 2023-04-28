@@ -1,5 +1,6 @@
 from .scalar import *
 from .waveform import *
+from .field import *
 
 __all__ = [
     "Scalar",
@@ -15,4 +16,11 @@ __all__ = [
     "Smooth",
     "Slice",
     "Append",
+    "Field",
+    "Location",
+    "SpatialModulation",
+    "Global",
+    "RunTimeVector",
+    "ScaledLocations",
+    "ScaledLocations",
 ]
