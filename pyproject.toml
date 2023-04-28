@@ -10,6 +10,7 @@ dependencies = [
     "numpy>=1.24.2",
     "matplotlib>=3.7.1",
     "pydantic>=1.10.7",
+    "quera-ahs-utils>=0.4.0",
 ]
 requires-python = ">=3.10"
 readme = "README.md"

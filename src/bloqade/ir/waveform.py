@@ -1,10 +1,10 @@
 from pydantic.dataclasses import dataclass
-from typing import Union
-from typing import List
+from typing import Union, List, Tuple
 from enum import Enum
-from .shape import Shape
-from .scalar import Scalar, Interval
-from ..julia.prelude import *
+from bloqade.ir.shape import Shape
+from bloqade.ir.scalar import Scalar, Interval
+from bloqade.julia.prelude import *
+from bloqade.hardware.to_quera import TimeSeriesType
 
 
 @dataclass(frozen=True)
@@ -19,7 +19,20 @@ class Waveform:
         | <add>
     """
 
-    pass
+    def to_time_series(
+        self, time_series_type: TimeSeriesType, **kwargs
+    ) -> Tuple[List[float], List[float]]:
+        match time_series_type:
+            case TimeSeriesType.PiecewiseLinear:
+                return self.piecewise_linear(**kwargs)
+            case TimeSeriesType.PiecewiseConstant:
+                return self.piecewise_constant(**kwargs)
+
+    def piecewise_linear(self, **kwargs) -> Tuple[List[float], List[float]]:
+        return NotImplemented
+
+    def piecewise_constant(self, **kwargs) -> Tuple[List[float], List[float]]:
+        return NotImplemented
 
 
 class AlignedValue(str, Enum):

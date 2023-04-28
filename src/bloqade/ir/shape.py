@@ -1,7 +1,8 @@
 from pydantic.dataclasses import dataclass
-from .scalar import Scalar
-from ..julia.prelude import *
 from typing import List
+
+from bloqade.ir.scalar import Scalar
+from bloqade.julia.prelude import *
 
 
 @dataclass(frozen=True)

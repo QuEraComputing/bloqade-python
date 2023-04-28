@@ -1,12 +1,20 @@
-from pydantic.dataclasses import dataclass
-from .scalar import Interval
-from .field import Field, FieldName
+import bloqade.ir.scalar as scalar
+from bloqade.ir.scalar import Interval
+from bloqade.ir.field import (
+    Field,
+    FieldName,
+    RabiFrequencyAmplitude,
+    RabiFrequencyPhase,
+    Detuning,
+)
 from typing import List
-from ..julia.prelude import *
+from bloqade.julia.prelude import *
+
+from pydantic.dataclasses import dataclass
 
 
 @dataclass(frozen=True)
-class PulseExpr:
+class Pulse:
     """
     <expr> ::= <pulse>
       | <append>
@@ -14,28 +22,29 @@ class PulseExpr:
       | <named>
     """
 
-    def append(self, other: "PulseExpr") -> "PulseExpr":
-        return PulseExpr.canonicalize(Append([self, other]))
+    def append(self, other: "Pulse") -> "Pulse":
+        return Pulse.canonicalize(Append([self, other]))
 
-    def slice(self, interval: Interval) -> "PulseExpr":
-        return PulseExpr.canonicalize(Slice(self, interval))
+    def slice(self, interval: Interval) -> "Pulse":
+        return Pulse.canonicalize(Slice(self, interval))
 
     @staticmethod
-    def canonicalize(expr: "PulseExpr") -> "PulseExpr":
+    def canonicalize(expr: "Pulse") -> "Pulse":
+        # TODO: update canonicalization rules for appending pulses
         return expr
 
 
 @dataclass(frozen=True)
-class Append(PulseExpr):
+class Append(Pulse):
     """
     <append> ::= <expr>+
     """
 
-    value: List[PulseExpr]
+    value: List[Pulse]
 
 
 @dataclass(frozen=True)
-class Pulse(PulseExpr):
+class Instruction(Pulse):
     """
     <pulse> ::= (<field name> <field>)+
     """
@@ -44,12 +53,12 @@ class Pulse(PulseExpr):
 
 
 @dataclass(frozen=True)
-class NamedPulse(PulseExpr):
+class NamedPulse(Pulse):
     name: str
-    pulse: PulseExpr
+    pulse: Pulse
 
 
 @dataclass(frozen=True)
-class Slice(PulseExpr):
-    pulse: PulseExpr
+class Slice(Pulse):
+    pulse: Pulse
     interval: Interval
