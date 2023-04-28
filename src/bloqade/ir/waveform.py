@@ -1,7 +1,17 @@
 from pydantic.dataclasses import dataclass
-from typing import Any, Union, List, Tuple
+from typing import Any, Union, List
 from enum import Enum
-from bloqade.ir.scalar import Scalar, Interval
+from bloqade.ir.scalar import Scalar, Interval, cast
+
+
+class AlignedValue(str, Enum):
+    Left = "left_value"
+    Right = "right_value"
+
+
+class Alignment(str, Enum):
+    Left = "left_aligned"
+    Right = "right_aligned"
 
 
 @dataclass(frozen=True)
@@ -18,21 +28,51 @@ class Waveform:
 
     def __call__(self, clock_s: float, **kwargs) -> Any:
         raise NotImplementedError
-    
+
     def add(self, other: "Waveform") -> "Waveform":
         return self.canonicalize(Add(self, other))
-    
-    def align(self, waveform: "Waveform", alignment: str) -> "Waveform":
-        return self.canonicalize(AlignedWaveform(waveform, alignment, AlignedValue.Left))
+
+    def align(
+        self, alignment: Alignment, value: Union[None, AlignedValue, Scalar] = None
+    ) -> "Waveform":
+        if value is None:
+            if alignment == Alignment.Left:
+                value = AlignedValue.Left
+            elif alignment == Alignment.Right:
+                value = AlignedValue.Right
+            else:
+                raise ValueError(f"Invalid alignment: {alignment}")
+        return self.canonicalize(AlignedWaveform(self, alignment, value))
+
+    def smooth(self, kernel: str = "gaussian") -> "Waveform":
+        return self.canonicalize(Smooth(kernel, self))
+
+    # def duration(self) -> Scalar:
+    #     pass
+
+    def __getitem__(self, s: slice) -> "Waveform":
+        match s:
+            case slice(start=None, stop=None, step=None):
+                raise ValueError("Slice must have at least one argument")
+            case slice(start=None, stop=None, step=_):
+                raise ValueError("Slice step must be None")
+            case slice(start=None, stop=stop, step=None):
+                expr = Slice(self, Interval(None, cast(stop)))
+            case slice(start=None, stop=stop, step=_):
+                raise ValueError("Slice step must be None")
+            case slice(start=start, stop=None, step=None):
+                expr = Slice(self, Interval(cast(start), None))
+            case slice(start=start, stop=None, step=_):
+                raise ValueError("Slice step must be None")
+            case slice(start=start, stop=stop, step=None):
+                expr = Slice(self, Interval(cast(start), cast(stop)))
+            case slice(start=start, stop=stop, step=_):
+                raise ValueError("Slice step must be None")
+        return self.canonicalize(expr)
 
     @staticmethod
     def canonicalize(expr: "Waveform") -> "Waveform":
         return expr
-
-
-class AlignedValue(str, Enum):
-    Left = "left_value"
-    Right = "right_value"
 
 
 @dataclass(frozen=True)
@@ -45,13 +85,14 @@ class AlignedWaveform(Waveform):
     """
 
     waveform: Waveform
-    alignment: str
+    alignment: Alignment
     value: Union[Scalar, AlignedValue]
 
 
 @dataclass(frozen=True)
 class Instruction(Waveform):
     duration: Scalar
+
 
 @dataclass(frozen=True)
 class Linear(Instruction):
@@ -141,6 +182,9 @@ class Slice(Waveform):
 
     waveform: Waveform
     interval: Interval
+
+    def __repr__(self) -> str:
+        return f"{self.waveform}[{self.interval}]"
 
     # TODO: implement
     def __call__(self, clock_s: float, **kwargs) -> Any:
