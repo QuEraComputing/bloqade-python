@@ -1,3 +1,5 @@
 pdm.lock
+.pdm-python
 build
 __pycache__
+main.py
