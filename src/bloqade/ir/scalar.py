@@ -1,5 +1,6 @@
 from pydantic.dataclasses import dataclass
 
+
 @dataclass(frozen=True)
 class Scalar:
     """Base class for all scalar expressions.
@@ -31,7 +32,7 @@ class Scalar:
             case Literal(value):
                 return value
             case Variable(name):
-                if name in kwargs:    
+                if name in kwargs:
                     return kwargs[name]
                 else:
                     raise Exception(f"Unknown variable: {name}")
@@ -53,7 +54,6 @@ class Scalar:
                 return ret
             case _:
                 raise Exception(f"Unknown scalar expression: {self} ({type(self)})")
-
 
     def __add__(self, other: "Scalar") -> "Scalar":
         expr = Add(lhs=self, rhs=other)
@@ -155,6 +155,7 @@ def cast(py) -> Scalar:
         case _:
             raise TypeError(f"Cannot cast {py} to Scalar")
 
+
 class Real(Scalar):
     """Base class for all real expressions."""
 
@@ -196,7 +197,7 @@ class Interval:
 
 @dataclass(frozen=True)
 class Slice(Scalar):
-    expr: Scalar # duration
+    expr: Scalar  # duration
     interval: Interval
 
     def __repr__(self) -> str:
@@ -220,6 +221,7 @@ class Mul(Scalar):
     def __repr__(self) -> str:
         return f"{self.lhs} * {self.rhs}"
 
+
 @dataclass(frozen=True)
 class Div(Scalar):
     lhs: Scalar
@@ -227,6 +229,7 @@ class Div(Scalar):
 
     def __repr__(self) -> str:
         return f"{self.lhs} / {self.rhs}"
+
 
 @dataclass(frozen=True)
 class Min(Scalar):
