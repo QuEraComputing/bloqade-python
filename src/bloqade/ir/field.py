@@ -1,5 +1,5 @@
 from pydantic.dataclasses import dataclass
-from .scalar import Scalar
+from .scalar import Scalar, cast
 from .waveform import Waveform
 
 
@@ -8,30 +8,60 @@ class Location:
     value: int
 
 
-@dataclass(frozen=True)
+@dataclass
 class SpatialModulation:
-    pass
+    def __hash__(self) -> int:
+        raise NotImplementedError
 
 
-@dataclass(frozen=True)
-class Global(SpatialModulation):
-    pass
+@dataclass
+class GlobalModulation(SpatialModulation):
+    def __hash__(self) -> int:
+        return hash(self.__class__)
+
+    def __repr__(self) -> str:
+        return "Global"
 
 
-@dataclass(frozen=True)
+Global = GlobalModulation()
+
+
+@dataclass
 class RunTimeVector(SpatialModulation):
     name: str
 
+    def __hash__(self) -> int:
+        return hash(self.name) ^ hash(self.__class__)
 
-@dataclass(frozen=True)
+
+@dataclass(init=False)
 class ScaledLocations(SpatialModulation):
     value: dict[Location, Scalar]
 
+    def __init__(self, pairs):
+        value = dict()
+        for k, v in pairs.items():
+            if isinstance(k, int):
+                k = Location(k)
+            elif isinstance(k, Location):
+                pass
+            else:
+                raise ValueError(f"expected Location or int, got {k}")
 
-@dataclass(frozen=True)
+            value[k] = cast(v)
+        self.value = value
+
+    def __hash__(self) -> int:
+        return hash(frozenset(self.value.items())) ^ hash(self.__class__)
+
+
+@dataclass
 class Field:
     """
     <field> ::= ('field' <spatial modulation>  <padded waveform>)*
     """
 
     value: dict[SpatialModulation, Waveform]
+
+    def __hash__(self) -> int:
+        return hash(frozenset(self.value.items())) ^ hash(self.__class__)

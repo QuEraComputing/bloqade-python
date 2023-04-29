@@ -1,5 +1,6 @@
 from pydantic.dataclasses import dataclass
 from pydantic import validator
+from typing import Optional
 
 
 @dataclass(frozen=True)
@@ -49,8 +50,8 @@ class Scalar:
                 return min(map(lambda expr: expr(**kwargs), exprs))
             case Max(exprs):
                 return max(map(lambda expr: expr(**kwargs), exprs))
-            case Slice(expr, Interval(start, end)):
-                ret = end - start
+            case Slice(expr, Interval(start, stop)):
+                ret = stop - start
                 ret <= expr(**kwargs)
                 return ret
             case _:
@@ -146,6 +147,14 @@ class Scalar:
 
 
 def cast(py) -> Scalar:
+    ret = trycast(py)
+    if ret is None:
+        raise TypeError(f"Cannot cast {py} to Scalar")
+    else:
+        return ret
+
+
+def trycast(py) -> Optional[Scalar]:
     match py:
         case int(x) | float(x) | bool(x):
             return Literal(x)
@@ -153,10 +162,10 @@ def cast(py) -> Scalar:
             return Variable(x)
         case [*xs]:
             return list(map(cast, *xs))
-        case Scalar(x):
-            return x
+        case Scalar():
+            return py
         case _:
-            raise TypeError(f"Cannot cast {py} to Scalar")
+            return
 
 
 class Real(Scalar):
@@ -206,18 +215,38 @@ class Negative(Scalar):
 @dataclass(frozen=True)
 class Interval:
     start: Scalar | None
-    end: Scalar | None
+    stop: Scalar | None
+
+    @staticmethod
+    def from_slice(s: slice) -> "Interval":
+        match s:
+            case slice(start=None, stop=None, step=None):
+                raise ValueError("Slice must have at least one argument")
+            case slice(start=None, stop=None, step=_):
+                raise ValueError("Slice step must be None")
+            case slice(start=None, stop=stop, step=None):
+                return Interval(None, cast(stop))
+            case slice(start=None, stop=stop, step=_):
+                raise ValueError("Slice step must be None")
+            case slice(start=start, stop=None, step=None):
+                return Interval(cast(start), None)
+            case slice(start=start, stop=None, step=_):
+                raise ValueError("Slice step must be None")
+            case slice(start=start, stop=stop, step=None):
+                return Interval(cast(start), cast(stop))
+            case slice(start=start, stop=stop, step=_):
+                raise ValueError("Slice step must be None")
 
     def __repr__(self) -> str:
-        match (self.start, self.end):
+        match (self.start, self.stop):
             case (None, None):
                 raise ValueError("Interval must have at least one bound")
-            case (None, end):
-                return f":{end}"
+            case (None, stop):
+                return f":{stop}"
             case (start, None):
                 return f"{start}:"
-            case (start, end):
-                return f"{self.start}:{self.end}"
+            case (start, stop):
+                return f"{self.start}:{self.stop}"
 
 
 @dataclass(frozen=True)

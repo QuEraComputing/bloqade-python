@@ -1,17 +1,35 @@
-import bloqade.ir.scalar as scalar
-from bloqade.ir.scalar import Interval
-from bloqade.ir.field import Field
+from .scalar import Interval
+from .field import Field
 from typing import List
+from enum import Enum
 from pydantic.dataclasses import dataclass
 
-@dataclass(frozen=True)
+
+@dataclass(frozen=True, repr=False)
 class FieldName(str, Enum):
     RabiFrequencyAmplitude = "rabi_frequency_amplitude"
     RabiFrequencyPhase = "rabi_frequency_phase"
     Detuning = "detuning"
 
-@dataclass(frozen=True)
-class Pulse:
+    def __repr__(self) -> str:
+        return self.value
+
+
+class RabiRouter:
+    def __init__(self) -> None:
+        self.amplitude = FieldName.RabiFrequencyAmplitude
+        self.phase = FieldName.RabiFrequencyPhase
+
+    def __repr__(self) -> str:
+        "rabi (amplitude, phase)"
+
+
+rabi = RabiRouter()
+detuning = FieldName.Detuning
+
+
+@dataclass
+class PulseExpr:
     """
     <expr> ::= <pulse>
       | <append>
@@ -19,43 +37,57 @@ class Pulse:
       | <named>
     """
 
-    def append(self, other: "Pulse") -> "Pulse":
-        return Pulse.canonicalize(Append([self, other]))
+    def append(self, other: "PulseExpr") -> "PulseExpr":
+        return PulseExpr.canonicalize(Append([self, other]))
 
-    def slice(self, interval: Interval) -> "Pulse":
-        return Pulse.canonicalize(Slice(self, interval))
+    def slice(self, interval: Interval) -> "PulseExpr":
+        return PulseExpr.canonicalize(Slice(self, interval))
 
     @staticmethod
-    def canonicalize(expr: "Pulse") -> "Pulse":
+    def canonicalize(expr: "PulseExpr") -> "PulseExpr":
         # TODO: update canonicalization rules for appending pulses
         return expr
 
 
-@dataclass(frozen=True)
-class Append(Pulse):
+@dataclass
+class Append(PulseExpr):
     """
     <append> ::= <expr>+
     """
 
-    value: List[Pulse]
+    value: List[PulseExpr]
 
 
-@dataclass(frozen=True)
-class Instruction(Pulse):
+@dataclass(init=False, repr=False)
+class Pulse(PulseExpr):
     """
     <pulse> ::= (<field name> <field>)+
     """
 
     value: dict[FieldName, Field]
 
+    def __init__(self, field_pairs):
+        value = dict()
+        for k, v in field_pairs.items():
+            if isinstance(v, Field):
+                value[k] = v
+            elif isinstance(v, dict):
+                value[k] = Field(v)
+            else:
+                raise TypeError(f"Expected Field or dict, got {type(v)}")
+        self.value = value
 
-@dataclass(frozen=True)
-class NamedPulse(Pulse):
+    def __repr__(self) -> str:
+        return "Pulse({" + ", ".join(map(str, self.value.items())) + "})"
+
+
+@dataclass
+class NamedPulse(PulseExpr):
     name: str
-    pulse: Pulse
+    pulse: PulseExpr
 
 
-@dataclass(frozen=True)
-class Slice(Pulse):
-    pulse: Pulse
+@dataclass
+class Slice(PulseExpr):
+    pulse: PulseExpr
     interval: Interval
