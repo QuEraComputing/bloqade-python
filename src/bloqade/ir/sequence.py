@@ -6,16 +6,22 @@ from enum import Enum
 from typing import List, Dict
 
 
-@dataclass(frozen=True, repr=False)
-class LevelCoupling(str, Enum):
-    Rydberg = "rydberg"
-    Hyperfine = "hyperfine"
+@dataclass(frozen=True)
+class LevelCoupling:
+    pass
 
+@dataclass(frozen=True)
+class RydbergLevelCoupling:
     def __repr__(self) -> str:
-        return self.value
+        return 'rydberg'
 
-rydberg = LevelCoupling.Rydberg
-hyperfine = LevelCoupling.Hyperfine
+@dataclass(frozen=True)
+class HyperfineLevelCoupling:
+    def __repr__(self) -> str:
+        return 'hyperfine'
+
+rydberg = RydbergLevelCoupling()
+hyperfine = HyperfineLevelCoupling()
 
 @dataclass
 class SequenceExpr:

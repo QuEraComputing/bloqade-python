@@ -7,9 +7,9 @@ class Lattice:
         return Program(self, seq)
 
     @property
-    def rydberg(self) -> Builder:
-        return Builder(self)
+    def rydberg(self) -> RydbergBuilder:
+        return RydbergBuilder(self)
 
     @property
-    def hyperfine(self) -> Builder:
-        return Builder(self)
+    def hyperfine(self) -> HyperfineBuilder:
+        return HyperfineBuilder(self)

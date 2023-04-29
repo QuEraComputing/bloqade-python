@@ -2,6 +2,9 @@
 # TODO: figure out how to remove the circular imports & split the file
 
 from .ir.prelude import *
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from .lattice.base import Lattice
 from pandas import DataFrame
 import numpy as np
 

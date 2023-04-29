@@ -6,148 +6,198 @@
 #     .braket(nshots=1000)\
 #     .submit(token="wqnknlkwASdsq")\
 #     .report()
-from bloqade.builder import CouplingLevelBuilder
 from typing import List
 from .ir.prelude import *
 from .ir.scalar import cast
+from .task import *
 
 class Builder:
 
     def __init__(self, sequence) -> None:
-        self.sequence: dict = sequence
+        self.sequence: Sequence = sequence
 
 class CouplingLevelBuilder(Builder):
 
-    def __init__(self, lattice, sequence={}) -> None:
+    def __init__(self, lattice, sequence=Sequence({})) -> None:
         super().__init__(sequence)
         self.lattice = lattice
 
     @property
-    def detuning(self):
-        SpatialModulationBuilder(DetuningBuilder(self))
+    def detuning(self) -> "SpatialModulationBuilder":
+        return SpatialModulationBuilder(DetuningBuilder(self))
 
     @property
-    def rabi(self):
+    def rabi(self) -> "RabiBuilder":
         return RabiBuilder(self)
+    
+    def ir_object(self) -> LevelCoupling:
+        raise NotImplementedError
 
 class RydbergBuilder(CouplingLevelBuilder):
-    pass
+    
+    def ir_object(self):
+        return rydberg
 
 class HyperfineBuilder(CouplingLevelBuilder):
-    pass
+    
+    def ir_object(self):
+        return hyperfine
 
 
 class FieldBuilder(Builder):
 
     def __init__(self, coupling_level: "CouplingLevelBuilder") -> None:
         super().__init__(coupling_level.sequence)
-        if isinstance(coupling_level, RydbergBuilder):
-            self.coupling_level = rydberg
-        elif isinstance(coupling_level, HyperfineBuilder):
-            self.coupling_level = hyperfine
-        else:
-            raise ValueError('unsupported coupling level')
-        self.lattice = coupling_level.lattice
-        self.field_name = None
+        self.coupling_level = coupling_level
+        self.name: FieldName | None = None
 
 class DetuningBuilder(FieldBuilder):
     
     def __init__(self, coupling_level: CouplingLevelBuilder) -> None:
         super().__init__(coupling_level)
-        self.field_name = FieldName.Detuning
+        self.name = FieldName.Detuning
 
 class RabiBuilder(FieldBuilder):
 
     @property
-    def amplitude(self) -> "SpatialModulation":
-        self.field_name = FieldName.RabiFrequencyAmplitude
-        return SpatialModulation(self)
+    def amplitude(self) -> "SpatialModulationBuilder":
+        self.name = FieldName.RabiFrequencyAmplitude
+        return SpatialModulationBuilder(self)
 
     @property
-    def phase(self) -> "SpatialModulation":
-        self.field_name = FieldName.RabiFrequencyPhase
-        return SpatialModulation(self)
+    def phase(self) -> "SpatialModulationBuilder":
+        self.name = FieldName.RabiFrequencyPhase
+        return SpatialModulationBuilder(self)
 
 
 class SpatialModulationBuilder(Builder):
     
     def __init__(self, field: "FieldBuilder") -> None:
         super().__init__(field.sequence)
-        self.lattice = field.lattice
-        self.coupling_level = field.coupling_level
-        self.field_name = field.field_name
-        self.location: None | Global | List[Location] = None
-        self.scale: List[Scalar] = []
+        self.field = field
 
     @property
     def glob(self):
-        self.location = Global
-        return ApplyBuilder(self)
+        return GlobalLocationBuilder(self)
 
-    @property
     def location(self, label: int):
-        return LocationBuilder(self, label)
+        return LocalLocationBuilder(self, label)
+
 
 class LocationBuilder(Builder):
 
-    def __init__(self, spatial_mod: SpatialModulationBuilder, label: int) -> None:
+    def __init__(self, spatial_mod: SpatialModulationBuilder) -> None:
         super().__init__(spatial_mod.sequence)
         self.spatial_mod = spatial_mod
-        self.spatial_mod.location = [Location(label)]
-        self.spatial_mod.scale.append(cast(1.0))
 
-    def scale(self, val):
-        self.spatial_mod.scale.pop() # remove 1.0
-        self.spatial_mod.scale.append(cast(val))
-        return ApplyBuilder(self.spatial_mod)
-    
-    def location(self, label: int) -> "LocationBuilder":
-        self.spatial_mod.location.append(Location(label))
-        self.spatial_mod.scale.append(cast(1.0))
+    def apply(self, waveform: Waveform): # forward to ApplyBuilder if only one location specified
+        return ApplyBuilder(self)._apply(waveform)
+
+class GlobalLocationBuilder(LocationBuilder):
+    pass
+
+class LocalLocationBuilder(LocationBuilder):
+
+    def __init__(self, spatial_mod: SpatialModulationBuilder, label: int) -> None:
+        super().__init__(spatial_mod)
+        self.label: List[int] = [label]
+        self._scale: List[Scalar] = [cast(1.0)]
+
+    def scale(self, val) -> "LocalLocationBuilder":
+        self._scale.pop()
+        self._scale.append(val)
         return self
 
-    def apply(self, waveform): # forward to ApplyBuilder if only one location specified
-        return ApplyBuilder(self.spatial_mod).apply(waveform)
-
-
+    def location(self, label: int) -> "LocalLocationBuilder":
+        self.label.append(label)
+        self._scale.append(cast(1.0))
+        return self
 
 class ApplyBuilder(Builder): # terminator
 
-    def __init__(self, spatial_mod: SpatialModulationBuilder) -> None:
-        super().__init__(spatial_mod.sequence)
-        self.coupling_level = spatial_mod.coupling_level
-        self.field_name = spatial_mod.field_name
-        self.location = spatial_mod.location
-        self.scale = spatial_mod.scale
-        self.lattice = spatial_mod.lattice
+    def __init__(self, location: LocationBuilder) -> None:
+        super().__init__(location.sequence)
+        self.location_builder: LocationBuilder = location
+        # NOTE: the following are for convenience
+        self.spatial_mod : SpatialModulationBuilder = location.spatial_mod
+        self.field : FieldBuilder = location.spatial_mod.field
+        self.coupling_level : CouplingLevelBuilder = location.spatial_mod.field.coupling_level
+        self.lattice = self.spatial_mod.field.coupling_level.lattice
 
-        if spatial_mod.location is Global:
-            self.spatial_mod = Global
-        elif isinstance(spatial_mod.location, list):
+    def _apply(self, waveform) -> "ApplyBuilder":
+        coupling_level = self.coupling_level.ir_object()
+        field_name = self.field.name
+
+        if isinstance(self.location_builder, GlobalLocationBuilder):
+            spatial_mod = Global
+        elif isinstance(self.location_builder, LocalLocationBuilder):
             scaled_locations = {}
-            for loc, scal in zip(spatial_mod.location, spatial_mod.scale):
+            for loc, scal in zip(self.location_builder.label, self.location_builder._scale):
                 scaled_locations[loc] = scal
-            self.spatial_mod = ScaledLocations(scaled_locations)
+            spatial_mod = ScaledLocations(scaled_locations)
         else: # None
-            raise ValueError('unexpected spatial location, got None')
+            raise ValueError('unexpected spatial location')
 
-    def apply(self, waveform) -> "ApplyBuilder":
-        field = self.sequence\
-            .get(self.coupling_level, {})\
-            .get(self.field_name, {})
-        if self.spatial_mod in field:
-            raise ValueError('this field location is already specified')
-        field[self.spatial_mod] = waveform
+        # NOTE: Pulse and Field is not frozen
+        pulse = self.sequence.value.setdefault(coupling_level, Pulse({}))
+        field = pulse.value.setdefault(field_name, Field({}))
+        if spatial_mod in field.value:
+            raise ValueError('this field spatial modulation is already specified')
+        field.value[spatial_mod] = waveform
         return self
 
-    # apply can go any previous builder
-    # 1. coupling builder
     @property
-    def rydberg(self):
-        return RydbergBuilder(self.lattice, self.sequence)
+    def _program(self) -> Program:
+        return Program(self.lattice, self.sequence)
+
+    def braket(self, *args, **kwargs) -> BraketTask:
+        return self._program.braket(*args, **kwargs)
     
+    def quera(self, *args, **kwargs) -> QuEraTask:
+        return self._program.quera(*args, **kwargs)
+    
+    def simu(self, *args, **kwargs) -> SimuTask:
+        return self._program.simu(*args, **kwargs)
+
+    # apply can go any previous builder
+    # 1. coupling builder, these need to construct manully
+    #   because we need to share sequence object
     @property
-    def hyperfine(self):
+    def rydberg(self) -> RydbergBuilder:
+        return RydbergBuilder(self.lattice, self.sequence)
+
+    @property
+    def hyperfine(self) -> HyperfineBuilder:
         return HyperfineBuilder(self.lattice, self.sequence)
     
-    # 2. 
+    # 2. FieldBuilder
+    @property
+    def detuning(self) -> SpatialModulationBuilder:
+        return self.coupling_level.detuning
+    
+    @property
+    def rabi(self) -> RabiBuilder:
+        return self.coupling_level.rabi
+    
+    # 3. RabiBuilder
+    @property
+    def amplitude(self) -> SpatialModulationBuilder:
+        if not isinstance(self.field, RabiBuilder):
+            raise ValueError('amplitude can only specified on rabi channel')
+        return self.field.amplitude
+
+    @property
+    def phase(self) -> SpatialModulationBuilder:
+        if not isinstance(self.field, RabiBuilder):
+            raise ValueError('phase can only specified on rabi channel')
+        return self.field.phase
+
+    # 4. SpatialModulationBuilder
+    @property
+    def glob(self) -> GlobalLocationBuilder:
+        if isinstance(self.location_builder, GlobalLocationBuilder):
+            raise ValueError('global waveform already specified')
+        return self.spatial_mod.glob
+
+    def location(self, label: int) -> LocalLocationBuilder:
+        return self.spatial_mod.location(label)
