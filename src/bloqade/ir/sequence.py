@@ -11,12 +11,12 @@ class LevelCoupling:
     pass
 
 @dataclass(frozen=True)
-class RydbergLevelCoupling:
+class RydbergLevelCoupling(LevelCoupling):
     def __repr__(self) -> str:
         return 'rydberg'
 
 @dataclass(frozen=True)
-class HyperfineLevelCoupling:
+class HyperfineLevelCoupling(LevelCoupling):
     def __repr__(self) -> str:
         return 'hyperfine'
 
