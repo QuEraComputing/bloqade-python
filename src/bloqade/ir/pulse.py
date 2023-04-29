@@ -14,16 +14,19 @@ class FieldName(str, Enum):
     def __repr__(self) -> str:
         return self.value
 
+
 class RabiRouter:
     def __init__(self) -> None:
         self.amplitude = FieldName.RabiFrequencyAmplitude
         self.phase = FieldName.RabiFrequencyPhase
 
     def __repr__(self) -> str:
-        'rabi (amplitude, phase)'
+        "rabi (amplitude, phase)"
+
 
 rabi = RabiRouter()
 detuning = FieldName.Detuning
+
 
 @dataclass
 class PulseExpr:
@@ -75,7 +78,7 @@ class Pulse(PulseExpr):
         self.value = value
 
     def __repr__(self) -> str:
-        return 'Pulse({' + ', '.join(map(str, self.value.items())) + '})'
+        return "Pulse({" + ", ".join(map(str, self.value.items())) + "})"
 
 
 @dataclass

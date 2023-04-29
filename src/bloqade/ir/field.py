@@ -10,22 +10,21 @@ class Location:
 
 @dataclass
 class SpatialModulation:
-    
-
     def __hash__(self) -> int:
         raise NotImplementedError
 
 
 @dataclass
 class GlobalModulation(SpatialModulation):
-    
     def __hash__(self) -> int:
         return hash(self.__class__)
 
     def __repr__(self) -> str:
-        return 'Global'
+        return "Global"
+
 
 Global = GlobalModulation()
+
 
 @dataclass
 class RunTimeVector(SpatialModulation):

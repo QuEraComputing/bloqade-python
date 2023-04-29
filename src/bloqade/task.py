@@ -2,11 +2,15 @@
 # TODO: figure out how to remove the circular imports & split the file
 
 from .ir.prelude import *
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .lattice.base import Lattice
 from pandas import DataFrame
 import numpy as np
 
-class Task:
 
+class Task:
     def __init__(self, prog: "Program", nshots: int) -> None:
         self.prog = prog
         self.nshtos = nshots
@@ -24,41 +28,39 @@ class Task:
 # NOTE: this will contain the schema object and the program object
 #       after codegen happens.
 class BraketTask(Task):
-    
     def __init__(self, prog: "Program", nshots: int) -> None:
         super().__init__(prog, nshots)
         # custom config goes here
+
 
 class QuEraTask(Task):
-    
     def __init__(self, prog: "Program", nshots: int) -> None:
         super().__init__(prog, nshots)
         # custom config goes here
+
 
 class SimuTask(Task):
-    
     def __init__(self, prog: "Program", nshots: int) -> None:
         super().__init__(prog, nshots)
         # custom config goes here
 
-class TaskResult:
 
+class TaskResult:
     def report(self) -> "TaskReport":
-        """generate the task report
-        """
+        """generate the task report"""
         return TaskReport(self)
 
 
 # NOTE: this is only the basic report, we should provide
-#      a way to customize the report class, 
+#      a way to customize the report class,
 #      e.g result.plot() returns a `TaskPlotReport` class instead
 
-class TaskReport:
 
+class TaskReport:
     def __init__(self, result: TaskResult) -> None:
         self.result = result
-        self._dataframe = None # df cache
-        self._bitstring = None # bitstring cache
+        self._dataframe = None  # df cache
+        self._bitstring = None  # bitstring cache
 
     @property
     def dataframe(self) -> DataFrame:
@@ -82,7 +84,6 @@ class TaskReport:
 # NOTE: this is just a dummy type bundle geometry and sequence
 #       information together and forward them to backends.
 class Program:
-
     def __init__(self, lattice: "Lattice", seq: Sequence) -> None:
         self.latice = lattice
         self.seq = seq
