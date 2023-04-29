@@ -5,6 +5,7 @@ from .pulse import *
 from .sequence import *
 
 __all__ = [
+    "cast",
     "Scalar",
     "Interval",
     "Variable",
