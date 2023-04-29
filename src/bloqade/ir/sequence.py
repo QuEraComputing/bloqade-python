@@ -19,7 +19,6 @@ class Append(Sequence):
     value: List[Sequence]
 
 
-
 @dataclass(frozen=True)
 class Instruction(Sequence):
     value: dict[LevelCoupling, Pulse]
