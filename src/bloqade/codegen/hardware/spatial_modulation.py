@@ -6,14 +6,14 @@ from bloqade.ir.field import (
     ScaledLocations,
     RunTimeVector,
 )
-from bloqade.ir.pulse import FieldName, Location
+from bloqade.ir.pulse import FieldName
+from bloqade.ir.field import Location
 from typing import List, Optional
-from bloqade.codegen.hardware.waveform import WaveformCodeGen
+from bloqade.codegen.hardware.waveform import BaseCodeGen
 
 
 @dataclass
-class SpatialModulationCodeGen:
-    n_atoms: int = 1
+class SpatialModulationCodeGen(BaseCodeGen):
     field_name: Optional[FieldName] = None
     lattice_site_coefficient: Optional[List[float]] = None
 
