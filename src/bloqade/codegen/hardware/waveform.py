@@ -1,16 +1,14 @@
-import bloqade.ir.field
 from pydantic.dataclasses import dataclass
 from bloqade.ir.pulse import FieldName
 from bloqade.ir.waveform import Waveform, Append, Linear, Constant
-from typing import List, Optional, Dict
-
+from bloqade.codegen.hardware.base import BaseCodeGen
+from typing import List, Optional
 
 @dataclass
-class WaveformCodeGen:
-    variable_reference: Dict[str, float]
+class WaveformCodeGen(BaseCodeGen):
     field_name: Optional[FieldName] = None
-    times: List[float] = []
-    values: List[float] = []
+    times: Optional[List[float]] = None
+    values: Optional[List[float]] = None
 
     def scan_piecewise_linear(self, ast: Waveform):
         match ast:
