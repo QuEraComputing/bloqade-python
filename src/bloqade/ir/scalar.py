@@ -153,6 +153,7 @@ def cast(py) -> Scalar:
     else:
         return ret
 
+
 def trycast(py) -> Optional[Scalar]:
     match py:
         case int(x) | float(x) | bool(x):
@@ -165,6 +166,7 @@ def trycast(py) -> Optional[Scalar]:
             return py
         case _:
             return
+
 
 class Real(Scalar):
     """Base class for all real expressions."""

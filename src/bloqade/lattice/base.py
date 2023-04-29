@@ -1,9 +1,10 @@
 from ..builder import RydbergBuilder, HyperfineBuilder
 
+
 class Lattice:
-    
     def run(self, seq):
         from ..task import Program
+
         return Program(self, seq)
 
     @property

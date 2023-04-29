@@ -10,28 +10,31 @@ from typing import List, Dict
 class LevelCoupling:
     pass
 
+
 @dataclass(frozen=True)
 class RydbergLevelCoupling(LevelCoupling):
     def __repr__(self) -> str:
-        return 'rydberg'
+        return "rydberg"
+
 
 @dataclass(frozen=True)
 class HyperfineLevelCoupling(LevelCoupling):
     def __repr__(self) -> str:
-        return 'hyperfine'
+        return "hyperfine"
+
 
 rydberg = RydbergLevelCoupling()
 hyperfine = HyperfineLevelCoupling()
 
+
 @dataclass
 class SequenceExpr:
-    
     def append(self, other: "SequenceExpr") -> "SequenceExpr":
         return SequenceExpr.canonicalize(Append([self, other]))
-    
-    def name(self, name: str): # no need to call canonicalize here
+
+    def name(self, name: str):  # no need to call canonicalize here
         return NamedSequence(self, name)
-    
+
     def __getitem__(self, s: slice) -> "Slice":
         return self.canonicalize(Slice(self, Interval.from_slice(s)))
 
@@ -67,7 +70,8 @@ class Sequence(SequenceExpr):
         return self.value[level_coupling](clock_s, *args, **kwargs)
 
     def __repr__(self) -> str:
-        return 'Sequence({' + ', '.join(map(str, self.value.items())) + '})'
+        return "Sequence({" + ", ".join(map(str, self.value.items())) + "})"
+
 
 @dataclass
 class NamedSequence(SequenceExpr):

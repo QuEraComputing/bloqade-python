@@ -72,13 +72,13 @@ class Waveform:
             case Sequence(duration=duration):
                 self._duration = duration
             case AlignedWaveform(waveform=waveform, alignment=_, value=_):
-                self._duration =  waveform.duration()
+                self._duration = waveform.duration()
             case Slice(waveform=waveform, interval=interval):
                 match (interval.start, interval.stop):
                     case (None, None):
                         raise ValueError(f"Cannot compute duration of {self}")
                     case (start, None):
-                        self._duration =  waveform.duration - start
+                        self._duration = waveform.duration - start
                     case (None, stop):
                         self._duration = stop
                     case (start, stop):
