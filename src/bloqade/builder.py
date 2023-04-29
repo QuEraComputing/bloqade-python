@@ -1,16 +1,6 @@
-# report = lattice.Square(3)\
-#     .rydberg.detuning.glob\
-#         .apply(Linear(start=1.0, stop='x', duration=3.0))\
-#     .location(1).scale(1.0)\
-#         .apply(Linear(start=1.0, stop='x', duration=3.0))\
-#     .braket(nshots=1000)\
-#     .submit(token="wqnknlkwASdsq")\
-#     .report()
 from typing import List
 from .ir.prelude import *
-from .ir.scalar import cast
 from .task import *
-
 
 class Builder:
     def __init__(self, sequence) -> None:
