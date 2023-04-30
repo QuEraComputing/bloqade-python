@@ -2,6 +2,7 @@ from typing import List
 from .ir.prelude import *
 from .task import *
 
+
 class Builder:
     def __init__(self, sequence) -> None:
         self.sequence: Sequence = sequence
