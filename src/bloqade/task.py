@@ -13,7 +13,7 @@ import numpy as np
 class Task:
     def __init__(self, prog: "Program", nshots: int) -> None:
         self.prog = prog
-        self.nshtos = nshots
+        self.nshots = nshots
 
     def submit(self, token=None) -> "TaskResult":
         # TODO: do a real task result
