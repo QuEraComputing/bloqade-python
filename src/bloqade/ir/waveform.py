@@ -1,13 +1,21 @@
+from dataclasses import InitVar
 from pydantic.dataclasses import dataclass
-from typing import Union
-from typing import List
+from typing import Any, Union, List
 from enum import Enum
-from .shape import Shape
-from .scalar import Scalar, Interval
-from ..julia.prelude import *
+from .scalar import Scalar, Interval, cast
 
 
-@dataclass(frozen=True)
+class AlignedValue(str, Enum):
+    Left = "left_value"
+    Right = "right_value"
+
+
+class Alignment(str, Enum):
+    Left = "left_aligned"
+    Right = "right_aligned"
+
+
+@dataclass
 class Waveform:
     """
     <waveform> ::= <instruction>
@@ -19,15 +27,72 @@ class Waveform:
         | <add>
     """
 
-    pass
+    def __post_init__(self):
+        self._duration = None
+
+    def __call__(self, clock_s: float, **kwargs) -> Any:
+        raise NotImplementedError
+
+    def add(self, other: "Waveform") -> "Waveform":
+        return self.canonicalize(Add(self, other))
+
+    def align(
+        self, alignment: Alignment, value: Union[None, AlignedValue, Scalar] = None
+    ) -> "Waveform":
+        if value is None:
+            if alignment == Alignment.Left:
+                value = AlignedValue.Left
+            elif alignment == Alignment.Right:
+                value = AlignedValue.Right
+            else:
+                raise ValueError(f"Invalid alignment: {alignment}")
+        elif value is Scalar or value is AlignedValue:
+            return self.canonicalize(AlignedWaveform(self, alignment, value))
+        else:
+            return self.canonicalize(AlignedWaveform(self, alignment, cast(value)))
+
+    def smooth(self, kernel: str = "gaussian") -> "Waveform":
+        return self.canonicalize(Smooth(kernel, self))
+
+    def scale(self, value) -> "Waveform":
+        return self.canonicalize(Scale(cast(value), self))
+
+    def __neg__(self) -> "Waveform":
+        return self.canonicalize(Negative(self))
+
+    def __getitem__(self, s: slice) -> "Waveform":
+        return self.canonicalize(Slice(self, Interval.from_slice(s)))
+
+    @property
+    def duration(self) -> Scalar:
+        if self._duration:
+            return self._duration
+
+        match self:
+            case Sequence(duration=duration):
+                self._duration = duration
+            case AlignedWaveform(waveform=waveform, alignment=_, value=_):
+                self._duration = waveform.duration()
+            case Slice(waveform=waveform, interval=interval):
+                match (interval.start, interval.stop):
+                    case (None, None):
+                        raise ValueError(f"Cannot compute duration of {self}")
+                    case (start, None):
+                        self._duration = waveform.duration - start
+                    case (None, stop):
+                        self._duration = stop
+                    case (start, stop):
+                        self._duration = stop - start
+            case _:
+                raise ValueError(f"Cannot compute duration of {self}")
+        return self._duration
+
+    @staticmethod
+    def canonicalize(expr: "Waveform") -> "Waveform":
+        return expr
 
 
-class AlignedValue(str, Enum):
-    Left = "left_value"
-    Right = "right_value"
-
-
-@dataclass(frozen=True)
+@dataclass
 class AlignedWaveform(Waveform):
     """
     <padded waveform> ::= <waveform> | <waveform> <alignment> <value>
@@ -37,21 +102,97 @@ class AlignedWaveform(Waveform):
     """
 
     waveform: Waveform
-    alignment: str
+    alignment: Alignment
     value: Union[Scalar, AlignedValue]
 
 
-@dataclass(frozen=True)
-class Instruction(Waveform):
+@dataclass
+class Sequence(Waveform):
+    pass
+
+
+@dataclass(init=False)
+class Linear(Sequence):
     """
-    <instruction> ::= <shape> <scalar expr>
+    <linear> ::= 'linear' <scalar expr> <scalar expr>
     """
 
-    shape: Shape
+    start: Scalar
+    stop: Scalar
     duration: Scalar
 
+    def __init__(self, start, stop, duration):
+        self.start = cast(start)
+        self.stop = cast(stop)
+        self._duration = cast(duration)
 
-@dataclass(frozen=True)
+    def __call__(self, clock_s: float, **kwargs) -> Any:
+        start_value = self.start(**kwargs)
+        stop_value = self.stop(**kwargs)
+
+        if clock_s > self.duration(**kwargs):
+            return 0.0
+        else:
+            return ((stop_value - start_value) / self.duration(**kwargs)) * clock_s
+
+    def __repr__(self) -> str:
+        return f"linear {self.start} {self.stop}"
+
+
+@dataclass(init=False)
+class Constant(Sequence):
+    """
+    <constant> ::= 'constant' <scalar expr>
+    """
+
+    value: Scalar
+    duration: InitVar[Scalar]
+
+    def __init__(self, value, duration):
+        self.value = cast(value)
+        self._duration = cast(duration)
+
+    def __call__(self, clock_s: float, **kwargs) -> Any:
+        constant_value = self.value(**kwargs)
+        if clock_s > self.duration(**kwargs):
+            return 0.0
+        else:
+            return constant_value
+
+    def __repr__(self) -> str:
+        return f"constant {self.value}"
+
+
+@dataclass(init=False)
+class Poly(Sequence):
+    """
+    <poly> ::= <scalar>+
+    """
+
+    checkpoints: List[Scalar]
+    duration: Scalar
+
+    def __init__(self, checkpoints, duration):
+        self.checkpoints = cast(checkpoints)
+        self._duration = cast(duration)
+
+    def __call__(self, clock_s: float, **kwargs) -> Any:
+        # b + x + x^2 + ... + x^n-1 + x^n
+        if clock_s > self.duration(**kwargs):
+            return 0.0
+        else:
+            # call clock_s on each element of the scalars,
+            # then apply the proper powers
+            for exponent, scalar_expr in enumerate(self.checkpoints):
+                value += scalar_expr(**kwargs) * clock_s**exponent
+
+            return value
+
+    def __repr__(self) -> str:
+        return f"{', '.join(map(str, self.checkpoints))}"
+
+
+@dataclass
 class Smooth(Waveform):
     """
     <smooth> ::= 'smooth' <kernel> <waveform>
@@ -60,8 +201,12 @@ class Smooth(Waveform):
     kernel: str
     waveform: Waveform
 
+    # TODO: implement
+    def __call__(self, clock_s: float, **kwargs) -> Any:
+        raise NotImplementedError
 
-@dataclass(frozen=True)
+
+@dataclass
 class Slice(Waveform):
     """
     <slice> ::= <waveform> <scalar.interval>
@@ -70,8 +215,15 @@ class Slice(Waveform):
     waveform: Waveform
     interval: Interval
 
+    def __repr__(self) -> str:
+        return f"{self.waveform}[{self.interval}]"
 
-@dataclass(frozen=True)
+    # TODO: implement
+    def __call__(self, clock_s: float, **kwargs) -> Any:
+        raise NotImplementedError
+
+
+@dataclass
 class Append(Waveform):
     """
     <append> ::= <waveform> | <append> <waveform>
@@ -79,8 +231,12 @@ class Append(Waveform):
 
     waveforms: List[Waveform]
 
+    # TODO: implement
+    def __call__(self, clock_s: float, **kwargs) -> Any:
+        raise NotImplementedError
 
-@dataclass(frozen=True)
+
+@dataclass
 class Negative(Waveform):
     """
     <negative> ::= '-' <waveform>
@@ -88,8 +244,11 @@ class Negative(Waveform):
 
     waveform: Waveform
 
+    def __call__(self, clock_s: float, **kwargs) -> Any:
+        return -self.waveform(clock_s, **kwargs)
 
-@dataclass(frozen=True)
+
+@dataclass
 class Scale(Waveform):
     """
     <scale> ::= <scalar expr> '*' <waveform>
@@ -98,8 +257,11 @@ class Scale(Waveform):
     scalar: Scalar
     waveform: Waveform
 
+    def __call__(self, clock_s: float, **kwargs) -> Any:
+        return self.scalar(**kwargs) * self.waveform(clock_s, **kwargs)
 
-@dataclass(frozen=True)
+
+@dataclass
 class Add(Waveform):
     """
     <add> ::= <waveform> '+' <waveform>
@@ -107,3 +269,6 @@ class Add(Waveform):
 
     left: Waveform
     right: Waveform
+
+    def __call__(self, clock_s: float, **kwargs) -> Any:
+        return self.left(clock_s, **kwargs) + self.right(clock_s, **kwargs)

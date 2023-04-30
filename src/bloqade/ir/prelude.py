@@ -1,20 +1,37 @@
 from .scalar import *
-from .shape import *
 from .waveform import *
+from .field import *
+from .pulse import *
+from .sequence import *
 
 __all__ = [
+    "cast",
     "Scalar",
     "Interval",
     "Variable",
     "Literal",
-    "Shape",
     "Linear",
     "Constant",
     "Poly",
     "Waveform",
     "AlignedWaveform",
-    "Instruction",
+    "Sequence",
     "Smooth",
     "Slice",
     "Append",
+    "Field",
+    "Location",
+    "SpatialModulation",
+    "Global",
+    "RunTimeVector",
+    "ScaledLocations",
+    "ScaledLocations",
+    "Pulse",
+    "FieldName",
+    "rabi",
+    "detuning",
+    "LevelCoupling",
+    "rydberg",
+    "hyperfine",
+    "Sequence",
 ]

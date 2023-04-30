@@ -1,76 +1,67 @@
 from pydantic.dataclasses import dataclass
-from .scalar import Scalar
+from .scalar import Scalar, cast
 from .waveform import Waveform
-from ..julia.prelude import *
-from enum import Enum
 
 
 @dataclass(frozen=True)
-class FieldName(ToJulia):
-    pass
-
-
-class RabiFrequencyAmplitude(FieldName):
-    def julia(self) -> AnyValue:
-        return IRTypes.RabiFrequencyAmplitude
-
-
-class RabiFrequencyPhase(FieldName):
-    def julia(self) -> AnyValue:
-        return IRTypes.RabiFrequencyPhase
-
-
-class Detuning(FieldName):
-    def julia(self) -> AnyValue:
-        return IRTypes.Detuning
-
-
-@dataclass(frozen=True)
-class Location(ToJulia):
+class Location:
     value: int
 
-    def julia(self) -> AnyValue:
-        return Int64(self.value)
+
+@dataclass
+class SpatialModulation:
+    def __hash__(self) -> int:
+        raise NotImplementedError
 
 
-@dataclass(frozen=True)
-class SpatialModulation(ToJulia):
-    pass
+@dataclass
+class GlobalModulation(SpatialModulation):
+    def __hash__(self) -> int:
+        return hash(self.__class__)
+
+    def __repr__(self) -> str:
+        return "Global"
 
 
-@dataclass(frozen=True)
-class Global(SpatialModulation):
-    def julia(self) -> AnyValue:
-        return IRTypes.Global
+Global = GlobalModulation()
 
 
-@dataclass(frozen=True)
+@dataclass
 class RunTimeVector(SpatialModulation):
     name: str
 
-    def julia(self) -> AnyValue:
-        return IRTypes.RuntimeVector(Symbol(self.name))
+    def __hash__(self) -> int:
+        return hash(self.name) ^ hash(self.__class__)
 
 
-@dataclass(frozen=True)
+@dataclass(init=False)
 class ScaledLocations(SpatialModulation):
     value: dict[Location, Scalar]
 
-    def julia(self) -> AnyValue:
-        return IRTypes.ScaledLocations(
-            Dict[IRTypes.Location, IRTypes.ScalarLang](self.value)
-        )
+    def __init__(self, pairs):
+        value = dict()
+        for k, v in pairs.items():
+            if isinstance(k, int):
+                k = Location(k)
+            elif isinstance(k, Location):
+                pass
+            else:
+                raise ValueError(f"expected Location or int, got {k}")
+
+            value[k] = cast(v)
+        self.value = value
+
+    def __hash__(self) -> int:
+        return hash(frozenset(self.value.items())) ^ hash(self.__class__)
 
 
-@dataclass(frozen=True)
-class Field(ToJulia):
+@dataclass
+class Field:
     """
     <field> ::= ('field' <spatial modulation>  <padded waveform>)*
     """
 
     value: dict[SpatialModulation, Waveform]
 
-    def julia(self) -> AnyValue:
-        return IRTypes.FieldLang.Field(
-            Dict[IRTypes.SpatialModulation, IRTypes.WaveformLang](self.value)
-        )
+    def __hash__(self) -> int:
+        return hash(frozenset(self.value.items())) ^ hash(self.__class__)

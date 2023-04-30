@@ -1,11 +1,34 @@
-from pydantic.dataclasses import dataclass
 from .scalar import Interval
-from .field import Field, FieldName
+from .field import Field
 from typing import List
-from ..julia.prelude import *
+from enum import Enum
+from pydantic.dataclasses import dataclass
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, repr=False)
+class FieldName(str, Enum):
+    RabiFrequencyAmplitude = "rabi_frequency_amplitude"
+    RabiFrequencyPhase = "rabi_frequency_phase"
+    Detuning = "detuning"
+
+    def __repr__(self) -> str:
+        return self.value
+
+
+class RabiRouter:
+    def __init__(self) -> None:
+        self.amplitude = FieldName.RabiFrequencyAmplitude
+        self.phase = FieldName.RabiFrequencyPhase
+
+    def __repr__(self) -> str:
+        "rabi (amplitude, phase)"
+
+
+rabi = RabiRouter()
+detuning = FieldName.Detuning
+
+
+@dataclass
 class PulseExpr:
     """
     <expr> ::= <pulse>
@@ -22,10 +45,11 @@ class PulseExpr:
 
     @staticmethod
     def canonicalize(expr: "PulseExpr") -> "PulseExpr":
+        # TODO: update canonicalization rules for appending pulses
         return expr
 
 
-@dataclass(frozen=True)
+@dataclass
 class Append(PulseExpr):
     """
     <append> ::= <expr>+
@@ -34,7 +58,7 @@ class Append(PulseExpr):
     value: List[PulseExpr]
 
 
-@dataclass(frozen=True)
+@dataclass(init=False, repr=False)
 class Pulse(PulseExpr):
     """
     <pulse> ::= (<field name> <field>)+
@@ -42,14 +66,28 @@ class Pulse(PulseExpr):
 
     value: dict[FieldName, Field]
 
+    def __init__(self, field_pairs):
+        value = dict()
+        for k, v in field_pairs.items():
+            if isinstance(v, Field):
+                value[k] = v
+            elif isinstance(v, dict):
+                value[k] = Field(v)
+            else:
+                raise TypeError(f"Expected Field or dict, got {type(v)}")
+        self.value = value
 
-@dataclass(frozen=True)
+    def __repr__(self) -> str:
+        return "Pulse({" + ", ".join(map(str, self.value.items())) + "})"
+
+
+@dataclass
 class NamedPulse(PulseExpr):
     name: str
     pulse: PulseExpr
 
 
-@dataclass(frozen=True)
+@dataclass
 class Slice(PulseExpr):
     pulse: PulseExpr
     interval: Interval
