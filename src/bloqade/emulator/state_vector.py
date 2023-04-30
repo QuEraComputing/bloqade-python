@@ -1,3 +1,4 @@
+from pydantic.dataclasses import dataclass
 from scipy.sparse import csr_matrix
 from bloqade.emulator.sparse_operator import PermMatrix, Diagonal
 from numpy.typing import NDArray
