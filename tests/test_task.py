@@ -1,5 +1,5 @@
 from bloqade.ir.prelude import *
-import bloqade.lattice as lattice
+import bloqade.lattice as _lattice
 
 # dict interface
 seq = Sequence(
@@ -15,13 +15,13 @@ seq = Sequence(
     }
 )
 
-print(lattice.Square(3).run(seq).braket(nshots=1000).submit().report().dataframe)
+print(_lattice.Square(3).run(seq).braket(nshots=1000).submit().report().dataframe)
 print("bitstring")
-print(lattice.Square(3).run(seq).braket(nshots=1000).submit().report().bitstring)
+print(_lattice.Square(3).run(seq).braket(nshots=1000).submit().report().bitstring)
 
 # pipe interface
 report = (
-    lattice.Square(3)
+    _lattice.Square(3)
     .rydberg.detuning.glob.apply(Linear(start=1.0, stop="x", duration=3.0))
     .location(2)
     .scale(3.0)
@@ -36,3 +36,8 @@ report = (
 print(report)
 print(report.bitstring)
 print(report.dataframe)
+
+_lattice.Square(3).rydberg.detuning\
+    .location(2).location(3).apply(Linear(start=1.0, stop="x", duration=3.0))\
+    .location(3).location(4).apply(Linear(start=1.0, stop="x", duration=3.0))\
+    .braket().submit()
