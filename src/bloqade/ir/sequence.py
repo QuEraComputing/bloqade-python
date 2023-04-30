@@ -16,6 +16,7 @@ class RydbergLevelCoupling(LevelCoupling):
     def __repr__(self) -> str:
         return "rydberg"
 
+
 @dataclass(frozen=True)
 class HyperfineLevelCoupling(LevelCoupling):
     def __repr__(self) -> str:

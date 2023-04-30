@@ -4,6 +4,7 @@ from bloqade.ir.waveform import Waveform, Append, Linear, Constant
 from bloqade.codegen.hardware.base import BaseCodeGen
 from typing import List, Optional
 
+
 @dataclass
 class WaveformCodeGen(BaseCodeGen):
     field_name: Optional[FieldName] = None
