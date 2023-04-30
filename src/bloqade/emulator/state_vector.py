@@ -7,11 +7,6 @@ from enum import Enum
 import numpy as np
 
 
-class RabiOperatorType(str, Enum):
-    RealValued = "real_valued"
-    ComplexValued = "complex_valued"
-
-
 @dataclass
 class Hamiltonian:
     functions: List[Callable]

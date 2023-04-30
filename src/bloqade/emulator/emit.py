@@ -1,32 +1,50 @@
 from bloqade.ir.sequence import LevelCoupling
 from bloqade.emulator.sparse_operator import PermMatrix, Diagonal
 from bloqade.emulator.space import Space, FullSpace, SubSpace, LocalHilbertSpace
+from pydantic.dataclasses import dataclass
 from scipy.sparse import csr_matrix
+from enum import Enum
 import numpy as np
 from typing import Dict
 from numbers import Number
 
 
-def local_rabi_matrix(
-    level_coupling: LevelCoupling, target_atoms: Dict[int, Number], space: Space
-):
-    shape = (space.size, space.size)
-    dtype = np.common_type(list(target_atoms.values()))
-    n_targets = len(target_atoms)
+class RabiOperatorType(str, Enum):
+    RealValued = "real_valued"
+    ComplexValued = "complex_valued"
 
-    match (level_coupling, space):
-        case (
-            LevelCoupling.Rydberg,
-            FullSpace(n_level=LocalHilbertSpace.TwoLevel),
+
+@dataclass
+class RabiInfo:
+    op_type: RabiOperatorType
+    level_coupling: LevelCoupling
+    target_atoms: Dict[int, Number]
+    space: Space
+
+
+def local_rabi_matrix(info: RabiInfo):
+    shape = (info.space.size, info.space.size)
+    dtype = np.common_type(list(info.target_atoms.values()))
+
+    match info:
+        case RabiInfo(
+            op_type=RabiOperatorType.RealValued,
+            level_coupling=LevelCoupling.Rydberg,
+            target_atoms=target_atoms,
+            space=FullSpace(n_level=LocalHilbertSpace.TwoLevel) as space,
         ) if len(target_atoms) == 1:
             configurations = np.arange(space.size, dtype=space.index_type)
             (atom_index,) = target_atoms.keys()
             input_indices = configurations ^ (1 << atom_index)
             return PermMatrix(input_indices)
 
-        case (
-            LevelCoupling.Rydberg,
-            SubSpace(n_level=LocalHilbertSpace.TwoLevel, configurations=configurations),
+        case RabiInfo(
+            op_type=RabiOperatorType.RealValued,
+            level_coupling=LevelCoupling.Rydberg,
+            target_atoms=target_atoms,
+            space=SubSpace(
+                n_level=LocalHilbertSpace.TwoLevel, configurations=configurations
+            ) as space,
         ) if len(target_atoms) == 1:
             (atom_index,) = target_atoms.keys()
             new_configurations = configurations ^ (1 << atom_index)
@@ -36,15 +54,20 @@ def local_rabi_matrix(
             input_indices = input_indices[output_indices]
             return PermMatrix(input_indices, output_indices)
 
-        case (LevelCoupling.Rydberg, FullSpace(n_level=LocalHilbertSpace.TwoLevel)):
+        case RabiInfo(
+            op_type=RabiOperatorType.RealValued,
+            level_coupling=LevelCoupling.Rydberg,
+            target_atoms=target_atoms,
+            space=FullSpace(n_level=LocalHilbertSpace.TwoLevel) as space,
+        ):
             configurations = np.arange(space.size)
             indptr = np.zeros(configurations.size, dtype=space.index_type)
-            indptr[1:] = n_targets
+            indptr[1:] = len(target_atoms)
 
             np.cumsum(indptr, out=indptr)
 
-            indices = np.zeros((space.size, n_targets), dtype=space.index_type)
-            data = np.zeros((space.size, n_targets), dtype=dtype)
+            indices = np.zeros((space.size, len(target_atoms)), dtype=space.index_type)
+            data = np.zeros((space.size, len(target_atoms)), dtype=dtype)
 
             for atom_index, value in target_atoms.items():
                 input_indices = configurations ^ (1 << atom_index)
@@ -55,8 +78,14 @@ def local_rabi_matrix(
                 (data.ravel(), indices.ravel(), indptr), shape=shape, dtype=dtype
             )
 
-        case (LevelCoupling.Rydberg, SubSpace(n_level=LocalHilbertSpace.TwoLevel)):
-            configurations = np.arange(space.size)
+        case RabiInfo(
+            op_type=RabiOperatorType.RealValued,
+            level_coupling=LevelCoupling.Rydberg,
+            target_atoms=target_atoms,
+            space=SubSpace(
+                n_level=LocalHilbertSpace.TwoLevel, configurations=configurations
+            ) as space,
+        ):
             indptr = np.zeros(configurations.size, dtype=space.index_type)
 
             nnz_values = indptr[1:]
@@ -82,6 +111,8 @@ def local_rabi_matrix(
                 data[nonzero_index] = value
                 index[input_indices] += 1
 
+            indptr[1:] = index
+            indptr[0] = 0
             return csr_matrix((data, indices, indptr), shape=shape, dtype=dtype)
 
         case _:
