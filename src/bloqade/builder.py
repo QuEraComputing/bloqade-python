@@ -10,13 +10,13 @@ class Builder:
         elif isinstance(sequence_or_builder, Sequence):
             self._sequence: Sequence = sequence_or_builder
         else:
-            raise ValueError('expect Sequence or Builder')
-    
+            raise ValueError("expect Sequence or Builder")
+
     @property
     def sequence(self):
-        """access the current sequence (Sequence) object.
-        """
+        """access the current sequence (Sequence) object."""
         return self._sequence
+
 
 class CouplingLevelBuilder(Builder):
     def __init__(self, lattice, sequence=Sequence({})) -> None:
@@ -25,14 +25,12 @@ class CouplingLevelBuilder(Builder):
 
     @property
     def detuning(self) -> "SpatialModulationBuilder":
-        """add detuning field to coupling level.
-        """
+        """add detuning field to coupling level."""
         return SpatialModulationBuilder(DetuningBuilder(self))
 
     @property
     def rabi(self) -> "RabiBuilder":
-        """add Rabi field (amplitude or phase) to coupling level.
-        """
+        """add Rabi field (amplitude or phase) to coupling level."""
         return RabiBuilder(self)
 
 
@@ -60,15 +58,13 @@ class DetuningBuilder(FieldBuilder):
 class RabiBuilder(FieldBuilder):
     @property
     def amplitude(self) -> "SpatialModulationBuilder":
-        """specify pulse on Rabi frequency amplitude
-        """
+        """specify pulse on Rabi frequency amplitude"""
         self.name = FieldName.RabiFrequencyAmplitude
         return SpatialModulationBuilder(self)
 
     @property
     def phase(self) -> "SpatialModulationBuilder":
-        """specify pulse on Rabi frequency phase
-        """
+        """specify pulse on Rabi frequency phase"""
         self.name = FieldName.RabiFrequencyPhase
         return SpatialModulationBuilder(self)
 
@@ -86,8 +82,7 @@ class SpatialModulationBuilder(Builder):
         return GlobalLocationBuilder(self)
 
     def location(self, label: int):
-        """specify location of the pulse in the lattice with a label.
-        """
+        """specify location of the pulse in the lattice with a label."""
         return LocalLocationBuilder(self, label)
 
 
@@ -99,8 +94,7 @@ class LocationBuilder(Builder):
     def apply(
         self, waveform: Waveform
     ):  # forward to ApplyBuilder if only one location specified
-        """apply the waveform to the current location, field and coupling level.
-        """
+        """apply the waveform to the current location, field and coupling level."""
         return ApplyBuilder(self)._apply(waveform)
 
 
@@ -115,15 +109,13 @@ class LocalLocationBuilder(LocationBuilder):
         self._scale: List[Scalar] = [cast(1.0)]
 
     def scale(self, val) -> "LocalLocationBuilder":
-        """scale the waveform at the current location.
-        """
+        """scale the waveform at the current location."""
         self._scale.pop()
         self._scale.append(val)
         return self
 
     def location(self, label: int) -> "LocalLocationBuilder":
-        """add another location that shares the same waveform.
-        """
+        """add another location that shares the same waveform."""
         self._label.append(label)
         self._scale.append(cast(1.0))
         return self
@@ -178,18 +170,15 @@ class ApplyBuilder(Builder):  # terminator
         return Program(self.__lattice, self._sequence)
 
     def braket(self, *args, **kwargs) -> BraketTask:
-        """finish building the pulse program, and submit to braket.
-        """
+        """finish building the pulse program, and submit to braket."""
         return self._program.braket(*args, **kwargs)
 
     def quera(self, *args, **kwargs) -> QuEraTask:
-        """finish building the pulse program, and submit to QuEra.
-        """
+        """finish building the pulse program, and submit to QuEra."""
         return self._program.quera(*args, **kwargs)
 
     def simu(self, *args, **kwargs) -> SimuTask:
-        """finish building the pulse program, and submit to local simulator.
-        """
+        """finish building the pulse program, and submit to local simulator."""
         return self._program.simu(*args, **kwargs)
 
     # apply can go any previous builder
@@ -212,29 +201,25 @@ class ApplyBuilder(Builder):  # terminator
     # 2. FieldBuilder
     @property
     def detuning(self) -> SpatialModulationBuilder:
-        """specify a new detuning field on the current coupling level.
-        """
+        """specify a new detuning field on the current coupling level."""
         return self.__coupling_level.detuning
 
     @property
     def rabi(self) -> RabiBuilder:
-        """specify a new rabi field on the current coupling level.
-        """
+        """specify a new rabi field on the current coupling level."""
         return self.__coupling_level.rabi
 
     # 3. RabiBuilder
     @property
     def amplitude(self) -> SpatialModulationBuilder:
-        """specify a new amplitude modulation on the current rabi field.
-        """
+        """specify a new amplitude modulation on the current rabi field."""
         if not isinstance(self.__field, RabiBuilder):
             raise ValueError("amplitude can only specified on rabi channel")
         return self.__field.amplitude
 
     @property
     def phase(self) -> SpatialModulationBuilder:
-        """specify a new phase modulation on the current rabi field.
-        """
+        """specify a new phase modulation on the current rabi field."""
         if not isinstance(self.__field, RabiBuilder):
             raise ValueError("phase can only specified on rabi channel")
         return self.__field.phase
@@ -242,13 +227,11 @@ class ApplyBuilder(Builder):  # terminator
     # 4. SpatialModulationBuilder
     @property
     def glob(self) -> GlobalLocationBuilder:
-        """create a global location under the current field and coupling level.
-        """
+        """create a global location under the current field and coupling level."""
         if isinstance(self.__location_builder, GlobalLocationBuilder):
             raise ValueError("global waveform already specified")
         return self.__spatial_mod.glob
 
     def location(self, label: int) -> LocalLocationBuilder:
-        """create a new location under the current field and coupling level.
-        """
+        """create a new location under the current field and coupling level."""
         return self.__spatial_mod.location(label)
