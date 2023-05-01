@@ -12,7 +12,7 @@ class Cell:
         self.ndims = ndims
 
 
-@dataclass(frozen=True)
+@dataclass
 class BoundedBravais(Lattice):
     shape: Tuple[int, ...]
 
@@ -44,8 +44,12 @@ class BoundedBravais(Lattice):
                 yield pos
 
 
-@dataclass(frozen=True)
+@dataclass
 class Chain(BoundedBravais):
+
+    def __init__(self, L: int):
+        super().__init__(L)
+
     def cell_vectors(self) -> List[List[float]]:
         return [[1]]
 
@@ -53,8 +57,11 @@ class Chain(BoundedBravais):
         return [[0]]
 
 
-@dataclass(frozen=True)
+@dataclass
 class Square(BoundedBravais):
+    def __init__(self, L: int):
+        super().__init__(L, L)
+
     def cell_vectors(self) -> List[List[float]]:
         return [[1, 0], [0, 1]]
 
@@ -62,9 +69,13 @@ class Square(BoundedBravais):
         return [[0, 0]]
 
 
-@dataclass(frozen=True)
+@dataclass
 class Rectangular(BoundedBravais):
     ratio: float
+
+    def __init__(self, width: int, height: int):
+        super().__init__(width, height)
+        self.ratio = height / width
 
     def cell_vectors(self) -> List[List[float]]:
         return [[1, 0], [0, self.ratio]]
@@ -73,8 +84,11 @@ class Rectangular(BoundedBravais):
         return [[0, 0]]
 
 
-@dataclass(frozen=True)
+@dataclass
 class Honeycomb(BoundedBravais):
+    def __init__(self, L: int):
+        super().__init__(L, L)
+
     def cell_vectors(self) -> List[List[float]]:
         return [[1.0, 0.0], [1 / 2, np.sqrt(3) / 2]]
 
@@ -82,8 +96,11 @@ class Honeycomb(BoundedBravais):
         return [[0.0, 0.0], [1 / 2, np.sqrt(3) / 2]]
 
 
-@dataclass(frozen=True)
+@dataclass
 class Triangular(BoundedBravais):
+    def __init__(self, L: int):
+        super().__init__(L, L)
+
     def cell_vectors(self) -> List[List[float]]:
         return [[1.0, 0.0], [1 / 2, np.sqrt(3) / 2]]
 
@@ -91,9 +108,12 @@ class Triangular(BoundedBravais):
         return [[0.0, 0.0]]
 
 
-@dataclass(frozen=True)
+@dataclass
 class Lieb(BoundedBravais):
     """Lieb lattice."""
+
+    def __init__(self, L: int):
+        super().__init__(L, L)
 
     def cell_vectors(self) -> List[List[float]]:
         return [[1.0, 0.0], [0.0, 1.0]]
@@ -102,8 +122,11 @@ class Lieb(BoundedBravais):
         return [[0.0, 0.0], [1 / 2, 0.0], [0.0, 1 / 2]]
 
 
-@dataclass(frozen=True)
+@dataclass
 class Kagome(BoundedBravais):
+    def __init__(self, L: int):
+        super().__init__(L, L)
+
     def cell_vectors(self) -> List[List[float]]:
         return [[1.0, 0.0], [1 / 2, np.sqrt(3) / 2]]
 
