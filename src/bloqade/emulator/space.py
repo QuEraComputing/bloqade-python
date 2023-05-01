@@ -12,6 +12,9 @@ class LocalHilbertSpace(int, Enum):
 
 
 class Space:
+    n_atom: int
+    n_level: LocalHilbertSpace
+
     @property
     def index_type(self):
         if self.size < np.iinfo(np.int32).max:
@@ -22,10 +25,6 @@ class Space:
 
 @dataclass
 class FullSpace(Space):
-    n_atom: int
-    n_level: LocalHilbertSpace
-    configurations: NDArray
-
     @property
     def size(self):
         match self.n_level:
@@ -35,16 +34,22 @@ class FullSpace(Space):
             case LocalHilbertSpace.ThreeLevel:
                 return 3**self.n_atom
 
+    @property
+    def state_type(self):
+        return np.result_type(np.uint32, np.min_scalar_type(self.size))
+
 
 @dataclass
 class SubSpace(Space):
-    n_atom: int
-    n_level: LocalHilbertSpace
     configurations: NDArray
 
     @property
     def size(self):
         return self.configurations.size
+
+    @property
+    def state_type(self):
+        return np.result_type(np.uint32, np.min_scalar_type(self.configurations[-1]))
 
 
 def get_space(
