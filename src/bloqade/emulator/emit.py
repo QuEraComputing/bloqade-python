@@ -5,13 +5,11 @@ from bloqade.ir.sequence import (
 )
 from bloqade.emulator.sparse_operator import IndexMapping, Diagonal
 from bloqade.emulator.space import Space, SpaceType, LocalHilbertSpace, is_rydberg_state, is_hyperfine_state
-import numpy.typing
 from pydantic.dataclasses import dataclass
 from scipy.sparse import csr_matrix
 from enum import Enum
 import numpy as np
 from numpy.typing import NDArray
-import scipy.spatial
 from typing import Dict, Union, List, Tuple
 from numbers import Number
 
