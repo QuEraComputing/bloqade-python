@@ -8,22 +8,24 @@ from pydantic.dataclasses import dataclass
 class FieldName:
     pass
 
+
 @dataclass(frozen=True)
 class RabiFrequencyAmplitude(FieldName):
     def __repr__(self) -> str:
         return "rabi_frequency_amplitude"
 
+
 @dataclass(frozen=True)
 class RabiFrequencyPhase(FieldName):
-    
     def __repr__(self) -> str:
         return "rabi_frequency_phase"
 
+
 @dataclass(frozen=True)
 class Detuning(FieldName):
-    
     def __repr__(self) -> str:
         return "detuning"
+
 
 class RabiRouter:
     def __init__(self) -> None:
@@ -36,6 +38,7 @@ class RabiRouter:
 
 rabi = RabiRouter()
 detuning = Detuning()
+
 
 @dataclass
 class PulseExpr:
