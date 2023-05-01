@@ -1,7 +1,6 @@
 from .scalar import Interval
 from .field import Field
 from typing import List
-from enum import Enum
 from pydantic.dataclasses import dataclass
 
 
