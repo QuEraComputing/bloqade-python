@@ -74,16 +74,14 @@ class Space:
 
         if all(len(sub_list) == 0 for sub_list in check_atoms):
             super().__init__(SpaceType.FullSpace, n_level, configurations)
-            return 
-            
+            return
+
         for index_1, indices in enumerate(check_atoms):
             # get which configurations are in rydberg state for the current index.
             rydberg_configs_1 = is_rydberg_state(configurations, index_1, n_level)
             for index_2 in indices:  # loop over neighbors within blockade radius
                 # get which configus have the neighbor with a rydberg excitation
-                rydberg_configs_2 = is_rydberg_state(
-                    configurations, index_2, n_level
-                )
+                rydberg_configs_2 = is_rydberg_state(configurations, index_2, n_level)
                 # get which states do not violate constraint
                 mask = np.logical_not(
                     np.logical_and(rydberg_configs_1, rydberg_configs_2)
