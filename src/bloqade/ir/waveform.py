@@ -35,7 +35,7 @@ class Waveform:
 
     def add(self, other: "Waveform") -> "Waveform":
         return self.canonicalize(Add(self, other))
-    
+
     def append(self, other: "Waveform") -> "Waveform":
         return self.canonicalize(Append([self, other]))
 
