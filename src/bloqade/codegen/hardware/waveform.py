@@ -89,13 +89,18 @@ class WaveformCodeGen(BaseCodeGen):
                 raise NotImplementedError
 
     def scan(self, ast: Waveform):
+        print(self.field_name)
         match self.field_name:
-            case FieldName.RabiFrequencyAmplitude | FieldName.Detuning:
+            case FieldName.RabiFrequencyAmplitude:
+                print('amplitude')
                 self.scan_piecewise_linear(ast)
-            case _:
+            case FieldName.RabiFrequencyPhase:
+                print('phase')
                 self.scan_piecewise_constant(ast)
+            case FieldName.Detuning:
+                print('detuning')
+                self.scan_piecewise_linear(ast)
 
-        return self.times, self.values
 
     def emit(self, ast: Waveform) -> Tuple[List[float], List[float]]:
         self.times = []

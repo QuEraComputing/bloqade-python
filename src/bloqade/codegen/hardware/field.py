@@ -12,7 +12,6 @@ from quera_ahs_utils.quera_ir.task_specification import (
     RabiFrequencyPhase,
     Detuning,
 )
-from exmaples.mwe_adiabatic import lattice
 
 
 @dataclass
@@ -21,27 +20,28 @@ class FieldCodeGen(WaveformCodeGen, SpatialModulationCodeGen):
     local: Optional[LocalField] = None
 
     def scan(self, ast: Field):
+        waveform_codegen = WaveformCodeGen(self.n_atoms, self.variable_reference, field_name=self.field_name)
         terms = dict(ast.value)
         match self.field_name:
             case FieldName.RabiFrequencyAmplitude if len(
                 terms
             ) == 1 and GlobalModulation() in terms:
-                times, values = WaveformCodeGen.emit(self, terms.pop(Global))
+                times, values = waveform_codegen.emit(terms.pop(Global))
                 self.global_ = GlobalField(times=times, values=values)
 
             case FieldName.RabiFrequencyPhase if len(
                 terms
             ) == 1 and GlobalModulation() in terms:
-                times, values = WaveformCodeGen.emit(self, terms.pop(Global))
+                times, values = waveform_codegen.emit(terms.pop(Global))
                 self.global_ = GlobalField(times=times, values=values)
 
             case FieldName.Detuning if len(terms) == 1 and GlobalModulation() in terms:
-                times, values = WaveformCodeGen.emit(self, terms.pop(Global))
+                times, values = waveform_codegen.emit(terms.pop(Global))
                 self.global_ = GlobalField(times=times, values=values)
 
             case FieldName.Detuning if len(terms) == 1:
                 ((spatial_modulation, waveform),) = terms.items()
-                times, values = WaveformCodeGen.emit(self, waveform)
+                times, values = waveform_codegen.emit(self, waveform)
                 lattice_site_coefficients = SpatialModulationCodeGen.emit(
                     self, spatial_modulation
                 )
@@ -53,7 +53,7 @@ class FieldCodeGen(WaveformCodeGen, SpatialModulationCodeGen):
                 )
 
             case FieldName.Detuning if len(terms) == 2 and GlobalModulation() in terms:
-                times, values = WaveformCodeGen.emit(self, terms.pop(Global))
+                times, values = WaveformCodeGen.emit(terms.pop(Global))
                 self.global_ = GlobalField(times=times, values=values)
                 ((spatial_modulation, waveform),) = terms.items()
                 times, values = WaveformCodeGen.emit(self, waveform)

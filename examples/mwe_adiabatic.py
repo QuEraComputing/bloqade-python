@@ -3,7 +3,7 @@ import bloqade.ir.waveform as wf
 import bloqade.ir.pulse as pulse
 import bloqade.ir.sequence as sequence 
 
-from bloqade.ir.shape import Constant, Linear
+from bloqade.ir.waveform import Constant, Linear
 from bloqade.ir.field import Global, Field
 from bloqade.ir.field import RabiFrequencyAmplitude, Detuning
 from bloqade.ir.sequence import Rydberg
