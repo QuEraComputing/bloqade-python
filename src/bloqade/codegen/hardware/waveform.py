@@ -2,7 +2,7 @@ from pydantic.dataclasses import dataclass
 from bloqade.ir.pulse import FieldName
 from bloqade.ir.waveform import Waveform, Append, Linear, Constant
 from bloqade.codegen.hardware.base import BaseCodeGen
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 
 @dataclass
@@ -23,14 +23,14 @@ class WaveformCodeGen(BaseCodeGen):
                     self.values = [start, stop]
                     return
 
-                if not self.values[-1] != start:
+                if self.values[-1] != start:
                     raise ValueError
 
                 self.times.append(self.times[-1] + duration)
-                self.vaules.appnd(stop)
+                self.values.append(stop)
 
             case Constant(duration=duration_expr, value=value_expr):
-                start = stop = start_expr(**self.value_expr)
+                start = stop = value_expr(**self.variable_reference)
                 duration = duration_expr(**self.variable_reference)
 
                 if not self.times:
@@ -38,14 +38,15 @@ class WaveformCodeGen(BaseCodeGen):
                     self.values = [start, stop]
                     return
 
-                if not self.values[-1] != start:
+                if self.values[-1] != start:
                     raise ValueError
 
                 self.times.append(self.times[-1] + duration)
-                self.vaules.appnd(stop)
+                self.values.append(stop)
 
             case Append(waveforms):
-                map(self.scan_piecewise_linear, waveforms)
+                for waveform in waveforms:
+                    self.scan_piecewise_linear(waveform)
 
             case _:  # TODO: improve error message here
                 raise NotImplementedError
@@ -81,18 +82,23 @@ class WaveformCodeGen(BaseCodeGen):
                 self.values.append(value)
 
             case Append(waveforms):
-                map(self.scan_piecewise_constant, waveforms)
+                for waveform in waveforms:
+                    self.scan_piecewise_constant(waveform)
 
             case _:  # TODO: improve error message here
                 raise NotImplementedError
 
     def scan(self, ast: Waveform):
-        self.times = []
-        self.values = []
         match self.field_name:
             case FieldName.RabiFrequencyAmplitude | FieldName.Detuning:
                 self.scan_piecewise_linear(ast)
             case _:
                 self.scan_piecewise_constant(ast)
 
+        return self.times, self.values
+
+    def emit(self, ast: Waveform) -> Tuple[List[float], List[float]]:
+        self.times = []
+        self.values = []
+        self.scan(ast)
         return self.times, self.values
