@@ -36,7 +36,7 @@ seq = Sequence(
     }
 )
 
-lattice.Square(6).run(seq)\
+lattice.Square(6).apply(seq)\
     .braket(nshots=1000)\
     .submit(token="112312312")\
     .report()
