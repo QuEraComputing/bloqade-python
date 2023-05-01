@@ -37,7 +37,8 @@ print(report)
 print(report.bitstring)
 print(report.dataframe)
 
-lattice.Square(3).rydberg.detuning\
-    .location(2).location(3).apply(Linear(start=1.0, stop="x", duration=3.0))\
-    .location(3).location(4).apply(Linear(start=1.0, stop="x", duration=3.0))\
-    .braket().submit()
+lattice.Square(3).rydberg.detuning.location(2).location(3).apply(
+    Linear(start=1.0, stop="x", duration=3.0)
+).location(3).location(4).apply(
+    Linear(start=1.0, stop="x", duration=3.0)
+).braket().submit()
