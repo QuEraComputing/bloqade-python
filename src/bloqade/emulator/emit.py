@@ -4,7 +4,13 @@ from bloqade.ir.sequence import (
     LevelCoupling,
 )
 from bloqade.emulator.sparse_operator import IndexMapping, Diagonal
-from bloqade.emulator.space import Space, SpaceType, LocalHilbertSpace, is_rydberg_state, is_hyperfine_state
+from bloqade.emulator.space import (
+    Space,
+    SpaceType,
+    LocalHilbertSpace,
+    is_rydberg_state,
+    is_hyperfine_state,
+)
 from pydantic.dataclasses import dataclass
 from scipy.sparse import csr_matrix
 from enum import Enum
@@ -12,8 +18,6 @@ import numpy as np
 from numpy.typing import NDArray
 from typing import Dict, Union, List, Tuple
 from numbers import Number
-
-
 
 
 class RabiOperatorType(str, Enum):
@@ -32,6 +36,7 @@ class RabiInfo:
 def get_dtype(target_atoms: Dict[str, Number]):
     type_list = list(map(np.min_scalar_type, target_atoms.values()))
     return np.result_type(type_list)
+
 
 def emit_two_level_rabi_index_map(info: RabiInfo) -> IndexMapping:
     dtype = get_dtype(info.target_atoms)
@@ -280,30 +285,26 @@ def emit_detuning_matrix(info: DetuningInfo):
     match info:
         case DetuningInfo(
             target_atoms=target_atoms,
-            level_coupling = HyperfineLevelCoupling(),
-            space=Space(
-                n_level=n_level, configurations=configurations
-            ),
+            level_coupling=HyperfineLevelCoupling(),
+            space=Space(n_level=n_level, configurations=configurations),
         ):
-            diagonal = np.zeros(configurations.size, dtype= get_dtype(target_atoms))
+            diagonal = np.zeros(configurations.size, dtype=get_dtype(target_atoms))
             for atom_index, detuning_value in target_atoms.items():
                 mask = is_hyperfine_state(configurations, atom_index, n_level)
                 diagonal[mask] += detuning_value
-                
+
             return Diagonal(diagonal)
-        
+
         case DetuningInfo(
             target_atoms=target_atoms,
-            level_coupling = RydbergLevelCoupling(),
-            space=Space(
-                n_level=n_level, configurations=configurations
-            ),
+            level_coupling=RydbergLevelCoupling(),
+            space=Space(n_level=n_level, configurations=configurations),
         ):
-            diagonal = np.zeros(configurations.size, dtype= get_dtype(target_atoms))
+            diagonal = np.zeros(configurations.size, dtype=get_dtype(target_atoms))
             for atom_index, detuning_value in target_atoms.items():
                 mask = is_rydberg_state(configurations, atom_index, n_level)
                 diagonal[mask] += detuning_value
-                
+
             return Diagonal(diagonal)
 
         case _:
@@ -312,44 +313,64 @@ def emit_detuning_matrix(info: DetuningInfo):
             )
 
 
-def emit_rydberg_matrix(info: Union[RabiInfo, DetuningInfo], c6 = 5420441.13265):
+def emit_rydberg_matrix(info: Union[RabiInfo, DetuningInfo], c6=5420441.13265):
     match info:
-        case RabiInfo(space=Space(atom_coordinates=atom_coordinates, n_level=n_level, configurations=configurations)):
+        case RabiInfo(
+            space=Space(
+                atom_coordinates=atom_coordinates,
+                n_level=n_level,
+                configurations=configurations,
+            )
+        ):
             diagonal = np.zeros(configurations.size, dtype=np.float64)
-            
+
             for index_1, coordinate_1 in enumerate(atom_coordinates):
                 coordinate_1 = np.asarray(coordinate_1)
                 is_rydberg_1 = is_rydberg_state(configurations, index_1, n_level)
-                for index_2, coordinate_2 in enumerate(atom_coordinates[index_1+1:], index_1+1):
+                for index_2, coordinate_2 in enumerate(
+                    atom_coordinates[index_1 + 1 :], index_1 + 1
+                ):
                     coordinate_2 = np.asarray(coordinate_2)
                     distance = np.linalg.norm(coordinate_1 - coordinate_2)
-                    
-                    rydberg_interaction = c6/(distance**6)
-                    
+
+                    rydberg_interaction = c6 / (distance**6)
+
                     if rydberg_interaction <= np.finfo(np.float64).eps:
                         continue
-                    
-                    mask = np.logical_and(is_rydberg_1, is_rydberg_state(configurations, index_2, n_level))
+
+                    mask = np.logical_and(
+                        is_rydberg_1, is_rydberg_state(configurations, index_2, n_level)
+                    )
                     diagonal[mask] += rydberg_interaction
 
             return Diagonal(diagonal)
 
-        case DetuningInfo(space=Space(atom_coordinates=atom_coordinates, n_level=LocalHilbertSpace.TwoLevel, configurations=configurations)):
+        case DetuningInfo(
+            space=Space(
+                atom_coordinates=atom_coordinates,
+                n_level=LocalHilbertSpace.TwoLevel,
+                configurations=configurations,
+            )
+        ):
             diagonal = np.zeros(configurations.size, dtype=np.float64)
-            
+
             for index_1, coordinate_1 in enumerate(atom_coordinates):
                 coordinate_1 = np.asarray(coordinate_1)
                 is_rydberg_1 = is_rydberg_state(configurations, index_1, n_level)
-                for index_2, coordinate_2 in enumerate(atom_coordinates[index_1+1:], index_1+1):
+                for index_2, coordinate_2 in enumerate(
+                    atom_coordinates[index_1 + 1 :], index_1 + 1
+                ):
                     coordinate_2 = np.asarray(coordinate_2)
                     distance = np.linalg.norm(coordinate_1 - coordinate_2)
-                    
-                    rydberg_interaction = c6/(distance**6)
-                    
+
+                    rydberg_interaction = c6 / (distance**6)
+
                     if rydberg_interaction <= np.finfo(np.float64).eps:
                         continue
-                    
-                    mask = np.logical_and(is_rydberg_1, is_rydberg_state(configurations, index_2, n_level))
+
+                    mask = np.logical_and(
+                        is_rydberg_1, is_rydberg_state(configurations, index_2, n_level)
+                    )
                     diagonal[mask] += rydberg_interaction
-                    
+
             return Diagonal(diagonal)

@@ -9,6 +9,7 @@ class LocalHilbertSpace(int, Enum):
     TwoLevel = 2
     ThreeLevel = 3
 
+
 class SpaceType(str, Enum):
     FullSpace = "full_space"
     SubSpace = "sub_space"
@@ -28,6 +29,7 @@ def is_hyperfine_state(configurations: NDArray, index: int, n_level: LocalHilber
             raise ValueError("No Hyerfine state for two-level setup.")
         case LocalHilbertSpace.ThreeLevel:
             return (configurations // 3**index) % 2 == 1
+
 
 @dataclass
 class Space:
@@ -57,8 +59,11 @@ class Space:
         n_level: LocalHilbertSpace = LocalHilbertSpace.TwoLevel,
         blockade_radius=0.0,
     ):
-        atom_coordinates = [tuple([float(value) for value in coordinate]) for coordinate in atom_coordinates]
-        
+        atom_coordinates = [
+            tuple([float(value) for value in coordinate])
+            for coordinate in atom_coordinates
+        ]
+
         n_atom = len(atom_coordinates)
         check_atoms = []
 
@@ -83,7 +88,9 @@ class Space:
         configurations = np.arange(Ns, dtype=np.min_scalar_type(Ns - 1))
 
         if all(len(sub_list) == 0 for sub_list in check_atoms):
-            super().__init__(SpaceType.FullSpace, n_level, atom_coordinates, configurations)
+            super().__init__(
+                SpaceType.FullSpace, n_level, atom_coordinates, configurations
+            )
             return
 
         for index_1, indices in enumerate(check_atoms):
