@@ -15,9 +15,9 @@ seq = Sequence(
     }
 )
 
-print(lattice.Square(3).run(seq).braket(nshots=1000).submit().report().dataframe)
+print(lattice.Square(3).apply(seq).braket(nshots=1000).submit().report().dataframe)
 print("bitstring")
-print(lattice.Square(3).run(seq).braket(nshots=1000).submit().report().bitstring)
+print(lattice.Square(3).apply(seq).braket(nshots=1000).submit().report().bitstring)
 
 # pipe interface
 report = (

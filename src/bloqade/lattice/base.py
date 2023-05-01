@@ -2,7 +2,9 @@ from ..builder import RydbergBuilder, HyperfineBuilder
 
 
 class Lattice:
-    def run(self, seq):
+    def apply(self, seq):
+        """apply a sequence to the lattice.
+        """
         from ..task import Program
 
         return Program(self, seq)
