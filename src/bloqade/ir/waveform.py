@@ -36,6 +36,9 @@ class Waveform:
     def add(self, other: "Waveform") -> "Waveform":
         return self.canonicalize(Add(self, other))
 
+    def append(self, other: "Waveform") -> "Waveform":
+        return self.canonicalize(Append([self, other]))
+
     def align(
         self, alignment: Alignment, value: Union[None, AlignedValue, Scalar] = None
     ) -> "Waveform":
@@ -89,7 +92,15 @@ class Waveform:
 
     @staticmethod
     def canonicalize(expr: "Waveform") -> "Waveform":
-        return expr
+        match expr:
+            case Append([Append(waveforms), waveform]):
+                return Waveform.canonicalize(Append(waveforms + [waveform]))
+            case Append([waveform, Append(waveforms)]):
+                return Waveform.canonicalize(Append([waveform] + waveforms))
+            case Append([Append(waveform)]):
+                return Waveform.canonicalize(waveform)
+            case _:
+                return expr
 
 
 @dataclass
@@ -226,7 +237,7 @@ class Slice(Waveform):
 @dataclass
 class Append(Waveform):
     """
-    <append> ::= <waveform> | <append> <waveform>
+    <append> ::= <waveform>+
     """
 
     waveforms: List[Waveform]
