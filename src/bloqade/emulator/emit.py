@@ -36,7 +36,7 @@ def local_rabi_matrix(info: RabiInfo):
             configurations = np.arange(space.size, dtype=space.index_type)
             (atom_index,) = target_atoms.keys()
             input_indices = configurations ^ (1 << atom_index)
-            return PermMatrix(input_indices)
+            return IndexMapping(input_indices)
 
         case RabiInfo(
             op_type=RabiOperatorType.RealValued,
@@ -52,7 +52,7 @@ def local_rabi_matrix(info: RabiInfo):
 
             output_indices = input_indices < configurations.size
             input_indices = input_indices[output_indices]
-            return PermMatrix(input_indices, output_indices)
+            return IndexMapping(input_indices, output_indices)
 
         case RabiInfo(
             op_type=RabiOperatorType.RealValued,
