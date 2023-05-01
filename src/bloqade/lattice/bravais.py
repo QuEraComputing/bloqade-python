@@ -1,5 +1,5 @@
 from pydantic.dataclasses import dataclass
-from typing import List, TypeVar, Generator
+from typing import List, Tuple, Generator
 import numpy as np
 import itertools
 from numpy.typing import NDArray
@@ -14,7 +14,10 @@ class Cell:
 
 @dataclass(frozen=True)
 class BoundedBravais(Lattice):
-    shape: List[int]
+    shape: Tuple[int, ...]
+
+    def __init__(self, *shape: int):
+        self.shape = tuple(shape)
 
     def cell_vectors(self) -> List[List[float]]:
         raise NotImplementedError
