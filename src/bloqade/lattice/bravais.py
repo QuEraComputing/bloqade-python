@@ -5,9 +5,6 @@ import itertools
 from numpy.typing import NDArray
 from .base import Lattice
 
-D = TypeVar("D", int, float)
-NAtoms = TypeVar("NAtoms", int, float)
-
 class Cell:
     def __init__(self, natoms: int, ndims: int) -> None:
         self.natoms = natoms
