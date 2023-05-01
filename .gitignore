@@ -5,3 +5,4 @@ pdm.lock
 build
 __pycache__
 main.py
+*.ipynb
