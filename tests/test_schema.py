@@ -1,7 +1,10 @@
 from bloqade.codegen.hardware.waveform import WaveformCodeGen
+from bloqade.codegen.hardware.field import FieldCodeGen
+
 from bloqade.ir.pulse import FieldName
 from bloqade.ir.scalar import cast
 from bloqade.ir.waveform import Constant, Linear, Append
+from bloqade.ir.field import Field, Global
 
 
 initial_detuning =  cast("initial_detuning")
@@ -30,3 +33,13 @@ times, values = wf_codegen.emit(detuning_wf)
 
 print(times)
 print(values)
+
+field = Field({Global: detuning_wf})
+
+field_codegen = FieldCodeGen(
+    10, variable_reference, field_name=FieldName.RabiFrequencyPhase,
+)
+
+quera_field = field_codegen.emit(field)
+
+print(quera_field)
