@@ -4,6 +4,8 @@ import numpy as np
 import itertools
 from numpy.typing import NDArray
 from .base import Lattice
+from matplotlib.ticker import AutoMinorLocator, FixedLocator
+import matplotlib.pyplot as plt
 
 
 class Cell:
@@ -42,6 +44,35 @@ class BoundedBravais(Lattice):
         for index in itertools.product(*[range(n) for n in self.shape]):
             for pos in self.coordinates(index):
                 yield pos
+
+    def figure(self) -> plt.Figure:
+        if len(self.shape) == 2:
+            figsize = self.shape
+        else:
+            figsize = (self.shape[0], 2)
+        fig, ax = plt.subplots(figsize=figsize)
+        self.plot(ax)
+        return fig
+
+    def plot(self, ax: plt.Axes) -> plt.Axes:
+        assert len(self.shape) <= 2
+        xs, ys = [], []
+        for x, y in self.enumerate():
+            xs.append(x)
+            ys.append(y)
+
+        if len(self.shape) == 2:
+            x_locator = FixedLocator([i for i in range(self.shape[0])])
+            y_locator = FixedLocator([i for i in range(self.shape[1])])
+        else:
+            x_locator = FixedLocator([i for i in range(self.shape[0])])
+            y_locator = AutoMinorLocator()
+
+        ax.grid(linestyle='dashed', linewidth=1.0)
+        ax.xaxis.set_major_locator(x_locator)
+        ax.yaxis.set_major_locator(y_locator)
+        ax.scatter(xs, ys)
+        return ax
 
 
 @dataclass
