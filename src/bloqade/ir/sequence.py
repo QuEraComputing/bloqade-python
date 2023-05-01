@@ -2,7 +2,6 @@ from .pulse import PulseExpr, Pulse
 from .scalar import Interval, cast
 
 from pydantic.dataclasses import dataclass
-from enum import Enum
 from typing import List, Dict
 
 
