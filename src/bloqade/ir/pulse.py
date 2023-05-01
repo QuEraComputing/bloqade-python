@@ -5,28 +5,38 @@ from enum import Enum
 from pydantic.dataclasses import dataclass
 
 
-@dataclass(frozen=True, repr=False)
-class FieldName(str, Enum):
-    RabiFrequencyAmplitude = "rabi_frequency_amplitude"
-    RabiFrequencyPhase = "rabi_frequency_phase"
-    Detuning = "detuning"
+@dataclass(frozen=True)
+class FieldName:
+    pass
 
+@dataclass(frozen=True)
+class RabiFrequencyAmplitude(FieldName):
     def __repr__(self) -> str:
-        return self.value
+        return "rabi_frequency_amplitude"
 
+@dataclass(frozen=True)
+class RabiFrequencyPhase(FieldName):
+    
+    def __repr__(self) -> str:
+        return "rabi_frequency_phase"
+
+@dataclass(frozen=True)
+class Detuning(FieldName):
+    
+    def __repr__(self) -> str:
+        return "detuning"
 
 class RabiRouter:
     def __init__(self) -> None:
-        self.amplitude = FieldName.RabiFrequencyAmplitude
-        self.phase = FieldName.RabiFrequencyPhase
+        self.amplitude = RabiFrequencyAmplitude()
+        self.phase = RabiFrequencyPhase()
 
     def __repr__(self) -> str:
         "rabi (amplitude, phase)"
 
 
 rabi = RabiRouter()
-detuning = FieldName.Detuning
-
+detuning = Detuning()
 
 @dataclass
 class PulseExpr:
