@@ -40,3 +40,5 @@ lattice.Square(6).run(seq)\
     .braket(nshots=1000)\
     .submit(token="112312312")\
     .report()
+
+print(seq)

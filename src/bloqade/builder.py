@@ -52,20 +52,20 @@ class FieldBuilder(Builder):
 class DetuningBuilder(FieldBuilder):
     def __init__(self, coupling_level: CouplingLevelBuilder) -> None:
         super().__init__(coupling_level)
-        self.name = FieldName.Detuning
+        self.name = detuning
 
 
 class RabiBuilder(FieldBuilder):
     @property
     def amplitude(self) -> "SpatialModulationBuilder":
         """specify pulse on Rabi frequency amplitude"""
-        self.name = FieldName.RabiFrequencyAmplitude
+        self.name = rabi.amplitude
         return SpatialModulationBuilder(self)
 
     @property
     def phase(self) -> "SpatialModulationBuilder":
         """specify pulse on Rabi frequency phase"""
-        self.name = FieldName.RabiFrequencyPhase
+        self.name = rabi.phase
         return SpatialModulationBuilder(self)
 
 
@@ -158,6 +158,8 @@ class ApplyBuilder(Builder):  # terminator
             raise ValueError("unexpected spatial location")
 
         # NOTE: Pulse and Field is not frozen
+        # print(self._sequence)
+        # print(field_name)
         pulse = self._sequence.value.setdefault(coupling_level, Pulse({}))
         field = pulse.value.setdefault(field_name, Field({}))
         if spatial_mod in field.value:
