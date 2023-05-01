@@ -4,11 +4,10 @@ from .task import *
 
 
 class BuildStart:
-
     def apply(self, seq):
-        """apply a sequence to the lattice.
-        """
+        """apply a sequence to the lattice."""
         from .task import Program
+
         return Program(self, seq)
 
     @property
