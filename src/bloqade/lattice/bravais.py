@@ -80,7 +80,7 @@ class BoundedBravais(Lattice):
             x_locator = FixedLocator([i for i in range(self.shape[0])])
             y_locator = AutoMinorLocator()
 
-        ax.grid(linestyle='dashed', linewidth=1.0)
+        ax.grid(linestyle="dashed", linewidth=1.0)
         ax.xaxis.set_major_locator(x_locator)
         ax.yaxis.set_major_locator(y_locator)
         ax.scatter(xs, ys)
@@ -89,7 +89,6 @@ class BoundedBravais(Lattice):
 
 @dataclass
 class Chain(BoundedBravais):
-
     def __init__(self, L: int):
         super().__init__(L)
 

@@ -119,14 +119,18 @@ class Terminate(Builder):
 # submit needs to make sure the sequence has been generated
 class Submit(Emit):
 
-    def braket(self, **kwargs):
-        return BraketTask(self.program, **kwargs)
+    def braket(self, *args, **kwargs):
+        return self.program.braket(*args, **kwargs)
 
-    def quera(self, **kwargs):
-        return QuEraTask(self.program, **kwargs)
+    def quera(self, *args, **kwargs):
+        return self.program.quera(*args, **kwargs)
 
-    def simu(self, **kwargs):
-        return SimuTask(self.program, **kwargs)
+    def mock(self, nshots, state_file=".mock_state.txt") -> MockTask:
+        return self.program.mock(nshots, state_file=state_file)
+
+    def simu(self, *args, **kwargs) -> SimuTask:
+        """finish building the pulse program, and submit to local simulator."""
+        return self.program.simu(*args, **kwargs)
 
 
 class LevelCouping(Builder):
@@ -320,7 +324,6 @@ class Route(LevelCouping, Field, SpatialModulation, WaveformCompose, AssignOrSub
         self.__cache__.scales = None
         self.__cache__.spatial_mod = None
         return super().location(label)
-
 
 class TerminateWithWaveform(Terminate):
 
