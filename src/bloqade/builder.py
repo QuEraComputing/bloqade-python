@@ -75,27 +75,27 @@ class HyperfineBuilder(CouplingLevelBuilder):
 class FieldBuilder(Builder):
     def __init__(self, coupling_level: "CouplingLevelBuilder") -> None:
         super().__init__(coupling_level)
-        self.coupling_level = coupling_level
-        self.name: FieldName | None = None
+        self._coupling_level = coupling_level
+        self._name: FieldName | None = None
 
 
 class DetuningBuilder(FieldBuilder):
     def __init__(self, coupling_level: CouplingLevelBuilder) -> None:
         super().__init__(coupling_level)
-        self.name = detuning
+        self._name = detuning
 
 
 class RabiBuilder(FieldBuilder):
     @property
     def amplitude(self) -> "SpatialModulationBuilder":
         """specify pulse on Rabi frequency amplitude"""
-        self.name = rabi.amplitude
+        self._name = rabi.amplitude
         return SpatialModulationBuilder(self)
 
     @property
     def phase(self) -> "SpatialModulationBuilder":
         """specify pulse on Rabi frequency phase"""
-        self.name = rabi.phase
+        self._name = rabi.phase
         return SpatialModulationBuilder(self)
 
 
@@ -159,9 +159,9 @@ class ApplyBuilder(Builder):  # terminator
         self.__spatial_mod: SpatialModulationBuilder = location._spatial_mod
         self.__field: FieldBuilder = location._spatial_mod._field
         self.__coupling_level: CouplingLevelBuilder = (
-            location._spatial_mod._field.coupling_level
+            location._spatial_mod._field._coupling_level
         )
-        self.__lattice = self.__spatial_mod._field.coupling_level._lattice
+        self.__lattice = self.__spatial_mod._field._coupling_level._lattice
 
     def __coupling_object(self):
         if isinstance(self.__coupling_level, RydbergBuilder):
@@ -173,7 +173,7 @@ class ApplyBuilder(Builder):  # terminator
 
     def _apply(self, waveform) -> "ApplyBuilder":
         coupling_level = self.__coupling_object()
-        field_name = self.__field.name
+        field_name = self.__field._name
 
         if isinstance(self.__location_builder, GlobalLocationBuilder):
             spatial_mod = Global
