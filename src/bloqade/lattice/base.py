@@ -21,3 +21,11 @@ class Lattice(BuildStart):
     def show(self) -> None:
         """show the lattice."""
         self.figure().show()
+
+    @property
+    def n_atoms(self):
+        raise NotImplementedError
+
+    @property
+    def n_dims(self):
+        raise NotImplementedError
