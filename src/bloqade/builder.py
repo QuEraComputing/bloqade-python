@@ -51,7 +51,7 @@ class Builder:
 
 
 class CouplingLevelBuilder(Builder):
-    def __init__(self, lattice, sequence=Sequence({})) -> None:
+    def __init__(self, lattice, sequence) -> None:
         super().__init__(sequence)
         self._lattice = lattice
 
