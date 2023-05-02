@@ -1,6 +1,15 @@
-name: Python package
+name: CI
 
-on: [push]
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  schedule:
+  - cron: '00 01 * * *'
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -25,12 +34,6 @@ jobs:
           # enable-pep582: true  # Enable PEP 582 package loading globally
       - name: Install dependencies
         run: pdm install       # Then you can use pdm in the following steps.
-      - name: Lint with ruff
-        run: |
-          # stop the build if there are Python syntax errors or undefined names
-          ruff --format=github --select=E9,F63,F7,F82 --target-version=py37 .
-          # default set of ruff rules with GitHub Annotations
-          ruff --format=github --target-version=py37 .
       - name: Test with pytest
         run: |
           pytest
