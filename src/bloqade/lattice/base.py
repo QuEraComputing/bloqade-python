@@ -13,7 +13,7 @@ class Lattice(BuildStart):
     def figure(self) -> plt.Figure:
         """plot the lattice."""
         raise NotImplementedError
-    
+
     def plot(self, ax: plt.Axes) -> plt.Axes:
         """plot the lattice on the given axes."""
         raise NotImplementedError

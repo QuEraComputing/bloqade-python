@@ -122,7 +122,7 @@ class WaveformCodeGen(BaseCodeGen):
                 absolute_times = (
                     [start_time] + self.times[start_index:stop_index] + [stop_time]
                 )
-                
+
                 self.times = [time - start_time for time in absolute_times]
                 self.values = (
                     [start_value] + self.values[start_index:stop_index] + [stop_value]
