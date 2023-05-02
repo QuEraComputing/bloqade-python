@@ -1,44 +1,36 @@
-name: Pull Request
-on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-  workflow_dispatch:
+name: Python package
+
+on: [push]
 
 jobs:
-  linting:
+  build:
+
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11"]
+
     steps:
-      - name: Black
-        uses: dciborow/pyaction@0.0.13
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
         with:
-          black: true
-
-      - name: Bandit
-        uses: dciborow/pyaction@0.0.13
+          python-version: ${{ matrix.python-version }}
+      - uses: pdm-project/setup-pdm@v3
+        name: Setup PDM
         with:
-          bandit: true
-
-      - name: Pylint
-        uses: dciborow/pyaction@0.0.13
-        with:
-          pylint: true
-
-      - name: Pyright
-        uses: dciborow/pyaction@0.0.13
-        with:
-          pyright: true
-
-      - name: Flake8
-        uses: dciborow/pyaction@0.0.13
-        with:
-          flake8: true
-
-  testing:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Pytest
-        uses: dciborow/pyaction@0.0.13
-        with:
-          testing: true
+          python-version: ${{ matrix.python-version }}  # Version range or exact version of a Python version to use, the same as actions/setup-python
+          # well we use virtualenv here
+          # prerelease: true     # Allow prerelease versions to be installed
+          # enable-pep582: true  # Enable PEP 582 package loading globally
+      - name: Install dependencies
+        run: pdm install       # Then you can use pdm in the following steps.
+      - name: Lint with ruff
+        run: |
+          # stop the build if there are Python syntax errors or undefined names
+          ruff --format=github --select=E9,F63,F7,F82 --target-version=py37 .
+          # default set of ruff rules with GitHub Annotations
+          ruff --format=github --target-version=py37 .
+      - name: Test with pytest
+        run: |
+          pytest

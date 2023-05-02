@@ -1,5 +1,5 @@
 from .base import Lattice
-from .bravais import *
+from .bravais import Chain, Square, Rectangular, Honeycomb, Triangular, Lieb, Kagome
 
 __all__ = [
     "Lattice",

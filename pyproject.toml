@@ -22,6 +22,9 @@ license = {text = "MIT"}
 requires = ["pdm-backend"]
 build-backend = "pdm.backend"
 
+[tool.black]
+line-length = 88
+
 [tool.pdm]
 [tool.pdm.dev-dependencies]
 dev = [
@@ -32,6 +35,7 @@ dev = [
     "mypy>=1.2.0",
     "ipykernel>=6.22.0",
     "jupyter>=1.0.0",
+    "ruff>=0.0.264",
 ]
 
 [tool.pdm.scripts]
