@@ -1,6 +1,3 @@
-# we have to put these objects in one file because of circular imports
-# TODO: figure out how to remove the circular imports & split the file
-
 from quera_ahs_utils.quera_ir.task_specification import QuEraTaskSpecification
 from quera_ahs_utils.quera_ir.task_results import QuEraTaskResults
 from quera_ahs_utils.ir import quera_task_to_braket_ahs
