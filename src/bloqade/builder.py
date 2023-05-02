@@ -20,7 +20,8 @@ class BuildStart:
         >>> lattice.Square(3).rydberg.detuning.glob.apply(Linear(start=1.0, stop="x", duration=3.0))
         ```
         """
-        return RydbergBuilder(self)
+        # NOTE: this Sequence({}) is necessary to force create a new seq object
+        return RydbergBuilder(self, Sequence({}))
 
     @property
     def hyperfine(self) -> "HyperfineBuilder":
@@ -30,7 +31,8 @@ class BuildStart:
 
         >>> lattice.Square(3).hyperfine.detuning.glob.apply(Linear(start=1.0, stop="x", duration=3.0))
         """
-        return HyperfineBuilder(self)
+        # NOTE: this Sequence({}) is necessary to force create a new seq object
+        return HyperfineBuilder(self, Sequence({}))
 
 
 class Builder:
@@ -188,8 +190,6 @@ class ApplyBuilder(Builder):  # terminator
             raise ValueError("unexpected spatial location")
 
         # NOTE: Pulse and Field is not frozen
-        # print(self._sequence)
-        # print(field_name)
         pulse = self._sequence.value.setdefault(coupling_level, Pulse({}))
         field = pulse.value.setdefault(field_name, Field({}))
         if spatial_mod in field.value:
