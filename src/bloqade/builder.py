@@ -209,6 +209,9 @@ class ApplyBuilder(Builder):  # terminator
         """finish building the pulse program, and submit to QuEra."""
         return self._program.quera(*args, **kwargs)
 
+    def mock(self, nshots, state_file=".mock_state.txt") -> MockTask:
+        return self._program.mock(nshots, state_file=state_file)
+
     def simu(self, *args, **kwargs) -> SimuTask:
         """finish building the pulse program, and submit to local simulator."""
         return self._program.simu(*args, **kwargs)
