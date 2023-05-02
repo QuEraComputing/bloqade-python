@@ -4,6 +4,18 @@ from typing import Any, Union, List
 from enum import Enum
 from .scalar import Scalar, Interval, cast
 
+__all__ = [
+    "Linear",
+    "Constant",
+    "Poly",
+    "Waveform",
+    "AlignedWaveform",
+    "Sequence",
+    "Smooth",
+    "Slice",
+    "Scale",
+]
+
 
 class AlignedValue(str, Enum):
     Left = "left_value"
@@ -92,7 +104,7 @@ class Waveform:
 
     @staticmethod
     def canonicalize(expr: "Waveform") -> "Waveform":
-        match expr:
+        match expr:    
             case Append([Append(lhs), Append(rhs)]):
                 return Append(list(map(Waveform.canonicalize, lhs + rhs)))
             case Append([Append(waveforms), waveform]):
@@ -147,7 +159,7 @@ class Linear(Sequence):
             return ((stop_value - start_value) / self.duration(**kwargs)) * clock_s
 
     def __repr__(self) -> str:
-        return f"linear {self.start} {self.stop}"
+        return f"Linear(start={self.start}, stop={self.stop}, duration={self.duration})"
 
 
 @dataclass(init=False)
@@ -171,7 +183,7 @@ class Constant(Sequence):
             return constant_value
 
     def __repr__(self) -> str:
-        return f"constant {self.value}"
+        return f"Constant(value={self.value}, duration={self.duration})"
 
 
 @dataclass(init=False)
@@ -200,7 +212,7 @@ class Poly(Sequence):
             return value
 
     def __repr__(self) -> str:
-        return f"{', '.join(map(str, self.checkpoints))}"
+        return f"Poly({self.checkpoints}, {self.duration})"
 
 
 @dataclass
@@ -215,6 +227,9 @@ class Smooth(Waveform):
     # TODO: implement
     def __call__(self, clock_s: float, **kwargs) -> Any:
         raise NotImplementedError
+    
+    def __repr__(self) -> str:
+        return f"Smooth(kernel='{self.kernel}', waveform={self.waveform})"
 
 
 @dataclass
@@ -225,7 +240,7 @@ class Slice(Waveform):
 
     waveform: Waveform
     interval: Interval
-
+    
     def __repr__(self) -> str:
         return f"{self.waveform}[{self.interval}]"
 
@@ -256,6 +271,9 @@ class Append(Waveform):
             append_time += duration
 
         return 0.0
+    
+    def __repr__(self) -> str:
+        return f"waveform.Append(waveforms={self.waveforms})"
 
 
 @dataclass
@@ -269,6 +287,8 @@ class Negative(Waveform):
     def __call__(self, clock_s: float, **kwargs) -> Any:
         return -self.waveform(clock_s, **kwargs)
 
+    def __repr__(self) -> str:
+        return f"-({self.waveform})"
 
 @dataclass
 class Scale(Waveform):
@@ -279,8 +299,15 @@ class Scale(Waveform):
     scalar: Scalar
     waveform: Waveform
 
+    def __init__(self, scalar, waveform: Waveform):
+        self.scalar=cast(scalar)
+        self.waveform=waveform
+
     def __call__(self, clock_s: float, **kwargs) -> Any:
         return self.scalar(**kwargs) * self.waveform(clock_s, **kwargs)
+
+    def __repr__(self) -> str:
+        return f"Scale(scalar={self.scalar}, waveform={self.waveform})"
 
 
 @dataclass
@@ -294,3 +321,7 @@ class Add(Waveform):
 
     def __call__(self, clock_s: float, **kwargs) -> Any:
         return self.left(clock_s, **kwargs) + self.right(clock_s, **kwargs)
+    
+    def __repr__(self) -> str:
+        return f"Add(left={self.left}, right={self.right})"
+
