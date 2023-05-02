@@ -3,6 +3,38 @@ from .ir.prelude import *
 from .task import *
 
 
+class BuildStart:
+    def apply(self, seq):
+        """apply a sequence to the lattice."""
+        from .task import Program
+
+        return Program(self, seq)
+
+    @property
+    def rydberg(self) -> "RydbergBuilder":
+        """start building pulses for Rydberg coupling
+
+        ### Example
+
+        ```python-repl
+        >>> lattice.Square(3).rydberg.detuning.glob.apply(Linear(start=1.0, stop="x", duration=3.0))
+        ```
+        """
+        # NOTE: this Sequence({}) is necessary to force create a new seq object
+        return RydbergBuilder(self, Sequence({}))
+
+    @property
+    def hyperfine(self) -> "HyperfineBuilder":
+        """start building pulses for hyperfine coupling
+
+        ### Example
+
+        >>> lattice.Square(3).hyperfine.detuning.glob.apply(Linear(start=1.0, stop="x", duration=3.0))
+        """
+        # NOTE: this Sequence({}) is necessary to force create a new seq object
+        return HyperfineBuilder(self, Sequence({}))
+
+
 class Builder:
     def __init__(self, sequence_or_builder: Union[Sequence, "Builder"]) -> None:
         if isinstance(sequence_or_builder, Builder):
@@ -19,7 +51,7 @@ class Builder:
 
 
 class CouplingLevelBuilder(Builder):
-    def __init__(self, lattice, sequence=Sequence({})) -> None:
+    def __init__(self, lattice, sequence) -> None:
         super().__init__(sequence)
         self._lattice = lattice
 
@@ -45,27 +77,27 @@ class HyperfineBuilder(CouplingLevelBuilder):
 class FieldBuilder(Builder):
     def __init__(self, coupling_level: "CouplingLevelBuilder") -> None:
         super().__init__(coupling_level)
-        self.coupling_level = coupling_level
-        self.name: FieldName | None = None
+        self._coupling_level = coupling_level
+        self._name: FieldName | None = None
 
 
 class DetuningBuilder(FieldBuilder):
     def __init__(self, coupling_level: CouplingLevelBuilder) -> None:
         super().__init__(coupling_level)
-        self.name = FieldName.Detuning
+        self._name = detuning
 
 
 class RabiBuilder(FieldBuilder):
     @property
     def amplitude(self) -> "SpatialModulationBuilder":
         """specify pulse on Rabi frequency amplitude"""
-        self.name = FieldName.RabiFrequencyAmplitude
+        self._name = rabi.amplitude
         return SpatialModulationBuilder(self)
 
     @property
     def phase(self) -> "SpatialModulationBuilder":
         """specify pulse on Rabi frequency phase"""
-        self.name = FieldName.RabiFrequencyPhase
+        self._name = rabi.phase
         return SpatialModulationBuilder(self)
 
 
@@ -129,9 +161,9 @@ class ApplyBuilder(Builder):  # terminator
         self.__spatial_mod: SpatialModulationBuilder = location._spatial_mod
         self.__field: FieldBuilder = location._spatial_mod._field
         self.__coupling_level: CouplingLevelBuilder = (
-            location._spatial_mod._field.coupling_level
+            location._spatial_mod._field._coupling_level
         )
-        self.__lattice = self.__spatial_mod._field.coupling_level._lattice
+        self.__lattice = self.__spatial_mod._field._coupling_level._lattice
 
     def __coupling_object(self):
         if isinstance(self.__coupling_level, RydbergBuilder):
@@ -143,7 +175,7 @@ class ApplyBuilder(Builder):  # terminator
 
     def _apply(self, waveform) -> "ApplyBuilder":
         coupling_level = self.__coupling_object()
-        field_name = self.__field.name
+        field_name = self.__field._name
 
         if isinstance(self.__location_builder, GlobalLocationBuilder):
             spatial_mod = Global
@@ -176,6 +208,9 @@ class ApplyBuilder(Builder):  # terminator
     def quera(self, *args, **kwargs) -> QuEraTask:
         """finish building the pulse program, and submit to QuEra."""
         return self._program.quera(*args, **kwargs)
+
+    def mock(self, nshots, state_file=".mock_state.txt") -> MockTask:
+        return self._program.mock(nshots, state_file=state_file)
 
     def simu(self, *args, **kwargs) -> SimuTask:
         """finish building the pulse program, and submit to local simulator."""

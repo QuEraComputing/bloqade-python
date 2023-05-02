@@ -15,9 +15,9 @@ seq = Sequence(
     }
 )
 
-print(lattice.Square(3).run(seq).braket(nshots=1000).submit().report().dataframe)
+print(lattice.Square(3).apply(seq).braket(nshots=1000).submit().report().dataframe)
 print("bitstring")
-print(lattice.Square(3).run(seq).braket(nshots=1000).submit().report().bitstring)
+print(lattice.Square(3).apply(seq).braket(nshots=1000).submit().report().bitstring)
 
 # pipe interface
 report = (
@@ -39,6 +39,6 @@ print(report.dataframe)
 
 lattice.Square(3).rydberg.detuning.location(2).location(3).apply(
     Linear(start=1.0, stop="x", duration=3.0)
-).location(3).location(4).apply(
-    Linear(start=1.0, stop="x", duration=3.0)
-).braket().submit()
+).location(3).location(4).apply(Linear(start=1.0, stop="x", duration=3.0)).braket(
+    nshots=1000
+).submit()
