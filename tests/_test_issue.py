@@ -1,4 +1,4 @@
-from bloqade.ir.prelude import *
+from bloqade.ir import Linear
 import bloqade.lattice as lattice
 
 (
