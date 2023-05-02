@@ -22,14 +22,14 @@ detuning_wf = Append(
         ]
     )
 
-variable_reference = dict(
+assignments = dict(
     initial_detuning = -15,
     final_detuning = 10,
     up_time = 0.1,
     anneal_time = 4.0
 )
 
-wf_codegen = WaveformCodeGen(10, variable_reference, field_name = RabiFrequencyAmplitude())
+wf_codegen = WaveformCodeGen(10, assignments, field_name = RabiFrequencyAmplitude())
 
 times, values = wf_codegen.emit(detuning_wf[0.05:4.15])
 
@@ -39,7 +39,7 @@ print(values)
 field = Field({Global: detuning_wf})
 
 field_codegen = FieldCodeGen(
-    10, variable_reference, field_name=RabiFrequencyAmplitude(),
+    10, assignments, field_name=RabiFrequencyAmplitude(),
 )
 quera_field = field_codegen.emit(field)
 
@@ -48,7 +48,7 @@ print(quera_field)
 
 field = Field({Global: detuning_wf})
 field_codegen = FieldCodeGen(
-    10, variable_reference, field_name=RabiFrequencyPhase(),
+    10, assignments, field_name=RabiFrequencyPhase(),
 )
 try:
     quera_field = field_codegen.emit(field)
@@ -58,6 +58,6 @@ except NotImplementedError:
 pulse = Pulse({RabiFrequencyAmplitude():field})
 
 
-pulse_codegen = PulseCodeGen(10, variable_reference, level_coupling=RydbergLevelCoupling())
+pulse_codegen = PulseCodeGen(10, assignments, level_coupling=RydbergLevelCoupling())
 rydberg_hamiltonian = pulse_codegen.emit(pulse)
 print(rydberg_hamiltonian)

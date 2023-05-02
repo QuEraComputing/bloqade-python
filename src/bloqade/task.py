@@ -38,12 +38,12 @@ class BraketTask(Task):
         super().__init__(prog, nshots)
         quera_task = QuEraTaskSpecification(
             nshots=self.nshots,
-            lattice=LatticeCodeGen(ariable_reference=self.prog.variable_reference).emit(
+            lattice=LatticeCodeGen(ariable_reference=self.prog.assignments).emit(
                 self.lattice
             ),
             effective_hamiltonian=SequenceCodeGen(
                 n_atoms=self.lattice.n_atoms,
-                variable_reference=self.prog.variable_reference,
+                assignments=self.prog.assignments,
             ).emit(self.prog.seq),
         )
         _, braket_task = quera_task_to_braket_ahs(quera_task)
@@ -55,12 +55,12 @@ class QuEraTask(Task):
         super().__init__(prog, nshots)
         self.task_ir = QuEraTaskSpecification(
             nshots=self.nshots,
-            lattice=LatticeCodeGen(ariable_reference=self.prog.variable_reference).emit(
+            lattice=LatticeCodeGen(ariable_reference=self.prog.assignments).emit(
                 self.lattice
             ),
             effective_hamiltonian=SequenceCodeGen(
                 n_atoms=self.lattice.n_atoms,
-                variable_reference=self.prog.variable_reference,
+                assignments=self.prog.assignments,
             ).emit(self.prog.seq),
         )
 

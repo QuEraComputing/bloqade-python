@@ -7,7 +7,7 @@ from typing import Any, Optional
 
 
 class ScalarInterpreter:
-    variable_reference: Dict[scalar.Variable, FloatType]
+    assignments: Dict[scalar.Variable, FloatType]
     
     
     
@@ -16,7 +16,7 @@ class ScalarInterpreter:
             case scalar.Literal(value):
                 return float(value)
             case scalar.Variable(name):
-                return  float(self.variable_reference[name])
+                return  float(self.assignments[name])
             case scalar.Add(lhs, rhs):
                 return self.emit(lhs) + self.emit(rhs)    
 

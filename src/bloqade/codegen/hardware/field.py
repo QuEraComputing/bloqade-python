@@ -15,7 +15,7 @@ class FieldCodeGen(WaveformCodeGen, SpatialModulationCodeGen):
 
     def scan(self, ast: Field):
         waveform_codegen = WaveformCodeGen(
-            self.n_atoms, self.variable_reference, field_name=self.field_name
+            self.n_atoms, self.assignments, field_name=self.field_name
         )
         terms = dict(ast.value)
         match self.field_name:

@@ -28,7 +28,7 @@ class PulseCodeGen(FieldCodeGen):
                 if self.field_name in value:
                     self.rabi_frequency_amplitude = FieldCodeGen(
                         self.n_atoms,
-                        self.variable_reference,
+                        self.assignments,
                         field_name=RabiFrequencyAmplitude(),
                     ).emit(value[self.field_name])
 
@@ -36,7 +36,7 @@ class PulseCodeGen(FieldCodeGen):
                 if self.field_name in value:
                     self.rabi_frequency_phase = FieldCodeGen(
                         self.n_atoms,
-                        self.variable_reference,
+                        self.assignments,
                         field_name=RabiFrequencyPhase(),
                     ).emit(value[self.field_name])
 
@@ -44,7 +44,7 @@ class PulseCodeGen(FieldCodeGen):
                 if self.field_name in value:
                     self.detuning = FieldCodeGen(
                         self.n_atoms,
-                        self.variable_reference,
+                        self.assignments,
                         field_name=Detuning(),
                     ).emit(value[self.field_name])
 
