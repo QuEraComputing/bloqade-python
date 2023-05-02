@@ -6,6 +6,7 @@ from pydantic.dataclasses import dataclass
 
 __all__ = [
     "Pulse",
+    "NamedPulse",
     "FieldName",
     "rabi",
     "detuning",
@@ -77,6 +78,9 @@ class Append(PulseExpr):
 
     value: List[PulseExpr]
 
+    def __repr__(self) -> str:
+        return f"pulse.Append(value={self.value})"
+
 
 @dataclass(init=False, repr=False)
 class Pulse(PulseExpr):
@@ -98,7 +102,7 @@ class Pulse(PulseExpr):
         self.value = value
 
     def __repr__(self) -> str:
-        return "Pulse({" + ", ".join(map(str, self.value.items())) + "})"
+        return f"Pulse(value={self.value})"
 
 
 @dataclass
@@ -106,8 +110,13 @@ class NamedPulse(PulseExpr):
     name: str
     pulse: PulseExpr
 
+    def __repr__(self) -> str:
+        return f"NamedPulse(name={self.name}, pulse={self.pulse})"
 
 @dataclass
 class Slice(PulseExpr):
     pulse: PulseExpr
     interval: Interval
+    
+    def __repr__(self) -> str:
+        return f"pulse.Slice(pulse={self.pulse}, interval=scalar.Interval(start={self.interval.start}, stop={self.interval.stop}))"
