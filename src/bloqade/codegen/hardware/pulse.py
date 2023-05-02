@@ -52,7 +52,6 @@ class PulseCodeGen(FieldCodeGen):
                 # TODO: Improve error message here
                 raise NotImplementedError
 
-        print((self.rabi_frequency_amplitude, self.rabi_frequency_phase, self.detuning))
         match (self.rabi_frequency_amplitude, self.rabi_frequency_phase, self.detuning):
             case (
                 task_spec.RabiFrequencyAmplitude(),

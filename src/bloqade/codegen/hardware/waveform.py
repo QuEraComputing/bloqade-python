@@ -5,7 +5,7 @@ from bloqade.ir.pulse import (
     RabiFrequencyPhase,
     Detuning,
 )
-from bloqade.ir.waveform import Waveform, Append, Linear, Constant
+from bloqade.ir.waveform import Waveform, Append, Linear, Constant, Slice
 from bloqade.codegen.hardware.base import BaseCodeGen
 from typing import List, Optional, Tuple
 
@@ -89,6 +89,14 @@ class WaveformCodeGen(BaseCodeGen):
             case Append(waveforms):
                 for waveform in waveforms:
                     self.scan_piecewise_constant(waveform)
+                    
+            case Slice(waveform, interval):
+                first = interval.start(**self.variable_reference)
+                last = interval.stop(**self.variable_reference)
+                self.scan(waveform)
+                
+                self.times = [0.0] + [time - first for time in self.times if time < last and time > first] + [last - first]
+                
 
             case _:  # TODO: improve error message here
                 raise NotImplementedError(
@@ -96,16 +104,12 @@ class WaveformCodeGen(BaseCodeGen):
                 )
 
     def scan(self, ast: Waveform):
-        print(self.field_name)
         match self.field_name:
             case RabiFrequencyAmplitude():
-                print("amplitude")
                 self.scan_piecewise_linear(ast)
             case RabiFrequencyPhase():
-                print("phase")
                 self.scan_piecewise_constant(ast)
             case Detuning():
-                print("detuning")
                 self.scan_piecewise_linear(ast)
 
     def emit(self, ast: Waveform) -> Tuple[List[float], List[float]]:
