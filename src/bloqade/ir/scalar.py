@@ -3,6 +3,15 @@ from pydantic import validator
 from typing import Optional
 
 
+__all__ = [
+    "cast",
+    "Scalar",
+    "Interval",
+    "Variable",
+    "Literal",
+]
+
+
 @dataclass(frozen=True)
 class Scalar:
     """Base class for all scalar expressions.
@@ -187,7 +196,7 @@ class Variable(Real):
     name: str
 
     def __repr__(self) -> str:
-        return f"{self.name}"
+        return f"'{self.name}'"
 
     @validator("name")
     def name_validator(cls, v):
@@ -209,7 +218,7 @@ class Negative(Scalar):
     expr: Scalar
 
     def __repr__(self) -> str:
-        return f"-{self.expr}"
+        return f"-({self.expr})"
 
 
 @dataclass(frozen=True)
@@ -290,7 +299,7 @@ class Min(Scalar):
     exprs: frozenset[Scalar]
 
     def __repr__(self) -> str:
-        return f"min({', '.join(map(str, self.exprs))})"
+        return f"scalar.Min({self.exprs})"
 
 
 @dataclass(frozen=True)
@@ -298,4 +307,4 @@ class Max(Scalar):
     exprs: frozenset[Scalar]
 
     def __repr__(self) -> str:
-        return f"max({', '.join(map(str, self.exprs))})"
+        return f"scalar.Max({self.exprs})"
