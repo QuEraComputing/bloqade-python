@@ -45,6 +45,15 @@ class Waveform:
     def __call__(self, clock_s: float, **kwargs) -> Any:
         raise NotImplementedError
 
+    def __mul__(self, scalar: Scalar) -> "Waveform":
+        return self.scale(cast(scalar))
+
+    def __rmul__(self, scalar: Scalar) -> "Waveform":
+        return self.scale(cast(scalar))
+
+    def __add__(self, other: "Waveform"):
+        return self.add(other)
+
     def add(self, other: "Waveform") -> "Waveform":
         return self.canonicalize(Add(self, other))
 
@@ -159,7 +168,7 @@ class Linear(Sequence):
             return ((stop_value - start_value) / self.duration(**kwargs)) * clock_s
 
     def __repr__(self) -> str:
-        return f"Linear(start={self.start}, stop={self.stop}, duration={self.duration})"
+        return f"Linear(start={self.start!r}, stop={self.stop!r}, duration={self.duration!r})"
 
 
 @dataclass(init=False)
@@ -183,7 +192,7 @@ class Constant(Sequence):
             return constant_value
 
     def __repr__(self) -> str:
-        return f"Constant(value={self.value}, duration={self.duration})"
+        return f"Constant(value={self.value!r}, duration={self.duration!r})"
 
 
 @dataclass(init=False)
@@ -212,7 +221,7 @@ class Poly(Sequence):
             return value
 
     def __repr__(self) -> str:
-        return f"Poly({self.checkpoints}, {self.duration})"
+        return f"Poly({self.checkpoints!r}, {self.duration!r})"
 
 
 @dataclass
@@ -229,7 +238,7 @@ class Smooth(Waveform):
         raise NotImplementedError
 
     def __repr__(self) -> str:
-        return f"Smooth(kernel='{self.kernel}', waveform={self.waveform})"
+        return f"Smooth(kernel={self.kernel!r}, waveform={self.waveform!r})"
 
 
 @dataclass
@@ -242,7 +251,7 @@ class Slice(Waveform):
     interval: Interval
 
     def __repr__(self) -> str:
-        return f"{self.waveform}[{self.interval}]"
+        return f"{self.waveform!r}[{self.interval!r}]"
 
     def __call__(self, clock_s: float, **kwargs) -> Any:
         if clock_s > self.duration(**kwargs):
@@ -273,7 +282,7 @@ class Append(Waveform):
         return 0.0
 
     def __repr__(self) -> str:
-        return f"waveform.Append(waveforms={self.waveforms})"
+        return f"waveform.Append(waveforms={self.waveforms!r})"
 
 
 @dataclass
@@ -288,7 +297,7 @@ class Negative(Waveform):
         return -self.waveform(clock_s, **kwargs)
 
     def __repr__(self) -> str:
-        return f"-({self.waveform})"
+        return f"-({self.waveform!r})"
 
 
 @dataclass
@@ -308,7 +317,7 @@ class Scale(Waveform):
         return self.scalar(**kwargs) * self.waveform(clock_s, **kwargs)
 
     def __repr__(self) -> str:
-        return f"Scale(scalar={self.scalar}, waveform={self.waveform})"
+        return f"({self.scalar!r} * {self.waveform!r})"
 
 
 @dataclass
@@ -324,4 +333,4 @@ class Add(Waveform):
         return self.left(clock_s, **kwargs) + self.right(clock_s, **kwargs)
 
     def __repr__(self) -> str:
-        return f"Add(left={self.left}, right={self.right})"
+        return f"({self.left!r} + {self.right!r})"
