@@ -25,6 +25,33 @@ build-backend = "pdm.backend"
 [tool.black]
 line-length = 88
 
+[tool.ruff]
+exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".hg",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "venv",
+]
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+# Assume Python 3.10.
+target-version = "py310"
+
 [tool.pdm]
 [tool.pdm.dev-dependencies]
 dev = [
@@ -36,6 +63,7 @@ dev = [
     "ipykernel>=6.22.0",
     "jupyter>=1.0.0",
     "ruff>=0.0.264",
+    "pre-commit>=3.3.1",
 ]
 
 [tool.pdm.scripts]

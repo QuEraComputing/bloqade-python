@@ -1,5 +1,5 @@
 import bloqade.lattice as lattice
-from bloqade.ir.prelude import *
+from bloqade.ir import Sequence, rydberg, detuning, rabi, Uniform, Linear, Constant
 
 lattice.Square(6).rydberg.detuning.uniform.apply(
     Constant("initial_detuning", "up_time")

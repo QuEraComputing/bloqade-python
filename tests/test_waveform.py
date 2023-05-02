@@ -1,4 +1,4 @@
-from bloqade.ir import Field, Uniform, Linear, ScaledLocations, Constant
+from bloqade.ir import Linear, Constant
 
 wf = Linear(start=1.0, stop="x", duration=3.0)
 wf = Constant(value=1.0, duration=3.0)
