@@ -93,12 +93,12 @@ class Waveform:
     @staticmethod
     def canonicalize(expr: "Waveform") -> "Waveform":
         match expr:
+            case Append([Append(lhs), Append(rhs)]):
+                return Append(list(map(Waveform.canonicalize, lhs+rhs)))
             case Append([Append(waveforms), waveform]):
                 return Waveform.canonicalize(Append(waveforms + [waveform]))
             case Append([waveform, Append(waveforms)]):
                 return Waveform.canonicalize(Append([waveform] + waveforms))
-            case Append([Append(waveform)]):
-                return Waveform.canonicalize(waveform)
             case _:
                 return expr
 
