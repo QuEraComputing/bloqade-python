@@ -4,7 +4,7 @@ import bloqade.ir.pulse as pulse
 import bloqade.ir.sequence as sequence 
 
 from bloqade.ir.shape import Constant, Linear
-from bloqade.ir.field import Global, Field
+from bloqade.ir.field import Uniform, Field
 from bloqade.ir.field import RabiFrequencyAmplitude, Detuning
 from bloqade.ir.sequence import Rydberg
 from bloqade.lattice import square_lattice
@@ -48,8 +48,8 @@ rabi_wf = wf.concatenate(
 )
     
 
-detuning_field = Field({Global: detuning_wf})
-rabi_field = Field({Global: rabi_wf})
+detuning_field = Field({Uniform: detuning_wf})
+rabi_field = Field({Uniform: rabi_wf})
 
 adiabatic_pulse = pulse.Instruction(
         {

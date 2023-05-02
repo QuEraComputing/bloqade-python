@@ -6,7 +6,7 @@ seq = Sequence(
     {
         rydberg: {
             detuning: {
-                Global: Linear(start=1.0, stop="x", duration=3.0),
+                Uniform: Linear(start=1.0, stop="x", duration=3.0),
                 ScaledLocations({1: 1.0, 2: 2.0}): Linear(
                     start=1.0, stop="x", duration=3.0
                 ),
@@ -22,7 +22,7 @@ print(lattice.Square(3).apply(seq).braket(nshots=1000).submit().report().bitstri
 # pipe interface
 report = (
     lattice.Square(3)
-    .rydberg.detuning.glob.apply(Linear(start=1.0, stop="x", duration=3.0))
+    .rydberg.detuning.uniform.apply(Linear(start=1.0, stop="x", duration=3.0))
     .location(2)
     .scale(3.0)
     .apply(Linear(start=1.0, stop="x", duration=3.0))
@@ -42,3 +42,17 @@ lattice.Square(3).rydberg.detuning.location(2).location(3).apply(
 ).location(3).location(4).apply(Linear(start=1.0, stop="x", duration=3.0)).braket(
     nshots=1000
 ).submit()
+
+# start.rydberg.detuning.location(2).location(3)
+
+
+prog = (
+    lattice.Square(3)
+    .rydberg.detuning.uniform.apply(Linear(start=1.0, stop="x", duration=3.0))
+    .location(2)
+    .scale(3.0)
+    .apply(Linear(start=1.0, stop="x", duration=3.0))
+    .hyperfine.rabi.amplitude.location(2)
+    .apply(Linear(start=1.0, stop="x", duration=3.0))
+    .assign(x=1.0)
+)

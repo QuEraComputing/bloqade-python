@@ -2,7 +2,7 @@
 # TODO: figure out how to remove the circular imports & split the file
 
 from .ir.prelude import *
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict, Union
 
 if TYPE_CHECKING:
     from .lattice.base import Lattice
@@ -84,9 +84,10 @@ class TaskReport:
 # NOTE: this is just a dummy type bundle geometry and sequence
 #       information together and forward them to backends.
 class Program:
-    def __init__(self, lattice: "Lattice", seq: Sequence) -> None:
+    def __init__(self, lattice: Union[None, "Lattice"], seq: Sequence, assignments: Union[None, Dict[Variable, Literal]] = None) -> None:
         self.latice = lattice
         self.seq = seq
+        self.assignments = assignments
 
     def braket(self, *args, **kwargs) -> BraketTask:
         return BraketTask(self, *args, **kwargs)

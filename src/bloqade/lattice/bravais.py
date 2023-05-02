@@ -19,6 +19,7 @@ class BoundedBravais(Lattice):
     shape: Tuple[int, ...]
 
     def __init__(self, *shape: int):
+        super().__init__()
         self.shape = tuple(shape)
         self.__n_atoms = None
         self.__n_dims = None
