@@ -1,32 +1,23 @@
-from ..builder import RydbergBuilder, HyperfineBuilder
+from ..builder import RydbergBuilder, HyperfineBuilder, BuildStart
+from numpy.typing import NDArray
+from typing import List, Generator
+import numpy as np
+import matplotlib.pyplot as plt
 
 
-class Lattice:
-    def apply(self, seq):
-        """apply a sequence to the lattice.
-        """
-        from ..task import Program
+class Lattice(BuildStart):
+    def enumerate(self) -> Generator[NDArray, None, None]:
+        """enumerate all positions in the lattice."""
+        raise NotImplementedError
 
-        return Program(self, seq)
+    def figure(self) -> plt.Figure:
+        """plot the lattice."""
+        raise NotImplementedError
+    
+    def plot(self, ax: plt.Axes) -> plt.Axes:
+        """plot the lattice on the given axes."""
+        raise NotImplementedError
 
-    @property
-    def rydberg(self) -> RydbergBuilder:
-        """start building pulses for Rydberg coupling
-
-        ### Example
-
-        ```python-repl
-        >>> lattice.Square(3).rydberg.detuning.glob.apply(Linear(start=1.0, stop="x", duration=3.0))
-        ```
-        """
-        return RydbergBuilder(self)
-
-    @property
-    def hyperfine(self) -> HyperfineBuilder:
-        """start building pulses for hyperfine coupling
-
-        ### Example
-
-        >>> lattice.Square(3).hyperfine.detuning.glob.apply(Linear(start=1.0, stop="x", duration=3.0))
-        """
-        return HyperfineBuilder(self)
+    def show(self) -> None:
+        """show the lattice."""
+        self.figure().show()
