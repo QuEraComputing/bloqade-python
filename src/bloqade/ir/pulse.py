@@ -11,6 +11,7 @@ __all__ = [
     "detuning",
 ]
 
+
 @dataclass(frozen=True)
 class FieldName:
     pass

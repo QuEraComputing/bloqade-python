@@ -11,6 +11,7 @@ __all__ = [
     "Literal",
 ]
 
+
 @dataclass(frozen=True)
 class Scalar:
     """Base class for all scalar expressions.

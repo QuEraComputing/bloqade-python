@@ -25,9 +25,7 @@ class SpatialModulationCodeGen(BaseCodeGen):
                 self.lattice_site_coefficient = []
                 for atom_index in range(self.n_atom):
                     expr = value.get(Location(atom_index), Literal(0.0))
-                    self.lattice_site_coefficient.append(
-                        expr(**self.assignments)
-                    )
+                    self.lattice_site_coefficient.append(expr(**self.assignments))
             case RunTimeVector(name):
                 lattice_site_coefficient = self.assignments[name]
                 if len(lattice_site_coefficient) != self.n_atoms:

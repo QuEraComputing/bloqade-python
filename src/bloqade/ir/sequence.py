@@ -12,6 +12,7 @@ __all__ = [
     "Sequence",
 ]
 
+
 @dataclass(frozen=True)
 class LevelCoupling:
     pass
