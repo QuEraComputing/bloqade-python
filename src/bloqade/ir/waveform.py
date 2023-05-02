@@ -331,13 +331,15 @@ class Add(Waveform):
 
     def __call__(self, clock_s: float, **kwargs) -> Any:
         return self.left(clock_s, **kwargs) + self.right(clock_s, **kwargs)
-    
+
     def __repr__(self) -> str:
         return f"({self.left!r} + {self.right!r})"
 
+
 class RecordPos(str, Enum):
-    start = 'start'
-    stop = 'stop'
+    start = "start"
+    stop = "stop"
+
 
 @dataclass
 class Record(Waveform):
@@ -351,4 +353,3 @@ class Record(Waveform):
 
     def __call__(self, clock_s: float, **kwargs) -> Any:
         return self.waveform(clock_s, **kwargs)
-

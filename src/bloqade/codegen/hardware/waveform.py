@@ -5,7 +5,16 @@ from bloqade.ir.pulse import (
     RabiFrequencyPhase,
     Detuning,
 )
-from bloqade.ir.waveform import Waveform, Append, Linear, Constant, Slice
+from bloqade.ir.scalar import Variable
+from bloqade.ir.waveform import (
+    Waveform,
+    Append,
+    Linear,
+    Constant,
+    Slice,
+    Record,
+    RecordPos,
+)
 from bloqade.codegen.hardware.base import BaseCodeGen
 from typing import List, Optional, Tuple
 from bisect import bisect_left
@@ -16,6 +25,26 @@ class WaveformCodeGen(BaseCodeGen):
     field_name: Optional[FieldName] = None
     times: Optional[List[float]] = None
     values: Optional[List[float]] = None
+
+    def assignment_scan(self, ast: Waveform):
+        self.assignments
+        match ast:
+            case Record(waveform, Variable(name), RecordPos.start):
+                if name in self.assignments:
+                    raise ValueError(
+                        f"variable with name {name} has multiple assignments"
+                    )
+
+                self.assignments[name] = waveform(0.0, **self.assignments)
+
+            case Record(waveform, Variable(name), RecordPos.stop):
+                if name in self.assignments:
+                    raise ValueError(
+                        f"variable with name {name} has multiple assignments"
+                    )
+
+                stop = self.waveform.duration(**self.assignments)
+                self.assignments[name] = waveform(stop, **self.assignments)
 
     def scan_piecewise_linear(self, ast: Waveform):
         match ast:
