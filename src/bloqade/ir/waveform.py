@@ -229,9 +229,12 @@ class Slice(Waveform):
     def __repr__(self) -> str:
         return f"{self.waveform}[{self.interval}]"
 
-    # TODO: implement
     def __call__(self, clock_s: float, **kwargs) -> Any:
-        raise NotImplementedError
+        if clock_s > self.duration(**kwargs):
+            return 0.0
+
+        start_time = self.interval.start(**kwargs)
+        return self.waveform(clock_s + start_time, **kwargs)
 
 
 @dataclass
@@ -242,9 +245,17 @@ class Append(Waveform):
 
     waveforms: List[Waveform]
 
-    # TODO: implement
     def __call__(self, clock_s: float, **kwargs) -> Any:
-        raise NotImplementedError
+        append_time = 0.0
+        for waveform in self.waveforms:
+            duration = waveform.duration(**kwargs)
+
+            if clock_s < append_time + duration:
+                return waveform(clock_s - append_time, **kwargs)
+
+            append_time += duration
+
+        return 0.0
 
 
 @dataclass
