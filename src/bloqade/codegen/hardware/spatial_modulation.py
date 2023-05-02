@@ -2,7 +2,7 @@ from pydantic.dataclasses import dataclass
 from bloqade.ir.scalar import Literal
 from bloqade.ir.field import (
     SpatialModulation,
-    GlobalModulation,
+    UniformModulation,
     ScaledLocations,
     RunTimeVector,
 )
@@ -19,7 +19,7 @@ class SpatialModulationCodeGen(BaseCodeGen):
 
     def scan(self, ast: SpatialModulation):
         match ast:
-            case GlobalModulation():
+            case UniformModulation():
                 self.lattice_site_coefficient = None
             case ScaledLocations(value):
                 self.lattice_site_coefficient = []
