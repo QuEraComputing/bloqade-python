@@ -20,9 +20,9 @@ class WaveformCodeGen(BaseCodeGen):
     def scan_piecewise_linear(self, ast: Waveform):
         match ast:
             case Linear(duration=duration_expr, start=start_expr, stop=stop_expr):
-                start = start_expr(**self.variable_reference)
-                stop = stop_expr(**self.variable_reference)
-                duration = duration_expr(**self.variable_reference)
+                start = start_expr(**self.assignments)
+                stop = stop_expr(**self.assignments)
+                duration = duration_expr(**self.assignments)
 
                 if not self.times:
                     self.times = [0, duration]
@@ -36,8 +36,8 @@ class WaveformCodeGen(BaseCodeGen):
                 self.values.append(stop)
 
             case Constant(duration=duration_expr, value=value_expr):
-                start = stop = value_expr(**self.variable_reference)
-                duration = duration_expr(**self.variable_reference)
+                start = stop = value_expr(**self.assignments)
+                duration = duration_expr(**self.assignments)
 
                 if not self.times:
                     self.times = [0, duration]
@@ -52,10 +52,10 @@ class WaveformCodeGen(BaseCodeGen):
 
             case Slice(waveform, interval):
                 self.scan(waveform)
-                start_time = interval.start(**self.variable_reference)
-                stop_time = interval.stop(**self.variable_reference)
-                start_value = waveform(start_time, **self.variable_reference)
-                stop_value = waveform(stop_time, **self.variable_reference)
+                start_time = interval.start(**self.assignments)
+                stop_time = interval.stop(**self.assignments)
+                start_value = waveform(start_time, **self.assignments)
+                stop_value = waveform(stop_time, **self.assignments)
 
                 start_index = bisect_left(self.times, start_time)
                 stop_index = bisect_left(self.times, stop_time)
@@ -80,8 +80,8 @@ class WaveformCodeGen(BaseCodeGen):
             case Linear(
                 duration=duration_expr, start=start_expr, stop=stop_expr
             ) if start_expr == stop_expr:
-                value = start_expr(**self.variable_reference)
-                duration = duration_expr(**self.variable_reference)
+                value = start_expr(**self.assignments)
+                duration = duration_expr(**self.assignments)
 
                 if not self.times:
                     self.times = [0, duration]
@@ -93,8 +93,8 @@ class WaveformCodeGen(BaseCodeGen):
                 self.values.append(value)
 
             case Constant(duration=duration_expr, value=value_expr):
-                value = value_expr(**self.variable_reference)
-                duration = duration_expr(**self.variable_reference)
+                value = value_expr(**self.assignments)
+                duration = duration_expr(**self.assignments)
 
                 if not self.times:
                     self.times = [0, duration]
@@ -111,10 +111,10 @@ class WaveformCodeGen(BaseCodeGen):
 
             case Slice(waveform, interval):
                 self.scan(waveform)
-                start_time = interval.start(**self.variable_reference)
-                stop_time = interval.stop(**self.variable_reference)
-                start_value = waveform(start_time, **self.variable_reference)
-                stop_value = waveform(stop_time, **self.variable_reference)
+                start_time = interval.start(**self.assignments)
+                stop_time = interval.stop(**self.assignments)
+                start_value = waveform(start_time, **self.assignments)
+                stop_value = waveform(stop_time, **self.assignments)
 
                 start_index = bisect_left(self.times, start_time)
                 stop_index = bisect_left(self.times, stop_time)

@@ -26,10 +26,10 @@ class SpatialModulationCodeGen(BaseCodeGen):
                 for atom_index in range(self.n_atom):
                     expr = value.get(Location(atom_index), Literal(0.0))
                     self.lattice_site_coefficient.append(
-                        expr(**self.variable_reference)
+                        expr(**self.assignments)
                     )
             case RunTimeVector(name):
-                lattice_site_coefficient = self.variable_reference[name]
+                lattice_site_coefficient = self.assignments[name]
                 if len(lattice_site_coefficient) != self.n_atoms:
                     raise ValueError(
                         f"Number of elements in {name} must be equal to the number of atoms {self.n_atoms}"
