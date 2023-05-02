@@ -79,7 +79,7 @@ class Append(PulseExpr):
     value: List[PulseExpr]
 
     def __repr__(self) -> str:
-        return f"pulse.Append(value={self.value})"
+        return f"pulse.Append(value={self.value!r})"
 
 
 @dataclass(init=False, repr=False)
@@ -102,7 +102,7 @@ class Pulse(PulseExpr):
         self.value = value
 
     def __repr__(self) -> str:
-        return f"Pulse(value={self.value})"
+        return f"Pulse(value={self.value!r})"
 
 
 @dataclass
@@ -111,7 +111,7 @@ class NamedPulse(PulseExpr):
     pulse: PulseExpr
 
     def __repr__(self) -> str:
-        return f"NamedPulse(name={self.name}, pulse={self.pulse})"
+        return f"NamedPulse(name={self.name!r}, pulse={self.pulse!r})"
 
 @dataclass
 class Slice(PulseExpr):
@@ -119,4 +119,4 @@ class Slice(PulseExpr):
     interval: Interval
     
     def __repr__(self) -> str:
-        return f"pulse.Slice(pulse={self.pulse}, interval=scalar.Interval(start={self.interval.start}, stop={self.interval.stop}))"
+        return f"{self.pulse!r}[{self.interval}]"

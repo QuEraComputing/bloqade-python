@@ -18,7 +18,7 @@ class Location:
     value: int
 
     def __repr__(self) -> str:
-        return f"Location({self.value})"
+        return f"Location({self.value!r})"
 
 @dataclass
 class SpatialModulation:
@@ -46,7 +46,7 @@ class RunTimeVector(SpatialModulation):
         return hash(self.name) ^ hash(self.__class__)
 
     def __repr__(self) -> str:
-        return f"RunTimeVector('{self.name}')"
+        return f"RunTimeVector({self.name!r})"
 
 @dataclass(init=False)
 class ScaledLocations(SpatialModulation):
@@ -69,7 +69,7 @@ class ScaledLocations(SpatialModulation):
         return hash(frozenset(self.value.items())) ^ hash(self.__class__)
 
     def __repr__(self) -> str:
-        return f"ScaledLocations(value={self.value})"
+        return f"ScaledLocations(value={self.value!r})"
 
 
 @dataclass
@@ -84,4 +84,4 @@ class Field:
         return hash(frozenset(self.value.items())) ^ hash(self.__class__)
     
     def __repr__(self) -> str:
-        return f"Field({self.value})"
+        return f"Field({self.value!r})"
