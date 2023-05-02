@@ -64,6 +64,7 @@ dev = [
     "jupyter>=1.0.0",
     "ruff>=0.0.264",
     "pre-commit>=3.3.1",
+    "coverage>=7.2.5",
 ]
 
 [tool.pdm.scripts]
@@ -72,3 +73,4 @@ upload = "python -m twine upload -r bloqade dist/*"
 build = {cmd = "pdm build"}
 publish = {composite = ["build", "upload"]}
 test = "pytest"
+coverage = {shell = "coverage run -m pytest && coverage report"}
