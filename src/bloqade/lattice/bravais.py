@@ -20,6 +20,8 @@ class BoundedBravais(Lattice):
 
     def __init__(self, *shape: int):
         self.shape = tuple(shape)
+        self.__n_atoms = None
+        self.__n_dims = None
 
     def cell_vectors(self) -> List[List[float]]:
         raise NotImplementedError
@@ -27,8 +29,17 @@ class BoundedBravais(Lattice):
     def cell_atoms(self) -> List[List[float]]:
         raise NotImplementedError
 
-    def cell(self) -> Cell:
-        return Cell(natoms=len(self.cell_atoms()), ndims=len(self.cell_vectors()))
+    @property
+    def n_atoms(self):
+        if not self.__n_atoms:
+            self.__n_atoms = len(self.cell_atoms())
+        return self.__n_atoms
+
+    @property
+    def n_dims(self):
+        if not self.__n_dims:
+            self.__n_dims = len(self.cell_vectors())
+        return self.__n_dims
 
     def coordinates(self, index: List[int]) -> NDArray:
         """calculate the coordinates of a cell in the lattice
