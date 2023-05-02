@@ -12,6 +12,7 @@ __all__ = [
     "ScaledLocations",
 ]
 
+
 @dataclass(frozen=True)
 class Location:
     value: int

@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .lattice.base import Lattice
-    
+
 from pandas import DataFrame
 import numpy as np
 
@@ -67,8 +67,11 @@ class QuEraTask(Task):
             ).emit(self.prog.seq),
         )
 
-class MockTask(Task):    
-    def __init__(self, prog: "Program", nshots: int, state_file=".mock_state.txt") -> None:        
+
+class MockTask(Task):
+    def __init__(
+        self, prog: "Program", nshots: int, state_file=".mock_state.txt"
+    ) -> None:
         super().__init__(prog, nshots)
         self.backend = DumbMockBackend(state_file=state_file)
         self.task_ir = QuEraTaskSpecification(
@@ -81,7 +84,7 @@ class MockTask(Task):
                 assignments=self.prog.assignments,
             ).emit(self.prog.seq),
         )
-        
+
     def submit(self, *args, **kwargs) -> "MockTaskResult":
         return MockTaskResult(self.backend.submit_task(self.task_ir), self.backend)
 
@@ -103,13 +106,14 @@ class MockTaskResult(TaskResult):
         self.task_id = task_id
         self.backend = backend
         self._task_result_ir = None
-    
+
     @property
     def task_result_ir(self) -> QuEraTaskResults:
         if not self._task_result_ir:
             self._task_result_ir = self.backend.task_results(self.task_id)
-            
+
         return self._task_result_ir
+
 
 # NOTE: this is only the basic report, we should provide
 #      a way to customize the report class,
@@ -135,7 +139,7 @@ class TaskReport:
             return self._bitstring
         self._bitstring = np.array([])
         return self._bitstring
-    
+
     @property
     def task_result_ir(self) -> QuEraTaskResults:
         return self.result.task_result_ir
@@ -160,6 +164,6 @@ class Program:
 
     def simu(self, *args, **kwargs) -> SimuTask:
         return SimuTask(self, *args, **kwargs)
-    
+
     def mock(self, nshots: int, state_file: str = ".mock_state.txt") -> MockTask:
         return MockTask(self, nshots, state_file=state_file)

@@ -104,7 +104,7 @@ class Waveform:
 
     @staticmethod
     def canonicalize(expr: "Waveform") -> "Waveform":
-        match expr:    
+        match expr:
             case Append([Append(lhs), Append(rhs)]):
                 return Append(list(map(Waveform.canonicalize, lhs + rhs)))
             case Append([Append(waveforms), waveform]):
@@ -227,7 +227,7 @@ class Smooth(Waveform):
     # TODO: implement
     def __call__(self, clock_s: float, **kwargs) -> Any:
         raise NotImplementedError
-    
+
     def __repr__(self) -> str:
         return f"Smooth(kernel='{self.kernel}', waveform={self.waveform})"
 
@@ -240,7 +240,7 @@ class Slice(Waveform):
 
     waveform: Waveform
     interval: Interval
-    
+
     def __repr__(self) -> str:
         return f"{self.waveform}[{self.interval}]"
 
@@ -271,7 +271,7 @@ class Append(Waveform):
             append_time += duration
 
         return 0.0
-    
+
     def __repr__(self) -> str:
         return f"waveform.Append(waveforms={self.waveforms})"
 
@@ -290,6 +290,7 @@ class Negative(Waveform):
     def __repr__(self) -> str:
         return f"-({self.waveform})"
 
+
 @dataclass
 class Scale(Waveform):
     """
@@ -300,8 +301,8 @@ class Scale(Waveform):
     waveform: Waveform
 
     def __init__(self, scalar, waveform: Waveform):
-        self.scalar=cast(scalar)
-        self.waveform=waveform
+        self.scalar = cast(scalar)
+        self.waveform = waveform
 
     def __call__(self, clock_s: float, **kwargs) -> Any:
         return self.scalar(**kwargs) * self.waveform(clock_s, **kwargs)
@@ -321,7 +322,6 @@ class Add(Waveform):
 
     def __call__(self, clock_s: float, **kwargs) -> Any:
         return self.left(clock_s, **kwargs) + self.right(clock_s, **kwargs)
-    
+
     def __repr__(self) -> str:
         return f"Add(left={self.left}, right={self.right})"
-
