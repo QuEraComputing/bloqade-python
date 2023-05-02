@@ -7,3 +7,14 @@ print(wf[1.0:].duration)
 print(wf[0.2:0.8].duration)
 
 print(-wf)
+
+# canonicalize append
+wf = (Linear(0.0, "rabi_amplitude_max", "up_time")
+    .append(Constant("rabi_amplitude_max", "anneal_time"))
+    .append(Linear("rabi_amplitude_max", 0.0, "up_time")))
+
+
+print(wf)
+wf = wf.append(wf)
+
+print(wf)
