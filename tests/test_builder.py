@@ -1,4 +1,4 @@
-from bloqade.builder2 import *
+from bloqade.builder import *
 from bloqade.ir import *
 
 wf = Linear(start=1.0, stop="x", duration=3.0)
@@ -15,5 +15,5 @@ seq = Start().rydberg.rabi.amplitude\
     .program
 
 print(seq.seq)
-print(seq.latice)
+print(seq.lattice)
 print(seq.assignments)

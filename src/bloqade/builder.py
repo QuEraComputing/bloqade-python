@@ -1,7 +1,7 @@
 import bloqade.ir as ir
 from typing import Union, Dict, List
 from dataclasses import dataclass, field
-from .task import Program, BraketTask, QuEraTask, SimuTask
+from .task import Program, BraketTask, QuEraTask, SimuTask, MockTask
 
 class BuildError(Exception):
 
@@ -31,15 +31,17 @@ class Builder:
         # pass the cache from the parent builder
         if isinstance(parent, ir.Sequence):
             cache = BuildCache(sequence=parent)
+            self.__lattice__ = None
         elif isinstance(parent, Builder):
             cache = parent.__cache__
+            self.__lattice__ = parent.__lattice__
         elif parent is None:
             cache = BuildCache(sequence=ir.Sequence({}))
+            self.__lattice__ = None
         else:
             raise ValueError("sequence_or_none must be a Sequence or None")
 
         # cache fields to pass over to the next builder
-        self.__lattice__ = None
         self.__cache__ = cache
 
 class Emit(Builder):
@@ -125,7 +127,7 @@ class Submit(Emit):
     def quera(self, *args, **kwargs):
         return self.program.quera(*args, **kwargs)
 
-    def mock(self, nshots, state_file=".mock_state.txt") -> MockTask:
+    def mock(self, nshots, state_file=".mock_state.txt") -> "MockTask":
         return self.program.mock(nshots, state_file=state_file)
 
     def simu(self, *args, **kwargs) -> SimuTask:

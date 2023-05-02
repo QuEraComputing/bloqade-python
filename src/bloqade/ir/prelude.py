@@ -9,4 +9,3 @@ import bloqade.ir.waveform as waveform
 import bloqade.ir.field as field
 import bloqade.ir.pulse as pulse
 import bloqade.ir.sequence as sequence
-

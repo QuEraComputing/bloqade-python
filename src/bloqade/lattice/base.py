@@ -9,7 +9,7 @@ from ..task import Program
 class Lattice(Start):
     def __init__(self) -> None:
         super().__init__()
-        self.__cache__.lattice = self
+        self.__lattice__ = self
 
     def enumerate(self) -> Generator[NDArray, None, None]:
         """enumerate all positions in the lattice."""

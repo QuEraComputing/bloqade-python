@@ -7,7 +7,7 @@ __all__ = [
     "Field",
     "Location",
     "SpatialModulation",
-    "Global",
+    "Uniform",
     "RunTimeVector",
     "ScaledLocations",
 ]

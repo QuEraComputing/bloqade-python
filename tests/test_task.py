@@ -1,4 +1,4 @@
-from bloqade.ir.prelude import *
+from bloqade.ir import *
 import bloqade.lattice as lattice
 
 # dict interface
@@ -15,6 +15,7 @@ seq = Sequence(
     }
 )
 
+print(lattice.Square(3).apply(seq).__lattice__)
 print(lattice.Square(3).apply(seq).braket(nshots=1000).submit().report().dataframe)
 print("bitstring")
 print(lattice.Square(3).apply(seq).braket(nshots=1000).submit().report().bitstring)

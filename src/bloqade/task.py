@@ -36,19 +36,21 @@ class Task:
 class BraketTask(Task):
     def __init__(self, prog: "Program", nshots: int) -> None:
         super().__init__(prog, nshots)
-        quera_task = QuEraTaskSpecification(
-            nshots=self.nshots,
-            lattice=LatticeCodeGen(ariable_reference=self.prog.assignments).emit(
-                self.lattice
-            ),
-            effective_hamiltonian=SequenceCodeGen(
-                n_atoms=self.lattice.n_atoms,
-                assignments=self.prog.assignments,
-            ).emit(self.prog.seq),
-        )
-        _, braket_task = quera_task_to_braket_ahs(quera_task)
-        self.task_ir = braket_task.to_ir()
+        # quera_task = QuEraTaskSpecification(
+        #     nshots=self.nshots,
+        #     lattice=LatticeCodeGen(assignments=self.prog.assignments).emit(
+        #         prog.lattice
+        #     ),
+        #     effective_hamiltonian=SequenceCodeGen(
+        #         n_atoms=self.prog.lattice.n_atoms,
+        #         assignments=self.prog.assignments,
+        #     ).emit(self.prog.seq),
+        # )
+        # _, braket_task = quera_task_to_braket_ahs(quera_task)
+        # self.task_ir = braket_task.to_ir()
 
+    def submit(self, token=None) -> "TaskResult":
+        return TaskResult()
 
 class QuEraTask(Task):
     def __init__(self, prog: "Program", nshots: int) -> None:
@@ -150,7 +152,7 @@ class TaskReport:
 #       information together and forward them to backends.
 class Program:
     def __init__(self, lattice: Union[None, "Lattice"], seq: Sequence, assignments: Union[None, Dict[Variable, Literal]] = None) -> None:
-        self.latice = lattice
+        self.lattice = lattice
         self.seq = seq
         self.assignments = assignments
 
