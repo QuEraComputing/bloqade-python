@@ -52,6 +52,7 @@ class BraketTask(Task):
     def submit(self, token=None) -> "TaskResult":
         return TaskResult()
 
+
 class QuEraTask(Task):
     def __init__(self, prog: "Program", nshots: int) -> None:
         super().__init__(prog, nshots)
@@ -151,7 +152,12 @@ class TaskReport:
 # NOTE: this is just a dummy type bundle geometry and sequence
 #       information together and forward them to backends.
 class Program:
-    def __init__(self, lattice: Union[None, "Lattice"], seq: Sequence, assignments: Union[None, Dict[Variable, Literal]] = None) -> None:
+    def __init__(
+        self,
+        lattice: Union[None, "Lattice"],
+        seq: Sequence,
+        assignments: Union[None, Dict[Variable, Literal]] = None,
+    ) -> None:
         self.lattice = lattice
         self.seq = seq
         self.assignments = assignments

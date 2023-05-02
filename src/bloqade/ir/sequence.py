@@ -63,7 +63,7 @@ class Append(SequenceExpr):
 class Sequence(SequenceExpr):
     value: dict[LevelCoupling, PulseExpr]
 
-    def __init__(self, seq_pairs: Dict| None = None):
+    def __init__(self, seq_pairs: Dict | None = None):
         if seq_pairs is None:
             self.value = {}
             return

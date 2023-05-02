@@ -15,9 +15,11 @@ eval(repr(-wf))
 eval(repr(wf.scale(1.0)))
 
 # canonicalize append
-wf = (Linear(0.0, "rabi_amplitude_max", "up_time")
+wf = (
+    Linear(0.0, "rabi_amplitude_max", "up_time")
     .append(Constant("rabi_amplitude_max", "anneal_time"))
-    .append(Linear("rabi_amplitude_max", 0.0, "up_time")))
+    .append(Linear("rabi_amplitude_max", 0.0, "up_time"))
+)
 print(wf)
 
 eval(repr(wf))
