@@ -36,4 +36,4 @@ jobs:
         run: pdm install       # Then you can use pdm in the following steps.
       - name: Test with pytest
         run: |
-          pytest
+          pdm run test
