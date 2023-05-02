@@ -31,7 +31,7 @@ variable_reference = dict(
 
 wf_codegen = WaveformCodeGen(10, variable_reference, field_name = RabiFrequencyAmplitude())
 
-times, values = wf_codegen.emit(detuning_wf)
+times, values = wf_codegen.emit(detuning_wf[0.05:4.15])
 
 print(times)
 print(values)
