@@ -63,7 +63,11 @@ class Append(SequenceExpr):
 class Sequence(SequenceExpr):
     value: dict[LevelCoupling, PulseExpr]
 
-    def __init__(self, seq_pairs: Dict):
+    def __init__(self, seq_pairs: Dict | None = None):
+        if seq_pairs is None:
+            self.value = {}
+            return
+
         value = {}
         for level_coupling, pulse in seq_pairs.items():
             if not isinstance(level_coupling, LevelCoupling):

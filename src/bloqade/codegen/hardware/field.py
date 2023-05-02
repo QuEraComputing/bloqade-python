@@ -1,5 +1,5 @@
 from pydantic.dataclasses import dataclass
-from bloqade.ir.field import Field, GlobalModulation, Global
+from bloqade.ir.field import Field, UniformModulation, Uniform
 from bloqade.ir.pulse import Detuning, RabiFrequencyAmplitude, RabiFrequencyPhase
 from typing import List, Optional
 from bloqade.codegen.hardware.spatial_modulation import SpatialModulationCodeGen
@@ -28,18 +28,18 @@ class FieldCodeGen(WaveformCodeGen, SpatialModulationCodeGen):
         match self.field_name:
             case RabiFrequencyAmplitude() if len(
                 terms
-            ) == 1 and GlobalModulation() in terms:
-                times, values = waveform_codegen.emit(terms.pop(Global))
+            ) == 1 and UniformModulation() in terms:
+                times, values = waveform_codegen.emit(terms.pop(Uniform))
                 self.global_ = task_spec.GlobalField(times=times, values=values)
 
             case RabiFrequencyPhase() if len(
                 terms
-            ) == 1 and GlobalModulation() in terms:
-                times, values = waveform_codegen.emit(terms.pop(Global))
+            ) == 1 and UniformModulation() in terms:
+                times, values = waveform_codegen.emit(terms.pop(Uniform))
                 self.global_ = task_spec.GlobalField(times=times, values=values)
 
-            case Detuning() if len(terms) == 1 and GlobalModulation() in terms:
-                times, values = waveform_codegen.emit(terms.pop(Global))
+            case Detuning() if len(terms) == 1 and UniformModulation() in terms:
+                times, values = waveform_codegen.emit(terms.pop(Uniform))
                 self.global_ = task_spec.GlobalField(times=times, values=values)
 
             case Detuning() if len(terms) == 1:
@@ -55,8 +55,8 @@ class FieldCodeGen(WaveformCodeGen, SpatialModulationCodeGen):
                     lattice_site_coefficients=lattice_site_coefficients,
                 )
 
-            case Detuning() if len(terms) == 2 and GlobalModulation() in terms:
-                times, values = WaveformCodeGen.emit(terms.pop(Global))
+            case Detuning() if len(terms) == 2 and UniformModulation() in terms:
+                times, values = WaveformCodeGen.emit(terms.pop(Uniform))
                 self.global_ = task_spec.GlobalField(times=times, values=values)
                 ((spatial_modulation, waveform),) = terms.items()
                 times, values = WaveformCodeGen.emit(self, waveform)

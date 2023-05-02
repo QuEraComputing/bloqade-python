@@ -7,7 +7,7 @@ from bloqade.codegen.hardware.lattice import LatticeCodeGen
 from bloqade.submission.mock_backend import DumbMockBackend
 
 from .ir.prelude import *
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict, Union
 
 if TYPE_CHECKING:
     from .lattice.base import Lattice
@@ -36,18 +36,21 @@ class Task:
 class BraketTask(Task):
     def __init__(self, prog: "Program", nshots: int) -> None:
         super().__init__(prog, nshots)
-        quera_task = QuEraTaskSpecification(
-            nshots=self.nshots,
-            lattice=LatticeCodeGen(ariable_reference=self.prog.assignments).emit(
-                self.lattice
-            ),
-            effective_hamiltonian=SequenceCodeGen(
-                n_atoms=self.lattice.n_atoms,
-                assignments=self.prog.assignments,
-            ).emit(self.prog.seq),
-        )
-        _, braket_task = quera_task_to_braket_ahs(quera_task)
-        self.task_ir = braket_task.to_ir()
+        # quera_task = QuEraTaskSpecification(
+        #     nshots=self.nshots,
+        #     lattice=LatticeCodeGen(assignments=self.prog.assignments).emit(
+        #         prog.lattice
+        #     ),
+        #     effective_hamiltonian=SequenceCodeGen(
+        #         n_atoms=self.prog.lattice.n_atoms,
+        #         assignments=self.prog.assignments,
+        #     ).emit(self.prog.seq),
+        # )
+        # _, braket_task = quera_task_to_braket_ahs(quera_task)
+        # self.task_ir = braket_task.to_ir()
+
+    def submit(self, token=None) -> "TaskResult":
+        return TaskResult()
 
 
 class QuEraTask(Task):
@@ -149,9 +152,15 @@ class TaskReport:
 # NOTE: this is just a dummy type bundle geometry and sequence
 #       information together and forward them to backends.
 class Program:
-    def __init__(self, lattice: "Lattice", seq: Sequence) -> None:
-        self.latice = lattice
+    def __init__(
+        self,
+        lattice: Union[None, "Lattice"],
+        seq: Sequence,
+        assignments: Union[None, Dict[Variable, Literal]] = None,
+    ) -> None:
+        self.lattice = lattice
         self.seq = seq
+        self.assignments = assignments
 
     def braket(self, *args, **kwargs) -> BraketTask:
         return BraketTask(self, *args, **kwargs)

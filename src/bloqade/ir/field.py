@@ -7,7 +7,7 @@ __all__ = [
     "Field",
     "Location",
     "SpatialModulation",
-    "Global",
+    "Uniform",
     "RunTimeVector",
     "ScaledLocations",
 ]
@@ -28,7 +28,7 @@ class SpatialModulation:
 
 
 @dataclass
-class GlobalModulation(SpatialModulation):
+class UniformModulation(SpatialModulation):
     def __hash__(self) -> int:
         return hash(self.__class__)
 
@@ -36,7 +36,7 @@ class GlobalModulation(SpatialModulation):
         return "Global"
 
 
-Global = GlobalModulation()
+Uniform = UniformModulation()
 
 
 @dataclass

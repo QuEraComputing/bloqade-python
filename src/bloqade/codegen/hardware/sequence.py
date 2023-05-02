@@ -1,6 +1,11 @@
 from pydantic.dataclasses import dataclass
-from bloqade.ir.pulse import PulseExpr
-from bloqade.ir.sequence import SequenceExpr, Sequence, NamedSequence, LevelCoupling
+from bloqade.ir.sequence import (
+    SequenceExpr,
+    Sequence,
+    NamedSequence,
+    rydberg,
+    hyperfine,
+)
 from bloqade.codegen.hardware.pulse import PulseCodeGen
 from quera_ahs_utils.quera_ir.task_specification import (
     EffectiveHamiltonian,
@@ -34,7 +39,7 @@ class SequenceCodeGen(PulseCodeGen):
     def scan(self, ast: SequenceExpr):
         match ast:
             case Sequence(value):
-                self.level_coupling = LevelCoupling.Rydberg
+                self.level_coupling = rydberg
                 if self.level_coupling in value:
                     self.rydberg = PulseCodeGen(
                         self.n_atoms,
