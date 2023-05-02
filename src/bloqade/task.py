@@ -45,7 +45,7 @@ class BraketTask(Task):
                 self.lattice
             ),
             effective_hamiltonian=SequenceCodeGen(
-                natoms=self.lattice.natoms,
+                n_atoms=self.lattice.n_atoms,
                 assignments=self.prog.assignments,
             ).emit(self.prog.seq),
         )
@@ -62,7 +62,7 @@ class QuEraTask(Task):
                 self.lattice
             ),
             effective_hamiltonian=SequenceCodeGen(
-                natoms=self.lattice.natoms,
+                n_atoms=self.lattice.n_atoms,
                 assignments=self.prog.assignments,
             ).emit(self.prog.seq),
         )
@@ -77,7 +77,7 @@ class MockTask(Task):
                 self.lattice
             ),
             effective_hamiltonian=SequenceCodeGen(
-                natoms=self.lattice.natoms,
+                n_atoms=self.lattice.n_atoms,
                 assignments=self.prog.assignments,
             ).emit(self.prog.seq),
         )
