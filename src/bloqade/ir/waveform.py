@@ -14,6 +14,7 @@ __all__ = [
     "Smooth",
     "Slice",
     "Scale",
+    "Record"
 ]
 
 
@@ -335,12 +336,6 @@ class Add(Waveform):
     def __repr__(self) -> str:
         return f"({self.left!r} + {self.right!r})"
 
-
-class RecordPos(str, Enum):
-    start = "start"
-    stop = "stop"
-
-
 @dataclass
 class Record(Waveform):
     """
@@ -349,7 +344,6 @@ class Record(Waveform):
 
     waveform: Waveform
     var: Variable
-    pos: RecordPos
 
     def __call__(self, clock_s: float, **kwargs) -> Any:
         return self.waveform(clock_s, **kwargs)
