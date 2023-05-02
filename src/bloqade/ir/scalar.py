@@ -1,6 +1,14 @@
 from pydantic.dataclasses import dataclass
 from pydantic import validator
-from typing import Optional
+from typing import Optional, Union
+
+__all__ = [
+    "cast",
+    "Scalar",
+    "Interval",
+    "Variable",
+    "Literal",
+]
 
 
 @dataclass(frozen=True)
@@ -179,7 +187,7 @@ class Literal(Real):
     value: float
 
     def __repr__(self) -> str:
-        return f"{self.value}"
+        return f"{self.value!r}"
 
 
 @dataclass(frozen=True)
@@ -187,7 +195,7 @@ class Variable(Real):
     name: str
 
     def __repr__(self) -> str:
-        return f"{self.name}"
+        return f"{self.name!r}"
 
     @validator("name")
     def name_validator(cls, v):
@@ -209,7 +217,7 @@ class Negative(Scalar):
     expr: Scalar
 
     def __repr__(self) -> str:
-        return f"-{self.expr}"
+        return f"-({self.expr!r})"
 
 
 @dataclass(frozen=True)
@@ -242,11 +250,11 @@ class Interval:
             case (None, None):
                 raise ValueError("Interval must have at least one bound")
             case (None, stop):
-                return f":{stop}"
+                return f":{stop!r}"
             case (start, None):
-                return f"{start}:"
+                return f"{start!r}:"
             case (start, stop):
-                return f"{self.start}:{self.stop}"
+                return f"{self.start!r}:{self.stop!r}"
 
 
 @dataclass(frozen=True)
@@ -255,7 +263,7 @@ class Slice(Scalar):
     interval: Interval
 
     def __repr__(self) -> str:
-        return f"{self.expr}[{self.interval}]"
+        return f"{self.expr!r}[{self.interval!r}]"
 
 
 @dataclass(frozen=True)
@@ -264,7 +272,7 @@ class Add(Scalar):
     rhs: Scalar
 
     def __repr__(self) -> str:
-        return f"{self.lhs} + {self.rhs}"
+        return f"({self.lhs!r} + {self.rhs!r})"
 
 
 @dataclass(frozen=True)
@@ -273,7 +281,7 @@ class Mul(Scalar):
     rhs: Scalar
 
     def __repr__(self) -> str:
-        return f"{self.lhs} * {self.rhs}"
+        return f"({self.lhs!r} * {self.rhs!r})"
 
 
 @dataclass(frozen=True)
@@ -282,7 +290,7 @@ class Div(Scalar):
     rhs: Scalar
 
     def __repr__(self) -> str:
-        return f"{self.lhs} / {self.rhs}"
+        return f"({self.lhs!r} / {self.rhs!r})"
 
 
 @dataclass(frozen=True)
@@ -290,7 +298,7 @@ class Min(Scalar):
     exprs: frozenset[Scalar]
 
     def __repr__(self) -> str:
-        return f"min({', '.join(map(str, self.exprs))})"
+        return f"scalar.Min({self.exprs!r})"
 
 
 @dataclass(frozen=True)
@@ -298,4 +306,4 @@ class Max(Scalar):
     exprs: frozenset[Scalar]
 
     def __repr__(self) -> str:
-        return f"max({', '.join(map(str, self.exprs))})"
+        return f"scalar.Max({self.exprs!r})"

@@ -1,31 +1,52 @@
 from .scalar import Interval
 from .field import Field
 from typing import List
-from enum import Enum
 from pydantic.dataclasses import dataclass
 
 
-@dataclass(frozen=True, repr=False)
-class FieldName(str, Enum):
-    RabiFrequencyAmplitude = "rabi_frequency_amplitude"
-    RabiFrequencyPhase = "rabi_frequency_phase"
-    Detuning = "detuning"
+__all__ = [
+    "Pulse",
+    "NamedPulse",
+    "FieldName",
+    "rabi",
+    "detuning",
+]
 
+
+@dataclass(frozen=True)
+class FieldName:
+    pass
+
+
+@dataclass(frozen=True)
+class RabiFrequencyAmplitude(FieldName):
     def __repr__(self) -> str:
-        return self.value
+        return "rabi_frequency_amplitude"
+
+
+@dataclass(frozen=True)
+class RabiFrequencyPhase(FieldName):
+    def __repr__(self) -> str:
+        return "rabi_frequency_phase"
+
+
+@dataclass(frozen=True)
+class Detuning(FieldName):
+    def __repr__(self) -> str:
+        return "detuning"
 
 
 class RabiRouter:
     def __init__(self) -> None:
-        self.amplitude = FieldName.RabiFrequencyAmplitude
-        self.phase = FieldName.RabiFrequencyPhase
+        self.amplitude = RabiFrequencyAmplitude()
+        self.phase = RabiFrequencyPhase()
 
     def __repr__(self) -> str:
         "rabi (amplitude, phase)"
 
 
 rabi = RabiRouter()
-detuning = FieldName.Detuning
+detuning = Detuning()
 
 
 @dataclass
@@ -57,6 +78,9 @@ class Append(PulseExpr):
 
     value: List[PulseExpr]
 
+    def __repr__(self) -> str:
+        return f"pulse.Append(value={self.value!r})"
+
 
 @dataclass(init=False, repr=False)
 class Pulse(PulseExpr):
@@ -78,7 +102,7 @@ class Pulse(PulseExpr):
         self.value = value
 
     def __repr__(self) -> str:
-        return "Pulse({" + ", ".join(map(str, self.value.items())) + "})"
+        return f"Pulse(value={self.value!r})"
 
 
 @dataclass
@@ -86,8 +110,14 @@ class NamedPulse(PulseExpr):
     name: str
     pulse: PulseExpr
 
+    def __repr__(self) -> str:
+        return f"NamedPulse(name={self.name!r}, pulse={self.pulse!r})"
+
 
 @dataclass
 class Slice(PulseExpr):
     pulse: PulseExpr
     interval: Interval
+
+    def __repr__(self) -> str:
+        return f"{self.pulse!r}[{self.interval}]"
