@@ -1,6 +1,12 @@
 # we have to put these objects in one file because of circular imports
 # TODO: figure out how to remove the circular imports & split the file
 
+from quera_ahs_utils.quera_ir.task_specification import QuEraTaskSpecification
+from quera_ahs_utils.ir import quera_task_to_braket_ahs
+
+from bloqade.codegen.hardware.sequence import SequenceCodeGen
+from bloqade.codegen.hardware.lattice import LatticeCodeGen
+
 from .ir.prelude import *
 from typing import TYPE_CHECKING
 
@@ -30,13 +36,33 @@ class Task:
 class BraketTask(Task):
     def __init__(self, prog: "Program", nshots: int) -> None:
         super().__init__(prog, nshots)
-        # custom config goes here
+        quera_task = QuEraTaskSpecification(
+            nshots=self.nshots,
+            lattice=LatticeCodeGen(ariable_reference=self.prog.variable_reference).emit(
+                self.lattice
+            ),
+            effective_hamiltonian=SequenceCodeGen(
+                n_atoms=self.lattice.n_atoms,
+                variable_reference=self.prog.variable_reference,
+            ).emit(self.prog.seq),
+        )
+        _, braket_task = quera_task_to_braket_ahs(quera_task)
+        self.task_ir = braket_task.to_ir()
 
 
 class QuEraTask(Task):
     def __init__(self, prog: "Program", nshots: int) -> None:
         super().__init__(prog, nshots)
-        # custom config goes here
+        self.task_ir = QuEraTaskSpecification(
+            nshots=self.nshots,
+            lattice=LatticeCodeGen(ariable_reference=self.prog.variable_reference).emit(
+                self.lattice
+            ),
+            effective_hamiltonian=SequenceCodeGen(
+                n_atoms=self.lattice.n_atoms,
+                variable_reference=self.prog.variable_reference,
+            ).emit(self.prog.seq),
+        )
 
 
 class SimuTask(Task):
