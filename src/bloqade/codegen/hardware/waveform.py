@@ -8,6 +8,7 @@ from bloqade.ir.pulse import (
 from bloqade.ir.waveform import Waveform, Append, Linear, Constant, Slice
 from bloqade.codegen.hardware.base import BaseCodeGen
 from typing import List, Optional, Tuple
+from bisect import bisect_left
 
 
 @dataclass
@@ -49,6 +50,24 @@ class WaveformCodeGen(BaseCodeGen):
                 self.times.append(self.times[-1] + duration)
                 self.values.append(stop)
 
+            case Slice(waveform, interval):
+                self.scan(waveform)
+                start_time = interval.start(**self.variable_reference)
+                stop_time = interval.stop(**self.variable_reference)
+                start_value = waveform(start_time, **self.variable_reference)
+                stop_value = waveform(stop_time, **self.variable_reference)
+
+                start_index = bisect_left(self.times, start_time)
+                stop_index = bisect_left(self.times, stop_time)
+
+                absolute_times = (
+                    [start_time] + self.times[start_index:stop_index] + [stop_time]
+                )
+                self.times = [time - start_time for time in absolute_times]
+                self.values = (
+                    [start_value] + self.values[start_index:stop_index] + [stop_value]
+                )
+
             case Append(waveforms):
                 for waveform in waveforms:
                     self.scan_piecewise_linear(waveform)
@@ -89,14 +108,25 @@ class WaveformCodeGen(BaseCodeGen):
             case Append(waveforms):
                 for waveform in waveforms:
                     self.scan_piecewise_constant(waveform)
-                    
+
             case Slice(waveform, interval):
-                first = interval.start(**self.variable_reference)
-                last = interval.stop(**self.variable_reference)
                 self.scan(waveform)
+                start_time = interval.start(**self.variable_reference)
+                stop_time = interval.stop(**self.variable_reference)
+                start_value = waveform(start_time, **self.variable_reference)
+                stop_value = waveform(stop_time, **self.variable_reference)
+
+                start_index = bisect_left(self.times, start_time)
+                stop_index = bisect_left(self.times, stop_time)
+
+                absolute_times = (
+                    [start_time] + self.times[start_index:stop_index] + [stop_time]
+                )
                 
-                self.times = [0.0] + [time - first for time in self.times if time < last and time > first] + [last - first]
-                
+                self.times = [time - start_time for time in absolute_times]
+                self.values = (
+                    [start_value] + self.values[start_index:stop_index] + [stop_value]
+                )
 
             case _:  # TODO: improve error message here
                 raise NotImplementedError(
