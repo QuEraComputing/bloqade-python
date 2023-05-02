@@ -113,10 +113,11 @@ class NamedPulse(PulseExpr):
     def __repr__(self) -> str:
         return f"NamedPulse(name={self.name!r}, pulse={self.pulse!r})"
 
+
 @dataclass
 class Slice(PulseExpr):
     pulse: PulseExpr
     interval: Interval
-    
+
     def __repr__(self) -> str:
         return f"{self.pulse!r}[{self.interval}]"

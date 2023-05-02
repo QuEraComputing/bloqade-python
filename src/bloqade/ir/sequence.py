@@ -58,6 +58,7 @@ class Append(SequenceExpr):
     def __repr__(self) -> str:
         return f"sequence.Append(value={self.value!r})"
 
+
 @dataclass(init=False, repr=False)
 class Sequence(SequenceExpr):
     value: dict[LevelCoupling, PulseExpr]
@@ -87,7 +88,7 @@ class Sequence(SequenceExpr):
 class NamedSequence(SequenceExpr):
     sequence: SequenceExpr
     name: str
-    
+
     def __repr__(self) -> str:
         return f"NamedSequence(sequence={self.sequence!r}, name='{self.name!r}')"
 
