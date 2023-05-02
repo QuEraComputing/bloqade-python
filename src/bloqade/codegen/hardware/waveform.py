@@ -1,5 +1,10 @@
 from pydantic.dataclasses import dataclass
-from bloqade.ir.pulse import FieldName
+from bloqade.ir.pulse import (
+    FieldName,
+    RabiFrequencyAmplitude,
+    RabiFrequencyPhase,
+    Detuning,
+)
 from bloqade.ir.waveform import Waveform, Append, Linear, Constant
 from bloqade.codegen.hardware.base import BaseCodeGen
 from typing import List, Optional, Tuple
@@ -86,21 +91,22 @@ class WaveformCodeGen(BaseCodeGen):
                     self.scan_piecewise_constant(waveform)
 
             case _:  # TODO: improve error message here
-                raise NotImplementedError
+                raise NotImplementedError(
+                    "Cannot interpret waveform as piecewise constant."
+                )
 
     def scan(self, ast: Waveform):
         print(self.field_name)
         match self.field_name:
-            case FieldName.RabiFrequencyAmplitude:
-                print('amplitude')
+            case RabiFrequencyAmplitude():
+                print("amplitude")
                 self.scan_piecewise_linear(ast)
-            case FieldName.RabiFrequencyPhase:
-                print('phase')
+            case RabiFrequencyPhase():
+                print("phase")
                 self.scan_piecewise_constant(ast)
-            case FieldName.Detuning:
-                print('detuning')
+            case Detuning():
+                print("detuning")
                 self.scan_piecewise_linear(ast)
-
 
     def emit(self, ast: Waveform) -> Tuple[List[float], List[float]]:
         self.times = []

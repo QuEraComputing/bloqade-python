@@ -1,10 +1,12 @@
 from bloqade.codegen.hardware.waveform import WaveformCodeGen
 from bloqade.codegen.hardware.field import FieldCodeGen
+from bloqade.codegen.hardware.pulse import PulseCodeGen
 
-from bloqade.ir.pulse import FieldName
+from bloqade.ir.pulse import RabiFrequencyAmplitude, RabiFrequencyPhase
 from bloqade.ir.scalar import cast
 from bloqade.ir.waveform import Constant, Linear, Append
 from bloqade.ir.field import Field, Global
+from bloqade.ir.sequence import Pulse, RydbergLevelCoupling
 
 
 initial_detuning =  cast("initial_detuning")
@@ -27,7 +29,7 @@ variable_reference = dict(
     anneal_time = 4.0
 )
 
-wf_codegen = WaveformCodeGen(10, variable_reference, field_name = FieldName.RabiFrequencyAmplitude)
+wf_codegen = WaveformCodeGen(10, variable_reference, field_name = RabiFrequencyAmplitude())
 
 times, values = wf_codegen.emit(detuning_wf)
 
@@ -37,9 +39,25 @@ print(values)
 field = Field({Global: detuning_wf})
 
 field_codegen = FieldCodeGen(
-    10, variable_reference, field_name=FieldName.RabiFrequencyPhase,
+    10, variable_reference, field_name=RabiFrequencyAmplitude(),
 )
-
 quera_field = field_codegen.emit(field)
 
 print(quera_field)
+
+
+field = Field({Global: detuning_wf})
+field_codegen = FieldCodeGen(
+    10, variable_reference, field_name=RabiFrequencyPhase(),
+)
+try:
+    quera_field = field_codegen.emit(field)
+except NotImplementedError:
+    pass
+
+pulse = Pulse({RabiFrequencyAmplitude():field})
+
+
+pulse_codegen = PulseCodeGen(10, variable_reference, level_coupling=RydbergLevelCoupling())
+rydberg_hamiltonian = pulse_codegen.emit(pulse)
+print(rydberg_hamiltonian)
