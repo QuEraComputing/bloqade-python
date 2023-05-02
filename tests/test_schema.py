@@ -9,27 +9,24 @@ from bloqade.ir.field import Field, Global
 from bloqade.ir.sequence import Pulse, RydbergLevelCoupling
 
 
-initial_detuning =  cast("initial_detuning")
+initial_detuning = cast("initial_detuning")
 final_detuning = cast("final_detuning")
 up_time = cast("up_time")
 anneal_time = cast("anneal_time")
 
 detuning_wf = Append(
-        [
-            Constant(initial_detuning, up_time),
-            Linear(initial_detuning, final_detuning, anneal_time),  
-            Constant(final_detuning, up_time)
-        ]
-    )
-
-assignments = dict(
-    initial_detuning = -15,
-    final_detuning = 10,
-    up_time = 0.1,
-    anneal_time = 4.0
+    [
+        Constant(initial_detuning, up_time),
+        Linear(initial_detuning, final_detuning, anneal_time),
+        Constant(final_detuning, up_time),
+    ]
 )
 
-wf_codegen = WaveformCodeGen(10, assignments, field_name = RabiFrequencyAmplitude())
+assignments = dict(
+    initial_detuning=-15, final_detuning=10, up_time=0.1, anneal_time=4.0
+)
+
+wf_codegen = WaveformCodeGen(10, assignments, field_name=RabiFrequencyAmplitude())
 
 times, values = wf_codegen.emit(detuning_wf[0.05:4.15])
 
@@ -39,7 +36,9 @@ print(values)
 field = Field({Global: detuning_wf})
 
 field_codegen = FieldCodeGen(
-    10, assignments, field_name=RabiFrequencyAmplitude(),
+    10,
+    assignments,
+    field_name=RabiFrequencyAmplitude(),
 )
 quera_field = field_codegen.emit(field)
 
@@ -48,14 +47,16 @@ print(quera_field)
 
 field = Field({Global: detuning_wf})
 field_codegen = FieldCodeGen(
-    10, assignments, field_name=RabiFrequencyPhase(),
+    10,
+    assignments,
+    field_name=RabiFrequencyPhase(),
 )
 try:
     quera_field = field_codegen.emit(field)
 except NotImplementedError:
     pass
 
-pulse = Pulse({RabiFrequencyAmplitude():field})
+pulse = Pulse({RabiFrequencyAmplitude(): field})
 
 
 pulse_codegen = PulseCodeGen(10, assignments, level_coupling=RydbergLevelCoupling())
