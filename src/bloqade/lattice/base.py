@@ -13,7 +13,7 @@ class Lattice(BuildStart):
     def figure(self) -> plt.Figure:
         """plot the lattice."""
         raise NotImplementedError
-    
+
     def plot(self, ax: plt.Axes) -> plt.Axes:
         """plot the lattice on the given axes."""
         raise NotImplementedError
@@ -21,3 +21,11 @@ class Lattice(BuildStart):
     def show(self) -> None:
         """show the lattice."""
         self.figure().show()
+
+    @property
+    def n_atoms(self):
+        raise NotImplementedError
+
+    @property
+    def n_dims(self):
+        raise NotImplementedError
