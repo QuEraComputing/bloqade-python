@@ -5,7 +5,7 @@ from bloqade.ir.sequence import (
     RydbergLevelCoupling,
     HyperfineLevelCoupling,
 )
-from bloqade.ir.pulse import PulseExpr, Pulse
+from bloqade.ir.pulse import PulseExpr, Pulse, NamedPulse
 from bloqade.ir.pulse import RabiFrequencyAmplitude, RabiFrequencyPhase, Detuning
 
 from pydantic.dataclasses import dataclass
@@ -20,6 +20,42 @@ class PulseCodeGen(FieldCodeGen):
     rabi_frequency_amplitude: Optional[task_spec.RabiFrequencyAmplitude] = None
     rabi_frequency_phase: Optional[task_spec.RabiFrequencyPhase] = None
     detuning: Optional[task_spec.Detuning] = None
+
+    def assignment_scan(self, ast: PulseExpr):
+        match ast:
+            case Pulse(value):
+                self.field_name = RabiFrequencyAmplitude()
+                if self.field_name in value:
+                    FieldCodeGen(
+                        self.n_atoms,
+                        self.assignments,
+                        field_name=RabiFrequencyAmplitude(),
+                    ).assignment_scan(value[self.field_name])
+
+                self.field_name = RabiFrequencyPhase()
+                if self.field_name in value:
+                    new_assignments = FieldCodeGen(
+                        self.n_atoms,
+                        self.assignments,
+                        field_name=RabiFrequencyPhase(),
+                    ).assignment_scan(value[self.field_name])
+
+                self.field_name = Detuning()
+                if self.field_name in value:
+                    new_assignments = FieldCodeGen(
+                        self.n_atoms,
+                        self.assignments,
+                        field_name=Detuning(),
+                    ).assignment_scan(value[self.field_name])
+
+            case NamedPulse(pulse=pulse):
+                self.assignment_scan(pulse)
+
+            case _:
+                # TODO: Improve error message here
+                raise NotImplementedError
+
+        return new_assignments
 
     def scan(self, ast: PulseExpr):
         match ast:

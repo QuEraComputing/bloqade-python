@@ -13,6 +13,13 @@ class FieldCodeGen(WaveformCodeGen, SpatialModulationCodeGen):
     global_: Optional[task_spec.GlobalField] = None
     local: Optional[task_spec.LocalField] = None
 
+    def assignment_scan(self, ast: Field):
+        if self.field_name in ast.value:
+            waveform_codegen = WaveformCodeGen(
+                self.n_atoms, self.assignments, field_name=self.field_name
+            )
+            waveform_codegen.assignment_scan(ast.value[self.field_name])
+
     def scan(self, ast: Field):
         waveform_codegen = WaveformCodeGen(
             self.n_atoms, self.assignments, field_name=self.field_name
