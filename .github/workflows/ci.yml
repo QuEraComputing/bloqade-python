@@ -11,6 +11,10 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
+# See: https://github.com/pdm-project/pdm/issues/1879
+env:
+  PDM_DEPS: 'urllib3<2'
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -32,7 +36,7 @@ jobs:
           # prerelease: true     # Allow prerelease versions to be installed
           # enable-pep582: true  # Enable PEP 582 package loading globally
       - name: Install dependencies
-        run: pdm install -v       # Then you can use pdm in the following steps.
+        run: pdm install       # Then you can use pdm in the following steps.
       - name: Test with pytest & generate coverage
         run: |
           pdm run coverage
