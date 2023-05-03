@@ -1,5 +1,4 @@
 from bloqade.codegen.hardware.field import FieldCodeGen
-from bloqade.ir.field import Field
 
 from bloqade.ir.sequence import (
     LevelCoupling,
