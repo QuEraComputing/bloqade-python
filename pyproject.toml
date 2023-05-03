@@ -87,7 +87,7 @@ test = "pytest"
 coverage = {shell = "coverage run -m pytest && coverage report"}
 doc = {cmd = "mkdocs serve -f docs/mkdocs.yml"}
 doc_build = {cmd = "mkdocs build -f docs/mkdocs.yml"}
-doc_deploy = {cmd = "mkdocs gh-deploy -f docs/mkdocs.yml"}
+doc_deploy = {cmd = "mkdocs gh-deploy -f docs/mkdocs.yml --force"}
 jupytext = {cmd = "jupytext --sync docs/docs/examples/*.py"}
 
 [tool.jupytext]
