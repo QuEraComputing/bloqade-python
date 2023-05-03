@@ -1,4 +1,12 @@
-site_name: Bloqade
+site_name: The Neutral Atom SDK
+site_url: https://bloqade.quera.com
+site_description: >-
+  The neutral atom computing software development kit.
+
+repo_name: bloqade-python
+repo_url: https://github.com/QuEraComputing/bloqade-python
+
+copyright: Copyright &copy; 2022 - QuEra Computing Inc.
 theme:
   name: material
   features:
