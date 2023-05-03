@@ -35,6 +35,8 @@ jobs:
           path: .cache
           restore-keys: |
             mkdocs-material-
+      # derived from:
+      # https://github.com/RemoteCloud/public-documentation/blob/dev/.github/workflows/build_docs.yml
       - name: Configure Git user
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
@@ -44,4 +46,4 @@ jobs:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
           GOOGLE_ANALYTICS_KEY: ${{ secrets.GOOGLE_ANALYTICS_KEY }}
         run: |
-          pdm run mike deploy --push --update-aliases dev -F docs/mkdocs.yml
+          pdm run mike deploy --force --push --update-aliases dev -F docs/mkdocs.yml
