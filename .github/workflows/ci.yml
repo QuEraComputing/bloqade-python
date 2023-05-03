@@ -32,7 +32,7 @@ jobs:
           # prerelease: true     # Allow prerelease versions to be installed
           # enable-pep582: true  # Enable PEP 582 package loading globally
       - name: Install dependencies
-        run: pdm install       # Then you can use pdm in the following steps.
+        run: pdm install -v       # Then you can use pdm in the following steps.
       - name: Test with pytest & generate coverage
         run: |
           pdm run coverage
