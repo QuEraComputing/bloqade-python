@@ -8,7 +8,6 @@ authors = [
 dependencies = [
     "juliacall>=0.9.12",
     "numpy>=1.24.2",
-    "matplotlib>=3.7.1",
     "pydantic>=1.10.7",
     "quera-ahs-utils>=0.4.0",
     "pandas>=2.0.1",

@@ -4,8 +4,8 @@ import numpy as np
 import itertools
 from numpy.typing import NDArray
 from .base import Lattice
-from matplotlib.ticker import AutoMinorLocator, FixedLocator
-import matplotlib.pyplot as plt
+from bokeh.models import ColumnDataSource, Plot
+from bokeh.plotting import figure
 
 
 class Cell:
@@ -57,34 +57,26 @@ class BoundedBravais(Lattice):
             for pos in self.coordinates(index):
                 yield pos
 
-    def figure(self) -> plt.Figure:
+    def figure(self) -> Plot:
         if len(self.shape) == 2:
-            figsize = self.shape
+            width, height = self.shape
         else:
-            figsize = (self.shape[0], 2)
-        fig, ax = plt.subplots(figsize=figsize)
-        self.plot(ax)
-        return fig
+            width, height = (self.shape[0], 2)
 
-    def plot(self, ax: plt.Axes) -> plt.Axes:
-        assert len(self.shape) <= 2
-        xs, ys = [], []
-        for x, y in self.enumerate():
+        xs, ys, labels = [], [], []
+        for idx, (x, y) in enumerate(self.enumerate()):
             xs.append(x)
             ys.append(y)
+            labels.append(idx)
 
-        if len(self.shape) == 2:
-            x_locator = FixedLocator([i for i in range(self.shape[0])])
-            y_locator = FixedLocator([i for i in range(self.shape[1])])
-        else:
-            x_locator = FixedLocator([i for i in range(self.shape[0])])
-            y_locator = AutoMinorLocator()
-
-        ax.grid(linestyle="dashed", linewidth=1.0)
-        ax.xaxis.set_major_locator(x_locator)
-        ax.yaxis.set_major_locator(y_locator)
-        ax.scatter(xs, ys)
-        return ax
+        source = ColumnDataSource(data=dict(x=xs, y=ys, labels=labels))
+        p = figure(
+            width=width * 100,
+            height=height * 100,
+            tools="hover,wheel_zoom,box_zoom,reset",
+        )
+        p.circle("x", "y", source=source, radius=0.08)
+        return p
 
 
 @dataclass
