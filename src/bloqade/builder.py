@@ -1,269 +1,360 @@
-from typing import List, Union
-from .ir.prelude import *
-from .task import *
+import bloqade.ir as ir
+from typing import Union, Dict, List
+from dataclasses import dataclass, field
+from .task import Program, BraketTask, QuEraTask, SimuTask, MockTask
 
 
-class BuildStart:
-    def apply(self, seq):
-        """apply a sequence to the lattice."""
-        from .task import Program
+class BuildError(Exception):
+    def __init__(self, message) -> None:
+        super().__init__(message)
 
-        return Program(self, seq)
 
-    @property
-    def rydberg(self) -> "RydbergBuilder":
-        """start building pulses for Rydberg coupling
+@dataclass
+class BuildCache:
+    """A cache class for storing the current state of the builder."""
 
-        ### Example
-
-        ```python-repl
-        >>> lattice.Square(3).rydberg.detuning.glob.apply(Linear(start=1.0, stop="x", duration=3.0))
-        ```
-        """
-        # NOTE: this Sequence({}) is necessary to force create a new seq object
-        return RydbergBuilder(self, Sequence({}))
-
-    @property
-    def hyperfine(self) -> "HyperfineBuilder":
-        """start building pulses for hyperfine coupling
-
-        ### Example
-
-        >>> lattice.Square(3).hyperfine.detuning.glob.apply(Linear(start=1.0, stop="x", duration=3.0))
-        """
-        # NOTE: this Sequence({}) is necessary to force create a new seq object
-        return HyperfineBuilder(self, Sequence({}))
+    skip_sequence_build: bool = False
+    sequence: ir.Sequence = field(default_factory=ir.Sequence)
+    assignments: Union[None, Dict[ir.Variable, ir.Literal]] = None
+    program: Union[None, Program] = None
+    # intermediate states that will be purge in Route
+    waveform: Union[None, ir.Waveform] = None
+    level_coupling: Union[None, ir.LevelCoupling] = None
+    field_name: Union[None, ir.FieldName] = None
+    locations: Union[None, List[int]] = None
+    scales: Union[None, List[ir.Scalar]] = None
+    spatial_mod: Union[None, ir.SpatialModulation] = None
 
 
 class Builder:
-    def __init__(self, sequence_or_builder: Union[Sequence, "Builder"]) -> None:
-        if isinstance(sequence_or_builder, Builder):
-            self._sequence = sequence_or_builder._sequence
-        elif isinstance(sequence_or_builder, Sequence):
-            self._sequence: Sequence = sequence_or_builder
+    def __init__(self, parent: Union[ir.Sequence, "Builder", None] = None) -> None:
+        # pass the cache from the parent builder
+        if isinstance(parent, ir.Sequence):
+            cache = BuildCache(sequence=parent)
+            self.__lattice__ = None
+        elif isinstance(parent, Builder):
+            cache = parent.__cache__
+            self.__lattice__ = parent.__lattice__
+        elif parent is None:
+            cache = BuildCache(sequence=ir.Sequence({}))
+            self.__lattice__ = None
         else:
-            raise ValueError("expect Sequence or Builder")
+            raise ValueError("sequence_or_none must be a Sequence or None")
 
-    @property
-    def sequence(self):
-        """access the current sequence (Sequence) object."""
-        return self._sequence
+        # cache fields to pass over to the next builder
+        self.__cache__ = cache
 
 
-class CouplingLevelBuilder(Builder):
-    def __init__(self, lattice, sequence) -> None:
-        super().__init__(sequence)
-        self._lattice = lattice
-
-    @property
-    def detuning(self) -> "SpatialModulationBuilder":
-        """add detuning field to coupling level."""
-        return SpatialModulationBuilder(DetuningBuilder(self))
-
-    @property
-    def rabi(self) -> "RabiBuilder":
-        """add Rabi field (amplitude or phase) to coupling level."""
-        return RabiBuilder(self)
-
-
-class RydbergBuilder(CouplingLevelBuilder):
-    pass
-
-
-class HyperfineBuilder(CouplingLevelBuilder):
-    pass
-
-
-class FieldBuilder(Builder):
-    def __init__(self, coupling_level: "CouplingLevelBuilder") -> None:
-        super().__init__(coupling_level)
-        self._coupling_level = coupling_level
-        self._name: FieldName | None = None
-
-
-class DetuningBuilder(FieldBuilder):
-    def __init__(self, coupling_level: CouplingLevelBuilder) -> None:
-        super().__init__(coupling_level)
-        self._name = detuning
-
-
-class RabiBuilder(FieldBuilder):
-    @property
-    def amplitude(self) -> "SpatialModulationBuilder":
-        """specify pulse on Rabi frequency amplitude"""
-        self._name = rabi.amplitude
-        return SpatialModulationBuilder(self)
-
-    @property
-    def phase(self) -> "SpatialModulationBuilder":
-        """specify pulse on Rabi frequency phase"""
-        self._name = rabi.phase
-        return SpatialModulationBuilder(self)
-
-
-class SpatialModulationBuilder(Builder):
-    def __init__(self, field: "FieldBuilder") -> None:
-        super().__init__(field)
-        self._field = field
-
-    @property
-    def glob(self):
-        """specify global modulation of the field. The waveform
-        will be applied uniformly to all locations in the lattice.
+class Emit(Builder):
+    def update_sequence(self) -> None:
+        """update the internal sequence object with
+        information stored in the current cache.
         """
-        return GlobalLocationBuilder(self)
+        if self.__cache__.skip_sequence_build:
+            return
 
-    def location(self, label: int):
-        """specify location of the pulse in the lattice with a label."""
-        return LocalLocationBuilder(self, label)
-
-
-class LocationBuilder(Builder):
-    def __init__(self, spatial_mod: SpatialModulationBuilder) -> None:
-        super().__init__(spatial_mod)
-        self._spatial_mod = spatial_mod
-
-    def apply(
-        self, waveform: Waveform
-    ):  # forward to ApplyBuilder if only one location specified
-        """apply the waveform to the current location, field and coupling level."""
-        return ApplyBuilder(self)._apply(waveform)
-
-
-class GlobalLocationBuilder(LocationBuilder):
-    pass
-
-
-class LocalLocationBuilder(LocationBuilder):
-    def __init__(self, spatial_mod: SpatialModulationBuilder, label: int) -> None:
-        super().__init__(spatial_mod)
-        self._label: List[int] = [label]
-        self._scale: List[Scalar] = [cast(1.0)]
-
-    def scale(self, val) -> "LocalLocationBuilder":
-        """scale the waveform at the current location."""
-        self._scale.pop()
-        self._scale.append(val)
-        return self
-
-    def location(self, label: int) -> "LocalLocationBuilder":
-        """add another location that shares the same waveform."""
-        self._label.append(label)
-        self._scale.append(cast(1.0))
-        return self
-
-
-class ApplyBuilder(Builder):  # terminator
-    def __init__(self, location: LocationBuilder) -> None:
-        super().__init__(location)
-        self.__location_builder: LocationBuilder = location
-        # NOTE: the following are for convenience
-        self.__spatial_mod: SpatialModulationBuilder = location._spatial_mod
-        self.__field: FieldBuilder = location._spatial_mod._field
-        self.__coupling_level: CouplingLevelBuilder = (
-            location._spatial_mod._field._coupling_level
-        )
-        self.__lattice = self.__spatial_mod._field._coupling_level._lattice
-
-    def __coupling_object(self):
-        if isinstance(self.__coupling_level, RydbergBuilder):
-            return rydberg
-        elif isinstance(self.__coupling_level, HyperfineBuilder):
-            return hyperfine
-        else:
-            raise ValueError("unexpected coupling level")
-
-    def _apply(self, waveform) -> "ApplyBuilder":
-        coupling_level = self.__coupling_object()
-        field_name = self.__field._name
-
-        if isinstance(self.__location_builder, GlobalLocationBuilder):
-            spatial_mod = Global
-        elif isinstance(self.__location_builder, LocalLocationBuilder):
+        self.__validate_cache()
+        if self.__cache__.spatial_mod:
+            spatial_mod = self.__cache__.spatial_mod
+        elif self.__cache__.locations:
             scaled_locations = {}
-            for loc, scal in zip(
-                self.__location_builder._label, self.__location_builder._scale
-            ):
+            for loc, scal in zip(self.__cache__.locations, self.__cache__.scales):
                 scaled_locations[loc] = scal
-            spatial_mod = ScaledLocations(scaled_locations)
-        else:  # None
-            raise ValueError("unexpected spatial location")
+            spatial_mod = ir.ScaledLocations(scaled_locations)
+        else:
+            raise BuildError(
+                "spatial modulation must be set, can be set either using `.uniform`, \
+`.var` or `.locations`"
+            )
 
-        # NOTE: Pulse and Field is not frozen
-        pulse = self._sequence.value.setdefault(coupling_level, Pulse({}))
-        field = pulse.value.setdefault(field_name, Field({}))
+        seq = self.__cache__.sequence
+        pulse: ir.Pulse = seq.value.setdefault(
+            self.__cache__.level_coupling, ir.Pulse({})
+        )
+        field = pulse.value.setdefault(self.__cache__.field_name, ir.Field({}))
         if spatial_mod in field.value:
-            raise ValueError("this field spatial modulation is already specified")
-        field.value[spatial_mod] = waveform
+            raise BuildError("spatial modulation already exists")
+        field.value[spatial_mod] = self.__cache__.waveform
         return self
+
+    def __validate_cache(self) -> None:
+        pass
 
     @property
-    def _program(self) -> Program:
-        return Program(self.__lattice, self._sequence)
+    def program(self):
+        self.update_sequence()
+        return Program(
+            self.__lattice__,
+            self.__cache__.sequence,
+            self.__cache__.assignments,
+        )
 
+    @property
+    def sequence(self) -> ir.Sequence:
+        """Return the current sequence object being built."""
+
+        self.update_sequence()
+        if self.__cache__.level_coupling is None:
+            raise BuildError("level_coupling is not set")
+        if self.__cache__.field_name is None:
+            raise BuildError("field_name is not set")
+        return self.__cache__.sequence
+
+    @property
+    def waveform(self) -> ir.Waveform:
+        """Return the current waveform object being built."""
+        return self.__cache__.waveform
+
+
+class Assign(Builder):
+    def assign(self, **kwargs) -> "Submit":
+        if self.__cache__.assignments:
+            raise ValueError(
+                "assignments already exists, \
+                can only call once for each builder pipeline"
+            )
+        self.__cache__.assignments = kwargs
+        return Submit(self)
+
+
+class Terminate(Builder):
+    # build the IR object and return the terminated builder
+    def apply(self, *args, **kwargs) -> "Route":
+        raise NotImplementedError
+
+
+# submit needs to make sure the sequence has been generated
+class Submit(Emit):
     def braket(self, *args, **kwargs) -> BraketTask:
-        """finish building the pulse program, and submit to braket."""
-        return self._program.braket(*args, **kwargs)
+        return self.program.braket(*args, **kwargs)
 
     def quera(self, *args, **kwargs) -> QuEraTask:
-        """finish building the pulse program, and submit to QuEra."""
-        return self._program.quera(*args, **kwargs)
+        return self.program.quera(*args, **kwargs)
+
+    def mock(self, nshots, state_file=".mock_state.txt") -> MockTask:
+        return self.program.mock(nshots, state_file=state_file)
 
     def simu(self, *args, **kwargs) -> SimuTask:
         """finish building the pulse program, and submit to local simulator."""
-        return self._program.simu(*args, **kwargs)
+        return self.program.simu(*args, **kwargs)
 
-    # apply can go any previous builder
-    # 1. coupling builder, these need to construct manully
-    #   because we need to share sequence object
+
+class LevelCouping(Builder):
     @property
-    def rydberg(self) -> RydbergBuilder:
-        """specify rydberg coupling level that is in separate
-        from previous coupling level (hyperfine).
-        """
-        return RydbergBuilder(self.__lattice, self._sequence)
+    def rydberg(self):
+        self.__cache__.level_coupling = ir.rydberg
+        return Field(self)
 
     @property
-    def hyperfine(self) -> HyperfineBuilder:
-        """specify hyperfine coupling level that is in separate
-        from previous coupling level (rydberg).
-        """
-        return HyperfineBuilder(self.__lattice, self._sequence)
+    def hyperfine(self):
+        self.__cache__.level_coupling = ir.hyperfine
+        return Field(self)
 
-    # 2. FieldBuilder
-    @property
-    def detuning(self) -> SpatialModulationBuilder:
-        """specify a new detuning field on the current coupling level."""
-        return self.__coupling_level.detuning
 
+class Field(Builder):
     @property
-    def rabi(self) -> RabiBuilder:
-        """specify a new rabi field on the current coupling level."""
-        return self.__coupling_level.rabi
-
-    # 3. RabiBuilder
-    @property
-    def amplitude(self) -> SpatialModulationBuilder:
-        """specify a new amplitude modulation on the current rabi field."""
-        if not isinstance(self.__field, RabiBuilder):
-            raise ValueError("amplitude can only specified on rabi channel")
-        return self.__field.amplitude
+    def detuning(self):
+        self.__cache__.field_name = ir.detuning
+        return SpatialModulation(self)
 
     @property
-    def phase(self) -> SpatialModulationBuilder:
-        """specify a new phase modulation on the current rabi field."""
-        if not isinstance(self.__field, RabiBuilder):
-            raise ValueError("phase can only specified on rabi channel")
-        return self.__field.phase
+    def rabi(self):
+        return RabiBuilder(self)
 
-    # 4. SpatialModulationBuilder
+
+class RabiBuilder(Field):
     @property
-    def glob(self) -> GlobalLocationBuilder:
-        """create a global location under the current field and coupling level."""
-        if isinstance(self.__location_builder, GlobalLocationBuilder):
-            raise ValueError("global waveform already specified")
-        return self.__spatial_mod.glob
+    def amplitude(self):
+        self.__cache__.field_name = ir.rabi.amplitude
+        return SpatialModulation(self)
 
-    def location(self, label: int) -> LocalLocationBuilder:
-        """create a new location under the current field and coupling level."""
-        return self.__spatial_mod.location(label)
+    @property
+    def phase(self):
+        self.__cache__.field_name = ir.rabi.phase
+        return SpatialModulation(self)
+
+
+class Location(Builder):
+    def location(self, label: int):
+        if self.__cache__.locations:
+            self.__cache__.locations.append(label)
+            self.__cache__.scales.append(ir.cast(1.0))
+        else:
+            self.__cache__.locations = [label]
+            self.__cache__.scales = [ir.cast(1.0)]
+        return ScaleOrWaveform(self)
+
+
+class SpatialModulation(Location):
+    @property
+    def uniform(self):
+        self.__cache__.spatial_mod = ir.Uniform
+        return WaveformOrTerminate(self)
+
+    def var(self, name: str):
+        """Variable spatial modulation."""
+        self.__cache__.spatial_mod = ir.RunTimeVector(name)
+        return WaveformOrTerminate(self)
+
+
+class Waveform(Builder):
+    def __update_waveform(self, wf: ir.Waveform) -> "Route":
+        if self.__cache__.waveform:
+            self.__cache__.waveform = self.__cache__.waveform.append(wf)
+        else:
+            self.__cache__.waveform = wf
+        return Route(self)
+
+    def linear(self, start, stop, duration):
+        wf = ir.Linear(start, stop, duration)
+        return self.__update_waveform(wf)
+
+    def constant(self, value, duration):
+        wf = ir.Constant(value, duration)
+        return self.__update_waveform(wf)
+
+    def poly(self, coefficients, duration):
+        wf = ir.Poly(coefficients, duration)
+        return self.__update_waveform(wf)
+
+
+class WaveformCompose(Waveform):
+    """Builder for building composite waveform"""
+
+    def add(self, waveform: ir.Waveform):
+        wf = self.__cache__.waveform + waveform
+        return self.__update_waveform(wf)
+
+    def append(self, waveform: ir.Waveform):
+        wf = self.__cache__.waveform.append(waveform)
+        return self.__update_waveform(wf)
+
+    def scale(self, value):
+        """scale the waveform."""
+        wf = self.__cache__.waveform.scale(value)
+        return self.__update_waveform(wf)
+
+    def smooth(self, kernel="gaussian"):
+        wf = self.__cache__.waveform.smooth(kernel)
+        return self.__update_waveform(wf)
+
+    def __getitem__(self, slice):
+        wf = self.__cache__.waveform[slice]
+        return self.__update_waveform(wf)
+
+
+class AssignOrSubmit(Assign, Submit):
+    pass
+
+
+class Route(LevelCouping, Field, SpatialModulation, WaveformCompose, AssignOrSubmit):
+    @property
+    def rydberg(self):
+        self.update_sequence()
+
+        self.__cache__.skip_sequence_build = False
+        self.__cache__.waveform = None
+        self.__cache__.level_coupling = None
+        self.__cache__.field_name = None
+        self.__cache__.locations = None
+        self.__cache__.scales = None
+        self.__cache__.spatial_mod = None
+        return super().rydberg
+
+    @property
+    def hyperfine(self):
+        self.update_sequence()
+
+        self.__cache__.skip_sequence_build = False
+        self.__cache__.waveform = None
+        self.__cache__.level_coupling = None
+        self.__cache__.field_name = None
+        self.__cache__.locations = None
+        self.__cache__.scales = None
+        self.__cache__.spatial_mod = None
+        return super().hyperfine
+
+    @property
+    def detuning(self):
+        self.update_sequence()
+
+        self.__cache__.skip_sequence_build = False
+        self.__cache__.waveform = None
+        self.__cache__.field_name = None
+        self.__cache__.locations = None
+        self.__cache__.scales = None
+        self.__cache__.spatial_mod = None
+        return super().detuning
+
+    @property
+    def rabi(self):
+        self.update_sequence()
+
+        self.__cache__.skip_sequence_build = False
+        self.__cache__.waveform = None
+        self.__cache__.field_name = None
+        self.__cache__.locations = None
+        self.__cache__.scales = None
+        self.__cache__.spatial_mod = None
+        return super().rabi
+
+    @property
+    def uniform(self):
+        self.update_sequence()
+
+        self.__cache__.skip_sequence_build = False
+        self.__cache__.waveform = None
+        self.__cache__.locations = None
+        self.__cache__.scales = None
+        self.__cache__.spatial_mod = None
+        return super().uniform
+
+    def var(self, name: str):
+        self.update_sequence()
+
+        self.__cache__.skip_sequence_build = False
+        self.__cache__.waveform = None
+        self.__cache__.locations = None
+        self.__cache__.scales = None
+        self.__cache__.spatial_mod = None
+        return super().var(name)
+
+    def location(self, label: int):
+        self.update_sequence()
+
+        self.__cache__.skip_sequence_build = False
+        self.__cache__.waveform = None
+        self.__cache__.locations = None
+        self.__cache__.scales = None
+        self.__cache__.spatial_mod = None
+        return super().location(label)
+
+
+class TerminateWithWaveform(Terminate):
+    def apply(self, waveform: ir.Waveform) -> Route:
+        self.__cache__.waveform = waveform
+        return Route(self)
+
+
+class Scale(Location, TerminateWithWaveform):
+    def scale(self, scale: ir.Scalar | float | str):
+        # __cache__.scales won't be None
+        value = ir.cast(scale)
+        self.__cache__.scales.pop()
+        self.__cache__.scales.append(value)
+        return WaveformOrTerminate(self)
+
+
+class ScaleOrWaveform(Scale, Waveform):
+    pass
+
+
+class WaveformOrTerminate(Waveform, TerminateWithWaveform):
+    pass
+
+
+class Start(LevelCouping, Field, SpatialModulation, Waveform, Terminate):
+    def apply(self, seq: ir.Sequence) -> Route:
+        self.__cache__.sequence = seq
+        self.__cache__.skip_sequence_build = True
+        return Route(self)

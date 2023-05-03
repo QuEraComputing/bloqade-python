@@ -3,6 +3,14 @@ from pydantic import validator
 from typing import Optional
 from .print import State, CharSet, Printer
 
+__all__ = [
+    "cast",
+    "Scalar",
+    "Interval",
+    "Variable",
+    "Literal",
+]
+
 
 @dataclass(frozen=True)
 class Scalar:
@@ -161,8 +169,8 @@ def trycast(py) -> Optional[Scalar]:
             return Literal(x)
         case str(x):
             return Variable(x)
-        case [*xs]:
-            return list(map(cast, *xs))
+        case list() as xs:
+            return list(map(cast, xs))
         case Scalar():
             return py
         case _:
@@ -180,7 +188,7 @@ class Literal(Real):
     value: float
 
     def __repr__(self) -> str:
-        return f"{self.value}"
+        return f"{self.value!r}"
     
     def children(self):
         return []
@@ -198,7 +206,7 @@ class Variable(Real):
     name: str
 
     def __repr__(self) -> str:
-        return f"{self.name}"
+        return f"{self.name!r}"
     
     def children(self):
         return []
@@ -208,6 +216,7 @@ class Variable(Real):
     
     def _repr_pretty_(self, p, cycle):
         Printer(CharSet(), 10, State(), p).print(self)
+        
 
     @validator("name")
     def name_validator(cls, v):
@@ -229,7 +238,7 @@ class Negative(Scalar):
     expr: Scalar
 
     def __repr__(self) -> str:
-        return f"-{self.expr}"
+        return f"-({self.expr!r})"
     
     def children(self):
         return [self.expr]
@@ -239,6 +248,7 @@ class Negative(Scalar):
     
     def _repr_pretty_(self, p, cycle):
         Printer(CharSet(), 10, State(), p).print(self)
+
 
 @dataclass(frozen=True)
 class Interval:
@@ -270,11 +280,11 @@ class Interval:
             case (None, None):
                 raise ValueError("Interval must have at least one bound")
             case (None, stop):
-                return f":{stop}"
+                return f":{stop!r}"
             case (start, None):
-                return f"{start}:"
+                return f"{start!r}:"
             case (start, stop):
-                return f"{self.start}:{self.stop}"
+                return f"{self.start!r}:{self.stop!r}"
 
     def print_node(self):
         return "Interval"
@@ -303,7 +313,7 @@ class Slice(Scalar):
     interval: Interval
 
     def __repr__(self) -> str:
-        return f"{self.expr}[{self.interval}]"
+        return f"{self.expr!r}[{self.interval!r}]"
     
     def children(self):
         return [self.expr, self.interval]
@@ -321,7 +331,7 @@ class Add(Scalar):
     rhs: Scalar
 
     def __repr__(self) -> str:
-        return f"{self.lhs} + {self.rhs}"
+        return f"({self.lhs!r} + {self.rhs!r})"
 
     def children(self):
         return [self.lhs, self.rhs]
@@ -342,7 +352,7 @@ class Mul(Scalar):
     rhs: Scalar
 
     def __repr__(self) -> str:
-        return f"{self.lhs} * {self.rhs}"
+        return f"({self.lhs!r} * {self.rhs!r})"
     
     def children(self):
         return [self.lhs, self.rhs]
@@ -361,7 +371,7 @@ class Div(Scalar):
     rhs: Scalar
 
     def __repr__(self) -> str:
-        return f"{self.lhs} / {self.rhs}"
+        return f"({self.lhs!r} / {self.rhs!r})"
 
     def children(self):
         return [self.lhs, self.rhs]
@@ -385,7 +395,7 @@ class Min(Scalar):
         return "min"
     
     def __repr__(self) -> str:
-        return f"min({', '.join(map(str, self.exprs))})"
+        return f"scalar.Min({self.exprs!r})"
     
     def _repr_pretty_(self, p, cycle):
         Printer(CharSet(), 10, State(), p).print(self)
@@ -402,7 +412,7 @@ class Max(Scalar):
         return "max"
 
     def __repr__(self) -> str:
-        return f"max({', '.join(map(str, self.exprs))})"
+        return f"scalar.Max({self.exprs!r})"
     
     def _repr_pretty_(self, p, cycle):
         Printer(CharSet(), 10, State(), p).print(self)

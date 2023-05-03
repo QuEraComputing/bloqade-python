@@ -1,8 +1,17 @@
 from .pulse import PulseExpr, Pulse
-from .scalar import Interval, cast
+from .scalar import Interval
 
 from pydantic.dataclasses import dataclass
 from typing import List, Dict
+
+
+__all__ = [
+    "LevelCoupling",
+    "rydberg",
+    "hyperfine",
+    "Sequence",
+    "NamedSequence",
+]
 
 
 @dataclass(frozen=True)
@@ -46,12 +55,19 @@ class SequenceExpr:
 class Append(SequenceExpr):
     value: List[SequenceExpr]
 
+    def __repr__(self) -> str:
+        return f"sequence.Append(value={self.value!r})"
+
 
 @dataclass(init=False, repr=False)
 class Sequence(SequenceExpr):
     value: dict[LevelCoupling, PulseExpr]
 
-    def __init__(self, seq_pairs: Dict):
+    def __init__(self, seq_pairs: Dict | None = None):
+        if seq_pairs is None:
+            self.value = {}
+            return
+
         value = {}
         for level_coupling, pulse in seq_pairs.items():
             if not isinstance(level_coupling, LevelCoupling):
@@ -69,13 +85,16 @@ class Sequence(SequenceExpr):
         return self.value[level_coupling](clock_s, *args, **kwargs)
 
     def __repr__(self) -> str:
-        return "Sequence({" + ", ".join(map(str, self.value.items())) + "})"
+        return f"Sequence({self.value!r})"
 
 
 @dataclass
 class NamedSequence(SequenceExpr):
     sequence: SequenceExpr
     name: str
+
+    def __repr__(self) -> str:
+        return f"NamedSequence(sequence={self.sequence!r}, name='{self.name!r}')"
 
 
 @dataclass(repr=False)
@@ -84,4 +103,4 @@ class Slice(SequenceExpr):
     interval: Interval
 
     def __repr__(self) -> str:
-        return f"{self.sequence!r}[{self.interval}]"
+        return f"{self.sequence!r}[{self.interval!r}]"

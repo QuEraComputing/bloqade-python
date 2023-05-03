@@ -1,11 +1,15 @@
-# we have to put these objects in one file because of circular imports
-# TODO: figure out how to remove the circular imports & split the file
+from quera_ahs_utils.quera_ir.task_specification import QuEraTaskSpecification
+from quera_ahs_utils.quera_ir.task_results import QuEraTaskResults
 
-from .ir.prelude import *
-from typing import TYPE_CHECKING
+from bloqade.codegen.hardware.sequence import SequenceCodeGen
+from bloqade.codegen.hardware.lattice import LatticeCodeGen
+from bloqade.submission.mock_backend import DumbMockBackend
+from .ir import Sequence, Variable, Literal
+from typing import TYPE_CHECKING, Dict, Union
 
 if TYPE_CHECKING:
     from .lattice.base import Lattice
+
 from pandas import DataFrame
 import numpy as np
 
@@ -22,7 +26,7 @@ class Task:
         # NOTE: this needs to be implemented separately for each backend
         #       class, e.g the `submit` method for BraketTask, QuEraTask,
         #       SimuTask
-        return TaskResult()
+        raise NotImplementedError(f"No task backend found for {self.__class__}")
 
 
 # NOTE: this will contain the schema object and the program object
@@ -30,13 +34,57 @@ class Task:
 class BraketTask(Task):
     def __init__(self, prog: "Program", nshots: int) -> None:
         super().__init__(prog, nshots)
-        # custom config goes here
+        # quera_task = QuEraTaskSpecification(
+        #     nshots=self.nshots,
+        #     lattice=LatticeCodeGen(assignments=self.prog.assignments).emit(
+        #         self.prog.lattice
+        #     ),
+        #     effective_hamiltonian=SequenceCodeGen(
+        #         n_atoms=self.prog.lattice.n_atoms,
+        #         assignments=self.prog.assignments,
+        #     ).emit(self.prog.seq),
+        # )
+        # _, braket_task = quera_task_to_braket_ahs(quera_task)
+        # self.task_ir = braket_task.to_ir()
+
+    def submit(self, token=None) -> "TaskResult":
+        return TaskResult()
 
 
 class QuEraTask(Task):
     def __init__(self, prog: "Program", nshots: int) -> None:
         super().__init__(prog, nshots)
-        # custom config goes here
+        # self.task_ir = QuEraTaskSpecification(
+        #     nshots=self.nshots,
+        #     lattice=LatticeCodeGen(assignments=self.prog.assignments).emit(
+        #         self.prog.lattice
+        #     ),
+        #     effective_hamiltonian=SequenceCodeGen(
+        #         n_atoms=self.prog.lattice.n_atoms,
+        #         assignments=self.prog.assignments,
+        #     ).emit(self.prog.seq),
+        # )
+
+
+class MockTask(Task):
+    def __init__(
+        self, prog: "Program", nshots: int, state_file=".mock_state.txt"
+    ) -> None:
+        super().__init__(prog, nshots)
+        self.backend = DumbMockBackend(state_file=state_file)
+        self.task_ir = QuEraTaskSpecification(
+            nshots=self.nshots,
+            lattice=LatticeCodeGen(assignments=self.prog.assignments).emit(
+                self.prog.lattice
+            ),
+            effective_hamiltonian=SequenceCodeGen(
+                n_atoms=self.prog.lattice.n_atoms,
+                assignments=self.prog.assignments,
+            ).emit(self.prog.seq),
+        )
+
+    def submit(self, *args, **kwargs) -> "MockTaskResult":
+        return MockTaskResult(self.backend.submit_task(self.task_ir), self.backend)
 
 
 class SimuTask(Task):
@@ -49,6 +97,20 @@ class TaskResult:
     def report(self) -> "TaskReport":
         """generate the task report"""
         return TaskReport(self)
+
+
+class MockTaskResult(TaskResult):
+    def __init__(self, task_id: str, backend: DumbMockBackend):
+        self.task_id = task_id
+        self.backend = backend
+        self._task_result_ir = None
+
+    @property
+    def task_result_ir(self) -> QuEraTaskResults:
+        if not self._task_result_ir:
+            self._task_result_ir = self.backend.task_results(self.task_id)
+
+        return self._task_result_ir
 
 
 # NOTE: this is only the basic report, we should provide
@@ -77,6 +139,10 @@ class TaskReport:
         return self._bitstring
 
     @property
+    def task_result_ir(self) -> QuEraTaskResults:
+        return self.result.task_result_ir
+
+    @property
     def markdown(self) -> str:
         return self.dataframe.to_markdown()
 
@@ -84,9 +150,15 @@ class TaskReport:
 # NOTE: this is just a dummy type bundle geometry and sequence
 #       information together and forward them to backends.
 class Program:
-    def __init__(self, lattice: "Lattice", seq: Sequence) -> None:
-        self.latice = lattice
+    def __init__(
+        self,
+        lattice: Union[None, "Lattice"],
+        seq: Sequence,
+        assignments: Union[None, Dict[Variable, Literal]] = None,
+    ) -> None:
+        self.lattice = lattice
         self.seq = seq
+        self.assignments = assignments
 
     def braket(self, *args, **kwargs) -> BraketTask:
         return BraketTask(self, *args, **kwargs)
@@ -96,3 +168,6 @@ class Program:
 
     def simu(self, *args, **kwargs) -> SimuTask:
         return SimuTask(self, *args, **kwargs)
+
+    def mock(self, nshots: int, state_file: str = ".mock_state.txt") -> MockTask:
+        return MockTask(self, nshots, state_file=state_file)

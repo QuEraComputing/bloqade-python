@@ -3,9 +3,22 @@ from .scalar import Scalar, cast
 from .waveform import Waveform
 
 
+__all__ = [
+    "Field",
+    "Location",
+    "SpatialModulation",
+    "Uniform",
+    "RunTimeVector",
+    "ScaledLocations",
+]
+
+
 @dataclass(frozen=True)
 class Location:
     value: int
+
+    def __repr__(self) -> str:
+        return f"Location({self.value!r})"
 
 
 @dataclass
@@ -15,7 +28,7 @@ class SpatialModulation:
 
 
 @dataclass
-class GlobalModulation(SpatialModulation):
+class UniformModulation(SpatialModulation):
     def __hash__(self) -> int:
         return hash(self.__class__)
 
@@ -23,7 +36,7 @@ class GlobalModulation(SpatialModulation):
         return "Global"
 
 
-Global = GlobalModulation()
+Uniform = UniformModulation()
 
 
 @dataclass
@@ -32,6 +45,9 @@ class RunTimeVector(SpatialModulation):
 
     def __hash__(self) -> int:
         return hash(self.name) ^ hash(self.__class__)
+
+    def __repr__(self) -> str:
+        return f"RunTimeVector({self.name!r})"
 
 
 @dataclass(init=False)
@@ -54,6 +70,9 @@ class ScaledLocations(SpatialModulation):
     def __hash__(self) -> int:
         return hash(frozenset(self.value.items())) ^ hash(self.__class__)
 
+    def __repr__(self) -> str:
+        return f"ScaledLocations(value={self.value!r})"
+
 
 @dataclass
 class Field:
@@ -65,3 +84,6 @@ class Field:
 
     def __hash__(self) -> int:
         return hash(frozenset(self.value.items())) ^ hash(self.__class__)
+
+    def __repr__(self) -> str:
+        return f"Field({self.value!r})"
