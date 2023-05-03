@@ -397,8 +397,8 @@ dependencies = [
 
 [[package]]
 name = "ipython"
-version = "8.12.0"
-requires_python = ">=3.8"
+version = "8.13.1"
+requires_python = ">=3.9"
 summary = "IPython: Productive Interactive Computing"
 dependencies = [
     "appnope; sys_platform == \"darwin\"",
@@ -1365,7 +1365,7 @@ dependencies = [
 
 [[package]]
 name = "quera-ahs-utils"
-version = "0.4.0"
+version = "0.4.1"
 requires_python = ">=3.10"
 summary = "Various tools to interact with Braket Analog Hamiltonian Computing"
 dependencies = [
@@ -2202,9 +2202,9 @@ content_hash = "sha256:b2d7c09de2edf8f48b7ad3755654e20567a2bb2c6a26275fbab465089
     {url = "https://files.pythonhosted.org/packages/48/1b/260b3e4d2f633c1c9019e25a977a9e82341d0713ad8fb60e01b97b7559a4/ipykernel-6.22.0-py3-none-any.whl", hash = "sha256:1ae6047c1277508933078163721bbb479c3e7292778a04b4bacf0874550977d6"},
     {url = "https://files.pythonhosted.org/packages/bc/18/a773c8f970269988c56678c7b8739b106c5557e419864481c90949db3754/ipykernel-6.22.0.tar.gz", hash = "sha256:302558b81f1bc22dc259fb2a0c5c7cf2f4c0bdb21b50484348f7bafe7fb71421"},
 ]
-"ipython 8.12.0" = [
-    {url = "https://files.pythonhosted.org/packages/32/38/123155a40a0837c7627114995bf5f7a0d0b469cb903b9a27051198fad222/ipython-8.12.0.tar.gz", hash = "sha256:a950236df04ad75b5bc7f816f9af3d74dc118fd42f2ff7e80e8e60ca1f182e2d"},
-    {url = "https://files.pythonhosted.org/packages/9d/1c/6001840eceb489e4a3e6ae9b012cb56b109dd6b8ee286d7771166b83d111/ipython-8.12.0-py3-none-any.whl", hash = "sha256:1c183bf61b148b00bcebfa5d9b39312733ae97f6dad90d7e9b4d86c8647f498c"},
+"ipython 8.13.1" = [
+    {url = "https://files.pythonhosted.org/packages/0f/89/5a81b01529537e0f59c72679846d8b33c66225055b3ba520e161c42c8e02/ipython-8.13.1.tar.gz", hash = "sha256:9c8487ac18f330c8a683fc50ab6d7bc0fcf9ef1d7a9f6ce7926938261067b81f"},
+    {url = "https://files.pythonhosted.org/packages/7c/3a/946a16933f6544aff3495978924d3ed8328ce1f42b8b7caef56b63e31bd7/ipython-8.13.1-py3-none-any.whl", hash = "sha256:1c80d08f04144a1994cda25569eab07fbdc4989bd8d8793e3a4ff643065ccb51"},
 ]
 "ipython-genutils 0.2.0" = [
     {url = "https://files.pythonhosted.org/packages/e8/69/fbeffffc05236398ebfcfb512b6d2511c622871dca1746361006da310399/ipython_genutils-0.2.0.tar.gz", hash = "sha256:eb2e116e75ecef9d4d228fdc66af54269afa26ab4463042e33785b887c628ba8"},
@@ -3088,9 +3088,9 @@ content_hash = "sha256:b2d7c09de2edf8f48b7ad3755654e20567a2bb2c6a26275fbab465089
     {url = "https://files.pythonhosted.org/packages/51/9f/495736f9bbebc56b9f2ba3d95df1045fd367378254f799e86463b0037ab0/QtPy-2.3.1-py3-none-any.whl", hash = "sha256:5193d20e0b16e4d9d3bc2c642d04d9f4e2c892590bd1b9c92bfe38a95d5a2e12"},
     {url = "https://files.pythonhosted.org/packages/ad/6b/0e753af1197f82d2359c9aa91cef8abaaef4c547396ffdc71ea6a889e52c/QtPy-2.3.1.tar.gz", hash = "sha256:a8c74982d6d172ce124d80cafd39653df78989683f760f2281ba91a6e7b9de8b"},
 ]
-"quera-ahs-utils 0.4.0" = [
-    {url = "https://files.pythonhosted.org/packages/a6/65/cb535abc186cedb5f4e7cd7b0c0e0ba44dd6486be504b9a1eb98fe6403b2/quera-ahs-utils-0.4.0.tar.gz", hash = "sha256:e6a5e64ec7259cb39fa5b8de391745b4835025af9ea68b3050453321d2f423a1"},
-    {url = "https://files.pythonhosted.org/packages/fb/a9/cb843bf9d8c86a9448e3df89a7d2ee094b122bb9880fdc54d4d6821e150c/quera_ahs_utils-0.4.0-py3-none-any.whl", hash = "sha256:1ebd12ee43e9e42c4eb9b4ff7e2be5b86c70b88f8d01854a6aed941192a9d05d"},
+"quera-ahs-utils 0.4.1" = [
+    {url = "https://files.pythonhosted.org/packages/2f/20/dddfa1458246db1a3d63a4fb90dbc51b353b1b32d93cd00e5d52e66a6b8d/quera-ahs-utils-0.4.1.tar.gz", hash = "sha256:cccedd6428e5adfac5a7b2e92b0b46ced08f236b28a85d2248c4ddf5f7d035c0"},
+    {url = "https://files.pythonhosted.org/packages/4c/25/685cc09decc4442896bcdf053bbad5faf3fc52b07355246dc91d124c4e47/quera_ahs_utils-0.4.1-py3-none-any.whl", hash = "sha256:46d95b02581969a97e73b001391d5e68834cdad1d8b5920cc763c7b53ae2df3f"},
 ]
 "readme-renderer 37.3" = [
     {url = "https://files.pythonhosted.org/packages/81/c3/d20152fcd1986117b898f66928938f329d0c91ddc47f081c58e64e0f51dc/readme_renderer-37.3.tar.gz", hash = "sha256:cd653186dfc73055656f090f227f5cb22a046d7f71a841dfa305f55c9a513273"},
