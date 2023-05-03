@@ -151,6 +151,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "bokeh"
+version = "3.1.0"
+requires_python = ">=3.8"
+summary = "Interactive plots and applications in the browser from Python"
+dependencies = [
+    "Jinja2>=2.9",
+    "PyYAML>=3.10",
+    "contourpy>=1",
+    "numpy>=1.16",
+    "packaging>=16.8",
+    "pandas>=1.2",
+    "pillow>=7.1.0",
+    "tornado>=5.1",
+    "xyzservices>=2021.09.1",
+]
+
+[[package]]
 name = "boltons"
 version = "23.0.0"
 summary = "When they're not builtins, they're boltons."
@@ -1682,6 +1699,12 @@ requires_python = ">=3.7"
 summary = "Jupyter interactive widgets for Jupyter Notebook"
 
 [[package]]
+name = "xyzservices"
+version = "2023.2.0"
+requires_python = ">=3.7"
+summary = "Source of XYZ tiles providers"
+
+[[package]]
 name = "zipp"
 version = "3.15.0"
 requires_python = ">=3.7"
@@ -1690,7 +1713,7 @@ summary = "Backport of pathlib-compatible object wrapper for zip files"
 [metadata]
 lock_version = "4.2"
 groups = ["default", "dev", "doc"]
-content_hash = "sha256:b2d7c09de2edf8f48b7ad3755654e20567a2bb2c6a26275fbab4650898db15f6"
+content_hash = "sha256:22c53b90104fdd994a3e895b9361d407c21613b43d0dd710016554db6e051746"
 
 [metadata.files]
 "amazon-braket-default-simulator 1.13.1" = [
@@ -1797,6 +1820,10 @@ content_hash = "sha256:b2d7c09de2edf8f48b7ad3755654e20567a2bb2c6a26275fbab465089
 "bleach 6.0.0" = [
     {url = "https://files.pythonhosted.org/packages/7e/e6/d5f220ca638f6a25557a611860482cb6e54b2d97f0332966b1b005742e1f/bleach-6.0.0.tar.gz", hash = "sha256:1a1a85c1595e07d8db14c5f09f09e6433502c51c595970edc090551f0db99414"},
     {url = "https://files.pythonhosted.org/packages/ac/e2/dfcab68c9b2e7800c8f06b85c76e5f978d05b195a958daa9b1dda54a1db6/bleach-6.0.0-py3-none-any.whl", hash = "sha256:33c16e3353dbd13028ab4799a0f89a83f113405c766e9c122df8a06f5b85b3f4"},
+]
+"bokeh 3.1.0" = [
+    {url = "https://files.pythonhosted.org/packages/6e/38/5a1f503b5b871f0ecf7f0d72a8c7a2f466f39c698c9b5181c6b8c9a37c8c/bokeh-3.1.0.tar.gz", hash = "sha256:9047dfe50a671b5e19ca588fd90a8e6bff197114a5dbd6a59cc2678942c27887"},
+    {url = "https://files.pythonhosted.org/packages/c6/84/3c0c2cb7b4953c4a7b43078ce9c4e7359e01f1ee95c4b1646c3035ceeb89/bokeh-3.1.0-py3-none-any.whl", hash = "sha256:9d38ed3b130e1e043447694934c02deb1ae4adfeda1136b8b8eaed9cb26de11c"},
 ]
 "boltons 23.0.0" = [
     {url = "https://files.pythonhosted.org/packages/22/f0/d81d7f6688d25cfb8b8fce60504c3cbf5d5890b9a1d71911047aa89707c2/boltons-23.0.0-py2.py3-none-any.whl", hash = "sha256:f716a1b57698a5b19062f3146cb5ce3549904028a2f267c2c0cf584eea3ad75b"},
@@ -3405,6 +3432,10 @@ content_hash = "sha256:b2d7c09de2edf8f48b7ad3755654e20567a2bb2c6a26275fbab465089
 "widgetsnbextension 4.0.7" = [
     {url = "https://files.pythonhosted.org/packages/2e/f0/6e3a0d9c1ef015322cad1dd2191c338349b41151e4dc5e7ae984700c9dd2/widgetsnbextension-4.0.7-py3-none-any.whl", hash = "sha256:be3228a73bbab189a16be2d4a3cd89ecbd4e31948bfdc64edac17dcdee3cd99c"},
     {url = "https://files.pythonhosted.org/packages/5b/19/df018c3ab363969cffb9ee38cbff0187634137335de0e083cad8c94bb130/widgetsnbextension-4.0.7.tar.gz", hash = "sha256:ea67c17a7cd4ae358f8f46c3b304c40698bc0423732e3f273321ee141232c8be"},
+]
+"xyzservices 2023.2.0" = [
+    {url = "https://files.pythonhosted.org/packages/0d/3f/941a4e2abb9bc7d4c103d259902cd86ee9eae9914a4acdac441a6125bb69/xyzservices-2023.2.0.tar.gz", hash = "sha256:3342bba410d7941290eed0e58a2e5aadb0f7b97863ec4283b283c406ee723a28"},
+    {url = "https://files.pythonhosted.org/packages/f1/76/1d508556ee4c279841c82521aea4e12496367929d88aec6dd3959f080cfa/xyzservices-2023.2.0-py3-none-any.whl", hash = "sha256:8d29c4d7c33b0ad63f54744ec90f68c5a65d7c0d7e498b624b7c076c1d926998"},
 ]
 "zipp 3.15.0" = [
     {url = "https://files.pythonhosted.org/packages/00/27/f0ac6b846684cecce1ee93d32450c45ab607f65c2e0255f0092032d91f07/zipp-3.15.0.tar.gz", hash = "sha256:112929ad649da941c23de50f356a2b5570c954b65150642bccdd66bf194d224b"},
