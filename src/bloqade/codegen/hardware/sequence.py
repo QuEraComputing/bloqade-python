@@ -4,7 +4,6 @@ from bloqade.ir.sequence import (
     Sequence,
     NamedSequence,
     rydberg,
-    hyperfine,
 )
 from bloqade.codegen.hardware.pulse import PulseCodeGen
 from quera_ahs_utils.quera_ir.task_specification import (

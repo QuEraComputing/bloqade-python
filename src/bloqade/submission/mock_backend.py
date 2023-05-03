@@ -5,8 +5,9 @@ from quera_ahs_utils.quera_ir.task_results import (
     QuEraShotResult,
     QuEraShotStatusCode,
 )
-from typing import Dict
-import uuid, logging, os
+import uuid
+import logging
+import os
 import numpy as np
 
 

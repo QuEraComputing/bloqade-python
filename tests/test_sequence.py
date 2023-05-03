@@ -1,4 +1,14 @@
-from bloqade.ir.prelude import *
+from bloqade.ir import (
+    rydberg,
+    detuning,
+    rabi,
+    Sequence,
+    Field,
+    Pulse,
+    Uniform,
+    Linear,
+    ScaledLocations,
+)
 
 print(rydberg)
 

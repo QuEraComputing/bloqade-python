@@ -1,4 +1,4 @@
-from bloqade.ir.prelude import *
+from bloqade.ir import Linear, Constant
 
 wf = Linear(start=1.0, stop="x", duration=3.0)
 wf = Constant(value=1.0, duration=3.0)
@@ -22,14 +22,14 @@ wf = (
 )
 print(wf)
 
-eval(repr(wf))
+# eval(repr(wf))
 
-print(wf)
+# print(wf)
 
-wf = wf.append(wf)
-eval(repr(wf))
-print(wf)
+# wf = wf.append(wf)
+# eval(repr(wf))
+# print(wf)
 
-wf = Linear(0.0, "rabi_amplitude_max", "up_time").append(wf)
-eval(repr(wf))
-print(wf)
+# wf = Linear(0.0, "rabi_amplitude_max", "up_time").append(wf)
+# eval(repr(wf))
+# print(wf)

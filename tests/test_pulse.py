@@ -1,4 +1,4 @@
-from bloqade.ir.prelude import *
+from bloqade.ir import Field, Uniform, Linear, Pulse, detuning, rabi
 
 f = Field({Uniform: Linear(start=1.0, stop="x", duration=3.0)})
 

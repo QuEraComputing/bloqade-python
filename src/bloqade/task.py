@@ -1,12 +1,10 @@
 from quera_ahs_utils.quera_ir.task_specification import QuEraTaskSpecification
 from quera_ahs_utils.quera_ir.task_results import QuEraTaskResults
-from quera_ahs_utils.ir import quera_task_to_braket_ahs
 
 from bloqade.codegen.hardware.sequence import SequenceCodeGen
 from bloqade.codegen.hardware.lattice import LatticeCodeGen
 from bloqade.submission.mock_backend import DumbMockBackend
-
-from .ir.prelude import *
+from .ir import Sequence, Variable, Literal
 from typing import TYPE_CHECKING, Dict, Union
 
 if TYPE_CHECKING:

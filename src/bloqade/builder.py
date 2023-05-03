@@ -63,7 +63,8 @@ class Emit(Builder):
             spatial_mod = ir.ScaledLocations(scaled_locations)
         else:
             raise BuildError(
-                "spatial modulation must be set, can be set either using `.uniform`, `.var` or `.locations`"
+                "spatial modulation must be set, can be set either using `.uniform`, \
+`.var` or `.locations`"
             )
 
         seq = self.__cache__.sequence
@@ -124,13 +125,13 @@ class Terminate(Builder):
 
 # submit needs to make sure the sequence has been generated
 class Submit(Emit):
-    def braket(self, *args, **kwargs):
+    def braket(self, *args, **kwargs) -> BraketTask:
         return self.program.braket(*args, **kwargs)
 
-    def quera(self, *args, **kwargs):
+    def quera(self, *args, **kwargs) -> QuEraTask:
         return self.program.quera(*args, **kwargs)
 
-    def mock(self, nshots, state_file=".mock_state.txt") -> "MockTask":
+    def mock(self, nshots, state_file=".mock_state.txt") -> MockTask:
         return self.program.mock(nshots, state_file=state_file)
 
     def simu(self, *args, **kwargs) -> SimuTask:

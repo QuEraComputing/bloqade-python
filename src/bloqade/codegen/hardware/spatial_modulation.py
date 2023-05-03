@@ -30,7 +30,8 @@ class SpatialModulationCodeGen(BaseCodeGen):
                 lattice_site_coefficient = self.assignments[name]
                 if len(lattice_site_coefficient) != self.n_atoms:
                     raise ValueError(
-                        f"Number of elements in {name} must be equal to the number of atoms {self.n_atoms}"
+                        f"Number of elements in {name} must be equal to the number of "
+                        "atoms {self.n_atoms}"
                     )
                 self.lattice_site_coefficient.extend(lattice_site_coefficient)
 
