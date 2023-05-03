@@ -73,6 +73,7 @@ docs/_build/
 
 # mkdocs
 docs/site
+docs/docs/reference
 
 # PyBuilder
 .pybuilder/

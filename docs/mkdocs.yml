@@ -52,6 +52,20 @@ theme:
 plugins:
   - search:
       separator: '[\s\-,:!=\[\]()"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
+  - gen-files:
+      scripts:
+      - scripts/gen_ref_nav.py
+  - literate-nav:
+      nav_file: SUMMARY.txt
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [../src]
+          options:
+            separate_signature: true
+            merge_init_into_class: true
+            docstring_options:
+              ignore_init_summary: true
   - minify:
       minify_html: true
   - mkdocs-jupyter:
@@ -137,7 +151,7 @@ nav:
     - tutorials/index.md
     - examples/adiabatic.py
   - Reference:
-    - reference/index.md
+    - reference/bloqade/
   - Blog:
     - blog/index.md
     - 2023:
