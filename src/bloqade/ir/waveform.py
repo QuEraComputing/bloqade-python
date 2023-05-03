@@ -292,7 +292,7 @@ class Negative(Waveform):
         return f"-({self.waveform!r})"
 
 
-@dataclass
+@dataclass(init=False)
 class Scale(Waveform):
     """
     <scale> ::= <scalar expr> '*' <waveform>

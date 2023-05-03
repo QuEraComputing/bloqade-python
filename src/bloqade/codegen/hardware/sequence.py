@@ -22,7 +22,11 @@ class SequenceCodeGen(PulseCodeGen):
             case Sequence(value):
                 self.level_coupling = rydberg
                 if self.level_coupling in value:
-                    self.rydberg = PulseCodeGen.emit(self, value[self.level_coupling])
+                    self.rydberg = PulseCodeGen(
+                        self.n_atoms,
+                        self.assignments,
+                        level_coupling=self.level_coupling,
+                    ).emit(value[self.level_coupling])
 
             case NamedSequence(sub_sequence, _):
                 self.scan(sub_sequence)
