@@ -9,6 +9,7 @@ repo_url: https://github.com/QuEraComputing/bloqade-python
 copyright: Copyright &copy; 2022 - QuEra Computing Inc.
 theme:
   name: material
+  custom_dir: overrides
   features:
     - announce.dismiss
     - content.action.edit
@@ -53,6 +54,11 @@ plugins:
       separator: '[\s\-,:!=\[\]()"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
   - minify:
       minify_html: true
+  - mkdocs-jupyter:
+      include: ["*.py"] # only include scripts
+      ignore: ["*.ipynb"]
+      execute: true # always execute
+      include_source: True
 
 extra:
   annotate:
@@ -129,6 +135,7 @@ nav:
       - Creating a reproduction: contributing/creating-a-reproduction.md
   - Tutorials:
     - tutorials/index.md
+    - examples/adiabatic.py
   - Reference:
     - reference/index.md
   - Blog:

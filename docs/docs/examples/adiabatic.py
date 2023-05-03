@@ -2,6 +2,7 @@
 # jupyter:
 #   jupytext:
 #     formats: ipynb,py:percent
+#     hide_notebook_metadata: false
 #     text_representation:
 #       extension: .py
 #       format_name: percent
@@ -12,6 +13,9 @@
 #     language: python
 #     name: python3
 # ---
+
+# %% [markdown]
+# # Adiabatic Evolution of Rydberg Atoms
 
 # %%
 import bloqade.lattice as lattice

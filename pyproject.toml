@@ -85,7 +85,8 @@ test = "pytest"
 coverage = {shell = "coverage run -m pytest && coverage report"}
 doc = {cmd = "mkdocs serve -f docs/mkdocs.yml"}
 build_doc = {cmd = "mkdocs build -f docs/mkdocs.yml"}
-jupytext = {cmd = "jupytext --sync examples/*.py"}
+jupytext = {cmd = "jupytext --sync docs/docs/examples/*.py"}
 
 [tool.jupytext]
 formats = "ipynb,py:percent"
+hide_notebook_metadata = false
