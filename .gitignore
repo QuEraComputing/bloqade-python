@@ -165,3 +165,4 @@ pdm.lock
 .pdm-python
 main.py
 *.ipynb
+.ruff_cache
