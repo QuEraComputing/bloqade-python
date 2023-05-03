@@ -169,3 +169,5 @@ cython_debug/
 main.py
 *.ipynb
 .ruff_cache
+
+.mock_state.txt
