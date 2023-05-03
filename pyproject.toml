@@ -86,7 +86,8 @@ publish = {composite = ["build", "upload"]}
 test = "pytest"
 coverage = {shell = "coverage run -m pytest && coverage report"}
 doc = {cmd = "mkdocs serve -f docs/mkdocs.yml"}
-build_doc = {cmd = "mkdocs build -f docs/mkdocs.yml"}
+doc_build = {cmd = "mkdocs build -f docs/mkdocs.yml"}
+doc_depoly = {cmd = "mkdocs gh-deploy -f docs/mkdocs.yml"}
 jupytext = {cmd = "jupytext --sync docs/docs/examples/*.py"}
 
 [tool.jupytext]
