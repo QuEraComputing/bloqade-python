@@ -3,6 +3,7 @@ from pydantic.dataclasses import dataclass
 from typing import Any, Union, List
 from enum import Enum
 from .scalar import Scalar, Interval, cast
+from .print import CharSet, State, Printer
 
 
 class AlignedValue(str, Enum):
@@ -148,6 +149,21 @@ class Linear(Sequence):
 
     def __repr__(self) -> str:
         return f"linear {self.start} {self.stop}"
+    
+    def print_node(self):
+        return "Linear"
+    
+    def print_annotation(self, annotation):
+        return annotation
+
+    def children(self):
+        return {"start":self.start, 
+                "stop":self.stop,
+                "duration":self.duration}
+
+    def _repr_pretty_(self, p, cycle):
+        Printer(CharSet(), 10, State(), p).print(self)
+        
 
 
 @dataclass(init=False)
@@ -172,6 +188,19 @@ class Constant(Sequence):
 
     def __repr__(self) -> str:
         return f"constant {self.value}"
+    
+    def print_node(self):
+        return "Constant"
+    
+    def print_annotation(self, annotation):
+        return annotation
+
+    def children(self):
+        return {"value":self.value, 
+                "duration":self.duration}
+
+    def _repr_pretty_(self, p, cycle):
+        Printer(CharSet(), 10, State(), p).print(self)
 
 
 @dataclass(init=False)
