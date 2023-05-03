@@ -1,5 +1,5 @@
 from juliacall import Main, TypeValue  # type: ignore
-from typing import TypeVar, List, Dict, Any
+from typing import List, Dict, Any
 from dataclasses import dataclass
 from .to_julia import ToJulia
 

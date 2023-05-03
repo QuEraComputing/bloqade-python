@@ -1,7 +1,7 @@
 from pydantic.dataclasses import dataclass
 from bloqade.ir.field import Field, UniformModulation, Uniform
 from bloqade.ir.pulse import Detuning, RabiFrequencyAmplitude, RabiFrequencyPhase
-from typing import List, Optional
+from typing import Optional
 from bloqade.codegen.hardware.spatial_modulation import SpatialModulationCodeGen
 from bloqade.codegen.hardware.waveform import WaveformCodeGen
 

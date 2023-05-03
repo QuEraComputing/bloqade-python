@@ -17,10 +17,51 @@ dependencies = [
 requires-python = ">=3.10"
 readme = "README.md"
 license = {text = "MIT"}
+[project.optional-dependencies]
+doc = [
+    "mkdocs>=1.4.3",
+    "mkdocs-material>=9.1.9",
+    "mkdocstrings[python]>=0.21.2",
+    "mkdocs-minify-plugin>=0.6.4",
+    "mkdocs-jupyter>=0.24.1",
+    "mkdocs-gen-files>=0.5.0",
+    "mkdocs-literate-nav>=0.6.0",
+    "mike>=1.1.2",
+]
 
 [build-system]
 requires = ["pdm-backend"]
 build-backend = "pdm.backend"
+
+[tool.black]
+line-length = 88
+
+[tool.ruff]
+exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".hg",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "venv",
+]
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+# Assume Python 3.10.
+target-version = "py310"
 
 [tool.pdm]
 [tool.pdm.dev-dependencies]
@@ -32,6 +73,10 @@ dev = [
     "mypy>=1.2.0",
     "ipykernel>=6.22.0",
     "jupyter>=1.0.0",
+    "ruff>=0.0.264",
+    "pre-commit>=3.3.1",
+    "coverage>=7.2.5",
+    "jupytext>=1.14.5",
 ]
 
 [tool.pdm.scripts]
@@ -39,3 +84,13 @@ _.env_file = "./.env"
 upload = "python -m twine upload -r bloqade dist/*"
 build = {cmd = "pdm build"}
 publish = {composite = ["build", "upload"]}
+test = "pytest"
+coverage = {shell = "coverage run -m pytest && coverage report"}
+doc = {cmd = "mkdocs serve -f docs/mkdocs.yml"}
+doc_build = {cmd = "mkdocs build -f docs/mkdocs.yml"}
+doc_deploy = {cmd = "pdm mike deploy --push --update-aliases dev -F docs/mkdocs.yml"}
+jupytext = {cmd = "jupytext --sync docs/docs/examples/*.py"}
+
+[tool.jupytext]
+formats = "ipynb,py:percent"
+hide_notebook_metadata = false

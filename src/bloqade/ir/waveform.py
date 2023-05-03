@@ -4,19 +4,6 @@ from typing import Any, Union, List
 from enum import Enum
 from .scalar import Scalar, Interval, Variable, cast
 
-__all__ = [
-    "Linear",
-    "Constant",
-    "Poly",
-    "Waveform",
-    "AlignedWaveform",
-    "Sequence",
-    "Smooth",
-    "Slice",
-    "Scale",
-    "Record"
-]
-
 
 class AlignedValue(str, Enum):
     Left = "left_value"
@@ -169,7 +156,10 @@ class Linear(Sequence):
             return ((stop_value - start_value) / self.duration(**kwargs)) * clock_s
 
     def __repr__(self) -> str:
-        return f"Linear(start={self.start!r}, stop={self.stop!r}, duration={self.duration!r})"
+        return (
+            f"Linear(start={self.start!r}, stop={self.stop!r}, "
+            "duration={self.duration!r})"
+        )
 
 
 @dataclass(init=False)
@@ -216,6 +206,7 @@ class Poly(Sequence):
         else:
             # call clock_s on each element of the scalars,
             # then apply the proper powers
+            value = 0.0
             for exponent, scalar_expr in enumerate(self.checkpoints):
                 value += scalar_expr(**kwargs) * clock_s**exponent
 
@@ -301,7 +292,7 @@ class Negative(Waveform):
         return f"-({self.waveform!r})"
 
 
-@dataclass
+@dataclass(init=False)
 class Scale(Waveform):
     """
     <scale> ::= <scalar expr> '*' <waveform>
@@ -335,6 +326,7 @@ class Add(Waveform):
 
     def __repr__(self) -> str:
         return f"({self.left!r} + {self.right!r})"
+
 
 @dataclass
 class Record(Waveform):

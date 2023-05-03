@@ -1,12 +1,10 @@
 from quera_ahs_utils.quera_ir.task_specification import QuEraTaskSpecification
 from quera_ahs_utils.quera_ir.task_results import QuEraTaskResults
-from quera_ahs_utils.ir import quera_task_to_braket_ahs
 
 from bloqade.codegen.hardware.sequence import SequenceCodeGen
 from bloqade.codegen.hardware.lattice import LatticeCodeGen
 from bloqade.submission.mock_backend import DumbMockBackend
-
-from .ir.prelude import *
+from .ir import Sequence, Variable, Literal
 from typing import TYPE_CHECKING, Dict, Union
 
 if TYPE_CHECKING:
@@ -39,7 +37,7 @@ class BraketTask(Task):
         # quera_task = QuEraTaskSpecification(
         #     nshots=self.nshots,
         #     lattice=LatticeCodeGen(assignments=self.prog.assignments).emit(
-        #         prog.lattice
+        #         self.prog.lattice
         #     ),
         #     effective_hamiltonian=SequenceCodeGen(
         #         n_atoms=self.prog.lattice.n_atoms,
@@ -56,16 +54,16 @@ class BraketTask(Task):
 class QuEraTask(Task):
     def __init__(self, prog: "Program", nshots: int) -> None:
         super().__init__(prog, nshots)
-        self.task_ir = QuEraTaskSpecification(
-            nshots=self.nshots,
-            lattice=LatticeCodeGen(ariable_reference=self.prog.assignments).emit(
-                self.lattice
-            ),
-            effective_hamiltonian=SequenceCodeGen(
-                n_atoms=self.lattice.n_atoms,
-                assignments=self.prog.assignments,
-            ).emit(self.prog.seq),
-        )
+        # self.task_ir = QuEraTaskSpecification(
+        #     nshots=self.nshots,
+        #     lattice=LatticeCodeGen(assignments=self.prog.assignments).emit(
+        #         self.prog.lattice
+        #     ),
+        #     effective_hamiltonian=SequenceCodeGen(
+        #         n_atoms=self.prog.lattice.n_atoms,
+        #         assignments=self.prog.assignments,
+        #     ).emit(self.prog.seq),
+        # )
 
 
 class MockTask(Task):
@@ -76,11 +74,11 @@ class MockTask(Task):
         self.backend = DumbMockBackend(state_file=state_file)
         self.task_ir = QuEraTaskSpecification(
             nshots=self.nshots,
-            lattice=LatticeCodeGen(ariable_reference=self.prog.assignments).emit(
-                self.lattice
+            lattice=LatticeCodeGen(assignments=self.prog.assignments).emit(
+                self.prog.lattice
             ),
             effective_hamiltonian=SequenceCodeGen(
-                n_atoms=self.lattice.n_atoms,
+                n_atoms=self.prog.lattice.n_atoms,
                 assignments=self.prog.assignments,
             ).emit(self.prog.seq),
         )

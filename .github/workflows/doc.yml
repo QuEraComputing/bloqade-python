@@ -1,0 +1,50 @@
+name: Documentation
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - closed
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+# See: https://github.com/pdm-project/pdm/issues/1879
+env:
+  PDM_DEPS: 'urllib3<2'
+
+jobs:
+  documentation:
+    name: Build documentation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - uses: pdm-project/setup-pdm@v3
+        name: Setup PDM
+        with:
+          python-version: 3.11
+      - name: Install dependencies
+        run: pdm install -G doc
+      - name: Set up build cache
+        uses: actions/cache@v3
+        id: cache
+        with:
+          key: mkdocs-material-${{ github.ref }}
+          path: .cache
+          restore-keys: |
+            mkdocs-material-
+      - name: Depoly documentation
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          GOOGLE_ANALYTICS_KEY: ${{ secrets.GOOGLE_ANALYTICS_KEY }}
+        run: |
+          pdm run doc_build
+      - name: Deploy preview
+        uses: rossjrw/pr-preview-action@v1
+        with:
+          source-dir: ./docs/site

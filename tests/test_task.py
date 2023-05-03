@@ -1,4 +1,4 @@
-from bloqade.ir import *
+from bloqade.ir import Sequence, rydberg, detuning, Uniform, Linear, ScaledLocations
 import bloqade.lattice as lattice
 
 # dict interface

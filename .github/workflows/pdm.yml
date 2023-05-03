@@ -1,0 +1,18 @@
+name: Update dependencies
+
+on:
+  schedule:
+    - cron: "0 0 * * *"
+
+# See: https://github.com/pdm-project/pdm/issues/1879
+env:
+  PDM_DEPS: 'urllib3<2'
+
+jobs:
+  update-dependencies:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Update dependencies
+        uses: pdm-project/update-deps-action@main
