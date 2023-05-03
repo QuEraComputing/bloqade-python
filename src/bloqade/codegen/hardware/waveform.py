@@ -5,7 +5,8 @@ from bloqade.ir.pulse import (
     RabiFrequencyPhase,
     Detuning,
 )
-from bloqade.ir.waveform import Waveform, Append, Linear, Constant, Slice
+from bloqade.ir.scalar import Variable
+from bloqade.ir.waveform import Waveform, Append, Slice, Constant, Linear, Record
 from bloqade.codegen.hardware.base import BaseCodeGen
 from typing import List, Optional, Tuple
 from bisect import bisect_left
@@ -16,6 +17,24 @@ class WaveformCodeGen(BaseCodeGen):
     field_name: Optional[FieldName] = None
     times: Optional[List[float]] = None
     values: Optional[List[float]] = None
+
+    def assignment_scan(self, ast: Waveform):
+        match ast:
+            case Record(waveform, Variable(name)):
+                if name in self.assignments:
+                    raise ValueError(
+                        f"variable with name {name} has multiple assignments"
+                    )
+
+                stop = waveform.duration(**self.assignments)
+                self.assignments[name] = waveform(stop, **self.assignments)
+
+            case Append(waveforms):
+                for waveform in waveforms:
+                    self.assignment_scan(waveform)
+
+            case Slice(waveform=waveform):
+                self.assignment_scan(waveform)
 
     def scan_piecewise_linear(self, ast: Waveform):
         match ast:
@@ -72,6 +91,9 @@ class WaveformCodeGen(BaseCodeGen):
                 for waveform in waveforms:
                     self.scan_piecewise_linear(waveform)
 
+            case Record(waveform=waveform):
+                self.scan_piecewise_linear(waveform)
+
             case _:  # TODO: improve error message here
                 raise NotImplementedError
 
@@ -127,6 +149,9 @@ class WaveformCodeGen(BaseCodeGen):
                 self.values = (
                     [start_value] + self.values[start_index:stop_index] + [stop_value]
                 )
+
+            case Record(waveform=waveform):
+                self.scan_piecewise_constant(waveform)
 
             case _:  # TODO: improve error message here
                 raise NotImplementedError(

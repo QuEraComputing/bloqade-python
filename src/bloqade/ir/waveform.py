@@ -2,7 +2,7 @@ from dataclasses import InitVar
 from pydantic.dataclasses import dataclass
 from typing import Any, Union, List
 from enum import Enum
-from .scalar import Scalar, Interval, cast
+from .scalar import Scalar, Interval, Variable, cast
 
 
 class AlignedValue(str, Enum):
@@ -326,3 +326,16 @@ class Add(Waveform):
 
     def __repr__(self) -> str:
         return f"({self.left!r} + {self.right!r})"
+
+
+@dataclass
+class Record(Waveform):
+    """
+    <record> ::= 'record' <waveform> <var>
+    """
+
+    waveform: Waveform
+    var: Variable
+
+    def __call__(self, clock_s: float, **kwargs) -> Any:
+        return self.waveform(clock_s, **kwargs)
