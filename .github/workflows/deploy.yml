@@ -1,11 +1,8 @@
-name: Documentation
+name: Documentation(Deploy)
 on:
-  pull_request:
-    types:
-      - opened
-      - reopened
-      - synchronize
-      - closed
+  push:
+    branches:
+      - main
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
@@ -39,8 +36,4 @@ jobs:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
           GOOGLE_ANALYTICS_KEY: ${{ secrets.GOOGLE_ANALYTICS_KEY }}
         run: |
-          pdm run doc_build
-      - name: Deploy preview
-        uses: rossjrw/pr-preview-action@v1
-        with:
-          source-dir: ./docs/site
+          pdm mike deploy --push --update-aliases dev -F docs/mkdocs.yml

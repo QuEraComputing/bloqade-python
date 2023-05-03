@@ -75,6 +75,8 @@ plugins:
       include_source: True
 
 extra:
+  version:
+    provider: mike
   annotate:
     json: [.s2]
   analytics:
