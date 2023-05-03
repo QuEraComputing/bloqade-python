@@ -21,6 +21,50 @@
 import bloqade.lattice as lattice
 from bloqade.ir import Sequence, rydberg, detuning, rabi, Uniform, Linear, Constant
 
+# %% [markdown]
+# split up waveform construction
+
+detuning_waveform = (
+    Constant("initial_detuning", "up_time")
+    .append(Linear("initial_detuning", "final_detuning", "anneal_time"))
+    .append(Constant("final_detuning", "up_time"))
+)
+
+rabi_waveform = (
+    Linear(0.0, "rabi_amplitude_max", "up_time")
+    .append(Constant("rabi_amplitude_max", "anneal_time"))
+    .append(Linear("rabi_amplitude_max", 0.0, "up_time"))
+)
+
+task_builder = lattice.Square(6)
+task_builder.rydberg.detuning.uniform.apply(detuning_waveform)
+task_builder.rabi.amplitude.uniform.apply(rabi_waveform)
+
+# stop building for small task
+small_program = task_builder.program.copy()
+
+# continue constructing larger task
+task_builder.multiplex(spacing=25.0)
+large_program = task_builder.program.copy()
+
+# single task
+small_program.assign(
+    initial_detuning=-15,
+    final_detuning=10,
+    up_time=0.1,
+    anneal_time=10,
+    rabi_amplitude_max=15,
+)
+
+simulation_task = small_program.simulate()
+simulation_task_report = simulation_task.report()
+
+large_program.assign(config="config_file.toml")
+
+braket_batch_program = large_program.braket(nshots=1000)
+braket_batch_task = large_program.submit(token="112312312")
+braket_batch_task_report = braket_batch_task.report()
+
 # %%
 lattice.Square(6).rydberg.detuning.uniform.apply(
     Constant("initial_detuning", "up_time")
@@ -30,15 +74,20 @@ lattice.Square(6).rydberg.detuning.uniform.apply(
     Linear(0.0, "rabi_amplitude_max", "up_time")
     .append(Constant("rabi_amplitude_max", "anneal_time"))
     .append(Linear("rabi_amplitude_max", 0.0, "up_time"))
+).assign(
+    initial_detuning=-15,
+    final_detuning=10,
+    up_time=0.1,
+    anneal_time=10,
+    rabi_amplitude_max=15,
 ).braket(
     nshots=1000
 ).submit(
     token="112312312"
 ).report()
 
-
 # %% [markdown]
-# dict interface
+# dict interface (only used by developmenet team)
 
 # %%
 seq = Sequence(
