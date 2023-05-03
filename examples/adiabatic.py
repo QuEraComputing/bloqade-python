@@ -1,6 +1,23 @@
+# ---
+# jupyter:
+#   jupytext:
+#     formats: ipynb,py:percent
+#     text_representation:
+#       extension: .py
+#       format_name: percent
+#       format_version: '1.3'
+#       jupytext_version: 1.14.5
+#   kernelspec:
+#     display_name: .venv
+#     language: python
+#     name: python3
+# ---
+
+# %%
 import bloqade.lattice as lattice
 from bloqade.ir import Sequence, rydberg, detuning, rabi, Uniform, Linear, Constant
 
+# %%
 lattice.Square(6).rydberg.detuning.uniform.apply(
     Constant("initial_detuning", "up_time")
     .append(Linear("initial_detuning", "final_detuning", "anneal_time"))
@@ -16,8 +33,10 @@ lattice.Square(6).rydberg.detuning.uniform.apply(
 ).report()
 
 
+# %% [markdown]
 # dict interface
 
+# %%
 seq = Sequence(
     {
         rydberg: {
@@ -35,6 +54,8 @@ seq = Sequence(
     }
 )
 
+# %%
 lattice.Square(6).apply(seq).braket(nshots=1000).submit(token="112312312").report()
 
+# %%
 print(seq)

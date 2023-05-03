@@ -23,6 +23,7 @@ doc = [
     "mkdocs-material>=9.1.9",
     "mkdocstrings>=0.21.2",
     "mkdocs-minify-plugin>=0.6.4",
+    "mkdocs-jupyter>=0.24.1",
 ]
 
 [build-system]
@@ -72,6 +73,7 @@ dev = [
     "ruff>=0.0.264",
     "pre-commit>=3.3.1",
     "coverage>=7.2.5",
+    "jupytext>=1.14.5",
 ]
 
 [tool.pdm.scripts]
@@ -83,3 +85,7 @@ test = "pytest"
 coverage = {shell = "coverage run -m pytest && coverage report"}
 doc = {cmd = "mkdocs serve -f docs/mkdocs.yml"}
 build_doc = {cmd = "mkdocs build -f docs/mkdocs.yml"}
+jupytext = {cmd = "jupytext --sync examples/*.py"}
+
+[tool.jupytext]
+formats = "ipynb,py:percent"
