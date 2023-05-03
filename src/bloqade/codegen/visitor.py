@@ -5,7 +5,7 @@ from bloqade.ir.sequence import SequenceExpr
 from bloqade.lattice.base import Lattice
 from typing import Union
 
-AstType = Union[Waveform, Field, SpatialModulation, PulseExpr, SequenceExpr]
+AstType = Union[Waveform, Field, SpatialModulation, PulseExpr, SequenceExpr, Lattice]
 
 
 class Visitor:
