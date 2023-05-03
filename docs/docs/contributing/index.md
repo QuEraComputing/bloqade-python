@@ -48,7 +48,7 @@ pdm run coverage
 You can build documentation via
 
 ```bash
-pdm run build_doc
+pdm run doc_build
 ```
 
 Or run a local server to preview documentation via
