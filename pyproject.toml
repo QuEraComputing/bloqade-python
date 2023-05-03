@@ -17,6 +17,12 @@ dependencies = [
 requires-python = ">=3.10"
 readme = "README.md"
 license = {text = "MIT"}
+[project.optional-dependencies]
+doc = [
+    "mkdocs>=1.4.3",
+    "mkdocs-material>=9.1.9",
+    "mkdocstrings>=0.21.2",
+]
 
 [build-system]
 requires = ["pdm-backend"]
@@ -74,3 +80,5 @@ build = {cmd = "pdm build"}
 publish = {composite = ["build", "upload"]}
 test = "pytest"
 coverage = {shell = "coverage run -m pytest && coverage report"}
+doc = {cmd = "mkdocs serve -f docs/mkdocs.yml"}
+build_doc = {cmd = "mkdocs build -f docs/mkdocs.yml"}
