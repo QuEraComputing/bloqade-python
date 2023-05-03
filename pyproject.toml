@@ -17,6 +17,16 @@ dependencies = [
 requires-python = ">=3.10"
 readme = "README.md"
 license = {text = "MIT"}
+[project.optional-dependencies]
+doc = [
+    "mkdocs>=1.4.3",
+    "mkdocs-material>=9.1.9",
+    "mkdocstrings[python]>=0.21.2",
+    "mkdocs-minify-plugin>=0.6.4",
+    "mkdocs-jupyter>=0.24.1",
+    "mkdocs-gen-files>=0.5.0",
+    "mkdocs-literate-nav>=0.6.0",
+]
 
 [build-system]
 requires = ["pdm-backend"]
@@ -65,6 +75,7 @@ dev = [
     "ruff>=0.0.264",
     "pre-commit>=3.3.1",
     "coverage>=7.2.5",
+    "jupytext>=1.14.5",
 ]
 
 [tool.pdm.scripts]
@@ -74,3 +85,10 @@ build = {cmd = "pdm build"}
 publish = {composite = ["build", "upload"]}
 test = "pytest"
 coverage = {shell = "coverage run -m pytest && coverage report"}
+doc = {cmd = "mkdocs serve -f docs/mkdocs.yml"}
+build_doc = {cmd = "mkdocs build -f docs/mkdocs.yml"}
+jupytext = {cmd = "jupytext --sync docs/docs/examples/*.py"}
+
+[tool.jupytext]
+formats = "ipynb,py:percent"
+hide_notebook_metadata = false
