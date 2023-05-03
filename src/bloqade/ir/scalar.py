@@ -1,6 +1,6 @@
 from pydantic.dataclasses import dataclass
 from pydantic import validator
-from typing import Optional, Union
+from typing import Optional
 
 __all__ = [
     "cast",

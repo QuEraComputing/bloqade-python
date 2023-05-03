@@ -1,5 +1,5 @@
 from .pulse import PulseExpr, Pulse
-from .scalar import Interval, cast
+from .scalar import Interval
 
 from pydantic.dataclasses import dataclass
 from typing import List, Dict

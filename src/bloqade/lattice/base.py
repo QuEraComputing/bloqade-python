@@ -1,9 +1,7 @@
 from ..builder import Start
 from numpy.typing import NDArray
-from typing import List, Generator
-import numpy as np
+from typing import Generator
 import matplotlib.pyplot as plt
-from ..task import Program
 
 
 class Lattice(Start):
