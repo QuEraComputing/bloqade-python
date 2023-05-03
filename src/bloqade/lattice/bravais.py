@@ -58,11 +58,6 @@ class BoundedBravais(Lattice):
                 yield pos
 
     def figure(self) -> Plot:
-        if len(self.shape) == 2:
-            width, height = self.shape
-        else:
-            width, height = (self.shape[0], 2)
-
         xs, ys, labels = [], [], []
         for idx, (x, y) in enumerate(self.enumerate()):
             xs.append(x)
@@ -71,8 +66,8 @@ class BoundedBravais(Lattice):
 
         source = ColumnDataSource(data=dict(x=xs, y=ys, labels=labels))
         p = figure(
-            width=width * 100,
-            height=height * 100,
+            width=400,
+            height=400,
             tools="hover,wheel_zoom,box_zoom,reset",
         )
         p.circle("x", "y", source=source, radius=0.08)
