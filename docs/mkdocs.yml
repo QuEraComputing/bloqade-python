@@ -73,6 +73,7 @@ plugins:
       ignore: ["*.ipynb"]
       execute: true # always execute
       include_source: True
+  - mike
 
 extra:
   annotate:
