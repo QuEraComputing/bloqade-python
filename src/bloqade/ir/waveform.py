@@ -155,7 +155,7 @@ class Linear(Instruction):
 
     start: Scalar
     stop: Scalar
-    duration: Scalar
+    duration: InitVar[Scalar]
 
     def __init__(self, start, stop, duration):
         self.start = cast(start)
@@ -209,7 +209,7 @@ class Poly(Instruction):
     """
 
     checkpoints: List[Scalar]
-    duration: Scalar
+    duration: InitVar[Scalar]
 
     def __init__(self, checkpoints, duration):
         self.checkpoints = cast(checkpoints)
