@@ -1690,7 +1690,7 @@ summary = "Backport of pathlib-compatible object wrapper for zip files"
 [metadata]
 lock_version = "4.2"
 groups = ["default", "dev", "doc"]
-content_hash = "sha256:b2d7c09de2edf8f48b7ad3755654e20567a2bb2c6a26275fbab4650898db15f6"
+content_hash = "sha256:2708ec98a70ebda67c0806e6bd5e5390d7b89f045106ced04dbf1520d28e0569"
 
 [metadata.files]
 "amazon-braket-default-simulator 1.13.1" = [
