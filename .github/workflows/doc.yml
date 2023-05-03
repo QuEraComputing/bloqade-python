@@ -11,7 +11,7 @@ jobs:
   documentation:
     name: Build documentation
     runs-on: ubuntu-latest
-  steps:
+    steps:
       - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
