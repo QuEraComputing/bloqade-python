@@ -44,8 +44,8 @@ task_builder.rabi.amplitude.uniform.apply(rabi_waveform)
 small_program = task_builder.program.copy()
 
 # continue constructing larger task
-task_builder.multiplex(spacing=25.0)
-large_program = task_builder.program.copy()
+task_builder.multiplex(spacing=25.0)  # make multiplex a terminating action
+large_program = task_builder.program
 
 # single task
 small_program.assign(
@@ -54,7 +54,7 @@ small_program.assign(
     up_time=0.1,
     anneal_time=10,
     rabi_amplitude_max=15,
-)
+).simulate()
 
 simulation_task = small_program.simulate()
 simulation_task_report = simulation_task.report()
