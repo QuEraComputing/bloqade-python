@@ -3,6 +3,8 @@ from pydantic.dataclasses import dataclass
 from typing import Any, Union, List
 from enum import Enum
 from .scalar import Scalar, Interval, Variable, cast
+from bokeh.plotting import figure
+import numpy as np
 
 
 class AlignedValue(str, Enum):
@@ -48,6 +50,14 @@ class Waveform:
     def append(self, other: "Waveform") -> "Waveform":
         return self.canonicalize(Append([self, other]))
 
+    def plot(self, **assignments):
+        duration = self.duration(**assignments)
+        times = np.linspace(0, duration, 1001)
+        values = [self.__call__(time, **assignments) for time in times]
+        fig = figure(width=250, height=250)
+        fig.line(times, values)
+        return fig
+
     def align(
         self, alignment: Alignment, value: Union[None, AlignedValue, Scalar] = None
     ) -> "Waveform":
@@ -81,7 +91,7 @@ class Waveform:
             return self._duration
 
         match self:
-            case Sequence(duration=duration):
+            case Instruction(duration=duration):
                 self._duration = duration
             case AlignedWaveform(waveform=waveform, alignment=_, value=_):
                 self._duration = waveform.duration()
@@ -95,6 +105,12 @@ class Waveform:
                         self._duration = stop
                     case (start, stop):
                         self._duration = stop - start
+            case Append(waveforms=waveforms):
+                duration = cast(0.0)
+                for waveform in waveforms:
+                    duration = duration + cast(waveform.duration)
+
+                self._duration = duration
             case _:
                 raise ValueError(f"Cannot compute duration of {self}")
         return self._duration
@@ -127,19 +143,19 @@ class AlignedWaveform(Waveform):
 
 
 @dataclass
-class Sequence(Waveform):
+class Instruction(Waveform):
     pass
 
 
 @dataclass(init=False)
-class Linear(Sequence):
+class Linear(Instruction):
     """
     <linear> ::= 'linear' <scalar expr> <scalar expr>
     """
 
     start: Scalar
     stop: Scalar
-    duration: Scalar
+    duration: InitVar[Scalar]
 
     def __init__(self, start, stop, duration):
         self.start = cast(start)
@@ -163,7 +179,7 @@ class Linear(Sequence):
 
 
 @dataclass(init=False)
-class Constant(Sequence):
+class Constant(Instruction):
     """
     <constant> ::= 'constant' <scalar expr>
     """
@@ -187,13 +203,13 @@ class Constant(Sequence):
 
 
 @dataclass(init=False)
-class Poly(Sequence):
+class Poly(Instruction):
     """
     <poly> ::= <scalar>+
     """
 
     checkpoints: List[Scalar]
-    duration: Scalar
+    duration: InitVar[Scalar]
 
     def __init__(self, checkpoints, duration):
         self.checkpoints = cast(checkpoints)
