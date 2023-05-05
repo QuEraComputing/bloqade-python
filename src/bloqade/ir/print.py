@@ -1,13 +1,25 @@
 from pydantic.dataclasses import dataclass
+
+max_print_depth = 10
+unicode_enabled = True
 # charset object, extracts away charset
-@dataclass(frozen=True)
-class CharSet:
+@dataclass
+class UnicodeCharSet:
     mid = "├"
     terminator = "└"
     skip = "│"
     dash = "─"
     trunc = "⋮"
     pair = " ⇒ "
+
+@dataclass
+class ASCIICharSet:
+    mid = "+"
+    terminator = "\\"
+    skip = "|"
+    dash = "--"
+    trunc = "..."
+    pair = " => "
 
 @dataclass
 class State:
@@ -22,10 +34,10 @@ class State:
 
 class Printer:
 
-    def __init__(self, charset, max_depth, state, p):
-        self.charset = charset
-        self.max_depth = max_depth
-        self.state = state
+    def __init__(self, p):
+        global unicode_enabled
+        self.charset = UnicodeCharSet() if unicode_enabled else ASCIICharSet()
+        self.state = State()
         self.p = p
 
     def should_print_annotation(self, children):
@@ -34,10 +46,10 @@ class Printer:
         elif type(children) == dict:
             return True
 
-    def print(self, node):
+    def print(self, node, cycle):
         
         # list of children
-        children = node.children()
+        children = node.children().copy()
         node_str = node.print_node()
 
         for i, line in enumerate(node_str.split('\n')):
@@ -46,21 +58,14 @@ class Printer:
             if not (self.state.last and len(children) == 0):
                 self.p.text("\n")
         
-        if self.state.depth > self.max_depth:
-            print(self.p.charset.trunc)
-            print("\n")
+        global max_print_depth
+        if self.state.depth > max_print_depth or cycle: # need to set this variable dynamically
+            self.p.text(self.p.charset.trunc)
+            self.p.text("\n")
             return
 
         this_print_annotation = self.should_print_annotation(children)
 
-        """
-            if a dictionary is encountered, 
-            can convert the key-value pairs into a list of tuples
-
-            s = Iterators.Stateful(
-                this_print_annotation ? pairs(children) : children
-            )
-        """
         if this_print_annotation:
             children = list(children.items())
 
@@ -91,7 +96,7 @@ class Printer:
         
             self.p.text(self.charset.dash + " ")
 
-            if this_print_annotation:
+            if this_print_annotation and annotation is not None :
                 """
                 # object defines a print_annotation method which calls printstyled (in python we'll just let it be print, or it can just return a string for now)
                 # keep in mind, doesn't even need the node as an argument, could just take the annotation
@@ -99,17 +104,22 @@ class Printer:
                 # then print the annotation itself
                 print_annotation(node, annotation) # goes straight to printstyled (although node doesn't even need to be called, just annotation), should be defined within method?
                 """
-                key_str = node.print_annotation(annotation) # should just a return a string for now, otherwise have to redirect standard output
-                self.p.text(key_str)
+                self.p.text(annotation) # should just a return a string for now, otherwise have to redirect standard output
                 self.p.text(self.charset.pair)
-                child_prefix += " "*(len(key_str) + len(self.charset.pair))
+                child_prefix += " "*(len(annotation) + len(self.charset.pair))
             
             self.state.depth += 1
             parent_last = self.state.last
             self.state.last = is_last_leaf_child
             parent_prefix = self.state.prefix
             self.state.prefix = child_prefix
-            self.print(child)
+
+            if type(child) != str:
+                self.print(child, cycle)
+            else:
+                self.p.text(child)
+                self.p.text("\n")
+
             self.state.depth -= 1
             self.state.prefix = parent_prefix
             self.state.last = parent_last

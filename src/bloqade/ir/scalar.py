@@ -1,7 +1,7 @@
 from pydantic.dataclasses import dataclass
 from pydantic import validator
 from typing import Optional
-from .print import State, CharSet, Printer
+from .print import Printer
 
 __all__ = [
     "cast",
@@ -194,12 +194,10 @@ class Literal(Real):
         return []
     
     def print_node(self):
-        return f"{self.value}"
-
-    # no annotation
+        return f"Literal: {self.value}"
 
     def _repr_pretty_(self, p, cycle):
-        Printer(CharSet(), 10, State(), p).print(self)
+        Printer(p).print(self, cycle)
 
 @dataclass(frozen=True)
 class Variable(Real):
@@ -212,10 +210,10 @@ class Variable(Real):
         return []
     
     def print_node(self):
-        return f"{self.name}" 
+        return f"Variable: {self.name}" 
     
     def _repr_pretty_(self, p, cycle):
-        Printer(CharSet(), 10, State(), p).print(self)
+        Printer(p).print(self, cycle)
         
 
     @validator("name")
@@ -247,7 +245,7 @@ class Negative(Scalar):
         return "-"
     
     def _repr_pretty_(self, p, cycle):
-        Printer(CharSet(), 10, State(), p).print(self)
+        Printer(p).print(self, cycle)
 
 
 @dataclass(frozen=True)
@@ -288,9 +286,6 @@ class Interval:
 
     def print_node(self):
         return "Interval"
-    
-    def print_annotation(self, annotation):
-        return annotation
 
     def children(self):
         match (self.start, self.stop):
@@ -304,7 +299,7 @@ class Interval:
                 return {"start":start, "stop":stop}
 
     def _repr_pretty_(self, p, cycle):
-        Printer(CharSet(), 10, State(), p).print(self)
+        Printer(p).print(self, cycle)
 
 
 @dataclass(frozen=True)
@@ -316,13 +311,13 @@ class Slice(Scalar):
         return f"{self.expr!r}[{self.interval!r}]"
     
     def children(self):
-        return [self.expr, self.interval]
+        return {"Scalar":self.expr, None:self.interval}
 
     def print_node(self):
         return "Slice"
     
     def _repr_pretty_(self, p, cycle):
-        Printer(CharSet(), 10, State(), p).print(self)
+        Printer(p).print(self, cycle)
 
 
 @dataclass(frozen=True)
@@ -338,12 +333,9 @@ class Add(Scalar):
 
     def print_node(self):
         return "+"
-    
-    # no annotation necessary
-    # def print_annotation(self):
 
     def _repr_pretty_(self, p, cycle):
-        Printer(CharSet(), 10, State(), p).print(self)
+        Printer(p).print(self, cycle)
 
 
 @dataclass(frozen=True)
@@ -360,9 +352,8 @@ class Mul(Scalar):
     def print_node(self):
         return "*"
     
-
     def _repr_pretty_(self, p, cycle):
-        Printer(CharSet(), 10, State(), p).print(self)
+        Printer(p).print(self, cycle)
 
 
 @dataclass(frozen=True)
@@ -379,9 +370,8 @@ class Div(Scalar):
     def print_node(self):
         return "/"
     
-
     def _repr_pretty_(self, p, cycle):
-        Printer(CharSet(), 10, State(), p).print(self)
+        Printer(p).print(self, cycle)
 
 
 @dataclass(frozen=True)
@@ -398,7 +388,7 @@ class Min(Scalar):
         return f"scalar.Min({self.exprs!r})"
     
     def _repr_pretty_(self, p, cycle):
-        Printer(CharSet(), 10, State(), p).print(self)
+        Printer(p).print(self, cycle)
 
 
 @dataclass(frozen=True)
@@ -415,4 +405,4 @@ class Max(Scalar):
         return f"scalar.Max({self.exprs!r})"
     
     def _repr_pretty_(self, p, cycle):
-        Printer(CharSet(), 10, State(), p).print(self)
+        Printer(p).print(self, cycle)

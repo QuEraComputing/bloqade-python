@@ -1,5 +1,6 @@
 from .pulse import PulseExpr, Pulse
 from .scalar import Interval
+from .print import Printer
 
 from pydantic.dataclasses import dataclass
 from typing import List, Dict
@@ -16,6 +17,10 @@ __all__ = [
 
 @dataclass(frozen=True)
 class LevelCoupling:
+
+    def children(self):
+        return []
+
     pass
 
 
@@ -23,12 +28,24 @@ class LevelCoupling:
 class RydbergLevelCoupling(LevelCoupling):
     def __repr__(self) -> str:
         return "rydberg"
+    
+    def print_node(self):
+        return "RydbergLevelCoupling"
+            
+    def _repr_pretty_(self, p, cycle):
+        Printer(p).print(self, cycle)
 
 
 @dataclass(frozen=True)
 class HyperfineLevelCoupling(LevelCoupling):
     def __repr__(self) -> str:
         return "hyperfine"
+    
+    def print_node(self):
+        return "HyperfineLevelCoupling"
+            
+    def _repr_pretty_(self, p, cycle):
+        Printer(p).print(self, cycle)
 
 
 rydberg = RydbergLevelCoupling()
@@ -58,6 +75,15 @@ class Append(SequenceExpr):
     def __repr__(self) -> str:
         return f"sequence.Append(value={self.value!r})"
 
+    def children(self):
+        return self.value
+    
+    def print_node(self):
+        return "Append"
+            
+    def _repr_pretty_(self, p, cycle):
+        Printer(p).print(self, cycle)
+
 
 @dataclass(init=False, repr=False)
 class Sequence(SequenceExpr):
@@ -86,6 +112,17 @@ class Sequence(SequenceExpr):
 
     def __repr__(self) -> str:
         return f"Sequence({self.value!r})"
+    
+    # return annotated version
+    def children(self):
+        return {level_coupling.print_node():pulse_expr for level_coupling, pulse_expr in self.value.items()}
+    
+    def print_node(self):
+        return "Append"
+            
+    def _repr_pretty_(self, p, cycle):
+        Printer(p).print(self, cycle)
+
 
 
 @dataclass
@@ -95,6 +132,15 @@ class NamedSequence(SequenceExpr):
 
     def __repr__(self) -> str:
         return f"NamedSequence(sequence={self.sequence!r}, name='{self.name!r}')"
+    
+    def children(self):
+        return {"sequence":self.sequence, "name":self.name}
+    
+    def print_node(self):
+        return "NamedSequence"
+            
+    def _repr_pretty_(self, p, cycle):
+        Printer(p).print(self, cycle)
 
 
 @dataclass(repr=False)
@@ -104,3 +150,12 @@ class Slice(SequenceExpr):
 
     def __repr__(self) -> str:
         return f"{self.sequence!r}[{self.interval!r}]"
+    
+    def children(self):
+        return {"sequence":self.sequence, "interval":self.interval}
+    
+    def print_node(self):
+        return "Slice"
+            
+    def _repr_pretty_(self, p, cycle):
+        Printer(p).print(self, cycle)
