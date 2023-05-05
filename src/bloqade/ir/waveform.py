@@ -148,7 +148,7 @@ class AlignedWaveform(Waveform):
     def children(self):
         annotated_children = {}
         annotated_children["Waveform"] = self.waveform
-        
+
         match self.alignment:
             case Alignment.Left:
                 annotated_children["Alignment"] = "Left"
@@ -164,11 +164,9 @@ class AlignedWaveform(Waveform):
                 annotated_children["Value"] = "Right"
 
         return annotated_children
-                
 
     def _repr_pretty_(self, p, cycle):
         Printer(p).print(self, cycle)
-    
 
 
 @dataclass
@@ -202,14 +200,12 @@ class Linear(Instruction):
 
     def __repr__(self) -> str:
         return f"linear {self.start} {self.stop}"
-    
+
     def print_node(self):
         return "Linear"
 
     def children(self):
-        return {"start":self.start, 
-                "stop":self.stop,
-                "duration":self.duration}
+        return {"start": self.start, "stop": self.stop, "duration": self.duration}
 
     def _repr_pretty_(self, p, cycle):
         Printer(p).print(self, cycle)
@@ -237,13 +233,12 @@ class Constant(Instruction):
 
     def __repr__(self) -> str:
         return f"constant {self.value}"
-    
+
     def print_node(self):
         return "Constant"
 
     def children(self):
-        return {"value":self.value, 
-                "duration":self.duration}
+        return {"value": self.value, "duration": self.duration}
 
     def _repr_pretty_(self, p, cycle):
         Printer(p).print(self, cycle)
@@ -277,7 +272,7 @@ class Poly(Instruction):
 
     def __repr__(self) -> str:
         return f"Poly({self.checkpoints!r}, {self.duration!r})"
-    
+
     def print_node(self) -> str:
         return "Poly"
 
@@ -285,7 +280,7 @@ class Poly(Instruction):
         # should have annotation for duration
         # then annotations for the polynomial terms and exponents
 
-        annotated_checkpoints = {} 
+        annotated_checkpoints = {}
         for i, checkpoint in enumerate(self.checkpoints):
             if i == 0:
                 annotated_checkpoints["b"] = checkpoint
@@ -337,7 +332,7 @@ class Slice(Waveform):
 
         start_time = self.interval.start(**kwargs)
         return self.waveform(clock_s + start_time, **kwargs)
-    
+
     def print_node(self):
         return "Slice"
 
@@ -346,7 +341,6 @@ class Slice(Waveform):
 
     def _repr_pretty_(self, p, cycle):
         Printer(p).print(self, cycle)
-
 
 
 @dataclass
@@ -371,10 +365,10 @@ class Append(Waveform):
 
     def __repr__(self) -> str:
         return f"waveform.Append(waveforms={self.waveforms!r})"
-    
+
     def print_node(self):
         return "Append"
-    
+
     def children(self):
         return self.waveforms
 
@@ -395,10 +389,10 @@ class Negative(Waveform):
 
     def __repr__(self) -> str:
         return f"-({self.waveform!r})"
- 
+
     def print_node(self):
         return "-"
-    
+
     def children(self):
         return [self.waveform]
 
@@ -424,10 +418,10 @@ class Scale(Waveform):
 
     def __repr__(self) -> str:
         return f"({self.scalar!r} * {self.waveform!r})"
-    
+
     def print_node(self):
         return "Scale"
-    
+
     def children(self):
         return [self.scalar, self.waveform]
 
@@ -449,10 +443,10 @@ class Add(Waveform):
 
     def __repr__(self) -> str:
         return f"({self.left!r} + {self.right!r})"
-    
+
     def print_node(self):
         return "+"
-    
+
     def children(self):
         return [self.left, self.right]
 
@@ -471,12 +465,12 @@ class Record(Waveform):
 
     def __call__(self, clock_s: float, **kwargs) -> Any:
         return self.waveform(clock_s, **kwargs)
-    
+
     def print_node(self):
         return "Record"
-    
+
     def children(self):
-        return {"Waveform":self.waveform, "Variable":self.var}
+        return {"Waveform": self.waveform, "Variable": self.var}
 
     def _repr_pretty_(self, p, cycle):
         Printer(p).print(self, cycle)

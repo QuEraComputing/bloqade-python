@@ -1,4 +1,12 @@
-from bloqade.ir import Linear, Constant, Poly, Record, AlignedWaveform, Alignment, AlignedValue
+from bloqade.ir import (
+    Linear,
+    Constant,
+    Poly,
+    Record,
+    AlignedWaveform,
+    Alignment,
+    AlignedValue,
+)
 from bloqade.ir import scalar
 
 wf = Linear(start=1.0, stop="x", duration=3.0)
@@ -30,7 +38,10 @@ wf * scalar.Literal(5.0)
 wf + wf
 
 # polynomial
-Poly([scalar.Literal(10) + scalar.Variable("l"), scalar.Literal(5), scalar.Literal(-2)], scalar.Variable("g"))
+Poly(
+    [scalar.Literal(10) + scalar.Variable("l"), scalar.Literal(5), scalar.Literal(-2)],
+    scalar.Variable("g"),
+)
 
 # Record
 Record(wf, scalar.Variable("n"))

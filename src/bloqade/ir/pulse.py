@@ -16,7 +16,6 @@ __all__ = [
 
 @dataclass(frozen=True)
 class FieldName:
-
     def children(self):
         return []
 
@@ -25,21 +24,22 @@ class FieldName:
 class RabiFrequencyAmplitude(FieldName):
     def __repr__(self) -> str:
         return "rabi_frequency_amplitude"
-    
+
     def print_node(self):
         return "RabiFrequencyAmplitude"
-            
+
     def _repr_pretty_(self, p, cycle):
         Printer(p).print(self, cycle)
+
 
 @dataclass(frozen=True)
 class RabiFrequencyPhase(FieldName):
     def __repr__(self) -> str:
         return "rabi_frequency_phase"
-    
+
     def print_node(self):
         return "RabiFrequencyPhase"
-            
+
     def _repr_pretty_(self, p, cycle):
         Printer(p).print(self, cycle)
 
@@ -51,7 +51,7 @@ class Detuning(FieldName):
 
     def print_node(self):
         return "Detuning"
-    
+
     def _repr_pretty_(self, p, cycle):
         Printer(p).print(self, cycle)
 
@@ -66,11 +66,10 @@ class RabiRouter:
 
     def print_node(self):
         return "RabiRouter"
-    
+
     def children(self):
-        return {"Amplitude":self.amplitude,
-                "Phase":self.phase}
-    
+        return {"Amplitude": self.amplitude, "Phase": self.phase}
+
     def _repr_pretty_(self, p, cycle):
         Printer(p).print(self, cycle)
 
@@ -110,16 +109,15 @@ class Append(PulseExpr):
 
     def __repr__(self) -> str:
         return f"pulse.Append(value={self.value!r})"
-    
+
     def print_node(self):
         return "Append"
-    
+
     def children(self):
         return self.value
-    
+
     def _repr_pretty_(self, p, cycle):
         Printer(p).print(self, cycle)
-
 
 
 @dataclass(init=False, repr=False)
@@ -143,15 +141,17 @@ class Pulse(PulseExpr):
 
     def __repr__(self) -> str:
         return f"Pulse(value={self.value!r})"
-    
+
     def print_node(self):
         return "Pulse"
-    
+
     def children(self):
         # annotated children
-        annotated_children = {field_name.print_node():field for field_name, field in self.value.items()}
+        annotated_children = {
+            field_name.print_node(): field for field_name, field in self.value.items()
+        }
         return annotated_children
-    
+
     def _repr_pretty_(self, p, cycle):
         Printer(p).print(self, cycle)
 
@@ -163,13 +163,13 @@ class NamedPulse(PulseExpr):
 
     def __repr__(self) -> str:
         return f"NamedPulse(name={self.name!r}, pulse={self.pulse!r})"
-    
+
     def print_node(self):
         return "NamedPulse"
-    
+
     def children(self):
-        return {"Name":self.name, "Pulse":self.pulse}
-    
+        return {"Name": self.name, "Pulse": self.pulse}
+
     def _repr_pretty_(self, p, cycle):
         Printer(p).print(self, cycle)
 
@@ -181,12 +181,12 @@ class Slice(PulseExpr):
 
     def __repr__(self) -> str:
         return f"{self.pulse!r}[{self.interval}]"
-    
+
     def print_node(self):
         return "Slice"
-    
+
     def children(self):
-        return {"Pulse":self.pulse, "Interval":self.interval}
-    
+        return {"Pulse": self.pulse, "Interval": self.interval}
+
     def _repr_pretty_(self, p, cycle):
         Printer(p).print(self, cycle)
