@@ -414,7 +414,7 @@ dependencies = [
 
 [[package]]
 name = "ipython"
-version = "8.13.1"
+version = "8.13.2"
 requires_python = ">=3.9"
 summary = "IPython: Productive Interactive Computing"
 dependencies = [
@@ -2229,9 +2229,9 @@ content_hash = "sha256:20f79c89cd1139f45d91870259651162caf20a2ee749cd4b36a41d01f
     {url = "https://files.pythonhosted.org/packages/48/1b/260b3e4d2f633c1c9019e25a977a9e82341d0713ad8fb60e01b97b7559a4/ipykernel-6.22.0-py3-none-any.whl", hash = "sha256:1ae6047c1277508933078163721bbb479c3e7292778a04b4bacf0874550977d6"},
     {url = "https://files.pythonhosted.org/packages/bc/18/a773c8f970269988c56678c7b8739b106c5557e419864481c90949db3754/ipykernel-6.22.0.tar.gz", hash = "sha256:302558b81f1bc22dc259fb2a0c5c7cf2f4c0bdb21b50484348f7bafe7fb71421"},
 ]
-"ipython 8.13.1" = [
-    {url = "https://files.pythonhosted.org/packages/0f/89/5a81b01529537e0f59c72679846d8b33c66225055b3ba520e161c42c8e02/ipython-8.13.1.tar.gz", hash = "sha256:9c8487ac18f330c8a683fc50ab6d7bc0fcf9ef1d7a9f6ce7926938261067b81f"},
-    {url = "https://files.pythonhosted.org/packages/7c/3a/946a16933f6544aff3495978924d3ed8328ce1f42b8b7caef56b63e31bd7/ipython-8.13.1-py3-none-any.whl", hash = "sha256:1c80d08f04144a1994cda25569eab07fbdc4989bd8d8793e3a4ff643065ccb51"},
+"ipython 8.13.2" = [
+    {url = "https://files.pythonhosted.org/packages/d5/16/2161195dd2f617933f8ada5bc567eb47ddbb7c99dc16ffa3e729dd25a1a0/ipython-8.13.2-py3-none-any.whl", hash = "sha256:ffca270240fbd21b06b2974e14a86494d6d29290184e788275f55e0b55914926"},
+    {url = "https://files.pythonhosted.org/packages/ee/ad/d908d8aac3e8ac8aec2b89103b6c10f289544623879be0e249de3e508123/ipython-8.13.2.tar.gz", hash = "sha256:7dff3fad32b97f6488e02f87b970f309d082f758d7b7fc252e3b19ee0e432dbb"},
 ]
 "ipython-genutils 0.2.0" = [
     {url = "https://files.pythonhosted.org/packages/e8/69/fbeffffc05236398ebfcfb512b6d2511c622871dca1746361006da310399/ipython_genutils-0.2.0.tar.gz", hash = "sha256:eb2e116e75ecef9d4d228fdc66af54269afa26ab4463042e33785b887c628ba8"},
