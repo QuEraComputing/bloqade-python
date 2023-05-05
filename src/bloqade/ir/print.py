@@ -1,6 +1,6 @@
 from pydantic.dataclasses import dataclass
 
-max_print_depth = 10
+max_tree_depth = 10
 unicode_enabled = True
 # charset object, extracts away charset
 @dataclass
@@ -35,10 +35,11 @@ class State:
 class Printer:
 
     def __init__(self, p):
-        global unicode_enabled
         self.charset = UnicodeCharSet() if unicode_enabled else ASCIICharSet()
         self.state = State()
         self.p = p
+        self.max_tree_depth = max_tree_depth
+        print(self.max_tree_depth)
 
     def should_print_annotation(self, children):
         if type(children) == list or type(children) == tuple: # or generator, not sure of equivalence in Python
@@ -58,9 +59,8 @@ class Printer:
             if not (self.state.last and len(children) == 0):
                 self.p.text("\n")
         
-        global max_print_depth
-        if self.state.depth > max_print_depth or cycle: # need to set this variable dynamically
-            self.p.text(self.p.charset.trunc)
+        if self.state.depth > self.max_tree_depth or cycle: # need to set this variable dynamically
+            self.p.text(self.charset.trunc)
             self.p.text("\n")
             return
 
