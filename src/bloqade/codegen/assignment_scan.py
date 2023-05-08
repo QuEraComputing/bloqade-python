@@ -18,9 +18,9 @@ class AssignmentScan(ProgramVisitor):
     def visit_sequence(self, ast: sequence.SequenceExpr):
         match ast:
             case sequence.Sequence(pulses):
-                map(self.visit, pulses.values())
+                list(map(self.visit, pulses.values()))
             case sequence.Append(sequences):
-                map(self.visit, sequences)
+                list(map(self.visit, sequences))
             case sequence.Slice(sub_sequence, _):
                 self.visit(sub_sequence)
             case sequence.NamedSequence(sub_sequence, _):
@@ -29,9 +29,9 @@ class AssignmentScan(ProgramVisitor):
     def visit_pulse(self, ast: pulse.PulseExpr):
         match ast:
             case pulse.Pulse(fields):
-                map(self.visit, fields.values())
+                list(map(self.visit, fields.values()))
             case pulse.Append(pulses):
-                map(self.visit, pulses)
+                list(map(self.visit, pulses))
             case pulse.Slice(sub_pulse, _):
                 self.visit(sub_pulse)
             case pulse.NamedPulse(sub_pulse, _):
@@ -40,8 +40,8 @@ class AssignmentScan(ProgramVisitor):
     def visit_field(self, ast: field.Field):
         match ast:
             case field.Field(terms):
-                map(self.visit, terms.values())
-                map(self.visit, terms.keys())
+                list(map(self.visit, terms.values()))
+                list(map(self.visit, terms.keys()))
 
     def visit_spatial_modulation(self, ast: field.SpatialModulation):
         pass
@@ -54,7 +54,7 @@ class AssignmentScan(ProgramVisitor):
                 self.visit(sub_waveform)
 
             case waveform.Append(waveforms):
-                map(self.visit, waveforms)
+                list(map(self.visit, waveforms))
 
             case waveform.Slice(sub_waveform, _):
                 self.visit(sub_waveform)
