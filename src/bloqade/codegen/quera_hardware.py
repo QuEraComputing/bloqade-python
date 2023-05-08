@@ -25,20 +25,15 @@ from bloqade.ir.sequence import (
 )
 from bloqade.codegen.program_visitor import ProgramVisitor
 from bloqade.codegen.waveform_visitor import WaveformVisitor
+from bloqade.codegen.assignment_scan import AssignmentScan
 
 import quera_ahs_utils.quera_ir.task_specification as task_spec
-from numbers import Number
 from typing import Dict, Tuple, List, TYPE_CHECKING
 from bisect import bisect_left
 
 if TYPE_CHECKING:
     from bloqade.lattice.base import Lattice
     from bloqade.task import Program
-
-
-class AssignmentScan(ProgramVisitor):
-    def __init__(self, assignments: Dict[str, Number]):
-        self.assignments = assignments
 
 
 class PiecewiseLinearCodeGen(WaveformVisitor):
@@ -463,7 +458,7 @@ class SchemaCodeGen(ProgramVisitor):
         self.lattice = task_spec.Lattice(sites=sites, filling=filling)
 
     def emit(self, nshots: int, ast: "Program") -> task_spec.QuEraTaskSpecification:
-        self.assignments = ast.assignments
+        self.assignments = AssignmentScan(ast.assignments).emit(ast)
         self.visit(ast.lattice)
         self.visit(ast.seq)
         return task_spec.QuEraTaskSpecification(
