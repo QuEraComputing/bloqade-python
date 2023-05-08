@@ -1,6 +1,6 @@
 from pydantic.dataclasses import dataclass
 from pydantic import validator
-from typing import Optional, Union
+from typing import Optional
 
 __all__ = [
     "cast",
@@ -168,8 +168,8 @@ def trycast(py) -> Optional[Scalar]:
             return Literal(x)
         case str(x):
             return Variable(x)
-        case [*xs]:
-            return list(map(cast, *xs))
+        case list() as xs:
+            return list(map(cast, xs))
         case Scalar():
             return py
         case _:

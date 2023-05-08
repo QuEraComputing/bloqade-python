@@ -1,21 +1,31 @@
-from bloqade.ir.prelude import *
+from bloqade.ir import (
+    rydberg,
+    detuning,
+    rabi,
+    Sequence,
+    Field,
+    Pulse,
+    Uniform,
+    Linear,
+    ScaledLocations,
+)
 
 print(rydberg)
 
-f = Field({Global: Linear(start=1.0, stop="x", duration=3.0)})
+f = Field({Uniform: Linear(start=1.0, stop="x", duration=3.0)})
 
 print(Pulse({detuning: f}))
 print(Pulse({rabi.amplitude: f}))
 print(Pulse({rabi.phase: f}))
 
-pulse = Pulse({detuning: {Global: Linear(start=1.0, stop="x", duration=3.0)}})
+pulse = Pulse({detuning: {Uniform: Linear(start=1.0, stop="x", duration=3.0)}})
 
 
 seq = Sequence(
     {
         rydberg: {
             detuning: {
-                Global: Linear(start=1.0, stop="x", duration=3.0),
+                Uniform: Linear(start=1.0, stop="x", duration=3.0),
                 ScaledLocations({1: 1.0, 2: 2.0}): Linear(
                     start=1.0, stop="x", duration=3.0
                 ),
