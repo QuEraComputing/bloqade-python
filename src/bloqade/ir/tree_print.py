@@ -62,7 +62,7 @@ class Printer:
         node_str = node.print_node()
 
         for i, line in enumerate(node_str.split("\n")):
-            i != 0 and self.p.text(self.state.prefix)
+            i != 0 and print(self.state.prefix)
             self.p.text(line)
             if not (self.state.last and len(children) == 0):
                 self.p.text("\n")
@@ -128,8 +128,3 @@ class Printer:
             self.state.depth -= 1
             self.state.prefix = parent_prefix
             self.state.last = parent_last
-
-
-class TreePrintBase:
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)

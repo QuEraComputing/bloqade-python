@@ -1,7 +1,7 @@
 from pydantic.dataclasses import dataclass
 from pydantic import validator
 from typing import Optional
-from .tree_print import TreePrintBase
+from .tree_print import Printer
 
 __all__ = [
     "cast",
@@ -177,56 +177,6 @@ def trycast(py) -> Optional[Scalar]:
             return
 
 
-class TreePrintScalarMixin(TreePrintBase):
-    def children(self):
-        match self:
-            # Literal - no children
-            # Variable - no children
-            case Negative(expr):
-                return [expr]
-            case Interval(start, stop):
-                match (start, stop):
-                    case (None, None):
-                        raise ValueError("Interval must have at least one bound")
-                    case (None, stop):
-                        return {"stop": stop}
-                    case (start, None):
-                        return {"start": start}
-                    case (start, stop):
-                        return {"start": start, "stop": stop}
-            case Slice(expr, interval):
-                return {"Scalar": expr, None: interval}
-            case Add(lhs, rhs) | Mul(lhs, rhs) | Div(lhs, rhs):
-                return [lhs, rhs]
-            case Min(exprs) | Max(exprs):
-                return list(exprs)
-            case _:
-                return []
-
-    def print_node(self):
-        match self:
-            case Literal(value):
-                return f"Literal: {value}"
-            case Variable(name):
-                return f"Variable: {name}"
-            case Negative():
-                return "-"
-            case Interval():
-                return "Interval"
-            case Slice():
-                return "Slice"
-            case Add():
-                return "+"
-            case Mul():
-                return "*"
-            case Div():
-                return "/"
-            case Min():
-                return "min"
-            case Max():
-                return "max"
-
-
 class Real(Scalar):
     """Base class for all real expressions."""
 
@@ -234,19 +184,37 @@ class Real(Scalar):
 
 
 @dataclass(frozen=True)
-class Literal(TreePrintScalarMixin, Real):
+class Literal(Real):
     value: float
 
     def __repr__(self) -> str:
         return f"{self.value!r}"
 
+    def children(self):
+        return []
+
+    def print_node(self):
+        return f"Literal: {self.value}"
+
+    def _repr_pretty_(self, p, cycle):
+        Printer(p).print(self, cycle)
+
 
 @dataclass(frozen=True)
-class Variable(TreePrintScalarMixin, Real):
+class Variable(Real):
     name: str
 
     def __repr__(self) -> str:
         return f"{self.name!r}"
+
+    def children(self):
+        return []
+
+    def print_node(self):
+        return f"Variable: {self.name}"
+
+    def _repr_pretty_(self, p, cycle):
+        Printer(p).print(self, cycle)
 
     @validator("name")
     def name_validator(cls, v):
@@ -264,15 +232,24 @@ class Variable(TreePrintScalarMixin, Real):
 
 
 @dataclass(frozen=True)
-class Negative(TreePrintScalarMixin, Scalar):
+class Negative(Scalar):
     expr: Scalar
 
     def __repr__(self) -> str:
         return f"-({self.expr!r})"
 
+    def children(self):
+        return [self.expr]
+
+    def print_node(self):
+        return "-"
+
+    def _repr_pretty_(self, p, cycle):
+        Printer(p).print(self, cycle)
+
 
 @dataclass(frozen=True)
-class Interval(TreePrintScalarMixin):
+class Interval:
     start: Scalar | None
     stop: Scalar | None
 
@@ -307,54 +284,125 @@ class Interval(TreePrintScalarMixin):
             case (start, stop):
                 return f"{self.start!r}:{self.stop!r}"
 
+    def print_node(self):
+        return "Interval"
+
+    def children(self):
+        match (self.start, self.stop):
+            case (None, None):
+                raise ValueError("Interval must have at least one bound")
+            case (None, stop):
+                return {"stop": stop}
+            case (start, None):
+                return {"start": start}
+            case (start, stop):
+                return {"start": start, "stop": stop}
+
+    def _repr_pretty_(self, p, cycle):
+        Printer(p).print(self, cycle)
+
 
 @dataclass(frozen=True)
-class Slice(TreePrintScalarMixin, Scalar):
+class Slice(Scalar):
     expr: Scalar  # duration
     interval: Interval
 
     def __repr__(self) -> str:
         return f"{self.expr!r}[{self.interval!r}]"
 
+    def children(self):
+        return {"Scalar": self.expr, None: self.interval}
+
+    def print_node(self):
+        return "Slice"
+
+    def _repr_pretty_(self, p, cycle):
+        Printer(p).print(self, cycle)
+
 
 @dataclass(frozen=True)
-class Add(TreePrintScalarMixin, Scalar):
+class Add(Scalar):
     lhs: Scalar
     rhs: Scalar
 
     def __repr__(self) -> str:
         return f"({self.lhs!r} + {self.rhs!r})"
 
+    def children(self):
+        return [self.lhs, self.rhs]
+
+    def print_node(self):
+        return "+"
+
+    def _repr_pretty_(self, p, cycle):
+        Printer(p).print(self, cycle)
+
 
 @dataclass(frozen=True)
-class Mul(TreePrintScalarMixin, Scalar):
+class Mul(Scalar):
     lhs: Scalar
     rhs: Scalar
 
     def __repr__(self) -> str:
         return f"({self.lhs!r} * {self.rhs!r})"
 
+    def children(self):
+        return [self.lhs, self.rhs]
+
+    def print_node(self):
+        return "*"
+
+    def _repr_pretty_(self, p, cycle):
+        Printer(p).print(self, cycle)
+
 
 @dataclass(frozen=True)
-class Div(TreePrintScalarMixin, Scalar):
+class Div(Scalar):
     lhs: Scalar
     rhs: Scalar
 
     def __repr__(self) -> str:
         return f"({self.lhs!r} / {self.rhs!r})"
 
+    def children(self):
+        return [self.lhs, self.rhs]
+
+    def print_node(self):
+        return "/"
+
+    def _repr_pretty_(self, p, cycle):
+        Printer(p).print(self, cycle)
+
 
 @dataclass(frozen=True)
-class Min(TreePrintScalarMixin, Scalar):
+class Min(Scalar):
     exprs: frozenset[Scalar]
+
+    def children(self):
+        return list(self.exprs)
+
+    def print_node(self):
+        return "min"
 
     def __repr__(self) -> str:
         return f"scalar.Min({self.exprs!r})"
 
+    def _repr_pretty_(self, p, cycle):
+        Printer(p).print(self, cycle)
+
 
 @dataclass(frozen=True)
-class Max(TreePrintScalarMixin, Scalar):
+class Max(Scalar):
     exprs: frozenset[Scalar]
+
+    def children(self):
+        return list(self.exprs)
+
+    def print_node(self):
+        return "max"
 
     def __repr__(self) -> str:
         return f"scalar.Max({self.exprs!r})"
+
+    def _repr_pretty_(self, p, cycle):
+        Printer(p).print(self, cycle)
