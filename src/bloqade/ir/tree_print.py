@@ -1,3 +1,5 @@
+# Ported from the Julia language AbstractTrees.jl implementation: https://github.com/JuliaCollections/AbstractTrees.jl/blob/master/src/printing.jl
+
 from pydantic.dataclasses import dataclass
 
 max_tree_depth = 10
