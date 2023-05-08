@@ -2,7 +2,7 @@ from dataclasses import InitVar
 from pydantic.dataclasses import dataclass
 from typing import Any, Union, List
 from enum import Enum
-from .print import Printer
+from .tree_print import Printer
 from .scalar import Scalar, Interval, Variable, cast
 from bokeh.plotting import figure
 import numpy as np

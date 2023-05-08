@@ -1,7 +1,7 @@
 from pydantic.dataclasses import dataclass
 from pydantic import validator
 from typing import Optional
-from .print import Printer
+from .tree_print import Printer
 
 __all__ = [
     "cast",

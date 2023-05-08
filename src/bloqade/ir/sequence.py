@@ -1,6 +1,6 @@
 from .pulse import PulseExpr, Pulse
 from .scalar import Interval
-from .print import Printer
+from .tree_print import Printer
 
 from pydantic.dataclasses import dataclass
 from typing import List, Dict

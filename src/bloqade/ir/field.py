@@ -1,7 +1,7 @@
 from pydantic.dataclasses import dataclass
 from .scalar import Scalar, cast
 from .waveform import Waveform
-from .print import Printer
+from .tree_print import Printer
 
 
 __all__ = [
