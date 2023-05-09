@@ -1,5 +1,6 @@
 import bloqade.ir as ir
-from typing import Union, Dict, List
+from numbers import Number
+from typing import Union, Dict, List, Optional
 from dataclasses import dataclass, field
 from .task import Program, BraketTask, QuEraTask, SimuTask, MockTask
 
@@ -15,15 +16,14 @@ class BuildCache:
 
     skip_sequence_build: bool = False
     sequence: ir.Sequence = field(default_factory=ir.Sequence)
-    assignments: Union[None, Dict[ir.Variable, ir.Literal]] = None
-    program: Union[None, Program] = None
+    assignments: Optional[Dict[ir.Variable, ir.Literal]] = None
+    program: Optional[Program] = None
     # intermediate states that will be purge in Route
-    waveform: Union[None, ir.Waveform] = None
-    level_coupling: Union[None, ir.LevelCoupling] = None
-    field_name: Union[None, ir.FieldName] = None
-    locations: Union[None, List[int]] = None
-    scales: Union[None, List[ir.Scalar]] = None
-    spatial_mod: Union[None, ir.SpatialModulation] = None
+    waveform: Optional[ir.Waveform] = None
+    level_coupling: Optional[ir.LevelCoupling] = None
+    field_name: Optional[ir.FieldName] = None
+    location_scales: Optional[Dict[int, ir.Scalar]] = None
+    spatial_mod: Optional[ir.SpatialModulation] = None
 
 
 class Builder:
@@ -64,9 +64,9 @@ class Emit(Builder):
         self.__validate_cache()
         if self.__cache__.spatial_mod:
             spatial_mod = self.__cache__.spatial_mod
-        elif self.__cache__.locations:
+        elif self.__cache__.location_scales:
             scaled_locations = {}
-            for loc, scal in zip(self.__cache__.locations, self.__cache__.scales):
+            for loc, scal in self.__cache__.location_scales.items():
                 scaled_locations[loc] = scal
             spatial_mod = ir.ScaledLocations(scaled_locations)
         else:
@@ -184,17 +184,24 @@ class RabiBuilder(Builder):
 
 
 class Location(Builder):
-    def locations(self, labels: List[int]):
+    def locations(self, labels: List[int], scales: List[Union[str, Number, ir.Scalar]]):
         pass
 
-    def location(self, label: int):
-        if self.__cache__.locations:
-            self.__cache__.locations.append(label)
-            self.__cache__.scales.append(ir.cast(1.0))
+    def location(self, label: int, scale: Union[str, Number, ir.Scalar] = 1.0):
+        if self.__cache__.location_scales:
+            if label in self.__cache__.location_scales:
+                raise ValueError(
+                    f"Scale value of location {label} already been defined in program."
+                )
+            self.__cache__.location_scales[label] = ir.cast(scale)
         else:
-            self.__cache__.locations = [label]
-            self.__cache__.scales = [ir.cast(1.0)]
-        return ScaleOrWaveform(self)
+            self.__cache__.location_scales = {label: ir.cast(scale)}
+
+        return Location(self)
+
+    @property
+    def waveform(self):
+        return WaveformOrTerminate(self)
 
 
 class SpatialModulation(Location):
@@ -275,8 +282,7 @@ class Route(LevelCouping, Field, SpatialModulation, WaveformCompose, AssignOrSub
         self.__cache__.waveform = None
         self.__cache__.level_coupling = None
         self.__cache__.field_name = None
-        self.__cache__.locations = None
-        self.__cache__.scales = None
+        self.__cache__.location_scales = None
         self.__cache__.spatial_mod = None
         return super().rydberg
 
@@ -288,8 +294,7 @@ class Route(LevelCouping, Field, SpatialModulation, WaveformCompose, AssignOrSub
         self.__cache__.waveform = None
         self.__cache__.level_coupling = None
         self.__cache__.field_name = None
-        self.__cache__.locations = None
-        self.__cache__.scales = None
+        self.__cache__.location_scales = None
         self.__cache__.spatial_mod = None
         return super().hyperfine
 
@@ -300,8 +305,7 @@ class Route(LevelCouping, Field, SpatialModulation, WaveformCompose, AssignOrSub
         self.__cache__.skip_sequence_build = False
         self.__cache__.waveform = None
         self.__cache__.field_name = None
-        self.__cache__.locations = None
-        self.__cache__.scales = None
+        self.__cache__.location_scales = None
         self.__cache__.spatial_mod = None
         return super().detuning
 
@@ -312,8 +316,7 @@ class Route(LevelCouping, Field, SpatialModulation, WaveformCompose, AssignOrSub
         self.__cache__.skip_sequence_build = False
         self.__cache__.waveform = None
         self.__cache__.field_name = None
-        self.__cache__.locations = None
-        self.__cache__.scales = None
+        self.__cache__.location_scales = None
         self.__cache__.spatial_mod = None
         return super().rabi
 
@@ -323,8 +326,7 @@ class Route(LevelCouping, Field, SpatialModulation, WaveformCompose, AssignOrSub
 
         self.__cache__.skip_sequence_build = False
         self.__cache__.waveform = None
-        self.__cache__.locations = None
-        self.__cache__.scales = None
+        self.__cache__.location_scales = None
         self.__cache__.spatial_mod = None
         return super().uniform
 
@@ -333,8 +335,7 @@ class Route(LevelCouping, Field, SpatialModulation, WaveformCompose, AssignOrSub
 
         self.__cache__.skip_sequence_build = False
         self.__cache__.waveform = None
-        self.__cache__.locations = None
-        self.__cache__.scales = None
+        self.__cache__.location_scales = None
         self.__cache__.spatial_mod = None
         return super().var(name)
 
@@ -343,8 +344,7 @@ class Route(LevelCouping, Field, SpatialModulation, WaveformCompose, AssignOrSub
 
         self.__cache__.skip_sequence_build = False
         self.__cache__.waveform = None
-        self.__cache__.locations = None
-        self.__cache__.scales = None
+        self.__cache__.location_scales = None
         self.__cache__.spatial_mod = None
         return super().location(label)
 
