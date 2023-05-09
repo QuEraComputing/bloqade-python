@@ -329,17 +329,18 @@ class SchemaCodeGen(ProgramVisitor):
             case (Detuning(), Field(terms)) if len(terms) == 1:
                 ((spatial_modulation, waveform),) = terms.items()
 
-                times, values = PiecewiseLinearCodeGen(self.assignments).visit(
-                    terms[Uniform]
-                )
+                times, values = PiecewiseLinearCodeGen(self.assignments).visit(waveform)
 
                 self.visit(spatial_modulation)
                 self.detuning = task_spec.Detuning(
+                    global_=task_spec.GlobalField(
+                        times=[0, times[-1]], values=[0.0, 0.0]
+                    ),
                     local=task_spec.LocalField(
                         times=times,
                         values=values,
                         lattice_site_coefficients=self.lattice_site_coefficients,
-                    )
+                    ),
                 )
 
             case (Detuning(), Field(terms)) if len(terms) == 2 and Uniform in terms:
@@ -364,7 +365,7 @@ class SchemaCodeGen(ProgramVisitor):
                 )
 
             case _:
-                raise NotADirectoryError()
+                raise NotImplementedError()
 
     def visit_pulse(self, ast: PulseExpr):
         match ast:
@@ -458,7 +459,12 @@ class SchemaCodeGen(ProgramVisitor):
         self.lattice = task_spec.Lattice(sites=sites, filling=filling)
 
     def emit(self, nshots: int, ast: "Program") -> task_spec.QuEraTaskSpecification:
+        # Do something to start muliplex
+        if ast.multiplex:
+            pass
+
         self.assignments = AssignmentScan(ast.assignments).emit(ast)
+
         self.visit(ast.lattice)
         self.visit(ast.seq)
         return task_spec.QuEraTaskSpecification(
