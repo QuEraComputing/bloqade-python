@@ -6,6 +6,31 @@ site_description: >-
 repo_name: bloqade-python
 repo_url: https://github.com/QuEraComputing/bloqade-python
 
+# Page tree
+nav:
+  - Home: index.md
+  - Getting started:
+    - Installation: getting-started.md
+    - Philosophy: philosophy.md
+    - License: license.md
+    - Contributing:
+      - contributing/index.md
+      - Reporting a bug: contributing/reporting-a-bug.md
+      - Reporting a docs issue: contributing/reporting-a-docs-issue.md
+      - Requesting a change: contributing/requesting-a-change.md
+      - Creating a reproduction: contributing/creating-a-reproduction.md
+      - Setting up development: contributing/setup.md
+      - Asking a question: https://github.com/QuEraComputing/bloqade-python/discussions
+  - Tutorials:
+    - tutorials/index.md
+    - examples/adiabatic.py
+  - Reference:
+    - reference/bloqade/
+  - Blog:
+    - blog/index.md
+    - 2023:
+      - blog/posts/bloqade-release.md
+
 copyright: Copyright &copy; 2022 - QuEra Computing Inc.
 theme:
   name: material
@@ -135,27 +160,3 @@ markdown_extensions:
   - pymdownx.tasklist:
       custom_checkbox: true
   - pymdownx.tilde
-
-# Page tree
-nav:
-  - Home: index.md
-  - Getting started:
-    - Installation: getting-started.md
-    - Philosophy: philosophy.md
-    - License: license.md
-    - Contributing:
-      - contributing/index.md
-      - Reporting a bug: contributing/reporting-a-bug.md
-      - Reporting a docs issue: contributing/reporting-a-docs-issue.md
-      - Requesting a change: contributing/requesting-a-change.md
-      - Asking a question: https://github.com/squidfunk/mkdocs-material/discussions
-      - Creating a reproduction: contributing/creating-a-reproduction.md
-  - Tutorials:
-    - tutorials/index.md
-    - examples/adiabatic.py
-  - Reference:
-    - reference/bloqade/
-  - Blog:
-    - blog/index.md
-    - 2023:
-      - blog/posts/bloqade-release.md
