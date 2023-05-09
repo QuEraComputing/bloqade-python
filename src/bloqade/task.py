@@ -1,6 +1,16 @@
+from pydantic import BaseModel
 from quera_ahs_utils.quera_ir.task_results import QuEraTaskResults
 
-from bloqade.submission.mock_backend import DumbMockBackend
+from quera_ahs_utils.ir import quera_task_to_braket_ahs
+from bloqade.submission.mock import DumbMockBackend
+from bloqade.submission.quera import QuEraBackend
+from bloqade.submission.braket import BraketBackend
+from bloqade.submission.ir import (
+    QuantumTaskIR,
+    BraketTaskSpecification,
+    QuEraTaskSpecification,
+)
+
 from .ir import Sequence, Variable, Literal
 from typing import TYPE_CHECKING, Dict, Union
 
@@ -12,10 +22,6 @@ import numpy as np
 
 
 class Task:
-    def __init__(self, prog: "Program", nshots: int) -> None:
-        self.prog = prog
-        self.nshots = nshots
-
     def submit(self, token=None) -> "TaskResult":
         # TODO: do a real task result
         # 1. run the corresponding codegen
@@ -26,61 +32,62 @@ class Task:
         raise NotImplementedError(f"No task backend found for {self.__class__}")
 
 
+class HardwareTask(BaseModel, Task):
+    task_ir: QuantumTaskIR
+
+
 # NOTE: this will contain the schema object and the program object
 #       after codegen happens.
-class BraketTask(Task):
+class BraketTask(HardwareTask):
     def __init__(self, prog: "Program", nshots: int) -> None:
-        super().__init__(prog, nshots)
-        # quera_task = QuEraTaskSpecification(
-        #     nshots=self.nshots,
-        #     lattice=LatticeCodeGen(assignments=self.prog.assignments).emit(
-        #         self.prog.lattice
-        #     ),
-        #     effective_hamiltonian=SequenceCodeGen(
-        #         n_atoms=self.prog.lattice.n_atoms,
-        #         assignments=self.prog.assignments,
-        #     ).emit(self.prog.seq),
-        # )
-        # _, braket_task = quera_task_to_braket_ahs(quera_task)
-        # self.task_ir = braket_task.to_ir()
+        from bloqade.codegen.quera_hardware import SchemaCodeGen
 
-    def submit(self, token=None) -> "TaskResult":
-        return TaskResult()
+        quera_task_ir = SchemaCodeGen().emit(nshots, prog)
+        braket_ahs_program, nshots = quera_task_to_braket_ahs(quera_task_ir)
+        self.backend = BraketBackend()
+
+        super().__init__(BraketTaskSpecification(nshots, braket_ahs_program.to_ir()))
 
 
-class QuEraTask(Task):
-    def __init__(self, prog: "Program", nshots: int) -> None:
-        super().__init__(prog, nshots)
-        # self.task_ir = QuEraTaskSpecification(
-        #     nshots=self.nshots,
-        #     lattice=LatticeCodeGen(assignments=self.prog.assignments).emit(
-        #         self.prog.lattice
-        #     ),
-        #     effective_hamiltonian=SequenceCodeGen(
-        #         n_atoms=self.prog.lattice.n_atoms,
-        #         assignments=self.prog.assignments,
-        #     ).emit(self.prog.seq),
-        # )
+class QuEraTask(HardwareTask):
+    def __init__(self, *args, **kwargs) -> None:
+        from bloqade.codegen.quera_hardware import SchemaCodeGen
+
+        match args:
+            case (Program() as prog, int(nshots)):
+                task_ir = SchemaCodeGen().emit(nshots, prog)
+                self.backend = QuEraBackend()
+                super().__init__(task_ir)
+
+            case QuEraTaskSpecification() as task_ir:
+                super().__init__(task_ir=task_ir)
+
+            case _:
+                super().__init__(*args, **kwargs)
 
 
-class MockTask(Task):
+class MockTask(HardwareTask):
     def __init__(
         self, prog: "Program", nshots: int, state_file=".mock_state.txt"
     ) -> None:
         super().__init__(prog, nshots)
-
         from bloqade.codegen.quera_hardware import SchemaCodeGen
 
+        task_ir = SchemaCodeGen().emit(nshots, prog)
+
+        super().__init__(task_ir)
+
         self.backend = DumbMockBackend(state_file=state_file)
-        self.task_ir = SchemaCodeGen().emit(nshots, prog)
 
     def submit(self, *args, **kwargs) -> "MockTaskResult":
-        return MockTaskResult(self.backend.submit_task(self.task_ir), self.backend)
+        task_id = self.backend.submit_task(self.task_ir)
+        return MockTaskResult(self.task_ir, task_id, self.backend)
 
 
 class SimuTask(Task):
     def __init__(self, prog: "Program", nshots: int) -> None:
-        super().__init__(prog, nshots)
+        self.prog = prog
+        self.nshots = nshots
         # custom config goes here
 
 
@@ -90,8 +97,13 @@ class TaskResult:
         return TaskReport(self)
 
 
-class MockTaskResult(TaskResult):
-    def __init__(self, task_id: str, backend: DumbMockBackend):
+class QuantumTaskResult(BaseModel, TaskResult):
+    task_ir: QuantumTaskIR
+    task_id: str
+
+
+class MockTaskResult(BaseModel, TaskResult):
+    def __init__(self, task_ir: QuantumTaskIR, task_id: str, backend: DumbMockBackend):
         self.task_id = task_id
         self.backend = backend
         self._task_result_ir = None

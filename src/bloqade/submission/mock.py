@@ -1,3 +1,5 @@
+from bloqade.submission.base import SubmissionBackend
+
 from quera_ahs_utils.quera_ir.task_specification import QuEraTaskSpecification
 from quera_ahs_utils.quera_ir.task_results import (
     QuEraTaskResults,
@@ -42,7 +44,7 @@ def simulate_task_results(task: QuEraTaskSpecification, p_full=0.99, p_empty=0.0
     )
 
 
-class DumbMockBackend:
+class DumbMockBackend(SubmissionBackend):
     def __init__(self, state_file=".mock_state.txt"):
         self.state_file = state_file
         self.state = {}
@@ -71,5 +73,5 @@ class DumbMockBackend:
             raise ValueError(f"task_id {task_id}, not found.")
         return task
 
-    def task_cancel(self, task_id: str):
+    def cancel_task(self, task_id: str):
         pass
