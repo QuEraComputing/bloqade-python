@@ -1,8 +1,8 @@
 from pydantic.dataclasses import dataclass
 from .scalar import Scalar, cast
 from .waveform import Waveform
+from typing import Dict
 from .tree_print import Printer
-
 
 __all__ = [
     "Field",
@@ -123,7 +123,7 @@ class Field:
     <field> ::= ('field' <spatial modulation>  <padded waveform>)*
     """
 
-    value: dict[SpatialModulation, Waveform]
+    value: Dict[SpatialModulation, Waveform]
 
     def __hash__(self) -> int:
         return hash(frozenset(self.value.items())) ^ hash(self.__class__)
