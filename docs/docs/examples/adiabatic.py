@@ -74,7 +74,7 @@ lattice.Square(6).rydberg.detuning.uniform.apply(
     Linear(0.0, "rabi_amplitude_max", "up_time")
     .append(Constant("rabi_amplitude_max", "anneal_time"))
     .append(Linear("rabi_amplitude_max", 0.0, "up_time"))
-).assign(
+).multiplex().assign(
     initial_detuning=-15,
     final_detuning=10,
     up_time=0.1,
