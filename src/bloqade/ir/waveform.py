@@ -2,6 +2,7 @@ from dataclasses import InitVar
 from pydantic.dataclasses import dataclass
 from typing import Any, Union, List
 from enum import Enum
+from .tree_print import Printer
 from .scalar import Scalar, Interval, Variable, cast
 from bokeh.plotting import figure
 import numpy as np
@@ -141,6 +142,32 @@ class AlignedWaveform(Waveform):
     alignment: Alignment
     value: Union[Scalar, AlignedValue]
 
+    def print_node(self):
+        return "AlignedWaveform"
+
+    def children(self):
+        annotated_children = {}
+        annotated_children["Waveform"] = self.waveform
+
+        match self.alignment:
+            case Alignment.Left:
+                annotated_children["Alignment"] = "Left"
+            case Alignment.Right:
+                annotated_children["Alignment"] = "Right"
+
+        match self.value:
+            case Scalar():
+                annotated_children["Value"] = self.value
+            case AlignedValue.Left:
+                annotated_children["Value"] = "Left"
+            case AlignedValue.Right:
+                annotated_children["Value"] = "Right"
+
+        return annotated_children
+
+    def _repr_pretty_(self, p, cycle):
+        Printer(p).print(self, cycle)
+
 
 @dataclass
 class Instruction(Waveform):
@@ -177,6 +204,15 @@ class Linear(Instruction):
             f"duration={self.duration!r})"
         )
 
+    def print_node(self):
+        return "Linear"
+
+    def children(self):
+        return {"start": self.start, "stop": self.stop, "duration": self.duration}
+
+    def _repr_pretty_(self, p, cycle):
+        Printer(p).print(self, cycle)
+
 
 @dataclass(init=False)
 class Constant(Instruction):
@@ -199,7 +235,16 @@ class Constant(Instruction):
             return constant_value
 
     def __repr__(self) -> str:
-        return f"Constant(value={self.value!r}, duration={self.duration!r})"
+        return f"constant {self.value}"
+
+    def print_node(self):
+        return "Constant"
+
+    def children(self):
+        return {"value": self.value, "duration": self.duration}
+
+    def _repr_pretty_(self, p, cycle):
+        Printer(p).print(self, cycle)
 
 
 @dataclass(init=False)
@@ -230,6 +275,29 @@ class Poly(Instruction):
 
     def __repr__(self) -> str:
         return f"Poly({self.checkpoints!r}, {self.duration!r})"
+
+    def print_node(self) -> str:
+        return "Poly"
+
+    def children(self):
+        # should have annotation for duration
+        # then annotations for the polynomial terms and exponents
+
+        annotated_checkpoints = {}
+        for i, checkpoint in enumerate(self.checkpoints):
+            if i == 0:
+                annotated_checkpoints["b"] = checkpoint
+            elif i == 1:
+                annotated_checkpoints["t"] = checkpoint
+            else:
+                annotated_checkpoints["t^" + str(i)] = checkpoint
+
+        annotated_checkpoints["duration"] = self._duration
+
+        return annotated_checkpoints
+
+    def _repr_pretty_(self, p, cycle):
+        Printer(p).print(self, cycle)
 
 
 @dataclass
@@ -268,6 +336,15 @@ class Slice(Waveform):
         start_time = self.interval.start(**kwargs)
         return self.waveform(clock_s + start_time, **kwargs)
 
+    def print_node(self):
+        return "Slice"
+
+    def children(self):
+        return [self.waveform, self.interval]
+
+    def _repr_pretty_(self, p, cycle):
+        Printer(p).print(self, cycle)
+
 
 @dataclass
 class Append(Waveform):
@@ -292,6 +369,15 @@ class Append(Waveform):
     def __repr__(self) -> str:
         return f"waveform.Append(waveforms={self.waveforms!r})"
 
+    def print_node(self):
+        return "Append"
+
+    def children(self):
+        return self.waveforms
+
+    def _repr_pretty_(self, p, cycle):
+        Printer(p).print(self, cycle)
+
 
 @dataclass
 class Negative(Waveform):
@@ -306,6 +392,15 @@ class Negative(Waveform):
 
     def __repr__(self) -> str:
         return f"-({self.waveform!r})"
+
+    def print_node(self):
+        return "-"
+
+    def children(self):
+        return [self.waveform]
+
+    def _repr_pretty_(self, p, cycle):
+        Printer(p).print(self, cycle)
 
 
 @dataclass(init=False)
@@ -327,6 +422,15 @@ class Scale(Waveform):
     def __repr__(self) -> str:
         return f"({self.scalar!r} * {self.waveform!r})"
 
+    def print_node(self):
+        return "Scale"
+
+    def children(self):
+        return [self.scalar, self.waveform]
+
+    def _repr_pretty_(self, p, cycle):
+        Printer(p).print(self, cycle)
+
 
 @dataclass
 class Add(Waveform):
@@ -343,6 +447,15 @@ class Add(Waveform):
     def __repr__(self) -> str:
         return f"({self.left!r} + {self.right!r})"
 
+    def print_node(self):
+        return "+"
+
+    def children(self):
+        return [self.left, self.right]
+
+    def _repr_pretty_(self, p, cycle):
+        Printer(p).print(self, cycle)
+
 
 @dataclass
 class Record(Waveform):
@@ -355,3 +468,12 @@ class Record(Waveform):
 
     def __call__(self, clock_s: float, **kwargs) -> Any:
         return self.waveform(clock_s, **kwargs)
+
+    def print_node(self):
+        return "Record"
+
+    def children(self):
+        return {"Waveform": self.waveform, "Variable": self.var}
+
+    def _repr_pretty_(self, p, cycle):
+        Printer(p).print(self, cycle)
