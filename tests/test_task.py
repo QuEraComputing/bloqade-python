@@ -88,3 +88,7 @@ prog = (
 
 prog.seq
 prog.lattice
+
+builder = lattice.Square(3).rydberg.detuning
+for i in range(10):
+    builder.location(i).linear(start=1.0, stop=2.0, duration=2.0)

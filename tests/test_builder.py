@@ -1,10 +1,10 @@
 from bloqade.ir import Linear
-from bloqade.builder import Start
+from bloqade.builder import SequenceStart
 
 wf = Linear(start=1.0, stop="x", duration=3.0)
 
 seq = (
-    Start()
+    SequenceStart()
     .rydberg.rabi.amplitude.location(1)
     .linear(start=1.0, stop=2.0, duration="x")
     .location(2)
@@ -15,7 +15,7 @@ seq = (
 )
 
 seq = (
-    Start()
+    SequenceStart()
     .rydberg.rabi.amplitude.uniform.apply(Linear(start=1.0, stop=2.0, duration="x"))
     .location(1)
     .linear(start=1.0, stop=2.0, duration="x")

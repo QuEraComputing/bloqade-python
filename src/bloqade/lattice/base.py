@@ -1,10 +1,10 @@
-from ..builder import Start
+from ..builder import SequenceStart
 from numpy.typing import NDArray
 from typing import Generator
 from bokeh.plotting import show
 
 
-class Lattice(Start):
+class Lattice(SequenceStart):
     def __init__(self) -> None:
         super().__init__()
         self.__lattice__ = self

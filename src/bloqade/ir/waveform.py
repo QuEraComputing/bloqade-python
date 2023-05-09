@@ -174,7 +174,7 @@ class Linear(Instruction):
     def __repr__(self) -> str:
         return (
             f"Linear(start={self.start!r}, stop={self.stop!r}, "
-            "duration={self.duration!r})"
+            f"duration={self.duration!r})"
         )
 
 
