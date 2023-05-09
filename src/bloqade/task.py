@@ -1,8 +1,5 @@
-from quera_ahs_utils.quera_ir.task_specification import QuEraTaskSpecification
 from quera_ahs_utils.quera_ir.task_results import QuEraTaskResults
 
-from bloqade.codegen.hardware.sequence import SequenceCodeGen
-from bloqade.codegen.hardware.lattice import LatticeCodeGen
 from bloqade.submission.mock_backend import DumbMockBackend
 from .ir import Sequence, Variable, Literal
 from typing import TYPE_CHECKING, Dict, Union
@@ -71,17 +68,11 @@ class MockTask(Task):
         self, prog: "Program", nshots: int, state_file=".mock_state.txt"
     ) -> None:
         super().__init__(prog, nshots)
+
+        from bloqade.codegen.quera_hardware import SchemaCodeGen
+
         self.backend = DumbMockBackend(state_file=state_file)
-        self.task_ir = QuEraTaskSpecification(
-            nshots=self.nshots,
-            lattice=LatticeCodeGen(assignments=self.prog.assignments).emit(
-                self.prog.lattice
-            ),
-            effective_hamiltonian=SequenceCodeGen(
-                n_atoms=self.prog.lattice.n_atoms,
-                assignments=self.prog.assignments,
-            ).emit(self.prog.seq),
-        )
+        self.task_ir = SchemaCodeGen().emit(nshots, prog)
 
     def submit(self, *args, **kwargs) -> "MockTaskResult":
         return MockTaskResult(self.backend.submit_task(self.task_ir), self.backend)
