@@ -1,10 +1,10 @@
 from bloqade.ir import Linear
-from bloqade.builder import SequenceStart
+from bloqade.builder.start import ProgramStart
 
 wf = Linear(start=1.0, stop="x", duration=3.0)
 
 seq = (
-    SequenceStart()
+    ProgramStart()
     .rydberg.rabi.amplitude.location(1)
     .linear(start=1.0, stop=2.0, duration="x")
     .location(2)
@@ -15,13 +15,13 @@ seq = (
 )
 
 seq = (
-    SequenceStart()
+    ProgramStart()
     .rydberg.rabi.amplitude.uniform.apply(Linear(start=1.0, stop=2.0, duration="x"))
     .location(1)
     .linear(start=1.0, stop=2.0, duration="x")
-    .program
+    .sequence
 )
 
-print(seq.seq)
-print(seq.lattice)
-print(seq.assignments)
+# print(seq.seq)
+# print(seq.lattice)
+# print(seq.assignments)

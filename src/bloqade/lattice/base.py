@@ -1,10 +1,10 @@
-from ..builder import SequenceStart
+from bloqade.builder.start import ProgramStart
 from numpy.typing import NDArray
 from typing import Generator
 from bokeh.plotting import show
 
 
-class Lattice(SequenceStart):
+class Lattice(ProgramStart):
     def __init__(self) -> None:
         super().__init__()
         self.__lattice__ = self

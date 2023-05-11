@@ -1,7 +1,7 @@
 import bloqade.ir as ir
 from typing import Union, Dict, List
 from dataclasses import dataclass, field
-from .task import Program, BraketTask, QuEraTask, SimuTask, MockTask
+from bloqade.task import Program, BraketTask, QuEraTask, SimuTask, MockTask
 
 
 class BuildError(Exception):
