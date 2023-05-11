@@ -32,20 +32,16 @@ class Linear(WaveformTerminate):
         self, parent: Builder, start: float, stop: float, duration: str
     ) -> None:
         super().__init__(parent)
-        self._start = start
-        self._stop = stop
-        self._duration = duration
+        self._waveform = ir.Linear(start, stop, duration)
 
 
 class Constant(WaveformTerminate):
     def __init__(self, parent: Builder, value: float, duration: str) -> None:
         super().__init__(parent)
-        self._value = value
-        self._duration = duration
+        self._waveform = ir.Constant(value, duration)
 
 
 class Poly(WaveformTerminate):
     def __init__(self, parent: Builder, coeffs: list, duration: str) -> None:
         super().__init__(parent)
-        self._coeffs = coeffs
-        self._duration = duration
+        self._waveform = ir.Poly(coeffs, duration)
