@@ -7,6 +7,7 @@ class SpatialModulation(Builder):
 
         return Location(self, label)
 
+    @property
     def uniform(self):
         from .location import Uniform
 
