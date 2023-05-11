@@ -1,20 +1,37 @@
 from .base import Builder
 from .terminate import Terminate
 import bloqade.ir as ir
+from typing import Union, List
+
+ScalarType = Union[float, str]
 
 
 class Waveform(Builder):
-    def linear(self, start: float, stop: float, duration: str):
+    def linear(self, start: ScalarType, stop: ScalarType, duration: ScalarType):
         return Linear(self, start, stop, duration)
 
-    def constant(self, value: float, duration: str):
+    def constant(self, value: ScalarType, duration: ScalarType):
         return Constant(self, value, duration)
 
-    def poly(self, coeffs: list, duration: str):
+    def poly(self, coeffs: ScalarType, duration: ScalarType):
         return Poly(self, coeffs, duration)
 
     def apply(self, wf: ir.Waveform):
         return Apply(self, wf)
+
+    def piecewise_linear(self, durations: List[ScalarType], values: List[ScalarType]):
+        builder = self
+        for duration, start, stop in zip(durations, values[:-1], values[1:]):
+            builder = builder.linear(start, stop, duration)
+
+        return builder
+
+    def piecewise_constant(self, durations: List[ScalarType], values: List[ScalarType]):
+        builder = self
+        for duration, value in zip(durations, values):
+            builder = builder.constant(value, duration)
+
+        return builder
 
 
 class WaveformTerminate(Waveform, Terminate):
