@@ -151,6 +151,9 @@ class Program:
         self.seq = seq
         self.assignments = assignments
 
+    # Add multiplex method
+    # return new AST and multiplex object (mapping to atoms and subproblems)
+
     def braket(self, *args, **kwargs) -> BraketTask:
         return BraketTask(self, *args, **kwargs)
 
