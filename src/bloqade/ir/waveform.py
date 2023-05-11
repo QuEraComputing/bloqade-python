@@ -235,7 +235,7 @@ class Constant(Instruction):
             return constant_value
 
     def __repr__(self) -> str:
-        return f"constant {self.value}"
+        return f"Constant(value={self.value!r}, duration={self.duration!r})"
 
     def print_node(self):
         return "Constant"
