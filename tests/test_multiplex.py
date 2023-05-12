@@ -32,12 +32,12 @@ seq = Sequence(
 )
 
 
-prog = Program(lattice, seq, {})
+prog = Program(lattice, seq)
 
 # need to provide capabilities and problem spacing
 cap = Capabilities(num_sites_max=256, max_height=75, max_width=75)
 
-cluster_spacing = 2.0  # 1.0 micrometers
+cluster_spacing = 4.0
 
 # can remove multiplex_enabled flag in favor of checking presence of mapping attribute
 multiplexed_prog = multiplex_program(prog, cap, cluster_spacing)

@@ -27,7 +27,6 @@ def multiplex_lattice(
     lattice_ast: Lattice, capabilities, cluster_spacing
 ) -> Tuple[ListOfPositions, List[SiteClusterInfo]]:
     lattice_sites = list(lattice_ast.enumerate())
-    print(lattice_sites)
     # get minimum and maximum x,y coords for existing problem spacing
     x_min = x_max = 0
     y_min = y_max = 0
