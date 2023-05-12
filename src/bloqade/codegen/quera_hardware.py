@@ -272,9 +272,66 @@ class SchemaCodeGen(ProgramVisitor):
         self.multiplex_mapping = None
 
     def visit_spatial_modulation(self, ast: SpatialModulation):
+        match (self.multiplex_mapping, ast):
+            case (None, ScaledLocations(locations)):
+                # check that all indices map to actual atoms in lattice
+                self.lattice_site_coefficients = []
+                for location in locations.keys():
+                    if location.value >= self.n_atoms:
+                        raise ValueError(
+                            f"Location({location.value}) is larger than the lattice."
+                        )
+
+                for atom_index in range(self.n_atoms):
+                    scale = locations.get(Location(atom_index), Literal(0.0))
+                    self.lattice_site_coefficients.append(
+                        scale(**self.assignments)
+                    )  # append scalars to lattice_site_coefficients
+
+            case (multiplex_mapping, ScaledLocations(locations)):
+                self.lattice_site_coefficients = []
+
+                for location in locations.keys():
+                    if location.value >= self.n_atoms:
+                        raise ValueError(
+                            f"Location({location.value}) is larger than the lattice."
+                        )
+
+                site_to_cluster_map = MultiplexDecoder(
+                    mapping=multiplex_mapping
+                ).get_site_indices()
+
+                for atom_index in range(self.n_atoms):
+                    scale = locations.get(
+                        Location(site_to_cluster_map[atom_index]), Literal(0.0)
+                    )
+                    self.lattice_site_coefficients.append(scale(**self.assignments))
+
+            case (None, RunTimeVector(name)):
+                if len(self.assignments[name]) != self.n_atoms:
+                    raise ValueError(
+                        f"Coefficient list {name} doesn't match the size of lattice "
+                        f"{self.n_atoms}."
+                    )
+
+            case (multiplex_mapping, RunTimeVector(name)):
+                if len(self.assignments[name]) != self.n_atoms:
+                    raise ValueError(
+                        f"Coefficient list {name} doesn't match the size of lattice "
+                        f"{self.n_atoms}."
+                    )
+
+                multiplexed_runtime_vector = []
+                for _ in range(self.multiplex_mapping.keys()):
+                    multiplexed_runtime_vector += self.assignments[name]
+
+                self.assignments[name] = multiplexed_runtime_vector
+
+    """
+    def visit_spatial_modulation(self, ast: SpatialModulation):
         # can use the multiplex mapping and multiplexed enabled features here
         match ast:
-            case ScaledLocations(locations):
+            case ScaledLocations(locations): # with and without multiplexing
                 self.lattice_site_coefficients = []
 
                 # check that all indices map to actual atoms in lattice
@@ -308,7 +365,7 @@ class SchemaCodeGen(ProgramVisitor):
                         scale(**self.assignments)
                     )  # append scalars to lattice_site_coefficients
 
-            case RunTimeVector(name):
+            case RunTimeVector(name): # with and without multiplexing
                 run_time_vector = self.assignments[name]
                 if len(run_time_vector) != self.n_atoms:
                     raise ValueError(
@@ -329,6 +386,7 @@ class SchemaCodeGen(ProgramVisitor):
                 raise RuntimeError(
                     "This Error should not appear, please Open up an issue."
                 )
+"""
 
     def visit_field(self, ast: Field):
         match (self.field_name, ast):  # Pulse: Dict of FieldName/Field
