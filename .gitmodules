@@ -1,0 +1,3 @@
+[submodule "QCS-API-client"]
+	path = QCS-API-client
+	url = https://github.com/QuEra-QCS/QCS-API-client.git

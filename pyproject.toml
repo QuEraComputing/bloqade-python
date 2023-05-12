@@ -13,6 +13,7 @@ dependencies = [
     "pandas>=2.0.1",
     "seaborn>=0.12.2",
     "bokeh>=3.1.0",
+    "quera-qcs-client @ file:///${PROJECT_ROOT}/QCS-API-client",
 ]
 requires-python = ">=3.10"
 readme = "README.md"
@@ -77,7 +78,6 @@ dev = [
     "pre-commit>=3.3.1",
     "coverage>=7.2.5",
     "jupytext>=1.14.5",
-    "quera-qcs-client @ git+ssh://git@github.com/QuEra-QCS/QCS-API-client.git",
 ]
 
 [tool.pdm.scripts]
