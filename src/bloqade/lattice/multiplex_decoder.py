@@ -1,6 +1,6 @@
 from pydantic import BaseModel, validator, ValidationError
 from typing import List, Union
-from .quera_task_result import QuEraShotResult, QuEraTaskResults
+from quera_ahs_utils.quera_ir.task_results import QuEraShotResult, QuEraTaskResults
 from .multiplex import SiteClusterInfo
 
 
