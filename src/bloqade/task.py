@@ -11,8 +11,9 @@ from bloqade.submission.ir import (
     QuEraTaskSpecification,
 )
 
-from .ir import Sequence, Variable, Literal
-from typing import TYPE_CHECKING, Dict, Union
+from bloqade.ir import Sequence
+from typing import TYPE_CHECKING, Dict, Optional, Union, List
+from numbers import Number
 
 if TYPE_CHECKING:
     from .lattice.base import Lattice
@@ -155,13 +156,25 @@ class TaskReport:
 class Program:
     def __init__(
         self,
-        lattice: Union[None, "Lattice"],
-        seq: Sequence,
-        assignments: Union[None, Dict[Variable, Literal]] = None,
-    ) -> None:
-        self.lattice = lattice
-        self.seq = seq
-        self.assignments = assignments
+        lattice: Lattice,
+        sequence: Sequence,
+        assignments: Optional[Dict[str, Union[Number, List[Number]]]] = None,
+    ):
+        self._lattice = lattice
+        self._sequence = sequence
+        self._assignments = assignments
+
+    @property
+    def lattice(self):
+        return self._lattice
+
+    @property
+    def sequence(self):
+        return self._sequence
+
+    @property
+    def assignments(self):
+        return self._assignments
 
     def braket(self, *args, **kwargs) -> BraketTask:
         return BraketTask(self, *args, **kwargs)

@@ -457,10 +457,10 @@ class SchemaCodeGen(ProgramVisitor):
         self.n_atoms = len(sites)
         self.lattice = task_spec.Lattice(sites=sites, filling=filling)
 
-    def emit(self, nshots: int, ast: "Program") -> task_spec.QuEraTaskSpecification:
-        self.assignments = AssignmentScan(ast.assignments).emit(ast)
-        self.visit(ast.lattice)
-        self.visit(ast.seq)
+    def emit(self, nshots: int, program: Program) -> task_spec.QuEraTaskSpecification:
+        self.assignments = AssignmentScan(program.assignments).emit(program.sequence)
+        self.visit(program.lattice)
+        self.visit(program.sequence)
         return task_spec.QuEraTaskSpecification(
             nshots=nshots,
             lattice=self.lattice,

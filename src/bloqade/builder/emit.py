@@ -6,6 +6,8 @@ import bloqade.builder.field as field
 import bloqade.builder.coupling as coupling
 import bloqade.builder.start as start
 import bloqade.ir as ir
+from bloqade.task import Program
+
 from pydantic import BaseModel
 from typing import Optional
 
@@ -34,11 +36,11 @@ class Emit(Builder):
 
     def __init__(self, builder: Builder) -> None:
         super().__init__(builder)
-        self.__assignments = None
-        self.__sequence = None
+        self.__assignments__ = {}
+        self.__sequence__ = None
 
     def assign(self, **assignments):
-        self.__assignments = assignments
+        self.__assignments__.update(assignments)
 
     @staticmethod
     def __build(builder: Builder, build_state: BuildState):
@@ -214,19 +216,16 @@ class Emit(Builder):
 
     @property
     def sequence(self):
-        build_state = BuildState()
-        if self.__sequence is None:
+        if self.__sequence__ is None:
+            build_state = BuildState()
             Emit.__build(self, build_state)
+            self.__sequence__ = build_state.sequence
 
-            self.__sequence = build_state.sequence
+        return self.__sequence__
 
-        return self.__sequence
+    @property
+    def program(self):
+        if self.__lattice__ is None:
+            raise AttributeError("No lattice specified")
 
-    def quera(self):  # -> return QuEraSchema object
-        pass
-
-    def braket(self):  # -> return BraketSchema object
-        pass
-
-    def simu(self):  # -> Simulation object
-        pass
+        return Program(self.__lattice__, self.sequence, self.__assignments__)
