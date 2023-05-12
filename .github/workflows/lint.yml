@@ -13,8 +13,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-        with:
-          submodules: 'true'
       - uses: chartboost/ruff-action@v1
   black:
     runs-on: ubuntu-latest
