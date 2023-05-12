@@ -1,7 +1,7 @@
 import bloqade.ir as ir
 from typing import Union, Dict, List
 from dataclasses import dataclass, field
-from .task import Program, BraketTask, QuEraTask, SimuTask, MockTask
+from bloqade.task import Program, BraketTask, QuEraTask, SimuTask, MockTask
 
 
 class BuildError(Exception):
@@ -44,6 +44,14 @@ class Builder:
         # cache fields to pass over to the next builder
         self.__cache__ = cache
 
+    # TODO: figure out some use cases of this function
+    def clone(self):
+        """???"""
+        pass
+
+
+# traits/mixin/...
+
 
 class Emit(Builder):
     def update_sequence(self) -> None:
@@ -78,6 +86,7 @@ class Emit(Builder):
         return self
 
     def __validate_cache(self) -> None:
+        # TODO: validate if cache is correct
         pass
 
     @property
@@ -162,7 +171,7 @@ class Field(Builder):
         return RabiBuilder(self)
 
 
-class RabiBuilder(Field):
+class RabiBuilder(Builder):
     @property
     def amplitude(self):
         self.__cache__.field_name = ir.rabi.amplitude
@@ -175,6 +184,9 @@ class RabiBuilder(Field):
 
 
 class Location(Builder):
+    def locations(self, labels: List[int]):
+        pass
+
     def location(self, label: int):
         if self.__cache__.locations:
             self.__cache__.locations.append(label)
@@ -217,6 +229,12 @@ class Waveform(Builder):
         wf = ir.Poly(coefficients, duration)
         return self.__update_waveform(wf)
 
+    def piecewise_linear(self, values, durations):
+        raise NotImplementedError
+
+    def piecewise_constant(self, values, durations):
+        raise NotImplementedError
+
 
 class WaveformCompose(Waveform):
     """Builder for building composite waveform"""
@@ -248,6 +266,7 @@ class AssignOrSubmit(Assign, Submit):
 
 
 class Route(LevelCouping, Field, SpatialModulation, WaveformCompose, AssignOrSubmit):
+    # TODO: overload other methods to update_sequence
     @property
     def rydberg(self):
         self.update_sequence()
@@ -332,6 +351,8 @@ class Route(LevelCouping, Field, SpatialModulation, WaveformCompose, AssignOrSub
 
 class TerminateWithWaveform(Terminate):
     def apply(self, waveform: ir.Waveform) -> Route:
+        if not self.__cache__.waveform:
+            raise ValueError("waveform already specified")
         self.__cache__.waveform = waveform
         return Route(self)
 
@@ -342,6 +363,7 @@ class Scale(Location, TerminateWithWaveform):
         value = ir.cast(scale)
         self.__cache__.scales.pop()
         self.__cache__.scales.append(value)
+        # TODO: allow .location here
         return WaveformOrTerminate(self)
 
 
@@ -353,7 +375,7 @@ class WaveformOrTerminate(Waveform, TerminateWithWaveform):
     pass
 
 
-class Start(LevelCouping, Field, SpatialModulation, Waveform, Terminate):
+class SequenceStart(LevelCouping, Terminate):
     def apply(self, seq: ir.Sequence) -> Route:
         self.__cache__.sequence = seq
         self.__cache__.skip_sequence_build = True

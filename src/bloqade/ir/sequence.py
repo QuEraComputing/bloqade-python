@@ -120,7 +120,7 @@ class Sequence(SequenceExpr):
         }
 
     def print_node(self):
-        return "Append"
+        return "Sequence"
 
     def _repr_pretty_(self, p, cycle):
         Printer(p).print(self, cycle)
