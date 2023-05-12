@@ -41,6 +41,7 @@ class Emit(Builder):
 
     def assign(self, **assignments):
         self.__assignments__.update(assignments)
+        return self
 
     @staticmethod
     def __build(builder: Builder, build_state: BuildState):
@@ -215,6 +216,14 @@ class Emit(Builder):
                 raise RuntimeError(f"invalid builder type: {builder.__class__}")
 
     @property
+    def lattice(self):
+        current = self
+        while current.__parent__ is not None:
+            current = current.__parent__
+
+        return current.__lattice__
+
+    @property
     def sequence(self):
         if self.__sequence__ is None:
             build_state = BuildState()
@@ -225,7 +234,4 @@ class Emit(Builder):
 
     @property
     def program(self):
-        if self.__lattice__ is None:
-            raise AttributeError("No lattice specified")
-
-        return Program(self.__lattice__, self.sequence, self.__assignments__)
+        return Program(self.lattice, self.sequence, self.__assignments__)

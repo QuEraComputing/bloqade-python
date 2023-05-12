@@ -23,7 +23,7 @@ import numpy as np
 
 
 class Task:
-    def submit(self, token=None) -> "TaskResult":
+    def submit(self, session=None) -> "TaskResult":
         # TODO: do a real task result
         # 1. run the corresponding codegen
         # 2. submit the codegen to the backend
@@ -68,21 +68,23 @@ class QuEraTask(HardwareTask):
 
 
 class MockTask(HardwareTask):
+    backend: DumbMockBackend
+
     def __init__(
         self, prog: "Program", nshots: int, state_file=".mock_state.txt"
     ) -> None:
-        super().__init__(prog, nshots)
         from bloqade.codegen.quera_hardware import SchemaCodeGen
 
         task_ir = SchemaCodeGen().emit(nshots, prog)
+        backend = DumbMockBackend(state_file=state_file)
 
-        super().__init__(task_ir)
+        super().__init__(task_ir=task_ir, backend=backend)
 
-        self.backend = DumbMockBackend(state_file=state_file)
-
-    def submit(self, *args, **kwargs) -> "MockTaskResult":
+    def submit(self) -> "MockTaskResult":
         task_id = self.backend.submit_task(self.task_ir)
-        return MockTaskResult(self.task_ir, task_id, self.backend)
+        return MockTaskResult(
+            task_ir=self.task_ir, task_id=task_id, backend=self.backend
+        )
 
 
 class SimuTask(Task):
@@ -101,27 +103,26 @@ class TaskResult:
 class QuantumTaskResult(BaseModel, TaskResult):
     task_ir: QuantumTaskIR
     task_id: str
+    task_result_ir: Optional[QuEraTaskResults] = None
+
+    def json(self, exclude_none=True, by_alias=True, **options):
+        return super().json(exclude_none=True, by_alias=True, **options)
 
 
-class MockTaskResult(BaseModel, TaskResult):
-    def __init__(self, task_ir: QuantumTaskIR, task_id: str, backend: DumbMockBackend):
-        self.task_id = task_id
-        self.backend = backend
-        self._task_result_ir = None
+class MockTaskResult(QuantumTaskResult):
+    backend: DumbMockBackend
 
     @property
-    def task_result_ir(self) -> QuEraTaskResults:
-        if not self._task_result_ir:
-            self._task_result_ir = self.backend.task_results(self.task_id)
+    def task_result(self) -> QuEraTaskResults:
+        if not self.task_result_ir:
+            self.task_result_ir = self.backend.task_results(self.task_id)
 
-        return self._task_result_ir
+        return self.task_result_ir
 
 
 # NOTE: this is only the basic report, we should provide
 #      a way to customize the report class,
 #      e.g result.plot() returns a `TaskPlotReport` class instead
-
-
 class TaskReport:
     def __init__(self, result: TaskResult) -> None:
         self.result = result
@@ -143,8 +144,8 @@ class TaskReport:
         return self._bitstring
 
     @property
-    def task_result_ir(self) -> QuEraTaskResults:
-        return self.result.task_result_ir
+    def task_result(self) -> QuEraTaskResults:
+        return self.result.task_result
 
     @property
     def markdown(self) -> str:
@@ -156,7 +157,7 @@ class TaskReport:
 class Program:
     def __init__(
         self,
-        lattice: Lattice,
+        lattice: "Lattice",
         sequence: Sequence,
         assignments: Optional[Dict[str, Union[Number, List[Number]]]] = None,
     ):
@@ -177,12 +178,15 @@ class Program:
         return self._assignments
 
     def braket(self, *args, **kwargs) -> BraketTask:
-        return BraketTask(self, *args, **kwargs)
+        raise NotImplementedError
+        # return BraketTask(self, *args, **kwargs)
 
     def quera(self, *args, **kwargs) -> QuEraTask:
-        return QuEraTask(self, *args, **kwargs)
+        raise NotImplementedError
+        # return QuEraTask(self, *args, **kwargs)
 
     def simu(self, *args, **kwargs) -> SimuTask:
+        raise NotImplementedError
         return SimuTask(self, *args, **kwargs)
 
     def mock(self, nshots: int, state_file: str = ".mock_state.txt") -> MockTask:
