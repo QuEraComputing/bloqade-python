@@ -7,7 +7,6 @@ from quera_ahs_utils.quera_ir.task_results import (
     QuEraShotResult,
     QuEraShotStatusCode,
 )
-from pydantic import BaseModel
 import uuid
 import numpy as np
 
@@ -43,7 +42,7 @@ def simulate_task_results(task: QuEraTaskSpecification, p_full=0.99, p_empty=0.0
     )
 
 
-class DumbMockBackend(BaseModel, SubmissionBackend):
+class DumbMockBackend(SubmissionBackend):
     state_file: str
 
     def submit_task(self, task: QuEraTaskSpecification) -> str:

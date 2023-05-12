@@ -1,4 +1,3 @@
-from pydantic import BaseModel
 from bloqade.submission.base import SubmissionBackend
 from bloqade.submission.ir import BraketTaskSpecification
 from quera_ahs_utils.quera_ir.task_results import (
@@ -10,7 +9,7 @@ from quera_ahs_utils.quera_ir.task_results import (
 from braket.aws import AwsDevice, AwsQuantumTask
 
 
-class BraketBackend(BaseModel, SubmissionBackend):
+class BraketBackend(SubmissionBackend):
     device_arn: str = "arn:aws:braket:us-east-1::device/qpu/quera/Aquila"
 
     def _convert_status_codes(self, braket_message: str) -> QuEraTaskStatusCode:

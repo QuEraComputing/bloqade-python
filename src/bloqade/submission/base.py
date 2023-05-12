@@ -1,7 +1,8 @@
 from bloqade.submission.ir import QuantumTaskIR
+from pydantic import BaseModel
 
 
-class SubmissionBackend:
+class SubmissionBackend(BaseModel):
     def submit_task(self, task_ir: QuantumTaskIR):
         raise NotImplementedError
 
