@@ -131,6 +131,20 @@ class Field:
     def __repr__(self) -> str:
         return f"Field({self.value!r})"
 
+    def add(self, other):
+        if not isinstance(other, Field):
+            raise ValueError(f"Cannot add Field and {other.__class__}")
+
+        out = Field(dict(self.value))
+
+        for spatial_modulation, waveform in other.value.items():
+            if spatial_modulation in self.value:
+                out.value[spatial_modulation] = out.value[spatial_modulation] + waveform
+            else:
+                out.value[spatial_modulation] = waveform
+
+        return out
+
     def print_node(self):
         return "Field"
 
