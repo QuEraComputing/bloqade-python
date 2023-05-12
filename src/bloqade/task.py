@@ -4,12 +4,11 @@ from quera_ahs_utils.quera_ir.task_results import QuEraTaskResults
 from quera_ahs_utils.ir import quera_task_to_braket_ahs
 from bloqade.submission.mock import DumbMockBackend
 
-# from bloqade.submission.quera import QuEraBackend
+from bloqade.submission.quera import QuEraBackend
 from bloqade.submission.braket import BraketBackend
 from bloqade.submission.ir import (
     QuantumTaskIR,
     BraketTaskSpecification,
-    # QuEraTaskSpecification,
 )
 
 from bloqade.ir import Sequence
@@ -21,6 +20,8 @@ if TYPE_CHECKING:
 
 from pandas import DataFrame
 import numpy as np
+import os
+import json
 
 
 class Task:
@@ -43,19 +44,6 @@ class HardwareTask(BaseModel, Task):
 class BraketTask(HardwareTask):
     backend: BraketBackend = BraketBackend()
 
-    def __init__(self, prog: "Program", nshots: int) -> None:
-        from bloqade.codegen.quera_hardware import SchemaCodeGen
-
-        quera_task_ir = SchemaCodeGen().emit(nshots, prog)
-        braket_ahs_program, nshots = quera_task_to_braket_ahs(quera_task_ir)
-
-        super().__init__(
-            task_ir=BraketTaskSpecification(
-                nshots=nshots, program=braket_ahs_program.to_ir()
-            ),
-            backend=BraketBackend(),
-        )
-
     def submit(self) -> "TaskResult":
         task_id = self.backend.submit_task(self.task_ir)
         return BraketTaskResult(
@@ -64,35 +52,17 @@ class BraketTask(HardwareTask):
 
 
 class QuEraTask(HardwareTask):
-    pass
-    # def __init__(self, *args, **kwargs) -> None:
-    #     from bloqade.codegen.quera_hardware import SchemaCodeGen
+    backend: QuEraBackend
 
-    #     match args:
-    #         case (Program() as prog, int(nshots)):
-    #             task_ir = SchemaCodeGen().emit(nshots, prog)
-    #             self.backend = QuEraBackend()
-    #             super().__init__(task_ir)
-
-    #         case QuEraTaskSpecification() as task_ir:
-    #             super().__init__(task_ir=task_ir)
-
-    #         case _:
-    #             super().__init__(*args, **kwargs)
+    def submit(self) -> "QuEraTaskResult":
+        task_id = self.backend.submit_task(self.task_ir)
+        return QuEraTaskResult(
+            task_ir=self.task_ir, task_id=task_id, backend=self.backend
+        )
 
 
 class MockTask(HardwareTask):
     backend: DumbMockBackend
-
-    def __init__(
-        self, prog: "Program", nshots: int, state_file=".mock_state.txt"
-    ) -> None:
-        from bloqade.codegen.quera_hardware import SchemaCodeGen
-
-        task_ir = SchemaCodeGen().emit(nshots, prog)
-        backend = DumbMockBackend(state_file=state_file)
-
-        super().__init__(task_ir=task_ir, backend=backend)
 
     def submit(self) -> "MockTaskResult":
         task_id = self.backend.submit_task(self.task_ir)
@@ -140,6 +110,17 @@ class MockTaskResult(QuantumTaskResult):
 
 class BraketTaskResult(QuantumTaskResult):
     backend: BraketBackend
+
+    @property
+    def task_results(self) -> QuEraTaskResults:
+        if self.task_result_ir is None:
+            self.task_result_ir = self.backend.task_results(self.task_id)
+
+        return self.task_result_ir
+
+
+class QuEraTaskResult(QuantumTaskResult):
+    backend: QuEraBackend
 
     @property
     def task_results(self) -> QuEraTaskResults:
@@ -206,17 +187,41 @@ class Program:
     def assignments(self):
         return self._assignments
 
-    def braket(self, *args, **kwargs) -> BraketTask:
-        raise NotImplementedError
-        # return BraketTask(self, *args, **kwargs)
-
-    def quera(self, *args, **kwargs) -> QuEraTask:
-        raise NotImplementedError
-        # return QuEraTask(self, *args, **kwargs)
-
     def simu(self, *args, **kwargs) -> SimuTask:
         raise NotImplementedError
-        return SimuTask(self, *args, **kwargs)
+
+    def braket(self, nshots: int) -> BraketTask:
+        from bloqade.codegen.quera_hardware import SchemaCodeGen
+
+        quera_task_ir = SchemaCodeGen().emit(nshots, self)
+        braket_ahs_program, nshots = quera_task_to_braket_ahs(quera_task_ir)
+        task_ir = BraketTaskSpecification(
+            nshots=nshots, program=braket_ahs_program.to_ir()
+        )
+
+        return BraketTask(task_ir=task_ir)
+
+    def quera(self, nshots: int, config_file: Optional[str] = None) -> QuEraTask:
+        from bloqade.codegen.quera_hardware import SchemaCodeGen
+
+        task_ir = SchemaCodeGen().emit(nshots, self)
+
+        if config_file is None:
+            path = os.path.dirname(__file__)
+            api_config_file = os.path.join(
+                path, "submission", "config", "dev_quera_api.json"
+            )
+            with open(api_config_file, "r") as io:
+                api_config = json.load(io)
+
+            backend = QuEraBackend(**api_config)
+
+        return QuEraTask(task_ir=task_ir, backend=backend)
 
     def mock(self, nshots: int, state_file: str = ".mock_state.txt") -> MockTask:
-        return MockTask(self, nshots, state_file=state_file)
+        from bloqade.codegen.quera_hardware import SchemaCodeGen
+
+        task_ir = SchemaCodeGen().emit(nshots, self)
+        backend = DumbMockBackend(state_file=state_file)
+
+        return MockTask(task_ir=task_ir, backend=backend)
