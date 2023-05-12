@@ -145,14 +145,12 @@ class Program:
         self,
         lattice: Union[None, "Lattice"],
         seq: Sequence,
-        assignments: Union[None, Dict[Variable, Literal]] = None,
+        assignments: Union[Dict, Dict[Variable, Literal]] = {},
     ) -> None:
         self.lattice = lattice
         self.seq = seq
         self.assignments = assignments
-
-    # Add multiplex method
-    # return new AST and multiplex object (mapping to atoms and subproblems)
+        self.mapping = None
 
     def braket(self, *args, **kwargs) -> BraketTask:
         return BraketTask(self, *args, **kwargs)

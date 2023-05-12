@@ -3,6 +3,11 @@ from .list import ListOfPositions
 from decimal import Decimal
 from pydantic import BaseModel
 
+from bloqade.task import Program
+from bloqade.hardware.capabilities import Capabilities
+
+from typing import List, Tuple
+
 
 class SiteClusterInfo(BaseModel):
     """Class that stores the mapping of batched jobs.
@@ -18,7 +23,9 @@ class SiteClusterInfo(BaseModel):
     local_site_index: int
 
 
-def multiplex_lattice(lattice_ast: Lattice, capabilities, cluster_spacing):
+def multiplex_lattice(
+    lattice_ast: Lattice, capabilities, cluster_spacing
+) -> Tuple[ListOfPositions, List[SiteClusterInfo]]:
     lattice_sites = list(lattice_ast.enumerate())
     print(lattice_sites)
     # get minimum and maximum x,y coords for existing problem spacing
@@ -85,3 +92,15 @@ def multiplex_lattice(lattice_ast: Lattice, capabilities, cluster_spacing):
             cluster_index_x += 1
 
     return ListOfPositions(sites), mapping
+
+
+# create a new program with multiplexed geometry and mapping provided
+def multiplex_program(
+    prog: "Program", capabilities: Capabilities, cluster_spacing: float
+) -> "Program":
+    multiplexed_lattice, mapping = multiplex_lattice(
+        prog.lattice, capabilities, cluster_spacing
+    )
+    multiplexed_prog = Program(multiplexed_lattice, prog.seq, prog.assignments)
+    multiplexed_prog.mapping = mapping
+    return multiplexed_prog

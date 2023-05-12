@@ -17,9 +17,9 @@ class MultiplexDecoder(BaseModel):
 
         return mapping
 
-    # should work if we go to coordinate-based indexing, gets individual sites?
     # map individual atom indices (in the context of the ENTIRE geometry)
-    # to the cluster-specific indices
+    # to the cluster-specific indices:
+    # {}
     def get_site_indices(self):
         site_indices = {}
         for site_cluster in self.mapping:  # iterate through global_site_index

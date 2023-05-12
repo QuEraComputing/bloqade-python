@@ -1,24 +1,46 @@
 from bloqade.lattice import Square
-from bloqade.lattice.multiplex import multiplex_lattice
-from bloqade.lattice.multiplex_decoder import MultiplexDecoder
-from dataclasses import dataclass
+from bloqade.lattice.multiplex import multiplex_program
+from bloqade.hardware.capabilities import Capabilities
+from bloqade.task import Program
+from bloqade.codegen.quera_hardware import SchemaCodeGen
+
+from bloqade.ir import (
+    rydberg,
+    detuning,
+    Sequence,
+    Uniform,
+    Linear,
+    ScaledLocations,
+)
+
 
 # create lattice
-
 lattice = Square(4)
 
+# create some test sequence
+seq = Sequence(
+    {
+        rydberg: {
+            detuning: {
+                Uniform: Linear(start=1.0, stop=5.2, duration=3.0),
+                ScaledLocations({1: 1.0, 2: 2.0, 3: 3.0, 4: 4.0}): Linear(
+                    start=1.0, stop=5.2, duration=3.0
+                ),
+            },
+        }
+    }
+)
+
+
+prog = Program(lattice, seq, {})
+
 # need to provide capabilities and problem spacing
+cap = Capabilities(num_sites_max=256, max_height=75, max_width=75)
 
+cluster_spacing = 2.0  # 1.0 micrometers
 
-@dataclass
-class Capabilities:
-    max_height = 75
-    max_width = 75
-    num_sites_max = 256
+# can remove multiplex_enabled flag in favor of checking presence of mapping attribute
+multiplexed_prog = multiplex_program(prog, cap, cluster_spacing)
 
-
-cluster_spacing = 1.0  # 1.0 micrometers
-
-new_lattice, mapping = multiplex_lattice(lattice, Capabilities(), 4.0)
-
-decoder = MultiplexDecoder(mapping=mapping)
+# call codegen
+generated_schema = SchemaCodeGen().emit(100, multiplexed_prog)
