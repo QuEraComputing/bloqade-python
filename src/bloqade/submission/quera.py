@@ -1,5 +1,5 @@
 from bloqade.submission.base import SubmissionBackend
-from qcs.api_client.api import QueueApi
+from bloqade.submission.quera_api_client.api import QueueApi
 from quera_ahs_utils.quera_ir.task_specification import QuEraTaskSpecification
 from quera_ahs_utils.quera_ir.task_results import QuEraTaskResults
 
