@@ -209,7 +209,7 @@ class Program:
         if config_file is None:
             path = os.path.dirname(__file__)
             api_config_file = os.path.join(
-                path, "submission", "config", "dev_quera_api.json"
+                path, "submission", "quera_api_client", "config", "dev_quera_api.json"
             )
             with open(api_config_file, "r") as io:
                 api_config = json.load(io)
