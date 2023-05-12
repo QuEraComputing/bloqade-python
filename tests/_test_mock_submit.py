@@ -1,6 +1,6 @@
 import bloqade.lattice as lattice
 from bloqade.ir import Linear, Constant
-from bloqade.task import QuantumTaskResult
+from bloqade.task import MockTaskResult
 import json
 
 quantum_task = (
@@ -32,6 +32,6 @@ with open("quantum_task.json", "w") as io:
     io.write(quantum_task.json())
 
 with open("quantum_task.json", "r") as io:
-    quantum_task = QuantumTaskResult(**json.load(io))
+    quantum_task = MockTaskResult(**json.load(io))
 
 print(quantum_task.task_results)
