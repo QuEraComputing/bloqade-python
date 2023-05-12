@@ -8,8 +8,8 @@ class ProgramStart(Builder):
 
     @property
     def rydberg(self):
-        return Rydberg(self, self.__lattice__)
+        return Rydberg(self)
 
     @property
     def hyperfine(self):
-        return Hyperfine(self, self.__lattice__)
+        return Hyperfine(self)
