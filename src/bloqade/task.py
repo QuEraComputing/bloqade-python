@@ -6,10 +6,8 @@ from bloqade.submission.mock import DumbMockBackend
 
 from bloqade.submission.quera import QuEraBackend
 from bloqade.submission.braket import BraketBackend
-from bloqade.submission.ir import (
-    QuantumTaskIR,
-    BraketTaskSpecification,
-)
+from bloqade.submission.ir import BraketTaskSpecification
+from quera_ahs_utils.quera_ir.task_specification import QuEraTaskSpecification
 
 from bloqade.ir import Sequence
 from typing import TYPE_CHECKING, Dict, Optional, Union, List, TextIO
@@ -29,11 +27,7 @@ class TaskFuture:
         return TaskReport(self)
 
 
-class QuantumTaskFuture(BaseModel, TaskFuture):
-    task_ir: QuantumTaskIR
-    task_id: str
-    task_result_ir: Optional[QuEraTaskResults] = None
-
+class QuantumTaskFuture(TaskFuture):
     def json(self, exclude_none=True, by_alias=True, **json_options):
         return super().json(
             exclude_none=exclude_none, by_alias=by_alias, **json_options
@@ -60,28 +54,37 @@ class QuantumTaskFuture(BaseModel, TaskFuture):
         return self.task_result_ir
 
 
-class MockTaskFuture(QuantumTaskFuture):
+class MockTaskFuture(BaseModel, QuantumTaskFuture):
+    task_ir: QuEraTaskSpecification
+    task_id: str
     backend: DumbMockBackend
+    task_result_ir: Optional[QuEraTaskResults] = None
 
     def fetch(self):
         return self.backend.task_results(self.task_id)
 
 
-class BraketTaskFuture(QuantumTaskFuture):
+class BraketTaskFuture(BaseModel, QuantumTaskFuture):
+    task_ir: BraketTaskSpecification
+    task_id: str
     backend: BraketBackend
+    task_result_ir: Optional[QuEraTaskResults] = None
 
     def fetch(self):
         return self.backend.task_results(self.task_id)
 
 
-class QuEraTaskFuture(QuantumTaskFuture):
+class QuEraTaskFuture(BaseModel, QuantumTaskFuture):
+    task_ir: QuEraTaskSpecification
+    task_id: str
     backend: QuEraBackend
+    task_result_ir: Optional[QuEraTaskResults] = None
 
     def fetch(self):
         return self.backend.task_results(self.task_id)
 
 
-def read_from_json(
+def read_future_from_json(
     filename_or_io: Union[str, TextIO]
 ) -> Union[QuantumTaskFuture, BraketTaskFuture, MockTaskFuture]:
     match filename_or_io:

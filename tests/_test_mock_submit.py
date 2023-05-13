@@ -1,7 +1,7 @@
 import bloqade.lattice as lattice
 from bloqade.ir import Linear, Constant
-from bloqade.task import MockTaskFuture
-import json
+from bloqade.task import read_future_from_json
+
 
 quantum_task = (
     lattice.Square(6)
@@ -29,7 +29,6 @@ quantum_task = (
 
 quantum_task.write_json("quantum_task.json")
 
-with open("quantum_task.json", "r") as io:
-    quantum_task = MockTaskFuture(**json.load(io))
+quantum_task = read_future_from_json("quantum_task.json")
 
 print(quantum_task)
