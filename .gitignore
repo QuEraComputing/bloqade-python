@@ -171,3 +171,4 @@ main.py
 .ruff_cache
 
 .mock_state.txt
+quantum_task.json
