@@ -1,3 +1,5 @@
+from bloqade.submission.base import SubmissionBackend
+
 from quera_ahs_utils.quera_ir.task_specification import QuEraTaskSpecification
 from quera_ahs_utils.quera_ir.task_results import (
     QuEraTaskResults,
@@ -6,8 +8,6 @@ from quera_ahs_utils.quera_ir.task_results import (
     QuEraShotStatusCode,
 )
 import uuid
-import logging
-import os
 import numpy as np
 
 
@@ -42,34 +42,26 @@ def simulate_task_results(task: QuEraTaskSpecification, p_full=0.99, p_empty=0.0
     )
 
 
-class DumbMockBackend:
-    def __init__(self, state_file=".mock_state.txt"):
-        self.state_file = state_file
-        self.state = {}
-        if os.path.isfile(state_file):
-            with open(state_file, "r") as IO:
-                for line in IO:
-                    task_id, task_json = eval(line)
-                    self.state[task_id] = QuEraTaskResults(**task_json)
-
-        self.logger = logging.getLogger(self.__class__.__name__)
+class DumbMockBackend(SubmissionBackend):
+    state_file: str
 
     def submit_task(self, task: QuEraTaskSpecification) -> str:
-        self.logger.debug("submitting task")
         task_id = str(uuid.uuid4())
         task_results = simulate_task_results(task)
-        self.state[task_id] = task_results
         with open(self.state_file, "a") as IO:
             IO.write(f"('{task_id}',{task_results.json()})\n")
-        self.logger.debug(f"task submitted with task_id: {task_id}")
+
         return task_id
 
     def task_results(self, task_id: str) -> QuEraTaskResults:
-        try:
-            task = self.state[task_id]
-        except KeyError:
-            raise ValueError(f"task_id {task_id}, not found.")
-        return task
+        # lazily search database for task_id
+        for line in open(self.state_file, "r"):
+            potential_task_id, task_results = eval(line)
 
-    def task_cancel(self, task_id: str):
+            if potential_task_id == task_id:
+                return QuEraTaskResults(**task_results)
+
+        raise ValueError(f"unable to fetch results for task_id: {task_id}")
+
+    def cancel_task(self, task_id: str):
         pass
