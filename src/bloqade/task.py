@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 from quera_ahs_utils.quera_ir.task_results import QuEraTaskResults
 
 from quera_ahs_utils.ir import quera_task_to_braket_ahs
@@ -79,6 +79,35 @@ class QuEraTaskFuture(QuantumTaskFuture):
 
     def fetch(self):
         return self.backend.task_results(self.task_id)
+
+
+def read_from_json(
+    filename_or_io: Union[str, TextIO]
+) -> Union[QuantumTaskFuture, BraketTaskFuture, MockTaskFuture]:
+    match filename_or_io:
+        case str(filename):
+            with open(filename, "r") as io:
+                quantum_task_ir = json.load(io)
+
+        case _:
+            quantum_task_ir = json.load(filename_or_io)
+
+    try:
+        return QuEraTaskFuture(**quantum_task_ir)
+    except ValidationError:
+        pass
+
+    try:
+        return BraketTaskFuture(**quantum_task_ir)
+    except ValidationError:
+        pass
+
+    try:
+        return MockTaskFuture(**quantum_task_ir)
+    except ValidationError:
+        pass
+
+    raise ValueError("Unable to parse JSON file to a task future.")
 
 
 # NOTE: this is only the basic report, we should provide
