@@ -1,6 +1,6 @@
 import bloqade.lattice as lattice
 from bloqade.ir import Linear, Constant
-from bloqade.task import QuEraTask
+from bloqade.task import MockTaskFuture
 import json
 
 quantum_task = (
@@ -22,15 +22,14 @@ quantum_task = (
         anneal_time=10,
         rabi_amplitude_max=15,
     )
-    .program.quera(10)
+    .program.mock(10)
 )
 
 # print(len(quantum_task.task_result.shot_outputs))
 
-with open("quantum_task.json", "w") as io:
-    io.write(quantum_task.json())
+quantum_task.write_json("quantum_task.json")
 
 with open("quantum_task.json", "r") as io:
-    quantum_task = QuEraTask(**json.load(io))
+    quantum_task = MockTaskFuture(**json.load(io))
 
 print(quantum_task)

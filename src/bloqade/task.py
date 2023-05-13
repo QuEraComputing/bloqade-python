@@ -12,129 +12,80 @@ from bloqade.submission.ir import (
 )
 
 from bloqade.ir import Sequence
-from typing import TYPE_CHECKING, Dict, Optional, Union, List
+from typing import TYPE_CHECKING, Dict, Optional, Union, List, TextIO
 from numbers import Number
 
 if TYPE_CHECKING:
     from .lattice.base import Lattice
-
 from pandas import DataFrame
 import numpy as np
 import os
 import json
 
 
-class Task:
-    def submit(self, session=None) -> "TaskResult":
-        # TODO: do a real task result
-        # 1. run the corresponding codegen
-        # 2. submit the codegen to the backend
-        # NOTE: this needs to be implemented separately for each backend
-        #       class, e.g the `submit` method for BraketTask, QuEraTask,
-        #       SimuTask
-        raise NotImplementedError(f"No task backend found for {self.__class__}")
-
-
-class HardwareTask(BaseModel, Task):
-    task_ir: QuantumTaskIR
-
-
-# NOTE: this will contain the schema object and the program object
-#       after codegen happens.
-class BraketTask(HardwareTask):
-    backend: BraketBackend = BraketBackend()
-
-    def submit(self) -> "TaskResult":
-        task_id = self.backend.submit_task(self.task_ir)
-        return BraketTaskResult(
-            task_ir=self.task_ir, task_id=task_id, backend=self.backend
-        )
-
-
-class QuEraTask(HardwareTask):
-    backend: QuEraBackend
-
-    def submit(self) -> "QuEraTaskResult":
-        task_id = self.backend.submit_task(self.task_ir)
-        return QuEraTaskResult(
-            task_ir=self.task_ir, task_id=task_id, backend=self.backend
-        )
-
-
-class MockTask(HardwareTask):
-    backend: DumbMockBackend
-
-    def submit(self) -> "MockTaskResult":
-        task_id = self.backend.submit_task(self.task_ir)
-        return MockTaskResult(
-            task_ir=self.task_ir, task_id=task_id, backend=self.backend
-        )
-
-
-class SimuTask(Task):
-    def __init__(self, prog: "Program", nshots: int) -> None:
-        self.prog = prog
-        self.nshots = nshots
-        # custom config goes here
-
-
-class TaskResult:
+class TaskFuture:
     def report(self) -> "TaskReport":
         """generate the task report"""
         return TaskReport(self)
 
 
-class QuantumTaskResult(BaseModel, TaskResult):
+class QuantumTaskFuture(BaseModel, TaskFuture):
     task_ir: QuantumTaskIR
     task_id: str
     task_result_ir: Optional[QuEraTaskResults] = None
 
-    def json(self, exclude_none=True, by_alias=True, **options):
-        return super().json(exclude_none=exclude_none, by_alias=by_alias, **options)
+    def json(self, exclude_none=True, by_alias=True, **json_options):
+        return super().json(
+            exclude_none=exclude_none, by_alias=by_alias, **json_options
+        )
 
-    @property
-    def task_results(self) -> QuEraTaskResults:
+    def write_json(
+        self, filename_or_io: Union[str, TextIO], mode: str = "w", **json_options
+    ):
+        match filename_or_io:
+            case str(filename):
+                with open(filename, mode) as io:
+                    io.write(self.json(**json_options))
+            case _:
+                filename_or_io.write(self.json(**json_options))
+
+    def fetch(self) -> QuEraTaskResults:
         raise NotImplementedError
 
+    @property
+    def task_results(self) -> QuEraTaskResults:
+        if self.task_result_ir is None:
+            self.task_result_ir = self.fetch()
 
-class MockTaskResult(QuantumTaskResult):
+        return self.task_result_ir
+
+
+class MockTaskFuture(QuantumTaskFuture):
     backend: DumbMockBackend
 
-    @property
-    def task_results(self) -> QuEraTaskResults:
-        if self.task_result_ir is None:
-            self.task_result_ir = self.backend.task_results(self.task_id)
-
-        return self.task_result_ir
+    def fetch(self):
+        return self.backend.task_results(self.task_id)
 
 
-class BraketTaskResult(QuantumTaskResult):
+class BraketTaskFuture(QuantumTaskFuture):
     backend: BraketBackend
 
-    @property
-    def task_results(self) -> QuEraTaskResults:
-        if self.task_result_ir is None:
-            self.task_result_ir = self.backend.task_results(self.task_id)
-
-        return self.task_result_ir
+    def fetch(self):
+        return self.backend.task_results(self.task_id)
 
 
-class QuEraTaskResult(QuantumTaskResult):
+class QuEraTaskFuture(QuantumTaskFuture):
     backend: QuEraBackend
 
-    @property
-    def task_results(self) -> QuEraTaskResults:
-        if self.task_result_ir is None:
-            self.task_result_ir = self.backend.task_results(self.task_id)
-
-        return self.task_result_ir
+    def fetch(self):
+        return self.backend.task_results(self.task_id)
 
 
 # NOTE: this is only the basic report, we should provide
 #      a way to customize the report class,
 #      e.g result.plot() returns a `TaskPlotReport` class instead
 class TaskReport:
-    def __init__(self, result: TaskResult) -> None:
+    def __init__(self, result: TaskFuture) -> None:
         self.result = result
         self._dataframe = None  # df cache
         self._bitstring = None  # bitstring cache
@@ -167,7 +118,7 @@ class TaskReport:
 class Program:
     def __init__(
         self,
-        lattice: "Lattice",
+        lattice: Optional["Lattice"],
         sequence: Sequence,
         assignments: Optional[Dict[str, Union[Number, List[Number]]]] = None,
     ):
@@ -187,10 +138,10 @@ class Program:
     def assignments(self):
         return self._assignments
 
-    def simu(self, *args, **kwargs) -> SimuTask:
+    def simu(self, *args, **kwargs):
         raise NotImplementedError
 
-    def braket(self, nshots: int) -> BraketTask:
+    def braket(self, nshots: int) -> BraketTaskFuture:
         from bloqade.codegen.quera_hardware import SchemaCodeGen
 
         quera_task_ir = SchemaCodeGen().emit(nshots, self)
@@ -199,9 +150,12 @@ class Program:
             nshots=nshots, program=braket_ahs_program.to_ir()
         )
 
-        return BraketTask(task_ir=task_ir)
+        backend = BraketBackend()
+        task_id = backend.submit_task(task_ir)
 
-    def quera(self, nshots: int, config_file: Optional[str] = None) -> QuEraTask:
+        return BraketTaskFuture(task_ir=task_ir, task_id=task_id, backend=backend)
+
+    def quera(self, nshots: int, config_file: Optional[str] = None) -> QuEraTaskFuture:
         from bloqade.codegen.quera_hardware import SchemaCodeGen
 
         task_ir = SchemaCodeGen().emit(nshots, self)
@@ -216,12 +170,15 @@ class Program:
 
             backend = QuEraBackend(**api_config)
 
-        return QuEraTask(task_ir=task_ir, backend=backend)
+        task_id = backend.submit_task(task_ir)
 
-    def mock(self, nshots: int, state_file: str = ".mock_state.txt") -> MockTask:
+        return QuEraTaskFuture(task_ir=task_ir, task_id=task_id, backend=backend)
+
+    def mock(self, nshots: int, state_file: str = ".mock_state.txt") -> MockTaskFuture:
         from bloqade.codegen.quera_hardware import SchemaCodeGen
 
         task_ir = SchemaCodeGen().emit(nshots, self)
         backend = DumbMockBackend(state_file=state_file)
 
-        return MockTask(task_ir=task_ir, backend=backend)
+        task_id = backend.submit_task(task_ir)
+        return MockTaskFuture(task_ir=task_ir, task_id=task_id, backend=backend)

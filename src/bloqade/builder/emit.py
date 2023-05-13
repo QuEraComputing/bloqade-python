@@ -219,6 +219,9 @@ class Emit(Builder):
     def lattice(self):
         current = self
         while current.__parent__ is not None:
+            if current.__lattice__ is not None:
+                return current.__lattice__
+
             current = current.__parent__
 
         return current.__lattice__
