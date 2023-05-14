@@ -1,6 +1,6 @@
 import bloqade.lattice as lattice
 from bloqade.ir import Linear, Constant
-from bloqade.task import read_future_from_json
+from bloqade.task import HardwareTask, HardwareTaskFuture
 
 
 quantum_task = (
@@ -28,7 +28,16 @@ quantum_task = (
 # print(len(quantum_task.task_result.shot_outputs))
 
 quantum_task.write_json("quantum_task.json")
+quantum_task = HardwareTask()
+quantum_task.read_json("quantum_task.json")
 
-quantum_task = read_future_from_json("quantum_task.json")
+# print(quantum_task)
 
-print(quantum_task)
+quantum_future = quantum_task.submit()
+
+quantum_future.write_json("quantum_future.json")
+quantum_future = HardwareTaskFuture()
+quantum_future.read_json("quantum_future.json")
+print(quantum_future)
+quantum_future.fetch()
+print(quantum_future)
