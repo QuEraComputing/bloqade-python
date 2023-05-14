@@ -33,7 +33,7 @@ from bisect import bisect_left
 
 if TYPE_CHECKING:
     from bloqade.lattice.base import Lattice
-    from bloqade.task import Program
+    from bloqade.ir import Program
 
 
 class PiecewiseLinearCodeGen(WaveformVisitor):

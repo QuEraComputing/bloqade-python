@@ -19,6 +19,7 @@ from .field import (
 )
 from .pulse import Pulse, NamedPulse, FieldName, rabi, detuning
 from .sequence import rydberg, hyperfine, Sequence, LevelCoupling
+from .program import Program
 
 __all__ = [
     "cast",
@@ -49,4 +50,5 @@ __all__ = [
     "rydberg",
     "hyperfine",
     "Sequence",
+    "Program",
 ]
