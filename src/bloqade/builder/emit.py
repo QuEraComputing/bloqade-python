@@ -6,10 +6,23 @@ import bloqade.builder.field as field
 import bloqade.builder.coupling as coupling
 import bloqade.builder.start as start
 import bloqade.ir as ir
-from bloqade.task import Program
+
+from bloqade.submission.braket import BraketBackend
+from bloqade.submission.mock import DumbMockBackend
+from bloqade.submission.quera import QuEraBackend
+from bloqade.submission.ir import BraketTaskSpecification
+
+from bloqade.ir import Program
+
+from quera_ahs_utils.ir import quera_task_to_braket_ahs
 
 from pydantic import BaseModel
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
+import json
+import os
+
+if TYPE_CHECKING:
+    from bloqade.task import HardwareTask
 
 
 class BuildError(Exception):
@@ -238,3 +251,42 @@ class Emit(Builder):
     @property
     def program(self):
         return Program(self.lattice, self.sequence, self.__assignments__)
+
+    def simu(self, *args, **kwargs):
+        raise NotImplementedError
+
+    def braket(self, nshots: int) -> "HardwareTask":
+        from bloqade.codegen.quera_hardware import SchemaCodeGen
+
+        quera_task_ir = SchemaCodeGen().emit(nshots, self.program)
+        braket_ahs_program, nshots = quera_task_to_braket_ahs(quera_task_ir)
+        task_ir = BraketTaskSpecification(
+            nshots=nshots, program=braket_ahs_program.to_ir()
+        )
+
+        return HardwareTask(braket_task_ir=task_ir, braket_backend=BraketBackend())
+
+    def quera(self, nshots: int, config_file: Optional[str] = None) -> "HardwareTask":
+        from bloqade.codegen.quera_hardware import SchemaCodeGen
+
+        task_ir = SchemaCodeGen().emit(nshots, self.program)
+
+        if config_file is None:
+            path = os.path.dirname(__file__)
+            api_config_file = os.path.join(
+                path, "submission", "quera_api_client", "config", "dev_quera_api.json"
+            )
+            with open(api_config_file, "r") as io:
+                api_config = json.load(io)
+
+            backend = QuEraBackend(**api_config)
+
+        return HardwareTask(quera_task_ir=task_ir, quera_backend=backend)
+
+    def mock(self, nshots: int, state_file: str = ".mock_state.txt") -> "HardwareTask":
+        from bloqade.codegen.quera_hardware import SchemaCodeGen
+
+        task_ir = SchemaCodeGen().emit(nshots, self.program)
+        backend = DumbMockBackend(state_file=state_file)
+
+        return HardwareTask(quera_task_ir=task_ir, mock_backend=backend)
