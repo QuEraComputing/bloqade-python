@@ -17,6 +17,7 @@ class Cell:
 @dataclass
 class BoundedBravais(Lattice):
     shape: Tuple[int, ...]
+    lattice_spacing: float = 1.0
 
     def __init__(self, *shape: int):
         super().__init__()
@@ -55,7 +56,7 @@ class BoundedBravais(Lattice):
     def enumerate(self) -> Generator[NDArray, None, None]:
         for index in itertools.product(*[range(n) for n in self.shape]):
             for pos in self.coordinates(index):
-                yield pos
+                yield self.lattice_spacing * pos
 
     def figure(self) -> Plot:
         xs, ys, labels = [], [], []
