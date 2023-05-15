@@ -8,12 +8,15 @@ from scipy.integrate import ode
 
 
 class AnalogGate(BaseModel):
+    SUPPORTED_SOLVERS = ["lsoda", "dop853", "dopri5"]
+
     functions: List[Callable]
     operators: List[Union[Diagonal, IndexMapping, csr_matrix]]
     initial_time: float
     final_time: float
     atol: float = 1e-7
     rtol: float = 1e-14
+    nsteps: int = 2_147_483_647
 
     def _ode_complex_kernel(self, time: float, register: NDArray):
         result_register = np.zeros_like(register)
@@ -31,7 +34,7 @@ class AnalogGate(BaseModel):
         )
 
     @staticmethod
-    def _error_dop853(status_code: int):
+    def _error_check_dop(status_code: int):
         match status_code:
             case 1 | 2:  # happy path
                 pass
@@ -43,9 +46,11 @@ class AnalogGate(BaseModel):
                 raise RuntimeError("DOP853: Step size becomes too small.")
             case -4:
                 raise RuntimeError("DOP853: Problem is probably stiff (interrupted).")
+            case _:
+                raise RuntimeError(f"DOP853: unhandled status code {status_code}")
 
     @staticmethod
-    def _error_lsoda(status_code: int):
+    def _error_check_lsoda(status_code: int):
         match status_code:
             case 2:  # happy path
                 pass
@@ -74,34 +79,31 @@ class AnalogGate(BaseModel):
                 raise RuntimeError(
                     "LSODA: Internal workspace insufficient to finish (internal error)."
                 )
+            case _:
+                raise RuntimeError(f"LSODA: unhandled status code {status_code}")
 
-    def _solve_lsoda(self, state: NDArray):
+    @staticmethod
+    def _error_check(solver_name: str, status_code: int):
+        match solver_name:
+            case str("dop853") | str("dopri5"):
+                AnalogGate._error_check_dop(status_code)
+            case str("lsoda"):
+                AnalogGate._error_check_lsoda(status_code)
+
+    def _solve(self, state: NDArray, solver_name: str):
         state = np.asarray(state, dtype=np.complex128)
         solver = ode(self._ode_real_kernel)
         solver.set_initial_value(state.view(np.float64), self.initial_time)
         solver.set_integrator(
-            "lsoda", atol=self.atol, rtol=self.rtol, nstep=np.iinfo(np.int32).max
+            solver_name, atol=self.atol, rtol=self.rtol, nstep=self.nsteps
         )
         solver.integrate(self.final_time)
-        AnalogGate._error_lsoda(solver.get_return_code())
-
-        return solver.y.view(np.complex128)
-
-    def _solve_dop853(self, state: NDArray):
-        state = np.asarray(state, dtype=np.complex128)
-        solver = ode(self._ode_real_kernel)
-        solver.set_initial_value(state.view(np.float64), self.initial_time)
-        solver.set_integrator(
-            "dop853", atol=self.atol, rtol=self.rtol, nstep=np.iinfo(np.int32).max
-        )
-        solver.integrate(self.final_time)
-        AnalogGate._error_dop853(solver.get_return_code())
+        AnalogGate._error_check(solver_name, solver.get_return_code())
 
         return solver.y.view(np.complex128)
 
     def apply(self, state: NDArray, solver_name="lsoda"):
-        match solver_name:
-            case str("lsoda"):
-                return self._solve_lsoda(state)
-            case _:
-                raise ValueError(f"Solver {solver_name} not supported")
+        if solver_name not in AnalogGate.SUPPORTED_SOLVERS:
+            raise ValueError(f"'{solver_name}' not supported.")
+
+        return self._solve(state, "lsoda")
