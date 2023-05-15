@@ -277,7 +277,10 @@ class SchemaCodeGen(ProgramVisitor):
                 # check that all indices map to actual atoms in lattice
                 self.lattice_site_coefficients = []
                 for location in locations.keys():
-                    if location.value >= self.n_atoms:
+                    if (
+                        location.value >= self.n_atoms
+                    ):  # n_atoms is now the number of atoms in the multiplexed
+                        # lattice, but needs to be num. atoms in the original
                         raise ValueError(
                             f"Location({location.value}) is larger than the lattice."
                         )
