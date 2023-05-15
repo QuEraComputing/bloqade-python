@@ -4,7 +4,7 @@ from typing import List, Tuple
 
 
 @dataclass
-class ListOfPosition(Lattice):
+class ListOfPositions(Lattice):
     value: List[Tuple[float, ...]]
 
     def __init__(self, value: List[Tuple[float, ...]]):

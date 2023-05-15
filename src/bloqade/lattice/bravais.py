@@ -101,7 +101,7 @@ class Square(BoundedBravais):
 
 @dataclass
 class Rectangular(BoundedBravais):
-    ratio: float
+    ratio: float = 1.0
 
     def __init__(self, width: int, height: int):
         super().__init__(width, height)

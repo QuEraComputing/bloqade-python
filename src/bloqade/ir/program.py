@@ -1,6 +1,7 @@
 from bloqade.ir import Sequence
 from typing import TYPE_CHECKING, Dict, Optional, Union, List
 from numbers import Number
+from bloqade.lattice.multiplex import multiplex_lattice
 
 if TYPE_CHECKING:
     from bloqade.lattice.base import Lattice
@@ -11,17 +12,30 @@ if TYPE_CHECKING:
 class Program:
     def __init__(
         self,
-        lattice: Optional["Lattice"],
+        lattice: "Lattice",
         sequence: Sequence,
-        assignments: Optional[Dict[str, Union[Number, List[Number]]]] = None,
+        assignments: Dict[str, Union[Number, List[Number]]] = {},
+        cluster_spacing: Optional[float] = None,
     ):
-        self._lattice = lattice
         self._sequence = sequence
         self._assignments = assignments
+
+        if lattice is None:
+            raise ValueError("Lattice required to construct program")
+
+        if cluster_spacing:
+            self._lattice, self._mapping = multiplex_lattice(lattice, cluster_spacing)
+        else:
+            self._lattice = lattice
+            self._mapping = None
 
     @property
     def lattice(self):
         return self._lattice
+
+    @property
+    def mapping(self):
+        return self._mapping
 
     @property
     def sequence(self):
