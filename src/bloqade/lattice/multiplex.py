@@ -1,12 +1,13 @@
 from .base import Lattice
 from .list import ListOfPositions
 from decimal import Decimal
-from pydantic import BaseModel
+from pydantic import BaseModel, validator, ValidationError
 
-from bloqade.task import Program
-from bloqade.hardware.capabilities import Capabilities
+from bloqade.submission.capabilities import get_capabilities
 
-from typing import List, Tuple
+from typing import List, Tuple, Union
+
+from quera_ahs_utils.quera_ir.task_results import QuEraShotResult, QuEraTaskResults
 
 
 class SiteClusterInfo(BaseModel):
@@ -23,9 +24,105 @@ class SiteClusterInfo(BaseModel):
     local_site_index: int
 
 
+class MultiplexDecoder(BaseModel):
+    mapping: List[SiteClusterInfo]
+
+    # should work if we go to the coordinate-based indexing system
+    @validator("mapping")
+    def sites_belong_to_unqiue_cluster(cls, mapping):
+        sites = [ele.global_site_index for ele in mapping]
+        unique_sites = set(sites)
+        if len(sites) != len(unique_sites):
+            raise ValidationError("one or more sites mapped to multiple clusters")
+
+        return mapping
+
+    @property
+    def sites_per_cluster(self):
+        local_site_indices = set()
+
+        for site in self.mapping:
+            local_site_indices.add(site.local_site_index)
+
+        return len(local_site_indices)
+
+    # map individual atom indices (in the context of the ENTIRE geometry)
+    # to the cluster-specific indices:
+    # {}
+    def get_site_indices(self):
+        site_indices = {}
+        for site_cluster in self.mapping:  # iterate through global_site_index
+            global_site_index = site_cluster.global_site_index
+            local_site_index = site_cluster.local_site_index
+            site_indices[global_site_index] = local_site_index
+
+        return site_indices
+
+    # should work if we go to coordinate-based indexing
+    # map each cluster index to the global index
+    def get_cluster_indices(self):
+        site_indices = self.get_site_indices()
+
+        cluster_indices = {}
+        for site_cluster in self.mapping:
+            global_site_index = site_cluster.global_site_index
+            cluster_index = site_cluster.cluster_index
+
+            cluster_indices[cluster_index] = cluster_indices.get(cluster_index, []) + [
+                global_site_index
+            ]
+
+        return {
+            cluster_index: sorted(sites, key=lambda site: site_indices[site])
+            for cluster_index, sites in cluster_indices.items()
+        }
+
+    def demultiplex_results(
+        self, task_result: QuEraTaskResults, clusters: Union[int, List[int]] = []
+    ) -> QuEraTaskResults:
+        cluster_indices = self.get_cluster_indices()
+
+        shot_outputs = []
+
+        match clusters:
+            case int(cluster_index):
+                clusters = [cluster_index]
+            case list() if clusters:
+                pass
+            case _:
+                clusters = cluster_indices.keys()
+
+        for full_shot_result in task_result.shot_outputs:
+            for cluster_site_indices in cluster_indices.values():
+                shot_outputs.append(
+                    QuEraShotResult(
+                        shot_status=full_shot_result.shot_status,
+                        pre_sequence=[
+                            full_shot_result.pre_sequence[index]
+                            for index in cluster_site_indices
+                        ],
+                        post_sequence=[
+                            full_shot_result.post_sequence[index]
+                            for index in cluster_site_indices
+                        ],
+                    )
+                )
+
+        return QuEraTaskResults(
+            task_status=task_result.task_status, shot_outputs=shot_outputs
+        )
+
+
 def multiplex_lattice(
-    lattice_ast: Lattice, capabilities, cluster_spacing
+    lattice_ast: Lattice, cluster_spacing, capabilities=None
 ) -> Tuple[ListOfPositions, List[SiteClusterInfo]]:
+    if capabilities is None:
+        capabilities = get_capabilities()
+
+    height_max = capabilities.capabilities.lattice.area.height / 1e-6
+    width_max = capabilities.capabilities.lattice.area.width / 1e-6
+    number_sites_max = capabilities.capabilities.lattice.geometry.number_sites_max
+
     lattice_sites = list(lattice_ast.enumerate())
     # get minimum and maximum x,y coords for existing problem spacing
     x_min = x_max = 0
@@ -56,20 +153,20 @@ def multiplex_lattice(
     while True:
         y_shift = cluster_index_y * Decimal(single_problem_height + cluster_spacing)
         # reached the maximum number of batches possible given n_site_max
-        if global_site_index + len(lattice_sites) > capabilities.num_sites_max:
+        if global_site_index + len(lattice_sites) > number_sites_max:
             break
         # reached the maximum number of batches possible along x-direction
-        if y_shift + single_problem_height > capabilities.max_height:
+        if y_shift + single_problem_height > height_max:
             break
 
         cluster_index_x = 0
         while True:
             x_shift = cluster_index_x * Decimal(single_problem_width + cluster_spacing)
             # reached the maximum number of batches possible given n_site_max
-            if global_site_index + len(lattice_sites) > capabilities.num_sites_max:
+            if global_site_index + len(lattice_sites) > number_sites_max:
                 break
             # reached the maximum number of batches possible along x-direction
-            if x_shift + single_problem_width > capabilities.max_width:
+            if x_shift + single_problem_width > width_max:
                 cluster_index_y += 1
                 break
 
@@ -90,16 +187,4 @@ def multiplex_lattice(
 
             cluster_index_x += 1
 
-    return ListOfPositions(sites), mapping
-
-
-# create a new program with multiplexed geometry and mapping provided
-def multiplex_program(
-    prog: "Program", capabilities: Capabilities, cluster_spacing: float
-) -> "Program":
-    multiplexed_lattice, mapping = multiplex_lattice(
-        prog.lattice, capabilities, cluster_spacing
-    )
-    multiplexed_prog = Program(multiplexed_lattice, prog.seq, prog.assignments)
-    multiplexed_prog.mapping = mapping
-    return multiplexed_prog
+    return ListOfPositions(sites), MultiplexDecoder(mapping=mapping)

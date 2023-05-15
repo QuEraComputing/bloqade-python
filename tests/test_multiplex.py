@@ -1,7 +1,6 @@
 from bloqade.lattice import Square
-from bloqade.lattice.multiplex import multiplex_program
 from bloqade.hardware.capabilities import Capabilities
-from bloqade.task import Program
+from bloqade.ir.program import Program
 from bloqade.codegen.quera_hardware import SchemaCodeGen
 
 from bloqade.ir import (
@@ -40,7 +39,8 @@ cap = Capabilities(num_sites_max=256, max_height=75, max_width=75)
 cluster_spacing = 4.0
 
 # can remove multiplex_enabled flag in favor of checking presence of mapping attribute
-multiplexed_prog = multiplex_program(prog, cap, cluster_spacing)
+multiplexed_prog = Program(lattice, seq, cluster_spacing=2.5)
+# multiplexed_prog = multiplex_program(prog, cap, cluster_spacing)
 
 # call codegen
 generated_schema = SchemaCodeGen().emit(100, multiplexed_prog)

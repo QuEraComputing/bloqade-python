@@ -31,7 +31,6 @@ import quera_ahs_utils.quera_ir.task_specification as task_spec
 from typing import Dict, Tuple, List, TYPE_CHECKING
 from bisect import bisect_left
 
-from bloqade.lattice.multiplex_decoder import MultiplexDecoder
 
 if TYPE_CHECKING:
     from bloqade.lattice.base import Lattice
@@ -300,9 +299,7 @@ class SchemaCodeGen(ProgramVisitor):
                             f"Location({location.value}) is larger than the lattice."
                         )
 
-                site_to_cluster_map = MultiplexDecoder(
-                    mapping=multiplex_mapping
-                ).get_site_indices()
+                site_to_cluster_map = multiplex_mapping.get_site_indices()
 
                 for atom_index in range(self.n_atoms):
                     scale = locations.get(
@@ -325,7 +322,7 @@ class SchemaCodeGen(ProgramVisitor):
                     )
 
                 multiplexed_runtime_vector = []
-                for _ in range(self.multiplex_mapping.keys()):
+                for _ in range(multiplex_mapping.keys()):
                     multiplexed_runtime_vector += self.assignments[name]
 
                 self.assignments[name] = multiplexed_runtime_vector
@@ -566,7 +563,11 @@ class SchemaCodeGen(ProgramVisitor):
             sites.append(tuple(site))
             filling.append(1)
 
-        self.n_atoms = len(sites)
+        if self.multiplex_mapping:
+            self.n_atoms = self.multiplex_mapping.sites_per_cluster
+        else:
+            self.n_atoms = len(sites)
+
         self.lattice = task_spec.Lattice(sites=sites, filling=filling)
 
     def emit(self, nshots: int, program: "Program") -> task_spec.QuEraTaskSpecification:

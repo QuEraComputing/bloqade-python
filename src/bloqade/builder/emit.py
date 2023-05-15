@@ -51,10 +51,16 @@ class Emit(Builder):
         super().__init__(builder)
         self.__assignments__ = {}
         self.__sequence__ = None
+        self.__multiplex_cluster_spacing__ = None
 
     def assign(self, **assignments):
         self.__assignments__.update(assignments)
         return self
+
+    # toggles multiplexing
+    def multiplex(self, cluster_spacing: float):
+        self.__multiplex_cluster_spacing__ = cluster_spacing
+        # THIS MUTATES self
 
     @staticmethod
     def __build(builder: Builder, build_state: BuildState):
@@ -250,7 +256,12 @@ class Emit(Builder):
 
     @property
     def program(self):
-        return Program(self.lattice, self.sequence, self.__assignments__)
+        return Program(
+            self.lattice,
+            self.sequence,
+            self.__assignments__,
+            self.__multiplex_cluster_spacing__,
+        )
 
     def simu(self, *args, **kwargs):
         raise NotImplementedError
