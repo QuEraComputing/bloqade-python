@@ -35,7 +35,7 @@ from bloqade.lattice.multiplex_decoder import MultiplexDecoder
 
 if TYPE_CHECKING:
     from bloqade.lattice.base import Lattice
-    from bloqade.task import Program
+    from bloqade.ir import Program
 
 
 class PiecewiseLinearCodeGen(WaveformVisitor):
@@ -569,16 +569,12 @@ class SchemaCodeGen(ProgramVisitor):
         self.n_atoms = len(sites)
         self.lattice = task_spec.Lattice(sites=sites, filling=filling)
 
-    def emit(self, nshots: int, ast: "Program") -> task_spec.QuEraTaskSpecification:
-        # check if program has a multiplex section
-        self.multiplex_mapping = ast.mapping
+    def emit(self, nshots: int, program: "Program") -> task_spec.QuEraTaskSpecification:
+        self.multiplex_mapping = program.mapping
+        self.assignments = AssignmentScan(program.assignments).emit(program.sequence)
+        self.visit(program.lattice)
+        self.visit(program.sequence)
 
-        # get proper variable assignments
-        self.assignments = AssignmentScan(ast.assignments).emit(ast)
-
-        self.visit(ast.lattice)
-
-        self.visit(ast.seq)
         return task_spec.QuEraTaskSpecification(
             nshots=nshots,
             lattice=self.lattice,

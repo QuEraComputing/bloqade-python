@@ -1,13 +1,12 @@
-from ..builder import Start
+from bloqade.builder.start import ProgramStart
 from numpy.typing import NDArray
 from typing import Generator
 from bokeh.plotting import show
 
 
-class Lattice(Start):
+class Lattice(ProgramStart):
     def __init__(self) -> None:
-        super().__init__()
-        self.__lattice__ = self
+        super().__init__(lattice=self)
 
     def enumerate(self) -> Generator[NDArray, None, None]:
         """enumerate all positions in the lattice."""

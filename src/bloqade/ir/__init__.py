@@ -9,9 +9,17 @@ from .waveform import (
     AlignedValue,
     Alignment,
 )
-from .field import Field, Location, ScaledLocations, Uniform, SpatialModulation
+from .field import (
+    Field,
+    Location,
+    ScaledLocations,
+    Uniform,
+    SpatialModulation,
+    RunTimeVector,
+)
 from .pulse import Pulse, NamedPulse, FieldName, rabi, detuning
 from .sequence import rydberg, hyperfine, Sequence, LevelCoupling
+from .program import Program
 
 __all__ = [
     "cast",
@@ -31,6 +39,7 @@ __all__ = [
     "Location",
     "ScaledLocations",
     "Uniform",
+    "RunTimeVector",
     "SpatialModulation",
     "Pulse",
     "NamedPulse",
@@ -41,4 +50,5 @@ __all__ = [
     "rydberg",
     "hyperfine",
     "Sequence",
+    "Program",
 ]

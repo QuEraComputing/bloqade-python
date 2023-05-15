@@ -199,7 +199,10 @@ class Linear(Instruction):
             return ((stop_value - start_value) / self.duration(**kwargs)) * clock_s
 
     def __repr__(self) -> str:
-        return f"linear {self.start} {self.stop}"
+        return (
+            f"Linear(start={self.start!r}, stop={self.stop!r}, "
+            f"duration={self.duration!r})"
+        )
 
     def print_node(self):
         return "Linear"
@@ -232,7 +235,7 @@ class Constant(Instruction):
             return constant_value
 
     def __repr__(self) -> str:
-        return f"constant {self.value}"
+        return f"Constant(value={self.value!r}, duration={self.duration!r})"
 
     def print_node(self):
         return "Constant"

@@ -5,15 +5,12 @@ import bloqade.ir.field as field
 import bloqade.ir.waveform as waveform
 import bloqade.ir.scalar as scalar
 from numbers import Number
-from typing import Dict, TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from bloqade.task import Program
+from typing import Dict
 
 
 class AssignmentScan(ProgramVisitor):
     def __init__(self, assignments: Dict[str, Number]):
-        self.assignments = assignments
+        self.assignments = dict(assignments)
 
     def visit_sequence(self, ast: sequence.SequenceExpr):
         match ast:
@@ -75,6 +72,6 @@ class AssignmentScan(ProgramVisitor):
             case waveform.Smooth(_, sub_waveform):
                 self.visit(sub_waveform)
 
-    def emit(self, ast: "Program") -> Dict[str, Number]:
-        self.visit(ast.seq)
+    def emit(self, ast: sequence.SequenceExpr) -> Dict[str, Number]:
+        self.visit(ast)
         return self.assignments
