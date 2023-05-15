@@ -17,12 +17,10 @@ from bloqade.ir import Program
 from quera_ahs_utils.ir import quera_task_to_braket_ahs
 
 from pydantic import BaseModel
-from typing import TYPE_CHECKING, Optional
+from typing import Optional
 import json
 import os
-
-if TYPE_CHECKING:
-    from bloqade.task import HardwareTask
+from bloqade.task import HardwareTask
 
 
 class BuildError(Exception):
@@ -270,7 +268,7 @@ class Emit(Builder):
         from bloqade.codegen.quera_hardware import SchemaCodeGen
 
         quera_task_ir = SchemaCodeGen().emit(nshots, self.program)
-        braket_ahs_program, nshots = quera_task_to_braket_ahs(quera_task_ir)
+        nshots, braket_ahs_program = quera_task_to_braket_ahs(quera_task_ir)
         task_ir = BraketTaskSpecification(
             nshots=nshots, program=braket_ahs_program.to_ir()
         )

@@ -1,5 +1,4 @@
 from bloqade.lattice import Square
-from bloqade.hardware.capabilities import Capabilities
 from bloqade.ir.program import Program
 from bloqade.codegen.quera_hardware import SchemaCodeGen
 
@@ -32,9 +31,6 @@ seq = Sequence(
 
 
 prog = Program(lattice, seq)
-
-# need to provide capabilities and problem spacing
-cap = Capabilities(num_sites_max=256, max_height=75, max_width=75)
 
 cluster_spacing = 4.0
 

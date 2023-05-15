@@ -119,8 +119,8 @@ def multiplex_lattice(
     if capabilities is None:
         capabilities = get_capabilities()
 
-    height_max = capabilities.capabilities.lattice.area.height / 1e-6
-    width_max = capabilities.capabilities.lattice.area.width / 1e-6
+    height_max = Decimal(capabilities.capabilities.lattice.area.height) / Decimal(1e-6)
+    width_max = Decimal(capabilities.capabilities.lattice.area.width) / Decimal(1e-6)
     number_sites_max = capabilities.capabilities.lattice.geometry.number_sites_max
 
     lattice_sites = list(lattice_ast.enumerate())
@@ -171,7 +171,7 @@ def multiplex_lattice(
                 break
 
             for local_site_index, (x_coord, y_coord) in enumerate(lattice_sites):
-                sites.append((x_coord + x_shift, y_coord + y_shift))
+                sites.append((x_coord + float(x_shift), y_coord + float(y_shift)))
                 mapping.append(
                     SiteClusterInfo(
                         cluster_index=(
