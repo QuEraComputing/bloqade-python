@@ -17,12 +17,10 @@ from bloqade.ir import Program
 from quera_ahs_utils.ir import quera_task_to_braket_ahs
 
 from pydantic import BaseModel
-from typing import TYPE_CHECKING, Optional
+from typing import Optional
 import json
 import os
-
-if TYPE_CHECKING:
-    from bloqade.task import HardwareTask
+from bloqade.task import HardwareTask
 
 
 class BuildError(Exception):
@@ -51,10 +49,16 @@ class Emit(Builder):
         super().__init__(builder)
         self.__assignments__ = {}
         self.__sequence__ = None
+        self.__multiplex_cluster_spacing__ = None
 
     def assign(self, **assignments):
         self.__assignments__.update(assignments)
         return self
+
+    # toggles multiplexing
+    def multiplex(self, cluster_spacing: float):
+        self.__multiplex_cluster_spacing__ = cluster_spacing
+        # THIS MUTATES self
 
     @staticmethod
     def __build(builder: Builder, build_state: BuildState):
@@ -250,7 +254,12 @@ class Emit(Builder):
 
     @property
     def program(self):
-        return Program(self.lattice, self.sequence, self.__assignments__)
+        return Program(
+            self.lattice,
+            self.sequence,
+            self.__assignments__,
+            self.__multiplex_cluster_spacing__,
+        )
 
     def simu(self, *args, **kwargs):
         raise NotImplementedError
@@ -259,7 +268,7 @@ class Emit(Builder):
         from bloqade.codegen.quera_hardware import SchemaCodeGen
 
         quera_task_ir = SchemaCodeGen().emit(nshots, self.program)
-        braket_ahs_program, nshots = quera_task_to_braket_ahs(quera_task_ir)
+        nshots, braket_ahs_program = quera_task_to_braket_ahs(quera_task_ir)
         task_ir = BraketTaskSpecification(
             nshots=nshots, program=braket_ahs_program.to_ir()
         )

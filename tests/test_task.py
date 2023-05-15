@@ -28,10 +28,11 @@ seq = Sequence(
 #     .location(2)
 #     .scale(3.0)
 #     .apply(Linear(start=1.0, stop="x", duration=3.0))
-#     .hyperfine.rabi.amplitude.location(2)
+#     .rydberg.rabi.amplitude.uniform
 #     .apply(Linear(start=1.0, stop="x", duration=3.0))
+#     .assign(x=10)
 #     .braket(nshots=1000)
-#     .submit(token="112312312")
+#     .submit()
 #     .report()
 # )
 
@@ -57,7 +58,7 @@ seq = Sequence(
 #     .hyperfine.rabi.amplitude.location(2)
 #     .apply(Linear(start=1.0, stop="x", duration=3.0))
 #     .assign(x=1.0)
-#     .multiplex.braket(nshots=1000)
+#     .multiplex(10.0).braket(nshots=1000)
 #     .submit()
 #     .report()
 #     .dataframe.groupby(by=["x"])
@@ -89,7 +90,3 @@ seq = Sequence(
 
 # prog.seq
 # prog.lattice
-
-# builder = lattice.Square(3).rydberg.detuning
-# for i in range(10):
-#     builder.location(i).linear(start=1.0, stop=2.0, duration=2.0)
