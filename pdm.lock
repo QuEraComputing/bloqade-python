@@ -547,7 +547,7 @@ dependencies = [
 
 [[package]]
 name = "juliacall"
-version = "0.9.12"
+version = "0.9.13"
 requires_python = "~=3.7"
 summary = "Julia and Python in seamless harmony"
 dependencies = [
@@ -2288,9 +2288,9 @@ content_hash = "sha256:6078f840b81f08e49608d7ba78632077754a60cc563d7522e06daf44a
     {url = "https://files.pythonhosted.org/packages/36/3d/ca032d5ac064dff543aa13c984737795ac81abc9fb130cd2fcff17cfabc7/jsonschema-4.17.3.tar.gz", hash = "sha256:0f864437ab8b6076ba6707453ef8f98a6a0d512a80e93f8abdb676f737ecb60d"},
     {url = "https://files.pythonhosted.org/packages/c1/97/c698bd9350f307daad79dd740806e1a59becd693bd11443a0f531e3229b3/jsonschema-4.17.3-py3-none-any.whl", hash = "sha256:a870ad254da1a8ca84b6a2905cac29d265f805acc57af304784962a2aa6508f6"},
 ]
-"juliacall 0.9.12" = [
-    {url = "https://files.pythonhosted.org/packages/26/75/80678dfc3faf5f07b6690065bc972a6a6d0d45e9e1c65362366fd8de1884/juliacall-0.9.12-py3-none-any.whl", hash = "sha256:1f8e97473cbcc74d75f18ae45ca5d7bbfc17696764c7cbb2a7664300842cc724"},
-    {url = "https://files.pythonhosted.org/packages/40/55/52001b8a863a1d579259aed3c4e96c9e94b2bd4e114b1c36195964f6d535/juliacall-0.9.12.tar.gz", hash = "sha256:20cc00263adacb2a3837486d8f64b2eb7ac4e98da7e941f06fc0df51987f7b9d"},
+"juliacall 0.9.13" = [
+    {url = "https://files.pythonhosted.org/packages/4a/d1/975145b1b6905a2e6dcb0b167a47b4914faec0824b0f00193889db37973e/juliacall-0.9.13-py3-none-any.whl", hash = "sha256:82b48a71ca1124459dcde95ea6ce7185b39e83aee49aa5a2cbb7ec5184844ed0"},
+    {url = "https://files.pythonhosted.org/packages/fa/84/0b3c50e87b834822c2c54341823e3e52e5b8b3bb54778f7c48739b91559a/juliacall-0.9.13.tar.gz", hash = "sha256:c7813f02de011741f300fa18a729196fd650382b33a8bedff4837d777b7bbe46"},
 ]
 "juliapkg 0.1.10" = [
     {url = "https://files.pythonhosted.org/packages/0f/06/b7c892ecad3c8e79d628a2614d76b96108406bc0ca209cc1ee157c448494/juliapkg-0.1.10.tar.gz", hash = "sha256:70507318d51ac8663e856f56048764e49f5a0c4c90d81a3712d039a316369505"},
