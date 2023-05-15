@@ -31,6 +31,7 @@ import quera_ahs_utils.quera_ir.task_specification as task_spec
 from typing import Dict, Tuple, List, TYPE_CHECKING
 from bisect import bisect_left
 
+
 if TYPE_CHECKING:
     from bloqade.lattice.base import Lattice
     from bloqade.ir import Program
@@ -267,9 +268,29 @@ class SchemaCodeGen(ProgramVisitor):
         self.detuning = None
         self.lattice_site_coefficients = None
 
+        self.multiplex_mapping = None
+
     def visit_spatial_modulation(self, ast: SpatialModulation):
-        match ast:
-            case ScaledLocations(locations):
+        match (self.multiplex_mapping, ast):
+            case (None, ScaledLocations(locations)):
+                # check that all indices map to actual atoms in lattice
+                self.lattice_site_coefficients = []
+                for location in locations.keys():
+                    if (
+                        location.value >= self.n_atoms
+                    ):  # n_atoms is now the number of atoms in the multiplexed
+                        # lattice, but needs to be num. atoms in the original
+                        raise ValueError(
+                            f"Location({location.value}) is larger than the lattice."
+                        )
+
+                for atom_index in range(self.n_atoms):
+                    scale = locations.get(Location(atom_index), Literal(0.0))
+                    self.lattice_site_coefficients.append(
+                        scale(**self.assignments)
+                    )  # append scalars to lattice_site_coefficients
+
+            case (multiplex_mapping, ScaledLocations(locations)):
                 self.lattice_site_coefficients = []
 
                 for location in locations.keys():
@@ -278,23 +299,98 @@ class SchemaCodeGen(ProgramVisitor):
                             f"Location({location.value}) is larger than the lattice."
                         )
 
+                site_to_cluster_map = multiplex_mapping.get_site_indices()
+
                 for atom_index in range(self.n_atoms):
-                    scale = locations.get(Location(atom_index), Literal(0, 0))
+                    scale = locations.get(
+                        Location(site_to_cluster_map[atom_index]), Literal(0.0)
+                    )
                     self.lattice_site_coefficients.append(scale(**self.assignments))
 
-            case RunTimeVector(name):
+            case (None, RunTimeVector(name)):
                 if len(self.assignments[name]) != self.n_atoms:
                     raise ValueError(
                         f"Coefficient list {name} doesn't match the size of lattice "
                         f"{self.n_atoms}."
                     )
+
+            case (multiplex_mapping, RunTimeVector(name)):
+                if len(self.assignments[name]) != self.n_atoms:
+                    raise ValueError(
+                        f"Coefficient list {name} doesn't match the size of lattice "
+                        f"{self.n_atoms}."
+                    )
+
+                multiplexed_runtime_vector = []
+                for _ in range(multiplex_mapping.keys()):
+                    multiplexed_runtime_vector += self.assignments[name]
+
+                self.assignments[name] = multiplexed_runtime_vector
+
+    """
+    def visit_spatial_modulation(self, ast: SpatialModulation):
+        # can use the multiplex mapping and multiplexed enabled features here
+        match ast:
+            case ScaledLocations(locations): # with and without multiplexing
+                self.lattice_site_coefficients = []
+
+                # check that all indices map to actual atoms in lattice
+                for location in locations.keys():
+                    if location.value >= self.n_atoms:
+                        raise ValueError(
+                            f"Location({location.value}) is larger than the lattice."
+                        )
+
+                # need to get the number of atoms in a single cluster
+                # try to use mapping more explicitly
+                # use get_site_indices
+                # n_atoms_single_cluster = len(list(self.mapping.values())[0])
+                site_to_cluster_map = MultiplexDecoder(
+                    mapping=self.multiplex_mapping
+                ).get_site_indices()
+
+                for atom_index in range(self.n_atoms):
+                    # can apply Phillip's modulo operation here
+                    if self.multiplex_mapping is not None:
+                        scale = locations.get(
+                            Location(site_to_cluster_map[atom_index]), Literal(0.0)
+                        )
+                    else:
+                        scale = locations.get(
+                            Location(atom_index), Literal(0.0)
+                        )  # for each global_site_index,
+                        # get the associated scalar,
+                        # otherwise default to Literal of (0.0)
+                    self.lattice_site_coefficients.append(
+                        scale(**self.assignments)
+                    )  # append scalars to lattice_site_coefficients
+
+            case RunTimeVector(name): # with and without multiplexing
+                run_time_vector = self.assignments[name]
+                if len(run_time_vector) != self.n_atoms:
+                    raise ValueError(
+                        f"Coefficient list {name} doesn't match the size of lattice "
+                        f"{self.n_atoms}."
+                    )
+
+                # overwrite the existing RunTimeVector with a new one
+                if self.multiplex_mapping is not None:
+                    # get number of keys in mapping for clusters
+                    multiplexed_run_time_vector = []
+                    for _ in range(self.multiplex_mapping.keys()):
+                        multiplexed_run_time_vector += run_time_vector
+
+                    self.assignments[name] = multiplexed_run_time_vector
+
             case _:
                 raise RuntimeError(
                     "This Error should not appear, please Open up an issue."
                 )
+"""
 
     def visit_field(self, ast: Field):
-        match (self.field_name, ast):
+        match (self.field_name, ast):  # Pulse: Dict of FieldName/Field
+            # Can only have a global RabiFrequencyAmplitude
             case (RabiFrequencyAmplitude(), Field(terms)) if len(
                 terms
             ) == 1 and Uniform in terms:
@@ -305,10 +401,10 @@ class SchemaCodeGen(ProgramVisitor):
                 self.rabi_frequency_amplitude = task_spec.RabiFrequencyAmplitude(
                     global_=task_spec.GlobalField(times=times, values=values)
                 )
-
+            # Can only have global RabiFrequencyPhase
             case (RabiFrequencyPhase(), Field(terms)) if len(
                 terms
-            ) == 1 and Uniform in terms:
+            ) == 1 and Uniform in terms:  # has to be global
                 times, values = PiecewiseConstantCodeGen(self.assignments).visit(
                     terms[Uniform]
                 )
@@ -317,6 +413,12 @@ class SchemaCodeGen(ProgramVisitor):
                     global_=task_spec.GlobalField(times=times, values=values)
                 )
 
+            # 3 possible detuning cases:
+            # (global, no local),
+            # (local, no global),
+            # (local, global)
+
+            ## global detuning, no local
             case (Detuning(), Field(terms)) if len(terms) == 1 and Uniform in terms:
                 times, values = PiecewiseLinearCodeGen(self.assignments).visit(
                     terms[Uniform]
@@ -326,32 +428,39 @@ class SchemaCodeGen(ProgramVisitor):
                     global_=task_spec.GlobalField(times=times, values=values)
                 )
 
+            ## local detuning, no global
             case (Detuning(), Field(terms)) if len(terms) == 1:
                 ((spatial_modulation, waveform),) = terms.items()
 
-                times, values = PiecewiseLinearCodeGen(self.assignments).visit(
-                    terms[Uniform]
-                )
+                times, values = PiecewiseLinearCodeGen(self.assignments).visit(waveform)
 
                 self.visit(spatial_modulation)
                 self.detuning = task_spec.Detuning(
+                    global_=task_spec.GlobalField(
+                        times=[0, times[-1]], values=[0.0, 0.0]
+                    ),
                     local=task_spec.LocalField(
                         times=times,
                         values=values,
                         lattice_site_coefficients=self.lattice_site_coefficients,
-                    )
+                    ),
                 )
 
+            # local AND global detuning
             case (Detuning(), Field(terms)) if len(terms) == 2 and Uniform in terms:
-                global_times, global_values = PiecewiseLinearCodeGen(
-                    self.assignments
-                ).visit(terms[Uniform])
+                # will only be two keys
+                for k in terms.keys():
+                    if k == Uniform:
+                        global_times, global_values = PiecewiseLinearCodeGen(
+                            self.assignments
+                        ).visit(terms[Uniform])
+                    else:  # can be RunTimeVector or ScaledLocations
+                        spatial_modulation = k
+                        local_times, local_values = PiecewiseLinearCodeGen(
+                            self.assignments
+                        ).visit(terms[k])
 
-                local_times, local_values = PiecewiseLinearCodeGen(
-                    self.assignments
-                ).visit(terms[Uniform])
-
-                self.visit(spatial_modulation)
+                self.visit(spatial_modulation)  # just visit the non-uniform locations
                 self.detuning = task_spec.Detuning(
                     local=task_spec.LocalField(
                         times=local_times,
@@ -364,7 +473,7 @@ class SchemaCodeGen(ProgramVisitor):
                 )
 
             case _:
-                raise NotADirectoryError()
+                raise NotImplementedError()
 
     def visit_pulse(self, ast: PulseExpr):
         match ast:
@@ -454,13 +563,19 @@ class SchemaCodeGen(ProgramVisitor):
             sites.append(tuple(site))
             filling.append(1)
 
-        self.n_atoms = len(sites)
+        if self.multiplex_mapping:
+            self.n_atoms = self.multiplex_mapping.sites_per_cluster
+        else:
+            self.n_atoms = len(sites)
+
         self.lattice = task_spec.Lattice(sites=sites, filling=filling)
 
     def emit(self, nshots: int, program: "Program") -> task_spec.QuEraTaskSpecification:
+        self.multiplex_mapping = program.mapping
         self.assignments = AssignmentScan(program.assignments).emit(program.sequence)
         self.visit(program.lattice)
         self.visit(program.sequence)
+
         return task_spec.QuEraTaskSpecification(
             nshots=nshots,
             lattice=self.lattice,
