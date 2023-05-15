@@ -15,8 +15,7 @@ from pydantic.dataclasses import dataclass
 from scipy.sparse import csr_matrix
 from enum import Enum
 import numpy as np
-from numpy.typing import NDArray
-from typing import Dict, Union, List, Tuple
+from typing import Dict, Union
 from numbers import Number
 
 
@@ -39,8 +38,6 @@ def get_dtype(target_atoms: Dict[str, Number]):
 
 
 def emit_two_level_rabi_index_map(info: RabiInfo) -> IndexMapping:
-    dtype = get_dtype(info.target_atoms)
-
     match info:
         case RabiInfo(
             op_type=RabiOperatorType.RealValued,
