@@ -26,6 +26,22 @@ class SiteClusterInfo(BaseModel):
 
 class MultiplexDecoder(BaseModel):
     mapping: List[SiteClusterInfo]
+    sites_per_cluster: int
+    number_of_cluster: int
+
+    def __init__(self, mapping: List[SiteClusterInfo]):
+        local_site_indices = set()
+        cluster_indices = set()
+
+        for site in mapping:
+            local_site_indices.add(site.local_site_index)
+            cluster_indices.add(site.cluster_index)
+
+        super().__init__(
+            mapping=mapping,
+            sites_per_cluster=len(local_site_indices),
+            number_of_cluster=len(cluster_indices),
+        )
 
     # should work if we go to the coordinate-based indexing system
     @validator("mapping")
@@ -36,15 +52,6 @@ class MultiplexDecoder(BaseModel):
             raise ValidationError("one or more sites mapped to multiple clusters")
 
         return mapping
-
-    @property
-    def sites_per_cluster(self):
-        local_site_indices = set()
-
-        for site in self.mapping:
-            local_site_indices.add(site.local_site_index)
-
-        return len(local_site_indices)
 
     # map individual atom indices (in the context of the ENTIRE geometry)
     # to the cluster-specific indices:
