@@ -21,6 +21,10 @@ class QuEraTaskStatusCode(str, Enum):
     Completed = "Completed"
     Failed = "Failed"
     Cancelled = "Cancelled"
+    Executing = "Executing"
+    Enqueued = "Enqueued"
+    Accepted = "Accepted"
+    Unaccepted = "Unaccepted"
 
 
 class QuEraShotResult(BaseModel):
