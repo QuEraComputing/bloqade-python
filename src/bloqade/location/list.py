@@ -1,10 +1,10 @@
-from .base import Lattice
+from .base import AtomArrangement
 from pydantic.dataclasses import dataclass
 from typing import List, Tuple
 
 
 @dataclass
-class ListOfPositions(Lattice):
+class ListOfLocations(AtomArrangement):
     value: List[Tuple[float, ...]]
 
     def __init__(self, value: List[Tuple[float, ...]] = []):
@@ -20,10 +20,10 @@ class ListOfPositions(Lattice):
         self.value = value
 
     def append(self, position: Tuple[float, ...]):
-        return ListOfPositions(self.value + [position])
+        return ListOfLocations(self.value + [position])
 
     def extend(self, positions: List[Tuple[float, ...]]):
-        return ListOfPositions(self.value + positions)
+        return ListOfLocations(self.value + positions)
 
     @property
     def n_atoms(self):
