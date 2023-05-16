@@ -1,4 +1,4 @@
-from bloqade.lattice import ListOfPositions
+from bloqade.atoms import ListOfPositions
 
 lp = ListOfPositions(
     [(0, 0), (0, 1), (1, 0), (1, 1)]

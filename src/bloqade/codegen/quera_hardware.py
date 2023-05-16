@@ -568,7 +568,7 @@ class SchemaCodeGen(ProgramVisitor):
         else:
             self.n_atoms = len(sites)
 
-        self.lattice = task_spec.register(sites=sites, filling=filling)
+        self.lattice = task_spec.Lattice(sites=sites, filling=filling)
 
     def emit(self, nshots: int, program: "Program") -> task_spec.QuEraTaskSpecification:
         self.multiplex_mapping = program.mapping
