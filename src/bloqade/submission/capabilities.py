@@ -1,6 +1,6 @@
 import json
 import os
-from quera_ahs_utils.quera_ir.capabilities import QuEraCapabilities
+from bloqade.submission.quera_api_client.ir.capabilities import QuEraCapabilities
 
 
 # TODO: Create unit converter for capabilities

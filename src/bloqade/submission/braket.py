@@ -1,6 +1,6 @@
 from bloqade.submission.base import SubmissionBackend
 from bloqade.submission.ir import BraketTaskSpecification
-from quera_ahs_utils.quera_ir.task_results import (
+from bloqade.submission.quera_api_client.ir.task_results import (
     QuEraTaskStatusCode,
     QuEraTaskResults,
     QuEraShotResult,
@@ -67,3 +67,7 @@ class BraketBackend(SubmissionBackend):
 
     def cancel_task(self, task_id: str) -> None:
         AwsQuantumTask(task_id).cancel()
+
+    def task_status(self, task_id: str) -> QuEraTaskStatusCode:
+        task = AwsQuantumTask(task_id)
+        return self._convert_status_codes(task.state)

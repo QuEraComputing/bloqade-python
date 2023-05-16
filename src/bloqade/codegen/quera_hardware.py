@@ -27,7 +27,7 @@ from bloqade.codegen.program_visitor import ProgramVisitor
 from bloqade.codegen.waveform_visitor import WaveformVisitor
 from bloqade.codegen.assignment_scan import AssignmentScan
 
-import quera_ahs_utils.quera_ir.task_specification as task_spec
+import bloqade.submission.quera_api_client.ir.task_specification as task_spec
 from typing import Dict, Tuple, List, TYPE_CHECKING
 from bisect import bisect_left
 
