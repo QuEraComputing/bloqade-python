@@ -14,6 +14,12 @@ class ListOfPositions(Lattice):
         self.__n_atoms = len(value)
         self.__n_dims = len(value[0])
 
+    def append(self, position: Tuple[float, ...]):
+        return ListOfPositions(self.value + [position])
+
+    def extend(self, positions: List[Tuple[float, ...]]):
+        return ListOfPositions(self.value + positions)
+
     @property
     def n_atoms(self):
         return self.__n_atoms
