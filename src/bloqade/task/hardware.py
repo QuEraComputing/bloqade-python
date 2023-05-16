@@ -9,6 +9,7 @@ from bloqade.submission.ir import BraketTaskSpecification
 from bloqade.submission.quera_api_client.ir.task_specification import (
     QuEraTaskSpecification,
 )
+from bloqade.submission.quera_api_client.ir.task_results import QuEraTaskStatusCode
 
 from .base import Task, TaskFuture
 
@@ -159,6 +160,12 @@ class HardwareTaskFuture(TaskFutureDataModel, TaskFuture):
 
     def cancel(self) -> None:
         self._validate_fields()
+        if self.status() in [
+            QuEraTaskStatusCode.Complete,
+            QuEraTaskStatusCode.Running,
+            QuEraTaskStatusCode.Accepted,
+        ]:
+            return
 
         if self.braket_backend:
             self.braket_backend.cancel_task(self.task_id)
