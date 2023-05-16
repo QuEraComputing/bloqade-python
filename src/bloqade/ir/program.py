@@ -1,10 +1,10 @@
 from bloqade.ir import Sequence
 from typing import TYPE_CHECKING, Dict, Optional, Union, List
 from numbers import Number
-from bloqade.lattice.multiplex import multiplex_lattice
+from bloqade.location.multiplex import multiplex_register
 
 if TYPE_CHECKING:
-    from bloqade.lattice.base import Lattice
+    from bloqade.location.base import AtomArrangement
 
 
 # NOTE: this is just a dummy type bundle geometry and sequence
@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 class Program:
     def __init__(
         self,
-        lattice: "Lattice",
+        register: "AtomArrangement",
         sequence: Sequence,
         assignments: Dict[str, Union[Number, List[Number]]] = {},
         cluster_spacing: Optional[float] = None,
@@ -20,18 +20,20 @@ class Program:
         self._sequence = sequence
         self._assignments = assignments
 
-        if lattice is None:
-            raise ValueError("Lattice required to construct program")
+        if register is None:
+            raise ValueError("AtomArrangement required to construct program")
 
         if cluster_spacing:
-            self._lattice, self._mapping = multiplex_lattice(lattice, cluster_spacing)
+            self._register, self._mapping = multiplex_register(
+                register, cluster_spacing
+            )
         else:
-            self._lattice = lattice
+            self._register = register
             self._mapping = None
 
     @property
-    def lattice(self):
-        return self._lattice
+    def register(self):
+        return self._register
 
     @property
     def mapping(self):
