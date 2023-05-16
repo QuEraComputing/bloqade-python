@@ -1,23 +1,19 @@
 from pydantic import BaseModel
-from quera_ahs_utils.quera_ir.task_results import QuEraTaskResults
+from bloqade.submission.quera_api_client.ir.task_results import QuEraTaskResults
 
 from bloqade.submission.mock import DumbMockBackend
 
 from bloqade.submission.quera import QuEraBackend
 from bloqade.submission.braket import BraketBackend
 from bloqade.submission.ir import BraketTaskSpecification
-from quera_ahs_utils.quera_ir.task_specification import QuEraTaskSpecification
+from bloqade.submission.quera_api_client.ir.task_specification import (
+    QuEraTaskSpecification,
+)
+
+from .base import Task, TaskFuture
 
 from typing import Optional, Union, TextIO
-
-from pandas import DataFrame
-import numpy as np
 import json
-
-
-class Task:
-    def submit(self) -> "TaskFuture":
-        raise NotImplementedError
 
 
 class TaskDataModel(BaseModel):
@@ -87,7 +83,6 @@ class TaskDataModel(BaseModel):
 class HardwareTask(TaskDataModel, Task):
     def submit(self) -> "HardwareTaskFuture":
         self._validate_fields()
-
         if self.braket_backend:
             task_id = self.braket_backend.submit_task(self.braket_task_ir)
             return HardwareTaskFuture(
@@ -123,12 +118,6 @@ class HardwareTask(TaskDataModel, Task):
             self.mock_backend.validate_task(self.quera_task_ir)
 
 
-class TaskFuture:
-    def report(self) -> "TaskReport":
-        """generate the task report"""
-        return TaskReport(self)
-
-
 class TaskFutureDataModel(TaskDataModel):
     task_id: Optional[str] = None
 
@@ -156,6 +145,18 @@ class TaskFutureDataModel(TaskDataModel):
 
 
 class HardwareTaskFuture(TaskFutureDataModel, TaskFuture):
+    def status(self) -> None:
+        self._validate_fields()
+
+        if self.braket_backend:
+            self.braket_backend.task_status(self.task_id)
+
+        if self.quera_backend:
+            self.quera_backend.task_status(self.task_id)
+
+        if self.mock_backend:
+            self.mock_backend.task_status(self.task_id)
+
     def cancel(self) -> None:
         self._validate_fields()
 
@@ -170,7 +171,6 @@ class HardwareTaskFuture(TaskFutureDataModel, TaskFuture):
 
     def fetch(self) -> QuEraTaskResults:
         self._validate_fields()
-        print("here")
         if self.braket_backend:
             return self.braket_backend.task_results(self.task_id)
 
@@ -186,35 +186,3 @@ class HardwareTaskFuture(TaskFutureDataModel, TaskFuture):
             self.task_result_ir = self.fetch()
 
         return self.task_result_ir
-
-
-# NOTE: this is only the basic report, we should provide
-#      a way to customize the report class,
-#      e.g result.plot() returns a `TaskPlotReport` class instead
-class TaskReport:
-    def __init__(self, result: TaskFuture) -> None:
-        self.result = result
-        self._dataframe = None  # df cache
-        self._bitstring = None  # bitstring cache
-
-    @property
-    def dataframe(self) -> DataFrame:
-        if self._dataframe:
-            return self._dataframe
-        self._dataframe = DataFrame()
-        return self._dataframe
-
-    @property
-    def bitstring(self) -> np.array:
-        if self._bitstring:
-            return self._bitstring
-        self._bitstring = np.array([])
-        return self._bitstring
-
-    @property
-    def task_result(self) -> QuEraTaskResults:
-        return self.result.task_result
-
-    @property
-    def markdown(self) -> str:
-        return self.dataframe.to_markdown()
