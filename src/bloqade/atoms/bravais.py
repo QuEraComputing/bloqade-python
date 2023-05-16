@@ -3,7 +3,7 @@ from typing import List, Tuple, Generator
 import numpy as np
 import itertools
 from numpy.typing import NDArray
-from .base import Lattice
+from .base import AtomArrangement
 from bokeh.models import ColumnDataSource, Plot
 from bokeh.plotting import figure
 
@@ -15,7 +15,7 @@ class Cell:
 
 
 @dataclass
-class BoundedBravais(Lattice):
+class BoundedBravais(AtomArrangement):
     shape: Tuple[int, ...]
     lattice_spacing: float = 1.0
 

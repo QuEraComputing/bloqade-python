@@ -33,7 +33,7 @@ from bisect import bisect_left
 
 
 if TYPE_CHECKING:
-    from bloqade.lattice.base import Lattice
+    from bloqade.atoms.base import AtomArrangement
     from bloqade.ir import Program
 
 
@@ -281,7 +281,7 @@ class SchemaCodeGen(ProgramVisitor):
                     ):  # n_atoms is now the number of atoms in the multiplexed
                         # lattice, but needs to be num. atoms in the original
                         raise ValueError(
-                            f"Location({location.value}) is larger than the lattice."
+                            f"Location({location.value}) is larger than the register."
                         )
 
                 for atom_index in range(self.n_atoms):
@@ -296,7 +296,7 @@ class SchemaCodeGen(ProgramVisitor):
                 for location in locations.keys():
                     if location.value >= self.n_atoms:
                         raise ValueError(
-                            f"Location({location.value}) is larger than the lattice."
+                            f"Location({location.value}) is larger than the register."
                         )
 
                 site_to_cluster_map = multiplex_mapping.get_site_indices()
@@ -310,14 +310,14 @@ class SchemaCodeGen(ProgramVisitor):
             case (None, RunTimeVector(name)):
                 if len(self.assignments[name]) != self.n_atoms:
                     raise ValueError(
-                        f"Coefficient list {name} doesn't match the size of lattice "
+                        f"Coefficient list {name} doesn't match the size of register "
                         f"{self.n_atoms}."
                     )
 
             case (multiplex_mapping, RunTimeVector(name)):
                 if len(self.assignments[name]) != self.n_atoms:
                     raise ValueError(
-                        f"Coefficient list {name} doesn't match the size of lattice "
+                        f"Coefficient list {name} doesn't match the size of register "
                         f"{self.n_atoms}."
                     )
 
@@ -556,7 +556,7 @@ class SchemaCodeGen(ProgramVisitor):
             rydberg=self.rydberg
         )
 
-    def visit_lattice(self, ast: "Lattice"):
+    def visit_register(self, ast: "AtomArrangement"):
         sites = []
         filling = []
         for site in ast.enumerate():
@@ -568,12 +568,12 @@ class SchemaCodeGen(ProgramVisitor):
         else:
             self.n_atoms = len(sites)
 
-        self.lattice = task_spec.Lattice(sites=sites, filling=filling)
+        self.lattice = task_spec.register(sites=sites, filling=filling)
 
     def emit(self, nshots: int, program: "Program") -> task_spec.QuEraTaskSpecification:
         self.multiplex_mapping = program.mapping
         self.assignments = AssignmentScan(program.assignments).emit(program.sequence)
-        self.visit(program.lattice)
+        self.visit(program.register)
         self.visit(program.sequence)
 
         return task_spec.QuEraTaskSpecification(

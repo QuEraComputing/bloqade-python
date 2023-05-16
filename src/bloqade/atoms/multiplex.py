@@ -1,4 +1,4 @@
-from .base import Lattice
+from .base import AtomArrangement
 from .list import ListOfPositions
 from decimal import Decimal
 from pydantic import BaseModel, validator, ValidationError
@@ -113,8 +113,8 @@ class MultiplexDecoder(BaseModel):
         )
 
 
-def multiplex_lattice(
-    lattice_ast: Lattice, cluster_spacing, capabilities=None
+def multiplex_register(
+    register_ast: AtomArrangement, cluster_spacing, capabilities=None
 ) -> Tuple[ListOfPositions, List[SiteClusterInfo]]:
     if capabilities is None:
         capabilities = get_capabilities()
@@ -123,11 +123,11 @@ def multiplex_lattice(
     width_max = Decimal(capabilities.capabilities.lattice.area.width) / Decimal(1e-6)
     number_sites_max = capabilities.capabilities.lattice.geometry.number_sites_max
 
-    lattice_sites = list(lattice_ast.enumerate())
+    register_sites = list(register_ast.enumerate())
     # get minimum and maximum x,y coords for existing problem spacing
     x_min = x_max = 0
     y_min = y_max = 0
-    for site in lattice_sites:
+    for site in register_sites:
         if site[0] < x_min:
             x_min = site[0]
         elif site[0] > x_max:
@@ -153,7 +153,7 @@ def multiplex_lattice(
     while True:
         y_shift = cluster_index_y * Decimal(single_problem_height + cluster_spacing)
         # reached the maximum number of batches possible given n_site_max
-        if global_site_index + len(lattice_sites) > number_sites_max:
+        if global_site_index + len(register_sites) > number_sites_max:
             break
         # reached the maximum number of batches possible along x-direction
         if y_shift + single_problem_height > height_max:
@@ -163,14 +163,14 @@ def multiplex_lattice(
         while True:
             x_shift = cluster_index_x * Decimal(single_problem_width + cluster_spacing)
             # reached the maximum number of batches possible given n_site_max
-            if global_site_index + len(lattice_sites) > number_sites_max:
+            if global_site_index + len(register_sites) > number_sites_max:
                 break
             # reached the maximum number of batches possible along x-direction
             if x_shift + single_problem_width > width_max:
                 cluster_index_y += 1
                 break
 
-            for local_site_index, (x_coord, y_coord) in enumerate(lattice_sites):
+            for local_site_index, (x_coord, y_coord) in enumerate(register_sites):
                 sites.append((x_coord + float(x_shift), y_coord + float(y_shift)))
                 mapping.append(
                     SiteClusterInfo(

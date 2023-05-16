@@ -1,10 +1,10 @@
-from .base import Lattice
+from .base import AtomArrangement
 from pydantic.dataclasses import dataclass
 from typing import List, Tuple
 
 
 @dataclass
-class ListOfPositions(Lattice):
+class ListOfPositions(AtomArrangement):
     value: List[Tuple[float, ...]]
 
     def __init__(self, value: List[Tuple[float, ...]]):
