@@ -1,5 +1,5 @@
-from bloqade.atoms import ListOfPositions
+from bloqade.location import ListOfLocations
 
-lp = ListOfPositions(
+lp = ListOfLocations(
     [(0, 0), (0, 1), (1, 0), (1, 1)]
 )  # enumerate method gives a generator that can be taken advantage of

@@ -2,7 +2,7 @@ from bloqade.ir.waveform import Waveform
 from bloqade.ir.field import Field, SpatialModulation
 from bloqade.ir.pulse import PulseExpr
 from bloqade.ir.sequence import SequenceExpr
-from bloqade.atoms.base import AtomArrangement
+from bloqade.location.base import AtomArrangement
 from typing import Union, Any
 
 AstType = Union[

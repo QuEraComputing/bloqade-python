@@ -1,4 +1,4 @@
-from bloqade.atoms import Square
+from bloqade.location import Square
 from bloqade.ir.program import Program
 from bloqade.codegen.quera_hardware import SchemaCodeGen
 

@@ -1,5 +1,5 @@
 from .base import AtomArrangement
-from .list import ListOfPositions
+from .list import ListOfLocations
 from decimal import Decimal
 from pydantic import BaseModel, validator, ValidationError
 
@@ -115,7 +115,7 @@ class MultiplexDecoder(BaseModel):
 
 def multiplex_register(
     register_ast: AtomArrangement, cluster_spacing, capabilities=None
-) -> Tuple[ListOfPositions, List[SiteClusterInfo]]:
+) -> Tuple[ListOfLocations, List[SiteClusterInfo]]:
     if capabilities is None:
         capabilities = get_capabilities()
 
@@ -187,4 +187,4 @@ def multiplex_register(
 
             cluster_index_x += 1
 
-    return ListOfPositions(sites), MultiplexDecoder(mapping=mapping)
+    return ListOfLocations(sites), MultiplexDecoder(mapping=mapping)

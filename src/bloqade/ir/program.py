@@ -1,10 +1,10 @@
 from bloqade.ir import Sequence
 from typing import TYPE_CHECKING, Dict, Optional, Union, List
 from numbers import Number
-from bloqade.atoms.multiplex import multiplex_register
+from bloqade.location.multiplex import multiplex_register
 
 if TYPE_CHECKING:
-    from bloqade.atoms.base import AtomArrangement
+    from bloqade.location.base import AtomArrangement
 
 
 # NOTE: this is just a dummy type bundle geometry and sequence

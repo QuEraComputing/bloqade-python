@@ -18,7 +18,7 @@
 # # Adiabatic Evolution of Rydberg Atoms
 
 # %%
-import bloqade.atoms as atoms
+import bloqade.location as location
 from bloqade.ir import Sequence, rydberg, detuning, rabi, Uniform, Linear, Constant
 
 # %% [markdown]
@@ -36,7 +36,7 @@ rabi_waveform = (
     .append(Linear("rabi_amplitude_max", 0.0, "up_time"))
 )
 
-task_builder = atoms.Square(6)
+task_builder = location.Square(6)
 task_builder.rydberg.detuning.uniform.apply(detuning_waveform)
 task_builder.rabi.amplitude.uniform.apply(rabi_waveform)
 
@@ -66,7 +66,7 @@ braket_batch_task = large_program.submit(token="112312312")
 braket_batch_task_report = braket_batch_task.report()
 
 # %%
-atoms.Square(6).rydberg.detuning.uniform.apply(
+location.Square(6).rydberg.detuning.uniform.apply(
     Constant("initial_detuning", "up_time")
     .append(Linear("initial_detuning", "final_detuning", "anneal_time"))
     .append(Constant("final_detuning", "up_time"))
@@ -108,7 +108,7 @@ seq = Sequence(
 )
 
 # %%
-atoms.Square(6).apply(seq).braket(nshots=1000).submit(token="112312312").report()
+location.Square(6).apply(seq).braket(nshots=1000).submit(token="112312312").report()
 
 # %%
 print(seq)
