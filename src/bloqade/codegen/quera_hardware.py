@@ -32,7 +32,7 @@ from typing import Dict, Tuple, List, TYPE_CHECKING
 from bisect import bisect_left
 
 if TYPE_CHECKING:
-    from bloqade.lattice.base import Lattice
+    from bloqade.atoms.base import AtomArrangement
     from bloqade.ir import Program
 
 
@@ -258,34 +258,34 @@ class SchemaCodeGen(ProgramVisitor):
     def __init__(self):
         self.assignments = None
         self.n_atoms = None
-        self.lattice = None
+        self.register = None
         self.effective_hamiltonian = None
         self.rydberg = None
         self.field_name = None
         self.rabi_frequency_amplitude = None
         self.rabi_frequency_phase = None
         self.detuning = None
-        self.lattice_site_coefficients = None
+        self.register_site_coefficients = None
 
     def visit_spatial_modulation(self, ast: SpatialModulation):
         match ast:
             case ScaledLocations(locations):
-                self.lattice_site_coefficients = []
+                self.register_site_coefficients = []
 
                 for location in locations.keys():
                     if location.value >= self.n_atoms:
                         raise ValueError(
-                            f"Location({location.value}) is larger than the lattice."
+                            f"Location({location.value}) is larger than the register."
                         )
 
                 for atom_index in range(self.n_atoms):
                     scale = locations.get(Location(atom_index), Literal(0, 0))
-                    self.lattice_site_coefficients.append(scale(**self.assignments))
+                    self.register_site_coefficients.append(scale(**self.assignments))
 
             case RunTimeVector(name):
                 if len(self.assignments[name]) != self.n_atoms:
                     raise ValueError(
-                        f"Coefficient list {name} doesn't match the size of lattice "
+                        f"Coefficient list {name} doesn't match the size of register "
                         f"{self.n_atoms}."
                     )
             case _:
@@ -338,7 +338,7 @@ class SchemaCodeGen(ProgramVisitor):
                     local=task_spec.LocalField(
                         times=times,
                         values=values,
-                        lattice_site_coefficients=self.lattice_site_coefficients,
+                        register_site_coefficients=self.register_site_coefficients,
                     )
                 )
 
@@ -356,7 +356,7 @@ class SchemaCodeGen(ProgramVisitor):
                     local=task_spec.LocalField(
                         times=local_times,
                         values=local_values,
-                        lattice_site_coefficients=self.lattice_site_coefficients,
+                        register_site_coefficients=self.register_site_coefficients,
                     ),
                     global_=task_spec.GlobalField(
                         times=global_times, values=global_values
@@ -447,7 +447,7 @@ class SchemaCodeGen(ProgramVisitor):
             rydberg=self.rydberg
         )
 
-    def visit_lattice(self, ast: "Lattice"):
+    def visit_register(self, ast: "AtomArrangement"):
         sites = []
         filling = []
         for site in ast.enumerate():
@@ -455,11 +455,11 @@ class SchemaCodeGen(ProgramVisitor):
             filling.append(1)
 
         self.n_atoms = len(sites)
-        self.lattice = task_spec.Lattice(sites=sites, filling=filling)
+        self.lattice = task_spec.lattice(sites=sites, filling=filling)
 
     def emit(self, nshots: int, program: "Program") -> task_spec.QuEraTaskSpecification:
         self.assignments = AssignmentScan(program.assignments).emit(program.sequence)
-        self.visit(program.lattice)
+        self.visit(program.register)
         self.visit(program.sequence)
         return task_spec.QuEraTaskSpecification(
             nshots=nshots,

@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Dict, Optional, Union, List
 from numbers import Number
 
 if TYPE_CHECKING:
-    from bloqade.lattice.base import Lattice
+    from bloqade.atoms.base import AtomArrangement
 
 
 # NOTE: this is just a dummy type bundle geometry and sequence
@@ -11,17 +11,17 @@ if TYPE_CHECKING:
 class Program:
     def __init__(
         self,
-        lattice: Optional["Lattice"],
+        register: Optional["AtomArrangement"],
         sequence: Sequence,
         assignments: Optional[Dict[str, Union[Number, List[Number]]]] = None,
     ):
-        self._lattice = lattice
+        self._register = register
         self._sequence = sequence
         self._assignments = assignments
 
     @property
-    def lattice(self):
-        return self._lattice
+    def register(self):
+        return self._register
 
     @property
     def sequence(self):

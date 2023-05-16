@@ -229,15 +229,15 @@ class Emit(Builder):
                 raise RuntimeError(f"invalid builder type: {builder.__class__}")
 
     @property
-    def lattice(self):
+    def register(self):
         current = self
         while current.__parent__ is not None:
-            if current.__lattice__ is not None:
-                return current.__lattice__
+            if current.__register__ is not None:
+                return current.__register__
 
             current = current.__parent__
 
-        return current.__lattice__
+        return current.__register__
 
     @property
     def sequence(self):
@@ -250,7 +250,7 @@ class Emit(Builder):
 
     @property
     def program(self):
-        return Program(self.lattice, self.sequence, self.__assignments__)
+        return Program(self.register, self.sequence, self.__assignments__)
 
     def simu(self, *args, **kwargs):
         raise NotImplementedError
