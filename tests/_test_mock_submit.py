@@ -1,10 +1,10 @@
-import bloqade.lattice as lattice
+import bloqade.location as location
 from bloqade.ir import Linear, Constant
 from bloqade.task import HardwareTask, HardwareTaskFuture
 
 
 quantum_task = (
-    lattice.Square(6)
+    location.Square(6)
     .rydberg.detuning.uniform.apply(
         Constant("initial_detuning", "up_time")
         .append(Linear("initial_detuning", "final_detuning", "anneal_time"))
