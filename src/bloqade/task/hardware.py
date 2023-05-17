@@ -1,23 +1,21 @@
 from pydantic import BaseModel
-from quera_ahs_utils.quera_ir.task_results import QuEraTaskResults
+from bloqade.submission.quera_api_client.ir.task_results import QuEraTaskResults
 
 from bloqade.submission.mock import DumbMockBackend
 
 from bloqade.submission.quera import QuEraBackend
 from bloqade.submission.braket import BraketBackend
 from bloqade.submission.ir import BraketTaskSpecification
-from quera_ahs_utils.quera_ir.task_specification import QuEraTaskSpecification
+from bloqade.submission.quera_api_client.ir.task_specification import (
+    QuEraTaskSpecification,
+)
+from bloqade.submission.quera_api_client.ir.task_results import QuEraTaskStatusCode
 
-from typing import Optional, Union, TextIO
+from .base import Task, TaskFuture, BatchFuture, Batch
 
-from pandas import DataFrame
-import numpy as np
+from typing import Optional, Union, TextIO, List
 import json
-
-
-class Task:
-    def submit(self) -> "TaskFuture":
-        raise NotImplementedError
+import numpy as np
 
 
 class TaskDataModel(BaseModel):
@@ -72,7 +70,7 @@ class TaskDataModel(BaseModel):
         if braket_task_ir:
             self.braket_task_ir = BraketTaskSpecification(**braket_task_ir)
 
-    def _validate_fields(self):
+    def _check_fields(self):
         if self.quera_task_ir is None and self.braket_task_ir is None:
             raise AttributeError("Missing task_ir.")
 
@@ -86,8 +84,7 @@ class TaskDataModel(BaseModel):
 
 class HardwareTask(TaskDataModel, Task):
     def submit(self) -> "HardwareTaskFuture":
-        self._validate_fields()
-
+        self._check_fields()
         if self.braket_backend:
             task_id = self.braket_backend.submit_task(self.braket_task_ir)
             return HardwareTaskFuture(
@@ -110,8 +107,8 @@ class HardwareTask(TaskDataModel, Task):
                 mock_backend=self.mock_backend,
             )
 
-    def validate(self) -> None:
-        self._validate_fields()
+    def run_validation(self) -> None:
+        self._check_fields()
 
         if self.braket_backend:
             self.braket_backend.validate_task(self.braket_task_ir)
@@ -121,12 +118,6 @@ class HardwareTask(TaskDataModel, Task):
 
         if self.mock_backend:
             self.mock_backend.validate_task(self.quera_task_ir)
-
-
-class TaskFuture:
-    def report(self) -> "TaskReport":
-        """generate the task report"""
-        return TaskReport(self)
 
 
 class TaskFutureDataModel(TaskDataModel):
@@ -148,16 +139,34 @@ class TaskFutureDataModel(TaskDataModel):
         if task_result_ir:
             self.task_result_ir = QuEraTaskResults(**task_result_ir)
 
-    def _validate_fields(self):
-        super()._validate_fields()
+    def _check_fields(self):
+        super()._check_fields()
 
         if self.task_id is None:
             raise AttributeError("Missing task_id.")
 
 
 class HardwareTaskFuture(TaskFutureDataModel, TaskFuture):
+    def status(self) -> None:
+        self._check_fields()
+
+        if self.braket_backend:
+            self.braket_backend.task_status(self.task_id)
+
+        if self.quera_backend:
+            self.quera_backend.task_status(self.task_id)
+
+        if self.mock_backend:
+            self.mock_backend.task_status(self.task_id)
+
     def cancel(self) -> None:
-        self._validate_fields()
+        self._check_fields()
+        if self.status() in [
+            QuEraTaskStatusCode.Complete,
+            QuEraTaskStatusCode.Running,
+            QuEraTaskStatusCode.Accepted,
+        ]:
+            return
 
         if self.braket_backend:
             self.braket_backend.cancel_task(self.task_id)
@@ -169,8 +178,7 @@ class HardwareTaskFuture(TaskFutureDataModel, TaskFuture):
             self.mock_backend.cancel_task(self.task_id)
 
     def fetch(self) -> QuEraTaskResults:
-        self._validate_fields()
-        print("here")
+        self._check_fields()
         if self.braket_backend:
             return self.braket_backend.task_results(self.task_id)
 
@@ -188,33 +196,62 @@ class HardwareTaskFuture(TaskFutureDataModel, TaskFuture):
         return self.task_result_ir
 
 
-# NOTE: this is only the basic report, we should provide
-#      a way to customize the report class,
-#      e.g result.plot() returns a `TaskPlotReport` class instead
-class TaskReport:
-    def __init__(self, result: TaskFuture) -> None:
-        self.result = result
-        self._dataframe = None  # df cache
-        self._bitstring = None  # bitstring cache
+class HardwareBatch(Batch, BaseModel):
+    tasks: List[HardwareTask]
+    task_submit_order: List[int]
+
+    def __init__(self, tasks: List[HardwareTask], task_submit_order=None):
+        if task_submit_order is None:
+            task_submit_order = list(np.random.permutation(len(tasks)))
+
+        super().__init__(tasks=tasks, task_submit_order=task_submit_order)
+
+    def submit(self):
+        try:
+            self.tasks[0].run_validation()
+            has_validation = True
+        except NotImplementedError:
+            has_validation = False
+
+        if has_validation:
+            for task in self.tasks[1:]:
+                task.run_validation()
+
+        # submit tasks in random order but store them
+        # in the original order of tasks.
+        futures = [None for task in self.tasks]
+        for task_index in self.task_submit_order:
+            try:
+                futures[task_index] = self.tasks[task_index].submit()
+            except BaseException as e:
+                for future in futures:
+                    if future is not None:
+                        future.cancel()
+                raise e
+
+        return HardwareBatchFuture(futures=futures)
+
+
+class HardwareBatchFuture(BatchFuture, BaseModel):
+    futures: List[HardwareTaskFuture]
+    task_result_ir_list: List[QuEraTaskResults] = []
+
+    def cancel(self):
+        for future in self.futures:
+            future.cancel()
+
+    def fetch(self):
+        task_result_ir_list = []
+        for future in self.futures:
+            task_result_ir_list.append(future.fetch())
+
+        return task_result_ir_list
 
     @property
-    def dataframe(self) -> DataFrame:
-        if self._dataframe:
-            return self._dataframe
-        self._dataframe = DataFrame()
-        return self._dataframe
+    def task_result_ir_list(self):
+        if self.task_result_ir_list:
+            return self.task_result_ir_list
 
-    @property
-    def bitstring(self) -> np.array:
-        if self._bitstring:
-            return self._bitstring
-        self._bitstring = np.array([])
-        return self._bitstring
+        self.task_result_ir_list = self.fetch()
 
-    @property
-    def task_result(self) -> QuEraTaskResults:
-        return self.result.task_result
-
-    @property
-    def markdown(self) -> str:
-        return self.dataframe.to_markdown()
+        return self.task_result_ir_list
