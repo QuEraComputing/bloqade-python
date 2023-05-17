@@ -5,7 +5,7 @@ from .hardware import (
     HardwareBatch,
     HardwareBatchFuture,
 )
-from .report import TaskReport
+from .report import TaskReport, BatchReport
 
 __all__ = [
     "Task",
@@ -13,6 +13,7 @@ __all__ = [
     "TaskFuture",
     "HardwareTaskFuture",
     "TaskReport",
+    "BatchReport",
     "Batch",
     "HardwareBatch",
     "BatchFuture",
