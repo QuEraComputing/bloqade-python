@@ -7,7 +7,10 @@ from bloqade.submission.capabilities import get_capabilities
 
 from typing import List, Tuple, Union
 
-from quera_ahs_utils.quera_ir.task_results import QuEraShotResult, QuEraTaskResults
+from bloqade.submission.quera_api_client.ir.task_results import (
+    QuEraShotResult,
+    QuEraTaskResults,
+)
 
 
 class SiteClusterInfo(BaseModel):
