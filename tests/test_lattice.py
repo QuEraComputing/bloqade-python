@@ -1,4 +1,4 @@
-from bloqade.location import ListOfLocations
+from bloqade.ir.location import ListOfLocations
 
 lp = ListOfLocations(
     [(0, 0), (0, 1), (1, 0), (1, 1)]
