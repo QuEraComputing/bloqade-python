@@ -1571,6 +1571,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "tabulate"
+version = "0.9.0"
+requires_python = ">=3.7"
+summary = "Pretty-print tabular data"
+
+[[package]]
 name = "terminado"
 version = "0.17.1"
 requires_python = ">=3.7"
@@ -1721,7 +1727,7 @@ summary = "Backport of pathlib-compatible object wrapper for zip files"
 lock_version = "4.2"
 cross_platform = true
 groups = ["default", "dev", "doc"]
-content_hash = "sha256:6078f840b81f08e49608d7ba78632077754a60cc563d7522e06daf44aba1a9bd"
+content_hash = "sha256:1107223c2b472b5ec1b7c33f42cb87566e5004bb441c3754a7281a72fc62cdfb"
 
 [metadata.files]
 "amazon-braket-default-simulator 1.13.1" = [
@@ -3334,6 +3340,10 @@ content_hash = "sha256:6078f840b81f08e49608d7ba78632077754a60cc563d7522e06daf44a
 "sympy 1.11.1" = [
     {url = "https://files.pythonhosted.org/packages/2d/49/a2d03101e2d28ad528968144831d506344418ef1cc04839acdbe185889c2/sympy-1.11.1-py3-none-any.whl", hash = "sha256:938f984ee2b1e8eae8a07b884c8b7a1146010040fccddc6539c54f401c8f6fcf"},
     {url = "https://files.pythonhosted.org/packages/5a/36/4667b08bc45131fe655a27b1a112c1730f3244343c53a338f44d730bd6ba/sympy-1.11.1.tar.gz", hash = "sha256:e32380dce63cb7c0108ed525570092fd45168bdae2faa17e528221ef72e88658"},
+]
+"tabulate 0.9.0" = [
+    {url = "https://files.pythonhosted.org/packages/40/44/4a5f08c96eb108af5cb50b41f76142f0afa346dfa99d5296fe7202a11854/tabulate-0.9.0-py3-none-any.whl", hash = "sha256:024ca478df22e9340661486f85298cff5f6dcdba14f3813e8830015b9ed1948f"},
+    {url = "https://files.pythonhosted.org/packages/ec/fe/802052aecb21e3797b8f7902564ab6ea0d60ff8ca23952079064155d1ae1/tabulate-0.9.0.tar.gz", hash = "sha256:0095b12bf5966de529c0feb1fa08671671b3368eec77d7ef7ab114be2c068b3c"},
 ]
 "terminado 0.17.1" = [
     {url = "https://files.pythonhosted.org/packages/55/be/748034192602b9fd69ba94544c1675ff18b039ed8f346ad783478e31144f/terminado-0.17.1.tar.gz", hash = "sha256:6ccbbcd3a4f8a25a5ec04991f39a0b8db52dfcd487ea0e578d977e6752380333"},
