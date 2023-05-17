@@ -14,3 +14,6 @@ class SubmissionBackend(BaseModel):
 
     def task_results(self, task_id: str):
         raise NotImplementedError
+
+    def task_status(self, task_id: str):
+        raise NotImplementedError

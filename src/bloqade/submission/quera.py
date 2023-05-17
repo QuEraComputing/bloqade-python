@@ -1,7 +1,12 @@
 from bloqade.submission.base import SubmissionBackend
 from bloqade.submission.quera_api_client.api import QueueApi
-from quera_ahs_utils.quera_ir.task_specification import QuEraTaskSpecification
-from quera_ahs_utils.quera_ir.task_results import QuEraTaskResults
+from bloqade.submission.quera_api_client.ir.task_specification import (
+    QuEraTaskSpecification,
+)
+from bloqade.submission.quera_api_client.ir.task_results import (
+    QuEraTaskResults,
+    QuEraTaskStatusCode,
+)
 
 
 class QuEraBackend(SubmissionBackend):
@@ -13,7 +18,7 @@ class QuEraBackend(SubmissionBackend):
     def queue_api(self):
         return QueueApi(self.uri, self.qpu_id, api_version=self.api_version)
 
-    def submit_task(self, task_ir: QuEraTaskSpecification):
+    def submit_task(self, task_ir: QuEraTaskSpecification) -> str:
         return self.queue_api.post_task(
             task_ir.json(by_alias=True, exclude_none=True, exclude_unset=True)
         )
@@ -22,4 +27,8 @@ class QuEraBackend(SubmissionBackend):
         return QuEraTaskResults(**self.queue_api.get_task_results(task_id))
 
     def cancel_task(self, task_id: str):
-        return self.queue_api.cancel_task_in_queue(task_id)
+        self.queue_api.cancel_task_in_queue(task_id)
+
+    def task_status(self, task_id: str) -> QuEraTaskStatusCode:
+        return_body = self.queue_api.get_task_summary(task_id)
+        return QuEraTaskStatusCode(return_body["status"])
