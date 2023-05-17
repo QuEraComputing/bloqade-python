@@ -22,7 +22,7 @@ quantum_task = (
         anneal_time=10,
         rabi_amplitude_max=15,
     )
-    .program.mock(10)
+    .mock(10)
 )
 
 # print(len(quantum_task.task_result.shot_outputs))

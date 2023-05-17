@@ -69,9 +69,11 @@ class Emit(Builder):
                 | waveform.Constant()
                 | waveform.Apply()
             ):
+                # because builder traverese the tree in the opposite order
+                # the builder must be appended to the current waveform.
                 if build_state.waveform:
-                    build_state.waveform = build_state.waveform.append(
-                        builder._waveform
+                    build_state.waveform = builder._waveform.append(
+                        build_state.waveform
                     )
                 else:
                     build_state.waveform = builder._waveform
