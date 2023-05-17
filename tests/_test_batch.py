@@ -1,6 +1,6 @@
 import bloqade.location as location
 from bloqade.ir import Linear, Constant
-from bloqade.task.batch import HardwareBatch
+from bloqade.task import HardwareBatch
 import numpy as np
 
 builder = (
