@@ -1,5 +1,5 @@
 from bloqade.ir import Linear
-import bloqade.location as location
+import bloqade.ir.location as location
 
 (
     location.Square(3)

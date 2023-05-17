@@ -1,4 +1,4 @@
-import bloqade.location as location
+import bloqade.ir.location as location
 from bloqade.ir import Linear, Constant
 from bloqade.task import HardwareTask, HardwareTaskFuture
 
