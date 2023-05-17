@@ -33,7 +33,7 @@ from bisect import bisect_left
 
 
 if TYPE_CHECKING:
-    from bloqade.location.base import AtomArrangement
+    from bloqade.ir.location.base import AtomArrangement
     from bloqade.ir import Program
 
 
