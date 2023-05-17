@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
-    from bloqade.location.base import AtomArrangement
+    from bloqade.ir.location.base import AtomArrangement
 
 
 class Builder:
