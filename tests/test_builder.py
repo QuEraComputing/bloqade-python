@@ -8,6 +8,28 @@
 import bloqade.ir as ir
 from bloqade.builder.start import ProgramStart
 
+
+def test_issue_107():
+    waveform = (
+        ir.Linear("initial_detuning", "initial_detuning", "up_time")
+        .append(ir.Linear("initial_detuning", "final_detuning", "anneal_time"))
+        .append(ir.Linear("final_detuning", "final_detuning", "up_time"))
+    )
+
+    prog1 = ProgramStart().rydberg.detuning.uniform.apply(waveform)
+    prog2 = ProgramStart().rydberg.detuning.uniform.piecewise_linear(
+        durations=["up_time", "anneal_time", "up_time"],
+        values=[
+            "initial_detuning",
+            "initial_detuning",
+            "final_detuning",
+            "final_detuning",
+        ],
+    )
+
+    assert prog1.sequence == prog2.sequence
+
+
 prog = ProgramStart()
 prog = (
     prog.rydberg.detuning.location(1)
