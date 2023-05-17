@@ -69,7 +69,7 @@ class TaskDataModel(BaseModel):
         if braket_task_ir:
             self.braket_task_ir = BraketTaskSpecification(**braket_task_ir)
 
-    def _validate_fields(self):
+    def _check_fields(self):
         if self.quera_task_ir is None and self.braket_task_ir is None:
             raise AttributeError("Missing task_ir.")
 
@@ -83,7 +83,7 @@ class TaskDataModel(BaseModel):
 
 class HardwareTask(TaskDataModel, Task):
     def submit(self) -> "HardwareTaskFuture":
-        self._validate_fields()
+        self._check_fields()
         if self.braket_backend:
             task_id = self.braket_backend.submit_task(self.braket_task_ir)
             return HardwareTaskFuture(
@@ -106,8 +106,8 @@ class HardwareTask(TaskDataModel, Task):
                 mock_backend=self.mock_backend,
             )
 
-    def validate(self) -> None:
-        self._validate_fields()
+    def run_validation(self) -> None:
+        self._check_fields()
 
         if self.braket_backend:
             self.braket_backend.validate_task(self.braket_task_ir)
@@ -138,8 +138,8 @@ class TaskFutureDataModel(TaskDataModel):
         if task_result_ir:
             self.task_result_ir = QuEraTaskResults(**task_result_ir)
 
-    def _validate_fields(self):
-        super()._validate_fields()
+    def _check_fields(self):
+        super()._check_fields()
 
         if self.task_id is None:
             raise AttributeError("Missing task_id.")
@@ -147,7 +147,7 @@ class TaskFutureDataModel(TaskDataModel):
 
 class HardwareTaskFuture(TaskFutureDataModel, TaskFuture):
     def status(self) -> None:
-        self._validate_fields()
+        self._check_fields()
 
         if self.braket_backend:
             self.braket_backend.task_status(self.task_id)
@@ -159,7 +159,7 @@ class HardwareTaskFuture(TaskFutureDataModel, TaskFuture):
             self.mock_backend.task_status(self.task_id)
 
     def cancel(self) -> None:
-        self._validate_fields()
+        self._check_fields()
         if self.status() in [
             QuEraTaskStatusCode.Complete,
             QuEraTaskStatusCode.Running,
@@ -177,7 +177,7 @@ class HardwareTaskFuture(TaskFutureDataModel, TaskFuture):
             self.mock_backend.cancel_task(self.task_id)
 
     def fetch(self) -> QuEraTaskResults:
-        self._validate_fields()
+        self._check_fields()
         if self.braket_backend:
             return self.braket_backend.task_results(self.task_id)
 

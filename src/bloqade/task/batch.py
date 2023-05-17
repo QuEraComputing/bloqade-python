@@ -19,14 +19,14 @@ class HardwareBatch(BaseModel):
 
     def submit(self):
         try:
-            self.tasks[0].validate()
+            self.tasks[0].run_validation()
             has_validation = True
         except NotImplementedError:
             has_validation = False
 
         if has_validation:
             for task in self.tasks[1:]:
-                task.validate()
+                task.run_validation()
 
         # submit tasks in random order but store them
         # in the original order of tasks.
