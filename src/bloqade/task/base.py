@@ -18,7 +18,7 @@ class TaskFuture:
 
 
 class Batch:
-    def submit(self):
+    def submit(self) -> "BatchFuture":
         raise NotImplementedError
 
 
