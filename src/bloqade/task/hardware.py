@@ -11,7 +11,7 @@ from bloqade.submission.quera_api_client.ir.task_specification import (
 )
 from bloqade.submission.quera_api_client.ir.task_results import QuEraTaskStatusCode
 
-from .base import Task, TaskFuture
+from .base import Task, TaskFuture, BatchFuture, Batch
 
 from typing import Optional, Union, TextIO, List
 import json
@@ -196,7 +196,7 @@ class HardwareTaskFuture(TaskFutureDataModel, TaskFuture):
         return self.task_result_ir
 
 
-class HardwareBatch(BaseModel):
+class HardwareBatch(Batch, BaseModel):
     tasks: List[HardwareTask]
     task_submit_order: List[int]
 
@@ -232,7 +232,7 @@ class HardwareBatch(BaseModel):
         return HardwareBatchFuture(futures=futures)
 
 
-class HardwareBatchFuture(BaseModel):
+class HardwareBatchFuture(BatchFuture, BaseModel):
     futures: List[HardwareTaskFuture]
     task_result_ir_list: List[QuEraTaskResults] = []
 
