@@ -1,5 +1,5 @@
-from .base import Lattice
-from .list import ListOfPositions
+from .base import AtomArrangement
+from .list import ListOfLocations
 from decimal import Decimal
 from pydantic import BaseModel, validator, ValidationError
 
@@ -29,6 +29,22 @@ class SiteClusterInfo(BaseModel):
 
 class MultiplexDecoder(BaseModel):
     mapping: List[SiteClusterInfo]
+    sites_per_cluster: int
+    number_of_cluster: int
+
+    def __init__(self, mapping: List[SiteClusterInfo]):
+        local_site_indices = set()
+        cluster_indices = set()
+
+        for site in mapping:
+            local_site_indices.add(site.local_site_index)
+            cluster_indices.add(site.cluster_index)
+
+        super().__init__(
+            mapping=mapping,
+            sites_per_cluster=len(local_site_indices),
+            number_of_cluster=len(cluster_indices),
+        )
 
     # should work if we go to the coordinate-based indexing system
     @validator("mapping")
@@ -39,15 +55,6 @@ class MultiplexDecoder(BaseModel):
             raise ValidationError("one or more sites mapped to multiple clusters")
 
         return mapping
-
-    @property
-    def sites_per_cluster(self):
-        local_site_indices = set()
-
-        for site in self.mapping:
-            local_site_indices.add(site.local_site_index)
-
-        return len(local_site_indices)
 
     # map individual atom indices (in the context of the ENTIRE geometry)
     # to the cluster-specific indices:
@@ -116,9 +123,9 @@ class MultiplexDecoder(BaseModel):
         )
 
 
-def multiplex_lattice(
-    lattice_ast: Lattice, cluster_spacing, capabilities=None
-) -> Tuple[ListOfPositions, List[SiteClusterInfo]]:
+def multiplex_register(
+    register_ast: AtomArrangement, cluster_spacing, capabilities=None
+) -> Tuple[ListOfLocations, List[SiteClusterInfo]]:
     if capabilities is None:
         capabilities = get_capabilities()
 
@@ -126,11 +133,11 @@ def multiplex_lattice(
     width_max = Decimal(capabilities.capabilities.lattice.area.width) / Decimal(1e-6)
     number_sites_max = capabilities.capabilities.lattice.geometry.number_sites_max
 
-    lattice_sites = list(lattice_ast.enumerate())
+    register_sites = list(register_ast.enumerate())
     # get minimum and maximum x,y coords for existing problem spacing
     x_min = x_max = 0
     y_min = y_max = 0
-    for site in lattice_sites:
+    for site in register_sites:
         if site[0] < x_min:
             x_min = site[0]
         elif site[0] > x_max:
@@ -156,7 +163,7 @@ def multiplex_lattice(
     while True:
         y_shift = cluster_index_y * Decimal(single_problem_height + cluster_spacing)
         # reached the maximum number of batches possible given n_site_max
-        if global_site_index + len(lattice_sites) > number_sites_max:
+        if global_site_index + len(register_sites) > number_sites_max:
             break
         # reached the maximum number of batches possible along x-direction
         if y_shift + single_problem_height > height_max:
@@ -166,14 +173,14 @@ def multiplex_lattice(
         while True:
             x_shift = cluster_index_x * Decimal(single_problem_width + cluster_spacing)
             # reached the maximum number of batches possible given n_site_max
-            if global_site_index + len(lattice_sites) > number_sites_max:
+            if global_site_index + len(register_sites) > number_sites_max:
                 break
             # reached the maximum number of batches possible along x-direction
             if x_shift + single_problem_width > width_max:
                 cluster_index_y += 1
                 break
 
-            for local_site_index, (x_coord, y_coord) in enumerate(lattice_sites):
+            for local_site_index, (x_coord, y_coord) in enumerate(register_sites):
                 sites.append((x_coord + float(x_shift), y_coord + float(y_shift)))
                 mapping.append(
                     SiteClusterInfo(
@@ -190,4 +197,4 @@ def multiplex_lattice(
 
             cluster_index_x += 1
 
-    return ListOfPositions(sites), MultiplexDecoder(mapping=mapping)
+    return ListOfLocations(sites), MultiplexDecoder(mapping=mapping)
