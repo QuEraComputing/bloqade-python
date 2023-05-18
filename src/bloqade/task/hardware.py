@@ -11,11 +11,13 @@ from bloqade.submission.quera_api_client.ir.task_specification import (
 )
 from bloqade.submission.quera_api_client.ir.task_results import QuEraTaskStatusCode
 
-from .base import Task, TaskFuture, BatchFuture, Batch
+from .base import Task, TaskFuture, BatchFuture, Batch, Report
 
 from typing import Optional, Union, TextIO, List
+
 import json
 import numpy as np
+import pandas as pd
 
 
 class TaskDataModel(BaseModel):
@@ -122,6 +124,7 @@ class HardwareTask(TaskDataModel, Task):
 
 class TaskFutureDataModel(TaskDataModel):
     task_id: Optional[str] = None
+    task_result_ir: Optional[QuEraTaskResults] = None
 
     def read_json(self, filename_or_io: Union[str, TextIO]):
         super().read_json(filename_or_io)
@@ -147,6 +150,17 @@ class TaskFutureDataModel(TaskDataModel):
 
 
 class HardwareTaskFuture(TaskFutureDataModel, TaskFuture):
+    @property
+    def task_results(self) -> QuEraTaskResults:
+        if self.task_result_ir:
+            return self.task_result_ir
+
+        self.task_result_ir = self.fetch()
+        return self.task_result_ir
+
+    def report(self) -> "HardwareTaskReport":
+        return HardwareTaskReport(task_future=self)
+
     def status(self) -> None:
         self._check_fields()
 
@@ -188,13 +202,6 @@ class HardwareTaskFuture(TaskFutureDataModel, TaskFuture):
         if self.mock_backend:
             return self.mock_backend.task_results(self.task_id)
 
-    @property
-    def task_results(self) -> QuEraTaskResults:
-        if self.task_result_ir is None:
-            self.task_result_ir = self.fetch()
-
-        return self.task_result_ir
-
 
 class HardwareBatch(Batch, BaseModel):
     tasks: List[HardwareTask]
@@ -234,7 +241,9 @@ class HardwareBatch(Batch, BaseModel):
 
 class HardwareBatchFuture(BatchFuture, BaseModel):
     futures: List[HardwareTaskFuture]
-    task_result_ir_list: List[QuEraTaskResults] = []
+
+    def report(self) -> "HardwareBatchReport":
+        return HardwareBatchReport(self)
 
     def cancel(self):
         for future in self.futures:
@@ -247,11 +256,88 @@ class HardwareBatchFuture(BatchFuture, BaseModel):
 
         return task_result_ir_list
 
-    # @property
-    # def task_result_ir_list(self):
-    #     if self.task_result_ir_list:
-    #         return self.task_result_ir_list
+    @property
+    def task_results(self):
+        return [future.task_results for future in self.futures]
 
-    #     self.task_result_ir_list = self.fetch()
 
-    #     return self.task_result_ir_list
+class HardwareTaskReport(Report):
+    def __init__(self, task_future: HardwareTaskFuture):
+        self._task_future = task_future
+        super().__init__()
+
+    @property
+    def future(self):
+        return self._task_future
+
+    def construct_dataframe(self):
+        index = []
+        data = []
+        for shot in self.task_results.shot_outputs:
+            pre_sequence = "".join(map(str, shot.pre_sequence))
+            key = (shot.shot_status.value, pre_sequence)
+            index.append(key)
+            data.append(shot.post_sequence)
+
+        index = pd.MultiIndex.from_tuples(index, names=["status_code", "pre_sequence"])
+
+        return pd.DataFrame(data, index=index)
+
+    def get_task_filling(self) -> str:
+        if self.future.quera_task_ir:
+            filling = self.future.quera_task_ir.lattice.filling
+
+        if self.future.braket_task_ir:
+            filling = self.future.braket_task_ir.program.setup.ahs_register.filling
+
+        return "".join(map(str, filling))
+
+    def construct_bitstring(self):
+        perfect_filling = self.get_task_filling()
+        return self.dataframe.loc["Completed", perfect_filling].to_numpy()
+
+    def rydberg_densities(self):
+        perfect_filling = "".join(map(str, self.get_task_filling()))
+        return self.dataframe.loc["Completed", perfect_filling].mean()
+
+
+class HardwareBatchReport(Report):
+    def __init__(self, batch_future: HardwareBatchFuture):
+        self._batch_future = batch_future
+        super().__init__()
+
+    @property
+    def future(self):
+        return self._batch_future
+
+    def construct_dataframe(self):
+        index = []
+        data = []
+        for task_number, task_future in enumerate(self.future.futures):
+            for shot in task_future.shot_outputs:
+                pre_sequence = "".join(map(str, shot.pre_sequence))
+                key = (task_number, shot.shot_status.value, pre_sequence)
+
+                index.append(key)
+                data.append(shot.post_sequence)
+
+                index = pd.MultiIndex.from_tuples(
+                    index, names=["task_number", "status_code", "pre_sequence"]
+                )
+
+        return pd.DataFrame(data, index=index)
+
+    def get_task_fillings(self):
+        fillings = set([])
+        for future in self.future.futures:
+            if self.task_future.quera_task_ir:
+                filling = self.task_future.quera_task_ir.lattice.filling
+
+            if self.task_future.braket_task_ir:
+                filling = (
+                    self.task_future.braket_task_ir.program.setup.ahs_register.filling
+                )
+
+            fillings.add("".join(map(str, filling)))
+
+        return list(fillings)

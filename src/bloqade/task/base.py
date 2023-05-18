@@ -1,6 +1,7 @@
-from .report import TaskReport, BatchReport
 from bloqade.submission.quera_api_client.ir.task_results import QuEraTaskResults
-from typing import List
+from typing import List, Union, Optional
+from numpy.typing import NDArray
+from pandas import DataFrame
 
 
 class Task:
@@ -9,20 +10,14 @@ class Task:
 
 
 class TaskFuture:
-    def report(self) -> TaskReport:
+    task_results: Optional[QuEraTaskResults]
+
+    def report(self) -> "Report":
         """generate the task report"""
-        return TaskReport(self)
+        raise NotImplementedError
 
     def fetch(self) -> QuEraTaskResults:
         raise NotImplementedError
-
-    @property
-    def task_result(self):
-        if self.task_result_ir:
-            return self.task_result_ir
-
-        self.task_result_ir = self.fetch()
-        return self.task_result_ir
 
 
 class Batch:
@@ -31,8 +26,46 @@ class Batch:
 
 
 class BatchFuture:
-    def report(self) -> BatchReport:
-        return BatchReport(self)
+    def report(self) -> "Report":
+        raise NotImplementedError
 
     def fetch(self) -> List[QuEraTaskResults]:
         raise NotImplementedError
+
+
+# NOTE: this is only the basic report, we should provide
+#      a way to customize the report class,
+#      e.g result.plot() returns a `TaskPlotReport` class instead
+class Report:
+    def __init__(self) -> None:
+        self._dataframe = None  # df cache
+        self._bitstring = None  # bitstring cache
+
+    def construct_dataframe(self):
+        raise NotImplementedError
+
+    def construct_bitstring(self):
+        raise NotImplementedError
+
+    @property
+    def dataframe(self) -> DataFrame:
+        if self._dataframe:
+            return self._dataframe
+
+        self._dataframe = self.construct_dataframe()
+        return self._dataframe
+
+    @property
+    def bitstring(self) -> NDArray:
+        if self._bitstring:
+            return self._bitstring
+        self._bitstring = self.construct_bitstring()
+        return self._bitstring
+
+    @property
+    def task_results(self) -> Union[List[QuEraTaskResults], QuEraTaskResults]:
+        return self.future.task_results
+
+    @property
+    def markdown(self) -> str:
+        return self.dataframe.to_markdown()
