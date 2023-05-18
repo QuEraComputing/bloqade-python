@@ -247,11 +247,11 @@ class HardwareBatchFuture(BatchFuture, BaseModel):
 
         return task_result_ir_list
 
-    @property
-    def task_result_ir_list(self):
-        if self.task_result_ir_list:
-            return self.task_result_ir_list
+    # @property
+    # def task_result_ir_list(self):
+    #     if self.task_result_ir_list:
+    #         return self.task_result_ir_list
 
-        self.task_result_ir_list = self.fetch()
+    #     self.task_result_ir_list = self.fetch()
 
-        return self.task_result_ir_list
+    #     return self.task_result_ir_list

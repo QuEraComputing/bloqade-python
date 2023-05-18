@@ -16,6 +16,14 @@ class TaskFuture:
     def fetch(self) -> QuEraTaskResults:
         raise NotImplementedError
 
+    @property
+    def task_result(self):
+        if self.task_result_ir:
+            return self.task_result_ir
+
+        self.task_result_ir = self.fetch()
+        return self.task_result_ir
+
 
 class Batch:
     def submit(self) -> "BatchFuture":
