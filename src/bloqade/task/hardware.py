@@ -283,7 +283,7 @@ class HardwareTaskReport(Report):
             index.append(key)
             data.append(shot.post_sequence)
 
-        index = pd.MultiIndex.from_tuples(index, names=["status_code", "pre_sequence"])
+        index = pd.MultiIndex.from_tuples(index, names=["pre_sequence"])
 
         df = pd.DataFrame(data, index=index)
         df.sort_index()
