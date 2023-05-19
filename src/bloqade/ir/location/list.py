@@ -19,18 +19,18 @@ class ListOfLocations(AtomArrangement):
             self.__n_dims = None
         self.value = value
 
-    def append(self, position: Tuple[float, ...]):
+    def append(self, position: Tuple[float, ...]) -> "ListOfLocations":
         return ListOfLocations(self.value + [position])
 
-    def extend(self, positions: List[Tuple[float, ...]]):
+    def extend(self, positions: List[Tuple[float, ...]]) -> "ListOfLocations":
         return ListOfLocations(self.value + positions)
 
     @property
-    def n_atoms(self):
+    def n_atoms(self) -> int:
         return self.__n_atoms
 
     @property
-    def n_dims(self):
+    def n_dims(self) -> int:
         return self.__n_dims
 
     def enumerate(self):
