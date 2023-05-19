@@ -1,5 +1,8 @@
 from pydantic import BaseModel
-from bloqade.submission.quera_api_client.ir.task_results import QuEraTaskResults
+from bloqade.submission.quera_api_client.ir.task_results import (
+    QuEraTaskResults,
+    QuEraShotStatusCode,
+)
 
 from bloqade.submission.mock import DumbMockBackend
 
@@ -261,27 +264,31 @@ class HardwareBatchFuture(BatchFuture, BaseModel):
         return [future.task_results for future in self.futures]
 
 
+# TODO: Implement Multiplex decoding
 class HardwareTaskReport(Report):
-    def __init__(self, task_future: HardwareTaskFuture):
-        self._task_future = task_future
+    def __init__(self, future: HardwareTaskFuture):
+        self._future = future
         super().__init__()
 
     @property
     def future(self):
-        return self._task_future
+        return self._future
 
     def construct_dataframe(self):
         index = []
         data = []
         for shot in self.task_results.shot_outputs:
             pre_sequence = "".join(map(str, shot.pre_sequence))
-            key = (shot.shot_status.value, pre_sequence)
+            key = (pre_sequence,)
             index.append(key)
             data.append(shot.post_sequence)
 
         index = pd.MultiIndex.from_tuples(index, names=["status_code", "pre_sequence"])
 
-        return pd.DataFrame(data, index=index)
+        df = pd.DataFrame(data, index=index)
+        df.sort_index()
+
+        return df
 
     def get_task_filling(self) -> str:
         if self.future.quera_task_ir:
@@ -294,50 +301,68 @@ class HardwareTaskReport(Report):
 
     def construct_bitstring(self):
         perfect_filling = self.get_task_filling()
-        return self.dataframe.loc["Completed", perfect_filling].to_numpy()
+        return self.dataframe.loc[perfect_filling].to_numpy()
 
     def rydberg_densities(self):
         perfect_filling = "".join(map(str, self.get_task_filling()))
-        return self.dataframe.loc["Completed", perfect_filling].mean()
+        return self.dataframe.loc[perfect_filling].mean()
 
 
 class HardwareBatchReport(Report):
-    def __init__(self, batch_future: HardwareBatchFuture):
-        self._batch_future = batch_future
+    def __init__(self, future: HardwareBatchFuture):
+        self._future = future
         super().__init__()
 
     @property
     def future(self):
-        return self._batch_future
+        return self._future
 
     def construct_dataframe(self):
         index = []
         data = []
-        for task_number, task_future in enumerate(self.future.futures):
-            for shot in task_future.shot_outputs:
+        for task_number, future in enumerate(self.future.futures):
+            for shot in future.task_results.shot_outputs:
                 pre_sequence = "".join(map(str, shot.pre_sequence))
-                key = (task_number, shot.shot_status.value, pre_sequence)
+                if shot.shot_status != QuEraShotStatusCode.Completed:
+                    continue
+                key = (pre_sequence, task_number)
 
                 index.append(key)
                 data.append(shot.post_sequence)
 
-                index = pd.MultiIndex.from_tuples(
-                    index, names=["task_number", "status_code", "pre_sequence"]
-                )
+        index = pd.MultiIndex.from_tuples(index, names=["pre_sequence", "task_number"])
 
-        return pd.DataFrame(data, index=index)
+        df = pd.DataFrame(data, index=index)
+        df.sort_index(axis="index")
 
-    def get_task_fillings(self):
-        fillings = set([])
-        for future in self.future.futures:
-            if self.task_future.quera_task_ir:
-                filling = self.task_future.quera_task_ir.lattice.filling
+        return df
 
-            if self.task_future.braket_task_ir:
-                filling = (
-                    self.task_future.braket_task_ir.program.setup.ahs_register.filling
-                )
+    def get_task_filling(self) -> str:
+        fillings = {}
+        for task_number, future in enumerate(self.future.futures):
+            if future.quera_task_ir:
+                filling = future.quera_task_ir.lattice.filling
 
-            fillings.add("".join(map(str, filling)))
+            if future.braket_task_ir:
+                filling = future.braket_task_ir.program.setup.ahs_register.filling
+            filling = "".join(map(str, filling))
 
-        return list(fillings)
+            fillings[filling] = fillings.get(filling, []) + [task_number]
+
+        if len(fillings) > 1:
+            # TODO: figure out how to allow for more than one mask here
+            raise ValueError(
+                "multiple fillings found in batch task, cannot post-process batch"
+            )
+
+        (filing,) = fillings.keys()
+
+        return filling
+
+    def construct_bitstring(self):
+        perfect_filling = self.get_task_filling()
+        return self.dataframe.loc[perfect_filling].to_numpy()
+
+    def rydberg_densities(self):
+        perfect_filling = "".join(map(str, self.get_task_filling()))
+        return self.dataframe.loc[perfect_filling].mean()
