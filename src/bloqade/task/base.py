@@ -63,9 +63,37 @@ class Report:
         return self._bitstring
 
     @property
+    def markdown(self) -> str:
+        return self.dataframe.to_markdown()
+
+
+class ShotReport(Report):
+    def __init__(self, future) -> None:
+        self._future = future
+        self._perfect_filling = None
+        super().__init__()
+
+    def get_perfect_filling(self):
+        raise NotImplementedError
+
+    @property
+    def future(self):
+        return self._future
+
+    @property
     def task_results(self) -> Union[List[QuEraTaskResults], QuEraTaskResults]:
         return self.future.task_results
 
     @property
-    def markdown(self) -> str:
-        return self.dataframe.to_markdown()
+    def perfect_filling(self):
+        if self._perfect_filling:
+            return self._perfect_filling
+
+        self._perfect_filling = self.get_perfect_filling()
+        return self._perfect_filling
+
+    def construct_bitstring(self):
+        return self.dataframe.loc[self.perfect_filling].to_numpy()
+
+    def rydberg_densities(self):
+        return self.dataframe.loc[self.perfect_filling].mean()

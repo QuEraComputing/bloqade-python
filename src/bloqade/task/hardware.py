@@ -14,7 +14,7 @@ from bloqade.submission.quera_api_client.ir.task_specification import (
 )
 from bloqade.submission.quera_api_client.ir.task_results import QuEraTaskStatusCode
 
-from .base import Task, TaskFuture, BatchFuture, Batch, Report
+from .base import Task, TaskFuture, BatchFuture, Batch, ShotReport
 
 from typing import Optional, Union, TextIO, List
 
@@ -265,10 +265,9 @@ class HardwareBatchFuture(BatchFuture, BaseModel):
 
 
 # TODO: Implement Multiplex decoding
-class HardwareTaskReport(Report):
+class HardwareTaskReport(ShotReport):
     def __init__(self, future: HardwareTaskFuture):
-        self._future = future
-        super().__init__()
+        super().__init__(future)
 
     @property
     def future(self):
@@ -290,7 +289,7 @@ class HardwareTaskReport(Report):
 
         return df
 
-    def get_task_filling(self) -> str:
+    def get_perfect_filling(self) -> str:
         if self.future.quera_task_ir:
             filling = self.future.quera_task_ir.lattice.filling
 
@@ -299,23 +298,10 @@ class HardwareTaskReport(Report):
 
         return "".join(map(str, filling))
 
-    def construct_bitstring(self):
-        perfect_filling = self.get_task_filling()
-        return self.dataframe.loc[perfect_filling].to_numpy()
 
-    def rydberg_densities(self):
-        perfect_filling = "".join(map(str, self.get_task_filling()))
-        return self.dataframe.loc[perfect_filling].mean()
-
-
-class HardwareBatchReport(Report):
+class HardwareBatchReport(ShotReport):
     def __init__(self, future: HardwareBatchFuture):
-        self._future = future
-        super().__init__()
-
-    @property
-    def future(self):
-        return self._future
+        super().__init__(future)
 
     def construct_dataframe(self):
         index = []
@@ -337,7 +323,7 @@ class HardwareBatchReport(Report):
 
         return df
 
-    def get_task_filling(self) -> str:
+    def get_perfect_filling(self) -> str:
         fillings = {}
         for task_number, future in enumerate(self.future.futures):
             if future.quera_task_ir:
@@ -358,11 +344,3 @@ class HardwareBatchReport(Report):
         (filing,) = fillings.keys()
 
         return filling
-
-    def construct_bitstring(self):
-        perfect_filling = self.get_task_filling()
-        return self.dataframe.loc[perfect_filling].to_numpy()
-
-    def rydberg_densities(self):
-        perfect_filling = "".join(map(str, self.get_task_filling()))
-        return self.dataframe.loc[perfect_filling].mean()
