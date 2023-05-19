@@ -1,5 +1,8 @@
 from pydantic import BaseModel
-from bloqade.submission.quera_api_client.ir.task_results import QuEraTaskResults
+from bloqade.submission.quera_api_client.ir.task_results import (
+    QuEraTaskResults,
+    QuEraTaskStatusCode,
+)
 
 from bloqade.submission.mock import DumbMockBackend
 
@@ -9,7 +12,8 @@ from bloqade.submission.ir import BraketTaskSpecification
 from bloqade.submission.quera_api_client.ir.task_specification import (
     QuEraTaskSpecification,
 )
-from bloqade.submission.quera_api_client.ir.task_results import QuEraTaskStatusCode
+
+from bloqade.ir.location.multiplex import MultiplexDecoder
 
 from .base import Task, TaskFuture, BatchFuture, Batch
 
@@ -26,6 +30,7 @@ class TaskDataModel(BaseModel):
     mock_backend: Optional[DumbMockBackend] = None
     quera_backend: Optional[QuEraBackend] = None
     braket_backend: Optional[BraketBackend] = None
+    multiplex_mapping: Optional[MultiplexDecoder] = None
 
     def json(self, exclude_none=True, by_alias=True, **json_options):
         return super().json(
@@ -69,6 +74,10 @@ class TaskDataModel(BaseModel):
         braket_task_ir = params.get("braket_task_ir")
         if braket_task_ir:
             self.braket_task_ir = BraketTaskSpecification(**braket_task_ir)
+
+        multiplex_mapping_ir = params.get("multiplex_mapping")
+        if multiplex_mapping_ir:
+            self.multiplex_mapping = MultiplexDecoder(**multiplex_mapping_ir)
 
     def _check_fields(self):
         if self.quera_task_ir is None and self.braket_task_ir is None:
