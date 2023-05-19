@@ -62,22 +62,6 @@ class Emit(Builder):
         self.__cluster_spacing__ = cluster_spacing
         return self
 
-    def __validate_batch(self):
-        if len(self.__batches__) < 2:
-            return
-
-        first_key, *_ = self.__batches__.keys()
-
-        batch_size = len(self.__batches__[first_key])
-
-        for name, batch in self.__batches__.items():
-            if len(batch) != batch_size:
-                raise ValueError(
-                    f"batch variable {name} has {len(batch)} number of parameters "
-                    f"compared to {batch_size} for {first_key}, number of "
-                    "parameters must match for all fields."
-                )
-
     @staticmethod
     def __build_ast(builder: Builder, build_state: BuildState):
         match builder:
