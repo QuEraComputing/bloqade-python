@@ -7,7 +7,7 @@ from bloqade.submission.capabilities import get_capabilities
 
 from typing import List, Tuple, Union
 
-from bloqade.submission.quera_api_client.ir.task_results import (
+from bloqade.submission.ir.task_results import (
     QuEraShotResult,
     QuEraTaskResults,
 )
