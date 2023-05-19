@@ -26,9 +26,11 @@ from bloqade.ir.sequence import (
 from bloqade.codegen.program_visitor import ProgramVisitor
 from bloqade.codegen.waveform_visitor import WaveformVisitor
 from bloqade.codegen.assignment_scan import AssignmentScan
+from bloqade.ir.location.multiplex import MultiplexDecoder
 
 import bloqade.submission.quera_api_client.ir.task_specification as task_spec
-from typing import Dict, Tuple, List, TYPE_CHECKING
+from typing import Dict, Tuple, List, Union, Optional, TYPE_CHECKING
+from numbers import Number
 from bisect import bisect_left
 
 
@@ -38,7 +40,7 @@ if TYPE_CHECKING:
 
 
 class PiecewiseLinearCodeGen(WaveformVisitor):
-    def __init__(self, assignments: Dict[str, float]):
+    def __init__(self, assignments: Dict[str, Union[Number, List[Number]]]):
         self.assignments = assignments
 
     def visit_negative(self, ast: waveform.Negative) -> Tuple[List[float], List[float]]:
@@ -154,7 +156,7 @@ class PiecewiseLinearCodeGen(WaveformVisitor):
 
 
 class PiecewiseConstantCodeGen(WaveformVisitor):
-    def __init__(self, assignments: Dict[str, float]):
+    def __init__(self, assignments: Dict[str, Union[Number, List[Number]]]):
         self.assignments = assignments
 
     def visit_negative(self, ast: waveform.Negative) -> Tuple[List[float], List[float]]:
@@ -256,9 +258,19 @@ class PiecewiseConstantCodeGen(WaveformVisitor):
 
 
 class SchemaCodeGen(ProgramVisitor):
-    def __init__(self):
-        self.assignments = None
-        self.n_atoms = None
+    def __init__(
+        self,
+        assignments: Dict[str, Union[Number, List[Number]]],
+        multiplex_mapping: Optional[MultiplexDecoder],
+    ):
+        self.assignments = assignments
+        self.multiplex_mapping = multiplex_mapping
+
+        if self.multiplex_mapping:
+            self.n_atoms = self.multiplex_mapping.sites_per_cluster
+        else:
+            self.n_atoms = None
+
         self.lattice = None
         self.effective_hamiltonian = None
         self.rydberg = None
@@ -267,8 +279,6 @@ class SchemaCodeGen(ProgramVisitor):
         self.rabi_frequency_phase = None
         self.detuning = None
         self.lattice_site_coefficients = None
-
-        self.multiplex_mapping = None
 
     def visit_spatial_modulation(self, ast: SpatialModulation):
         match (self.multiplex_mapping, ast):
@@ -326,67 +336,6 @@ class SchemaCodeGen(ProgramVisitor):
                     multiplexed_runtime_vector += self.assignments[name]
 
                 self.assignments[name] = multiplexed_runtime_vector
-
-    """
-    def visit_spatial_modulation(self, ast: SpatialModulation):
-        # can use the multiplex mapping and multiplexed enabled features here
-        match ast:
-            case ScaledLocations(locations): # with and without multiplexing
-                self.lattice_site_coefficients = []
-
-                # check that all indices map to actual atoms in lattice
-                for location in locations.keys():
-                    if location.value >= self.n_atoms:
-                        raise ValueError(
-                            f"Location({location.value}) is larger than the lattice."
-                        )
-
-                # need to get the number of atoms in a single cluster
-                # try to use mapping more explicitly
-                # use get_site_indices
-                # n_atoms_single_cluster = len(list(self.mapping.values())[0])
-                site_to_cluster_map = MultiplexDecoder(
-                    mapping=self.multiplex_mapping
-                ).get_site_indices()
-
-                for atom_index in range(self.n_atoms):
-                    # can apply Phillip's modulo operation here
-                    if self.multiplex_mapping is not None:
-                        scale = locations.get(
-                            Location(site_to_cluster_map[atom_index]), Literal(0.0)
-                        )
-                    else:
-                        scale = locations.get(
-                            Location(atom_index), Literal(0.0)
-                        )  # for each global_site_index,
-                        # get the associated scalar,
-                        # otherwise default to Literal of (0.0)
-                    self.lattice_site_coefficients.append(
-                        scale(**self.assignments)
-                    )  # append scalars to lattice_site_coefficients
-
-            case RunTimeVector(name): # with and without multiplexing
-                run_time_vector = self.assignments[name]
-                if len(run_time_vector) != self.n_atoms:
-                    raise ValueError(
-                        f"Coefficient list {name} doesn't match the size of lattice "
-                        f"{self.n_atoms}."
-                    )
-
-                # overwrite the existing RunTimeVector with a new one
-                if self.multiplex_mapping is not None:
-                    # get number of keys in mapping for clusters
-                    multiplexed_run_time_vector = []
-                    for _ in range(self.multiplex_mapping.keys()):
-                        multiplexed_run_time_vector += run_time_vector
-
-                    self.assignments[name] = multiplexed_run_time_vector
-
-            case _:
-                raise RuntimeError(
-                    "This Error should not appear, please Open up an issue."
-                )
-"""
 
     def visit_field(self, ast: Field):
         match (self.field_name, ast):  # Pulse: Dict of FieldName/Field
@@ -563,16 +512,13 @@ class SchemaCodeGen(ProgramVisitor):
             sites.append(tuple(site))
             filling.append(1)
 
-        if self.multiplex_mapping:
-            self.n_atoms = self.multiplex_mapping.sites_per_cluster
-        else:
+        if self.n_atoms is None:
             self.n_atoms = len(sites)
 
         self.lattice = task_spec.Lattice(sites=sites, filling=filling)
 
     def emit(self, nshots: int, program: "Program") -> task_spec.QuEraTaskSpecification:
-        self.multiplex_mapping = program.mapping
-        self.assignments = AssignmentScan(program.assignments).emit(program.sequence)
+        self.assignments = AssignmentScan(self.assignments).emit(program.sequence)
         self.visit(program.register)
         self.visit(program.sequence)
 
