@@ -162,7 +162,7 @@ class HardwareTaskFuture(TaskFutureDataModel, TaskFuture):
         return self.task_result_ir
 
     def report(self) -> "HardwareTaskReport":
-        return HardwareTaskReport(task_future=self)
+        return HardwareTaskReport(self)
 
     def status(self) -> None:
         self._check_fields()
