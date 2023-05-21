@@ -28,10 +28,10 @@ from bloqade.codegen.waveform_visitor import WaveformVisitor
 from bloqade.codegen.assignment_scan import AssignmentScan
 from bloqade.ir.location.multiplex import MultiplexDecoder
 
-import bloqade.submission.quera_api_client.ir.task_specification as task_spec
+import bloqade.submission.ir.task_specification as task_spec
 from typing import Dict, Tuple, List, Union, Optional, TYPE_CHECKING
-from numbers import Number
 from bisect import bisect_left
+from numbers import Number
 
 
 if TYPE_CHECKING:

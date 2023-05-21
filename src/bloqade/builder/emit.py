@@ -11,11 +11,11 @@ from bloqade.submission.base import SubmissionBackend
 from bloqade.submission.braket import BraketBackend
 from bloqade.submission.mock import DumbMockBackend
 from bloqade.submission.quera import QuEraBackend
-from bloqade.submission.ir import BraketTaskSpecification
+from bloqade.submission.ir.braket import to_braket_task_ir, BraketTaskSpecification
 
 from bloqade.ir import Program
 from bloqade.ir.location.multiplex import multiplex_register
-from quera_ahs_utils.ir import quera_task_to_braket_ahs
+
 
 from pydantic import BaseModel
 from typing import Optional
@@ -281,7 +281,7 @@ class Emit(Builder):
         task_ir = schema_compiler.emit(nshots, Program(register, self.sequence))
 
         if isinstance(backend, BraketBackend):
-            nshots, braket_ahs_program = quera_task_to_braket_ahs(task_ir)
+            nshots, braket_ahs_program = to_braket_task_ir(task_ir)
             task_ir = BraketTaskSpecification(
                 nshots=nshots, program=braket_ahs_program.to_ir()
             )

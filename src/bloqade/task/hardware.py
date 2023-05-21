@@ -1,19 +1,17 @@
 from pydantic import BaseModel
-from bloqade.submission.quera_api_client.ir.task_results import (
-    QuEraTaskResults,
-    QuEraTaskStatusCode,
-)
+from bloqade.submission.ir.task_results import QuEraTaskResults
 
 from bloqade.submission.mock import DumbMockBackend
 
 from bloqade.submission.quera import QuEraBackend
 from bloqade.submission.braket import BraketBackend
-from bloqade.submission.ir import BraketTaskSpecification
-from bloqade.submission.quera_api_client.ir.task_specification import (
+from bloqade.submission.ir.braket import BraketTaskSpecification
+from bloqade.submission.ir.task_specification import (
     QuEraTaskSpecification,
 )
 
 from bloqade.ir.location.multiplex import MultiplexDecoder
+from bloqade.submission.ir.task_results import QuEraTaskStatusCode
 
 from .base import Task, TaskFuture, BatchFuture, Batch
 

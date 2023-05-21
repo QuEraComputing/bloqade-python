@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from typing import Optional, List, Tuple, Union
 from decimal import Decimal
 
-from bloqade.submission.quera_api_client.ir.capabilities import QuEraCapabilities
+from bloqade.submission.ir.capabilities import QuEraCapabilities
 
 
 __all__ = ["QuEraTaskSpecification"]

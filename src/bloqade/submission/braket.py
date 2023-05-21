@@ -1,6 +1,6 @@
 from bloqade.submission.base import SubmissionBackend
-from bloqade.submission.ir import BraketTaskSpecification
-from bloqade.submission.quera_api_client.ir.task_results import (
+from bloqade.submission.ir.braket import BraketTaskSpecification
+from bloqade.submission.ir.task_results import (
     QuEraTaskStatusCode,
     QuEraTaskResults,
     QuEraShotResult,

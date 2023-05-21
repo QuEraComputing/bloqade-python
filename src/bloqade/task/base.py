@@ -1,5 +1,5 @@
 from .report import TaskReport, BatchReport
-from bloqade.submission.quera_api_client.ir.task_results import QuEraTaskResults
+from bloqade.submission.ir.task_results import QuEraTaskResults
 from typing import List
 
 
