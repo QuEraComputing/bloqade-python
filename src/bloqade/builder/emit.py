@@ -11,7 +11,7 @@ from bloqade.submission.base import SubmissionBackend
 from bloqade.submission.braket import BraketBackend
 from bloqade.submission.mock import DumbMockBackend
 from bloqade.submission.quera import QuEraBackend
-from bloqade.submission.ir.braket import to_braket_task_ir, BraketTaskSpecification
+from bloqade.submission.ir.braket import to_braket_task_ir
 
 from bloqade.ir import Program
 
@@ -270,10 +270,7 @@ class Emit(Builder):
         task_ir = schema_compiler.emit(nshots, self.program)
 
         if isinstance(backend, BraketBackend):
-            nshots, braket_ahs_program = to_braket_task_ir(task_ir)
-            task_ir = BraketTaskSpecification(
-                nshots=nshots, program=braket_ahs_program.to_ir()
-            )
+            task_ir = to_braket_task_ir(task_ir)
 
         return (task_ir, schema_compiler.multiplex_mapping)
 
