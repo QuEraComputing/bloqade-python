@@ -264,10 +264,10 @@ class Emit(Builder):
     def __compile_task_ir(self, nshots: int, backend: SubmissionBackend):
         from bloqade.codegen.quera_hardware import SchemaCodeGen
 
-        schema_compiler = SchemaCodeGen(
-            self.__assignments__, backend.get_capabilities()
-        )
+        capabilities = backend.get_capabilities()
+        schema_compiler = SchemaCodeGen(self.__assignments__, capabilities)
         task_ir = schema_compiler.emit(nshots, self.program)
+        task_ir.discretize(capabilities)
 
         if isinstance(backend, BraketBackend):
             task_ir = to_braket_task_ir(task_ir)
