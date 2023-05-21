@@ -226,11 +226,11 @@ class HardwareTaskFuture(TaskFutureDataModel, TaskFuture):
         return df
 
     def get_perfect_filling(self) -> str:
-        if self.future.quera_task_ir:
-            filling = self.future.quera_task_ir.lattice.filling
+        if self.quera_task_ir:
+            filling = self.quera_task_ir.lattice.filling
 
-        if self.future.braket_task_ir:
-            filling = self.future.braket_task_ir.program.setup.ahs_register.filling
+        if self.braket_task_ir:
+            filling = self.braket_task_ir.program.setup.ahs_register.filling
 
         return "".join(map(str, filling))
 
