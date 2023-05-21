@@ -1,10 +1,11 @@
 from bloqade.ir.location import Square
 
 # create lattice
-lattice = Square(4)
+lattice = Square(3, lattice_spacing=6)
 
 quantum_task = (
-    lattice.rydberg.detuning.uniform.piecewise_linear(
+    lattice.multiplex(10.0)
+    .rydberg.detuning.uniform.piecewise_linear(
         durations=["up_time", "anneal_time", "up_time"],
         values=[
             "initial_detuning",
@@ -24,7 +25,6 @@ quantum_task = (
         anneal_time=10,
         rabi_amplitude_max=15,
     )
-    .multiplex(10.0)
     .mock(10)
 )
 

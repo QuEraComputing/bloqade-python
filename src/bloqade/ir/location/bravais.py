@@ -20,7 +20,9 @@ class BoundedBravais(AtomArrangement):
     lattice_spacing: float
 
     def __init__(self, *shape: int, lattice_spacing=1.0):
-        super().__init__(shape=shape, lattice_spacing=lattice_spacing)
+        super().__init__()
+        self.shape = shape
+        self.lattice_spacing = lattice_spacing
         self.__n_atoms = None
         self.__n_dims = None
 

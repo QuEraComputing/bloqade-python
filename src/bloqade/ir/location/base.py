@@ -48,9 +48,9 @@ class AtomArrangement(ProgramStart):
             shift_x = (x_max - x_min) + cluster_spacing
             shift_y = (y_max - y_min) + cluster_spacing
 
-            register_vectors = [list(position) for position in self.enumerate()]
+            register_sites = [list(position) for position in self.enumerate()]
             return MultuplexRegister(
-                register_vectors=register_vectors,
+                register_sites=register_sites,
                 shift_vectors=[[shift_x, 0], [0, shift_y]],
             )
         else:

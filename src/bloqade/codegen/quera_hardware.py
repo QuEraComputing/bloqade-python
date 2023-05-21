@@ -519,6 +519,20 @@ class SchemaCodeGen(ProgramVisitor):
             if cluster_index not in visited:
                 visited.add(cluster_index)
 
+            shift = (
+                shift_vectors[0] * cluster_index[0]
+                + shift_vectors[1] * cluster_index[1]
+            )
+
+            new_register_sites = shift + register_sites
+            # skip clusters that fall out of bounds
+            if (
+                np.any(new_register_sites < 0)
+                or np.any(new_register_sites[:, 0] > width_max)
+                or np.any(new_register_sites[:, 1] > height_max)
+            ):
+                continue
+
             new_cluster_indices = [
                 (cluster_index[0] + 1, cluster_index[1]),
                 (cluster_index[0], cluster_index[1] + 1),
@@ -529,21 +543,6 @@ class SchemaCodeGen(ProgramVisitor):
             for new_cluster_index in new_cluster_indices:
                 if new_cluster_index not in visited:
                     c_stack.append(new_cluster_index)
-
-            shift = (
-                shift_vectors[0] * cluster_index[0]
-                + shift_vectors[1] * cluster_index[1]
-            )
-
-            new_register_sites = shift + register_sites
-
-            # skip clusters that fall out of bounds
-            if np.any(
-                (new_register_sites < 0)
-                * (new_register_sites[:, 0] > width_max)
-                * (new_register_sites[:, 1] > height_max)
-            ):
-                continue
 
             for local_site_index, site in enumerate(new_register_sites[:]):
                 sites.append(tuple(site))
