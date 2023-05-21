@@ -14,8 +14,6 @@ from bloqade.submission.quera import QuEraBackend
 from bloqade.submission.ir.braket import to_braket_task_ir, BraketTaskSpecification
 
 from bloqade.ir import Program
-from bloqade.ir.location.multiplex import multiplex_register
-
 
 from pydantic import BaseModel
 from typing import Optional
@@ -51,15 +49,9 @@ class Emit(Builder):
         self.__assignments__ = {}
         self.__sequence__ = None
         self.__register__ = None
-        self.__cluster_spacing__ = None
 
     def assign(self, **assignments):
         self.__assignments__.update(assignments)
-        return self
-
-    # toggles multiplexing
-    def multiplex(self, cluster_spacing: float):
-        self.__cluster_spacing__ = cluster_spacing
         return self
 
     @staticmethod
@@ -265,20 +257,17 @@ class Emit(Builder):
 
         return self.__sequence__
 
+    @property
+    def program(self) -> Program:
+        return Program(self.register, self.sequence)
+
     def __compile_task_ir(self, nshots: int, backend: SubmissionBackend):
         from bloqade.codegen.quera_hardware import SchemaCodeGen
 
-        if self.__cluster_spacing__:
-            register, multiplex_mapping = multiplex_register(
-                self.register,
-                self.__cluster_spacing__,
-                backend.get_capabilities(),
-            )
-        else:
-            register, multiplex_mapping = self.register, None
-
-        schema_compiler = SchemaCodeGen(self.__assignments__, multiplex_mapping)
-        task_ir = schema_compiler.emit(nshots, Program(register, self.sequence))
+        schema_compiler = SchemaCodeGen(
+            self.__assignments__, backend.get_capabilities()
+        )
+        task_ir = schema_compiler.emit(nshots, self.program)
 
         if isinstance(backend, BraketBackend):
             nshots, braket_ahs_program = to_braket_task_ir(task_ir)
@@ -286,7 +275,7 @@ class Emit(Builder):
                 nshots=nshots, program=braket_ahs_program.to_ir()
             )
 
-        return (task_ir, multiplex_mapping)
+        return (task_ir, schema_compiler.multiplex_mapping)
 
     def simu(self, *args, **kwargs):
         raise NotImplementedError

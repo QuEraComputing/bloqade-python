@@ -10,7 +10,7 @@ from bloqade.submission.ir.task_specification import (
     QuEraTaskSpecification,
 )
 
-from bloqade.ir.location.multiplex import MultiplexDecoder
+from bloqade.submission.ir.multiplex import MultiplexDecoder
 from bloqade.submission.ir.task_results import QuEraTaskStatusCode
 
 from .base import Task, TaskFuture, BatchFuture, Batch
