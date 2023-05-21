@@ -118,8 +118,8 @@ class Rectangular(BoundedBravais):
 
 @dataclass
 class Honeycomb(BoundedBravais):
-    def __init__(self, L: int):
-        super().__init__(L, L)
+    def __init__(self, L: int, lattice_spacing: float = 1.0):
+        super().__init__(L, L, lattice_spacing=lattice_spacing)
 
     def cell_vectors(self) -> List[List[float]]:
         return [[1.0, 0.0], [1 / 2, np.sqrt(3) / 2]]
@@ -130,8 +130,8 @@ class Honeycomb(BoundedBravais):
 
 @dataclass
 class Triangular(BoundedBravais):
-    def __init__(self, L: int):
-        super().__init__(L, L)
+    def __init__(self, L: int, lattice_spacing: float = 1.0):
+        super().__init__(L, L, lattice_spacing=lattice_spacing)
 
     def cell_vectors(self) -> List[List[float]]:
         return [[1.0, 0.0], [1 / 2, np.sqrt(3) / 2]]
@@ -144,8 +144,8 @@ class Triangular(BoundedBravais):
 class Lieb(BoundedBravais):
     """Lieb lattice."""
 
-    def __init__(self, L: int):
-        super().__init__(L, L)
+    def __init__(self, L: int, lattice_spacing: float = 1.0):
+        super().__init__(L, L, lattice_spacing=lattice_spacing)
 
     def cell_vectors(self) -> List[List[float]]:
         return [[1.0, 0.0], [0.0, 1.0]]
@@ -156,8 +156,8 @@ class Lieb(BoundedBravais):
 
 @dataclass
 class Kagome(BoundedBravais):
-    def __init__(self, L: int):
-        super().__init__(L, L)
+    def __init__(self, L: int, lattice_spacing: float = 1.0):
+        super().__init__(L, L, lattice_spacing=lattice_spacing)
 
     def cell_vectors(self) -> List[List[float]]:
         return [[1.0, 0.0], [1 / 2, np.sqrt(3) / 2]]
