@@ -267,7 +267,7 @@ class Emit(Builder):
         capabilities = backend.get_capabilities()
         schema_compiler = SchemaCodeGen(self.__assignments__, capabilities)
         task_ir = schema_compiler.emit(nshots, self.program)
-        task_ir.discretize(capabilities)
+        task_ir = task_ir.discretize(capabilities)
 
         if isinstance(backend, BraketBackend):
             task_ir = to_braket_task_ir(task_ir)
