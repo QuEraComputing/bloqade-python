@@ -10,11 +10,9 @@ import bloqade.ir as ir
 from bloqade.submission.braket import BraketBackend
 from bloqade.submission.mock import DumbMockBackend
 from bloqade.submission.quera import QuEraBackend
-from bloqade.submission.ir import BraketTaskSpecification
+from bloqade.submission.ir.braket import to_braket_task_ir
 
 from bloqade.ir import Program
-
-from quera_ahs_utils.ir import quera_task_to_braket_ahs
 
 from pydantic import BaseModel
 from typing import Optional
@@ -270,10 +268,7 @@ class Emit(Builder):
         from bloqade.codegen.quera_hardware import SchemaCodeGen
 
         quera_task_ir = SchemaCodeGen().emit(nshots, self.program)
-        nshots, braket_ahs_program = quera_task_to_braket_ahs(quera_task_ir)
-        task_ir = BraketTaskSpecification(
-            nshots=nshots, program=braket_ahs_program.to_ir()
-        )
+        task_ir = to_braket_task_ir(quera_task_ir)
 
         return HardwareTask(braket_task_ir=task_ir, braket_backend=BraketBackend())
 
