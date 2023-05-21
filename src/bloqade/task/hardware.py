@@ -14,7 +14,7 @@ from bloqade.submission.quera_api_client.ir.task_specification import (
 )
 from bloqade.submission.quera_api_client.ir.task_results import QuEraTaskStatusCode
 
-from .base import Task, TaskFuture, BatchFuture, Batch, ShotReport
+from .base import Task, TaskFuture, BatchFuture, Batch, Report
 
 from typing import Optional, Union, TextIO, List
 
@@ -161,8 +161,8 @@ class HardwareTaskFuture(TaskFutureDataModel, TaskFuture):
         self.task_result_ir = self.fetch()
         return self.task_result_ir
 
-    def report(self) -> "HardwareTaskReport":
-        return HardwareTaskReport(self)
+    def report(self) -> Report:
+        return Report(self)
 
     def status(self) -> None:
         self._check_fields()
@@ -205,6 +205,36 @@ class HardwareTaskFuture(TaskFutureDataModel, TaskFuture):
         if self.mock_backend:
             return self.mock_backend.task_results(self.task_id)
 
+    def construct_dataframe(self):
+        index = []
+        data = []
+        for shot in self.task_results.shot_outputs:
+            pre_sequence = "".join(map(str, shot.pre_sequence))
+            key = (pre_sequence,)
+            index.append(key)
+            data.append(shot.post_sequence)
+
+        index = pd.MultiIndex.from_tuples(
+            index,
+            names=[
+                "pre_sequence",
+            ],
+        )
+
+        df = pd.DataFrame(data, index=index)
+        df.sort_index()
+
+        return df
+
+    def get_perfect_filling(self) -> str:
+        if self.future.quera_task_ir:
+            filling = self.future.quera_task_ir.lattice.filling
+
+        if self.future.braket_task_ir:
+            filling = self.future.braket_task_ir.program.setup.ahs_register.filling
+
+        return "".join(map(str, filling))
+
 
 class HardwareBatch(Batch, BaseModel):
     tasks: List[HardwareTask]
@@ -245,8 +275,8 @@ class HardwareBatch(Batch, BaseModel):
 class HardwareBatchFuture(BatchFuture, BaseModel):
     futures: List[HardwareTaskFuture]
 
-    def report(self) -> "HardwareBatchReport":
-        return HardwareBatchReport(self)
+    def report(self) -> "Report":
+        return Report(self)
 
     def cancel(self):
         for future in self.futures:
@@ -263,50 +293,10 @@ class HardwareBatchFuture(BatchFuture, BaseModel):
     def task_results(self):
         return [future.task_results for future in self.futures]
 
-
-# TODO: Implement Multiplex decoding
-class HardwareTaskReport(ShotReport):
-    def __init__(self, future: HardwareTaskFuture):
-        super().__init__(future)
-
-    @property
-    def future(self):
-        return self._future
-
     def construct_dataframe(self):
         index = []
         data = []
-        for shot in self.task_results.shot_outputs:
-            pre_sequence = "".join(map(str, shot.pre_sequence))
-            key = (pre_sequence,)
-            index.append(key)
-            data.append(shot.post_sequence)
-
-        index = pd.MultiIndex.from_tuples(index, names=["pre_sequence"])
-
-        df = pd.DataFrame(data, index=index)
-        df.sort_index()
-
-        return df
-
-    def get_perfect_filling(self) -> str:
-        if self.future.quera_task_ir:
-            filling = self.future.quera_task_ir.lattice.filling
-
-        if self.future.braket_task_ir:
-            filling = self.future.braket_task_ir.program.setup.ahs_register.filling
-
-        return "".join(map(str, filling))
-
-
-class HardwareBatchReport(ShotReport):
-    def __init__(self, future: HardwareBatchFuture):
-        super().__init__(future)
-
-    def construct_dataframe(self):
-        index = []
-        data = []
-        for task_number, future in enumerate(self.future.futures):
+        for task_number, future in enumerate(self.futures):
             for shot in future.task_results.shot_outputs:
                 pre_sequence = "".join(map(str, shot.pre_sequence))
                 if shot.shot_status != QuEraShotStatusCode.Completed:
@@ -325,7 +315,7 @@ class HardwareBatchReport(ShotReport):
 
     def get_perfect_filling(self) -> str:
         fillings = {}
-        for task_number, future in enumerate(self.future.futures):
+        for task_number, future in enumerate(self.futures):
             if future.quera_task_ir:
                 filling = future.quera_task_ir.lattice.filling
 

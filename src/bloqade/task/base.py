@@ -1,7 +1,7 @@
 from bloqade.submission.quera_api_client.ir.task_results import QuEraTaskResults
 from typing import List, Union, Optional
 from numpy.typing import NDArray
-from pandas import DataFrame
+import pandas as pd
 
 
 class Task:
@@ -37,22 +37,22 @@ class BatchFuture:
 #      a way to customize the report class,
 #      e.g result.plot() returns a `TaskPlotReport` class instead
 class Report:
-    def __init__(self) -> None:
+    def __init__(self, future) -> None:
+        self._future = future
+        self._perfect_filling = None
         self._dataframe = None  # df cache
         self._bitstring = None  # bitstring cache
 
-    def construct_dataframe(self):
-        raise NotImplementedError
-
-    def construct_bitstring(self):
-        raise NotImplementedError
+    @property
+    def future(self):
+        return self._future
 
     @property
-    def dataframe(self) -> DataFrame:
+    def dataframe(self) -> pd.DataFrame:
         if self._dataframe:
             return self._dataframe
 
-        self._dataframe = self.construct_dataframe()
+        self._dataframe = self.future.construct_dataframe()
         return self._dataframe
 
     @property
@@ -66,20 +66,6 @@ class Report:
     def markdown(self) -> str:
         return self.dataframe.to_markdown()
 
-
-class ShotReport(Report):
-    def __init__(self, future) -> None:
-        self._future = future
-        self._perfect_filling = None
-        super().__init__()
-
-    def get_perfect_filling(self):
-        raise NotImplementedError
-
-    @property
-    def future(self):
-        return self._future
-
     @property
     def task_results(self) -> Union[List[QuEraTaskResults], QuEraTaskResults]:
         return self.future.task_results
@@ -89,7 +75,7 @@ class ShotReport(Report):
         if self._perfect_filling:
             return self._perfect_filling
 
-        self._perfect_filling = self.get_perfect_filling()
+        self._perfect_filling = self.future.get_perfect_filling()
         return self._perfect_filling
 
     def construct_bitstring(self):
