@@ -1,5 +1,4 @@
 from bloqade.ir.location import ListOfLocations
-import os
 
 future = (
     ListOfLocations()
@@ -29,7 +28,4 @@ future = (
     .submit()
 )
 
-future.save_json("test_json.json")
 print(future.report().bitstring.shape)
-
-os.remove("test_json.json")
