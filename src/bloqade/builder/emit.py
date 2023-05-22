@@ -18,7 +18,7 @@ from pydantic import BaseModel
 from typing import Optional
 import json
 import os
-from bloqade.task import HardwareTask
+from bloqade.task import HardwareTask, HardwareJob
 
 
 class BuildError(Exception):
@@ -264,15 +264,17 @@ class Emit(Builder):
     def simu(self, *args, **kwargs):
         raise NotImplementedError
 
-    def braket(self, nshots: int) -> "HardwareTask":
+    def braket(self, nshots: int) -> "HardwareJob":
         from bloqade.codegen.quera_hardware import SchemaCodeGen
 
         quera_task_ir = SchemaCodeGen().emit(nshots, self.program)
         task_ir = to_braket_task_ir(quera_task_ir)
+        hardware_task = HardwareTask(
+            braket_task_ir=task_ir, braket_backend=BraketBackend()
+        )
+        return HardwareJob(tasks=[hardware_task])
 
-        return HardwareTask(braket_task_ir=task_ir, braket_backend=BraketBackend())
-
-    def quera(self, nshots: int, config_file: Optional[str] = None) -> "HardwareTask":
+    def quera(self, nshots: int, config_file: Optional[str] = None) -> "HardwareJob":
         from bloqade.codegen.quera_hardware import SchemaCodeGen
 
         task_ir = SchemaCodeGen().emit(nshots, self.program)
@@ -287,12 +289,16 @@ class Emit(Builder):
 
             backend = QuEraBackend(**api_config)
 
-        return HardwareTask(quera_task_ir=task_ir, quera_backend=backend)
+        hardware_task = HardwareTask(quera_task_ir=task_ir, quera_backend=backend)
 
-    def mock(self, nshots: int, state_file: str = ".mock_state.txt") -> "HardwareTask":
+        return HardwareJob(tasks=[hardware_task])
+
+    def mock(self, nshots: int, state_file: str = ".mock_state.txt") -> "HardwareJob":
         from bloqade.codegen.quera_hardware import SchemaCodeGen
 
         task_ir = SchemaCodeGen().emit(nshots, self.program)
         backend = DumbMockBackend(state_file=state_file)
 
-        return HardwareTask(quera_task_ir=task_ir, mock_backend=backend)
+        hardware_task = HardwareTask(quera_task_ir=task_ir, mock_backend=backend)
+
+        return HardwareJob(tasks=[hardware_task])

@@ -1,10 +1,6 @@
 from pydantic import BaseModel
-from bloqade.submission.ir.task_results import (
-    QuEraTaskResults,
-    QuEraShotStatusCode,
-)
+from bloqade.submission.ir.task_results import QuEraTaskResults
 from bloqade.submission.mock import DumbMockBackend
-
 from bloqade.submission.quera import QuEraBackend
 from bloqade.submission.braket import BraketBackend
 from bloqade.submission.ir.braket import BraketTaskSpecification
@@ -13,13 +9,11 @@ from bloqade.submission.ir.task_specification import (
 )
 from bloqade.submission.ir.task_results import QuEraTaskStatusCode
 
-from .base import Task, TaskFuture, BatchFuture, Batch, Report
+from .base import Task, TaskFuture, Future, Job
 
-from typing import Optional, Union, TextIO, List
+from typing import Optional, List
 
-import json
 import numpy as np
-import pandas as pd
 
 
 class TaskDataModel(BaseModel):
@@ -31,50 +25,7 @@ class TaskDataModel(BaseModel):
     quera_backend: Optional[QuEraBackend] = None
     braket_backend: Optional[BraketBackend] = None
 
-    def json(self, exclude_none=True, by_alias=True, **json_options):
-        return super().json(
-            exclude_none=exclude_none, by_alias=by_alias, **json_options
-        )
-
-    def write_json(
-        self, filename_or_io: Union[str, TextIO], mode: str = "w", **json_options
-    ):
-        match filename_or_io:
-            case str(filename):
-                with open(filename, mode) as io:
-                    io.write(self.json(**json_options))
-            case _:
-                filename_or_io.write(self.json(**json_options))
-
-    def read_json(self, filename_or_io: Union[str, TextIO]):
-        match filename_or_io:
-            case str(filename):
-                with open(filename, "r") as io:
-                    params = json.load(io)
-            case _:
-                params = json.load(filename_or_io)
-
-        braket_backend = params.get("braket_backend")
-        if braket_backend:
-            self.braket_backend = BraketBackend(**braket_backend)
-
-        quera_backend = params.get("quera_backend")
-        if quera_backend:
-            self.quera_backend = QuEraBackend(**quera_backend)
-
-        mock_backend = params.get("mock_backend")
-        if mock_backend:
-            self.mock_backend = DumbMockBackend(**mock_backend)
-
-        quera_task_ir = params.get("quera_task_ir")
-        if quera_task_ir:
-            self.quera_task_ir = QuEraTaskSpecification(**quera_task_ir)
-
-        braket_task_ir = params.get("braket_task_ir")
-        if braket_task_ir:
-            self.braket_task_ir = BraketTaskSpecification(**braket_task_ir)
-
-    def _check_fields(self):
+    def _check_fields(self) -> None:
         if self.quera_task_ir is None and self.braket_task_ir is None:
             raise AttributeError("Missing task_ir.")
 
@@ -126,23 +77,6 @@ class HardwareTask(TaskDataModel, Task):
 
 class TaskFutureDataModel(TaskDataModel):
     task_id: Optional[str] = None
-    task_result_ir: Optional[QuEraTaskResults] = None
-
-    def read_json(self, filename_or_io: Union[str, TextIO]):
-        super().read_json(filename_or_io)
-
-        match filename_or_io:
-            case str(filename):
-                with open(filename, "r") as io:
-                    params = json.load(io)
-            case _:
-                params = json.load(filename_or_io)
-
-        self.task_id = params.get("task_id")
-
-        task_result_ir = params.get("task_result_ir")
-        if task_result_ir:
-            self.task_result_ir = QuEraTaskResults(**task_result_ir)
 
     def _check_fields(self):
         super()._check_fields()
@@ -152,18 +86,7 @@ class TaskFutureDataModel(TaskDataModel):
 
 
 class HardwareTaskFuture(TaskFutureDataModel, TaskFuture):
-    @property
-    def task_results(self) -> QuEraTaskResults:
-        if self.task_result_ir:
-            return self.task_result_ir
-
-        self.task_result_ir = self.fetch()
-        return self.task_result_ir
-
-    def report(self) -> Report:
-        return Report(self)
-
-    def status(self) -> None:
+    def status(self) -> QuEraTaskStatusCode:
         self._check_fields()
 
         if self.braket_backend:
@@ -204,38 +127,8 @@ class HardwareTaskFuture(TaskFutureDataModel, TaskFuture):
         if self.mock_backend:
             return self.mock_backend.task_results(self.task_id)
 
-    def construct_dataframe(self):
-        index = []
-        data = []
-        for shot in self.task_results.shot_outputs:
-            pre_sequence = "".join(map(str, shot.pre_sequence))
-            key = (pre_sequence,)
-            index.append(key)
-            data.append(shot.post_sequence)
 
-        index = pd.MultiIndex.from_tuples(
-            index,
-            names=[
-                "pre_sequence",
-            ],
-        )
-
-        df = pd.DataFrame(data, index=index)
-        df.sort_index()
-
-        return df
-
-    def get_perfect_filling(self) -> str:
-        if self.quera_task_ir:
-            filling = self.quera_task_ir.lattice.filling
-
-        if self.braket_task_ir:
-            filling = self.braket_task_ir.program.setup.ahs_register.filling
-
-        return "".join(map(str, filling))
-
-
-class HardwareBatch(Batch, BaseModel):
+class HardwareJob(BaseModel, Job):
     tasks: List[HardwareTask]
     task_submit_order: List[int]
 
@@ -245,7 +138,7 @@ class HardwareBatch(Batch, BaseModel):
 
         super().__init__(tasks=tasks, task_submit_order=task_submit_order)
 
-    def submit(self):
+    def submit(self) -> "HardwareFuture":
         try:
             self.tasks[0].run_validation()
             has_validation = True
@@ -268,68 +161,28 @@ class HardwareBatch(Batch, BaseModel):
                         future.cancel()
                 raise e
 
-        return HardwareBatchFuture(futures=futures)
+        return HardwareFuture(futures=futures)
+
+    def json(self, exclude_none=True, by_alias=True, **json_options) -> str:
+        return super().json(
+            exclude_none=exclude_none, by_alias=by_alias, **json_options
+        )
 
 
-class HardwareBatchFuture(BatchFuture, BaseModel):
+class HardwareFuture(Future):
     futures: List[HardwareTaskFuture]
 
-    def report(self) -> "Report":
-        return Report(self)
+    def __init__(self, futures: List[HardwareTaskFuture]):
+        super().__init__(futures=futures, task_results_ir=None)
 
-    def cancel(self):
+    def cancel(self) -> None:
         for future in self.futures:
             future.cancel()
 
-    def fetch(self):
-        task_result_ir_list = []
-        for future in self.futures:
-            task_result_ir_list.append(future.fetch())
+    def fetch(self) -> List[QuEraTaskResults]:
+        return [future.fetch() for future in self.futures]
 
-        return task_result_ir_list
-
-    @property
-    def task_results(self):
-        return [future.task_results for future in self.futures]
-
-    def construct_dataframe(self):
-        index = []
-        data = []
-        for task_number, future in enumerate(self.futures):
-            for shot in future.task_results.shot_outputs:
-                pre_sequence = "".join(map(str, shot.pre_sequence))
-                if shot.shot_status != QuEraShotStatusCode.Completed:
-                    continue
-                key = (pre_sequence, task_number)
-
-                index.append(key)
-                data.append(shot.post_sequence)
-
-        index = pd.MultiIndex.from_tuples(index, names=["pre_sequence", "task_number"])
-
-        df = pd.DataFrame(data, index=index)
-        df.sort_index(axis="index")
-
-        return df
-
-    def get_perfect_filling(self) -> str:
-        fillings = {}
-        for task_number, future in enumerate(self.futures):
-            if future.quera_task_ir:
-                filling = future.quera_task_ir.lattice.filling
-
-            if future.braket_task_ir:
-                filling = future.braket_task_ir.program.setup.ahs_register.filling
-            filling = "".join(map(str, filling))
-
-            fillings[filling] = fillings.get(filling, []) + [task_number]
-
-        if len(fillings) > 1:
-            # TODO: figure out how to allow for more than one mask here
-            raise ValueError(
-                "multiple fillings found in batch task, cannot post-process batch"
-            )
-
-        (filing,) = fillings.keys()
-
-        return filling
+    def json(self, exclude_none=True, by_alias=True, **json_options) -> str:
+        return super().json(
+            exclude_none=exclude_none, by_alias=by_alias, **json_options
+        )
