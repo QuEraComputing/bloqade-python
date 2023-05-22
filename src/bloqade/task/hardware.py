@@ -168,21 +168,6 @@ class HardwareJob(BaseModel, Job):
             exclude_none=exclude_none, by_alias=by_alias, **json_options
         )
 
-    def init_from_dict(self, **params):
-        match params:
-            case {
-                "tasks": list() as tasks,
-                "task_submit_order": list() as task_submit_order,
-            }:
-                self.tasks = [HardwareTask(**task_json) for task_json in tasks]
-                self.task_submit_order = task_submit_order
-            case _:
-                keys = set(params.keys()) - set(["tasks", "task_submit_order"])
-                raise ValueError(
-                    "Unable to parse JSON file for HardwareFuture, "
-                    f"found keys: {list(keys)}"
-                )
-
 
 class HardwareFuture(BaseModel, Future):
     futures: List[HardwareTaskFuture]
