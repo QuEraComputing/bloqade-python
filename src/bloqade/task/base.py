@@ -3,10 +3,9 @@ from bloqade.submission.ir.task_results import (
     QuEraTaskStatusCode,
     QuEraShotStatusCode,
 )
-from typing import List, TextIO, Union
+from typing import List
 from numpy.typing import NDArray
 import pandas as pd
-import json
 
 
 class Task:
@@ -32,24 +31,24 @@ class JSONInterface:
     def json(self, **json_options) -> str:
         raise NotImplementedError
 
-    def init_from_dict(self, **params):
-        raise NotImplementedError
+    # def init_from_dict(self, **params):
+    #     raise NotImplementedError
 
-    def save_json(self, filename_or_io: Union[str, TextIO], mode="w", **json_options):
-        if isinstance(filename_or_io, str):
-            with open(filename_or_io, mode) as f:
-                f.write(self.json(**json_options))
-        else:
-            filename_or_io.write(self.json(**json_options))
+    # def save_json(self, filename_or_io: Union[str, TextIO], mode="w", **json_options):
+    #     if isinstance(filename_or_io, str):
+    #         with open(filename_or_io, mode) as f:
+    #             f.write(self.json(**json_options))
+    #     else:
+    #         filename_or_io.write(self.json(**json_options))
 
-    def load_json(self, filename_or_io: Union[str, TextIO]):
-        if isinstance(filename_or_io, str):
-            with open(filename_or_io, "r") as f:
-                params = json.load(f)
-        else:
-            params = json.load(filename_or_io)
+    # def load_json(self, filename_or_io: Union[str, TextIO]):
+    #     if isinstance(filename_or_io, str):
+    #         with open(filename_or_io, "r") as f:
+    #             params = json.load(f)
+    #     else:
+    #         params = json.load(filename_or_io)
 
-        self.init_from_dict(**params)
+    #     self.init_from_dict(**params)
 
 
 class Job(JSONInterface):

@@ -169,8 +169,19 @@ class HardwareJob(BaseModel, Job):
         )
 
     def init_from_dict(self, **params):
-        # TODO: pattern match implementation goes here.
-        return super().init_from_dict(**params)
+        match params:
+            case {
+                "tasks": list() as tasks,
+                "task_submit_order": list() as task_submit_order,
+            }:
+                self.tasks = [HardwareTask(**task_json) for task_json in tasks]
+                self.task_submit_order = task_submit_order
+            case _:
+                keys = set(params.keys()) - set(["tasks", "task_submit_order"])
+                raise ValueError(
+                    "Unable to parse JSON file for HardwareFuture, "
+                    f"found keys: {list(keys)}"
+                )
 
 
 class HardwareFuture(BaseModel, Future):
@@ -198,20 +209,3 @@ class HardwareFuture(BaseModel, Future):
         return super().json(
             exclude_none=exclude_none, by_alias=by_alias, **json_options
         )
-
-    def init_from_dict(self, **params):
-        match params:
-            case {"futures": list() as futures}:
-                self.futures = futures
-            case {
-                "futures": list() as futures,
-                "task_results_ir": list() as task_results_ir,
-            }:
-                self.futures = futures
-                self.task_results_ir = task_results_ir
-            case _:
-                keys = set(params.keys()) - set(["futures", "task_results_ir"])
-                raise ValueError(
-                    "Unable to parse JSON file for HardwareFuture, "
-                    f"found keys: {list(keys)}"
-                )

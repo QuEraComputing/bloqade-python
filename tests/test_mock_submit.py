@@ -1,8 +1,7 @@
 import bloqade.ir.location as location
 from bloqade.ir import Linear, Constant
 
-
-quantum_task = (
+quantum_job = (
     location.Square(6)
     .rydberg.detuning.uniform.apply(
         Constant("initial_detuning", "up_time")
@@ -26,8 +25,6 @@ quantum_task = (
 
 # print(len(quantum_task.task_result.shot_outputs))
 
-quantum_task.json()
-
-quantum_future = quantum_task.submit()
+quantum_future = quantum_job.submit()
 
 quantum_future.json()
