@@ -129,14 +129,14 @@ class HardwareTaskFuture(TaskFutureDataModel, TaskFuture):
 
 
 class HardwareJob(BaseModel, Job):
-    tasks: List[HardwareTask]
-    task_submit_order: List[int]
+    tasks: List[HardwareTask] = []
+    submit_order: List[int] = []
 
-    def __init__(self, tasks: List[HardwareTask], task_submit_order=None):
-        if task_submit_order is None:
-            task_submit_order = list(np.random.permutation(len(tasks)))
+    def __init__(self, tasks: List[HardwareTask] = [], submit_order=None):
+        if submit_order is None:
+            submit_order = list(np.random.permutation(len(tasks)))
 
-        super().__init__(tasks=tasks, task_submit_order=task_submit_order)
+        super().__init__(tasks=tasks, submit_order=submit_order)
 
     def submit(self) -> "HardwareFuture":
         try:
@@ -152,7 +152,7 @@ class HardwareJob(BaseModel, Job):
         # submit tasks in random order but store them
         # in the original order of tasks.
         futures = [None for task in self.tasks]
-        for task_index in self.task_submit_order:
+        for task_index in self.submit_order:
             try:
                 futures[task_index] = self.tasks[task_index].submit()
             except BaseException as e:
@@ -168,12 +168,25 @@ class HardwareJob(BaseModel, Job):
             exclude_none=exclude_none, by_alias=by_alias, **json_options
         )
 
+    def init_from_dict(self, **params) -> None:
+        match params:
+            case {
+                "tasks": list() as tasks_json,
+                "submit_order": list() as submit_order,
+            }:
+                self.tasks = [HardwareTask(**task_json) for task_json in tasks_json]
+                self.submit_order = submit_order
+            case _:
+                raise ValueError(
+                    "Cannot parse JSON file to HardwareJob, invalided format."
+                )
+
 
 class HardwareFuture(BaseModel, Future):
     futures: List[HardwareTaskFuture]
     task_results_ir: List[QuEraTaskResults] = []
 
-    def __init__(self, futures: List[HardwareTaskFuture]):
+    def __init__(self, futures: List[HardwareTaskFuture] = []):
         super().__init__(futures=futures)
 
     def cancel(self) -> None:
@@ -194,3 +207,25 @@ class HardwareFuture(BaseModel, Future):
         return super().json(
             exclude_none=exclude_none, by_alias=by_alias, **json_options
         )
+
+    def init_from_dict(self, **params) -> None:
+        match params:
+            case {
+                "futures": list() as futures,
+                "task_results_ir": list() as task_results_json,
+            }:
+                self.futures = [
+                    HardwareTaskFuture(**future_json) for future_json in futures
+                ]
+                self.task_results_ir = [
+                    QuEraTaskResults(**task_result_json)
+                    for task_result_json in task_results_json
+                ]
+            case {
+                "futures": list() as futures,
+            }:
+                self.tasks = [HardwareTask(**future_json) for future_json in futures]
+            case _:
+                raise ValueError(
+                    "Cannot parse JSON file to HardwareFuture, invalided format."
+                )
