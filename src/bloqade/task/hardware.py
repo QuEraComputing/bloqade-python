@@ -168,21 +168,50 @@ class HardwareJob(BaseModel, Job):
             exclude_none=exclude_none, by_alias=by_alias, **json_options
         )
 
+    def init_from_dict(self, **params):
+        # TODO: pattern match implementation goes here.
+        return super().init_from_dict(**params)
 
-class HardwareFuture(Future):
+
+class HardwareFuture(BaseModel, Future):
     futures: List[HardwareTaskFuture]
+    task_results_ir: List[QuEraTaskResults] = []
 
     def __init__(self, futures: List[HardwareTaskFuture]):
-        super().__init__(futures=futures, task_results_ir=None)
+        super().__init__(futures=futures)
 
     def cancel(self) -> None:
         for future in self.futures:
             future.cancel()
 
-    def fetch(self) -> List[QuEraTaskResults]:
-        return [future.fetch() for future in self.futures]
+    def fetch(self, cache_results: bool = False) -> List[QuEraTaskResults]:
+        if cache_results:
+            if self.task_results_ir:
+                return self.task_results_ir
+
+            self.task_results_ir = [future.fetch() for future in self.futures]
+            return self.task_results_ir
+        else:
+            return [future.fetch() for future in self.futures]
 
     def json(self, exclude_none=True, by_alias=True, **json_options) -> str:
         return super().json(
             exclude_none=exclude_none, by_alias=by_alias, **json_options
         )
+
+    def init_from_dict(self, **params):
+        match params:
+            case {"futures": list() as futures}:
+                self.futures = futures
+            case {
+                "futures": list() as futures,
+                "task_results_ir": list() as task_results_ir,
+            }:
+                self.futures = futures
+                self.task_results_ir = task_results_ir
+            case _:
+                keys = set(params.keys()) - set(["futures", "task_results_ir"])
+                raise ValueError(
+                    "Unable to parse JSON file for HardwareFuture, "
+                    f"found keys: {list(keys)}"
+                )

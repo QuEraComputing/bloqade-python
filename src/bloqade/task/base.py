@@ -3,10 +3,10 @@ from bloqade.submission.ir.task_results import (
     QuEraTaskStatusCode,
     QuEraShotStatusCode,
 )
-from typing import List, Optional
+from typing import List, TextIO, Union
 from numpy.typing import NDArray
 import pandas as pd
-from pydantic import BaseModel
+import json
 
 
 class Task:
@@ -28,24 +28,39 @@ class TaskFuture:
         raise NotImplementedError
 
 
-class Job:
-    def submit(self) -> "Future":
-        raise NotImplementedError
-
+class JSONInterface:
     def json(self, **json_options) -> str:
         raise NotImplementedError
 
+    def init_from_dict(self, **params):
+        raise NotImplementedError
 
-class Future(BaseModel):
-    task_results_ir: Optional[List[QuEraTaskResults]]
+    def save_json(self, filename_or_io: Union[str, TextIO], mode="w", **json_options):
+        if isinstance(filename_or_io, str):
+            with open(filename_or_io, mode) as f:
+                f.write(self.json(**json_options))
+        else:
+            filename_or_io.write(self.json(**json_options))
 
+    def load_json(self, filename_or_io: Union[str, TextIO]):
+        if isinstance(filename_or_io, str):
+            with open(filename_or_io, "r") as f:
+                params = json.load(f)
+        else:
+            params = json.load(filename_or_io)
+
+        self.init_from_dict(**params)
+
+
+class Job(JSONInterface):
+    def submit(self) -> "Future":
+        raise NotImplementedError
+
+
+class Future(JSONInterface):
     @property
     def task_results(self) -> List[QuEraTaskResults]:
-        if self.task_results_ir is not None:
-            return self.task_results_ir
-
-        self.task_results_ir = self.fetch()
-        return self.task_results_ir
+        return self.fetch(cache_results=True)
 
     def report(self) -> "Report":
         return Report(self)
@@ -53,7 +68,7 @@ class Future(BaseModel):
     def cancel(self) -> None:
         raise NotImplementedError
 
-    def fetch(self) -> List[QuEraTaskResults]:
+    def fetch(self, cache_results: bool = False) -> List[QuEraTaskResults]:
         raise NotImplementedError
 
 

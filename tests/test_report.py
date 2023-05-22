@@ -1,7 +1,7 @@
 from bloqade.ir.location import ListOfLocations
+import os
 
-
-report = (
+future = (
     ListOfLocations()
     .append((0, 0))
     .append((0, 6))
@@ -27,6 +27,9 @@ report = (
     )
     .mock(1000)
     .submit()
-    .report()
 )
-print(report.bitstring.shape)
+
+future.save_json("test_json.json")
+print(future.report().bitstring.shape)
+
+os.remove("test_json.json")
