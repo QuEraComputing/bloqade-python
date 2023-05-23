@@ -1,6 +1,6 @@
-from pydantic.dataclasses import dataclass
+from pydantic import BaseModel
 from numpy.typing import NDArray
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 import numpy as np
 from enum import Enum
 
@@ -31,8 +31,45 @@ def is_hyperfine_state(configurations: NDArray, index: int, n_level: LocalHilber
             return (configurations // 3**index) % 2 == 1
 
 
-@dataclass
-class Space:
+class FockStateConverter(BaseModel):
+    n_level: LocalHilbertSpace
+    str_to_int: Dict[str, int]
+    int_to_str: List[str]
+
+    def __init__(self, n_level: LocalHilbertSpace):
+        match n_level:
+            case LocalHilbertSpace.TwoLevel:
+                int_to_str = ["g", "r"]
+
+            case LocalHilbertSpace.ThreeLevel:
+                int_to_str = ["g", "h", "r"]
+
+        str_to_int = {s: i for i, s in enumerate(int_to_str)}
+
+        super().__init__(n_level=n_level, str_to_int=str_to_int, int_to_str=int_to_str)
+
+    def string_to_integer(self, fock_state: str) -> int:
+        state_string = fock_state.replace("|", "").replace(">", "")
+
+        state_int = 0
+        shift = 1
+        for site, local_state in enumerate(state_string):
+            state_int += shift * self.str_to_int[local_state]
+            shift *= self.n_level.value
+
+        return state_int
+
+    def integer_to_string(self, state_int: int) -> str:
+        state_string = ""
+        while state_int > 0:
+            local_state = state_int % self.n_level.value
+            state_string = state_string + self.int_to_str[local_state]
+            state_int /= self.n_level.value
+
+        return f"|{state_string}>"
+
+
+class Space(BaseModel):
     space_type: SpaceType
     n_level: LocalHilbertSpace
     atom_coordinates: List[Tuple[float, float]]
@@ -108,3 +145,59 @@ class Space:
                 rydberg_configs_1 = rydberg_configs_1[mask]
 
         super().__init__(SpaceType.SubSpace, n_level, atom_coordinates, configurations)
+
+    def fock_state_to_index(self, fock_state: str) -> int:
+        converter = FockStateConverter(self.n_level)
+        state_int = converter.string_to_integer(fock_state)
+        match self.space_type:
+            case SpaceType.FullSpace:
+                return state_int
+            case SpaceType.SubSpace:
+                index = np.searchsorted(self.configurations, state_int)
+
+                if state_int != self.configurations[index]:
+                    raise ValueError(
+                        "state: {fock_state} not in rydberg blockade subspace."
+                    )
+
+                return index
+            case _:  # TODO: fix error message
+                raise NotImplementedError
+
+    def index_to_fock_state(self, index: int) -> str:
+        converter = FockStateConverter(self.n_level)
+        match self.space_type:
+            case SpaceType.FullSpace:
+                return converter.integer_to_string(index)
+            case SpaceType.SubSpace:
+                return converter.integer_to_string(self.configurations[index])
+            case _:  # TODO: fix error message
+                raise NotImplementedError
+
+    def __str__(self):
+        # TODO: update this to use unicode
+        output = ""
+        converter = FockStateConverter(self.n_level)
+        if self.size < 50:
+            for index, state_int in enumerate(self.configurations):
+                fock_state = converter.integer_to_string(state_int)
+                output = output + f"{index}. {fock_state}\n"
+
+        else:
+            for index, state_int in enumerate(self.configurations[:25]):
+                fock_state = converter.integer_to_string(state_int)
+                output = output + f"{index}. {fock_state}\n"
+
+            output += "..."
+
+            for index, state_int in enumerate(
+                self.configurations[-25:], start=self.size - 25
+            ):
+                fock_state = converter.integer_to_string(state_int)
+                output = output + f"{index}. {fock_state}\n"
+
+        return output
+
+    def zero_state(self) -> NDArray:
+        state = np.zeros(self.size)
+        state[0] = 1.0
