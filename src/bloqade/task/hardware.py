@@ -3,11 +3,10 @@ from bloqade.submission.ir.task_results import QuEraTaskResults
 from bloqade.submission.mock import DumbMockBackend
 from bloqade.submission.quera import QuEraBackend
 from bloqade.submission.braket import BraketBackend
-from bloqade.submission.ir.braket import BraketTaskSpecification
+from bloqade.submission.ir.braket import BraketTaskSpecification, to_braket_task_ir
 from bloqade.submission.ir.task_specification import (
     QuEraTaskSpecification,
 )
-
 from bloqade.submission.ir.multiplex import MultiplexDecoder
 from bloqade.submission.ir.task_results import QuEraTaskStatusCode
 
@@ -40,6 +39,24 @@ class TaskDataModel(BaseModel):
 
 
 class HardwareTask(TaskDataModel, Task):
+    def __init__(self, **kwargs):
+        task_ir = kwargs.get("task_ir")
+        backend = kwargs.get("backend")
+
+        match (task_ir, backend):
+            case (BraketTaskSpecification(), BraketBackend()):
+                super().__init__(braket_task_ir=task_ir, braket_backend=backend)
+            case (QuEraTaskSpecification(), BraketBackend()):
+                super().__init__(
+                    braket_task_ir=to_braket_task_ir(task_ir), braket_backend=backend
+                )
+            case (QuEraTaskSpecification(), QuEraBackend()):
+                super().__init__(quera_task_ir=task_ir, quera_backend=backend)
+            case (QuEraTaskSpecification(), DumbMockBackend()):
+                super().__init__(quera_task_ir=task_ir, mock_backend=backend)
+            case _:
+                super().__init__(**kwargs)
+
     def submit(self) -> "HardwareTaskFuture":
         self._check_fields()
         if self.braket_backend:
