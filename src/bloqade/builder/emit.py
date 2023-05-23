@@ -15,7 +15,7 @@ from bloqade.submission.quera import QuEraBackend
 from bloqade.ir import Program
 
 from pydantic import BaseModel
-from typing import Optional, Dict, Union, Any, List
+from typing import Optional, Dict, Union, List
 from numbers import Number
 import json
 import os
@@ -49,20 +49,20 @@ class Emit(Builder):
         self,
         builder: Builder,
         assignments: Dict[str, Union[Number, List[Number]]] = {},
-        batch: Dict[str, Any] = {},
+        batch: Dict[str, Union[List[Number], List[List[Number]]]] = {},
     ) -> None:
         super().__init__(builder)
 
         self.__batch__ = {}
         if batch:
             first_key, *other_keys = batch.keys()
-            first_value = list(batch[first_key])
+            first_value = batch[first_key]
 
             batch_size = len(first_value)
             self.__batch__[first_key] = first_value
 
             for key in other_keys:
-                value = list(batch[key])
+                value = batch[key]
                 other_batch_size = len(value)
                 if other_batch_size != batch_size:
                     raise ValueError(
