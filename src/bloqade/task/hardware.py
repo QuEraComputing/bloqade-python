@@ -1,8 +1,6 @@
 from pydantic import BaseModel
 from bloqade.submission.ir.task_results import QuEraTaskResults
-
 from bloqade.submission.mock import DumbMockBackend
-
 from bloqade.submission.quera import QuEraBackend
 from bloqade.submission.braket import BraketBackend
 from bloqade.submission.ir.braket import BraketTaskSpecification
@@ -13,10 +11,10 @@ from bloqade.submission.ir.task_specification import (
 from bloqade.submission.ir.multiplex import MultiplexDecoder
 from bloqade.submission.ir.task_results import QuEraTaskStatusCode
 
-from .base import Task, TaskFuture, BatchFuture, Batch
+from .base import Task, TaskFuture, Future, Job
 
-from typing import Optional, Union, TextIO, List
-import json
+from typing import Optional, List
+
 import numpy as np
 
 
@@ -28,56 +26,8 @@ class TaskDataModel(BaseModel):
     mock_backend: Optional[DumbMockBackend] = None
     quera_backend: Optional[QuEraBackend] = None
     braket_backend: Optional[BraketBackend] = None
-    multiplex_mapping: Optional[MultiplexDecoder] = None
 
-    def json(self, exclude_none=True, by_alias=True, **json_options):
-        return super().json(
-            exclude_none=exclude_none, by_alias=by_alias, **json_options
-        )
-
-    def write_json(
-        self, filename_or_io: Union[str, TextIO], mode: str = "w", **json_options
-    ):
-        match filename_or_io:
-            case str(filename):
-                with open(filename, mode) as io:
-                    io.write(self.json(**json_options))
-            case _:
-                filename_or_io.write(self.json(**json_options))
-
-    def read_json(self, filename_or_io: Union[str, TextIO]):
-        match filename_or_io:
-            case str(filename):
-                with open(filename, "r") as io:
-                    params = json.load(io)
-            case _:
-                params = json.load(filename_or_io)
-
-        braket_backend = params.get("braket_backend")
-        if braket_backend:
-            self.braket_backend = BraketBackend(**braket_backend)
-
-        quera_backend = params.get("quera_backend")
-        if quera_backend:
-            self.quera_backend = QuEraBackend(**quera_backend)
-
-        mock_backend = params.get("mock_backend")
-        if mock_backend:
-            self.mock_backend = DumbMockBackend(**mock_backend)
-
-        quera_task_ir = params.get("quera_task_ir")
-        if quera_task_ir:
-            self.quera_task_ir = QuEraTaskSpecification(**quera_task_ir)
-
-        braket_task_ir = params.get("braket_task_ir")
-        if braket_task_ir:
-            self.braket_task_ir = BraketTaskSpecification(**braket_task_ir)
-
-        multiplex_mapping_ir = params.get("multiplex_mapping")
-        if multiplex_mapping_ir:
-            self.multiplex_mapping = MultiplexDecoder(**multiplex_mapping_ir)
-
-    def _check_fields(self):
+    def _check_fields(self) -> None:
         if self.quera_task_ir is None and self.braket_task_ir is None:
             raise AttributeError("Missing task_ir.")
 
@@ -130,22 +80,6 @@ class HardwareTask(TaskDataModel, Task):
 class TaskFutureDataModel(TaskDataModel):
     task_id: Optional[str] = None
 
-    def read_json(self, filename_or_io: Union[str, TextIO]):
-        super().read_json(filename_or_io)
-
-        match filename_or_io:
-            case str(filename):
-                with open(filename, "r") as io:
-                    params = json.load(io)
-            case _:
-                params = json.load(filename_or_io)
-
-        self.task_id = params.get("task_id")
-
-        task_result_ir = params.get("task_result_ir")
-        if task_result_ir:
-            self.task_result_ir = QuEraTaskResults(**task_result_ir)
-
     def _check_fields(self):
         super()._check_fields()
 
@@ -154,7 +88,7 @@ class TaskFutureDataModel(TaskDataModel):
 
 
 class HardwareTaskFuture(TaskFutureDataModel, TaskFuture):
-    def status(self) -> None:
+    def status(self) -> QuEraTaskStatusCode:
         self._check_fields()
 
         if self.braket_backend:
@@ -195,25 +129,23 @@ class HardwareTaskFuture(TaskFutureDataModel, TaskFuture):
         if self.mock_backend:
             return self.mock_backend.task_results(self.task_id)
 
-    @property
-    def task_results(self) -> QuEraTaskResults:
-        if self.task_result_ir is None:
-            self.task_result_ir = self.fetch()
 
-        return self.task_result_ir
+class HardwareJob(BaseModel, Job):
+    tasks: List[HardwareTask] = []
+    submit_order: List[int] = []
+    multiplex_decoder: Optional[MultiplexDecoder] = None
 
+    def __init__(
+        self, tasks: List[HardwareTask] = [], submit_order=None, multiplex_decoder=None
+    ):
+        if submit_order is None:
+            submit_order = list(np.random.permutation(len(tasks)))
 
-class HardwareBatch(Batch, BaseModel):
-    tasks: List[HardwareTask]
-    task_submit_order: List[int]
+        super().__init__(
+            tasks=tasks, submit_order=submit_order, multiplex_decoder=multiplex_decoder
+        )
 
-    def __init__(self, tasks: List[HardwareTask], task_submit_order=None):
-        if task_submit_order is None:
-            task_submit_order = list(np.random.permutation(len(tasks)))
-
-        super().__init__(tasks=tasks, task_submit_order=task_submit_order)
-
-    def submit(self):
+    def submit(self) -> "HardwareFuture":
         try:
             self.tasks[0].run_validation()
             has_validation = True
@@ -227,7 +159,7 @@ class HardwareBatch(Batch, BaseModel):
         # submit tasks in random order but store them
         # in the original order of tasks.
         futures = [None for task in self.tasks]
-        for task_index in self.task_submit_order:
+        for task_index in self.submit_order:
             try:
                 futures[task_index] = self.tasks[task_index].submit()
             except BaseException as e:
@@ -236,29 +168,79 @@ class HardwareBatch(Batch, BaseModel):
                         future.cancel()
                 raise e
 
-        return HardwareBatchFuture(futures=futures)
+        return HardwareFuture(futures=futures)
+
+    def json(self, exclude_none=True, by_alias=True, **json_options) -> str:
+        return super().json(
+            exclude_none=exclude_none, by_alias=by_alias, **json_options
+        )
+
+    def init_from_dict(self, **params) -> None:
+        match params:
+            case {
+                "tasks": list() as tasks_json,
+                "submit_order": list() as submit_order,
+            }:
+                self.tasks = [HardwareTask(**task_json) for task_json in tasks_json]
+                self.submit_order = submit_order
+            case {
+                "tasks": list() as tasks_json,
+                "submit_order": list() as submit_order,
+                "multiplex_decoder": dict() as multiplex_decoder,
+            }:
+                self.tasks = [HardwareTask(**task_json) for task_json in tasks_json]
+                self.submit_order = submit_order
+                self.multiplex_decoder = MultiplexDecoder(**multiplex_decoder)
+            case _:
+                raise ValueError(
+                    "Cannot parse JSON file to HardwareJob, invalided format."
+                )
 
 
-class HardwareBatchFuture(BatchFuture, BaseModel):
+class HardwareFuture(BaseModel, Future):
     futures: List[HardwareTaskFuture]
-    task_result_ir_list: List[QuEraTaskResults] = []
+    task_results_ir: List[QuEraTaskResults] = []
 
-    def cancel(self):
+    def __init__(self, futures: List[HardwareTaskFuture] = []):
+        super().__init__(futures=futures)
+
+    def cancel(self) -> None:
         for future in self.futures:
             future.cancel()
 
-    def fetch(self):
-        task_result_ir_list = []
-        for future in self.futures:
-            task_result_ir_list.append(future.fetch())
+    def fetch(self, cache_results: bool = False) -> List[QuEraTaskResults]:
+        if cache_results:
+            if self.task_results_ir:
+                return self.task_results_ir
 
-        return task_result_ir_list
+            self.task_results_ir = [future.fetch() for future in self.futures]
+            return self.task_results_ir
+        else:
+            return [future.fetch() for future in self.futures]
 
-    @property
-    def task_result_ir_list(self):
-        if self.task_result_ir_list:
-            return self.task_result_ir_list
+    def json(self, exclude_none=True, by_alias=True, **json_options) -> str:
+        return super().json(
+            exclude_none=exclude_none, by_alias=by_alias, **json_options
+        )
 
-        self.task_result_ir_list = self.fetch()
-
-        return self.task_result_ir_list
+    def init_from_dict(self, **params) -> None:
+        match params:
+            case {
+                "futures": list() as futures,
+                "task_results_ir": list() as task_results_json,
+            }:
+                self.futures = [
+                    HardwareTaskFuture(**future_json) for future_json in futures
+                ]
+                self.task_results_ir = [
+                    QuEraTaskResults(**task_result_json)
+                    for task_result_json in task_results_json
+                ]
+            case {
+                "futures": list() as futures,
+            }:
+                self.tasks = [HardwareTask(**future_json) for future_json in futures]
+            case _:
+                raise ValueError(
+                    "Cannot parse JSON file to HardwareFuture, invalided format."
+                )

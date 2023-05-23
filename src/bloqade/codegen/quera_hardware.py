@@ -265,7 +265,7 @@ class SchemaCodeGen(ProgramVisitor):
     ):
         self.capabilities = capabilities
         self.assignments = assignments
-        self.multiplex_mapping = None
+        self.multiplex_decoder = None
         self.lattice = None
         self.effective_hamiltonian = None
         self.rydberg = None
@@ -304,8 +304,8 @@ class SchemaCodeGen(ProgramVisitor):
                 lattice_site_coefficients = list(self.assignments[name])
 
         self.lattice_site_coefficients = []
-        if self.multiplex_mapping:
-            for cluster_site_info in self.multiplex_mapping.mapping:
+        if self.multiplex_decoder:
+            for cluster_site_info in self.multiplex_decoder.mapping:
                 self.lattice_site_coefficients.append(
                     lattice_site_coefficients[cluster_site_info.local_site_index]
                 )
@@ -559,7 +559,7 @@ class SchemaCodeGen(ProgramVisitor):
 
         self.lattice = task_spec.Lattice(sites=sites, filling=filling)
         self.n_atoms = len(ast.register_sites)
-        self.multiplex_mapping = MultiplexDecoder(mapping=mapping)
+        self.multiplex_decoder = MultiplexDecoder(mapping=mapping)
 
     def emit(self, nshots: int, program: "Program") -> task_spec.QuEraTaskSpecification:
         self.assignments = AssignmentScan(self.assignments).emit(program.sequence)

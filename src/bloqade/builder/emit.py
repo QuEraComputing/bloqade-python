@@ -19,7 +19,7 @@ from pydantic import BaseModel
 from typing import Optional
 import json
 import os
-from bloqade.task import HardwareTask
+from bloqade.task import HardwareTask, HardwareJob
 
 
 class BuildError(Exception):
@@ -272,20 +272,18 @@ class Emit(Builder):
         if isinstance(backend, BraketBackend):
             task_ir = to_braket_task_ir(task_ir)
 
-        return (task_ir, schema_compiler.multiplex_mapping)
+        return (task_ir, schema_compiler.multiplex_decoder)
 
     def simu(self, *args, **kwargs):
         raise NotImplementedError
 
-    def braket(self, nshots: int) -> "HardwareTask":
+    def braket(self, nshots: int) -> "HardwareJob":
         backend = BraketBackend()
-        task_ir, multiplex_mapping = self.__compile_task_ir(nshots, backend)
+        task_ir, multiplex_decoder = self.__compile_task_ir(nshots, backend)
 
-        return HardwareTask(
-            braket_task_ir=task_ir,
-            braket_backend=backend,
-            multiplex_mapping=multiplex_mapping,
-        )
+        hardware_task = HardwareTask(braket_task_ir=task_ir, braket_backend=backend)
+
+        return HardwareJob(tasks=[hardware_task], multiplex_decoder=multiplex_decoder)
 
     def quera(self, nshots: int, config_file: Optional[str] = None) -> "HardwareTask":
         if config_file is None:
@@ -298,20 +296,15 @@ class Emit(Builder):
 
             backend = QuEraBackend(**api_config)
 
-        task_ir, multiplex_mapping = self.__compile_task_ir(nshots, backend)
+        task_ir, multiplex_decoder = self.__compile_task_ir(nshots, backend)
+        hardware_task = HardwareTask(quera_task_ir=task_ir, quera_backend=backend)
 
-        return HardwareTask(
-            quera_task_ir=task_ir,
-            quera_backend=backend,
-            multiplex_mapping=multiplex_mapping,
-        )
+        return HardwareJob(tasks=[hardware_task], multiplex_decoder=multiplex_decoder)
 
-    def mock(self, nshots: int, state_file: str = ".mock_state.txt") -> "HardwareTask":
+    def mock(self, nshots: int, state_file: str = ".mock_state.txt") -> "HardwareJob":
         backend = DumbMockBackend(state_file=state_file)
-        task_ir, multiplex_mapping = self.__compile_task_ir(nshots, backend)
+        task_ir, multiplex_decoder = self.__compile_task_ir(nshots, backend)
 
-        return HardwareTask(
-            quera_task_ir=task_ir,
-            mock_backend=backend,
-            multiplex_mapping=multiplex_mapping,
-        )
+        hardware_task = HardwareTask(quera_task_ir=task_ir, mock_backend=backend)
+
+        return HardwareJob(tasks=[hardware_task], multiplex_decoder=multiplex_decoder)
