@@ -4,7 +4,7 @@ from bloqade.ir.location import Square
 lattice = Square(3, lattice_spacing=6)
 
 quantum_task = (
-    lattice.multiplex(10.0)
+    lattice.parallelize(10.0)
     .rydberg.detuning.uniform.piecewise_linear(
         durations=["up_time", "anneal_time", "up_time"],
         values=[
@@ -28,4 +28,4 @@ quantum_task = (
     .mock(10)
 )
 
-assert quantum_task.multiplex_decoder
+assert quantum_task.parallel_decoder

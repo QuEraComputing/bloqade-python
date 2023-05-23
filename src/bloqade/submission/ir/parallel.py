@@ -22,7 +22,7 @@ class SiteClusterInfo(BaseModel):
     local_site_index: int
 
 
-class MultiplexDecoder(BaseModel):
+class ParallelDecoder(BaseModel):
     mapping: List[SiteClusterInfo]
     sites_per_cluster: int
     number_of_cluster: int
@@ -82,7 +82,7 @@ class MultiplexDecoder(BaseModel):
             for cluster_index, sites in cluster_indices.items()
         }
 
-    def demultiplex_results(
+    def decode_results(
         self, task_result: QuEraTaskResults, clusters: Union[int, List[int]] = []
     ) -> QuEraTaskResults:
         cluster_indices = self.get_cluster_indices()
