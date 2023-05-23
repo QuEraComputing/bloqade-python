@@ -7,7 +7,7 @@ from bloqade.submission.ir.braket import BraketTaskSpecification, to_braket_task
 from bloqade.submission.ir.task_specification import (
     QuEraTaskSpecification,
 )
-from bloqade.submission.ir.multiplex import MultiplexDecoder
+from bloqade.submission.ir.parallel import ParallelDecoder
 from bloqade.submission.ir.task_results import QuEraTaskStatusCode
 
 from .base import Task, TaskFuture, Future, Job
@@ -150,16 +150,16 @@ class HardwareTaskFuture(TaskFutureDataModel, TaskFuture):
 class HardwareJob(BaseModel, Job):
     tasks: List[HardwareTask] = []
     submit_order: List[int] = []
-    multiplex_decoder: Optional[MultiplexDecoder] = None
+    parallel_decoder: Optional[ParallelDecoder] = None
 
     def __init__(
-        self, tasks: List[HardwareTask] = [], submit_order=None, multiplex_decoder=None
+        self, tasks: List[HardwareTask] = [], submit_order=None, parallel_decoder=None
     ):
         if submit_order is None:
             submit_order = list(np.random.permutation(len(tasks)))
 
         super().__init__(
-            tasks=tasks, submit_order=submit_order, multiplex_decoder=multiplex_decoder
+            tasks=tasks, submit_order=submit_order, parallel_decoder=parallel_decoder
         )
 
     def submit(self) -> "HardwareFuture":
@@ -203,11 +203,11 @@ class HardwareJob(BaseModel, Job):
             case {
                 "tasks": list() as tasks_json,
                 "submit_order": list() as submit_order,
-                "multiplex_decoder": dict() as multiplex_decoder,
+                "parallel_decoder": dict() as parallel_decoder,
             }:
                 self.tasks = [HardwareTask(**task_json) for task_json in tasks_json]
                 self.submit_order = submit_order
-                self.multiplex_decoder = MultiplexDecoder(**multiplex_decoder)
+                self.parallel_decoder = ParallelDecoder(**parallel_decoder)
             case _:
                 raise ValueError(
                     "Cannot parse JSON file to HardwareJob, invalided format."
