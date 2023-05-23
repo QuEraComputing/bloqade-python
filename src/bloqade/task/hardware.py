@@ -7,6 +7,8 @@ from bloqade.submission.ir.braket import BraketTaskSpecification
 from bloqade.submission.ir.task_specification import (
     QuEraTaskSpecification,
 )
+
+from bloqade.submission.ir.multiplex import MultiplexDecoder
 from bloqade.submission.ir.task_results import QuEraTaskStatusCode
 
 from .base import Task, TaskFuture, Future, Job
@@ -131,12 +133,17 @@ class HardwareTaskFuture(TaskFutureDataModel, TaskFuture):
 class HardwareJob(BaseModel, Job):
     tasks: List[HardwareTask] = []
     submit_order: List[int] = []
+    multiplex_decoder: Optional[MultiplexDecoder] = None
 
-    def __init__(self, tasks: List[HardwareTask] = [], submit_order=None):
+    def __init__(
+        self, tasks: List[HardwareTask] = [], submit_order=None, multiplex_decoder=None
+    ):
         if submit_order is None:
             submit_order = list(np.random.permutation(len(tasks)))
 
-        super().__init__(tasks=tasks, submit_order=submit_order)
+        super().__init__(
+            tasks=tasks, submit_order=submit_order, multiplex_decoder=multiplex_decoder
+        )
 
     def submit(self) -> "HardwareFuture":
         try:
@@ -176,6 +183,14 @@ class HardwareJob(BaseModel, Job):
             }:
                 self.tasks = [HardwareTask(**task_json) for task_json in tasks_json]
                 self.submit_order = submit_order
+            case {
+                "tasks": list() as tasks_json,
+                "submit_order": list() as submit_order,
+                "multiplex_decoder": dict() as multiplex_decoder,
+            }:
+                self.tasks = [HardwareTask(**task_json) for task_json in tasks_json]
+                self.submit_order = submit_order
+                self.multiplex_decoder = MultiplexDecoder(**multiplex_decoder)
             case _:
                 raise ValueError(
                     "Cannot parse JSON file to HardwareJob, invalided format."

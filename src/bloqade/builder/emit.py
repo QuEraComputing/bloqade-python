@@ -7,6 +7,7 @@ import bloqade.builder.coupling as coupling
 import bloqade.builder.start as start
 import bloqade.ir as ir
 
+from bloqade.submission.base import SubmissionBackend
 from bloqade.submission.braket import BraketBackend
 from bloqade.submission.mock import DumbMockBackend
 from bloqade.submission.quera import QuEraBackend
@@ -47,19 +48,14 @@ class Emit(Builder):
         super().__init__(builder)
         self.__assignments__ = {}
         self.__sequence__ = None
-        self.__multiplex_cluster_spacing__ = None
+        self.__register__ = None
 
     def assign(self, **assignments):
         self.__assignments__.update(assignments)
         return self
 
-    # toggles multiplexing
-    def multiplex(self, cluster_spacing: float):
-        self.__multiplex_cluster_spacing__ = cluster_spacing
-        # THIS MUTATES self
-
     @staticmethod
-    def __build(builder: Builder, build_state: BuildState):
+    def __build_ast(builder: Builder, build_state: BuildState):
         match builder:
             case (
                 waveform.Linear()
@@ -75,7 +71,7 @@ class Emit(Builder):
                     )
                 else:
                     build_state.waveform = builder._waveform
-                Emit.__build(builder.__parent__, build_state)
+                Emit.__build_ast(builder.__parent__, build_state)
 
             case location.Scale() if isinstance(
                 builder.__parent__.__parent__, spatial.SpatialModulation
@@ -92,7 +88,7 @@ class Emit(Builder):
                 build_state.scaled_locations = ir.ScaledLocations({})
                 build_state.waveform = None
 
-                Emit.__build(builder.__parent__.__parent__, build_state)
+                Emit.__build_ast(builder.__parent__.__parent__, build_state)
 
             case location.Location() if isinstance(
                 builder.__parent__, spatial.SpatialModulation
@@ -109,21 +105,21 @@ class Emit(Builder):
                 build_state.scaled_locations = ir.ScaledLocations({})
                 build_state.waveform = None
 
-                Emit.__build(builder.__parent__, build_state)
+                Emit.__build_ast(builder.__parent__, build_state)
 
             case location.Scale():
                 scale = builder._scale
                 loc = ir.Location(builder.__parent__._label)
                 build_state.scaled_locations.value[loc] = scale
 
-                Emit.__build(builder.__parent__.__parent__, build_state)
+                Emit.__build_ast(builder.__parent__.__parent__, build_state)
 
             case location.Location():
                 scale = ir.cast(1.0)
                 loc = ir.Location(builder._label)
                 build_state.scaled_locations.value[loc] = scale
 
-                Emit.__build(builder.__parent__, build_state)
+                Emit.__build_ast(builder.__parent__, build_state)
 
             case location.Uniform():
                 new_field = ir.Field({ir.Uniform: build_state.waveform})
@@ -131,7 +127,7 @@ class Emit(Builder):
 
                 # reset build_state values
                 build_state.waveform = None
-                Emit.__build(builder.__parent__, build_state)
+                Emit.__build_ast(builder.__parent__, build_state)
 
             case location.Var():
                 new_field = ir.Field(
@@ -141,31 +137,31 @@ class Emit(Builder):
 
                 # reset build_state values
                 build_state.waveform = None
-                Emit.__build(builder.__parent__, build_state)
+                Emit.__build_ast(builder.__parent__, build_state)
 
             case field.Detuning():
                 build_state.detuning = build_state.detuning.add(build_state.field)
 
                 # reset build_state values
                 build_state.field = ir.Field({})
-                Emit.__build(builder.__parent__, build_state)
+                Emit.__build_ast(builder.__parent__, build_state)
 
             case field.Rabi():
-                Emit.__build(builder.__parent__, build_state)
+                Emit.__build_ast(builder.__parent__, build_state)
 
             case field.Amplitude():
                 build_state.amplitude = build_state.detuning.add(build_state.field)
 
                 # reset build_state values
                 build_state.field = ir.Field({})
-                Emit.__build(builder.__parent__, build_state)
+                Emit.__build_ast(builder.__parent__, build_state)
 
             case field.Phase():
                 build_state.phase = build_state.detuning.add(build_state.field)
 
                 # reset build_state values
                 build_state.field = ir.Field({})
-                Emit.__build(builder.__parent__, build_state)
+                Emit.__build_ast(builder.__parent__, build_state)
 
             case coupling.Rydberg():
                 if build_state.amplitude.value:
@@ -193,7 +189,7 @@ class Emit(Builder):
                 build_state.amplitude = ir.Field({})
                 build_state.phase = ir.Field({})
                 build_state.detuning = ir.Field({})
-                Emit.__build(builder.__parent__, build_state)
+                Emit.__build_ast(builder.__parent__, build_state)
 
             case coupling.Hyperfine():
                 if build_state.amplitude.value:
@@ -217,7 +213,7 @@ class Emit(Builder):
                     result_field = current_field.add(build_state.detuning)
                     build_state.hyperfine.value[ir.detuning] = result_field
 
-                Emit.__build(builder.__parent__, build_state)
+                Emit.__build_ast(builder.__parent__, build_state)
 
             case start.ProgramStart():
                 if build_state.rydberg.value:
@@ -234,51 +230,62 @@ class Emit(Builder):
 
     @property
     def register(self):
+        if self.__register__:
+            return self.__register__
+
         current = self
         while current.__parent__ is not None:
             if current.__register__ is not None:
-                return current.__register__
+                self.__register__ = current.__register__
+                return self.__register__
 
             current = current.__parent__
 
-        return current.__register__
+        self.__register__ = current.__register__
+
+        if self.__register__ is None:
+            raise AttributeError("No reigster found in builder.")
+
+        return self.__register__
 
     @property
     def sequence(self):
         if self.__sequence__ is None:
             build_state = BuildState()
-            Emit.__build(self, build_state)
+            Emit.__build_ast(self, build_state)
             self.__sequence__ = build_state.sequence
 
         return self.__sequence__
 
     @property
-    def program(self):
-        return Program(
-            self.register,
-            self.sequence,
-            self.__assignments__,
-            self.__multiplex_cluster_spacing__,
-        )
+    def program(self) -> Program:
+        return Program(self.register, self.sequence)
+
+    def __compile_task_ir(self, nshots: int, backend: SubmissionBackend):
+        from bloqade.codegen.quera_hardware import SchemaCodeGen
+
+        capabilities = backend.get_capabilities()
+        schema_compiler = SchemaCodeGen(self.__assignments__, capabilities)
+        task_ir = schema_compiler.emit(nshots, self.program)
+        task_ir = task_ir.discretize(capabilities)
+
+        if isinstance(backend, BraketBackend):
+            task_ir = to_braket_task_ir(task_ir)
+
+        return (task_ir, schema_compiler.multiplex_decoder)
 
     def simu(self, *args, **kwargs):
         raise NotImplementedError
 
     def braket(self, nshots: int) -> "HardwareJob":
-        from bloqade.codegen.quera_hardware import SchemaCodeGen
+        backend = BraketBackend()
+        task_ir, multiplex_decoder = self.__compile_task_ir(nshots, backend)
 
-        quera_task_ir = SchemaCodeGen().emit(nshots, self.program)
-        task_ir = to_braket_task_ir(quera_task_ir)
-        hardware_task = HardwareTask(
-            braket_task_ir=task_ir, braket_backend=BraketBackend()
-        )
-        return HardwareJob(tasks=[hardware_task])
+        hardware_task = HardwareTask(braket_task_ir=task_ir, braket_backend=backend)
 
-    def quera(self, nshots: int, config_file: Optional[str] = None) -> "HardwareJob":
-        from bloqade.codegen.quera_hardware import SchemaCodeGen
+        return HardwareJob(tasks=[hardware_task], multiplex_decoder=multiplex_decoder)
 
-        task_ir = SchemaCodeGen().emit(nshots, self.program)
-
+    def quera(self, nshots: int, config_file: Optional[str] = None) -> "HardwareTask":
         if config_file is None:
             path = os.path.dirname(__file__)
             api_config_file = os.path.join(
@@ -289,16 +296,15 @@ class Emit(Builder):
 
             backend = QuEraBackend(**api_config)
 
+        task_ir, multiplex_decoder = self.__compile_task_ir(nshots, backend)
         hardware_task = HardwareTask(quera_task_ir=task_ir, quera_backend=backend)
 
-        return HardwareJob(tasks=[hardware_task])
+        return HardwareJob(tasks=[hardware_task], multiplex_decoder=multiplex_decoder)
 
     def mock(self, nshots: int, state_file: str = ".mock_state.txt") -> "HardwareJob":
-        from bloqade.codegen.quera_hardware import SchemaCodeGen
-
-        task_ir = SchemaCodeGen().emit(nshots, self.program)
         backend = DumbMockBackend(state_file=state_file)
+        task_ir, multiplex_decoder = self.__compile_task_ir(nshots, backend)
 
         hardware_task = HardwareTask(quera_task_ir=task_ir, mock_backend=backend)
 
-        return HardwareJob(tasks=[hardware_task])
+        return HardwareJob(tasks=[hardware_task], multiplex_decoder=multiplex_decoder)

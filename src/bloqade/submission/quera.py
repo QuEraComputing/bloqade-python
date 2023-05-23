@@ -3,6 +3,7 @@ from bloqade.submission.quera_api_client.api import QueueApi
 from bloqade.submission.ir.task_specification import (
     QuEraTaskSpecification,
 )
+from bloqade.submission.ir.capabilities import QuEraCapabilities
 from bloqade.submission.ir.task_results import (
     QuEraTaskResults,
     QuEraTaskStatusCode,
@@ -17,6 +18,12 @@ class QuEraBackend(SubmissionBackend):
     @property
     def queue_api(self):
         return QueueApi(self.uri, self.qpu_id, api_version=self.api_version)
+
+    def get_capabilities(self) -> QuEraCapabilities:
+        try:
+            return QuEraCapabilities(**self.queue_api.get_capabilities())
+        except BaseException:
+            return super().get_capabilities()
 
     def submit_task(self, task_ir: QuEraTaskSpecification) -> str:
         return self.queue_api.post_task(
