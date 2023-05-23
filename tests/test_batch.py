@@ -1,6 +1,6 @@
 import bloqade.ir.location as location
 from bloqade.ir import Linear, Constant
-from bloqade.task import HardwareBatch
+from bloqade.task import HardwareJob
 import numpy as np
 
 builder = (
@@ -28,10 +28,11 @@ for up_time in np.linspace(0.1, 3.8, 51):
         rabi_amplitude_max=15,
     ).mock(10)
 
-    tasks.append(task)
+    tasks.extend(task.tasks)
 
 
-batch = HardwareBatch(tasks)
+batch = HardwareJob(tasks)
+
 batch_future = batch.submit()
 results = batch_future.fetch()
 

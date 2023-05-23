@@ -1,12 +1,8 @@
 from .base import AtomArrangement
-from pydantic.dataclasses import dataclass
 from typing import List, Tuple
 
 
-@dataclass
 class ListOfLocations(AtomArrangement):
-    value: List[Tuple[float, ...]]
-
     def __init__(self, value: List[Tuple[float, ...]] = []):
         if not all(map(lambda x: len(x) == len(value[0]), value)):
             raise ValueError("all positions must have the same dimension")
@@ -17,7 +13,10 @@ class ListOfLocations(AtomArrangement):
         else:
             self.__n_atoms = 0
             self.__n_dims = None
-        self.value = value
+
+        self.value = [tuple(ele) for ele in value]
+
+        super().__init__()
 
     def append(self, position: Tuple[float, ...]):
         return ListOfLocations(self.value + [position])
