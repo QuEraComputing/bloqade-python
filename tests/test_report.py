@@ -1,10 +1,9 @@
-from bloqade.ir.location import Square
+from bloqade.ir.location import ListOfLocations
 
-# create lattice
-lattice = Square(3, lattice_spacing=6)
-
-quantum_task = (
-    lattice.multiplex(10.0)
+future = (
+    ListOfLocations()
+    .append((0, 0))
+    .append((0, 6))
     .rydberg.detuning.uniform.piecewise_linear(
         durations=["up_time", "anneal_time", "up_time"],
         values=[
@@ -19,13 +18,14 @@ quantum_task = (
         values=[0, "rabi_amplitude_max", "rabi_amplitude_max", 0],
     )
     .assign(
-        initial_detuning=-10,
         up_time=0.1,
-        final_detuning=15,
-        anneal_time=10,
+        anneal_time=3.8,
+        initial_detuning=-15,
+        final_detuning=10,
         rabi_amplitude_max=15,
     )
-    .mock(10)
+    .mock(1000)
+    .submit()
 )
 
-assert quantum_task.multiplex_decoder
+print(future.report().bitstring.shape)

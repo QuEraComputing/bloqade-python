@@ -1,9 +1,8 @@
 import bloqade.ir.location as location
 from bloqade.ir import Linear, Constant
-from bloqade.task import HardwareTask, HardwareTaskFuture
+from bloqade.task import HardwareJob, HardwareFuture
 
-
-quantum_task = (
+quantum_job = (
     location.Square(6)
     .rydberg.detuning.uniform.apply(
         Constant("initial_detuning", "up_time")
@@ -26,18 +25,15 @@ quantum_task = (
 )
 
 # print(len(quantum_task.task_result.shot_outputs))
+quantum_job.save_json("test.json")
+quantum_job = HardwareJob()
+quantum_job.load_json("test.json")
 
-quantum_task.write_json("quantum_task.json")
-quantum_task = HardwareTask()
-quantum_task.read_json("quantum_task.json")
 
-# print(quantum_task)
+quantum_future = quantum_job.submit()
+quantum_future.save_json("test.json")
+quantum_future = HardwareFuture()
+quantum_future.load_json("test.json")
 
-quantum_future = quantum_task.submit()
-
-quantum_future.write_json("quantum_future.json")
-quantum_future = HardwareTaskFuture()
-quantum_future.read_json("quantum_future.json")
-print(quantum_future)
-quantum_future.fetch()
-print(quantum_future)
+quantum_future.json()
+quantum_future.task_results
