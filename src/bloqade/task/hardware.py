@@ -25,7 +25,6 @@ class TaskDataModel(BaseModel):
     mock_backend: Optional[DumbMockBackend] = None
     quera_backend: Optional[QuEraBackend] = None
     braket_backend: Optional[BraketBackend] = None
-    multiplex_mapping: Optional[MultiplexDecoder] = None
 
     def _check_fields(self) -> None:
         if self.quera_task_ir is None and self.braket_task_ir is None:
