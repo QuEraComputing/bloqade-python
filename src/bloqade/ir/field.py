@@ -43,7 +43,7 @@ class UniformModulation(SpatialModulation):
         return hash(self.__class__)
 
     def __repr__(self) -> str:
-        return "Global"
+        return "Uniform"
 
     def print_node(self):
         return "UniformModulation"
