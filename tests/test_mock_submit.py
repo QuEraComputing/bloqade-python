@@ -25,15 +25,15 @@ quantum_job = (
 )
 
 # print(len(quantum_task.task_result.shot_outputs))
-quantum_job.save_json("test.json")
+quantum_job.save_json("job.json")
 quantum_job = HardwareJob()
-quantum_job.load_json("test.json")
+quantum_job.load_json("job.json")
 
 
 quantum_future = quantum_job.submit()
-quantum_future.save_json("test.json")
+quantum_future.save_json("job.json")
 quantum_future = HardwareFuture()
-quantum_future.load_json("test.json")
+quantum_future.load_json("job.json")
 
 quantum_future.json()
 quantum_future.task_results
