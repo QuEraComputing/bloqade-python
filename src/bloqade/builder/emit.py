@@ -297,7 +297,7 @@ class Emit(Builder):
             hardware_tasks.append(HardwareTask(task_ir=task_ir, backend=backend))
 
         return HardwareJob(
-            tasks=hardware_tasks, multiplex_decoder=schema_compiler.multiplex_decoder
+            tasks=hardware_tasks, parallel_decoder=schema_compiler.parallel_decoder
         )
 
     @property
