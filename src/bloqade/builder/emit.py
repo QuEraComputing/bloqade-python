@@ -11,15 +11,16 @@ from bloqade.submission.base import SubmissionBackend
 from bloqade.submission.braket import BraketBackend
 from bloqade.submission.mock import DumbMockBackend
 from bloqade.submission.quera import QuEraBackend
-from bloqade.submission.ir.braket import to_braket_task_ir
 
 from bloqade.ir import Program
 
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, Dict, Union, List
+from numbers import Number
 import json
 import os
 from bloqade.task import HardwareTask, HardwareJob
+from itertools import repeat
 
 
 class BuildError(Exception):
@@ -44,15 +45,49 @@ class Emit(Builder):
     # the building process will terminate
     # none of the methods in this class will return a Builder
 
-    def __init__(self, builder: Builder) -> None:
+    def __init__(
+        self,
+        builder: Builder,
+        assignments: Dict[str, Union[Number, List[Number]]] = {},
+        batch: Dict[str, Union[List[Number], List[List[Number]]]] = {},
+    ) -> None:
         super().__init__(builder)
-        self.__assignments__ = {}
+
+        self.__batch__ = {}
+        if batch:
+            first_key, *other_keys = batch.keys()
+            first_value = batch[first_key]
+
+            batch_size = len(first_value)
+            self.__batch__[first_key] = first_value
+
+            for key in other_keys:
+                value = batch[key]
+                other_batch_size = len(value)
+                if other_batch_size != batch_size:
+                    raise ValueError(
+                        "mismatch in size of batches, found batch size "
+                        f"{batch_size} for {first_key} and a batch size of "
+                        f"{other_batch_size} for {key}"
+                    )
+
+                self.__batch__[key] = value
+
+        self.__assignments__ = assignments
         self.__sequence__ = None
         self.__register__ = None
 
     def assign(self, **assignments):
-        self.__assignments__.update(assignments)
-        return self
+        # these methods terminate no build steps can
+        # happens after this other than updating parameters
+        new_assignments = dict(self.__assignments__)
+        new_assignments.update(**assignments)
+        return Emit(self, assignments=new_assignments, batch=self.__batch__)
+
+    def batch_assign(self, **batch):
+        new_batch = dict(self.__batch__)
+        new_batch.update(**batch)
+        return Emit(self, assignments=self.__assignments__, batch=new_batch)
 
     @staticmethod
     def __build_ast(builder: Builder, build_state: BuildState):
@@ -225,8 +260,45 @@ class Emit(Builder):
                 build_state.rydberg = ir.Pulse({})
                 build_state.hyperfine = ir.Pulse({})
 
+            case Emit():
+                Emit.__build_ast(builder.__parent__, build_state)
+
             case _:
                 raise RuntimeError(f"invalid builder type: {builder.__class__}")
+
+    def __assignments_iterator(self):
+        assignments = dict(self.__assignments__)
+
+        if self.__batch__:
+            batch_iterators = [
+                zip(repeat(name), values) for name, values in self.__batch__.items()
+            ]
+            batch_iterator = zip(*batch_iterators)
+
+            for batch_list in batch_iterator:
+                assignments.update(dict(batch_list))
+                yield assignments
+        else:
+            yield assignments
+
+    def __compile_hardware(
+        self, nshots: int, backend: SubmissionBackend
+    ) -> HardwareJob:
+        from bloqade.codegen.quera_hardware import SchemaCodeGen
+
+        capabilities = backend.get_capabilities()
+
+        hardware_tasks = []
+
+        for assignments in self.__assignments_iterator():
+            schema_compiler = SchemaCodeGen(assignments, capabilities)
+            task_ir = schema_compiler.emit(nshots, self.program)
+            task_ir = task_ir.discretize(capabilities)
+            hardware_tasks.append(HardwareTask(task_ir=task_ir, backend=backend))
+
+        return HardwareJob(
+            tasks=hardware_tasks, multiplex_decoder=schema_compiler.multiplex_decoder
+        )
 
     @property
     def register(self):
@@ -261,31 +333,14 @@ class Emit(Builder):
     def program(self) -> Program:
         return Program(self.register, self.sequence)
 
-    def __compile_task_ir(self, nshots: int, backend: SubmissionBackend):
-        from bloqade.codegen.quera_hardware import SchemaCodeGen
-
-        capabilities = backend.get_capabilities()
-        schema_compiler = SchemaCodeGen(self.__assignments__, capabilities)
-        task_ir = schema_compiler.emit(nshots, self.program)
-        task_ir = task_ir.discretize(capabilities)
-
-        if isinstance(backend, BraketBackend):
-            task_ir = to_braket_task_ir(task_ir)
-
-        return (task_ir, schema_compiler.multiplex_decoder)
-
     def simu(self, *args, **kwargs):
         raise NotImplementedError
 
     def braket(self, nshots: int) -> "HardwareJob":
         backend = BraketBackend()
-        task_ir, multiplex_decoder = self.__compile_task_ir(nshots, backend)
+        return self.__compile_hardware(nshots, backend)
 
-        hardware_task = HardwareTask(braket_task_ir=task_ir, braket_backend=backend)
-
-        return HardwareJob(tasks=[hardware_task], multiplex_decoder=multiplex_decoder)
-
-    def quera(self, nshots: int, config_file: Optional[str] = None) -> "HardwareTask":
+    def quera(self, nshots: int, config_file: Optional[str] = None) -> "HardwareJob":
         if config_file is None:
             path = os.path.dirname(__file__)
             api_config_file = os.path.join(
@@ -296,15 +351,9 @@ class Emit(Builder):
 
             backend = QuEraBackend(**api_config)
 
-        task_ir, multiplex_decoder = self.__compile_task_ir(nshots, backend)
-        hardware_task = HardwareTask(quera_task_ir=task_ir, quera_backend=backend)
-
-        return HardwareJob(tasks=[hardware_task], multiplex_decoder=multiplex_decoder)
+        return self.__compile_hardware(nshots, backend)
 
     def mock(self, nshots: int, state_file: str = ".mock_state.txt") -> "HardwareJob":
         backend = DumbMockBackend(state_file=state_file)
-        task_ir, multiplex_decoder = self.__compile_task_ir(nshots, backend)
 
-        hardware_task = HardwareTask(quera_task_ir=task_ir, mock_backend=backend)
-
-        return HardwareJob(tasks=[hardware_task], multiplex_decoder=multiplex_decoder)
+        return self.__compile_hardware(nshots, backend)
