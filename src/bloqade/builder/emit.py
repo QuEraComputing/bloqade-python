@@ -294,7 +294,7 @@ class Emit(Builder):
             schema_compiler = SchemaCodeGen(assignments, capabilities)
             task_ir = schema_compiler.emit(nshots, self.program)
             task_ir = task_ir.discretize(capabilities)
-            hardware_tasks.append(HardwareTask(task_ir, backend))
+            hardware_tasks.append(HardwareTask(task_ir=task_ir, backend=backend))
 
         return HardwareJob(
             tasks=hardware_tasks, multiplex_decoder=schema_compiler.multiplex_decoder
