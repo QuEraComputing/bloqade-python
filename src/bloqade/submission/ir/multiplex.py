@@ -1,9 +1,4 @@
-from .base import AtomArrangement
-from .list import ListOfLocations
-from decimal import Decimal
 from pydantic import BaseModel, validator, ValidationError
-
-from bloqade.submission.capabilities import get_capabilities
 
 from typing import List, Tuple, Union
 
@@ -22,7 +17,7 @@ class SiteClusterInfo(BaseModel):
         local_site_index (int): the index of the site in the original system
     """
 
-    cluster_index: tuple[int, int]
+    cluster_index: Tuple[int, int]
     global_site_index: int
     local_site_index: int
 
@@ -121,80 +116,3 @@ class MultiplexDecoder(BaseModel):
         return QuEraTaskResults(
             task_status=task_result.task_status, shot_outputs=shot_outputs
         )
-
-
-def multiplex_register(
-    register_ast: AtomArrangement, cluster_spacing, capabilities=None
-) -> Tuple[ListOfLocations, List[SiteClusterInfo]]:
-    if capabilities is None:
-        capabilities = get_capabilities()
-
-    height_max = Decimal(capabilities.capabilities.lattice.area.height) / Decimal(1e-6)
-    width_max = Decimal(capabilities.capabilities.lattice.area.width) / Decimal(1e-6)
-    number_sites_max = capabilities.capabilities.lattice.geometry.number_sites_max
-
-    register_sites = list(register_ast.enumerate())
-    # get minimum and maximum x,y coords for existing problem spacing
-    x_min = x_max = 0
-    y_min = y_max = 0
-    for site in register_sites:
-        if site[0] < x_min:
-            x_min = site[0]
-        elif site[0] > x_max:
-            x_max = site[0]
-
-        if site[1] < y_min:
-            y_min = site[1]
-        elif site[1] > y_max:
-            y_max = site[1]
-
-    cluster_spacing = Decimal(cluster_spacing)
-    single_problem_width = Decimal(
-        (x_max - x_min).item()
-    )  # conversion from np.int64 to Decimal not supported
-    single_problem_height = Decimal((y_max - y_min).item())
-
-    cluster_index_x = 0
-    cluster_index_y = 0
-    global_site_index = 0
-
-    sites = []
-    mapping = []
-    while True:
-        y_shift = cluster_index_y * Decimal(single_problem_height + cluster_spacing)
-        # reached the maximum number of batches possible given n_site_max
-        if global_site_index + len(register_sites) > number_sites_max:
-            break
-        # reached the maximum number of batches possible along x-direction
-        if y_shift + single_problem_height > height_max:
-            break
-
-        cluster_index_x = 0
-        while True:
-            x_shift = cluster_index_x * Decimal(single_problem_width + cluster_spacing)
-            # reached the maximum number of batches possible given n_site_max
-            if global_site_index + len(register_sites) > number_sites_max:
-                break
-            # reached the maximum number of batches possible along x-direction
-            if x_shift + single_problem_width > width_max:
-                cluster_index_y += 1
-                break
-
-            for local_site_index, (x_coord, y_coord) in enumerate(register_sites):
-                sites.append((x_coord + float(x_shift), y_coord + float(y_shift)))
-                mapping.append(
-                    SiteClusterInfo(
-                        cluster_index=(
-                            cluster_index_x,
-                            cluster_index_y,
-                        ),
-                        global_site_index=global_site_index,
-                        local_site_index=local_site_index,
-                    )
-                )
-
-                global_site_index += 1
-
-            cluster_index_x += 1
-
-    return ListOfLocations(sites), MultiplexDecoder(mapping=mapping)
