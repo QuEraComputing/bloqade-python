@@ -1,10 +1,10 @@
 from bloqade.submission.base import SubmissionBackend
 from bloqade.submission.quera_api_client.api import QueueApi
-from bloqade.submission.quera_api_client.ir.capabilities import QuEraCapabilities
-from bloqade.submission.quera_api_client.ir.task_specification import (
+from bloqade.submission.ir.task_specification import (
     QuEraTaskSpecification,
 )
-from bloqade.submission.quera_api_client.ir.task_results import (
+from bloqade.submission.ir.capabilities import QuEraCapabilities
+from bloqade.submission.ir.task_results import (
     QuEraTaskResults,
     QuEraTaskStatusCode,
 )

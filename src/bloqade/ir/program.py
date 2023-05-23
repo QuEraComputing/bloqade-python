@@ -1,5 +1,8 @@
 from bloqade.ir import Sequence
-from bloqade.ir.location.base import AtomArrangement
+from typing import TYPE_CHECKING, Union
+
+if TYPE_CHECKING:
+    from bloqade.ir.location.base import AtomArrangement, MultuplexRegister
 
 
 # NOTE: this is just a dummy type bundle geometry and sequence
@@ -7,7 +10,7 @@ from bloqade.ir.location.base import AtomArrangement
 class Program:
     def __init__(
         self,
-        register: AtomArrangement,
+        register: Union["AtomArrangement", "MultuplexRegister"],
         sequence: Sequence,
     ):
         self._sequence = sequence

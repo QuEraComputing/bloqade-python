@@ -23,20 +23,20 @@ from bloqade.ir.sequence import (
     RydbergLevelCoupling,
     HyperfineLevelCoupling,
 )
+from bloqade.ir.location.base import AtomArrangement, MultuplexRegister
+from bloqade.ir import Program
+
 from bloqade.codegen.program_visitor import ProgramVisitor
 from bloqade.codegen.waveform_visitor import WaveformVisitor
 from bloqade.codegen.assignment_scan import AssignmentScan
-from bloqade.ir.location.multiplex import MultiplexDecoder
+from bloqade.submission.ir.multiplex import MultiplexDecoder, SiteClusterInfo
 
-import bloqade.submission.quera_api_client.ir.task_specification as task_spec
-from typing import Dict, Tuple, List, Union, Optional, TYPE_CHECKING
-from numbers import Number
+import bloqade.submission.ir.task_specification as task_spec
+from bloqade.submission.ir.capabilities import QuEraCapabilities
+from typing import Any, Dict, Tuple, List, Union
 from bisect import bisect_left
-
-
-if TYPE_CHECKING:
-    from bloqade.ir.location.base import AtomArrangement
-    from bloqade.ir import Program
+from numbers import Number
+import numpy as np
 
 
 class PiecewiseLinearCodeGen(WaveformVisitor):
@@ -261,16 +261,11 @@ class SchemaCodeGen(ProgramVisitor):
     def __init__(
         self,
         assignments: Dict[str, Union[Number, List[Number]]],
-        multiplex_mapping: Optional[MultiplexDecoder],
+        capabilities: QuEraCapabilities,
     ):
+        self.capabilities = capabilities
         self.assignments = assignments
-        self.multiplex_mapping = multiplex_mapping
-
-        if self.multiplex_mapping:
-            self.n_atoms = self.multiplex_mapping.sites_per_cluster
-        else:
-            self.n_atoms = None
-
+        self.multiplex_decoder = None
         self.lattice = None
         self.effective_hamiltonian = None
         self.rydberg = None
@@ -281,10 +276,10 @@ class SchemaCodeGen(ProgramVisitor):
         self.lattice_site_coefficients = None
 
     def visit_spatial_modulation(self, ast: SpatialModulation):
-        match (self.multiplex_mapping, ast):
-            case (None, ScaledLocations(locations)):
-                # check that all indices map to actual atoms in lattice
-                self.lattice_site_coefficients = []
+        lattice_site_coefficients = []
+
+        match ast:
+            case ScaledLocations(locations):
                 for location in locations.keys():
                     if (
                         location.value >= self.n_atoms
@@ -296,46 +291,26 @@ class SchemaCodeGen(ProgramVisitor):
 
                 for atom_index in range(self.n_atoms):
                     scale = locations.get(Location(atom_index), Literal(0.0))
-                    self.lattice_site_coefficients.append(
+                    lattice_site_coefficients.append(
                         scale(**self.assignments)
                     )  # append scalars to lattice_site_coefficients
 
-            case (multiplex_mapping, ScaledLocations(locations)):
-                self.lattice_site_coefficients = []
-
-                for location in locations.keys():
-                    if location.value >= self.n_atoms:
-                        raise ValueError(
-                            f"Location({location.value}) is larger than the register."
-                        )
-
-                site_to_cluster_map = multiplex_mapping.get_site_indices()
-
-                for atom_index in range(self.n_atoms):
-                    scale = locations.get(
-                        Location(site_to_cluster_map[atom_index]), Literal(0.0)
-                    )
-                    self.lattice_site_coefficients.append(scale(**self.assignments))
-
-            case (None, RunTimeVector(name)):
+            case RunTimeVector(name):
                 if len(self.assignments[name]) != self.n_atoms:
                     raise ValueError(
                         f"Coefficient list {name} doesn't match the size of register "
                         f"{self.n_atoms}."
                     )
+                lattice_site_coefficients = list(self.assignments[name])
 
-            case (multiplex_mapping, RunTimeVector(name)):
-                if len(self.assignments[name]) != self.n_atoms:
-                    raise ValueError(
-                        f"Coefficient list {name} doesn't match the size of register "
-                        f"{self.n_atoms}."
-                    )
-
-                multiplexed_runtime_vector = []
-                for _ in range(multiplex_mapping.keys()):
-                    multiplexed_runtime_vector += self.assignments[name]
-
-                self.assignments[name] = multiplexed_runtime_vector
+        self.lattice_site_coefficients = []
+        if self.multiplex_decoder:
+            for cluster_site_info in self.multiplex_decoder.mapping:
+                self.lattice_site_coefficients.append(
+                    lattice_site_coefficients[cluster_site_info.local_site_index]
+                )
+        else:
+            self.lattice_site_coefficients = lattice_site_coefficients
 
     def visit_field(self, ast: Field):
         match (self.field_name, ast):  # Pulse: Dict of FieldName/Field
@@ -505,17 +480,86 @@ class SchemaCodeGen(ProgramVisitor):
             rydberg=self.rydberg
         )
 
-    def visit_register(self, ast: "AtomArrangement"):
+    def visit_register(self, ast: AtomArrangement):
         sites = []
         filling = []
+
         for site in ast.enumerate():
             sites.append(tuple(site))
             filling.append(1)
 
-        if self.n_atoms is None:
-            self.n_atoms = len(sites)
+        self.n_atoms = len(sites)
 
         self.lattice = task_spec.Lattice(sites=sites, filling=filling)
+
+    def visit_multiplex_register(self, ast: MultuplexRegister) -> Any:
+        height_max = self.capabilities.capabilities.lattice.area.height / 1e-6
+        width_max = self.capabilities.capabilities.lattice.area.width / 1e-6
+        number_sites_max = (
+            self.capabilities.capabilities.lattice.geometry.number_sites_max
+        )
+
+        register_sites = np.asarray(ast.register_sites)
+        shift_vectors = np.asarray(ast.shift_vectors)
+
+        # build register by stack method because
+        # shift_vectosr might not be rectangular
+        c_stack = [(0, 0)]
+        visited = set([])
+        mapping = []
+        global_site_index = 0
+        sites = []
+        filling = []
+        while True:
+            if len(mapping) + len(ast.register_sites) > number_sites_max:
+                break
+
+            cluster_index = c_stack.pop()
+
+            if cluster_index not in visited:
+                visited.add(cluster_index)
+
+            shift = (
+                shift_vectors[0] * cluster_index[0]
+                + shift_vectors[1] * cluster_index[1]
+            )
+
+            new_register_sites = shift + register_sites
+            # skip clusters that fall out of bounds
+            if (
+                np.any(new_register_sites < 0)
+                or np.any(new_register_sites[:, 0] > width_max)
+                or np.any(new_register_sites[:, 1] > height_max)
+            ):
+                continue
+
+            new_cluster_indices = [
+                (cluster_index[0] + 1, cluster_index[1]),
+                (cluster_index[0], cluster_index[1] + 1),
+                (cluster_index[0] - 1, cluster_index[1]),
+                (cluster_index[0], cluster_index[1] - 1),
+            ]
+
+            for new_cluster_index in new_cluster_indices:
+                if new_cluster_index not in visited:
+                    c_stack.append(new_cluster_index)
+
+            for local_site_index, site in enumerate(new_register_sites[:]):
+                sites.append(tuple(site))
+                filling.append(1)
+
+                mapping.append(
+                    SiteClusterInfo(
+                        cluster_index=cluster_index,
+                        global_site_index=global_site_index,
+                        local_site_index=local_site_index,
+                    )
+                )
+                global_site_index += 1
+
+        self.lattice = task_spec.Lattice(sites=sites, filling=filling)
+        self.n_atoms = len(ast.register_sites)
+        self.multiplex_decoder = MultiplexDecoder(mapping=mapping)
 
     def emit(self, nshots: int, program: "Program") -> task_spec.QuEraTaskSpecification:
         self.assignments = AssignmentScan(self.assignments).emit(program.sequence)
