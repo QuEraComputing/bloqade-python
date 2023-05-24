@@ -2,8 +2,8 @@ from bloqade.ir.location import ListOfLocations
 
 future = (
     ListOfLocations()
-    .append((0, 0))
-    .append((0, 6))
+    .add_position((0, 0))
+    .add_position((0, 6))
     .rydberg.detuning.uniform.piecewise_linear(
         durations=["up_time", "anneal_time", "up_time"],
         values=[

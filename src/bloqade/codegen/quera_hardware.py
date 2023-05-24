@@ -275,6 +275,18 @@ class SchemaCodeGen(ProgramVisitor):
         self.detuning = None
         self.lattice_site_coefficients = None
 
+    @staticmethod
+    def convert_time_to_SI_units(times: List[float]):
+        return [time * 1e-6 for time in times]
+
+    @staticmethod
+    def convert_energy_to_SI_units(values: List[float]):
+        return [value * 1e6 for value in values]
+
+    @staticmethod
+    def convert_position_to_SI_units(position: Tuple[float]):
+        return tuple(coordinate * 1e-6 for coordinate in position)
+
     def visit_spatial_modulation(self, ast: SpatialModulation):
         lattice_site_coefficients = []
 
@@ -485,8 +497,8 @@ class SchemaCodeGen(ProgramVisitor):
         filling = []
 
         for site in ast.enumerate():
-            sites.append(tuple(site))
-            filling.append(1)
+            sites.append(site.position)
+            filling.append(site.filling.value)
 
         self.n_atoms = len(sites)
 
@@ -499,6 +511,7 @@ class SchemaCodeGen(ProgramVisitor):
             self.capabilities.capabilities.lattice.geometry.number_sites_max
         )
 
+        register_filling = np.asarray(ast.register_filling)
         register_sites = np.asarray(ast.register_sites)
         shift_vectors = np.asarray(ast.shift_vectors)
 
@@ -510,7 +523,7 @@ class SchemaCodeGen(ProgramVisitor):
         global_site_index = 0
         sites = []
         filling = []
-        while True:
+        while c_stack:
             if len(mapping) + len(ast.register_sites) > number_sites_max:
                 break
 
@@ -544,9 +557,11 @@ class SchemaCodeGen(ProgramVisitor):
                 if new_cluster_index not in visited:
                     c_stack.append(new_cluster_index)
 
-            for local_site_index, site in enumerate(new_register_sites[:]):
+            for local_site_index, (site, filled) in enumerate(
+                zip(new_register_sites[:], register_filling)
+            ):
                 sites.append(tuple(site))
-                filling.append(1)
+                filling.append(filled)
 
                 mapping.append(
                     SiteClusterInfo(
