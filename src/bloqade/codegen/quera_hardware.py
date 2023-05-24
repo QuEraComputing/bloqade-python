@@ -279,8 +279,7 @@ class SchemaCodeGen(ProgramVisitor):
     def convert_time_units(times: List[float]):
         return [time * 1e-6 for time in times]
 
-    staticmethod
-
+    @staticmethod
     def convert_energy_units(values: List[float]):
         return [value * 1e6 for value in values]
 
