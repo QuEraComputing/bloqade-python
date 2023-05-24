@@ -11,13 +11,13 @@ class ListOfLocations(AtomArrangement):
             self.__n_atoms = 0
             self.__n_dims = None
 
-        self.position_list = list(location_list)
+        self.location_list = list(location_list)
 
         super().__init__()
 
     def add_position(self, position: Tuple[Any, Any], filled: bool = True):
         new_location = LocationInfo(position, filled)
-        return ListOfLocations(self.position_list + [new_location])
+        return ListOfLocations(self.location_list + [new_location])
 
     def add_positions(
         self, positions: List[Tuple[Any, Any]], filling: Optional[List[bool]] = None
@@ -32,7 +32,7 @@ class ListOfLocations(AtomArrangement):
             for position in positions:
                 new_locations.append(LocationInfo(position, True))
 
-        return ListOfLocations(self.position_list + new_locations)
+        return ListOfLocations(self.location_list + new_locations)
 
     @property
     def n_atoms(self):
@@ -43,7 +43,7 @@ class ListOfLocations(AtomArrangement):
         return self.__n_dims
 
     def enumerate(self):
-        return iter(self.position_list)
+        return iter(self.location_list)
 
 
 start = ListOfLocations()
