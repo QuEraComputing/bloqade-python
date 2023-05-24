@@ -497,7 +497,7 @@ class SchemaCodeGen(ProgramVisitor):
         filling = []
 
         for site in ast.enumerate():
-            sites.append(tuple(site.position))
+            sites.append(site.position)
             filling.append(site.filling.value)
 
         self.n_atoms = len(sites)
