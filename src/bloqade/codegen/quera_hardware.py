@@ -556,9 +556,11 @@ class SchemaCodeGen(ProgramVisitor):
                 if new_cluster_index not in visited:
                     c_stack.append(new_cluster_index)
 
-            for local_site_index, site in enumerate(new_register_sites[:]):
+            for local_site_index, (site, filling) in enumerate(
+                new_register_sites[:], filling
+            ):
                 sites.append(tuple(site))
-                filling.append(1)
+                filling.append(filling)
 
                 mapping.append(
                     SiteClusterInfo(
