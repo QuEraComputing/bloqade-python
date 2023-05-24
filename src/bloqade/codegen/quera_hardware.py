@@ -275,6 +275,19 @@ class SchemaCodeGen(ProgramVisitor):
         self.detuning = None
         self.lattice_site_coefficients = None
 
+    @staticmethod
+    def convert_time_units(times: List[float]):
+        return [time * 1e-6 for time in times]
+
+    staticmethod
+
+    def convert_energy_units(values: List[float]):
+        return [value * 1e6 for value in values]
+
+    @staticmethod
+    def convert_position_units(position: Tuple[float]):
+        return tuple(coordinate * 1e-6 for coordinate in position)
+
     def visit_spatial_modulation(self, ast: SpatialModulation):
         lattice_site_coefficients = []
 
@@ -485,8 +498,8 @@ class SchemaCodeGen(ProgramVisitor):
         filling = []
 
         for site in ast.enumerate():
-            sites.append(tuple(site))
-            filling.append(1)
+            sites.append(tuple(site.position))
+            filling.append(site.filling.value)
 
         self.n_atoms = len(sites)
 
@@ -510,7 +523,7 @@ class SchemaCodeGen(ProgramVisitor):
         global_site_index = 0
         sites = []
         filling = []
-        while True:
+        while c_stack:
             if len(mapping) + len(ast.register_sites) > number_sites_max:
                 break
 

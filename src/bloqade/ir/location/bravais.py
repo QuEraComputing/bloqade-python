@@ -3,7 +3,7 @@ from typing import List, Tuple, Generator, Optional
 import numpy as np
 import itertools
 from numpy.typing import NDArray
-from .base import AtomArrangement
+from .base import AtomArrangement, SiteInfo
 from bokeh.models import ColumnDataSource, Plot
 from bokeh.plotting import figure
 
@@ -51,11 +51,13 @@ class BoundedBravais(AtomArrangement):
     def enumerate(self) -> Generator[NDArray, None, None]:
         for index in itertools.product(*[range(n) for n in self.shape]):
             for pos in self.coordinates(index):
-                yield self.lattice_spacing * pos
+                position = tuple(self.lattice_spacing * pos)
+                yield SiteInfo(position=position)
 
     def figure(self) -> Plot:
         xs, ys, labels = [], [], []
-        for idx, (x, y) in enumerate(self.enumerate()):
+        for idx, site_info in enumerate(self.enumerate()):
+            (x, y) = site_info.position
             xs.append(x)
             ys.append(y)
             labels.append(idx)
