@@ -4,6 +4,8 @@ from typing import List, Generator, Tuple
 from bokeh.plotting import show
 import numpy as np
 from enum import Enum
+from bokeh.models import ColumnDataSource, Plot
+from bokeh.plotting import figure
 
 
 class SiteFilling(int, Enum):
@@ -13,7 +15,7 @@ class SiteFilling(int, Enum):
 
 @dataclass
 class SiteInfo:
-    position: Tuple[float, ...]
+    position: Tuple[float, float]
     filling: SiteFilling = SiteFilling.filled
 
     def __len__(self):
@@ -28,9 +30,58 @@ class AtomArrangement(ProgramStart):
         """enumerate all positions in the register."""
         raise NotImplementedError
 
-    def figure(self):
-        """plot the register."""
-        raise NotImplementedError
+    def figure(self) -> Plot:
+        xs_filled, ys_filled, labels_filled = [], [], []
+        xs_vacant, ys_vacant, labels_vacant = [], [], []
+        x_min = np.inf
+        x_max = -np.inf
+        y_min = np.inf
+        y_max = -np.inf
+        for idx, site_info in enumerate(self.enumerate()):
+            (x, y) = site_info.position
+            x_min = min(x, x_min)
+            y_min = min(y, y_min)
+            x_max = max(x, x_max)
+            y_max = max(y, y_max)
+            if site_info.filling is SiteFilling.filled:
+                xs_filled.append(x)
+                ys_filled.append(y)
+                labels_filled.append(idx)
+            else:
+                xs_vacant.append(x)
+                ys_vacant.append(y)
+                labels_vacant.append(idx)
+
+        if self.n_atoms > 0:
+            length_scale = max(y_max - y_min, x_max - x_min, 1)
+        else:
+            length_scale = 1
+
+        source_filled = ColumnDataSource(
+            data=dict(x=xs_filled, y=ys_filled, labels=labels_filled)
+        )
+        source_vacant = ColumnDataSource(
+            data=dict(x=xs_vacant, y=ys_vacant, labels=labels_vacant)
+        )
+        p = figure(
+            width=400,
+            height=400,
+            tools="hover,wheel_zoom,box_zoom,reset",
+        )
+        p.circle(
+            "x", "y", source=source_filled, radius=0.015 * length_scale, fill_alpha=1
+        )
+        p.circle(
+            "x",
+            "y",
+            source=source_vacant,
+            radius=0.015 * length_scale,
+            fill_alpha=0.25,
+            color="grey",
+            line_width=0.2 * length_scale,
+        )
+
+        return p
 
     def show(self) -> None:
         """show the register."""

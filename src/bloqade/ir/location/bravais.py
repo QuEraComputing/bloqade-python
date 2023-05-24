@@ -4,8 +4,6 @@ import numpy as np
 import itertools
 from numpy.typing import NDArray
 from .base import AtomArrangement, SiteInfo
-from bokeh.models import ColumnDataSource, Plot
-from bokeh.plotting import figure
 
 
 class Cell:
@@ -48,28 +46,11 @@ class BoundedBravais(AtomArrangement):
         pos = np.sum(index * vectors.T, axis=1)
         return pos + np.array(self.cell_atoms())
 
-    def enumerate(self) -> Generator[NDArray, None, None]:
+    def enumerate(self) -> Generator[SiteInfo, None, None]:
         for index in itertools.product(*[range(n) for n in self.shape]):
             for pos in self.coordinates(index):
                 position = tuple(self.lattice_spacing * pos)
                 yield SiteInfo(position=position)
-
-    def figure(self) -> Plot:
-        xs, ys, labels = [], [], []
-        for idx, site_info in enumerate(self.enumerate()):
-            (x, y) = site_info.position
-            xs.append(x)
-            ys.append(y)
-            labels.append(idx)
-
-        source = ColumnDataSource(data=dict(x=xs, y=ys, labels=labels))
-        p = figure(
-            width=400,
-            height=400,
-            tools="hover,wheel_zoom,box_zoom,reset",
-        )
-        p.circle("x", "y", source=source, radius=0.08)
-        return p
 
 
 @dataclass
