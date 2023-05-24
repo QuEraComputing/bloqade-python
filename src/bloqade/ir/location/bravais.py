@@ -80,7 +80,7 @@ class Square(BoundedBravais):
 
 @dataclass
 class Rectangular(BoundedBravais):
-    ratio: float = 1.0
+    ratio: Scalar = 1.0
 
     def __init__(
         self,
@@ -91,9 +91,9 @@ class Rectangular(BoundedBravais):
     ):
         super().__init__(width, height, lattice_spacing=lattice_sapcing_x)
         if lattice_spacing_y:
-            self.ratio = lattice_spacing_y / lattice_sapcing_x
+            self.ratio = cast(lattice_spacing_y) / cast(lattice_sapcing_x)
         else:
-            self.ratio = 1.0
+            self.ratio = cast(1.0)
 
     def cell_vectors(self) -> List[List[float]]:
         return [[1, 0], [0, self.ratio]]
