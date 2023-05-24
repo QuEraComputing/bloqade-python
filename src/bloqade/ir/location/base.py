@@ -121,8 +121,12 @@ class AtomArrangement(ProgramStart):
             shift_x = (x_max - x_min) + cluster_spacing
             shift_y = (y_max - y_min) + cluster_spacing
 
-            register_locations = [list(site.position) for site in self.enumerate()]
-            register_filling = [site.filling.value for site in self.enumerate()]
+            register_locations = [
+                list(location_info.position) for location_info in self.enumerate()
+            ]
+            register_filling = [
+                location_info.filling.value for location_info in self.enumerate()
+            ]
 
             return ParallelRegister(
                 register_locations,
