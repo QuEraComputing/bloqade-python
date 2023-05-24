@@ -511,6 +511,7 @@ class SchemaCodeGen(ProgramVisitor):
             self.capabilities.capabilities.lattice.geometry.number_sites_max
         )
 
+        register_filling = np.asarray(ast.register_filling)
         register_sites = np.asarray(ast.register_sites)
         shift_vectors = np.asarray(ast.shift_vectors)
 
@@ -556,11 +557,11 @@ class SchemaCodeGen(ProgramVisitor):
                 if new_cluster_index not in visited:
                     c_stack.append(new_cluster_index)
 
-            for local_site_index, (site, filling) in enumerate(
-                new_register_sites[:], filling
+            for local_site_index, (site, filled) in enumerate(
+                zip(new_register_sites[:], register_filling)
             ):
                 sites.append(tuple(site))
-                filling.append(filling)
+                filling.append(filled)
 
                 mapping.append(
                     SiteClusterInfo(
