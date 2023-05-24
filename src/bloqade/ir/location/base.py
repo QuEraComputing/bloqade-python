@@ -44,7 +44,7 @@ class AtomArrangement(ProgramStart):
     def n_dims(self):
         raise NotImplementedError
 
-    def multiplex(self, cluster_spacing: float) -> "MultuplexRegister":
+    def parallelize(self, cluster_spacing: float) -> "ParallelRegister":
         if self.n_atoms > 0:
             # calculate bounding box
             # of this register
@@ -66,15 +66,15 @@ class AtomArrangement(ProgramStart):
             register_sites = [list(site.position) for site in self.enumerate()]
             register_filling = [site.filling.value for site in self.enumerate()]
 
-            return MultuplexRegister(
+            return ParallelRegister(
                 register_sites, register_filling, [[shift_x, 0], [0, shift_y]]
             )
         else:
-            raise ValueError("No locations to multiplex.")
+            raise ValueError("No locations to parallelize.")
 
 
 @dataclass(init=False)
-class MultuplexRegister(ProgramStart):
+class ParallelRegister(ProgramStart):
     register_sites: List[List[float]]
     register_filling: List[int]
     shift_vectors: List[List[float]]
