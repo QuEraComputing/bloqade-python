@@ -276,15 +276,15 @@ class SchemaCodeGen(ProgramVisitor):
         self.lattice_site_coefficients = None
 
     @staticmethod
-    def convert_time_units(times: List[float]):
+    def convert_time_to_SI_units(times: List[float]):
         return [time * 1e-6 for time in times]
 
     @staticmethod
-    def convert_energy_units(values: List[float]):
+    def convert_energy_to_SI_units(values: List[float]):
         return [value * 1e6 for value in values]
 
     @staticmethod
-    def convert_position_units(position: Tuple[float]):
+    def convert_position_to_SI_units(position: Tuple[float]):
         return tuple(coordinate * 1e-6 for coordinate in position)
 
     def visit_spatial_modulation(self, ast: SpatialModulation):
