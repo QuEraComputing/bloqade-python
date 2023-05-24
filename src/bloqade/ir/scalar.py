@@ -67,16 +67,32 @@ class Scalar:
                 raise Exception(f"Unknown scalar expression: {self} ({type(self)})")
 
     def __add__(self, other: "Scalar") -> "Scalar":
-        expr = Add(lhs=self, rhs=other)
-        return Scalar.canonicalize(expr)
+        try:
+            expr = Add(lhs=self, rhs=cast(other))
+            return Scalar.canonicalize(expr)
+        except TypeError:
+            return NotImplemented
 
     def __sub__(self, other: "Scalar") -> "Scalar":
-        expr = Add(lhs=self, rhs=-cast(other))
-        return Scalar.canonicalize(expr)
+        try:
+            expr = Add(lhs=self, rhs=-cast(other))
+            return Scalar.canonicalize(expr)
+        except TypeError:
+            return NotImplemented
 
     def __mul__(self, other: "Scalar") -> "Scalar":
-        expr = Mul(lhs=self, rhs=other)
-        return Scalar.canonicalize(expr)
+        try:
+            expr = Mul(lhs=self, rhs=cast(other))
+            return Scalar.canonicalize(expr)
+        except TypeError:
+            return NotImplemented
+
+    def __rmul__(self, other: "Scalar") -> "Scalar":
+        try:
+            expr = Mul(rhs=self, lhs=cast(other))
+            return Scalar.canonicalize(expr)
+        except TypeError:
+            return NotImplemented
 
     def __neg__(self) -> "Scalar":
         return Scalar.canonicalize(Negative(self))

@@ -1,6 +1,7 @@
-from pydantic.dataclasses import dataclass
 from bloqade.builder.start import ProgramStart
-from typing import List, Generator, Tuple
+from bloqade.ir.scalar import Scalar, cast
+from pydantic.dataclasses import dataclass
+from typing import List, Generator, Tuple, Any
 from bokeh.plotting import show
 import numpy as np
 from enum import Enum
@@ -14,36 +15,42 @@ class SiteFilling(int, Enum):
 
 
 @dataclass
-class SiteInfo:
-    position: Tuple[float, float]
-    filling: SiteFilling = SiteFilling.filled
+class LocationInfo:
+    position: Tuple[Scalar, Scalar]
+    filling: SiteFilling
 
-    def __len__(self):
-        return len(self.position)
+    def __init__(self, position: Tuple[Any, Any], filled: bool):
+        if filled:
+            self.filling = SiteFilling.filled
+        else:
+            self.filling = SiteFilling.vacant
+
+        self.position = tuple(cast(ele) for ele in position)
 
 
 class AtomArrangement(ProgramStart):
     def __init__(self) -> None:
         super().__init__(register=self)
 
-    def enumerate(self) -> Generator[SiteInfo, None, None]:
-        """enumerate all positions in the register."""
+    def enumerate(self) -> Generator[LocationInfo, None, None]:
+        """enumerate all locations in the register."""
         raise NotImplementedError
 
-    def figure(self) -> Plot:
+    def figure(self, **assignments) -> Plot:
         xs_filled, ys_filled, labels_filled = [], [], []
         xs_vacant, ys_vacant, labels_vacant = [], [], []
         x_min = np.inf
         x_max = -np.inf
         y_min = np.inf
         y_max = -np.inf
-        for idx, site_info in enumerate(self.enumerate()):
-            (x, y) = site_info.position
+        for idx, location_info in enumerate(self.enumerate()):
+            (x_var, y_var) = location_info.position
+            (x, y) = (x_var(**assignments), y_var(**assignments))
             x_min = min(x, x_min)
             y_min = min(y, y_min)
             x_max = max(x, x_max)
             y_max = max(y, y_max)
-            if site_info.filling is SiteFilling.filled:
+            if location_info.filling is SiteFilling.filled:
                 xs_filled.append(x)
                 ys_filled.append(y)
                 labels_filled.append(idx)
@@ -83,19 +90,19 @@ class AtomArrangement(ProgramStart):
 
         return p
 
-    def show(self) -> None:
+    def show(self, **assignments) -> None:
         """show the register."""
-        show(self.figure())
+        show(self.figure(**assignments))
 
     @property
-    def n_atoms(self):
+    def n_atoms(self) -> int:
         raise NotImplementedError
 
     @property
-    def n_dims(self):
+    def n_dims(self) -> int:
         raise NotImplementedError
 
-    def parallelize(self, cluster_spacing: float) -> "ParallelRegister":
+    def parallelize(self, cluster_spacing: Any) -> "ParallelRegister":
         if self.n_atoms > 0:
             # calculate bounding box
             # of this register
@@ -104,21 +111,23 @@ class AtomArrangement(ProgramStart):
             y_min = np.inf
             y_max = -np.inf
 
-            for site_info in self.enumerate():
-                (x, y) = site_info.position
-                x_min = min(x, x_min)
-                x_max = max(x, x_max)
-                y_min = min(y, y_min)
-                y_max = max(y, y_max)
+            for location_info in self.enumerate():
+                (x, y) = location_info.position
+                x_min = x.min(x_min)
+                x_max = x.max(x_max)
+                y_min = y.min(y_min)
+                y_max = y.max(y_max)
 
             shift_x = (x_max - x_min) + cluster_spacing
             shift_y = (y_max - y_min) + cluster_spacing
 
-            register_sites = [list(site.position) for site in self.enumerate()]
+            register_locations = [list(site.position) for site in self.enumerate()]
             register_filling = [site.filling.value for site in self.enumerate()]
 
             return ParallelRegister(
-                register_sites, register_filling, [[shift_x, 0], [0, shift_y]]
+                register_locations,
+                register_filling,
+                [[shift_x, cast(0)], [cast(0), shift_y]],
             )
         else:
             raise ValueError("No locations to parallelize.")
@@ -126,17 +135,17 @@ class AtomArrangement(ProgramStart):
 
 @dataclass(init=False)
 class ParallelRegister(ProgramStart):
-    register_sites: List[List[float]]
+    register_locations: List[List[Scalar]]
     register_filling: List[int]
-    shift_vectors: List[List[float]]
+    shift_vectors: List[List[Scalar]]
 
     def __init__(
         self,
-        register_sites: List[List[float]],
+        register_sites: List[List[Scalar]],
         register_filling: List[int],
-        shift_vectors: List[List[float]],
+        shift_vectors: List[List[Scalar]],
     ):
-        self.register_sites = register_sites
+        self.register_locations = register_sites
         self.register_filling = register_filling
         self.shift_vectors = shift_vectors
         super().__init__(register=self)

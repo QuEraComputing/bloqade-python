@@ -1,9 +1,10 @@
 from pydantic.dataclasses import dataclass
-from typing import List, Tuple, Generator, Optional
+from typing import List, Tuple, Generator, Optional, Any
 import numpy as np
 import itertools
 from numpy.typing import NDArray
-from .base import AtomArrangement, SiteInfo
+from bloqade.ir.location.base import AtomArrangement, LocationInfo
+from bloqade.ir import Scalar, cast
 
 
 class Cell:
@@ -15,12 +16,12 @@ class Cell:
 @dataclass
 class BoundedBravais(AtomArrangement):
     shape: Tuple[int, ...]
-    lattice_spacing: float
+    lattice_spacing: Scalar
 
-    def __init__(self, *shape: int, lattice_spacing=1.0):
+    def __init__(self, *shape: int, lattice_spacing: Any = 1.0):
         super().__init__()
         self.shape = shape
-        self.lattice_spacing = lattice_spacing
+        self.lattice_spacing = cast(lattice_spacing)
         self.__n_atoms = None
         self.__n_dims = None
 
@@ -46,16 +47,16 @@ class BoundedBravais(AtomArrangement):
         pos = np.sum(index * vectors.T, axis=1)
         return pos + np.array(self.cell_atoms())
 
-    def enumerate(self) -> Generator[SiteInfo, None, None]:
+    def enumerate(self) -> Generator[LocationInfo, None, None]:
         for index in itertools.product(*[range(n) for n in self.shape]):
             for pos in self.coordinates(index):
                 position = tuple(self.lattice_spacing * pos)
-                yield SiteInfo(position=position)
+                yield LocationInfo(position, True)
 
 
 @dataclass
 class Chain(BoundedBravais):
-    def __init__(self, L: int, lattice_spacing: float = 1.0):
+    def __init__(self, L: int, lattice_spacing: Any = 1.0):
         super().__init__(L, lattice_spacing=lattice_spacing)
 
     def cell_vectors(self) -> List[List[float]]:
@@ -67,7 +68,7 @@ class Chain(BoundedBravais):
 
 @dataclass
 class Square(BoundedBravais):
-    def __init__(self, L: int, lattice_spacing: float = 1.0):
+    def __init__(self, L: int, lattice_spacing: Any = 1.0):
         super().__init__(L, L, lattice_spacing=lattice_spacing)
 
     def cell_vectors(self) -> List[List[float]]:
@@ -85,8 +86,8 @@ class Rectangular(BoundedBravais):
         self,
         width: int,
         height: int,
-        lattice_sapcing_x: float = 1.0,
-        lattice_spacing_y: Optional[float] = None,
+        lattice_sapcing_x: Any = 1.0,
+        lattice_spacing_y: Optional[Any] = None,
     ):
         super().__init__(width, height, lattice_spacing=lattice_sapcing_x)
         if lattice_spacing_y:
@@ -103,7 +104,7 @@ class Rectangular(BoundedBravais):
 
 @dataclass
 class Honeycomb(BoundedBravais):
-    def __init__(self, L: int, lattice_spacing: float = 1.0):
+    def __init__(self, L: int, lattice_spacing: Any = 1.0):
         super().__init__(L, L, lattice_spacing=lattice_spacing)
 
     def cell_vectors(self) -> List[List[float]]:
@@ -115,7 +116,7 @@ class Honeycomb(BoundedBravais):
 
 @dataclass
 class Triangular(BoundedBravais):
-    def __init__(self, L: int, lattice_spacing: float = 1.0):
+    def __init__(self, L: int, lattice_spacing: Any = 1.0):
         super().__init__(L, L, lattice_spacing=lattice_spacing)
 
     def cell_vectors(self) -> List[List[float]]:
@@ -129,7 +130,7 @@ class Triangular(BoundedBravais):
 class Lieb(BoundedBravais):
     """Lieb lattice."""
 
-    def __init__(self, L: int, lattice_spacing: float = 1.0):
+    def __init__(self, L: int, lattice_spacing: Any = 1.0):
         super().__init__(L, L, lattice_spacing=lattice_spacing)
 
     def cell_vectors(self) -> List[List[float]]:
@@ -141,7 +142,7 @@ class Lieb(BoundedBravais):
 
 @dataclass
 class Kagome(BoundedBravais):
-    def __init__(self, L: int, lattice_spacing: float = 1.0):
+    def __init__(self, L: int, lattice_spacing: Any = 1.0):
         super().__init__(L, L, lattice_spacing=lattice_spacing)
 
     def cell_vectors(self) -> List[List[float]]:

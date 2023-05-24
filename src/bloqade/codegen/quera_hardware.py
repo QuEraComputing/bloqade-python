@@ -29,7 +29,7 @@ from bloqade.ir import Program
 from bloqade.codegen.program_visitor import ProgramVisitor
 from bloqade.codegen.waveform_visitor import WaveformVisitor
 from bloqade.codegen.assignment_scan import AssignmentScan
-from bloqade.submission.ir.parallel import ParallelDecoder, SiteClusterInfo
+from bloqade.submission.ir.parallel import ParallelDecoder, ClusterLocationInfo
 
 import bloqade.submission.ir.task_specification as task_spec
 from bloqade.submission.ir.capabilities import QuEraCapabilities
@@ -319,7 +319,7 @@ class SchemaCodeGen(ProgramVisitor):
         if self.parallel_decoder:
             for cluster_site_info in self.parallel_decoder.mapping:
                 self.lattice_site_coefficients.append(
-                    lattice_site_coefficients[cluster_site_info.local_site_index]
+                    lattice_site_coefficients[cluster_site_info.cluster_location_index]
                 )
         else:
             self.lattice_site_coefficients = lattice_site_coefficients
@@ -496,9 +496,10 @@ class SchemaCodeGen(ProgramVisitor):
         sites = []
         filling = []
 
-        for site in ast.enumerate():
-            sites.append(site.position)
-            filling.append(site.filling.value)
+        for locaiton_info in ast.enumerate():
+            site = tuple(ele(**self.assignments) for ele in locaiton_info.position)
+            sites.append(site)
+            filling.append(locaiton_info.filling.value)
 
         self.n_atoms = len(sites)
 
@@ -512,7 +513,7 @@ class SchemaCodeGen(ProgramVisitor):
         )
 
         register_filling = np.asarray(ast.register_filling)
-        register_sites = np.asarray(ast.register_sites)
+        register_locations = np.asarray(ast.register_locations)
         shift_vectors = np.asarray(ast.shift_vectors)
 
         # build register by stack method because
@@ -524,9 +525,8 @@ class SchemaCodeGen(ProgramVisitor):
         sites = []
         filling = []
         while c_stack:
-            if len(mapping) + len(ast.register_sites) > number_sites_max:
+            if len(mapping) + len(ast.register_locations) > number_sites_max:
                 break
-
             cluster_index = c_stack.pop()
 
             if cluster_index not in visited:
@@ -537,12 +537,15 @@ class SchemaCodeGen(ProgramVisitor):
                 + shift_vectors[1] * cluster_index[1]
             )
 
-            new_register_sites = shift + register_sites
+            new_register_locations = np.asarray(
+                [ele(**self.assignments) for ele in (register_locations + shift).flat]
+            ).reshape(register_locations.shape)
+
             # skip clusters that fall out of bounds
             if (
-                np.any(new_register_sites < 0)
-                or np.any(new_register_sites[:, 0] > width_max)
-                or np.any(new_register_sites[:, 1] > height_max)
+                np.any(new_register_locations < 0)
+                or np.any(new_register_locations[:, 0] > width_max)
+                or np.any(new_register_locations[:, 1] > height_max)
             ):
                 continue
 
@@ -557,23 +560,23 @@ class SchemaCodeGen(ProgramVisitor):
                 if new_cluster_index not in visited:
                     c_stack.append(new_cluster_index)
 
-            for local_site_index, (site, filled) in enumerate(
-                zip(new_register_sites[:], register_filling)
+            for cluster_location_index, (position, filled) in enumerate(
+                zip(new_register_locations[:], register_filling)
             ):
-                sites.append(tuple(site))
+                sites.append(tuple(position))
                 filling.append(filled)
 
                 mapping.append(
-                    SiteClusterInfo(
+                    ClusterLocationInfo(
                         cluster_index=cluster_index,
-                        global_site_index=global_site_index,
-                        local_site_index=local_site_index,
+                        global_location_index=global_site_index,
+                        cluster_location_index=cluster_location_index,
                     )
                 )
                 global_site_index += 1
 
         self.lattice = task_spec.Lattice(sites=sites, filling=filling)
-        self.n_atoms = len(ast.register_sites)
+        self.n_atoms = len(ast.register_locations)
         self.parallel_decoder = ParallelDecoder(mapping=mapping)
 
     def emit(self, nshots: int, program: "Program") -> task_spec.QuEraTaskSpecification:
