@@ -1,17 +1,22 @@
 from .base import AtomArrangement, LocationInfo
-from typing import List, Tuple, Optional, Any
+from typing import List, Tuple, Optional, Any, Union
 
 
 class ListOfLocations(AtomArrangement):
-    def __init__(self, location_list: List[LocationInfo] = []):
+    def __init__(self, location_list: List[Union[LocationInfo, Tuple[Any, Any]]] = []):
+        self.location_list = []
+        for ele in location_list:
+            if isinstance(ele, LocationInfo):
+                self.location_list.append(ele)
+            else:
+                self.location_list.append(LocationInfo(ele, True))
+
         if location_list:
-            self.__n_atoms = len(location_list)
-            self.__n_dims = len(location_list[0].position)
+            self.__n_atoms = len(self.location_list)
+            self.__n_dims = len(self.location_list[0].position)
         else:
             self.__n_atoms = 0
             self.__n_dims = None
-
-        self.location_list = list(location_list)
 
         super().__init__()
 
