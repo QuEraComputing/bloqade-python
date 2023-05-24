@@ -73,9 +73,23 @@ class Scalar:
         except TypeError:
             return NotImplemented
 
+    def __radd__(self, other: "Scalar") -> "Scalar":
+        try:
+            expr = Add(rhs=self, lhs=cast(other))
+            return Scalar.canonicalize(expr)
+        except TypeError:
+            return NotImplemented
+
     def __sub__(self, other: "Scalar") -> "Scalar":
         try:
             expr = Add(lhs=self, rhs=-cast(other))
+            return Scalar.canonicalize(expr)
+        except TypeError:
+            return NotImplemented
+
+    def __rsub__(self, other: "Scalar") -> "Scalar":
+        try:
+            expr = Add(lhs=-(self), rhs=cast(other))
             return Scalar.canonicalize(expr)
         except TypeError:
             return NotImplemented
