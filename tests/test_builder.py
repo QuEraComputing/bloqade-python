@@ -7,6 +7,8 @@
 # prog.linear(start=1.0, stop=2.0, duration="x")
 import bloqade.ir as ir
 from bloqade.builder.start import ProgramStart
+from bloqade import start
+from bloqade.ir.location import Square
 
 
 def test_issue_107():
@@ -55,3 +57,53 @@ for idx in range(5):
 
 print(prog)
 print(prog.sequence)
+
+
+job = (
+    Square(4, lattice_spacing="a")
+    .rydberg.detuning.uniform.piecewise_linear(
+        durations=[0.1, 3.8, 0.1], values=[-10, -10, "final_detuning", "final_detuning"]
+    )
+    .rabi.amplitude.uniform.piecewise_linear(
+        durations=[0.1, 3.8, 0.1], values=[0.0, 15.0, 15.0, 0.0]
+    )
+    .assign(final_detuning=20, a=4)
+    .mock(100)
+)
+print(job)
+
+
+job = (
+    start.add_position((0, 0))
+    .add_position((6, 0))
+    .add_position((3, "distance"))
+    .parallelize(20.0)
+    .rydberg.detuning.uniform.piecewise_linear(
+        durations=[0.1, 3.8, 0.1], values=[-10, -10, "final_detuning", "final_detuning"]
+    )
+    .rabi.amplitude.uniform.piecewise_linear(
+        durations=[0.1, 3.8, 0.1], values=[0.0, 15.0, 15.0, 0.0]
+    )
+    .assign(final_detuning=20, distance=4)
+    .mock(100)
+)
+print(job)
+
+job = (
+    start.add_position((0, 0))
+    .add_position((6, 0))
+    .add_position((3, "distance"))
+    .parallelize(20.0)
+    .rydberg.detuning.uniform.piecewise_linear(
+        durations=[0.1, 3.8, 0.1], values=[-10, -10, "final_detuning", "final_detuning"]
+    )
+    .rabi.amplitude.uniform.piecewise_linear(
+        durations=[0.1, 3.8, 0.1], values=[0.0, 15.0, 15.0, 0.0]
+    )
+    .assign(final_detuning=20, distance=4)
+    .mock(100)
+)
+
+print(job)
+
+# print(braket_job.json(indent=2))
