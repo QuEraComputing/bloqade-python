@@ -25,6 +25,7 @@ class TaskDataModel(BaseModel):
     mock_backend: Optional[DumbMockBackend] = None
     quera_backend: Optional[QuEraBackend] = None
     braket_backend: Optional[BraketBackend] = None
+    parallel_decoder: Optional[ParallelDecoder] = None
 
     def _check_fields(self) -> None:
         if self.quera_task_ir is None and self.braket_task_ir is None:
@@ -42,18 +43,33 @@ class HardwareTask(TaskDataModel, Task):
     def __init__(self, **kwargs):
         task_ir = kwargs.get("task_ir")
         backend = kwargs.get("backend")
+        parallel_decoder = kwargs.get("parallel_decoder")
 
         match (task_ir, backend):
             case (BraketTaskSpecification(), BraketBackend()):
-                super().__init__(braket_task_ir=task_ir, braket_backend=backend)
+                super().__init__(
+                    braket_task_ir=task_ir,
+                    braket_backend=backend,
+                    parallel_decoder=parallel_decoder,
+                )
             case (QuEraTaskSpecification(), BraketBackend()):
                 super().__init__(
-                    braket_task_ir=to_braket_task_ir(task_ir), braket_backend=backend
+                    braket_task_ir=to_braket_task_ir(task_ir),
+                    braket_backend=backend,
+                    parallel_decoder=parallel_decoder,
                 )
             case (QuEraTaskSpecification(), QuEraBackend()):
-                super().__init__(quera_task_ir=task_ir, quera_backend=backend)
+                super().__init__(
+                    quera_task_ir=task_ir,
+                    quera_backend=backend,
+                    parallel_decoder=parallel_decoder,
+                )
             case (QuEraTaskSpecification(), DumbMockBackend()):
-                super().__init__(quera_task_ir=task_ir, mock_backend=backend)
+                super().__init__(
+                    quera_task_ir=task_ir,
+                    mock_backend=backend,
+                    parallel_decoder=parallel_decoder,
+                )
             case _:
                 super().__init__(**kwargs)
 
@@ -150,17 +166,12 @@ class HardwareTaskFuture(TaskFutureDataModel, TaskFuture):
 class HardwareJob(BaseModel, Job):
     tasks: List[HardwareTask] = []
     submit_order: List[int] = []
-    parallel_decoder: Optional[ParallelDecoder] = None
 
-    def __init__(
-        self, tasks: List[HardwareTask] = [], submit_order=None, parallel_decoder=None
-    ):
+    def __init__(self, tasks: List[HardwareTask] = [], submit_order=None):
         if submit_order is None:
             submit_order = list(np.random.permutation(len(tasks)))
 
-        super().__init__(
-            tasks=tasks, submit_order=submit_order, parallel_decoder=parallel_decoder
-        )
+        super().__init__(tasks=tasks, submit_order=submit_order)
 
     def submit(self) -> "HardwareFuture":
         try:

@@ -1,45 +1,43 @@
-from .base import AtomArrangement, SiteInfo, SiteFilling
-from typing import List, Tuple, Optional
+from .base import AtomArrangement, LocationInfo
+from typing import List, Tuple, Optional, Any, Union
 
 
 class ListOfLocations(AtomArrangement):
-    def __init__(self, value: List[SiteInfo] = []):
-        if not all(map(lambda x: len(x) == len(value[0]), value)):
-            raise ValueError("all positions must have the same dimension")
+    def __init__(self, location_list: List[Union[LocationInfo, Tuple[Any, Any]]] = []):
+        self.location_list = []
+        for ele in location_list:
+            if isinstance(ele, LocationInfo):
+                self.location_list.append(ele)
+            else:
+                self.location_list.append(LocationInfo(ele, True))
 
-        if value:
-            self.__n_atoms = len(value)
-            self.__n_dims = len(value[0])
+        if location_list:
+            self.__n_atoms = len(self.location_list)
+            self.__n_dims = len(self.location_list[0].position)
         else:
             self.__n_atoms = 0
             self.__n_dims = None
 
-        self.value = list(value)
-
         super().__init__()
 
-    def add_position(self, position: Tuple[float, ...], filled: bool = True):
-        if filled:
-            new_site = SiteInfo(position=position)
-        else:
-            new_site = SiteInfo(position=position, filling=SiteFilling.vacant)
-
-        return ListOfLocations(self.value + [new_site])
+    def add_position(self, position: Tuple[Any, Any], filled: bool = True):
+        new_location = LocationInfo(position, filled)
+        return ListOfLocations(self.location_list + [new_location])
 
     def add_positions(
-        self, positions: List[Tuple[float, ...]], filling: Optional[List[bool]] = None
+        self, positions: List[Tuple[Any, Any]], filling: Optional[List[bool]] = None
     ):
-        new_list = ListOfLocations(self.value)
+        new_locations = []
 
         if filling:
             for position, filled in zip(positions, filling):
-                new_list = new_list.add_position(position, filled=filling)
+                new_locations.append(LocationInfo(position, filled))
 
         else:
             for position in positions:
-                new_list = new_list.add_position(position)
+                new_locations.append(LocationInfo(position, True))
 
-        return new_list
+        return ListOfLocations(self.location_list + new_locations)
 
     @property
     def n_atoms(self):
@@ -50,7 +48,7 @@ class ListOfLocations(AtomArrangement):
         return self.__n_dims
 
     def enumerate(self):
-        return iter(self.value)
+        return iter(self.location_list)
 
 
 start = ListOfLocations()
