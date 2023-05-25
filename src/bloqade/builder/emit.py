@@ -16,7 +16,7 @@ from bloqade.ir import Program
 from bloqade.ir.location.base import AtomArrangement, ParallelRegister
 
 from pydantic import BaseModel
-from typing import Optional, Dict, Union, List
+from typing import Optional, Dict, Union, List, Any
 from numbers import Number
 import json
 import os
@@ -100,6 +100,19 @@ class Emit(Builder):
             assignments=self.__assignments__,
             batch=new_batch,
             register=self.__register__,
+            sequence=self.__sequence__,
+        )
+
+    def parallelize(self, cluster_spacing: Any) -> "Emit":
+        if isinstance(self.register, ParallelRegister):
+            raise TypeError("cannot parallelize a parallel register.")
+
+        parallel_register = ParallelRegister(self.register, cluster_spacing)
+        return Emit(
+            self,
+            assignments=self.__assignments__,
+            batch=self.__batch__,
+            register=parallel_register,
             sequence=self.__sequence__,
         )
 
