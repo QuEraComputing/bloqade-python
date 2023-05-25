@@ -28,4 +28,4 @@ quantum_task = (
     .mock(10)
 )
 
-assert quantum_task.parallel_decoder
+assert quantum_task.tasks[0].parallel_decoder
