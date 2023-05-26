@@ -4,8 +4,7 @@ from bloqade.ir.location import Square
 lattice = Square(3, lattice_spacing=6)
 
 quantum_task = (
-    lattice.parallelize(10.0)
-    .rydberg.detuning.uniform.piecewise_linear(
+    lattice.rydberg.detuning.uniform.piecewise_linear(
         durations=["up_time", "anneal_time", "up_time"],
         values=[
             "initial_detuning",
@@ -18,6 +17,7 @@ quantum_task = (
         durations=["up_time", "anneal_time", "up_time"],
         values=[0, "rabi_amplitude_max", "rabi_amplitude_max", 0],
     )
+    .parallelize(10.0)
     .assign(
         initial_detuning=-10,
         up_time=0.1,

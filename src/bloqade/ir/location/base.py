@@ -102,8 +102,15 @@ class AtomArrangement(ProgramStart):
     def n_dims(self) -> int:
         raise NotImplementedError
 
-    def parallelize(self, cluster_spacing: Any) -> "ParallelRegister":
-        if self.n_atoms > 0:
+
+@dataclass(init=False)
+class ParallelRegister(ProgramStart):
+    register_locations: List[List[Scalar]]
+    register_filling: List[int]
+    shift_vectors: List[List[Scalar]]
+
+    def __init__(self, register: AtomArrangement, cluster_spacing: Any):
+        if register.n_atoms > 0:
             # calculate bounding box
             # of this register
             x_min = np.inf
@@ -111,7 +118,7 @@ class AtomArrangement(ProgramStart):
             y_min = np.inf
             y_max = -np.inf
 
-            for location_info in self.enumerate():
+            for location_info in register.enumerate():
                 (x, y) = location_info.position
                 x_min = x.min(x_min)
                 x_max = x.max(x_max)
@@ -122,34 +129,16 @@ class AtomArrangement(ProgramStart):
             shift_y = (y_max - y_min) + cluster_spacing
 
             register_locations = [
-                list(location_info.position) for location_info in self.enumerate()
+                list(location_info.position) for location_info in register.enumerate()
             ]
             register_filling = [
-                location_info.filling.value for location_info in self.enumerate()
+                location_info.filling.value for location_info in register.enumerate()
             ]
-
-            return ParallelRegister(
-                register_locations,
-                register_filling,
-                [[shift_x, cast(0)], [cast(0), shift_y]],
-            )
+            shift_vectors = [[shift_x, cast(0)], [cast(0), shift_y]]
         else:
             raise ValueError("No locations to parallelize.")
 
-
-@dataclass(init=False)
-class ParallelRegister(ProgramStart):
-    register_locations: List[List[Scalar]]
-    register_filling: List[int]
-    shift_vectors: List[List[Scalar]]
-
-    def __init__(
-        self,
-        register_sites: List[List[Scalar]],
-        register_filling: List[int],
-        shift_vectors: List[List[Scalar]],
-    ):
-        self.register_locations = register_sites
+        self.register_locations = register_locations
         self.register_filling = register_filling
         self.shift_vectors = shift_vectors
         super().__init__(register=self)
