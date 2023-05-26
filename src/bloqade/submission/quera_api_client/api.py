@@ -2,45 +2,196 @@ import json
 import logging
 from types import NoneType
 import uuid
-from typing import Optional, Union
+from typing import Optional, Union, Dict, Tuple
 import requests
-from aws_requests_auth.boto_utils import BotoAWSRequestsAuth
+from requests_sigv4 import Sigv4Request
+
+
+class ApiRequest:
+    """Class that defines base methods for API requests."""
+
+    class ApiRequestError(Exception):
+        pass
+
+    class InvalidResponseError(ApiRequestError):
+        pass
+
+    def __init__(
+        self,
+        api_uri: str,
+        qpu_id: str,
+        api_version="v0",
+        proxy: Optional[str] = None,
+    ):
+        """
+        Create an instance of `QueueApi`.
+        @param api_uri: Uri for the API endpoints.
+        @param qpu_id: The QPU ID, for example `qpu1-mock`.
+        @param api_version: Specify which version of the API to call from this object.
+        @param procy: Optional, the Uri for running the API via some proxy endpoint.
+        """
+
+        if proxy is None:
+            self.hostname = None
+            self.aws_host = api_uri
+            uri_with_version = api_uri + f"/{api_version}"
+        else:
+            self.hostname = api_uri
+            self.aws_host = proxy
+            uri_with_version = proxy + f"/{api_version}"
+
+        self.base_url = "https://" + uri_with_version
+        self.qpu_id = qpu_id
+        self.logger = logging.getLogger(self.__class__.__name__)
+
+    @staticmethod
+    def _result_as_json(result: requests.Response) -> dict:
+        content_type = result.headers["Content-Type"]
+        if content_type != "application/json":
+            raise ApiRequest.InvalidResponseError(
+                f"Expected Content-Type application/json, but {content_type} found."
+            )
+
+        if len(result.content) == 0:
+            return {}
+
+        return json.loads(result.content)
+
+    def _generate_headers(self, base: Optional[dict] = None) -> dict:
+        match (base, self.hostname):
+            case (None, None):
+                return {"Content-Type": "application/json"}
+            case (None, _):
+                return {"Content-Type": "application/json", "Host": self.hostname}
+            case (_, None):
+                return base
+            case _:
+                header = dict(base)
+                header["Host"] = self.hostname
+                return header
+
+    def _get_path(self, *path_list: str):
+        return "/".join((self.base_url, self.qpu_id) + path_list)
+
+    def _prepare_request(self, *path_list: str) -> Tuple[str, Dict[str, str]]:
+        headers = self._generate_headers()
+        url = self._get_path(*path_list)
+        return url, headers
+
+    def _post(
+        self, url: str, headers: Dict[str, str], content: str
+    ) -> requests.Response:
+        raise NotImplementedError
+
+    def _get(self, url: str, headers: Dict[str, str]) -> requests.Response:
+        raise NotImplementedError
+
+    def _put(self, url: str, headers: Dict[str, str]) -> requests.Response:
+        raise NotImplementedError
+
+    # public API
+    def post(self, *path_list: str, content: Dict[str, str] = {}) -> requests.Response:
+        url, headers = self._prepare_request(*path_list)
+
+        if type(content) == dict:
+            content = json.dumps(content)
+
+        self.logger.info(f'POSTing to "{url}".')
+        response = self._post(url, headers, content)
+        self.logger.debug(f"API return status {response.status_code}.")
+        return response
+
+    def get(self, *path_list: str) -> requests.Response:
+        url, headers = self._prepare_request(*path_list)
+        self.logger.info(f'GETting "{url}".')
+        response = self._get(url, headers)
+        self.logger.debug(f"API return status {response.status_code}.")
+        return response
+
+    def put(self, *path_list: str) -> requests.Response:
+        url, headers = self._prepare_request(*path_list)
+        self.logger.info(f'PUTting "{url}".')
+        response = self._put(url, headers)
+        self.logger.debug(f"API return status {response.status_code}.")
+        return response
+
+
+class AwsApiRequest(ApiRequest):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.request = Sigv4Request(region="us-east-1", profile="qcs-integ")
+
+    def _post(
+        self, url: str, headers: Dict[str, str], content: Dict[str, str]
+    ) -> requests.Response:
+        return self.request.post(url, headers=headers, data=content)
+
+    def _get(self, url: str, headers: Dict[str, str]) -> requests.Response:
+        return self.request.get(url, headers=headers)
+
+    def _put(self, url: str, headers: Dict[str, str]) -> requests.Response:
+        return self.request.put(url, headers=headers)
 
 
 class QueueApi:
     """Simple interface to the QCS task API.
 
     Example (replace URL, QPU ID, and tentant ID with correct values):
-    >>> task = r'{"nshots":100,"lattice":{"sites":[[0,0]],"filling":[1]},'
-    ...       r'"effective_hamiltonian":{"rydberg":{"detuning":{"global":{"values":[0,0]
-        ,"times":[0,0.000001]}},'
-    ...       r'"rabi_frequency_phase":{"global":{"values":[0,0],
-    "times":[0,0.000001]}},'
-    ...       r'"rabi_frequency_amplitude":{"global":{"values":[0,0],
-        "times":[0,0.000001]}}}}}'
+    >>> task_json = {
+    ...     "nshots": 10,
+    ...     "lattice": {
+    ...         "sites":[[0,0]],
+    ...         "filling":[1],
+    ...     },
+    ...     "effective_hamiltonian": {
+    ...         "rydberg": {
+    ...             "rabi_frequency_amplitude":{
+    ...                 "global": {
+    ...                     "times":[0.0, 0.1e-6, 3.9e-6, 4.0e-6],
+    ...                     "values":[0.0, 15.0e6, 15.0e6, 0.0],
+    ...                 }
+    ...             },
+    ...             "rabi_frequency_phase": {
+    ...                 "global": {
+    ...                 "times":[0.0, 4.0e-6],
+    ...                 "values":[0.0, 0.0],
+    ...                 }
+    ...             },
+    ...             "detuning":{
+    ...                 "global": {
+    ...                     "times":[0.0, 4.0e-6],
+    ...                     "values":[0.0, 0.0],
+    ...                 }
+    ...             }
+    ...         }
+    ...     }
+    ... }
     To Use this class with API-Gateway:
-    >>> from aws_requests_auth.boto_utils import BotoAWSRequestsAuth
-    >>> auth = BotoAWSRequestsAuth(aws_host='XXX.execute-api.us-east-1.amazonaws.com',
-                        aws_region='us-east-1',
-                        aws_service='execute-api')
-    >>> url = "https://XXX.execute-api.us-east-1.amazonaws.com/v0"
-    >>> qpu_id = "qpu1-mock"
-    >>> api = QueueApi(url,qpu_id,auth=auth)
-    >>> print(api.is_ready_for_task())
+    >>> api_uri = "XXX.execute-api.us-east-1.amazonaws.com"
+    >>> vpce_uri = "vpce-XXX-XXX.execute-api.us-east-1.vpce.amazonaws.com"
+    >>> api = QueueApi(api_uri, "qpu1-mock", proxy=vpce_uri)
+    >>> print(api.get_capabilities())
     """
 
     bad_request = (
         "The request is invalid. This may indicate an error when parsing a parameter."
     )
-    bad_submit_task_request = "The request is invalid. This may indicate an error when"
-    "parsing a parameter, or an error when parsing or validating the request body. "
-    "The response body may contain a JSON array with a list of validation errors."
+    bad_submit_task_request = (
+        "The request is invalid. This may indicate an error when parsing a parameter, "
+        "or an error when parsing or validating the request body. The response body "
+        "may contain a JSON array with a list of validation errors."
+    )
 
-    qpu_not_found = "The QPU targeted by the request does not exist, or the user \
-making the request is not authorized to access the targeted QPU."
-
-    qpu_or_task_not_found = "The QPU or task targeted by the request does not exist, \
-or the user making the request is not authorized to access the targeted QPU or task."
+    qpu_not_found = (
+        "The QPU targeted by the request does not exist, or the user "
+        "making the request is not authorized to access the targeted QPU."
+    )
+    qpu_or_task_not_found = (
+        "The QPU or task targeted by the request does not exist, "
+        "or the user making the request is not authorized to access the targeted QPU "
+        "or task."
+    )
 
     class QueueApiError(RuntimeError):
         pass
@@ -65,71 +216,22 @@ or the user making the request is not authorized to access the targeted QPU or t
 
     def __init__(
         self,
-        uri: str,
+        api_uri: str,
         qpu_id: str,
         api_version="v0",
-        auth: Optional[requests.auth.AuthBase] = None,
+        proxy: Optional[str] = None,
     ):
-        """
-        Create an instance of `QueueApi`.
-        @param uri: Uri for the API endpoints.
-        @param qpu_id: The QPU ID, for example `qpu1-mock`.
-        @param api_version: Specify which version of the API to call from this object.
-        @param auth: Authenetication object to so sigv4 signing. You can use
-            aws-request-auth
-        """
-        uri_with_version = uri + f"/{api_version}"
-        if auth is None:
-            self.auth = BotoAWSRequestsAuth(
-                aws_host=uri, aws_region="us-east-1", aws_service="execute-api"
-            )
-            creds = self.auth._refreshable_credentials.get_frozen_credentials()
-            if creds is None:
-                raise QueueApi.AuthenticationError(
-                    "Missing local AWS Credentials needed to access Queue."
-                )
-        else:
-            self.auth = auth
-
-        self.base_url = "https://" + uri_with_version
-        self.qpu_id = qpu_id
+        self.api_http_request = AwsApiRequest(
+            api_uri, qpu_id, api_version=api_version, proxy=proxy
+        )
         self.logger = logging.getLogger(self.__class__.__name__)
 
-    @staticmethod
-    def _result_as_json(result: requests.Response) -> dict:
-        content_type = result.headers["Content-Type"]
-        if content_type != "application/json":
-            raise QueueApi.InvalidResponseError(
-                f"Expected Content-Type application/json, but {content_type} found."
-            )
-
-        if len(result.content) == 0:
-            return {}
-
-        return json.loads(result.content)
-
-    def _generate_headers(
-        self, base: dict = {"Content-Type": "application/json"}
-    ) -> dict:
-        return base
-
-    def _get_path(self, *path_list: str):
-        return "/".join((self.base_url, self.qpu_id) + path_list)
-
-    def post_task(self, content: Union[str, dict]) -> str:
+    def post_task(self, task_json: Union[str, dict]) -> str:
         """
         Submit a task to the QPU via the task API.
         @param content: Task specification as a JSON string or dictionary.
         """
-        url = self._get_path("queue", "task")
-        self.logger.info(f'POSTing a task to "{url}".')
-        headers = self._generate_headers()
-
-        if type(content) == dict:
-            content = json.dumps(content)
-
-        result = requests.post(url, headers=headers, data=content, auth=self.auth)
-        self.logger.debug(f"API return status {result.status_code}.")
+        result = self.api_http_request.post("queue", "task", content=task_json)
 
         match result.status_code:
             case 201:
@@ -137,14 +239,14 @@ or the user making the request is not authorized to access the targeted QPU or t
                 self.logger.warning(message)
 
             case 404:
-                message = f"QPU {self.qpu_id} not found."
+                message = f"QPU {self.api_http_request.qpu_id} not found."
                 self.logger.error(message)
                 raise QueueApi.NotFound(message)
 
             case 400:
                 message = (
-                    "The request is invalid. This may indicate an error when"
-                    "parsing a parameter."
+                    "The request is invalid. This may indicate an error when parsing "
+                    "a parameter."
                 )
                 self.logger.error(message)
                 raise QueueApi.InvalidRequestError(message)
@@ -158,11 +260,14 @@ or the user making the request is not authorized to access the targeted QPU or t
                 self.logger.error(message)
                 raise QueueApi.QueueApiError(message)
 
-        result_json = QueueApi._result_as_json(result)
+        result_json = ApiRequest._result_as_json(result)
 
         try:
             task_id = result_json["task_id"]
-            self.logger.info(f"QPU {self.qpu_id} accepted task with task id {task_id}.")
+            self.logger.info(
+                f"QPU {self.api_http_request.qpu_id} accepted "
+                f"task with task id {task_id}."
+            )
             return task_id
         except KeyError:
             raise QueueApi.InvalidResponseError('Response did not contain "task_id".')
@@ -172,10 +277,7 @@ or the user making the request is not authorized to access the targeted QPU or t
         Request the QPU capabilities from the task API.
         @return: dictionary containing different fields for capabilities.
         """
-        url = "/".join((self.base_url, self.qpu_id, "capabilities"))
-        self.logger.info(f'GETting capabilities from  "{url}".')
-        headers = self._generate_headers()
-        result = requests.get(url, headers=headers, auth=self.auth)
+        result = self.api_http_request.get("capabilities")
 
         match result.status_code:
             case 200:
@@ -183,7 +285,7 @@ or the user making the request is not authorized to access the targeted QPU or t
                 self.logger.error(message)
 
             case 404:
-                message = f"QPU {self.qpu_id} not found."
+                message = f"QPU {self.api_http_request.qpu_id} not found."
                 self.logger.error(message)
                 raise QueueApi.NotFound(message)
 
@@ -197,19 +299,10 @@ or the user making the request is not authorized to access the targeted QPU or t
                 self.logger.error(message)
                 raise QueueApi.QueueApiError(message)
 
-        return QueueApi._result_as_json(result)
+        return ApiRequest._result_as_json(result)
 
-    def validate_task(self, content: Union[str, dict]) -> NoneType:
-        url = "/".join(((self.base_url, self.qpu_id, "task", "validate")))
-        self.logger.info(f'POSTing a task to "{url}".')
-        headers = self._generate_headers()
-
-        if type(content) == dict:
-            content = json.dumps(content)
-
-        result = requests.post(url, headers=headers, data=content, auth=self.auth)
-
-        self.logger.debug(f"API return status {result.status_code}.")
+    def validate_task(self, task_json: Union[str, dict]) -> NoneType:
+        result = self.api_http_request.post("task", "validate", content=task_json)
 
         match result.status_code:
             case 200:
@@ -222,7 +315,7 @@ or the user making the request is not authorized to access the targeted QPU or t
                 raise QueueApi.ValidationError(message)
 
             case 404:
-                message = f"QPU {self.qpu_id} not found."
+                message = f"QPU {self.api_http_request.qpu_id} not found."
                 self.logger.error(message)
                 raise QueueApi.NotFound(message)
 
@@ -255,8 +348,8 @@ or the user making the request is not authorized to access the targeted QPU or t
                 return {"task_status": queue_status, "shot_outputs": []}
             case "Unaccepted":
                 raise QueueApi.ValidationError(
-                    f"Task: {task_id} has validation error,"
-                    " unable to fetch error message."
+                    f"Task: {task_id} has validation error, "
+                    "unable to fetch error message."
                 )
             case "Completed":
                 pass
@@ -265,10 +358,7 @@ or the user making the request is not authorized to access the targeted QPU or t
                     f"Undocumented queue status: {queue_status}"
                 )
 
-        url = self._get_path("task", str(task_id), "results")
-        self.logger.info(f'GETting task summary from  "{url}".')
-        result = requests.get(url, headers=self._generate_headers(), auth=self.auth)
-        self.logger.debug(f"API return status {result.status_code}.")
+        result = self.api_http_request.get("task", str(task_id), "results")
 
         match result.status_code:
             case 200:
@@ -295,7 +385,7 @@ or the user making the request is not authorized to access the targeted QPU or t
                 self.logger.error(message)
                 raise QueueApi.QueueApiError(message)
 
-        return QueueApi._result_as_json(result)
+        return ApiRequest._result_as_json(result)
 
     def get_task_status_in_queue(self, task_id: Union[str, uuid.UUID]) -> dict:
         """
@@ -303,10 +393,7 @@ or the user making the request is not authorized to access the targeted QPU or t
         @param task_id: Task ID.
         @return: Parsed JSON of the task status.
         """
-        url = self._get_path("queue", "task", str(task_id))
-        self.logger.info(f'GETting task status queue from  "{url}".')
-        result = requests.get(url, headers=self._generate_headers(), auth=self.auth)
-        self.logger.debug(f"API return status {result.status_code}.")
+        result = self.api_http_request.get("queue", "task", str(task_id))
 
         match result.status_code:
             case 200:
@@ -315,14 +402,16 @@ or the user making the request is not authorized to access the targeted QPU or t
 
             case 400:
                 message = (
-                    "The request is invalid. This may indicate an error when"
-                    " parsing a parameter."
+                    "The request is invalid. This may indicate an error when parsing a "
+                    "parameter."
                 )
                 self.logger.error(message)
                 raise QueueApi.InvalidRequestError(message)
 
             case 404:
-                message = f"QPU {self.qpu_id} or task {task_id} not found."
+                message = (
+                    f"QPU {self.api_http_request.qpu_id} or task {task_id} not found."
+                )
                 self.logger.error(message)
                 raise QueueApi.NotFound(message)
 
@@ -330,15 +419,12 @@ or the user making the request is not authorized to access the targeted QPU or t
                 message = f"QPU returned unhandled status {result.status_code}."
                 self.logger.error(message)
                 raise QueueApi.QueueApiError(message)
-        result_json = QueueApi._result_as_json(result)
+        result_json = ApiRequest._result_as_json(result)
 
         return result_json["status"]
 
     def cancel_task_in_queue(self, task_id: Union[str, uuid.UUID]):
-        url = self._get_path("queue", "task", str(task_id), "cancel")
-        self.logger.info(f'PUTting task status queue from  "{url}".')
-        result = requests.put(url, headers=self._generate_headers(), auth=self.auth)
-        self.logger.debug(f"API return status {result.status_code}.")
+        result = self.api_http_request.put("queue", "task", str(task_id), "cancel")
 
         match result.status_code:
             case 200:
@@ -351,7 +437,9 @@ or the user making the request is not authorized to access the targeted QPU or t
                 raise QueueApi.AuthenticationError(message)
 
             case 404:
-                message = f"QPU {self.qpu_id} or task {task_id} not found."
+                message = (
+                    f"QPU {self.api_http_request.qpu_id} or task {task_id} not found."
+                )
                 self.logger.error(message)
                 raise QueueApi.NotFound(message)
 
@@ -362,16 +450,13 @@ or the user making the request is not authorized to access the targeted QPU or t
 
     def get_task_summary(self, task_id: Union[str, uuid.UUID]) -> dict:
         """
-        Request the task summary for a given task.
-        The summary contains the status of the current task.
+        Request the task summary for a given task. The summary contains the status of
+        the current task.
         @param task_id: Task ID.
         @return: Parsed JSON of the task summary.
         @see: `TaskSummary` in https://github.com/QuEra-QCS/QCS-API/blob/master/qcs-api/openapi.yaml
         """
-        url = "/".join((self.base_url, self.qpu_id, "task", str(task_id)))
-        self.logger.info(f'GETting task summary from  "{url}".')
-        result = requests.get(url, headers=self._generate_headers(), auth=self.auth)
-        self.logger.debug(f"API return status {result.status_code}.")
+        result = self.api_http_request.get("task", str(task_id))
 
         match result.status_code:
             case 200:
@@ -379,7 +464,9 @@ or the user making the request is not authorized to access the targeted QPU or t
                 self.logger.warning(message)
 
             case 404:
-                message = f"QPU {self.qpu_id} or task {task_id} not found."
+                message = (
+                    f"QPU {self.api_http_request.qpu_id} or task {task_id} not found."
+                )
                 self.logger.error(message)
                 raise QueueApi.NotFound(message)
 
@@ -393,7 +480,7 @@ or the user making the request is not authorized to access the targeted QPU or t
                 self.logger.error(message)
                 raise QueueApi.QueueApiError(message)
 
-        return QueueApi._result_as_json(result)
+        return ApiRequest._result_as_json(result)
 
     def is_task_stopped(self, task_id: Union[str, uuid.UUID]) -> bool:
         """

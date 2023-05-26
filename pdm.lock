@@ -107,14 +107,6 @@ requires_python = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 summary = "Classes Without Boilerplate"
 
 [[package]]
-name = "aws-requests-auth"
-version = "0.4.3"
-summary = "AWS signature version 4 signing process for the python requests module"
-dependencies = [
-    "requests>=0.14.0",
-]
-
-[[package]]
 name = "backcall"
 version = "0.2.0"
 summary = "Specifications for callback functions passed in to an API"
@@ -1432,6 +1424,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "requests-aws-sign"
+version = "0.1.6"
+summary = "This package provides AWS V4 request signing using the requests library."
+dependencies = [
+    "boto3",
+    "requests>=2.0.0",
+]
+
+[[package]]
+name = "requests-sigv4"
+version = "0.1.6"
+summary = "Library for making sigv4 requests to AWS API endpoints"
+dependencies = [
+    "boto3",
+    "requests",
+    "requests-aws-sign",
+]
+
+[[package]]
 name = "requests-toolbelt"
 version = "0.10.1"
 requires_python = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
@@ -1727,7 +1738,7 @@ summary = "Backport of pathlib-compatible object wrapper for zip files"
 lock_version = "4.2"
 cross_platform = true
 groups = ["default", "dev", "doc"]
-content_hash = "sha256:1107223c2b472b5ec1b7c33f42cb87566e5004bb441c3754a7281a72fc62cdfb"
+content_hash = "sha256:9a17db596c69eda7f4d5dea71eaa8f5581e81f167b8e790e0b67482a00d8eeaf"
 
 [metadata.files]
 "amazon-braket-default-simulator 1.13.1" = [
@@ -1791,10 +1802,6 @@ content_hash = "sha256:1107223c2b472b5ec1b7c33f42cb87566e5004bb441c3754a7281a72f
 "attrs 21.4.0" = [
     {url = "https://files.pythonhosted.org/packages/be/be/7abce643bfdf8ca01c48afa2ddf8308c2308b0c3b239a44e57d020afa0ef/attrs-21.4.0-py2.py3-none-any.whl", hash = "sha256:2d27e3784d7a565d36ab851fe94887c5eccd6a463168875832a1be79c82828b4"},
     {url = "https://files.pythonhosted.org/packages/d7/77/ebb15fc26d0f815839ecd897b919ed6d85c050feeb83e100e020df9153d2/attrs-21.4.0.tar.gz", hash = "sha256:626ba8234211db98e869df76230a137c4c40a12d72445c45d5f5b716f076e2fd"},
-]
-"aws-requests-auth 0.4.3" = [
-    {url = "https://files.pythonhosted.org/packages/54/b2/455c0bfcbd772dafd4c9e93c4b713e36790abf9ccbca9b8e661968b29798/aws-requests-auth-0.4.3.tar.gz", hash = "sha256:33593372018b960a31dbbe236f89421678b885c35f0b6a7abfae35bb77e069b2"},
-    {url = "https://files.pythonhosted.org/packages/af/11/5dc8be418e1d54bed15eaf3a7461797e5ebb9e6a34869ad750561f35fa5b/aws_requests_auth-0.4.3-py2.py3-none-any.whl", hash = "sha256:646bc37d62140ea1c709d20148f5d43197e6bd2d63909eb36fa4bb2345759977"},
 ]
 "backcall 0.2.0" = [
     {url = "https://files.pythonhosted.org/packages/4c/1c/ff6546b6c12603d8dd1070aa3c3d273ad4c07f5771689a7b69a550e8c951/backcall-0.2.0-py2.py3-none-any.whl", hash = "sha256:fbbce6a29f263178a1f7915c1940bde0ec2b2a967566fe1c65c1dfb7422bd255"},
@@ -3234,6 +3241,14 @@ content_hash = "sha256:1107223c2b472b5ec1b7c33f42cb87566e5004bb441c3754a7281a72f
 "requests 2.29.0" = [
     {url = "https://files.pythonhosted.org/packages/4c/d2/70fc708727b62d55bc24e43cc85f073039023212d482553d853c44e57bdb/requests-2.29.0.tar.gz", hash = "sha256:f2e34a75f4749019bb0e3effb66683630e4ffeaf75819fb51bebef1bf5aef059"},
     {url = "https://files.pythonhosted.org/packages/cf/e1/2aa539876d9ed0ddc95882451deb57cfd7aa8dbf0b8dbce68e045549ba56/requests-2.29.0-py3-none-any.whl", hash = "sha256:e8f3c9be120d3333921d213eef078af392fba3933ab7ed2d1cba3b56f2568c3b"},
+]
+"requests-aws-sign 0.1.6" = [
+    {url = "https://files.pythonhosted.org/packages/22/e7/6355fbd71106e2255a8cbf34114af88fc3a59b710f705a2ebd64c2d60701/requests_aws_sign-0.1.6-py3-none-any.whl", hash = "sha256:b4d082e098aeccbfbb40af13f9217bbc50841dac8da72297cfec8098fe0b1974"},
+    {url = "https://files.pythonhosted.org/packages/e8/14/27d8eed7ef7870525ed9888eaa273d6c564562367a1678a85496d6b4ccf2/requests_aws_sign-0.1.6.tar.gz", hash = "sha256:17b2d21f7677df638cbe22d531bda59f7dbe36493f0fe0b8f5c19b36780b8111"},
+]
+"requests-sigv4 0.1.6" = [
+    {url = "https://files.pythonhosted.org/packages/18/e4/6886a4ae6d33b0eaec1d41673d80b1557089ee5c36dc6b254ff74c3beb91/requests_sigv4-0.1.6-py3-none-any.whl", hash = "sha256:b24b162f1cd38a557ce1b697d2ea2ddbc628d63f69a51987a69048e77dd70326"},
+    {url = "https://files.pythonhosted.org/packages/cb/1a/87638abd6ef571b0cca1a23e30bd412622f1e86d3de6f51f4ae989d711b3/requests-sigv4-0.1.6.tar.gz", hash = "sha256:92ef3cbebd7e20f33b2564ba0d18f5130d249860dd784840136aa5788c74c308"},
 ]
 "requests-toolbelt 0.10.1" = [
     {url = "https://files.pythonhosted.org/packages/05/d3/bf87a36bff1cb88fd30a509fd366c70ec30676517ee791b2f77e0e29817a/requests_toolbelt-0.10.1-py2.py3-none-any.whl", hash = "sha256:18565aa58116d9951ac39baa288d3adb5b3ff975c4f25eee78555d89e8f247f7"},

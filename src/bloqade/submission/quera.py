@@ -8,16 +8,20 @@ from bloqade.submission.ir.task_results import (
     QuEraTaskResults,
     QuEraTaskStatusCode,
 )
+from typing import Optional
 
 
 class QuEraBackend(SubmissionBackend):
-    uri: str
+    api_uri: str
+    proxy: Optional[str]
     api_version: str
     qpu_id: str
 
     @property
     def queue_api(self):
-        return QueueApi(self.uri, self.qpu_id, api_version=self.api_version)
+        return QueueApi(
+            self.api_uri, self.qpu_id, api_version=self.api_version, proxy=self.proxy
+        )
 
     def get_capabilities(self) -> QuEraCapabilities:
         try:
