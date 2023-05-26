@@ -77,13 +77,13 @@ job = (
     start.add_position((0, 0))
     .add_position((6, 0))
     .add_position((3, "distance"))
-    .parallelize(20.0)
     .rydberg.detuning.uniform.piecewise_linear(
         durations=[0.1, 3.8, 0.1], values=[-10, -10, "final_detuning", "final_detuning"]
     )
     .rabi.amplitude.uniform.piecewise_linear(
         durations=[0.1, 3.8, 0.1], values=[0.0, 15.0, 15.0, 0.0]
     )
+    .parallelize(20.0)
     .assign(final_detuning=20, distance=4)
     .mock(100)
 )
@@ -93,13 +93,13 @@ job = (
     start.add_position((0, 0))
     .add_position((6, 0))
     .add_position((3, "distance"))
-    .parallelize(20.0)
     .rydberg.detuning.uniform.piecewise_linear(
         durations=[0.1, 3.8, 0.1], values=[-10, -10, "final_detuning", "final_detuning"]
     )
     .rabi.amplitude.uniform.piecewise_linear(
         durations=[0.1, 3.8, 0.1], values=[0.0, 15.0, 15.0, 0.0]
     )
+    .parallelize(20.0)
     .assign(final_detuning=20, distance=4)
     .mock(100)
 )
