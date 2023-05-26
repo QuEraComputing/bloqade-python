@@ -137,7 +137,7 @@ class AwsApiRequest(ApiRequest):
 class QueueApi:
     """Simple interface to the QCS task API.
 
-    Example (replace URL, QPU ID, and tentant ID with correct values):
+    Example (replace URIs, QPU ID with correct values):
     >>> task_json = {
     ...     "nshots": 10,
     ...     "lattice": {
