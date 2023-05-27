@@ -12,16 +12,24 @@ from typing import Optional
 
 
 class QuEraBackend(SubmissionBackend):
-    api_uri: str
-    proxy: Optional[str]
-    api_version: str
+    api_hostname: str
     qpu_id: str
+    api_stage: str = "v0"
+    proxy: Optional[str] = None
+    # Sigv4Request arguments
+    region: Optional[str] = None
+    access_key: Optional[str] = None
+    secret_key: Optional[str] = None
+    session_token: Optional[str] = None
+    session_expires: Optional[int] = None
+    role_arn: Optional[str] = None
+    role_session_name: Optional[str] = None
+    profile: Optional[str] = None
 
     @property
     def queue_api(self):
-        return QueueApi(
-            self.api_uri, self.qpu_id, api_version=self.api_version, proxy=self.proxy
-        )
+        kwargs = {k: v for k, v in self.__dict__.items() if v is not None}
+        return QueueApi(**kwargs)
 
     def get_capabilities(self) -> QuEraCapabilities:
         try:
