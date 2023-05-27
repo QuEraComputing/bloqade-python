@@ -1,5 +1,6 @@
 {
-    "uri":"jxnlqag44g.execute-api.us-east-1.amazonaws.com",
-    "api_version":"v0",
-    "qpu_id":"qpu1-mock"
+    "api_uri": "jxnlqag44g.execute-api.us-east-1.amazonaws.com",
+    "proxy": null,
+    "api_version": "v0",
+    "qpu_id": "qpu1-mock"
 }
