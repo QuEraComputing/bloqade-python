@@ -32,6 +32,23 @@ def test_issue_107():
     assert prog1.sequence == prog2.sequence
 
 
+def test_issue_150():
+    prog = start.rydberg.detuning.uniform.linear(0, 1, 1).amplitude.uniform.linear(
+        0, 2, 1
+    )
+
+    assert prog.sequence == ir.Sequence(
+        {
+            ir.rydberg: ir.Pulse(
+                {
+                    ir.rabi.amplitude: ir.Field({ir.Uniform: ir.Linear(0, 2, 1)}),
+                    ir.detuning: ir.Field({ir.Uniform: ir.Linear(0, 1, 1)}),
+                }
+            )
+        }
+    )
+
+
 prog = ProgramStart()
 prog = (
     prog.rydberg.detuning.location(1)
