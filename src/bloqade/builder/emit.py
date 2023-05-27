@@ -212,14 +212,14 @@ class Emit(Builder):
                 Emit.__build_ast(builder.__parent__, build_state)
 
             case field.Amplitude():
-                build_state.amplitude = build_state.detuning.add(build_state.field)
+                build_state.amplitude = build_state.amplitude.add(build_state.field)
 
                 # reset build_state values
                 build_state.field = ir.Field({})
                 Emit.__build_ast(builder.__parent__, build_state)
 
             case field.Phase():
-                build_state.phase = build_state.detuning.add(build_state.field)
+                build_state.phase = build_state.phase.add(build_state.field)
 
                 # reset build_state values
                 build_state.field = ir.Field({})
