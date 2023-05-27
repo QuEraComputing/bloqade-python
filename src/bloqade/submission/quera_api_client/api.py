@@ -18,27 +18,28 @@ class ApiRequest:
 
     def __init__(
         self,
-        api_uri: str,
+        api_hostname: str,
         qpu_id: str,
-        api_version="v0",
+        api_stage="v0",
         proxy: Optional[str] = None,
     ):
         """
-        Create an instance of `QueueApi`.
-        @param api_uri: Uri for the API endpoints.
+        Create an instance of `ApiRequest`.
+        @param api_hostname: hostname of the API instance.
         @param qpu_id: The QPU ID, for example `qpu1-mock`.
-        @param api_version: Specify which version of the API to call from this object.
-        @param procy: Optional, the Uri for running the API via some proxy endpoint.
+        @param api_stage: Specify which version of the API to call from this object.
+        @param proxy: Optional, the hostname for running the API via some proxy
+        endpoint.
         """
 
         if proxy is None:
             self.hostname = None
-            self.aws_host = api_uri
-            uri_with_version = api_uri + f"/{api_version}"
+            self.aws_host = api_hostname
+            uri_with_version = api_hostname + f"/{api_stage}"
         else:
-            self.hostname = api_uri
+            self.hostname = api_hostname
             self.aws_host = proxy
-            uri_with_version = proxy + f"/{api_version}"
+            uri_with_version = proxy + f"/{api_stage}"
 
         self.base_url = "https://" + uri_with_version
         self.qpu_id = qpu_id
@@ -117,10 +118,51 @@ class ApiRequest:
 
 
 class AwsApiRequest(ApiRequest):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(
+        self,
+        api_hostname: str,
+        qpu_id: str,
+        api_stage="v0",
+        proxy: Optional[str] = None,
+        # Sigv4Request arguments
+        region: str = "us-east-1",
+        access_key: Optional[str] = None,
+        secret_key: Optional[str] = None,
+        session_token: Optional[str] = None,
+        session_expires: int = 3600,
+        role_arn: Optional[str] = None,
+        role_session_name: str = "awsrequest",
+        profile: Optional[str] = None,
+    ):
+        """
+        Create an instance of `AwsApiRequest`.
+        @param api_hostname: hostname of the API instance.
+        @param qpu_id: The QPU ID, for example `qpu1-mock`.
+        @param api_stage: Specify which version of the API to call from this object.
+        @param proxy: Optional, the hostname for running the API via some proxy
+        endpoint.
+        @param region: AWS region, default value: "us-east-1"
+        @param access_key: Optional, AWS account access key
+        @param secret_key: Optional, AWS account secret key
+        @param session_token: Optional, AWS session token
+        @param session_expires: int, time before current tokens expire, default value
+        3600
+        @param role_arn: Optional, AWS role ARN
+        @param role_session_name: AWS role session name, defualy value: 'awsrequest',
+        @param profile: Optional, AWS profile to use credentials for.
+        """
+        super().__init__(api_hostname, qpu_id, api_stage=api_stage, proxy=proxy)
 
-        self.request = Sigv4Request(region="us-east-1", profile="qcs-integ")
+        self.request = Sigv4Request(
+            region=region,
+            access_key=access_key,
+            secret_key=secret_key,
+            session_token=session_token,
+            session_expires=session_expires,
+            role_arn=role_arn,
+            role_session_name=role_session_name,
+            profile=profile,
+        )
 
     def _post(
         self, url: str, headers: Dict[str, str], content: Dict[str, str]
@@ -168,9 +210,9 @@ class QueueApi:
     ...     }
     ... }
     To Use this class with API-Gateway:
-    >>> api_uri = "XXX.execute-api.us-east-1.amazonaws.com"
+    >>> api_hostname = "XXX.execute-api.us-east-1.amazonaws.com"
     >>> vpce_uri = "vpce-XXX-XXX.execute-api.us-east-1.vpce.amazonaws.com"
-    >>> api = QueueApi(api_uri, "qpu1-mock", proxy=vpce_uri)
+    >>> api = QueueApi(api_hostname, "qpu1-mock", proxy=vpce_uri)
     >>> print(api.get_capabilities())
     """
 
@@ -216,14 +258,40 @@ class QueueApi:
 
     def __init__(
         self,
-        api_uri: str,
+        api_hostname: str,
         qpu_id: str,
-        api_version="v0",
+        api_stage="v0",
         proxy: Optional[str] = None,
+        **request_sigv4_kwargs,
     ):
+        """
+        Create an instance of `QueueApi`.
+        @param api_hostname: hostname of the API instance.
+        @param qpu_id: The QPU ID, for example `qpu1-mock`.
+        @param api_stage: Specify which version of the API to call from this object.
+        @param proxy: Optional, the hostname for running the API via some proxy
+        endpoint.
+
+        request_sigv4_kwargs:
+
+        @param region: AWS region, default value: "us-east-1"
+        @param access_key: Optional, AWS account access key
+        @param secret_key: Optional, AWS account secret key
+        @param session_token: Optional, AWS session token
+        @param session_expires: int, time before current tokens expire, default value
+        3600
+        @param role_arn: Optional, AWS role ARN
+        @param role_session_name: AWS role session name, defualy value: 'awsrequest',
+        @param profile: Optional, AWS profile to use credentials for.
+        """
         self.api_http_request = AwsApiRequest(
-            api_uri, qpu_id, api_version=api_version, proxy=proxy
+            api_hostname,
+            qpu_id,
+            api_stage=api_stage,
+            proxy=proxy,
+            **request_sigv4_kwargs,
         )
+
         self.logger = logging.getLogger(self.__class__.__name__)
 
     def post_task(self, task_json: Union[str, dict]) -> str:
