@@ -371,16 +371,18 @@ class Emit(Builder):
         backend = BraketBackend()
         return self.__compile_hardware(nshots, backend)
 
-    def quera(self, nshots: int, config_file: Optional[str] = None) -> "HardwareJob":
+    def quera(
+        self, nshots: int, config_file: Optional[str] = None, **api_config
+    ) -> "HardwareJob":
         if config_file is None:
             path = os.path.dirname(__file__)
             api_config_file = os.path.join(
-                path, "submission", "quera_api_client", "config", "dev_quera_api.json"
+                path, "submission", "quera_api_client", "config", "integ_quera_api.json"
             )
             with open(api_config_file, "r") as io:
-                api_config = json.load(io)
+                api_config.update(**json.load(io))
 
-            backend = QuEraBackend(**api_config)
+        backend = QuEraBackend(**api_config)
 
         return self.__compile_hardware(nshots, backend)
 
