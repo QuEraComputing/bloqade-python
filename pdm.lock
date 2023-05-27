@@ -889,7 +889,7 @@ dependencies = [
 
 [[package]]
 name = "mkdocstrings"
-version = "0.21.2"
+version = "0.22.0"
 requires_python = ">=3.7"
 summary = "Automatic documentation from sources, for MkDocs."
 dependencies = [
@@ -913,13 +913,13 @@ dependencies = [
 
 [[package]]
 name = "mkdocstrings"
-version = "0.21.2"
+version = "0.22.0"
 extras = ["python"]
 requires_python = ">=3.7"
 summary = "Automatic documentation from sources, for MkDocs."
 dependencies = [
     "mkdocstrings-python>=0.5.2",
-    "mkdocstrings==0.21.2",
+    "mkdocstrings==0.22.0",
 ]
 
 [[package]]
@@ -2576,9 +2576,9 @@ content_hash = "sha256:1107223c2b472b5ec1b7c33f42cb87566e5004bb441c3754a7281a72f
     {url = "https://files.pythonhosted.org/packages/09/b0/ae4e5eb003f1856a7f37780d7cd7fa49998cb042a35902139ed0ace69dc9/mkdocs-minify-plugin-0.6.4.tar.gz", hash = "sha256:1906e9687c39ded7d1ca959c76c6e52da6a8d0765e3981ad9812d3a489f1ecdb"},
     {url = "https://files.pythonhosted.org/packages/b6/46/66433ff68136dd08ec71c08d160d94e3f9b27411f3a276bbdafed4c60b82/mkdocs_minify_plugin-0.6.4-py3-none-any.whl", hash = "sha256:c0221053968a68418245228e04b0d5bc7e6b1a1940db721a52c7ec98d898242e"},
 ]
-"mkdocstrings 0.21.2" = [
-    {url = "https://files.pythonhosted.org/packages/04/ca/7630aa270d8af95eadccc13836e5471a0d639d41555ec894e78a83d1a4cd/mkdocstrings-0.21.2-py3-none-any.whl", hash = "sha256:949ef8da92df9d692ca07be50616459a6b536083a25520fd54b00e8814ce019b"},
-    {url = "https://files.pythonhosted.org/packages/d2/a1/d08d776e8fa2508b299fad8165374317dc742a58880398ed2f9a7ecddefc/mkdocstrings-0.21.2.tar.gz", hash = "sha256:304e56a2e90595708a38a13a278e538a67ad82052dd5c8b71f77a604a4f3d911"},
+"mkdocstrings 0.22.0" = [
+    {url = "https://files.pythonhosted.org/packages/90/89/39b7da1cd3d7bc9d3626a2030349443276bd4c8428b676b010ffb96ec9be/mkdocstrings-0.22.0.tar.gz", hash = "sha256:82a33b94150ebb3d4b5c73bab4598c3e21468c79ec072eff6931c8f3bfc38256"},
+    {url = "https://files.pythonhosted.org/packages/b6/26/5816407b5dd51821a3d23f53bdbd013ab1878b6246e520dc014d200ee1d2/mkdocstrings-0.22.0-py3-none-any.whl", hash = "sha256:2d4095d461554ff6a778fdabdca3c00c468c2f1459d469f7a7f622a2b23212ba"},
 ]
 "mkdocstrings-python 0.9.0" = [
     {url = "https://files.pythonhosted.org/packages/20/7a/1c21699cd4058264785c06804f3bfaa27e7e7b54ded1cf9e5857a8a5ffea/mkdocstrings_python-0.9.0-py3-none-any.whl", hash = "sha256:00e02b5d3d444f9abdec2398f9ba0c73e15deab78685f793f5801fd4d62a5b6f"},
