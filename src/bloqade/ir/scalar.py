@@ -2,8 +2,10 @@ from pydantic.dataclasses import dataclass
 from pydantic import validator
 from typing import Optional
 from .tree_print import Printer
+import re
 
 __all__ = [
+    "var",
     "cast",
     "Scalar",
     "Interval",
@@ -189,8 +191,19 @@ def cast(py) -> Scalar:
     ret = trycast(py)
     if ret is None:
         raise TypeError(f"Cannot cast {py} to Scalar")
-    else:
-        return ret
+
+    return ret
+
+
+def var(py: str) -> "Variable":
+    ret = None
+    if type(py) is str:
+        ret = trycast(py)
+
+    if ret is None:
+        raise TypeError(f"Cannot cast {py} to Variable")
+
+    return ret
 
 
 def trycast(py) -> Optional[Scalar]:
@@ -198,7 +211,12 @@ def trycast(py) -> Optional[Scalar]:
         case int(x) | float(x) | bool(x):
             return Literal(x)
         case str(x):
-            return Variable(x)
+            regex = "^[A-Za-z_][A-Za-z0-9_]*"
+            if re.search(regex, x):
+                return Variable(x)
+            else:
+                raise ValueError(f"string '{x}' is not a valid python identifier")
+
         case list() as xs:
             return list(map(cast, xs))
         case Scalar():
