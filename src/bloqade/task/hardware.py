@@ -17,29 +17,74 @@ from typing import Optional, List
 import numpy as np
 
 
-class TaskDataModel(BaseModel):
-    # note that the separate types here are because pydantic
-    # will automatically convert between the types in a Union
-    quera_task_ir: Optional[QuEraTaskSpecification] = None
-    braket_task_ir: Optional[BraketTaskSpecification] = None
-    mock_backend: Optional[DumbMockBackend] = None
-    quera_backend: Optional[QuEraBackend] = None
-    braket_backend: Optional[BraketBackend] = None
-    parallel_decoder: Optional[ParallelDecoder] = None
+class MockTask(BaseModel, Task):
+    parallel_decoder: Optional[ParallelDecoder]
+    mock_backend: Optional[DumbMockBackend]
+    mock_task_ir: Optional[QuEraTaskSpecification]
 
-    def _check_fields(self) -> None:
-        if self.quera_task_ir is None and self.braket_task_ir is None:
-            raise AttributeError("Missing task_ir.")
+    def submit(self):
+        if self.mock_backend:
+            task_id = self.mock_backend.submit_task(self.mock_task_ir)
+            return HardwareTaskFuture(
+                task_id=task_id,
+                mock_backend=self.mock_backend,
+                mock_task_ir=self.mock_task_ir,
+                parallel_decoder=self.parallel_decoder,
+            )
+        return super().submit()
 
-        if (
-            self.braket_backend is None
-            and self.mock_backend is None
-            and self.quera_backend is None
-        ):
-            raise AttributeError("No backend found for hardware task.")
+    def run_validation(self) -> None:
+        if self.mock_backend:
+            self.mock_backend.validate(self.mock_task_ir)
+
+        super().run_validation()
 
 
-class HardwareTask(TaskDataModel, Task):
+class BraketTask(MockTask):
+    braket_backend: Optional[BraketBackend]
+    braket_task_ir: Optional[BraketTaskSpecification]
+
+    def submit(self):
+        if self.braket_backend:
+            task_id = self.braket_backend.submit_task(self.braket_task_ir)
+            return HardwareTaskFuture(
+                task_id=task_id,
+                braket_backend=self.braket_backend,
+                braket_task_ir=self.braket_task_ir,
+                parallel_decoder=self.parallel_decoder,
+            )
+        return super().submit()
+
+    def run_validation(self) -> None:
+        if self.braket_backend:
+            self.braket_backend.validate(self.braket_task_ir)
+
+        super().run_validation()
+
+
+class QuEraTask(BraketTask):
+    quera_backend: Optional[QuEraBackend]
+    quera_task_ir: Optional[QuEraTaskSpecification]
+
+    def submit(self):
+        if self.quera_backend:
+            task_id = self.quera_backend.submit_task(self.quera_task_ir)
+            return HardwareTaskFuture(
+                task_id=task_id,
+                quera_backend=self.quera_backend,
+                quera_task_ir=self.quera_task_ir,
+                parallel_decoder=self.parallel_decoder,
+            )
+        return super().submit()
+
+    def run_validation(self) -> None:
+        if self.quera_backend:
+            self.quera_backend.validate(self.quera_backend)
+
+        super().run_validation()
+
+
+class HardwareTask(QuEraTask):
     def __init__(self, **kwargs):
         task_ir = kwargs.get("task_ir")
         backend = kwargs.get("backend")
@@ -66,101 +111,86 @@ class HardwareTask(TaskDataModel, Task):
                 )
             case (QuEraTaskSpecification(), DumbMockBackend()):
                 super().__init__(
-                    quera_task_ir=task_ir,
+                    mock_task_ir=task_ir,
                     mock_backend=backend,
                     parallel_decoder=parallel_decoder,
                 )
             case _:
                 super().__init__(**kwargs)
 
-    def submit(self) -> "HardwareTaskFuture":
-        self._check_fields()
-        if self.braket_backend:
-            task_id = self.braket_backend.submit_task(self.braket_task_ir)
-            return HardwareTaskFuture(
-                task_id=task_id,
-                braket_task_ir=self.braket_task_ir,
-                braket_backend=self.braket_backend,
-            )
-        if self.quera_backend:
-            task_id = self.quera_backend.submit_task(self.quera_task_ir)
-            return HardwareTaskFuture(
-                task_id=task_id,
-                quera_task_ir=self.quera_task_ir,
-                quera_backend=self.quera_backend,
-            )
-        if self.mock_backend:
-            task_id = self.mock_backend.submit_task(self.quera_task_ir)
-            return HardwareTaskFuture(
-                task_id=task_id,
-                quera_task_ir=self.quera_task_ir,
-                mock_backend=self.mock_backend,
-            )
 
-    def run_validation(self) -> None:
-        self._check_fields()
-
-        if self.braket_backend:
-            self.braket_backend.validate_task(self.braket_task_ir)
-
-        if self.quera_backend:
-            self.quera_backend.validate_task(self.quera_task_ir)
-
-        if self.mock_backend:
-            self.mock_backend.validate_task(self.quera_task_ir)
-
-
-class TaskFutureDataModel(TaskDataModel):
-    task_id: Optional[str] = None
-
-    def _check_fields(self):
-        super()._check_fields()
-
-        if self.task_id is None:
-            raise AttributeError("Missing task_id.")
-
-
-class HardwareTaskFuture(TaskFutureDataModel, TaskFuture):
-    def status(self) -> QuEraTaskStatusCode:
-        self._check_fields()
-
-        if self.braket_backend:
-            self.braket_backend.task_status(self.task_id)
-
-        if self.quera_backend:
-            self.quera_backend.task_status(self.task_id)
-
-        if self.mock_backend:
-            self.mock_backend.task_status(self.task_id)
-
-    def cancel(self) -> None:
-        self._check_fields()
-        if self.status() in [
-            QuEraTaskStatusCode.Complete,
-            QuEraTaskStatusCode.Running,
-            QuEraTaskStatusCode.Accepted,
-        ]:
-            return
-
-        if self.braket_backend:
-            self.braket_backend.cancel_task(self.task_id)
-
-        if self.quera_backend:
-            self.quera_backend.cancel_task(self.task_id)
-
-        if self.mock_backend:
-            self.mock_backend.cancel_task(self.task_id)
+class MockTaskFuture(BaseModel, TaskFuture):
+    task_id: str
+    mock_backend: Optional[DumbMockBackend]
+    mock_task_ir: Optional[QuEraTaskSpecification]
 
     def fetch(self) -> QuEraTaskResults:
-        self._check_fields()
+        if self.mock_backend:
+            return self.mock_backend.task_results(self.task_id)
+
+        return super().fetch()
+
+    def status(self) -> QuEraTaskStatusCode:
+        if self.mock_backend:
+            return self.mock_backend.task_status(self.task_id)
+
+        return super().status()
+
+    def cancel(self) -> None:
+        if self.mock_backend:
+            return self.mock_backend.cancel_task(self.task_id)
+
+        return super().cancel()
+
+
+class BraketTaskFuture(MockTaskFuture):
+    braket_backend: Optional[BraketBackend]
+    to_braket_task_ir: Optional[BraketTaskSpecification]
+
+    def fetch(self) -> QuEraTaskResults:
         if self.braket_backend:
             return self.braket_backend.task_results(self.task_id)
 
+        return super().fetch()
+
+    def status(self) -> QuEraTaskStatusCode:
+        if self.braket_backend:
+            return self.braket_backend.task_status(self.task_id)
+
+        return super().status()
+
+    def cancel(self) -> None:
+        if self.braket_backend:
+            return self.braket_backend.cancel_task(self.task_id)
+
+        return super().cancel()
+
+
+class QuEraTaskFuture(BraketTaskFuture):
+    quera_backend: Optional[QuEraBackend]
+    quera_task_ir: Optional[QuEraTaskSpecification]
+
+    def fetch(self) -> QuEraTaskResults:
         if self.quera_backend:
             return self.quera_backend.task_results(self.task_id)
 
-        if self.mock_backend:
-            return self.mock_backend.task_results(self.task_id)
+        return super().fetch()
+
+    def status(self) -> QuEraTaskStatusCode:
+        if self.quera_backend:
+            return self.quera_backend.task_status(self.task_id)
+
+        return super().status()
+
+    def cancel(self) -> None:
+        if self.quera_backend:
+            return self.quera_backend.cancel_task(self.task_id)
+
+        return super().cancel()
+
+
+class HardwareTaskFuture(QuEraTaskFuture):
+    parallel_decoder: Optional[ParallelDecoder]
 
 
 class HardwareJob(BaseModel, Job):
@@ -231,6 +261,9 @@ class HardwareFuture(BaseModel, Future):
 
     def __init__(self, futures: List[HardwareTaskFuture] = []):
         super().__init__(futures=futures)
+
+    def _futures(self):
+        return self.futures
 
     def cancel(self) -> None:
         for future in self.futures:
