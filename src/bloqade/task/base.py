@@ -3,7 +3,7 @@ from bloqade.submission.ir.task_results import (
     QuEraTaskStatusCode,
     QuEraShotStatusCode,
 )
-from typing import List, Union, TextIO
+from typing import List, Union, TextIO, Tuple, Optional
 from numpy.typing import NDArray
 import pandas as pd
 import json
@@ -71,6 +71,11 @@ class Future(JSONInterface):
         raise NotImplementedError
 
     def fetch(self, cache_results: bool = False) -> List[QuEraTaskResults]:
+        raise NotImplementedError
+
+    def decode_parallel(
+        self, cluster_index: Optional[Tuple[int, int]] = None
+    ) -> QuEraTaskResults:
         raise NotImplementedError
 
 

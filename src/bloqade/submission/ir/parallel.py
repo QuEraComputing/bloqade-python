@@ -83,14 +83,16 @@ class ParallelDecoder(BaseModel):
         }
 
     def decode_results(
-        self, task_result: QuEraTaskResults, clusters: Union[int, List[int]] = []
+        self,
+        task_result: QuEraTaskResults,
+        clusters: Union[Tuple[int, int], List[Tuple[int, int]]] = [],
     ) -> QuEraTaskResults:
         cluster_indices = self.get_cluster_indices()
 
         shot_outputs = []
 
         match clusters:
-            case int(cluster_index):
+            case tuple() as cluster_index:
                 clusters = [cluster_index]
             case list() if clusters:
                 pass
@@ -98,20 +100,22 @@ class ParallelDecoder(BaseModel):
                 clusters = cluster_indices.keys()
 
         for full_shot_result in task_result.shot_outputs:
-            for cluster_location_indices in cluster_indices.values():
-                shot_outputs.append(
-                    QuEraShotResult(
-                        shot_status=full_shot_result.shot_status,
-                        pre_sequence=[
-                            full_shot_result.pre_sequence[index]
-                            for index in cluster_location_indices
-                        ],
-                        post_sequence=[
-                            full_shot_result.post_sequence[index]
-                            for index in cluster_location_indices
-                        ],
+            for cluster_index in clusters:
+                global_indices = cluster_indices.get(cluster_index, [])
+                if global_indices:
+                    shot_outputs.append(
+                        QuEraShotResult(
+                            shot_status=full_shot_result.shot_status,
+                            pre_sequence=[
+                                full_shot_result.pre_sequence[index]
+                                for index in global_indices
+                            ],
+                            post_sequence=[
+                                full_shot_result.post_sequence[index]
+                                for index in global_indices
+                            ],
+                        )
                     )
-                )
 
         return QuEraTaskResults(
             task_status=task_result.task_status, shot_outputs=shot_outputs
