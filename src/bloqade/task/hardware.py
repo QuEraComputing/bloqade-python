@@ -11,7 +11,7 @@ from bloqade.submission.ir.task_results import QuEraTaskStatusCode
 from bloqade.task.base import Task, Future, Geometry, TaskFuture, Job
 
 
-from typing import Optional, List, Tuple, Union
+from typing import Optional, List, Union
 
 import numpy as np
 
@@ -328,14 +328,3 @@ class HardwareFuture(BaseModel, Future):
                 raise ValueError(
                     "Cannot parse JSON file to HardwareFuture, invalided format."
                 )
-
-    def decode_parallel(
-        self, clusters: Union[Tuple[int, int], List[Tuple[int, int]]] = []
-    ) -> List[QuEraTaskResults]:
-        decoded_task_results = []
-        for future, task_result in zip(self.futures, self.task_results):
-            decoded_task_results.append(
-                future.parallel_decoder.decode_results(task_result, clusters)
-            )
-
-        return decoded_task_results
