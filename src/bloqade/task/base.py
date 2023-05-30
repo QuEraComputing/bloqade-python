@@ -8,6 +8,7 @@ from typing import List, Union, TextIO, Tuple, Optional
 from numpy.typing import NDArray
 from pydantic.dataclasses import dataclass
 import pandas as pd
+import numpy as np
 import json
 
 
@@ -96,9 +97,8 @@ class Future(JSONInterface):
 class Report:
     def __init__(self, future: Future) -> None:
         self._future = future
-        self._perfect_filling = None
         self._dataframe = None  # df cache
-        self._bitstring = None  # bitstring cache
+        self._bitstrings = None  # bitstring cache
         self._task_results = None  # task_ir cache
 
     @property
@@ -107,7 +107,7 @@ class Report:
 
     @property
     def task_results(self) -> List[QuEraTaskResults]:
-        if self._task_results:
+        if self._task_results is not None:
             return self._task_results
 
         self._task_results = [
@@ -118,7 +118,7 @@ class Report:
 
     @property
     def dataframe(self) -> pd.DataFrame:
-        if self._dataframe:
+        if self._dataframe is not None:
             return self._dataframe
 
         self._dataframe = self.construct_dataframe()
@@ -134,45 +134,37 @@ class Report:
 
             if parallel_decoder:
                 cluster_indices = parallel_decoder.get_cluster_indices()
-
-                for shot in filter(
-                    lambda shot: shot.shot_status == QuEraShotStatusCode.Completed,
-                    task_future.task_result.shot_outputs,
-                ):
-                    for cluster_coordinate, cluster_index in cluster_indices.items():
-                        pre_sequence = "".join(
-                            map(
-                                str,
-                                (shot.pre_sequence[index] for index in cluster_index),
-                            )
-                        )
-
-                        post_sequence = [
-                            shot.post_sequence[index] for index in cluster_index
-                        ]
-
-                        key = (
-                            cluster_coordinate,
-                            perfect_sorting,
-                            pre_sequence,
-                            task_number,
-                        )
-                        index.append(key)
-                        data.append(post_sequence)
-
             else:
-                for shot in filter(
-                    lambda shot: shot.shot_status == QuEraShotStatusCode.Completed,
-                    task_future.task_result.shot_outputs,
-                ):
-                    pre_sequence = "".join(map(str, shot.pre_sequence))
-                    key = ((0, 0), perfect_sorting, pre_sequence, task_number)
+                cluster_indices = {(0, 0): list(range(len(perfect_sorting)))}
 
+            for shot in filter(
+                lambda shot: shot.shot_status == QuEraShotStatusCode.Completed,
+                task_future.task_result.shot_outputs,
+            ):
+                for cluster_coordinate, cluster_index in cluster_indices.items():
+                    pre_sequence = "".join(
+                        map(
+                            str,
+                            (shot.pre_sequence[index] for index in cluster_index),
+                        )
+                    )
+
+                    post_sequence = np.asarray(
+                        [shot.post_sequence[index] for index in cluster_index],
+                        dtype=np.int8,
+                    )
+
+                    key = (
+                        task_number,
+                        cluster_coordinate,
+                        perfect_sorting,
+                        pre_sequence,
+                    )
                     index.append(key)
-                    data.append(shot.post_sequence)
+                    data.append(post_sequence)
 
         index = pd.MultiIndex.from_tuples(
-            index, names=["cluster", "perfect_sorting", "pre_sequence", "task_number"]
+            index, names=["task_number", "cluster", "perfect_sorting", "pre_sequence"]
         )
 
         df = pd.DataFrame(data, index=index)
@@ -185,20 +177,27 @@ class Report:
         return self.dataframe.to_markdown()
 
     @property
-    def bitstring(self) -> NDArray:
-        if self._bitstring:
-            return self._bitstring
-        self._bitstring = self.construct_bitstring()
-        return self._bitstring
+    def bitstrings(self) -> List[NDArray]:
+        if self._bitstrings is not None:
+            return self._bitstrings
+        self._bitstrings = self.construct_bitstrings()
+        return self._bitstrings
 
-    def construct_bitstring(self) -> NDArray:
+    def construct_bitstrings(self) -> List[NDArray]:
         perfect_sorting = self.dataframe.index.get_level_values("perfect_sorting")
         pre_sequence = self.dataframe.index.get_level_values("pre_sequence")
-        return self.dataframe.loc[perfect_sorting == pre_sequence].to_numpy().squeeze()
+        filtered_df = self.dataframe[perfect_sorting == pre_sequence]
+        bitstrings = []
+        task_numbers = filtered_df.index.get_level_values("task_number")
+        for task_number in task_numbers.unique():
+            bitstrings.append(filtered_df.loc[task_number, ...].to_numpy())
+
+        return bitstrings
 
     def rydberg_densities(self) -> pd.Series:
         perfect_sorting = self.dataframe.index.get_level_values("perfect_sorting")
         pre_sequence = self.dataframe.index.get_level_values("pre_sequence")
+
         return (
             self.dataframe.loc[perfect_sorting == pre_sequence]
             .groupby("task_number")

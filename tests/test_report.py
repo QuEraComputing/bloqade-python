@@ -28,4 +28,4 @@ future = (
     .submit()
 )
 
-print(future.report().bitstring.shape)
+print(future.report().bitstrings.shape)
