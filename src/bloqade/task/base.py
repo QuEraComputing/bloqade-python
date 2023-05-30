@@ -3,9 +3,12 @@ from bloqade.submission.ir.task_results import (
     QuEraTaskStatusCode,
     QuEraShotStatusCode,
 )
+from bloqade.submission.ir.parallel import ParallelDecoder
 from typing import List, Union, TextIO, Tuple, Optional
 from numpy.typing import NDArray
+from pydantic.dataclasses import dataclass
 import pandas as pd
+import numpy as np
 import json
 
 
@@ -17,8 +20,26 @@ class Task:
         raise NotImplementedError
 
 
+@dataclass(frozen=True)
+class Geometry:
+    sites: List[Tuple[float, float]]
+    filling: List[int]
+    parallel_decoder: Optional[ParallelDecoder]
+
+
 class TaskFuture:
-    def fetch(self) -> QuEraTaskResults:
+    @property
+    def geometry(self) -> Geometry:
+        return self.task_geometry()
+
+    def task_geometry(self) -> Geometry:
+        raise NotImplementedError
+
+    @property
+    def task_result(self) -> QuEraTaskResults:
+        return self.fetch(cache=True)
+
+    def fetch(self, cache=False) -> QuEraTaskResults:
         raise NotImplementedError
 
     def status(self) -> QuEraTaskStatusCode:
@@ -60,22 +81,13 @@ class Job(JSONInterface):
 
 
 class Future(JSONInterface):
-    @property
-    def task_results(self) -> List[QuEraTaskResults]:
-        return self.fetch(cache_results=True)
+    def task_futures(self) -> List[TaskFuture]:
+        raise NotImplementedError
 
     def report(self) -> "Report":
         return Report(self)
 
     def cancel(self) -> None:
-        raise NotImplementedError
-
-    def fetch(self, cache_results: bool = False) -> List[QuEraTaskResults]:
-        raise NotImplementedError
-
-    def decode_parallel(
-        self, cluster_index: Optional[Tuple[int, int]] = None
-    ) -> QuEraTaskResults:
         raise NotImplementedError
 
 
@@ -85,9 +97,9 @@ class Future(JSONInterface):
 class Report:
     def __init__(self, future: Future) -> None:
         self._future = future
-        self._perfect_filling = None
         self._dataframe = None  # df cache
-        self._bitstring = None  # bitstring cache
+        self._bitstrings = None  # bitstring cache
+        self._task_results = None  # task_ir cache
 
     @property
     def future(self) -> Future:
@@ -95,11 +107,18 @@ class Report:
 
     @property
     def task_results(self) -> List[QuEraTaskResults]:
-        return self.future.task_results
+        if self._task_results is not None:
+            return self._task_results
+
+        self._task_results = [
+            task_future.task_result for task_future in self.future.task_futures()
+        ]
+
+        return self._task_results
 
     @property
     def dataframe(self) -> pd.DataFrame:
-        if self._dataframe:
+        if self._dataframe is not None:
             return self._dataframe
 
         self._dataframe = self.construct_dataframe()
@@ -109,17 +128,44 @@ class Report:
         index = []
         data = []
 
-        for task_number, task_result in enumerate(self.task_results):
-            for shot in task_result.shot_outputs:
-                pre_sequence = "".join(map(str, shot.pre_sequence))
-                if shot.shot_status != QuEraShotStatusCode.Completed:
-                    continue
-                key = (pre_sequence, task_number)
+        for task_number, task_future in enumerate(self.future.task_futures()):
+            perfect_sorting = "".join(map(str, task_future.geometry.filling))
+            parallel_decoder = task_future.geometry.parallel_decoder
 
-                index.append(key)
-                data.append(shot.post_sequence)
+            if parallel_decoder:
+                cluster_indices = parallel_decoder.get_cluster_indices()
+            else:
+                cluster_indices = {(0, 0): list(range(len(perfect_sorting)))}
 
-        index = pd.MultiIndex.from_tuples(index, names=["pre_sequence", "task_number"])
+            for shot in filter(
+                lambda shot: shot.shot_status == QuEraShotStatusCode.Completed,
+                task_future.task_result.shot_outputs,
+            ):
+                for cluster_coordinate, cluster_index in cluster_indices.items():
+                    pre_sequence = "".join(
+                        map(
+                            str,
+                            (shot.pre_sequence[index] for index in cluster_index),
+                        )
+                    )
+
+                    post_sequence = np.asarray(
+                        [shot.post_sequence[index] for index in cluster_index],
+                        dtype=np.int8,
+                    )
+
+                    key = (
+                        task_number,
+                        cluster_coordinate,
+                        perfect_sorting,
+                        pre_sequence,
+                    )
+                    index.append(key)
+                    data.append(post_sequence)
+
+        index = pd.MultiIndex.from_tuples(
+            index, names=["task_number", "cluster", "perfect_sorting", "pre_sequence"]
+        )
 
         df = pd.DataFrame(data, index=index)
         df.sort_index(axis="index")
@@ -131,44 +177,29 @@ class Report:
         return self.dataframe.to_markdown()
 
     @property
-    def perfect_filling(self) -> str:
-        if self._perfect_filling:
-            return self._perfect_filling
+    def bitstrings(self) -> List[NDArray]:
+        if self._bitstrings is not None:
+            return self._bitstrings
+        self._bitstrings = self.construct_bitstrings()
+        return self._bitstrings
 
-        self._perfect_filling = self.construct_perfect_filling()
-        return self._perfect_filling
+    def construct_bitstrings(self) -> List[NDArray]:
+        perfect_sorting = self.dataframe.index.get_level_values("perfect_sorting")
+        pre_sequence = self.dataframe.index.get_level_values("pre_sequence")
+        filtered_df = self.dataframe[perfect_sorting == pre_sequence]
+        bitstrings = []
+        task_numbers = filtered_df.index.get_level_values("task_number")
+        for task_number in task_numbers.unique():
+            bitstrings.append(filtered_df.loc[task_number, ...].to_numpy())
 
-    def construct_perfect_filling(self) -> str:
-        fillings = {}
-        for task_number, future in enumerate(self.future.futures):
-            if future.quera_task_ir:
-                filling = future.quera_task_ir.lattice.filling
-
-            if future.braket_task_ir:
-                filling = future.braket_task_ir.program.setup.ahs_register.filling
-            filling = "".join(map(str, filling))
-
-            fillings[filling] = fillings.get(filling, []) + [task_number]
-
-        if len(fillings) > 1:
-            # TODO: figure out how to allow for more than one mask here
-            raise ValueError(
-                "multiple fillings found in batch task, cannot post-process batch"
-            )
-
-        (filing,) = fillings.keys()
-
-        return filling
-
-    @property
-    def bitstring(self) -> NDArray:
-        if self._bitstring:
-            return self._bitstring
-        self._bitstring = self.construct_bitstring()
-        return self._bitstring
-
-    def construct_bitstring(self) -> NDArray:
-        return self.dataframe.loc[self.perfect_filling].to_numpy()
+        return bitstrings
 
     def rydberg_densities(self) -> pd.Series:
-        return self.dataframe.loc[self.perfect_filling].mean()
+        perfect_sorting = self.dataframe.index.get_level_values("perfect_sorting")
+        pre_sequence = self.dataframe.index.get_level_values("pre_sequence")
+
+        return (
+            self.dataframe.loc[perfect_sorting == pre_sequence]
+            .groupby("task_number")
+            .mean()
+        )
