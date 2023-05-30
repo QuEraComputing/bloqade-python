@@ -27,6 +27,9 @@ class ParallelDecoder(BaseModel):
     locations_per_cluster: int
     number_of_cluster: int
 
+    class Config:
+        frozen = True
+
     def __init__(self, mapping: List[ClusterLocationInfo]):
         cluster_location_indices = set()
         cluster_indices = set()

@@ -3,8 +3,10 @@ from bloqade.submission.ir.task_results import (
     QuEraTaskStatusCode,
     QuEraShotStatusCode,
 )
-from typing import List, Union, TextIO
+from bloqade.submission.ir.parallel import ParallelDecoder
+from typing import List, Union, TextIO, Generator, Tuple, Optional
 from numpy.typing import NDArray
+from pydantic.dataclasses import dataclass
 import pandas as pd
 import json
 
@@ -17,8 +19,26 @@ class Task:
         raise NotImplementedError
 
 
+@dataclass(frozen=True)
+class Geometry:
+    sites: List[Tuple[float, float]]
+    filling: List[int]
+    parallel_decoder: Optional[ParallelDecoder]
+
+
 class TaskFuture:
-    def fetch(self) -> QuEraTaskResults:
+    @property
+    def geometry(self) -> Geometry:
+        return self.task_geometry()
+
+    def task_geometry(self) -> Geometry:
+        raise NotImplementedError
+
+    @property
+    def task_result(self) -> QuEraTaskResults:
+        return self.fetch(cache=True)
+
+    def fetch(self, cache=False) -> QuEraTaskResults:
         raise NotImplementedError
 
     def status(self) -> QuEraTaskStatusCode:
@@ -60,17 +80,13 @@ class Job(JSONInterface):
 
 
 class Future(JSONInterface):
-    @property
-    def task_results(self) -> List[QuEraTaskResults]:
-        return self.fetch(cache_results=True)
+    def enumerate(self) -> Generator[TaskFuture, None, None]:
+        raise NotImplementedError
 
     def report(self) -> "Report":
         return Report(self)
 
     def cancel(self) -> None:
-        raise NotImplementedError
-
-    def fetch(self, cache_results: bool = False) -> List[QuEraTaskResults]:
         raise NotImplementedError
 
 
@@ -83,6 +99,7 @@ class Report:
         self._perfect_filling = None
         self._dataframe = None  # df cache
         self._bitstring = None  # bitstring cache
+        self._task_results = None  # task_ir cache
 
     @property
     def future(self) -> Future:
@@ -90,7 +107,12 @@ class Report:
 
     @property
     def task_results(self) -> List[QuEraTaskResults]:
-        return self.future.task_results
+        if self._task_results:
+            return self._task_results
+
+        self._task_results = [future.task_result for future in self.future.enumerate()]
+
+        return self._task_results
 
     @property
     def dataframe(self) -> pd.DataFrame:
