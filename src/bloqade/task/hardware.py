@@ -85,7 +85,7 @@ class HardwareTask(QuEraTask):
     def __init__(
         self,
         task_ir: QuEraTaskSpecification,
-        backend: Union[QuEraBackend, BraketBackend, DumbMockBackend],
+        backend: Optional[Union[QuEraBackend, BraketBackend, DumbMockBackend]] = None,
         parallel_decoder: Optional[ParallelDecoder] = None,
         **kwargs,
     ):
@@ -109,7 +109,9 @@ class HardwareTask(QuEraTask):
                     parallel_decoder=parallel_decoder,
                 )
             case _:
-                super().__init__(**kwargs)
+                super().__init__(
+                    task_ir=task_ir, parallel_decoder=parallel_decoder, **kwargs
+                )
 
 
 class MockTaskFuture(BaseModel, TaskFuture):
@@ -131,7 +133,7 @@ class MockTaskFuture(BaseModel, TaskFuture):
         else:
             return Geometry(
                 sites=self.task_ir.lattice.sites,
-                filling=self.task_ir.lattice.sites,
+                filling=self.task_ir.lattice.filling,
                 parallel_decoder=self.parallel_decoder,
             )
 
@@ -319,7 +321,9 @@ class HardwareFuture(BaseModel, Future):
             case {
                 "futures": list() as futures,
             }:
-                self.tasks = [HardwareTask(**future_json) for future_json in futures]
+                self.futures = [
+                    HardwareTaskFuture(**future_json) for future_json in futures
+                ]
             case _:
                 raise ValueError(
                     "Cannot parse JSON file to HardwareFuture, invalided format."

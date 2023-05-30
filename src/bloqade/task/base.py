@@ -81,6 +81,10 @@ class Job(JSONInterface):
 
 
 class Future(JSONInterface):
+    @property
+    def task_results(self) -> List[QuEraTaskResults]:
+        return [future.task_result for future in self.task_futures()]
+
     def task_futures(self) -> List[TaskFuture]:
         raise NotImplementedError
 
@@ -99,7 +103,6 @@ class Report:
         self._future = future
         self._dataframe = None  # df cache
         self._bitstrings = None  # bitstring cache
-        self._task_results = None  # task_ir cache
 
     @property
     def future(self) -> Future:
@@ -107,14 +110,7 @@ class Report:
 
     @property
     def task_results(self) -> List[QuEraTaskResults]:
-        if self._task_results is not None:
-            return self._task_results
-
-        self._task_results = [
-            task_future.task_result for task_future in self.future.task_futures()
-        ]
-
-        return self._task_results
+        return self.future.task_results
 
     @property
     def dataframe(self) -> pd.DataFrame:
