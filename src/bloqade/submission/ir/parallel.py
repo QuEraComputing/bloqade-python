@@ -52,6 +52,21 @@ class ParallelDecoder(BaseModel):
         if len(sites) != len(unique_sites):
             raise ValidationError("one or more sites mapped to multiple clusters")
 
+        cluster_indices = {}
+        for location_cluster_info in mapping:
+            cluster_index = location_cluster_info.cluster_index
+            global_site_index = location_cluster_info.global_location_index
+            cluster_indices.setdefault(cluster_index, set([])).add(global_site_index)
+
+        for cluster_index, location_indices in cluster_indices.items():
+            for other_cluster_index, other_location_indices in cluster_indices.items():
+                if cluster_index == other_cluster_index:
+                    continue
+                if location_indices.intersection(other_location_indices):
+                    raise ValidationError(
+                        "one or more sites mapped to multiple clusters"
+                    )
+
         return mapping
 
     # map individual atom indices (in the context of the ENTIRE geometry)
