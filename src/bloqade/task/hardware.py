@@ -11,7 +11,7 @@ from bloqade.submission.ir.task_results import QuEraTaskStatusCode
 from bloqade.task.base import Task, Future, Geometry, TaskFuture, Job
 
 
-from typing import Generator, Optional, List
+from typing import Optional, List, Union
 
 import numpy as np
 
@@ -34,7 +34,7 @@ class MockTask(BaseModel, Task):
 
     def run_validation(self) -> None:
         if self.mock_backend:
-            self.mock_backend.validate(self.task_ir)
+            self.mock_backend.validate_task(self.task_ir)
 
         super().run_validation()
 
@@ -55,7 +55,7 @@ class BraketTask(MockTask):
 
     def run_validation(self) -> None:
         if self.braket_backend:
-            self.braket_backend.validate(self.task_ir)
+            self.braket_backend.validate_task(self.task_ir)
 
         super().run_validation()
 
@@ -76,17 +76,19 @@ class QuEraTask(BraketTask):
 
     def run_validation(self) -> None:
         if self.quera_backend:
-            self.quera_backend.validate(self.task_ir)
+            self.quera_backend.validate_task(self.task_ir)
 
         super().run_validation()
 
 
 class HardwareTask(QuEraTask):
-    def __init__(self, **kwargs):
-        task_ir = kwargs.get("task_ir")
-        backend = kwargs.get("backend")
-        parallel_decoder = kwargs.get("parallel_decoder")
-
+    def __init__(
+        self,
+        task_ir: QuEraTaskSpecification,
+        backend: Union[QuEraBackend, BraketBackend, DumbMockBackend],
+        parallel_decoder: Optional[ParallelDecoder] = None,
+        **kwargs,
+    ):
         match backend:
             case BraketBackend():
                 super().__init__(
@@ -289,8 +291,8 @@ class HardwareFuture(BaseModel, Future):
     def __init__(self, futures: List[HardwareTaskFuture] = []):
         super().__init__(futures=futures)
 
-    def enumerate(self) -> Generator[HardwareTaskFuture, None, None]:
-        return iter(self.futures)
+    def task_futures(self) -> List[HardwareTaskFuture]:
+        return self.futures
 
     def cancel(self) -> None:
         for future in self.futures:

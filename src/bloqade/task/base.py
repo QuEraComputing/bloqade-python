@@ -4,7 +4,7 @@ from bloqade.submission.ir.task_results import (
     QuEraShotStatusCode,
 )
 from bloqade.submission.ir.parallel import ParallelDecoder
-from typing import List, Union, TextIO, Generator, Tuple, Optional
+from typing import List, Union, TextIO, Tuple, Optional
 from numpy.typing import NDArray
 from pydantic.dataclasses import dataclass
 import pandas as pd
@@ -80,7 +80,7 @@ class Job(JSONInterface):
 
 
 class Future(JSONInterface):
-    def enumerate(self) -> Generator[TaskFuture, None, None]:
+    def task_futures(self) -> List[TaskFuture]:
         raise NotImplementedError
 
     def report(self) -> "Report":
@@ -110,7 +110,9 @@ class Report:
         if self._task_results:
             return self._task_results
 
-        self._task_results = [future.task_result for future in self.future.enumerate()]
+        self._task_results = [
+            task_future.task_result for task_future in self.future.task_futures()
+        ]
 
         return self._task_results
 
@@ -126,17 +128,52 @@ class Report:
         index = []
         data = []
 
-        for task_number, task_result in enumerate(self.task_results):
-            for shot in task_result.shot_outputs:
-                pre_sequence = "".join(map(str, shot.pre_sequence))
-                if shot.shot_status != QuEraShotStatusCode.Completed:
-                    continue
-                key = (pre_sequence, task_number)
+        for task_number, task_future in enumerate(self.future.task_futures()):
+            perfect_sorting = "".join(map(str, task_future.geometry.filling))
+            parallel_decoder = task_future.geometry.parallel_decoder
 
-                index.append(key)
-                data.append(shot.post_sequence)
+            if parallel_decoder:
+                cluster_indices = parallel_decoder.get_cluster_indices()
 
-        index = pd.MultiIndex.from_tuples(index, names=["pre_sequence", "task_number"])
+                for shot in filter(
+                    lambda shot: shot.shot_status == QuEraShotStatusCode.Completed,
+                    task_future.task_result.shot_outputs,
+                ):
+                    for cluster_coordinate, cluster_index in cluster_indices.items():
+                        pre_sequence = "".join(
+                            map(
+                                str,
+                                (shot.pre_sequence[index] for index in cluster_index),
+                            )
+                        )
+
+                        post_sequence = [
+                            shot.post_sequence[index] for index in cluster_index
+                        ]
+
+                        key = (
+                            cluster_coordinate,
+                            perfect_sorting,
+                            pre_sequence,
+                            task_number,
+                        )
+                        index.append(key)
+                        data.append(post_sequence)
+
+            else:
+                for shot in filter(
+                    lambda shot: shot.shot_status == QuEraShotStatusCode.Completed,
+                    task_future.task_result.shot_outputs,
+                ):
+                    pre_sequence = "".join(map(str, shot.pre_sequence))
+                    key = ((0, 0), perfect_sorting, pre_sequence, task_number)
+
+                    index.append(key)
+                    data.append(shot.post_sequence)
+
+        index = pd.MultiIndex.from_tuples(
+            index, names=["cluster", "perfect_sorting", "pre_sequence", "task_number"]
+        )
 
         df = pd.DataFrame(data, index=index)
         df.sort_index(axis="index")
@@ -148,36 +185,6 @@ class Report:
         return self.dataframe.to_markdown()
 
     @property
-    def perfect_filling(self) -> str:
-        if self._perfect_filling:
-            return self._perfect_filling
-
-        self._perfect_filling = self.construct_perfect_filling()
-        return self._perfect_filling
-
-    def construct_perfect_filling(self) -> str:
-        fillings = {}
-        for task_number, future in enumerate(self.future.futures):
-            if future.quera_task_ir:
-                filling = future.quera_task_ir.lattice.filling
-
-            if future.braket_task_ir:
-                filling = future.braket_task_ir.program.setup.ahs_register.filling
-            filling = "".join(map(str, filling))
-
-            fillings[filling] = fillings.get(filling, []) + [task_number]
-
-        if len(fillings) > 1:
-            # TODO: figure out how to allow for more than one mask here
-            raise ValueError(
-                "multiple fillings found in batch task, cannot post-process batch"
-            )
-
-        (filing,) = fillings.keys()
-
-        return filling
-
-    @property
     def bitstring(self) -> NDArray:
         if self._bitstring:
             return self._bitstring
@@ -185,7 +192,15 @@ class Report:
         return self._bitstring
 
     def construct_bitstring(self) -> NDArray:
-        return self.dataframe.loc[self.perfect_filling].to_numpy()
+        perfect_sorting = self.dataframe.index.get_level_values("perfect_sorting")
+        pre_sequence = self.dataframe.index.get_level_values("pre_sequence")
+        return self.dataframe.loc[perfect_sorting == pre_sequence].to_numpy().squeeze()
 
     def rydberg_densities(self) -> pd.Series:
-        return self.dataframe.loc[self.perfect_filling].mean()
+        perfect_sorting = self.dataframe.index.get_level_values("perfect_sorting")
+        pre_sequence = self.dataframe.index.get_level_values("pre_sequence")
+        return (
+            self.dataframe.loc[perfect_sorting == pre_sequence]
+            .groupby("task_number")
+            .mean()
+        )
