@@ -7,6 +7,7 @@ from bloqade.submission.ir.parallel import ParallelDecoder
 from typing import List, Union, TextIO, Tuple, Optional
 from numpy.typing import NDArray
 from pydantic.dataclasses import dataclass
+from itertools import product
 import pandas as pd
 import numpy as np
 import json
@@ -133,31 +134,35 @@ class Report:
             else:
                 cluster_indices = {(0, 0): list(range(len(perfect_sorting)))}
 
-            for shot in filter(
+            shot_iter = filter(
                 lambda shot: shot.shot_status == QuEraShotStatusCode.Completed,
                 task_future.task_result.shot_outputs,
+            )
+
+            for shot, (cluster_coordinate, cluster_index) in product(
+                shot_iter, cluster_indices.items()
             ):
-                for cluster_coordinate, cluster_index in cluster_indices.items():
-                    pre_sequence = "".join(
-                        map(
-                            str,
-                            (shot.pre_sequence[index] for index in cluster_index),
-                        )
+                pre_sequence = "".join(
+                    map(
+                        str,
+                        (shot.pre_sequence[index] for index in cluster_index),
                     )
+                )
 
-                    post_sequence = np.asarray(
-                        [shot.post_sequence[index] for index in cluster_index],
-                        dtype=np.int8,
-                    )
+                post_sequence = np.asarray(
+                    [shot.post_sequence[index] for index in cluster_index],
+                    dtype=np.int8,
+                )
 
-                    key = (
-                        task_number,
-                        cluster_coordinate,
-                        perfect_sorting,
-                        pre_sequence,
-                    )
-                    index.append(key)
-                    data.append(post_sequence)
+                key = (
+                    task_number,
+                    cluster_coordinate,
+                    perfect_sorting,
+                    pre_sequence,
+                )
+
+                index.append(key)
+                data.append(post_sequence)
 
         index = pd.MultiIndex.from_tuples(
             index, names=["task_number", "cluster", "perfect_sorting", "pre_sequence"]
