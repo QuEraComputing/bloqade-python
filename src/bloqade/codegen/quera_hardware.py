@@ -334,6 +334,9 @@ class SchemaCodeGen(ProgramVisitor):
                     terms[Uniform]
                 )
 
+                times = SchemaCodeGen.convert_time_to_SI_units(times)
+                values = SchemaCodeGen.convert_energy_to_SI_units(values)
+
                 self.rabi_frequency_amplitude = task_spec.RabiFrequencyAmplitude(
                     global_=task_spec.GlobalField(times=times, values=values)
                 )
@@ -344,6 +347,8 @@ class SchemaCodeGen(ProgramVisitor):
                 times, values = PiecewiseConstantCodeGen(self.assignments).visit(
                     terms[Uniform]
                 )
+
+                times = SchemaCodeGen.convert_time_to_SI_units(times)
 
                 self.rabi_frequency_phase = task_spec.RabiFrequencyAmplitude(
                     global_=task_spec.GlobalField(times=times, values=values)
@@ -360,6 +365,9 @@ class SchemaCodeGen(ProgramVisitor):
                     terms[Uniform]
                 )
 
+                times = SchemaCodeGen.convert_time_to_SI_units(times)
+                values = SchemaCodeGen.convert_energy_to_SI_units(values)
+
                 self.detuning = task_spec.Detuning(
                     global_=task_spec.GlobalField(times=times, values=values)
                 )
@@ -369,6 +377,9 @@ class SchemaCodeGen(ProgramVisitor):
                 ((spatial_modulation, waveform),) = terms.items()
 
                 times, values = PiecewiseLinearCodeGen(self.assignments).visit(waveform)
+
+                times = SchemaCodeGen.convert_time_to_SI_units(times)
+                values = SchemaCodeGen.convert_energy_to_SI_units(values)
 
                 self.visit(spatial_modulation)
                 self.detuning = task_spec.Detuning(
@@ -397,6 +408,13 @@ class SchemaCodeGen(ProgramVisitor):
                         ).visit(terms[k])
 
                 self.visit(spatial_modulation)  # just visit the non-uniform locations
+
+                global_times = SchemaCodeGen.convert_time_to_SI_units(global_times)
+                local_times = SchemaCodeGen.convert_time_to_SI_units(local_times)
+
+                global_values = SchemaCodeGen.convert_energy_to_SI_units(global_values)
+                local_values = SchemaCodeGen.convert_energy_to_SI_units(local_values)
+
                 self.detuning = task_spec.Detuning(
                     local=task_spec.LocalField(
                         times=local_times,
@@ -498,7 +516,7 @@ class SchemaCodeGen(ProgramVisitor):
 
         for locaiton_info in ast.enumerate():
             site = tuple(ele(**self.assignments) for ele in locaiton_info.position)
-            sites.append(site)
+            sites.append(SchemaCodeGen.convert_position_to_SI_units(site))
             filling.append(locaiton_info.filling.value)
 
         self.n_atoms = len(sites)
@@ -563,7 +581,8 @@ class SchemaCodeGen(ProgramVisitor):
             for cluster_location_index, (location, filled) in enumerate(
                 zip(new_register_locations[:], register_filling)
             ):
-                sites.append(tuple(location))
+                site = SchemaCodeGen.convert_position_to_SI_units(tuple(location))
+                sites.append(site)
                 filling.append(filled)
 
                 mapping.append(
