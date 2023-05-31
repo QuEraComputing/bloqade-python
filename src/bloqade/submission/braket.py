@@ -1,13 +1,14 @@
 from bloqade.submission.base import SubmissionBackend
 from bloqade.submission.ir.braket import (
-    BraketTaskSpecification,
     from_braket_task_results,
     from_braket_status_codes,
+    to_braket_task_ir,
 )
 from bloqade.submission.ir.task_results import (
     QuEraTaskStatusCode,
     QuEraTaskResults,
 )
+from bloqade.submission.ir.task_specification import QuEraTaskSpecification
 from braket.aws import AwsDevice, AwsQuantumTask
 
 
@@ -26,8 +27,9 @@ class BraketBackend(SubmissionBackend):
     def device(self) -> AwsDevice:
         return AwsDevice(self.device_arn)
 
-    def submit_task(self, task_ir: BraketTaskSpecification) -> str:
-        task = self.device.run(task_ir.program, shots=task_ir.nshots)
+    def submit_task(self, task_ir: QuEraTaskSpecification) -> str:
+        braket_task_ir = to_braket_task_ir(task_ir)
+        task = self.device.run(braket_task_ir.program, shots=braket_task_ir.nshots)
         return task.id
 
     def task_results(self, task_id: str) -> QuEraTaskResults:

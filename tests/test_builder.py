@@ -32,6 +32,23 @@ def test_issue_107():
     assert prog1.sequence == prog2.sequence
 
 
+def test_issue_150():
+    prog = start.rydberg.detuning.uniform.linear(0, 1, 1).amplitude.uniform.linear(
+        0, 2, 1
+    )
+
+    assert prog.sequence == ir.Sequence(
+        {
+            ir.rydberg: ir.Pulse(
+                {
+                    ir.rabi.amplitude: ir.Field({ir.Uniform: ir.Linear(0, 2, 1)}),
+                    ir.detuning: ir.Field({ir.Uniform: ir.Linear(0, 1, 1)}),
+                }
+            )
+        }
+    )
+
+
 prog = ProgramStart()
 prog = (
     prog.rydberg.detuning.location(1)
@@ -77,13 +94,13 @@ job = (
     start.add_position((0, 0))
     .add_position((6, 0))
     .add_position((3, "distance"))
-    .parallelize(20.0)
     .rydberg.detuning.uniform.piecewise_linear(
         durations=[0.1, 3.8, 0.1], values=[-10, -10, "final_detuning", "final_detuning"]
     )
     .rabi.amplitude.uniform.piecewise_linear(
         durations=[0.1, 3.8, 0.1], values=[0.0, 15.0, 15.0, 0.0]
     )
+    .parallelize(20.0)
     .assign(final_detuning=20, distance=4)
     .mock(100)
 )
@@ -93,13 +110,13 @@ job = (
     start.add_position((0, 0))
     .add_position((6, 0))
     .add_position((3, "distance"))
-    .parallelize(20.0)
     .rydberg.detuning.uniform.piecewise_linear(
         durations=[0.1, 3.8, 0.1], values=[-10, -10, "final_detuning", "final_detuning"]
     )
     .rabi.amplitude.uniform.piecewise_linear(
         durations=[0.1, 3.8, 0.1], values=[0.0, 15.0, 15.0, 0.0]
     )
+    .parallelize(20.0)
     .assign(final_detuning=20, distance=4)
     .mock(100)
 )

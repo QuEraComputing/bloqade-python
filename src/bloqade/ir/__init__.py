@@ -1,4 +1,4 @@
-from .scalar import cast, Scalar, Interval, Variable, Literal
+from .scalar import var, cast, Scalar, Interval, Variable, Literal
 from .waveform import (
     Waveform,
     Linear,
@@ -22,6 +22,7 @@ from .sequence import rydberg, hyperfine, Sequence, LevelCoupling
 from .program import Program
 
 __all__ = [
+    "var",
     "cast",
     "Scalar",
     "Interval",

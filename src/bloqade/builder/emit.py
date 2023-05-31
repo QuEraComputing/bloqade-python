@@ -13,9 +13,10 @@ from bloqade.submission.mock import DumbMockBackend
 from bloqade.submission.quera import QuEraBackend
 
 from bloqade.ir import Program
+from bloqade.ir.location.base import AtomArrangement, ParallelRegister
 
 from pydantic import BaseModel
-from typing import Optional, Dict, Union, List
+from typing import Optional, Dict, Union, List, Any
 from numbers import Number
 import json
 import os
@@ -50,8 +51,10 @@ class Emit(Builder):
         builder: Builder,
         assignments: Dict[str, Union[Number, List[Number]]] = {},
         batch: Dict[str, Union[List[Number], List[List[Number]]]] = {},
+        register: Optional[Union["AtomArrangement", "ParallelRegister"]] = None,
+        sequence: Optional[ir.Sequence] = None,
     ) -> None:
-        super().__init__(builder)
+        super().__init__(builder, register=register)
 
         self.__batch__ = {}
         if batch:
@@ -74,20 +77,44 @@ class Emit(Builder):
                 self.__batch__[key] = value
 
         self.__assignments__ = assignments
-        self.__sequence__ = None
-        self.__register__ = None
+        self.__sequence__ = sequence
 
     def assign(self, **assignments):
         # these methods terminate no build steps can
         # happens after this other than updating parameters
         new_assignments = dict(self.__assignments__)
         new_assignments.update(**assignments)
-        return Emit(self, assignments=new_assignments, batch=self.__batch__)
+        return Emit(
+            self,
+            assignments=new_assignments,
+            batch=self.__batch__,
+            register=self.__register__,
+            sequence=self.__sequence__,
+        )
 
     def batch_assign(self, **batch):
         new_batch = dict(self.__batch__)
         new_batch.update(**batch)
-        return Emit(self, assignments=self.__assignments__, batch=new_batch)
+        return Emit(
+            self,
+            assignments=self.__assignments__,
+            batch=new_batch,
+            register=self.__register__,
+            sequence=self.__sequence__,
+        )
+
+    def parallelize(self, cluster_spacing: Any) -> "Emit":
+        if isinstance(self.register, ParallelRegister):
+            raise TypeError("cannot parallelize a parallel register.")
+
+        parallel_register = ParallelRegister(self.register, cluster_spacing)
+        return Emit(
+            self,
+            assignments=self.__assignments__,
+            batch=self.__batch__,
+            register=parallel_register,
+            sequence=self.__sequence__,
+        )
 
     @staticmethod
     def __build_ast(builder: Builder, build_state: BuildState):
@@ -185,14 +212,14 @@ class Emit(Builder):
                 Emit.__build_ast(builder.__parent__, build_state)
 
             case field.Amplitude():
-                build_state.amplitude = build_state.detuning.add(build_state.field)
+                build_state.amplitude = build_state.amplitude.add(build_state.field)
 
                 # reset build_state values
                 build_state.field = ir.Field({})
                 Emit.__build_ast(builder.__parent__, build_state)
 
             case field.Phase():
-                build_state.phase = build_state.detuning.add(build_state.field)
+                build_state.phase = build_state.phase.add(build_state.field)
 
                 # reset build_state values
                 build_state.field = ir.Field({})
@@ -305,7 +332,7 @@ class Emit(Builder):
         return HardwareJob(tasks=hardware_tasks)
 
     @property
-    def register(self):
+    def register(self) -> Union["AtomArrangement", "ParallelRegister"]:
         if self.__register__:
             return self.__register__
 
@@ -344,16 +371,18 @@ class Emit(Builder):
         backend = BraketBackend()
         return self.__compile_hardware(nshots, backend)
 
-    def quera(self, nshots: int, config_file: Optional[str] = None) -> "HardwareJob":
+    def quera(
+        self, nshots: int, config_file: Optional[str] = None, **api_config
+    ) -> "HardwareJob":
         if config_file is None:
             path = os.path.dirname(__file__)
             api_config_file = os.path.join(
-                path, "submission", "quera_api_client", "config", "dev_quera_api.json"
+                path, "submission", "quera_api_client", "config", "integ_quera_api.json"
             )
             with open(api_config_file, "r") as io:
-                api_config = json.load(io)
+                api_config.update(**json.load(io))
 
-            backend = QuEraBackend(**api_config)
+        backend = QuEraBackend(**api_config)
 
         return self.__compile_hardware(nshots, backend)
 
