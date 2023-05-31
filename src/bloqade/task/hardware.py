@@ -121,7 +121,7 @@ class MockTaskFuture(BaseModel, TaskFuture):
     mock_backend: Optional[DumbMockBackend]
     parallel_decoder: Optional[ParallelDecoder]
 
-    def task_geometry(self) -> Geometry:
+    def _task_geometry(self) -> Geometry:
         if self.parallel_decoder:
             cluster_indices = self.parallel_decoder.get_cluster_indices()
             cluster_index = cluster_indices[(0, 0)]

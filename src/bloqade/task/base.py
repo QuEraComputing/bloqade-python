@@ -30,9 +30,9 @@ class Geometry:
 class TaskFuture:
     @property
     def geometry(self) -> Geometry:
-        return self.task_geometry()
+        return self._task_geometry()
 
-    def task_geometry(self) -> Geometry:
+    def _task_geometry(self) -> Geometry:
         raise NotImplementedError
 
     @property
@@ -117,10 +117,10 @@ class Report:
         if self._dataframe is not None:
             return self._dataframe
 
-        self._dataframe = self.construct_dataframe()
+        self._dataframe = self._construct_dataframe()
         return self._dataframe
 
-    def construct_dataframe(self) -> pd.DataFrame:
+    def _construct_dataframe(self) -> pd.DataFrame:
         index = []
         data = []
 
@@ -176,10 +176,10 @@ class Report:
     def bitstrings(self) -> List[NDArray]:
         if self._bitstrings is not None:
             return self._bitstrings
-        self._bitstrings = self.construct_bitstrings()
+        self._bitstrings = self._construct_bitstrings()
         return self._bitstrings
 
-    def construct_bitstrings(self) -> List[NDArray]:
+    def _construct_bitstrings(self) -> List[NDArray]:
         perfect_sorting = self.dataframe.index.get_level_values("perfect_sorting")
         pre_sequence = self.dataframe.index.get_level_values("pre_sequence")
         filtered_df = self.dataframe[perfect_sorting == pre_sequence]
