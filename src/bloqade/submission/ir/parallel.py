@@ -6,6 +6,7 @@ from bloqade.submission.ir.task_results import (
     QuEraShotResult,
     QuEraTaskResults,
 )
+from itertools import combinations
 
 
 class ClusterLocationInfo(BaseModel):
@@ -58,14 +59,12 @@ class ParallelDecoder(BaseModel):
             global_site_index = location_cluster_info.global_location_index
             cluster_indices.setdefault(cluster_index, set([])).add(global_site_index)
 
-        for cluster_index, location_indices in cluster_indices.items():
-            for other_cluster_index, other_location_indices in cluster_indices.items():
-                if cluster_index == other_cluster_index:
-                    continue
-                if location_indices.intersection(other_location_indices):
-                    raise ValidationError(
-                        "one or more sites mapped to multiple clusters"
-                    )
+        for (cluster_index, location_indices), (
+            other_cluster_index,
+            other_location_indices,
+        ) in combinations(cluster_indices.items(), 2):
+            if location_indices.intersection(other_location_indices):
+                raise ValidationError("one or more sites mapped to multiple clusters")
 
         return mapping
 
