@@ -1,11 +1,7 @@
 from pydantic import BaseModel, validator, ValidationError
 
-from typing import List, Tuple, Union
-
-from bloqade.submission.ir.task_results import (
-    QuEraShotResult,
-    QuEraTaskResults,
-)
+from typing import List, Tuple
+from itertools import combinations
 
 
 class ClusterLocationInfo(BaseModel):
@@ -26,6 +22,9 @@ class ParallelDecoder(BaseModel):
     mapping: List[ClusterLocationInfo]
     locations_per_cluster: int
     number_of_cluster: int
+
+    class Config:
+        frozen = True
 
     def __init__(self, mapping: List[ClusterLocationInfo]):
         cluster_location_indices = set()
@@ -48,6 +47,19 @@ class ParallelDecoder(BaseModel):
         unique_sites = set(sites)
         if len(sites) != len(unique_sites):
             raise ValidationError("one or more sites mapped to multiple clusters")
+
+        cluster_indices = {}
+        for location_cluster_info in mapping:
+            cluster_index = location_cluster_info.cluster_index
+            global_site_index = location_cluster_info.global_location_index
+            cluster_indices.setdefault(cluster_index, set([])).add(global_site_index)
+
+        for (cluster_index, location_indices), (
+            other_cluster_index,
+            other_location_indices,
+        ) in combinations(cluster_indices.items(), 2):
+            if location_indices.intersection(other_location_indices):
+                raise ValidationError("one or more sites mapped to multiple clusters")
 
         return mapping
 
@@ -81,38 +93,3 @@ class ParallelDecoder(BaseModel):
             cluster_index: sorted(sites, key=lambda site: site_indices[site])
             for cluster_index, sites in cluster_indices.items()
         }
-
-    def decode_results(
-        self, task_result: QuEraTaskResults, clusters: Union[int, List[int]] = []
-    ) -> QuEraTaskResults:
-        cluster_indices = self.get_cluster_indices()
-
-        shot_outputs = []
-
-        match clusters:
-            case int(cluster_index):
-                clusters = [cluster_index]
-            case list() if clusters:
-                pass
-            case _:
-                clusters = cluster_indices.keys()
-
-        for full_shot_result in task_result.shot_outputs:
-            for cluster_location_indices in cluster_indices.values():
-                shot_outputs.append(
-                    QuEraShotResult(
-                        shot_status=full_shot_result.shot_status,
-                        pre_sequence=[
-                            full_shot_result.pre_sequence[index]
-                            for index in cluster_location_indices
-                        ],
-                        post_sequence=[
-                            full_shot_result.post_sequence[index]
-                            for index in cluster_location_indices
-                        ],
-                    )
-                )
-
-        return QuEraTaskResults(
-            task_status=task_result.task_status, shot_outputs=shot_outputs
-        )

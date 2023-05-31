@@ -537,7 +537,7 @@ class SchemaCodeGen(ProgramVisitor):
         # build register by stack method because
         # shift_vectosr might not be rectangular
         c_stack = [(0, 0)]
-        visited = set([])
+        visited = set([(0, 0)])
         mapping = []
         global_site_index = 0
         sites = []
@@ -545,10 +545,8 @@ class SchemaCodeGen(ProgramVisitor):
         while c_stack:
             if len(mapping) + len(ast.register_locations) > number_sites_max:
                 break
-            cluster_index = c_stack.pop()
 
-            if cluster_index not in visited:
-                visited.add(cluster_index)
+            cluster_index = c_stack.pop()
 
             shift = (
                 shift_vectors[0] * cluster_index[0]
@@ -576,6 +574,7 @@ class SchemaCodeGen(ProgramVisitor):
 
             for new_cluster_index in new_cluster_indices:
                 if new_cluster_index not in visited:
+                    visited.add(new_cluster_index)
                     c_stack.append(new_cluster_index)
 
             for cluster_location_index, (location, filled) in enumerate(
@@ -592,6 +591,7 @@ class SchemaCodeGen(ProgramVisitor):
                         cluster_location_index=cluster_location_index,
                     )
                 )
+
                 global_site_index += 1
 
         self.lattice = task_spec.Lattice(sites=sites, filling=filling)
