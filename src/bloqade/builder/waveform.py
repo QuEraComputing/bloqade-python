@@ -21,7 +21,7 @@ class Waveform(Builder):
 
     def piecewise_linear(self, durations: List[ScalarType], values: List[ScalarType]):
         builder = self
-        for duration, start, stop in zip(durations, values[:-1], values[1:]):
+        for duration, start, stop in zip(durations[1:], values[:-1], values[1:]):
             builder = builder.linear(start, stop, duration)
 
         return builder
