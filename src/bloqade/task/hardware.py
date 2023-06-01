@@ -135,18 +135,18 @@ class MockTaskFuture(BaseModel, TaskFuture):
                 parallel_decoder=self.parallel_decoder,
             )
 
-    def fetch(self, cache: bool = False) -> QuEraTaskResults:
+    def fetch(self, cache_result: bool = False) -> QuEraTaskResults:
         if self.mock_backend:
             if self.task_result_ir:
                 return self.task_result_ir
 
-            if cache:
+            if cache_result:
                 self.task_result_ir = self.mock_backend.task_results(self.task_id)
                 return self.task_result_ir
             else:
                 return self.mock_backend.task_results(self.task_id)
 
-        return super().fetch(cache_result=cache)
+        return super().fetch(cache_result=cache_result)
 
     def status(self) -> QuEraTaskStatusCode:
         if self.mock_backend:
@@ -164,18 +164,18 @@ class MockTaskFuture(BaseModel, TaskFuture):
 class BraketTaskFuture(MockTaskFuture):
     braket_backend: Optional[BraketBackend]
 
-    def fetch(self, cache: bool = False) -> QuEraTaskResults:
+    def fetch(self, cache_result: bool = False) -> QuEraTaskResults:
         if self.braket_backend:
             if self.task_result_ir:
                 return self.task_result_ir
 
-            if cache:
+            if cache_result:
                 self.task_result_ir = self.braket_backend.task_results(self.task_id)
                 return self.task_result_ir
             else:
                 return self.braket_backend.task_results(self.task_id)
 
-        return super().fetch(cache=cache)
+        return super().fetch(cache_result=cache_result)
 
     def status(self) -> QuEraTaskStatusCode:
         if self.braket_backend:
@@ -193,18 +193,18 @@ class BraketTaskFuture(MockTaskFuture):
 class QuEraTaskFuture(BraketTaskFuture):
     quera_backend: Optional[QuEraBackend]
 
-    def fetch(self, cache: bool = False) -> QuEraTaskResults:
+    def fetch(self, cache_result: bool = False) -> QuEraTaskResults:
         if self.quera_backend:
             if self.task_result_ir:
                 return self.task_result_ir
 
-            if cache:
+            if cache_result:
                 self.task_result_ir = self.quera_backend.task_results(self.task_id)
                 return self.task_result_ir
             else:
                 return self.quera_backend.task_results(self.task_id)
 
-        return super().fetch(cache=cache)
+        return super().fetch(cache_result=cache_result)
 
     def status(self) -> QuEraTaskStatusCode:
         if self.quera_backend:
@@ -243,7 +243,7 @@ class HardwareJob(JSONInterface, Job):
 
 
 class HardwareFuture(JSONInterface, Future):
-    futures: List[HardwareTaskFuture]
+    futures: List[HardwareTaskFuture] = []
 
     def futures_list(self) -> List[HardwareTaskFuture]:
         return self.futures
