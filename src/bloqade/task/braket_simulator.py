@@ -57,7 +57,7 @@ class BraketEmulatorTaskFuture(BaseModel, TaskFuture):
 
 
 class BraketEmulatorJob(JSONInterface, Job):
-    tasks: List[BraketEmulatorTask]
+    tasks: List[BraketEmulatorTask] = []
 
     def _task_list(self) -> List[BraketEmulatorTask]:
         return self.tasks
@@ -66,6 +66,18 @@ class BraketEmulatorJob(JSONInterface, Job):
         self, futures: List[BraketEmulatorTaskFuture]
     ) -> "BraketEmulatorFuture":
         return BraketEmulatorFuture(futures=futures)
+
+    def init_from_dict(self, **params) -> None:
+        match params:
+            case {"tasks": list() as task_list}:
+                self.tasks = [
+                    BraketEmulatorTask(**task_json) for task_json in task_list
+                ]
+            case _:
+                raise ValueError(
+                    f"Cannot parse JSON file to {self.__class__.__name__}, "
+                    "invalided format."
+                )
 
     def submit(
         self,
@@ -92,3 +104,15 @@ class BraketEmulatorFuture(JSONInterface, Future):
 
     def futures_list(self) -> List[BraketEmulatorTaskFuture]:
         return self.futures
+
+    def init_from_dict(self, **params) -> None:
+        match params:
+            case {"futures": list() as futures_list}:
+                self.tasks = [
+                    BraketEmulatorFuture(**future_json) for future_json in futures_list
+                ]
+            case _:
+                raise ValueError(
+                    f"Cannot parse JSON file to {self.__class__.__name__}, "
+                    "invalided format."
+                )

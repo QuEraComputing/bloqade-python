@@ -238,7 +238,8 @@ class HardwareJob(JSONInterface, Job):
                 self.tasks = [HardwareTask(**task_json) for task_json in tasks_json]
             case _:
                 raise ValueError(
-                    "Cannot parse JSON file to HardwareJob, invalided format."
+                    f"Cannot parse JSON file to {self.__class__.__name__}, "
+                    "invalided format."
                 )
 
 
@@ -256,5 +257,6 @@ class HardwareFuture(JSONInterface, Future):
                 ]
             case _:
                 raise ValueError(
-                    "Cannot parse JSON file to HardwareFuture, invalided format."
+                    f"Cannot parse JSON file to {self.__class__.__name__}, "
+                    "invalided format."
                 )
