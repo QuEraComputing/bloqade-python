@@ -17,7 +17,8 @@ from bloqade.task.base import (
     TaskFuture,
     Job,
 )
-from typing import List
+from typing import List, Optional
+from concurrent.futures import ThreadPoolExecutor
 
 
 class BraketEmulatorTask(BaseModel, Task):
@@ -65,6 +66,21 @@ class BraketEmulatorJob(JSONInterface, Job):
         self, futures: List[BraketEmulatorTaskFuture]
     ) -> "BraketEmulatorFuture":
         return BraketEmulatorFuture(futures=futures)
+
+    def submit(
+        self,
+        submission_order: Optional[List[int]] = None,
+        max_workers: Optional[int] = None,
+    ) -> Future:
+        if submission_order is None:
+            submission_order = list(range(len(self.tasks)))
+
+        futures = []
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            for i in submission_order:
+                futures.append(executor.submit(self.tasks[i].submit))
+
+        return self._emit_future([future.result() for future in futures])
 
 
 class BraketEmulatorFuture(JSONInterface, Future):
