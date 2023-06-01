@@ -146,7 +146,7 @@ class MockTaskFuture(BaseModel, TaskFuture):
             else:
                 return self.mock_backend.task_results(self.task_id)
 
-        return super().fetch(cache=cache)
+        return super().fetch(cache_result=cache)
 
     def status(self) -> QuEraTaskStatusCode:
         if self.mock_backend:

@@ -11,6 +11,7 @@ from bloqade.submission.base import SubmissionBackend
 from bloqade.submission.braket import BraketBackend
 from bloqade.submission.mock import DumbMockBackend
 from bloqade.submission.quera import QuEraBackend
+from bloqade.submission.ir.braket import to_braket_task_ir
 
 from bloqade.ir import Program
 from bloqade.ir.location.base import AtomArrangement, ParallelRegister
@@ -21,6 +22,7 @@ from numbers import Number
 import json
 import os
 from bloqade.task import HardwareTask, HardwareJob
+from bloqade.task.braket_simulator import BraketEmulatorJob, BraketEmulatorTask
 from itertools import repeat
 
 
@@ -318,7 +320,7 @@ class Emit(Builder):
         hardware_tasks = []
 
         for assignments in self.__assignments_iterator():
-            schema_compiler = SchemaCodeGen(assignments, capabilities)
+            schema_compiler = SchemaCodeGen(assignments, capabilities=capabilities)
             task_ir = schema_compiler.emit(nshots, self.program)
             task_ir = task_ir.discretize(capabilities)
             hardware_tasks.append(
@@ -366,6 +368,22 @@ class Emit(Builder):
 
     def simu(self, *args, **kwargs):
         raise NotImplementedError
+
+    def braket_local_simulator(self, nshots: int):
+        from bloqade.codegen.quera_hardware import SchemaCodeGen
+
+        if isinstance(self.register, ParallelRegister):
+            raise TypeError("Braket emulator doesn't suppoert Parallel reigsters.")
+
+        tasks = []
+
+        for assignments in self.__assignments_iterator():
+            schema_compiler = SchemaCodeGen(assignments)
+            task_ir = schema_compiler.emit(nshots, self.program)
+            task = BraketEmulatorTask(task_ir=to_braket_task_ir(task_ir))
+            tasks.append(task)
+
+        return BraketEmulatorJob(tasks=tasks)
 
     def braket(self, nshots: int) -> "HardwareJob":
         backend = BraketBackend()

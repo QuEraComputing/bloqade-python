@@ -39,9 +39,9 @@ class TaskFuture:
 
     @property
     def task_result(self) -> QuEraTaskResults:
-        return self.fetch(cache=True)
+        return self.fetch(cache_result=True)
 
-    def fetch(self, cache=False) -> QuEraTaskResults:
+    def fetch(self, cache_result=False) -> QuEraTaskResults:
         raise NotImplementedError
 
     def status(self) -> QuEraTaskStatusCode:
