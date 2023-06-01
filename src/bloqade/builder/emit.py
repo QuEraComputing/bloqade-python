@@ -373,7 +373,7 @@ class Emit(Builder):
         from bloqade.codegen.quera_hardware import SchemaCodeGen
 
         if isinstance(self.register, ParallelRegister):
-            raise TypeError("Braket emulator doesn't suppoert Parallel reigsters.")
+            raise TypeError("Braket emulator doesn't support parallel registers.")
 
         tasks = []
 
