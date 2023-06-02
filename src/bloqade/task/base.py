@@ -237,23 +237,40 @@ class Report:
         return bitstrings
 
     @property
-    def counts(self) -> List[Dict[str, int]]:
+    def counts(self) -> Dict[str, NDArray]:
         if self._counts is not None:
             return self._counts
         self._counts = self._construct_counts()
         return self._counts
 
-    def _construct_counts(self) -> List[Dict[str, int]]:
-        counts = []
+    def _construct_counts(self) -> Dict[str, NDArray]:
+        task_counts = []
+        counts = {}
+
+        bitstring_strs = set([])
+
         for bitstring in self.bitstrings:
-            unique_bitstring, counts_ = np.unique(bitstring, return_counts=True, axis=0)
-            counts.append(
-                {
-                    "".join(map(str, unique_bitstring[i])): counts_[i]
-                    for i in range(len(unique_bitstring))
-                }
+            unique_bitstring, bitstring_counts = np.unique(
+                bitstring, axis=0, return_counts=True
             )
-        return counts
+            task_count = {}
+            for unique_bitstring, bitstring_count in zip(
+                unique_bitstring, bitstring_counts
+            ):
+                bitstring_str = "".join(map(str, unique_bitstring))
+                bitstring_strs.add(bitstring_str)
+                task_count[bitstring_str] = bitstring_count
+
+            task_counts.append(task_count)
+
+        for bitstring_str, task_counts in product(bitstring_strs, task_counts):
+            count = task_counts.get(bitstring_str, 0)
+            counts.setdefault(bitstring_str, []).append(count)
+
+        return {
+            bitstring_str: np.squeeze(np.asarray(count))
+            for bitstring_str, count in counts.items()
+        }
 
     def rydberg_densities(self) -> pd.Series:
         perfect_sorting = self.dataframe.index.get_level_values("perfect_sorting")
