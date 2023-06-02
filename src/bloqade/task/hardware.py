@@ -8,12 +8,10 @@ from bloqade.submission.ir.task_specification import (
 )
 from bloqade.submission.ir.parallel import ParallelDecoder
 from bloqade.submission.ir.task_results import QuEraTaskStatusCode
-from bloqade.task.base import Task, Future, Geometry, TaskFuture, Job
+from bloqade.task.base import Task, Future, Geometry, TaskFuture, Job, JSONInterface
 
 
 from typing import Optional, List, Union
-
-import numpy as np
 
 
 class MockTask(BaseModel, Task):
@@ -137,18 +135,18 @@ class MockTaskFuture(BaseModel, TaskFuture):
                 parallel_decoder=self.parallel_decoder,
             )
 
-    def fetch(self, cache: bool = False) -> QuEraTaskResults:
+    def fetch(self, cache_result: bool = False) -> QuEraTaskResults:
         if self.mock_backend:
             if self.task_result_ir:
                 return self.task_result_ir
 
-            if cache:
+            if cache_result:
                 self.task_result_ir = self.mock_backend.task_results(self.task_id)
                 return self.task_result_ir
             else:
                 return self.mock_backend.task_results(self.task_id)
 
-        return super().fetch(cache=cache)
+        return super().fetch(cache_result=cache_result)
 
     def status(self) -> QuEraTaskStatusCode:
         if self.mock_backend:
@@ -166,18 +164,18 @@ class MockTaskFuture(BaseModel, TaskFuture):
 class BraketTaskFuture(MockTaskFuture):
     braket_backend: Optional[BraketBackend]
 
-    def fetch(self, cache: bool = False) -> QuEraTaskResults:
+    def fetch(self, cache_result: bool = False) -> QuEraTaskResults:
         if self.braket_backend:
             if self.task_result_ir:
                 return self.task_result_ir
 
-            if cache:
+            if cache_result:
                 self.task_result_ir = self.braket_backend.task_results(self.task_id)
                 return self.task_result_ir
             else:
                 return self.braket_backend.task_results(self.task_id)
 
-        return super().fetch(cache=cache)
+        return super().fetch(cache_result=cache_result)
 
     def status(self) -> QuEraTaskStatusCode:
         if self.braket_backend:
@@ -195,18 +193,18 @@ class BraketTaskFuture(MockTaskFuture):
 class QuEraTaskFuture(BraketTaskFuture):
     quera_backend: Optional[QuEraBackend]
 
-    def fetch(self, cache: bool = False) -> QuEraTaskResults:
+    def fetch(self, cache_result: bool = False) -> QuEraTaskResults:
         if self.quera_backend:
             if self.task_result_ir:
                 return self.task_result_ir
 
-            if cache:
+            if cache_result:
                 self.task_result_ir = self.quera_backend.task_results(self.task_id)
                 return self.task_result_ir
             else:
                 return self.quera_backend.task_results(self.task_id)
 
-        return super().fetch(cache=cache)
+        return super().fetch(cache_result=cache_result)
 
     def status(self) -> QuEraTaskStatusCode:
         if self.quera_backend:
@@ -225,106 +223,40 @@ class HardwareTaskFuture(QuEraTaskFuture):
     pass
 
 
-class HardwareJob(BaseModel, Job):
+class HardwareJob(JSONInterface, Job):
     tasks: List[HardwareTask] = []
-    submit_order: List[int] = []
 
-    def __init__(self, tasks: List[HardwareTask] = [], submit_order=None):
-        if submit_order is None:
-            submit_order = list(np.random.permutation(len(tasks)))
+    def _task_list(self) -> List[HardwareTask]:
+        return self.tasks
 
-        super().__init__(tasks=tasks, submit_order=submit_order)
-
-    def submit(self) -> "HardwareFuture":
-        try:
-            self.tasks[0].run_validation()
-            has_validation = True
-        except NotImplementedError:
-            has_validation = False
-
-        if has_validation:
-            for task in self.tasks[1:]:
-                task.run_validation()
-
-        # submit tasks in random order but store them
-        # in the original order of tasks.
-        futures = [None for task in self.tasks]
-        for task_index in self.submit_order:
-            try:
-                futures[task_index] = self.tasks[task_index].submit()
-            except BaseException as e:
-                for future in futures:
-                    if future is not None:
-                        future.cancel()
-                raise e
-
+    def _emit_future(self, futures: List[HardwareTaskFuture]) -> "HardwareFuture":
         return HardwareFuture(futures=futures)
-
-    def json(self, exclude_none=True, by_alias=True, **json_options) -> str:
-        return super().json(
-            exclude_none=exclude_none, by_alias=by_alias, **json_options
-        )
 
     def init_from_dict(self, **params) -> None:
         match params:
-            case {
-                "tasks": list() as tasks_json,
-                "submit_order": list() as submit_order,
-            }:
+            case {"tasks": list() as tasks_json}:
                 self.tasks = [HardwareTask(**task_json) for task_json in tasks_json]
-                self.submit_order = submit_order
-            case {
-                "tasks": list() as tasks_json,
-                "submit_order": list() as submit_order,
-                "parallel_decoder": dict() as parallel_decoder,
-            }:
-                self.tasks = [HardwareTask(**task_json) for task_json in tasks_json]
-                self.submit_order = submit_order
-                self.parallel_decoder = ParallelDecoder(**parallel_decoder)
             case _:
                 raise ValueError(
-                    "Cannot parse JSON file to HardwareJob, invalided format."
+                    f"Cannot parse JSON file to {self.__class__.__name__}, "
+                    "invalided format."
                 )
 
 
-class HardwareFuture(BaseModel, Future):
-    futures: List[HardwareTaskFuture]
+class HardwareFuture(JSONInterface, Future):
+    futures: List[HardwareTaskFuture] = []
 
-    def __init__(self, futures: List[HardwareTaskFuture] = []):
-        super().__init__(futures=futures)
-
-    def task_futures(self) -> List[HardwareTaskFuture]:
+    def futures_list(self) -> List[HardwareTaskFuture]:
         return self.futures
-
-    def cancel(self) -> None:
-        for future in self.futures:
-            future.cancel()
-
-    def json(self, exclude_none=True, by_alias=True, **json_options) -> str:
-        return super().json(
-            exclude_none=exclude_none, by_alias=by_alias, **json_options
-        )
 
     def init_from_dict(self, **params) -> None:
         match params:
-            case {
-                "futures": list() as futures,
-                "task_results_ir": list() as task_results_json,
-            }:
-                self.futures = [
-                    HardwareTaskFuture(**future_json) for future_json in futures
-                ]
-                self.task_results_ir = [
-                    QuEraTaskResults(**task_result_json)
-                    for task_result_json in task_results_json
-                ]
-            case {
-                "futures": list() as futures,
-            }:
+            case {"futures": list() as futures}:
                 self.futures = [
                     HardwareTaskFuture(**future_json) for future_json in futures
                 ]
             case _:
                 raise ValueError(
-                    "Cannot parse JSON file to HardwareFuture, invalided format."
+                    f"Cannot parse JSON file to {self.__class__.__name__}, "
+                    "invalided format."
                 )
