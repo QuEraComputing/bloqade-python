@@ -7,6 +7,7 @@ from bloqade.submission.ir.parallel import ParallelDecoder
 from typing import List, Union, TextIO, Tuple, Optional
 from numpy.typing import NDArray
 from pydantic.dataclasses import dataclass
+from pydantic import BaseModel
 from itertools import product
 import pandas as pd
 import numpy as np
@@ -38,9 +39,9 @@ class TaskFuture:
 
     @property
     def task_result(self) -> QuEraTaskResults:
-        return self.fetch(cache=True)
+        return self.fetch(cache_result=True)
 
-    def fetch(self, cache=False) -> QuEraTaskResults:
+    def fetch(self, cache_result=False) -> QuEraTaskResults:
         raise NotImplementedError
 
     def status(self) -> QuEraTaskStatusCode:
@@ -50,9 +51,11 @@ class TaskFuture:
         raise NotImplementedError
 
 
-class JSONInterface:
-    def json(self, **json_options) -> str:
-        raise NotImplementedError
+class JSONInterface(BaseModel):
+    def json(self, exclude_none=True, by_alias=True, **json_options) -> str:
+        return super().json(
+            exclude_none=exclude_none, by_alias=by_alias, **json_options
+        )
 
     def init_from_dict(self, **params) -> None:
         raise NotImplementedError
@@ -76,23 +79,60 @@ class JSONInterface:
         self.init_from_dict(**params)
 
 
-class Job(JSONInterface):
-    def submit(self) -> "Future":
+class Job:
+    def _task_list(self) -> List[Task]:
         raise NotImplementedError
 
+    def _emit_future(self, futures: List[TaskFuture]) -> "Future":
+        raise NotImplementedError
 
-class Future(JSONInterface):
+    def submit(self, submission_order: Optional[List[int]] = None) -> "Future":
+        task_list = self._task_list()
+
+        if submission_order is None:
+            submission_order = np.random.permutation(len(task_list))
+
+        if sorted(submission_order) != list(range(len(task_list))):
+            raise ValueError("Submission order must be a permutation of the tasks.")
+
+        try:
+            task_list[0].run_validation()
+            has_validation = True
+        except NotImplementedError:
+            has_validation = False
+
+        if has_validation:
+            for task in task_list[1:]:
+                task.run_validation()
+
+        # submit tasks in random order but store them
+        # in the original order of tasks.
+        futures = [None for _ in task_list]
+        for task_index in submission_order:
+            try:
+                futures[task_index] = task_list[task_index].submit()
+            except BaseException as e:
+                for future in futures:
+                    if future is not None:
+                        future.cancel()
+                raise e
+
+        return self._emit_future(futures)
+
+
+class Future:
     @property
     def task_results(self) -> List[QuEraTaskResults]:
-        return [future.task_result for future in self.task_futures()]
-
-    def task_futures(self) -> List[TaskFuture]:
-        raise NotImplementedError
+        return [future.task_result for future in self.futures_list()]
 
     def report(self) -> "Report":
         return Report(self)
 
     def cancel(self) -> None:
+        for future in self.futures_list():
+            future.cancel()
+
+    def futures_list(self) -> List[TaskFuture]:
         raise NotImplementedError
 
 
@@ -125,7 +165,7 @@ class Report:
         index = []
         data = []
 
-        for task_number, task_future in enumerate(self.future.task_futures()):
+        for task_number, task_future in enumerate(self.future.futures_list()):
             perfect_sorting = "".join(map(str, task_future.geometry.filling))
             parallel_decoder = task_future.geometry.parallel_decoder
 

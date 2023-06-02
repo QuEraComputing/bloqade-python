@@ -33,7 +33,7 @@ from bloqade.submission.ir.parallel import ParallelDecoder, ClusterLocationInfo
 
 import bloqade.submission.ir.task_specification as task_spec
 from bloqade.submission.ir.capabilities import QuEraCapabilities
-from typing import Any, Dict, Tuple, List, Union
+from typing import Any, Dict, Tuple, List, Union, Optional
 from bisect import bisect_left
 from numbers import Number
 import numpy as np
@@ -261,7 +261,7 @@ class SchemaCodeGen(ProgramVisitor):
     def __init__(
         self,
         assignments: Dict[str, Union[Number, List[Number]]],
-        capabilities: QuEraCapabilities,
+        capabilities: Optional[QuEraCapabilities] = None,
     ):
         self.capabilities = capabilities
         self.assignments = assignments
@@ -524,6 +524,11 @@ class SchemaCodeGen(ProgramVisitor):
         self.lattice = task_spec.Lattice(sites=sites, filling=filling)
 
     def visit_parallel_register(self, ast: ParallelRegister) -> Any:
+        if self.capabilities is None:
+            raise NotImplementedError(
+                "Cannot parallelize register without device capabilities."
+            )
+
         height_max = self.capabilities.capabilities.lattice.area.height / 1e-6
         width_max = self.capabilities.capabilities.lattice.area.width / 1e-6
         number_sites_max = (
