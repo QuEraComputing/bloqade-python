@@ -1,11 +1,19 @@
 from dataclasses import InitVar
 from pydantic.dataclasses import dataclass
-from typing import Any, Union, List
+from typing import Any, Union, List, Callable
 from enum import Enum
 from .tree_print import Printer
 from .scalar import Scalar, Interval, Variable, cast
 from bokeh.plotting import figure
 import numpy as np
+import inspect
+
+
+def waveform(duration: Any) -> "PythonFn":
+    def waveform_wrapper(fn: Callable) -> "PythonFn":
+        return PythonFn(fn, duration)
+
+    return waveform_wrapper
 
 
 class AlignedValue(str, Enum):
@@ -477,3 +485,30 @@ class Record(Waveform):
 
     def _repr_pretty_(self, p, cycle):
         Printer(p).print(self, cycle)
+
+
+@dataclass
+class PythonFn(Instruction):
+    fn: Callable  # [[float, ...], float] # f(t) -> value
+    parameters: List[str]  # come from ast inspect
+    duration: InitVar[Scalar]
+
+    def __init__(self, fn: Callable, duration: Any):
+        self.fn = fn
+        self._duration = cast(duration)
+
+        signature = inspect.getfullargspec(fn)
+
+        if signature.varargs is not None:
+            raise ValueError("Cannot have varargs")
+
+        if signature.varkw is not None:
+            raise ValueError("Cannot have varkw")
+
+        self.parameters = list(signature.args[1:]) + list(signature.kwonlyargs)
+
+    def __call__(self, clock_s: float, **kwargs) -> float:
+        if clock_s > self.duration(**kwargs):
+            return 0.0
+
+        return self.fn(clock_s, **{k: kwargs[k] for k in self.parameters})
