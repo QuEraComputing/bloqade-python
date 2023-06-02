@@ -4,7 +4,7 @@ from bloqade.submission.ir.task_results import (
     QuEraShotStatusCode,
 )
 from bloqade.submission.ir.parallel import ParallelDecoder
-from typing import List, Union, TextIO, Tuple, Optional
+from typing import List, Union, TextIO, Tuple, Optional, Dict
 from numpy.typing import NDArray
 from pydantic.dataclasses import dataclass
 from pydantic import BaseModel
@@ -144,6 +144,7 @@ class Report:
         self._future = future
         self._dataframe = None  # df cache
         self._bitstrings = None  # bitstring cache
+        self._counts = None  # counts cache
 
     @property
     def future(self) -> Future:
@@ -234,6 +235,25 @@ class Report:
             bitstrings.append(filtered_df.loc[task_number, ...].to_numpy())
 
         return bitstrings
+
+    @property
+    def counts(self) -> List[Dict[str, int]]:
+        if self._counts is not None:
+            return self._counts
+        self._counts = self._construct_counts()
+        return self._counts
+
+    def _construct_counts(self) -> List[Dict[str, int]]:
+        counts = []
+        for bitstring in self.bitstrings:
+            unique_bitstring, counts_ = np.unique(bitstring, return_counts=True, axis=0)
+            counts.append(
+                {
+                    "".join(map(str, unique_bitstring[i])): counts_[i]
+                    for i in range(len(unique_bitstring))
+                }
+            )
+        return counts
 
     def rydberg_densities(self) -> pd.Series:
         perfect_sorting = self.dataframe.index.get_level_values("perfect_sorting")
