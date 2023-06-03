@@ -1,6 +1,6 @@
 from dataclasses import InitVar
 from pydantic.dataclasses import dataclass
-from typing import Any, Union, List, Callable
+from typing import Any, Union, List, Callable, Optional
 from enum import Enum
 from .tree_print import Printer
 from .scalar import Scalar, Interval, Variable, cast
@@ -120,6 +120,8 @@ class Waveform:
                     duration = duration + cast(waveform.duration)
 
                 self._duration = duration
+            case Sample(waveform=waveform, interval=_):
+                self._duration = waveform.duration
             case _:
                 raise ValueError(f"Cannot compute duration of {self}")
         return self._duration
@@ -512,3 +514,69 @@ class PythonFn(Instruction):
             return 0.0
 
         return self.fn(clock_s, **{k: kwargs[k] for k in self.parameters})
+
+    def print_node(self):
+        return "PythonFn"
+
+    def children(self):
+        return {"Function": self.fn, "duration": self.duration}
+
+    def _repr_pretty_(self, p, cycle):
+        Printer(p).print(self, cycle)
+
+
+class Interpolation(str, Enum):
+    Linear = "linear"
+    Constant = "constant"
+
+
+@dataclass
+class Sample(Waveform):
+    """
+    <sample> ::= 'sample' <waveform> <interpolation> <scalar>
+    """
+
+    waveform: Waveform
+    interpolation: Interpolation
+    dt: Optional[Scalar]
+
+    def __call__(self, clock_s: float, **kwargs) -> Any:
+        duration = self.duration(**kwargs)
+        dt = self.dt(**kwargs)
+
+        times = np.hstack(np.arange(0, duration - dt, dt), [duration])
+
+        i = np.searchsorted(times, clock_s)
+
+        if i > len(times):
+            return 0.0
+
+        match self.interpolation:
+            case Interpolation.Linear:
+                return self._linear_interpolation(
+                    clock_s, times[i - 1], times[i], **kwargs
+                )
+            case Interpolation.Constant:
+                return self._constant_interpolation(times[i - 1], **kwargs)
+            case _:
+                raise ValueError(f"Unknown interpolation {self.interpolation}")
+
+    def _linear_interpolation(self, clock_s, start_time, stop_time, **kwargs):
+        start_value = self.waveform(start_time, **kwargs)
+        stop_value = self.waveform(stop_time, **kwargs)
+
+        slope = (stop_value - start_value) / (stop_time - start_time)
+
+        return slope * (clock_s - start_time) + start_value
+
+    def _constant_interpolation(self, start_time, **kwargs):
+        return self.waveform(start_time, **kwargs)
+
+    def print_node(self):
+        return "Sample"
+
+    def children(self):
+        return {"Waveform": self.waveform, "sample_step": self.dt}
+
+    def _repr_pretty_(self, p, cycle):
+        Printer(p).print(self, cycle)
