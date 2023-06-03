@@ -11,6 +11,8 @@ from bloqade.ir.waveform import (
     Scale,
     Add,
     Record,
+    PythonFn,
+    Sample,
 )
 from typing import Any
 
@@ -71,6 +73,16 @@ class WaveformVisitor:
             f"No visitor method implemented in {self.__class__} for Record."
         )
 
+    def visit_python_fn(self, ast: PythonFn) -> Any:
+        raise NotImplementedError(
+            f"No visitor method implemented in {self.__class__} for PythonFn."
+        )
+
+    def visit_sample(self, ast: Sample) -> Any:
+        raise NotImplementedError(
+            f"No visitor method implemented in {self.__class__} for Sample."
+        )
+
     def visit(self, ast: Waveform):
         match ast:
             case AlignedWaveform():
@@ -93,5 +105,9 @@ class WaveformVisitor:
                 return self.visit_add(ast)
             case Record():
                 return self.visit_record(ast)
+            case PythonFn():
+                return self.visit_python_fn(ast)
+            case Sample():
+                return self.visit_sample(ast)
             case _:
                 raise ValueError()(f"{ast.__class__} is not a Waveform AST type.")

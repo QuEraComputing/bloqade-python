@@ -9,6 +9,7 @@ import bloqade.ir as ir
 from bloqade.builder.start import ProgramStart
 from bloqade import start
 from bloqade.ir.location import Square
+import numpy as np
 
 
 def test_issue_107():
@@ -123,4 +124,24 @@ job = (
 
 print(job)
 
-# print(braket_job.json(indent=2))
+
+def my_func(time, *, omega, phi=0, amplitude):
+    return amplitude * np.cos(omega * time + phi)
+
+
+durations = ir.cast([0.1, "run_time", 0.1])
+total_duration = sum(durations)
+
+job = (
+    start.add_position((0, 0))
+    .rydberg.detuning.uniform.fn(my_func, total_duration)
+    .sample(0.05, "linear")
+    .rydberg.rabi.amplitude.uniform.piecewise_linear(
+        durations, [0, "rabi_max", "rabi_max", 0]
+    )
+    .assign(omega=15, amplitude=15, rabi_max=15)
+    .batch_assign(run_time=np.linspace(0, 4.0, 101))
+    .braket_local_simulator(1000)
+)
+
+print(job)

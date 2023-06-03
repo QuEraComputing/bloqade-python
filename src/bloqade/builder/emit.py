@@ -121,11 +121,28 @@ class Emit(Builder):
     @staticmethod
     def __build_ast(builder: Builder, build_state: BuildState):
         match builder:
+            case waveform.Sample():
+                if build_state.waveform:
+                    build_state.waveform = ir.Sample(
+                        builder.__parent__._waveform,
+                        dt=builder._dt,
+                        interpolation=builder._interpolation,
+                    ).append(build_state.waveform)
+
+                else:
+                    build_state.waveform = ir.Sample(
+                        builder.__parent__._waveform,
+                        dt=builder._dt,
+                        interpolation=builder._interpolation,
+                    )
+                Emit.__build_ast(builder.__parent__.__parent__, build_state)
+
             case (
                 waveform.Linear()
                 | waveform.Poly()
                 | waveform.Constant()
                 | waveform.Apply()
+                | waveform.PythonFn()
             ):
                 # because builder traverese the tree in the opposite order
                 # the builder must be appended to the current waveform.
