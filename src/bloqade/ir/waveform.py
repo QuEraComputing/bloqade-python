@@ -554,7 +554,7 @@ class Sample(Waveform):
 
         return np.hstack((np.arange(0, duration - dt, dt), [duration]))
 
-    def __call__(self, clock_s: float, **kwargs) -> Any:
+    def __call__(self, clock_s: float, **kwargs) -> float:
         times = self.sample_times(**kwargs)
 
         i = np.searchsorted(times, clock_s)
