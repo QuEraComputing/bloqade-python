@@ -6,11 +6,19 @@ from bloqade.ir import (
     AlignedWaveform,
     Alignment,
     AlignedValue,
+    instruction,
 )
 from bloqade.ir import scalar
 
 wf = Linear(start=1.0, stop="x", duration=3.0)
 wf = Constant(value=1.0, duration=3.0)
+
+
+@instruction(duration="r")
+def my_func(time, *, omega, phi=0, amplitude):
+    import numpy as np
+
+    return amplitude * np.cos(omega * time + phi)
 
 
 print(wf[:0.5].duration)

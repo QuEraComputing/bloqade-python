@@ -9,7 +9,9 @@ import numpy as np
 import inspect
 
 
-def waveform(duration: Any) -> "PythonFn":
+def instruction(duration: Any) -> "PythonFn":
+    """Turn python function into a waveform instruction."""
+
     def waveform_wrapper(fn: Callable) -> "PythonFn":
         return PythonFn(fn, duration)
 
@@ -120,7 +122,7 @@ class Waveform:
                     duration = duration + cast(waveform.duration)
 
                 self._duration = duration
-            case Sample(waveform=waveform, interval=_):
+            case Sample(waveform=waveform, interpolation=_, dt=_):
                 self._duration = waveform.duration
             case _:
                 raise ValueError(f"Cannot compute duration of {self}")
@@ -310,6 +312,48 @@ class Poly(Instruction):
         Printer(p).print(self, cycle)
 
 
+@dataclass(init=False)
+class PythonFn(Instruction):
+    """
+    <python-fn> ::= 'python-fn' <python function def> <scalar expr>
+    """
+
+    fn: Callable  # [[float, ...], float] # f(t) -> value
+    parameters: List[str]  # come from ast inspect
+    duration: InitVar[Scalar]
+
+    def __init__(self, fn: Callable, duration: Any):
+        self.fn = fn
+        self._duration = cast(duration)
+
+        signature = inspect.getfullargspec(fn)
+
+        if signature.varargs is not None:
+            raise ValueError("Cannot have varargs")
+
+        if signature.varkw is not None:
+            raise ValueError("Cannot have varkw")
+
+        self.parameters = list(signature.args[1:]) + list(signature.kwonlyargs)
+
+    def __call__(self, clock_s: float, **kwargs) -> float:
+        if clock_s > self.duration(**kwargs):
+            return 0.0
+
+        return self.fn(
+            clock_s, **{k: kwargs[k] for k in self.parameters if k in kwargs}
+        )
+
+    def print_node(self):
+        return "PythonFn"
+
+    def children(self):
+        return {"Function": self.fn, "duration": self.duration}
+
+    def _repr_pretty_(self, p, cycle):
+        Printer(p).print(self, cycle)
+
+
 @dataclass
 class Smooth(Waveform):
     """
@@ -489,46 +533,6 @@ class Record(Waveform):
         Printer(p).print(self, cycle)
 
 
-@dataclass
-class PythonFn(Instruction):
-    """
-    <python-fn> ::= 'python-fn' <python function def> <scalar expr>
-    """
-
-    fn: Callable  # [[float, ...], float] # f(t) -> value
-    parameters: List[str]  # come from ast inspect
-    duration: InitVar[Scalar]
-
-    def __init__(self, fn: Callable, duration: Any):
-        self.fn = fn
-        self._duration = cast(duration)
-
-        signature = inspect.getfullargspec(fn)
-
-        if signature.varargs is not None:
-            raise ValueError("Cannot have varargs")
-
-        if signature.varkw is not None:
-            raise ValueError("Cannot have varkw")
-
-        self.parameters = list(signature.args[1:]) + list(signature.kwonlyargs)
-
-    def __call__(self, clock_s: float, **kwargs) -> float:
-        if clock_s > self.duration(**kwargs):
-            return 0.0
-
-        return self.fn(clock_s, **{k: kwargs[k] for k in self.parameters})
-
-    def print_node(self):
-        return "PythonFn"
-
-    def children(self):
-        return {"Function": self.fn, "duration": self.duration}
-
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)
-
-
 class Interpolation(str, Enum):
     Linear = "linear"
     Constant = "constant"
@@ -541,14 +545,14 @@ class Sample(Waveform):
     """
 
     waveform: Waveform
-    interpolation: Interpolation
+    interpolation: Optional[Interpolation]
     dt: Optional[Scalar]
 
     def sample_times(self, **kwargs):
         duration = self.duration(**kwargs)
         dt = self.dt(**kwargs)
 
-        return np.hstack(np.arange(0, duration - dt, dt), [duration])
+        return np.hstack((np.arange(0, duration - dt, dt), [duration]))
 
     def __call__(self, clock_s: float, **kwargs) -> Any:
         times = self.sample_times(**kwargs)
@@ -566,7 +570,7 @@ class Sample(Waveform):
             case Interpolation.Constant:
                 return self._constant_interpolation(times[i - 1], **kwargs)
             case _:
-                raise ValueError(f"Unknown interpolation {self.interpolation}")
+                raise ValueError("No interpolation specified")
 
     def _linear_interpolation(self, clock_s, start_time, stop_time, **kwargs):
         start_value = self.waveform(start_time, **kwargs)

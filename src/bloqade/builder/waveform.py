@@ -1,7 +1,7 @@
 from .base import Builder
 from .terminate import Terminate
 import bloqade.ir as ir
-from typing import Union, List
+from typing import Union, List, Callable, Optional
 
 ScalarType = Union[float, str]
 
@@ -33,6 +33,9 @@ class Waveform(Builder):
 
         return builder
 
+    def fn(self, fn: Callable, duration: ScalarType):
+        return PythonFn(self, fn, duration)
+
 
 class WaveformTerminate(Waveform, Terminate):
     pass
@@ -62,3 +65,21 @@ class Poly(WaveformTerminate):
     def __init__(self, parent: Builder, coeffs: list, duration: str) -> None:
         super().__init__(parent)
         self._waveform = ir.Poly(coeffs, duration)
+
+
+class PythonFn(WaveformTerminate):
+    def __init__(self, parent: Builder, fn: Callable, duration: str) -> None:
+        super().__init__(parent)
+        self._waveform = ir.PythonFn(fn, duration)
+
+    def sample(self, dt: ScalarType, interpolation: Optional[str] = None) -> "Sample":
+        return Sample(self, dt, interpolation=interpolation)
+
+
+class Sample(WaveformTerminate):
+    def __init__(
+        self, parent: Builder, dt: ScalarType, interpolation: Optional[str] = None
+    ) -> None:
+        super().__init__(parent)
+        self._dt = ir.cast(dt)
+        self._interpolation = ir.Interpolation(interpolation) if interpolation else None
