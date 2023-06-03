@@ -491,6 +491,10 @@ class Record(Waveform):
 
 @dataclass
 class PythonFn(Instruction):
+    """
+    <python-fn> ::= 'python-fn' <python function def> <scalar expr>
+    """
+
     fn: Callable  # [[float, ...], float] # f(t) -> value
     parameters: List[str]  # come from ast inspect
     duration: InitVar[Scalar]
@@ -540,15 +544,18 @@ class Sample(Waveform):
     interpolation: Interpolation
     dt: Optional[Scalar]
 
-    def __call__(self, clock_s: float, **kwargs) -> Any:
+    def sample_times(self, **kwargs):
         duration = self.duration(**kwargs)
         dt = self.dt(**kwargs)
 
-        times = np.hstack(np.arange(0, duration - dt, dt), [duration])
+        return np.hstack(np.arange(0, duration - dt, dt), [duration])
+
+    def __call__(self, clock_s: float, **kwargs) -> Any:
+        times = self.sample_times(**kwargs)
 
         i = np.searchsorted(times, clock_s)
 
-        if i > len(times):
+        if i == len(times):
             return 0.0
 
         match self.interpolation:
