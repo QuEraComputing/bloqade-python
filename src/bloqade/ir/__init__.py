@@ -8,6 +8,10 @@ from .waveform import (
     AlignedWaveform,
     AlignedValue,
     Alignment,
+    Interpolation,
+    Sample,
+    PythonFn,
+    instruction,
 )
 from .field import (
     Field,
@@ -36,6 +40,10 @@ __all__ = [
     "Alignment",
     "AlignedValue",
     "Waveform",
+    "Sample",
+    "Interpolation",
+    "PythonFn",
+    "instruction",
     "Field",
     "Location",
     "ScaledLocations",
