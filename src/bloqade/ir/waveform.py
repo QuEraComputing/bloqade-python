@@ -7,6 +7,7 @@ from .scalar import Scalar, Interval, Variable, cast
 from bokeh.plotting import figure
 import numpy as np
 import inspect
+from numpy.typing import NDArray
 
 
 def instruction(duration: Any) -> "PythonFn":
@@ -548,7 +549,7 @@ class Sample(Waveform):
     interpolation: Optional[Interpolation]
     dt: Optional[Scalar]
 
-    def sample_times(self, **kwargs):
+    def sample_times(self, **kwargs) -> NDArray[np.float64]:
         duration = self.duration(**kwargs)
         dt = self.dt(**kwargs)
 
@@ -572,7 +573,7 @@ class Sample(Waveform):
             case _:
                 raise ValueError("No interpolation specified")
 
-    def _linear_interpolation(self, clock_s, start_time, stop_time, **kwargs):
+    def _linear_interpolation(self, clock_s, start_time, stop_time, **kwargs) -> float:
         start_value = self.waveform(start_time, **kwargs)
         stop_value = self.waveform(stop_time, **kwargs)
 
@@ -580,7 +581,7 @@ class Sample(Waveform):
 
         return slope * (clock_s - start_time) + start_value
 
-    def _constant_interpolation(self, start_time, **kwargs):
+    def _constant_interpolation(self, start_time, **kwargs) -> float:
         return self.waveform(start_time, **kwargs)
 
     def print_node(self):
