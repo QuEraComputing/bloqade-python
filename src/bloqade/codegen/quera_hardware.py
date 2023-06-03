@@ -154,6 +154,11 @@ class PiecewiseLinearCodeGen(WaveformVisitor):
 
         return times, values
 
+    def visit_sample(self, ast: waveform.Sample) -> Tuple[List[float], List[float]]:
+        times = ast.sample_times(**self.assignments)
+        values = [ast.waveform(time, **self.assignments) for time in times]
+        return times, values
+
 
 class PiecewiseConstantCodeGen(WaveformVisitor):
     def __init__(self, assignments: Dict[str, Union[Number, List[Number]]]):
@@ -254,6 +259,12 @@ class PiecewiseConstantCodeGen(WaveformVisitor):
             values[-1] = new_values[0]
             values.extend(new_values[1:])
 
+        return times, values
+
+    def visit_sample(self, ast: waveform.Sample) -> Tuple[List[float], List[float]]:
+        times = ast.sample_times(**self.assignments)
+        values = [ast.waveform(time, **self.assignments) for time in times]
+        values[-1] = values[-2]
         return times, values
 
 
