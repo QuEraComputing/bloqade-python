@@ -1,10 +1,9 @@
-import bloqade.lattice as lattice
+import bloqade.ir.location as location
 from bloqade.ir import Linear, Constant
-from bloqade.task import read_future_from_json
+from bloqade.task import HardwareJob, HardwareFuture
 
-
-quantum_task = (
-    lattice.Square(6)
+quantum_job = (
+    location.Square(6)
     .rydberg.detuning.uniform.apply(
         Constant("initial_detuning", "up_time")
         .append(Linear("initial_detuning", "final_detuning", "anneal_time"))
@@ -22,13 +21,19 @@ quantum_task = (
         anneal_time=10,
         rabi_amplitude_max=15,
     )
-    .program.mock(10)
+    .mock(10)
 )
 
 # print(len(quantum_task.task_result.shot_outputs))
+quantum_job.save_json("job.json")
+quantum_job = HardwareJob()
+quantum_job.load_json("job.json")
 
-quantum_task.write_json("quantum_task.json")
 
-quantum_task = read_future_from_json("quantum_task.json")
+quantum_future = quantum_job.submit()
+quantum_future.save_json("job.json")
+quantum_future = HardwareFuture()
+quantum_future.load_json("job.json")
 
-print(quantum_task)
+quantum_future.json()
+quantum_future.task_results

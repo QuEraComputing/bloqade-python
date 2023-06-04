@@ -1,5 +1,6 @@
 from .base import Builder
 from .waveform import Waveform
+from bloqade.ir import cast
 
 
 # NOTE: waveform can be specified only after
@@ -22,7 +23,7 @@ class Location(Waveform):
 class Scale(Waveform):
     def __init__(self, parent: Builder, scale) -> None:
         super().__init__(parent)
-        self._scale = scale
+        self._scale = cast(scale)
 
     def location(self, label: int):
         return Location(self, label)

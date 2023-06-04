@@ -1,8 +1,10 @@
-from .base import Lattice
+from .base import AtomArrangement
 from .bravais import Chain, Square, Rectangular, Honeycomb, Triangular, Lieb, Kagome
+from .list import ListOfLocations, start
 
 __all__ = [
-    "Lattice",
+    "start",
+    "AtomArrangement",
     "Chain",
     "Square",
     "Rectangular",
@@ -11,4 +13,5 @@ __all__ = [
     "Lieb",
     "Kagome",
     "BoundedBravais",
+    "ListOfLocations",
 ]

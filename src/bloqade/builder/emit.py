@@ -6,10 +6,24 @@ import bloqade.builder.field as field
 import bloqade.builder.coupling as coupling
 import bloqade.builder.start as start
 import bloqade.ir as ir
-from bloqade.task import Program
+
+from bloqade.submission.base import SubmissionBackend
+from bloqade.submission.braket import BraketBackend
+from bloqade.submission.mock import DumbMockBackend
+from bloqade.submission.quera import QuEraBackend
+from bloqade.submission.ir.braket import to_braket_task_ir
+
+from bloqade.ir import Program
+from bloqade.ir.location.base import AtomArrangement, ParallelRegister
 
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, Dict, Union, List, Any
+from numbers import Number
+import json
+import os
+from bloqade.task import HardwareTask, HardwareJob
+from bloqade.task.braket_simulator import BraketEmulatorJob, BraketEmulatorTask
+from itertools import repeat
 
 
 class BuildError(Exception):
@@ -34,31 +48,111 @@ class Emit(Builder):
     # the building process will terminate
     # none of the methods in this class will return a Builder
 
-    def __init__(self, builder: Builder) -> None:
-        super().__init__(builder)
-        self.__assignments__ = {}
-        self.__sequence__ = None
+    def __init__(
+        self,
+        builder: Builder,
+        assignments: Dict[str, Union[Number, List[Number]]] = {},
+        batch: Dict[str, Union[List[Number], List[List[Number]]]] = {},
+        register: Optional[Union["AtomArrangement", "ParallelRegister"]] = None,
+        sequence: Optional[ir.Sequence] = None,
+    ) -> None:
+        super().__init__(builder, register=register)
+
+        self.__batch__ = {}
+        if batch:
+            first_key, *other_keys = batch.keys()
+            first_value = batch[first_key]
+
+            batch_size = len(first_value)
+            self.__batch__[first_key] = first_value
+
+            for key in other_keys:
+                value = batch[key]
+                other_batch_size = len(value)
+                if other_batch_size != batch_size:
+                    raise ValueError(
+                        "mismatch in size of batches, found batch size "
+                        f"{batch_size} for {first_key} and a batch size of "
+                        f"{other_batch_size} for {key}"
+                    )
+
+                self.__batch__[key] = value
+
+        self.__assignments__ = assignments
+        self.__sequence__ = sequence
 
     def assign(self, **assignments):
-        self.__assignments__.update(assignments)
-        return self
+        # these methods terminate no build steps can
+        # happens after this other than updating parameters
+        new_assignments = dict(self.__assignments__)
+        new_assignments.update(**assignments)
+        return Emit(
+            self,
+            assignments=new_assignments,
+            batch=self.__batch__,
+            register=self.__register__,
+            sequence=self.__sequence__,
+        )
+
+    def batch_assign(self, **batch):
+        new_batch = dict(self.__batch__)
+        new_batch.update(**batch)
+        return Emit(
+            self,
+            assignments=self.__assignments__,
+            batch=new_batch,
+            register=self.__register__,
+            sequence=self.__sequence__,
+        )
+
+    def parallelize(self, cluster_spacing: Any) -> "Emit":
+        if isinstance(self.register, ParallelRegister):
+            raise TypeError("cannot parallelize a parallel register.")
+
+        parallel_register = ParallelRegister(self.register, cluster_spacing)
+        return Emit(
+            self,
+            assignments=self.__assignments__,
+            batch=self.__batch__,
+            register=parallel_register,
+            sequence=self.__sequence__,
+        )
 
     @staticmethod
-    def __build(builder: Builder, build_state: BuildState):
+    def __build_ast(builder: Builder, build_state: BuildState):
         match builder:
+            case waveform.Sample():
+                if build_state.waveform:
+                    build_state.waveform = ir.Sample(
+                        builder.__parent__._waveform,
+                        dt=builder._dt,
+                        interpolation=builder._interpolation,
+                    ).append(build_state.waveform)
+
+                else:
+                    build_state.waveform = ir.Sample(
+                        builder.__parent__._waveform,
+                        dt=builder._dt,
+                        interpolation=builder._interpolation,
+                    )
+                Emit.__build_ast(builder.__parent__.__parent__, build_state)
+
             case (
                 waveform.Linear()
                 | waveform.Poly()
                 | waveform.Constant()
                 | waveform.Apply()
+                | waveform.PythonFn()
             ):
+                # because builder traverese the tree in the opposite order
+                # the builder must be appended to the current waveform.
                 if build_state.waveform:
-                    build_state.waveform = build_state.waveform.append(
-                        builder._waveform
+                    build_state.waveform = builder._waveform.append(
+                        build_state.waveform
                     )
                 else:
                     build_state.waveform = builder._waveform
-                Emit.__build(builder.__parent__, build_state)
+                Emit.__build_ast(builder.__parent__, build_state)
 
             case location.Scale() if isinstance(
                 builder.__parent__.__parent__, spatial.SpatialModulation
@@ -75,7 +169,7 @@ class Emit(Builder):
                 build_state.scaled_locations = ir.ScaledLocations({})
                 build_state.waveform = None
 
-                Emit.__build(builder.__parent__.__parent__, build_state)
+                Emit.__build_ast(builder.__parent__.__parent__, build_state)
 
             case location.Location() if isinstance(
                 builder.__parent__, spatial.SpatialModulation
@@ -92,21 +186,21 @@ class Emit(Builder):
                 build_state.scaled_locations = ir.ScaledLocations({})
                 build_state.waveform = None
 
-                Emit.__build(builder.__parent__, build_state)
+                Emit.__build_ast(builder.__parent__, build_state)
 
             case location.Scale():
                 scale = builder._scale
                 loc = ir.Location(builder.__parent__._label)
                 build_state.scaled_locations.value[loc] = scale
 
-                Emit.__build(builder.__parent__.__parent__, build_state)
+                Emit.__build_ast(builder.__parent__.__parent__, build_state)
 
             case location.Location():
                 scale = ir.cast(1.0)
                 loc = ir.Location(builder._label)
                 build_state.scaled_locations.value[loc] = scale
 
-                Emit.__build(builder.__parent__, build_state)
+                Emit.__build_ast(builder.__parent__, build_state)
 
             case location.Uniform():
                 new_field = ir.Field({ir.Uniform: build_state.waveform})
@@ -114,7 +208,7 @@ class Emit(Builder):
 
                 # reset build_state values
                 build_state.waveform = None
-                Emit.__build(builder.__parent__, build_state)
+                Emit.__build_ast(builder.__parent__, build_state)
 
             case location.Var():
                 new_field = ir.Field(
@@ -124,31 +218,31 @@ class Emit(Builder):
 
                 # reset build_state values
                 build_state.waveform = None
-                Emit.__build(builder.__parent__, build_state)
+                Emit.__build_ast(builder.__parent__, build_state)
 
             case field.Detuning():
                 build_state.detuning = build_state.detuning.add(build_state.field)
 
                 # reset build_state values
                 build_state.field = ir.Field({})
-                Emit.__build(builder.__parent__, build_state)
+                Emit.__build_ast(builder.__parent__, build_state)
 
             case field.Rabi():
-                Emit.__build(builder.__parent__, build_state)
+                Emit.__build_ast(builder.__parent__, build_state)
 
             case field.Amplitude():
-                build_state.amplitude = build_state.detuning.add(build_state.field)
+                build_state.amplitude = build_state.amplitude.add(build_state.field)
 
                 # reset build_state values
                 build_state.field = ir.Field({})
-                Emit.__build(builder.__parent__, build_state)
+                Emit.__build_ast(builder.__parent__, build_state)
 
             case field.Phase():
-                build_state.phase = build_state.detuning.add(build_state.field)
+                build_state.phase = build_state.phase.add(build_state.field)
 
                 # reset build_state values
                 build_state.field = ir.Field({})
-                Emit.__build(builder.__parent__, build_state)
+                Emit.__build_ast(builder.__parent__, build_state)
 
             case coupling.Rydberg():
                 if build_state.amplitude.value:
@@ -176,7 +270,7 @@ class Emit(Builder):
                 build_state.amplitude = ir.Field({})
                 build_state.phase = ir.Field({})
                 build_state.detuning = ir.Field({})
-                Emit.__build(builder.__parent__, build_state)
+                Emit.__build_ast(builder.__parent__, build_state)
 
             case coupling.Hyperfine():
                 if build_state.amplitude.value:
@@ -200,7 +294,7 @@ class Emit(Builder):
                     result_field = current_field.add(build_state.detuning)
                     build_state.hyperfine.value[ir.detuning] = result_field
 
-                Emit.__build(builder.__parent__, build_state)
+                Emit.__build_ast(builder.__parent__, build_state)
 
             case start.ProgramStart():
                 if build_state.rydberg.value:
@@ -212,29 +306,122 @@ class Emit(Builder):
                 build_state.rydberg = ir.Pulse({})
                 build_state.hyperfine = ir.Pulse({})
 
+            case Emit():
+                Emit.__build_ast(builder.__parent__, build_state)
+
             case _:
                 raise RuntimeError(f"invalid builder type: {builder.__class__}")
 
+    def __assignments_iterator(self):
+        assignments = dict(self.__assignments__)
+
+        if self.__batch__:
+            batch_iterators = [
+                zip(repeat(name), values) for name, values in self.__batch__.items()
+            ]
+            batch_iterator = zip(*batch_iterators)
+
+            for batch_list in batch_iterator:
+                assignments.update(dict(batch_list))
+                yield assignments
+        else:
+            yield assignments
+
+    def __compile_hardware(
+        self, nshots: int, backend: SubmissionBackend
+    ) -> HardwareJob:
+        from bloqade.codegen.quera_hardware import SchemaCodeGen
+
+        capabilities = backend.get_capabilities()
+
+        hardware_tasks = []
+
+        for assignments in self.__assignments_iterator():
+            schema_compiler = SchemaCodeGen(assignments, capabilities=capabilities)
+            task_ir = schema_compiler.emit(nshots, self.program)
+            task_ir = task_ir.discretize(capabilities)
+            hardware_tasks.append(
+                HardwareTask(
+                    task_ir=task_ir,
+                    backend=backend,
+                    parallel_decoder=schema_compiler.parallel_decoder,
+                )
+            )
+
+        return HardwareJob(tasks=hardware_tasks)
+
     @property
-    def lattice(self):
+    def register(self) -> Union["AtomArrangement", "ParallelRegister"]:
+        if self.__register__:
+            return self.__register__
+
         current = self
         while current.__parent__ is not None:
-            if current.__lattice__ is not None:
-                return current.__lattice__
+            if current.__register__ is not None:
+                self.__register__ = current.__register__
+                return self.__register__
 
             current = current.__parent__
 
-        return current.__lattice__
+        self.__register__ = current.__register__
+
+        if self.__register__ is None:
+            raise AttributeError("No reigster found in builder.")
+
+        return self.__register__
 
     @property
     def sequence(self):
         if self.__sequence__ is None:
             build_state = BuildState()
-            Emit.__build(self, build_state)
+            Emit.__build_ast(self, build_state)
             self.__sequence__ = build_state.sequence
 
         return self.__sequence__
 
     @property
-    def program(self):
-        return Program(self.lattice, self.sequence, self.__assignments__)
+    def program(self) -> Program:
+        return Program(self.register, self.sequence)
+
+    def simu(self, *args, **kwargs):
+        raise NotImplementedError
+
+    def braket_local_simulator(self, nshots: int):
+        from bloqade.codegen.quera_hardware import SchemaCodeGen
+
+        if isinstance(self.register, ParallelRegister):
+            raise TypeError("Braket emulator doesn't support parallel registers.")
+
+        tasks = []
+
+        for assignments in self.__assignments_iterator():
+            schema_compiler = SchemaCodeGen(assignments)
+            task_ir = schema_compiler.emit(nshots, self.program)
+            task = BraketEmulatorTask(task_ir=to_braket_task_ir(task_ir))
+            tasks.append(task)
+
+        return BraketEmulatorJob(tasks=tasks)
+
+    def braket(self, nshots: int) -> "HardwareJob":
+        backend = BraketBackend()
+        return self.__compile_hardware(nshots, backend)
+
+    def quera(
+        self, nshots: int, config_file: Optional[str] = None, **api_config
+    ) -> "HardwareJob":
+        if config_file is None:
+            path = os.path.dirname(__file__)
+            api_config_file = os.path.join(
+                path, "submission", "quera_api_client", "config", "integ_quera_api.json"
+            )
+            with open(api_config_file, "r") as io:
+                api_config.update(**json.load(io))
+
+        backend = QuEraBackend(**api_config)
+
+        return self.__compile_hardware(nshots, backend)
+
+    def mock(self, nshots: int, state_file: str = ".mock_state.txt") -> "HardwareJob":
+        backend = DumbMockBackend(state_file=state_file)
+
+        return self.__compile_hardware(nshots, backend)

@@ -1,4 +1,4 @@
-from .scalar import cast, Scalar, Interval, Variable, Literal
+from .scalar import var, cast, Scalar, Interval, Variable, Literal
 from .waveform import (
     Waveform,
     Linear,
@@ -8,6 +8,10 @@ from .waveform import (
     AlignedWaveform,
     AlignedValue,
     Alignment,
+    Interpolation,
+    Sample,
+    PythonFn,
+    instruction,
 )
 from .field import (
     Field,
@@ -19,8 +23,10 @@ from .field import (
 )
 from .pulse import Pulse, NamedPulse, FieldName, rabi, detuning
 from .sequence import rydberg, hyperfine, Sequence, LevelCoupling
+from .program import Program
 
 __all__ = [
+    "var",
     "cast",
     "Scalar",
     "Interval",
@@ -34,6 +40,10 @@ __all__ = [
     "Alignment",
     "AlignedValue",
     "Waveform",
+    "Sample",
+    "Interpolation",
+    "PythonFn",
+    "instruction",
     "Field",
     "Location",
     "ScaledLocations",
@@ -49,4 +59,5 @@ __all__ = [
     "rydberg",
     "hyperfine",
     "Sequence",
+    "Program",
 ]

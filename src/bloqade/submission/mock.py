@@ -1,7 +1,9 @@
 from bloqade.submission.base import SubmissionBackend
 
-from quera_ahs_utils.quera_ir.task_specification import QuEraTaskSpecification
-from quera_ahs_utils.quera_ir.task_results import (
+from bloqade.submission.ir.task_specification import (
+    QuEraTaskSpecification,
+)
+from bloqade.submission.ir.task_results import (
     QuEraTaskResults,
     QuEraTaskStatusCode,
     QuEraShotResult,
@@ -65,3 +67,6 @@ class DumbMockBackend(SubmissionBackend):
 
     def cancel_task(self, task_id: str):
         pass
+
+    def task_status(self, task_id: str) -> QuEraTaskStatusCode:
+        return QuEraTaskStatusCode.Completed
