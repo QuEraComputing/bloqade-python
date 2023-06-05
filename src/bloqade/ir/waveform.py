@@ -370,54 +370,55 @@ class SmoothingKernel:
 
 class Guassian(SmoothingKernel):
     def _kernel(self, value: float) -> float:
-        return np.exp(-(value**2) / (2 * self.radius**2))
+        return np.exp(-(value**2) / 2) / np.sqrt(2 * np.pi)
 
 
 class Triangle(SmoothingKernel):
     def _kernel(self, value: float) -> float:
-        return np.maximum(0, 1 - np.abs(value) / self.radius)
+        return np.maximum(0, 1 - np.abs(value))
 
 
 class Uniform(SmoothingKernel):
     def _kernel(self, value: float) -> float:
-        return 1 if np.abs(value) <= self.radius else 0
+        return 1 if np.abs(value) <= 1 else 0
 
 
 class Parabolic(SmoothingKernel):
     def _kernel(self, value: float) -> float:
-        return np.maximum(0, 1 - (value / self.radius) ** 2)
+        return (3 / 4) * np.maximum(0, 1 - value**2)
 
 
 class Biweight(SmoothingKernel):
     def _kernel(self, value: float) -> float:
-        return np.maximum(0, 1 - (value / self.radius) ** 2) ** 2
+        return (15 / 16) * np.maximum(0, 1 - value**2) ** 2
 
 
 class Triweight(SmoothingKernel):
     def _kernel(self, value: float) -> float:
-        return np.maximum(0, 1 - (value / self.radius) ** 2) ** 3
+        return (35 / 32) * np.maximum(0, 1 - value**2) ** 3
 
 
 class Tricube(SmoothingKernel):
     def _kernel(self, value: float) -> float:
-        return np.maximum(0, 1 - np.abs(value / self.radius) ** 3) ** 3
+        return (70 / 81) * np.maximum(0, 1 - np.abs(value) ** 3) ** 3
 
 
 class Cosine(SmoothingKernel):
     def _kernel(self, value: float) -> float:
-        return np.maximum(0, np.pi / 4 * np.cos(np.pi / 2 * value / self.radius))
+        return np.maximum(0, np.pi / 4 * np.cos(np.pi / 2 * value))
 
 
 class Logistic(SmoothingKernel):
     def _kernel(self, value: float) -> float:
-        return 1 / (np.exp(value / self.radius) + 2 + np.exp(-value / self.radius))
+        if value >= 0:
+            return np.exp(-value) / (1 + np.exp(-value)) ** 2
+        else:
+            return np.exp(value) / (1 + np.exp(value)) ** 2
 
 
 class Sigmoid(SmoothingKernel):
     def _kernel(self, value: float) -> float:
-        return 2 / (
-            np.pi * (np.exp(value / self.radius) + np.exp(-value / self.radius))
-        )
+        return (2 / np.pi) * np.exp(-np.logaddexp(-value, value))
 
 
 @dataclass
