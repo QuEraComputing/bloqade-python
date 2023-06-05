@@ -3,7 +3,7 @@ import numpy as np
 from bloqade import start
 
 
-durations = [Variable("RAMP_TIME"), Variable("run_time"), Variable("RAMP_TIME")]
+durations = [Variable("ramp_time"), Variable("run_time"), Variable("ramp_time")]
 
 rabi_oscillations_program = (
     start.add_position((0, 0))
@@ -17,5 +17,5 @@ rabi_oscillations_program = (
 
 
 rabi_oscillations_program.parallelize(24).assign(
-    RAMP_TIME=0.06, rabi_value=15, detuning_value=0.0
+    ramp_time=0.06, rabi_value=15, detuning_value=0.0
 ).batch_assign(run_time=np.around(np.arange(0, 21, 1) * 0.05, 13)).mock(10, "test.txt")
