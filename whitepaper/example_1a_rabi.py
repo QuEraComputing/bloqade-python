@@ -16,6 +16,19 @@ rabi_oscillations_program = (
 )
 
 
-rabi_oscillations_program.parallelize(24).assign(
-    ramp_time=0.06, rabi_value=15, detuning_value=0.0
-).batch_assign(run_time=np.around(np.arange(0, 21, 1) * 0.05, 13)).mock(10, "test.txt")
+# for submitting to HW
+# rabi_oscillations_program.parallelize(24).assign(
+#    ramp_time=0.06, rabi_value=15, detuning_value=0.0)
+# .batch_assign(run_time=np.around(np.arange(0, 21, 1) * 0.05, 13)).mock(10, "test.txt")
+
+# for simulation
+emulation_job = (
+    rabi_oscillations_program.assign(ramp_time=0.06, rabi_value=15, detuning_value=0.0)
+    .batch_assign(run_time=np.around(np.arange(0, 21, 1) * 0.05, 13))
+    .braket_local_simulator(10000)  # 10000 shots from whitepaper example
+)
+
+# contains 21 tasks as consequence of batch_assign
+# currently not exactly reproducible over run_time = 0 issue and
+# non-monotonically increasing durations that Braket validation expects
+emulation_job.submit().report().rydberg_densities()
