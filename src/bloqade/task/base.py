@@ -86,6 +86,15 @@ class Job:
     def _emit_future(self, futures: List[TaskFuture]) -> "Future":
         raise NotImplementedError
 
+    def remove_invalid_tasks(self) -> "Job":
+        valid_tasks = []
+
+        for task in self._task_list():
+            task.run_validation()
+            valid_tasks.append(task)
+
+        return self.__class__(tasks=valid_tasks)
+
     def submit(self, submission_order: Optional[List[int]] = None) -> "Future":
         task_list = self._task_list()
 
