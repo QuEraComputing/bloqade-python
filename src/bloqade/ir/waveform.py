@@ -355,13 +355,60 @@ class PythonFn(Instruction):
         Printer(p).print(self, cycle)
 
 
+class SmoothingKernel:
+    pass
+
+    def __call__(self, value: float) -> float:
+        raise NotImplementedError
+
+
+class Guassian(SmoothingKernel):
+    pass
+
+
+class Triangle(SmoothingKernel):
+    pass
+
+
+class Uniform(SmoothingKernel):
+    pass
+
+
+class Parabolic(SmoothingKernel):
+    pass
+
+
+class Biweight(SmoothingKernel):
+    pass
+
+
+class Triweight(SmoothingKernel):
+    pass
+
+
+class Tricube(SmoothingKernel):
+    pass
+
+
+class Cosine(SmoothingKernel):
+    pass
+
+
+class Logistic(SmoothingKernel):
+    pass
+
+
+class Sigmoid(SmoothingKernel):
+    pass
+
+
 @dataclass
 class Smooth(Waveform):
     """
     <smooth> ::= 'smooth' <kernel> <waveform>
     """
 
-    kernel: str
+    kernel: SmoothingKernel
     waveform: Waveform
 
     # TODO: implement
