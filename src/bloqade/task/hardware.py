@@ -11,7 +11,7 @@ from bloqade.submission.ir.task_results import QuEraTaskStatusCode
 from bloqade.task.base import Task, Future, Geometry, TaskFuture, Job, JSONInterface
 
 
-from typing import Optional, List, Union
+from typing import Optional, Union, Dict
 
 
 class MockTask(BaseModel, Task):
@@ -224,18 +224,21 @@ class HardwareTaskFuture(QuEraTaskFuture):
 
 
 class HardwareJob(JSONInterface, Job):
-    tasks: List[HardwareTask] = []
+    tasks: Dict[int, HardwareTask] = {}
 
-    def _task_list(self) -> List[HardwareTask]:
+    def _task_dict(self) -> Dict[int, HardwareTask]:
         return self.tasks
 
-    def _emit_future(self, futures: List[HardwareTaskFuture]) -> "HardwareFuture":
+    def _emit_future(self, futures: Dict[int, HardwareTaskFuture]) -> "HardwareFuture":
         return HardwareFuture(futures=futures)
 
     def init_from_dict(self, **params) -> None:
         match params:
-            case {"tasks": list() as tasks_json}:
-                self.tasks = [HardwareTask(**task_json) for task_json in tasks_json]
+            case {"tasks": dict() as tasks_json}:
+                self.tasks = {
+                    task_number: HardwareTask(**task_json)
+                    for task_number, task_json in tasks_json.items()
+                }
             case _:
                 raise ValueError(
                     f"Cannot parse JSON file to {self.__class__.__name__}, "
@@ -244,17 +247,18 @@ class HardwareJob(JSONInterface, Job):
 
 
 class HardwareFuture(JSONInterface, Future):
-    futures: List[HardwareTaskFuture] = []
+    futures: Dict[int, HardwareTaskFuture] = {}
 
-    def futures_list(self) -> List[HardwareTaskFuture]:
+    def futures_dict(self) -> Dict[int, HardwareTaskFuture]:
         return self.futures
 
     def init_from_dict(self, **params) -> None:
         match params:
-            case {"futures": list() as futures}:
-                self.futures = [
-                    HardwareTaskFuture(**future_json) for future_json in futures
-                ]
+            case {"futures": dict() as futures}:
+                self.futures = {
+                    task_number: HardwareTaskFuture(**future_json)
+                    for task_number, future_json in futures.items()
+                }
             case _:
                 raise ValueError(
                     f"Cannot parse JSON file to {self.__class__.__name__}, "
