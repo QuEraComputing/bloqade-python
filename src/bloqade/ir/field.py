@@ -1,8 +1,9 @@
 from pydantic.dataclasses import dataclass
-from .scalar import Scalar, cast
+from .scalar import Scalar, cast, Literal
 from .waveform import Waveform
-from typing import Dict
+from typing import Dict, Optional, Tuple, Union
 from .tree_print import Printer
+
 
 __all__ = [
     "Field",
@@ -58,21 +59,23 @@ class UniformModulation(SpatialModulation):
 Uniform = UniformModulation()
 
 
-@dataclass
-class RunTimeVector(SpatialModulation):
-    name: str
+@dataclass(frozen=True)
+class RabiScale:
+    """
+    <rabi_scale> ::= `rabi_scale(` <scalar> `,` <scalar> `)`
+    """
 
-    def __hash__(self) -> int:
-        return hash(self.name) ^ hash(self.__class__)
-
-    def __repr__(self) -> str:
-        return f"RunTimeVector({self.name!r})"
+    amplitude_scale: Scalar
+    phase_shift: Scalar = Literal(0.0)
 
     def print_node(self):
-        return "RunTimeVector"
+        return "RabiScale"
 
     def children(self):
-        return [self.name]
+        return {
+            "amplitude_scale": self.amplitude_scale,
+            "phase_shift": self.phase_shift,
+        }
 
     def _repr_pretty_(self, p, cycle):
         Printer(p).print(self, cycle)
@@ -80,7 +83,7 @@ class RunTimeVector(SpatialModulation):
 
 @dataclass(init=False)
 class ScaledLocations(SpatialModulation):
-    value: dict[Location, Scalar]
+    value: dict[Location, Union[Scalar, RabiScale]]
 
     def __init__(self, pairs):
         value = dict()
@@ -106,12 +109,32 @@ class ScaledLocations(SpatialModulation):
 
     def children(self):
         # can return list or dict
-        # should return dict consisting of Location and Scalar
+        # should return dict consisting of Location and scale
         annotated_children = {}
-        for loc, scalar in self.value.items():
-            annotated_children[loc.print_node()] = scalar
+        for loc, scale in self.value.items():
+            annotated_children[loc.print_node()] = scale
 
         return annotated_children
+
+    def _repr_pretty_(self, p, cycle):
+        Printer(p).print(self, cycle)
+
+
+@dataclass
+class RunTimeVector(SpatialModulation):
+    name: str
+
+    def __hash__(self) -> int:
+        return hash(self.name) ^ hash(self.__class__)
+
+    def __repr__(self) -> str:
+        return f"RunTimeVector({self.name!r})"
+
+    def print_node(self):
+        return "RunTimeVector"
+
+    def children(self):
+        return [self.name]
 
     def _repr_pretty_(self, p, cycle):
         Printer(p).print(self, cycle)
@@ -151,6 +174,55 @@ class Field:
     def children(self):
         # return dict with annotations
         return {spatial_mod.print_node(): wf for spatial_mod, wf in self.value.items()}
+
+    def _repr_pretty_(self, p, cycle):
+        Printer(p).print(self, cycle)
+
+
+@dataclass(frozen=True)
+class RabiWaveform:
+    """
+    <rabi_waveform> ::= `rabi_waveform(` <waveform> `,` <waveform> `)`
+    """
+
+    amplitude: Waveform
+    phase: Optional[Waveform]
+
+    def print_node(self):
+        return "RabiWaveform"
+
+    def children(self):
+        return {"amplitude": self.amplitude, "phase": self.phase}
+
+    def _repr_pretty_(self, p, cycle):
+        Printer(p).print(self, cycle)
+
+
+@dataclass(frozen=True)
+class RabiField:
+    """
+    <rabi field> ::= ('rabi_field' <spatial modulation>  <rabi_waveform>)*
+
+    """
+
+    # can't use Dict because RabiWaveform doesn't support __add__
+    value: Tuple[Tuple[SpatialModulation, RabiWaveform]]
+
+    def __repr__(self) -> str:
+        return f"RabiField({self.value!r})"
+
+    def add(self, other):
+        if not isinstance(other, RabiField):
+            raise ValueError(f"Cannot add RabiField and {other.__class__}")
+
+        return RabiField(self.value + other.value)
+
+    def print_node(self):
+        return "RabiField"
+
+    def children(self):
+        # return dict with annotations
+        return {repr(spatial_mod): wf for spatial_mod, wf in self.value}
 
     def _repr_pretty_(self, p, cycle):
         Printer(p).print(self, cycle)
