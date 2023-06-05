@@ -414,7 +414,7 @@ dependencies = [
 
 [[package]]
 name = "ipython"
-version = "8.13.2"
+version = "8.14.0"
 requires_python = ">=3.9"
 summary = "IPython: Productive Interactive Computing"
 dependencies = [
@@ -671,7 +671,7 @@ summary = "Jupyter interactive widgets for JupyterLab"
 
 [[package]]
 name = "jupytext"
-version = "1.14.5"
+version = "1.14.6"
 requires_python = "~=3.6"
 summary = "Jupyter notebooks as Markdown documents, Julia, Python or R scripts"
 dependencies = [
@@ -2249,9 +2249,9 @@ content_hash = "sha256:ad816c58214dd33e327dc7f2c287860c39471806e63f966c05c35099d
     {url = "https://files.pythonhosted.org/packages/15/43/d2ebd2657b77cb1e2526a4b444a494298dae1c870a27e85805039e1e3e8a/ipykernel-6.23.1.tar.gz", hash = "sha256:1aba0ae8453e15e9bc6b24e497ef6840114afcdb832ae597f32137fa19d42a6f"},
     {url = "https://files.pythonhosted.org/packages/5d/4b/ffb537e392e730c9a5b02758f9c87077d9087bcb0d957853e13f121e5ea7/ipykernel-6.23.1-py3-none-any.whl", hash = "sha256:77aeffab056c21d16f1edccdc9e5ccbf7d96eb401bd6703610a21be8b068aadc"},
 ]
-"ipython 8.13.2" = [
-    {url = "https://files.pythonhosted.org/packages/d5/16/2161195dd2f617933f8ada5bc567eb47ddbb7c99dc16ffa3e729dd25a1a0/ipython-8.13.2-py3-none-any.whl", hash = "sha256:ffca270240fbd21b06b2974e14a86494d6d29290184e788275f55e0b55914926"},
-    {url = "https://files.pythonhosted.org/packages/ee/ad/d908d8aac3e8ac8aec2b89103b6c10f289544623879be0e249de3e508123/ipython-8.13.2.tar.gz", hash = "sha256:7dff3fad32b97f6488e02f87b970f309d082f758d7b7fc252e3b19ee0e432dbb"},
+"ipython 8.14.0" = [
+    {url = "https://files.pythonhosted.org/packages/52/d1/f70cdafba20030cbc1412d7a7d6a89c5035071835cc50e47fc5ed8da553c/ipython-8.14.0-py3-none-any.whl", hash = "sha256:248aca623f5c99a6635bc3857677b7320b9b8039f99f070ee0d20a5ca5a8e6bf"},
+    {url = "https://files.pythonhosted.org/packages/fa/cb/2b777f625cca49b4a747b0dfe9986c21f5b46e5b548176903a914cdbec55/ipython-8.14.0.tar.gz", hash = "sha256:1d197b907b6ba441b692c48cf2a3a2de280dc0ac91a3405b39349a50272ca0a1"},
 ]
 "ipython-genutils 0.2.0" = [
     {url = "https://files.pythonhosted.org/packages/e8/69/fbeffffc05236398ebfcfb512b6d2511c622871dca1746361006da310399/ipython_genutils-0.2.0.tar.gz", hash = "sha256:eb2e116e75ecef9d4d228fdc66af54269afa26ab4463042e33785b887c628ba8"},
@@ -2341,9 +2341,9 @@ content_hash = "sha256:ad816c58214dd33e327dc7f2c287860c39471806e63f966c05c35099d
     {url = "https://files.pythonhosted.org/packages/46/98/e7ce879b7b5d4871b80e291be967d22e5e66fa43474c476a95fe6231f50d/jupyterlab_widgets-3.0.7-py3-none-any.whl", hash = "sha256:c73f8370338ec19f1bec47254752d6505b03601cbd5a67e6a0b184532f73a459"},
     {url = "https://files.pythonhosted.org/packages/d4/68/ef3070afff437dc92562241294467112566d3b402d85bb9b32e3fd65352a/jupyterlab_widgets-3.0.7.tar.gz", hash = "sha256:c3a50ed5bf528a0c7a869096503af54702f86dda1db469aee1c92dc0c01b43ca"},
 ]
-"jupytext 1.14.5" = [
-    {url = "https://files.pythonhosted.org/packages/0a/7f/c495114a3814df1d9d41855e939a6a0cb133a1a11a34a22bde934d115ff4/jupytext-1.14.5.tar.gz", hash = "sha256:976e66be8056459a2067e0ec3ff68cc31e00c31895faf9eb893022d319e8f5b4"},
-    {url = "https://files.pythonhosted.org/packages/c8/e6/1acb564671a00d7af3448536203bc01a6da7b39064a7a3e8a4de59d8bdfa/jupytext-1.14.5-py3-none-any.whl", hash = "sha256:a5dbe60d0ea158bbf82c2bce74aba8d0c220ad7edcda09e017c5eba229b34dc8"},
+"jupytext 1.14.6" = [
+    {url = "https://files.pythonhosted.org/packages/d7/51/638c8a4ac54ec8aa89d46d796a816c99c465890e83fb3274e4a6f1b7e680/jupytext-1.14.6-py3-none-any.whl", hash = "sha256:6a0f9b1d850b4173115065853b8a81956bbbe6ee7d4a7906e9817cd6f6892414"},
+    {url = "https://files.pythonhosted.org/packages/fe/b4/1165c57a93626c174459ddfe92fe1a9bb47b450d0e1bcf41010436715d09/jupytext-1.14.6.tar.gz", hash = "sha256:f34b045d89edcecb47772761feaf001daf270fff9470c9b2125345eae9064eb6"},
 ]
 "keyring 23.13.1" = [
     {url = "https://files.pythonhosted.org/packages/55/fe/282f4c205add8e8bb3a1635cbbac59d6def2e0891b145aa553a0e40dd2d0/keyring-23.13.1.tar.gz", hash = "sha256:ba2e15a9b35e21908d0aaf4e0a47acc52d6ae33444df0da2b49d41a46ef6d678"},

@@ -1,11 +1,22 @@
 from dataclasses import InitVar
 from pydantic.dataclasses import dataclass
-from typing import Any, Union, List
+from typing import Any, Union, List, Callable, Optional
 from enum import Enum
 from .tree_print import Printer
 from .scalar import Scalar, Interval, Variable, cast
 from bokeh.plotting import figure
 import numpy as np
+import inspect
+from numpy.typing import NDArray
+
+
+def instruction(duration: Any) -> "PythonFn":
+    """Turn python function into a waveform instruction."""
+
+    def waveform_wrapper(fn: Callable) -> "PythonFn":
+        return PythonFn(fn, duration)
+
+    return waveform_wrapper
 
 
 class AlignedValue(str, Enum):
@@ -112,6 +123,8 @@ class Waveform:
                     duration = duration + cast(waveform.duration)
 
                 self._duration = duration
+            case Sample(waveform=waveform, interpolation=_, dt=_):
+                self._duration = waveform.duration
             case _:
                 raise ValueError(f"Cannot compute duration of {self}")
         return self._duration
@@ -300,6 +313,48 @@ class Poly(Instruction):
         Printer(p).print(self, cycle)
 
 
+@dataclass(init=False)
+class PythonFn(Instruction):
+    """
+    <python-fn> ::= 'python-fn' <python function def> <scalar expr>
+    """
+
+    fn: Callable  # [[float, ...], float] # f(t) -> value
+    parameters: List[str]  # come from ast inspect
+    duration: InitVar[Scalar]
+
+    def __init__(self, fn: Callable, duration: Any):
+        self.fn = fn
+        self._duration = cast(duration)
+
+        signature = inspect.getfullargspec(fn)
+
+        if signature.varargs is not None:
+            raise ValueError("Cannot have varargs")
+
+        if signature.varkw is not None:
+            raise ValueError("Cannot have varkw")
+
+        self.parameters = list(signature.args[1:]) + list(signature.kwonlyargs)
+
+    def __call__(self, clock_s: float, **kwargs) -> float:
+        if clock_s > self.duration(**kwargs):
+            return 0.0
+
+        return self.fn(
+            clock_s, **{k: kwargs[k] for k in self.parameters if k in kwargs}
+        )
+
+    def print_node(self):
+        return "PythonFn"
+
+    def children(self):
+        return {"Function": self.fn, "duration": self.duration}
+
+    def _repr_pretty_(self, p, cycle):
+        Printer(p).print(self, cycle)
+
+
 @dataclass
 class Smooth(Waveform):
     """
@@ -474,6 +529,66 @@ class Record(Waveform):
 
     def children(self):
         return {"Waveform": self.waveform, "Variable": self.var}
+
+    def _repr_pretty_(self, p, cycle):
+        Printer(p).print(self, cycle)
+
+
+class Interpolation(str, Enum):
+    Linear = "linear"
+    Constant = "constant"
+
+
+@dataclass
+class Sample(Waveform):
+    """
+    <sample> ::= 'sample' <waveform> <interpolation> <scalar>
+    """
+
+    waveform: Waveform
+    interpolation: Optional[Interpolation]
+    dt: Optional[Scalar]
+
+    def sample_times(self, **kwargs) -> NDArray[np.float64]:
+        duration = self.duration(**kwargs)
+        dt = self.dt(**kwargs)
+
+        return np.hstack((np.arange(0, duration - dt, dt), [duration]))
+
+    def __call__(self, clock_s: float, **kwargs) -> float:
+        times = self.sample_times(**kwargs)
+
+        i = np.searchsorted(times, clock_s)
+
+        if i == len(times):
+            return 0.0
+
+        match self.interpolation:
+            case Interpolation.Linear:
+                return self._linear_interpolation(
+                    clock_s, times[i - 1], times[i], **kwargs
+                )
+            case Interpolation.Constant:
+                return self._constant_interpolation(times[i - 1], **kwargs)
+            case _:
+                raise ValueError("No interpolation specified")
+
+    def _linear_interpolation(self, clock_s, start_time, stop_time, **kwargs) -> float:
+        start_value = self.waveform(start_time, **kwargs)
+        stop_value = self.waveform(stop_time, **kwargs)
+
+        slope = (stop_value - start_value) / (stop_time - start_time)
+
+        return slope * (clock_s - start_time) + start_value
+
+    def _constant_interpolation(self, start_time, **kwargs) -> float:
+        return self.waveform(start_time, **kwargs)
+
+    def print_node(self):
+        return "Sample"
+
+    def children(self):
+        return {"Waveform": self.waveform, "sample_step": self.dt}
 
     def _repr_pretty_(self, p, cycle):
         Printer(p).print(self, cycle)
