@@ -186,6 +186,15 @@ class Scalar:
             case _:
                 return expr
 
+    def print_node(self):
+        raise NotImplementedError
+
+    def children(self):
+        raise NotImplementedError
+
+    def _pretty_repr_(self, p, cycle):
+        raise NotImplementedError
+
 
 def cast(py) -> Scalar:
     ret = trycast(py)
