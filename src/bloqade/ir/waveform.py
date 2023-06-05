@@ -355,51 +355,69 @@ class PythonFn(Instruction):
         Printer(p).print(self, cycle)
 
 
+@dataclass(init=False)
 class SmoothingKernel:
-    pass
+    radius: Scalar
+    dt: Scalar
+    edge_pad_size: int
+
+    def _kernel(self, value: float) -> float:
+        raise NotImplementedError
 
     def __call__(self, value: float) -> float:
         raise NotImplementedError
 
 
 class Guassian(SmoothingKernel):
-    pass
+    def _kernel(self, value: float) -> float:
+        return np.exp(-(value**2) / (2 * self.radius**2))
 
 
 class Triangle(SmoothingKernel):
-    pass
+    def _kernel(self, value: float) -> float:
+        return np.maximum(0, 1 - np.abs(value) / self.radius)
 
 
 class Uniform(SmoothingKernel):
-    pass
+    def _kernel(self, value: float) -> float:
+        return 1 if np.abs(value) <= self.radius else 0
 
 
 class Parabolic(SmoothingKernel):
-    pass
+    def _kernel(self, value: float) -> float:
+        return np.maximum(0, 1 - (value / self.radius) ** 2)
 
 
 class Biweight(SmoothingKernel):
-    pass
+    def _kernel(self, value: float) -> float:
+        return np.maximum(0, 1 - (value / self.radius) ** 2) ** 2
 
 
 class Triweight(SmoothingKernel):
-    pass
+    def _kernel(self, value: float) -> float:
+        return np.maximum(0, 1 - (value / self.radius) ** 2) ** 3
 
 
 class Tricube(SmoothingKernel):
-    pass
+    def _kernel(self, value: float) -> float:
+        return np.maximum(0, 1 - np.abs(value / self.radius) ** 3) ** 3
 
 
 class Cosine(SmoothingKernel):
-    pass
+    def _kernel(self, value: float) -> float:
+        return np.maximum(0, np.pi / 4 * np.cos(np.pi / 2 * value / self.radius))
 
 
 class Logistic(SmoothingKernel):
-    pass
+    def _kernel(self, value: float) -> float:
+        return 1 / (np.exp(value / self.radius) + 2 + np.exp(-value / self.radius))
 
 
 class Sigmoid(SmoothingKernel):
-    pass
+    def _kernel(self, value: float) -> float:
+        return 2 / (
+            np.pi * (np.exp(value / self.radius) + np.exp(-value / self.radius))
+        )
 
 
 @dataclass
