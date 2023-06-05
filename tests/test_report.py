@@ -29,3 +29,6 @@ future = (
 )
 
 print(future.report().bitstrings)
+print(future.report().counts)
+print(future.report().dataframe)
+print(future.report().rydberg_densities())
