@@ -1,4 +1,4 @@
-from bloqade.ir.scalar import Variable, Literal
+from bloqade.ir.scalar import Variable
 from bloqade import start
 import numpy as np
 
@@ -16,7 +16,7 @@ ramsey_program = (
     .piecewise_linear(durations=pi_over_two_durations, values=pi_over_two_values)
     .detuning.uniform.constant(
         value=10.5,
-        duration=Variable("t_run") + Literal(2 * np.sum(pi_over_two_durations)),
+        duration=Variable("t_run") + (2 * np.sum(pi_over_two_durations)),
     )
 )
 
