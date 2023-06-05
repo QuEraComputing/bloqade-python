@@ -1,4 +1,4 @@
-from bloqade.ir.scalar import Variable, Literal
+from bloqade.ir.scalar import Variable
 from bloqade.ir.waveform import Linear, Constant
 from bloqade import start
 import numpy as np
@@ -13,12 +13,6 @@ pi_over_two_pulse = (
     .append(Linear(start=12.5, stop=0.0, duration=0.5))
 )
 
-# would it be possible to just define a constant whose
-# duration is equal to the whole program without
-# needing to pass in that value as a separate argument?
-# Say another IR type that could be "auto-filled"
-# upon finishing the construction of the program?
-
 rabi_pulse = pi_over_two_pulse.append(
     Constant(value=0, duration=Variable("t_run"))
 ).append(pi_over_two_pulse)
@@ -31,7 +25,7 @@ ramsey_program = (
         value=10.5,
         # having to manually remember and sum the times versus a variable is not
         # very pleasant
-        duration=Variable("t_run") + Literal(2 * np.sum([0.5, plateau_time, 0.5])),
+        duration=Variable("t_run") + 2 * np.sum([0.5, plateau_time, 0.5]),
     )
 )
 
