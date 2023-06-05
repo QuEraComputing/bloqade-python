@@ -365,7 +365,7 @@ class SmoothingKernel:
         raise NotImplementedError
 
     def __call__(self, value: float) -> float:
-        raise NotImplementedError
+        return self._kernel(value / self.radius)
 
 
 class Guassian(SmoothingKernel):
