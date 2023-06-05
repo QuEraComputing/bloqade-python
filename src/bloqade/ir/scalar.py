@@ -1,6 +1,6 @@
 from pydantic.dataclasses import dataclass
 from pydantic import validator
-from typing import Optional
+from typing import Optional, Union, List
 from .tree_print import Printer
 import re
 
@@ -195,12 +195,16 @@ def cast(py) -> Scalar:
     return ret
 
 
-def var(py: str) -> "Variable":
+def var(py: Union[str, List[str]]) -> "Union[Variable, List[Variable]]":
     ret = None
     if type(py) is str:
-        ret = trycast(py)
+        return trycast(py)
+    elif type(py) is list:
+        if any(type(x) is not str for x in py):
+            raise TypeError(f"Cannot cast {py} to Variable")
 
-    if ret is None:
+        return trycast(py)
+    else:
         raise TypeError(f"Cannot cast {py} to Variable")
 
     return ret
