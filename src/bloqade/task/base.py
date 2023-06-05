@@ -242,7 +242,7 @@ class Report:
         filtered_df = self.dataframe[perfect_sorting == pre_sequence]
         task_numbers = filtered_df.index.get_level_values("task_number")
 
-        n_atoms = len(perfect_sorting.iloc[0])
+        n_atoms = len(perfect_sorting[0])
         bitstrings = [np.zeros((0, n_atoms)) for _ in range(task_numbers.max() + 1)]
 
         for task_number in task_numbers.unique():
@@ -271,6 +271,7 @@ class Report:
         return counts
 
     def rydberg_densities(self) -> pd.Series:
+        # TODO: implement nan for missing task numbers
         perfect_sorting = self.dataframe.index.get_level_values("perfect_sorting")
         pre_sequence = self.dataframe.index.get_level_values("pre_sequence")
 
