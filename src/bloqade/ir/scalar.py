@@ -3,6 +3,7 @@ from pydantic import validator
 from typing import Optional, Union, List
 from .tree_print import Printer
 import re
+from decimal import Decimal
 
 __all__ = [
     "var",
@@ -40,13 +41,13 @@ class Scalar:
     ```
     """
 
-    def __call__(self, **kwargs):
+    def __call__(self, **kwargs) -> Decimal:
         match self:
             case Literal(value):
                 return value
             case Variable(name):
                 if name in kwargs:
-                    return kwargs[name]
+                    return Decimal(str(kwargs[name]))
                 else:
                     raise Exception(f"Unknown variable: {name}")
             case Negative(expr):
@@ -213,7 +214,9 @@ def var(py: Union[str, List[str]]) -> "Union[Variable, List[Variable]]":
 def trycast(py) -> Optional[Scalar]:
     match py:
         case int(x) | float(x) | bool(x):
-            return Literal(x)
+            return Literal(Decimal(str(x)))
+        case Decimal():
+            return Literal(py)
         case str(x):
             regex = "^[A-Za-z_][A-Za-z0-9_]*"
             if re.search(regex, x):
@@ -237,10 +240,10 @@ class Real(Scalar):
 
 @dataclass(frozen=True)
 class Literal(Real):
-    value: float
+    value: Decimal
 
     def __repr__(self) -> str:
-        return f"{self.value!r}"
+        return f"{self.value}"
 
     def children(self):
         return []
