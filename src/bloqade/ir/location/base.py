@@ -113,12 +113,14 @@ class ParallelRegister(ProgramStart):
         if register.n_atoms > 0:
             # calculate bounding box
             # of this register
-            x_min = np.inf
-            x_max = -np.inf
-            y_min = np.inf
-            y_max = -np.inf
+            location_iter = register.enumerate()
+            (x, y) = next(location_iter).position
+            x_min = x
+            x_max = x
+            y_min = y
+            y_max = y
 
-            for location_info in register.enumerate():
+            for location_info in location_iter:
                 (x, y) = location_info.position
                 x_min = x.min(x_min)
                 x_max = x.max(x_max)
