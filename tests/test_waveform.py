@@ -39,6 +39,11 @@ wf = (
 )
 print(wf)
 
+smooth_wf = wf.smooth(0.1, "gaussian")
+print(smooth_wf(1.0, rabi_amplitude_max=1.0, up_time=1.0, anneal_time=1.0))
+smooth_wf = wf.smooth(0.1, "biweight")
+print(smooth_wf(1.0, rabi_amplitude_max=1.0, up_time=1.0, anneal_time=1.0))
+
 # try scaling
 wf * scalar.Literal(5.0)
 
