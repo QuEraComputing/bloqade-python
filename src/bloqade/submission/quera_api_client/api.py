@@ -419,7 +419,7 @@ class QueueApi:
                     f"Task: {task_id} has validation error, "
                     "unable to fetch error message."
                 )
-            case "Completed":
+            case "Completed" | "Partial":
                 pass
             case _:
                 raise QueueApi.QueueApiError(
