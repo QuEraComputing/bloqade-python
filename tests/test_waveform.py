@@ -7,6 +7,8 @@ from bloqade.ir import (
     Alignment,
     AlignedValue,
     instruction,
+    GuassianKernel,
+    BiweightKernel,
 )
 from bloqade.ir import scalar
 
@@ -39,9 +41,9 @@ wf = (
 )
 print(wf)
 
-smooth_wf = wf.smooth(0.1, "gaussian")
+smooth_wf = wf.smooth(0.1, GuassianKernel)
 print(smooth_wf(1.0, rabi_amplitude_max=1.0, up_time=1.0, anneal_time=1.0))
-smooth_wf = wf.smooth(0.1, "biweight")
+smooth_wf = wf.smooth(0.1, BiweightKernel)
 print(smooth_wf(1.0, rabi_amplitude_max=1.0, up_time=1.0, anneal_time=1.0))
 
 # try scaling

@@ -88,50 +88,10 @@ class Waveform:
         else:
             return self.canonicalize(AlignedWaveform(self, alignment, cast(value)))
 
-    def smooth(self, radius, kernel: str = "gaussian") -> "Waveform":
-        match kernel:
-            case "gaussian":
-                return self.canonicalize(
-                    Smooth(kernel=Guassian(), waveform=self, radius=cast(radius))
-                )
-            case "biweight":
-                return self.canonicalize(
-                    Smooth(kernel=Biweight(), waveform=self, radius=cast(radius))
-                )
-            case "cosine":
-                return self.canonicalize(
-                    Smooth(kernel=Cosine(), waveform=self, radius=cast(radius))
-                )
-            case "logistic":
-                return self.canonicalize(
-                    Smooth(kernel=Logistic(), waveform=self, radius=cast(radius))
-                )
-            case "parabolic":
-                return self.canonicalize(
-                    Smooth(kernel=Parabolic(), waveform=self, radius=cast(radius))
-                )
-            case "sigmoid":
-                return self.canonicalize(
-                    Smooth(kernel=Sigmoid(), waveform=self, radius=cast(radius))
-                )
-            case "triangle":
-                return self.canonicalize(
-                    Smooth(kernel=Triangle(), waveform=self, radius=cast(radius))
-                )
-            case "tricube":
-                return self.canonicalize(
-                    Smooth(kernel=Tricube(), waveform=self, radius=cast(radius))
-                )
-            case "triweight":
-                return self.canonicalize(
-                    Smooth(kernel=Triweight(), waveform=self, radius=cast(radius))
-                )
-            case "uniform":
-                return self.canonicalize(
-                    Smooth(kernel=Uniform(), waveform=self, radius=cast(radius))
-                )
-            case _:
-                raise ValueError(f"Invalid kernel: {kernel}")
+    def smooth(self, radius, kernel: "SmoothingKernel") -> "Waveform":
+        return self.canonicalize(
+            Smooth(kernel=kernel, waveform=self, radius=cast(radius))
+        )
 
     def scale(self, value) -> "Waveform":
         return self.canonicalize(Scale(cast(value), self))
@@ -466,6 +426,18 @@ class Tricube(FiniteSmoothingKernel):
 class Cosine(FiniteSmoothingKernel):
     def __call__(self, value: float) -> float:
         return np.maximum(0, np.pi / 4 * np.cos(np.pi / 2 * value))
+
+
+GuassianKernel = Guassian()
+LogisticKernel = Logistic()
+SigmoidKernel = Sigmoid()
+TriangleKernel = Triangle()
+UniformKernel = Uniform()
+ParabolicKernel = Parabolic()
+BiweightKernel = Biweight()
+TriweightKernel = Triweight()
+TricubeKernel = Tricube()
+CosineKernel = Cosine()
 
 
 @dataclass
