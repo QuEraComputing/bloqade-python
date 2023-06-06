@@ -125,13 +125,24 @@ class PiecewiseLinearCodeGen(WaveformVisitor):
                 )
             )
 
-        start_value = Decimal(ast.waveform(start_time, **self.assignments))
-        stop_value = Decimal(ast.waveform(stop_time, **self.assignments))
-
         times, values = self.visit(ast.waveform)
 
         start_index = bisect_left(times, start_time)
         stop_index = bisect_left(times, stop_time)
+
+        # evaluate start value using linear interpolation
+        start_slope = (values[start_index + 1] - values[start_index]) / (
+            times[start_index + 1] - times[start_index]
+        )
+        start_value = (
+            start_slope * (start_time - times[start_index]) + values[start_index]
+        )
+
+        # evaluate stop value using linear interpolation
+        stop_slope = (values[stop_index + 1] - values[stop_index]) / (
+            times[stop_index + 1] - times[stop_index]
+        )
+        stop_value = stop_slope * (stop_time - times[stop_index]) + values[stop_index]
 
         absolute_times = [start_time] + times[start_index:stop_index] + [stop_time]
 
@@ -245,13 +256,15 @@ class PiecewiseConstantCodeGen(WaveformVisitor):
                 )
             )
 
-        start_value = ast.waveform(start_time, **self.assignments)
-        stop_value = ast.waveform(stop_time, **self.assignments)
-
         times, values = self.visit(ast.waveform)
 
         start_index = bisect_left(times, start_time)
         stop_index = bisect_left(times, stop_time)
+
+        # evaluate start value using constant interpolation
+        start_value = values[start_index]
+        # evaluate stop value using constant interpolation
+        stop_value = values[stop_index]
 
         absolute_times = [start_time] + times[start_index:stop_index] + [stop_time]
 
