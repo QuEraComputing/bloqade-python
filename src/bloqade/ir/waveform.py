@@ -98,6 +98,38 @@ class Waveform:
                 return self.canonicalize(
                     Smooth(kernel=Biweight(), waveform=self, radius=cast(radius))
                 )
+            case "cosine":
+                return self.canonicalize(
+                    Smooth(kernel=Cosine(), waveform=self, radius=cast(radius))
+                )
+            case "logistic":
+                return self.canonicalize(
+                    Smooth(kernel=Logistic(), waveform=self, radius=cast(radius))
+                )
+            case "parabolic":
+                return self.canonicalize(
+                    Smooth(kernel=Parabolic(), waveform=self, radius=cast(radius))
+                )
+            case "sigmoid":
+                return self.canonicalize(
+                    Smooth(kernel=Sigmoid(), waveform=self, radius=cast(radius))
+                )
+            case "triangle":
+                return self.canonicalize(
+                    Smooth(kernel=Triangle(), waveform=self, radius=cast(radius))
+                )
+            case "tricube":
+                return self.canonicalize(
+                    Smooth(kernel=Tricube(), waveform=self, radius=cast(radius))
+                )
+            case "triweight":
+                return self.canonicalize(
+                    Smooth(kernel=Triweight(), waveform=self, radius=cast(radius))
+                )
+            case "uniform":
+                return self.canonicalize(
+                    Smooth(kernel=Uniform(), waveform=self, radius=cast(radius))
+                )
             case _:
                 raise ValueError(f"Invalid kernel: {kernel}")
 
