@@ -2,12 +2,15 @@ from dataclasses import InitVar
 from pydantic.dataclasses import dataclass
 from typing import Any, Union, List, Callable, Optional
 from enum import Enum
+
+
 from .tree_print import Printer
 from .scalar import Scalar, Interval, Variable, cast
 from bokeh.plotting import figure
 import numpy as np
 import inspect
 from numpy.typing import NDArray
+import scipy.integrate as integrate
 
 
 def instruction(duration: Any) -> "PythonFn":
@@ -85,8 +88,18 @@ class Waveform:
         else:
             return self.canonicalize(AlignedWaveform(self, alignment, cast(value)))
 
-    def smooth(self, kernel: str = "gaussian") -> "Waveform":
-        return self.canonicalize(Smooth(kernel, self))
+    def smooth(self, radius, kernel: str = "gaussian") -> "Waveform":
+        match kernel:
+            case "gaussian":
+                return self.canonicalize(
+                    Smooth(kernel=Guassian(), waveform=self, radius=cast(radius))
+                )
+            case "biweight":
+                return self.canonicalize(
+                    Smooth(kernel=Biweight(), waveform=self, radius=cast(radius))
+                )
+            case _:
+                raise ValueError(f"Invalid kernel: {kernel}")
 
     def scale(self, value) -> "Waveform":
         return self.canonicalize(Scale(cast(value), self))
@@ -125,6 +138,8 @@ class Waveform:
                 self._duration = duration
             case Sample(waveform=waveform, interpolation=_, dt=_):
                 self._duration = waveform.duration
+            case Smooth(waveform=waveform, kernel=_, radius=_):
+                return waveform.duration
             case _:
                 raise ValueError(f"Cannot compute duration of {self}")
         return self._duration
@@ -357,68 +372,68 @@ class PythonFn(Instruction):
 
 @dataclass(init=False)
 class SmoothingKernel:
-    radius: Scalar
-    dt: Scalar
-    edge_pad_size: int
-
-    def _kernel(self, value: float) -> float:
+    def __call__(self, value: float) -> float:
         raise NotImplementedError
 
+
+class FiniteSmoothingKernel(SmoothingKernel):
+    # kernel that is zero outside of (-1, 1)
+    pass
+
+
+class InfiniteSmoothingKernel(SmoothingKernel):
+    # Kernel that is non-zero for all values
+    pass
+
+
+class Guassian(InfiniteSmoothingKernel):
     def __call__(self, value: float) -> float:
-        return self._kernel(value / self.radius)
-
-
-class Guassian(SmoothingKernel):
-    def _kernel(self, value: float) -> float:
         return np.exp(-(value**2) / 2) / np.sqrt(2 * np.pi)
 
 
-class Triangle(SmoothingKernel):
-    def _kernel(self, value: float) -> float:
+class Logistic(InfiniteSmoothingKernel):
+    def __call__(self, value: float) -> float:
+        np.exp(-(np.logaddexp(0, value) + np.logaddexp(0, -value)))
+
+
+class Sigmoid(InfiniteSmoothingKernel):
+    def __call__(self, value: float) -> float:
+        return (2 / np.pi) * np.exp(-np.logaddexp(-value, value))
+
+
+class Triangle(FiniteSmoothingKernel):
+    def __call__(self, value: float) -> float:
         return np.maximum(0, 1 - np.abs(value))
 
 
-class Uniform(SmoothingKernel):
-    def _kernel(self, value: float) -> float:
-        return 1 if np.abs(value) <= 1 else 0
+class Uniform(FiniteSmoothingKernel):
+    def __call__(self, value: float) -> float:
+        return np.asarray(np.abs(value) <= 1, dtype=np.float64).squeeze()
 
 
-class Parabolic(SmoothingKernel):
-    def _kernel(self, value: float) -> float:
+class Parabolic(FiniteSmoothingKernel):
+    def __call__(self, value: float) -> float:
         return (3 / 4) * np.maximum(0, 1 - value**2)
 
 
-class Biweight(SmoothingKernel):
-    def _kernel(self, value: float) -> float:
+class Biweight(FiniteSmoothingKernel):
+    def __call__(self, value: float) -> float:
         return (15 / 16) * np.maximum(0, 1 - value**2) ** 2
 
 
-class Triweight(SmoothingKernel):
-    def _kernel(self, value: float) -> float:
+class Triweight(FiniteSmoothingKernel):
+    def __call__(self, value: float) -> float:
         return (35 / 32) * np.maximum(0, 1 - value**2) ** 3
 
 
-class Tricube(SmoothingKernel):
-    def _kernel(self, value: float) -> float:
+class Tricube(FiniteSmoothingKernel):
+    def __call__(self, value: float) -> float:
         return (70 / 81) * np.maximum(0, 1 - np.abs(value) ** 3) ** 3
 
 
-class Cosine(SmoothingKernel):
-    def _kernel(self, value: float) -> float:
+class Cosine(FiniteSmoothingKernel):
+    def __call__(self, value: float) -> float:
         return np.maximum(0, np.pi / 4 * np.cos(np.pi / 2 * value))
-
-
-class Logistic(SmoothingKernel):
-    def _kernel(self, value: float) -> float:
-        if value >= 0:
-            return np.exp(-value) / (1 + np.exp(-value)) ** 2
-        else:
-            return np.exp(value) / (1 + np.exp(value)) ** 2
-
-
-class Sigmoid(SmoothingKernel):
-    def _kernel(self, value: float) -> float:
-        return (2 / np.pi) * np.exp(-np.logaddexp(-value, value))
 
 
 @dataclass
@@ -427,12 +442,35 @@ class Smooth(Waveform):
     <smooth> ::= 'smooth' <kernel> <waveform>
     """
 
+    radius: Scalar
     kernel: SmoothingKernel
     waveform: Waveform
 
-    # TODO: implement
     def __call__(self, clock_s: float, **kwargs) -> Any:
-        raise NotImplementedError
+        radius = self.radius(**kwargs)
+        duration = self.duration(**kwargs)
+        waveform_start = self.waveform(0, **kwargs)
+        waveform_stop = self.waveform(duration, **kwargs)
+
+        def waveform(clock):
+            if clock < 0:
+                return waveform_start
+            elif clock > duration:
+                return waveform_stop
+            else:
+                return self.waveform(clock, **kwargs)
+
+        def integrade(s):
+            return self.kernel(s) * waveform(radius * s + clock_s)
+
+        if isinstance(self.kernel, FiniteSmoothingKernel):
+            return integrate.quad(integrade, -1, 1, epsabs=1e-4, epsrel=1e-4)[0]
+        elif isinstance(self.kernel, InfiniteSmoothingKernel):
+            return integrate.quad(integrade, -np.inf, np.inf, epsabs=1e-4, epsrel=1e-4)[
+                0
+            ]
+        else:
+            raise ValueError(f"Invalid kernel: {self.kernel}")
 
     def __repr__(self) -> str:
         return f"Smooth(kernel={self.kernel!r}, waveform={self.waveform!r})"
