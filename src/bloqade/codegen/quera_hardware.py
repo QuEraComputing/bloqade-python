@@ -60,7 +60,7 @@ class PiecewiseLinearCodeGen(WaveformVisitor):
         start = ast.start(**self.assignments)
         stop = ast.stop(**self.assignments)
 
-        return [0, duration], [start, stop]
+        return [Decimal(0), duration], [start, stop]
 
     def visit_constant(
         self, ast: waveform.Constant
@@ -68,7 +68,7 @@ class PiecewiseLinearCodeGen(WaveformVisitor):
         duration = ast.duration(**self.assignments)
         value = ast.value(**self.assignments)
 
-        return [0, duration], [value, value]
+        return [Decimal(0), duration], [value, value]
 
     def visit_poly(self, ast: waveform.Poly) -> Tuple[List[Decimal], List[Decimal]]:
         match ast:
@@ -80,7 +80,7 @@ class PiecewiseLinearCodeGen(WaveformVisitor):
                     checkpoint_expr(**self.assignments)
                     for checkpoint_expr in checkpoint_exprs
                 ]
-                return [0, duration], [value, value]
+                return [Decimal(0), duration], [value, value]
 
             case waveform.Poly(
                 checkpoints=checkpoint_exprs, duration=duration_expr
@@ -94,7 +94,7 @@ class PiecewiseLinearCodeGen(WaveformVisitor):
                 start = values[0]
                 stop = values[0] + values[1] * duration
 
-                return [0, duration], [start, stop]
+                return [Decimal(0), duration], [start, stop]
 
             case waveform.Poly(checkpoints=checkpoints):
                 order = len(checkpoints) - 1
