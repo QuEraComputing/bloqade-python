@@ -24,6 +24,7 @@ import os
 from bloqade.task import HardwareTask, HardwareJob
 from bloqade.task.braket_simulator import BraketEmulatorJob, BraketEmulatorTask
 from itertools import repeat
+from collections import OrderedDict
 
 
 class BuildError(Exception):
@@ -334,7 +335,7 @@ class Emit(Builder):
 
         capabilities = backend.get_capabilities()
 
-        tasks = {}
+        tasks = OrderedDict()
 
         for task_number, assignments in enumerate(self.__assignments_iterator()):
             schema_compiler = SchemaCodeGen(assignments, capabilities=capabilities)
@@ -390,7 +391,7 @@ class Emit(Builder):
         if isinstance(self.register, ParallelRegister):
             raise TypeError("Braket emulator doesn't support parallel registers.")
 
-        tasks = {}
+        tasks = OrderedDict()
 
         for task_number, assignments in enumerate(self.__assignments_iterator()):
             schema_compiler = SchemaCodeGen(assignments)

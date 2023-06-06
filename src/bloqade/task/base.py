@@ -5,7 +5,8 @@ from bloqade.submission.ir.task_results import (
     QuEraShotStatusCode,
 )
 from bloqade.submission.ir.parallel import ParallelDecoder
-from typing import List, Union, TextIO, Tuple, Optional, Dict
+from typing import List, Union, TextIO, Tuple, Optional
+from collections import OrderedDict
 from numpy.typing import NDArray
 from pydantic.dataclasses import dataclass
 from pydantic import BaseModel
@@ -81,14 +82,14 @@ class JSONInterface(BaseModel):
 
 
 class Job:
-    def _task_dict(self) -> Dict[int, Task]:
+    def _task_dict(self) -> OrderedDict[int, Task]:
         raise NotImplementedError
 
-    def _emit_future(self, futures: Dict[int, TaskFuture]) -> "Future":
+    def _emit_future(self, futures: OrderedDict[int, TaskFuture]) -> "Future":
         raise NotImplementedError
 
     def remove_invalid_tasks(self) -> "Job":
-        valid_tasks = {}
+        valid_tasks = OrderedDict()
 
         for task_number, task in self._task_dict().items():
             try:
@@ -130,11 +131,13 @@ class Job:
 
 class Future:
     @property
-    def task_results(self) -> Dict[int, QuEraTaskResults]:
-        return {
-            task_number: future.task_result
-            for task_number, future in self.futures_dict().items()
-        }
+    def task_results(self) -> OrderedDict[int, QuEraTaskResults]:
+        return OrderedDict(
+            [
+                (task_number, future.task_result)
+                for task_number, future in self.futures_dict().items()
+            ]
+        )
 
     def report(self) -> "Report":
         return Report(self)
@@ -143,7 +146,7 @@ class Future:
         for future in self.futures_dict().values():
             future.cancel()
 
-    def futures_dict(self) -> Dict[int, TaskFuture]:
+    def futures_dict(self) -> OrderedDict[int, TaskFuture]:
         raise NotImplementedError
 
 
@@ -162,7 +165,7 @@ class Report:
         return self._future
 
     @property
-    def task_results(self) -> Dict[int, QuEraTaskResults]:
+    def task_results(self) -> OrderedDict[int, QuEraTaskResults]:
         return self.future.task_results
 
     @property
@@ -251,13 +254,13 @@ class Report:
         return bitstrings
 
     @property
-    def counts(self) -> List[Dict[str, int]]:
+    def counts(self) -> List[OrderedDict[str, int]]:
         if self._counts is not None:
             return self._counts
         self._counts = self._construct_counts()
         return self._counts
 
-    def _construct_counts(self) -> List[Dict[str, int]]:
+    def _construct_counts(self) -> List[OrderedDict[str, int]]:
         counts = []
         for bitstring in self.bitstrings:
             output = np.unique(bitstring, axis=0, return_counts=True)
