@@ -24,6 +24,7 @@ import os
 from bloqade.task import HardwareTask, HardwareJob
 from bloqade.task.braket_simulator import BraketEmulatorJob, BraketEmulatorTask
 from itertools import repeat
+from collections import OrderedDict
 
 
 class BuildError(Exception):
@@ -334,21 +335,19 @@ class Emit(Builder):
 
         capabilities = backend.get_capabilities()
 
-        hardware_tasks = []
+        tasks = OrderedDict()
 
-        for assignments in self.__assignments_iterator():
+        for task_number, assignments in enumerate(self.__assignments_iterator()):
             schema_compiler = SchemaCodeGen(assignments, capabilities=capabilities)
             task_ir = schema_compiler.emit(nshots, self.program)
             task_ir = task_ir.discretize(capabilities)
-            hardware_tasks.append(
-                HardwareTask(
-                    task_ir=task_ir,
-                    backend=backend,
-                    parallel_decoder=schema_compiler.parallel_decoder,
-                )
+            tasks[task_number] = HardwareTask(
+                task_ir=task_ir,
+                backend=backend,
+                parallel_decoder=schema_compiler.parallel_decoder,
             )
 
-        return HardwareJob(tasks=hardware_tasks)
+        return HardwareJob(tasks=tasks)
 
     @property
     def register(self) -> Union["AtomArrangement", "ParallelRegister"]:
@@ -392,13 +391,13 @@ class Emit(Builder):
         if isinstance(self.register, ParallelRegister):
             raise TypeError("Braket emulator doesn't support parallel registers.")
 
-        tasks = []
+        tasks = OrderedDict()
 
-        for assignments in self.__assignments_iterator():
+        for task_number, assignments in enumerate(self.__assignments_iterator()):
             schema_compiler = SchemaCodeGen(assignments)
             task_ir = schema_compiler.emit(nshots, self.program)
             task = BraketEmulatorTask(task_ir=to_braket_task_ir(task_ir))
-            tasks.append(task)
+            tasks[task_number] = task
 
         return BraketEmulatorJob(tasks=tasks)
 
