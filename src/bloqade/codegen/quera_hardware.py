@@ -157,6 +157,10 @@ class PiecewiseLinearCodeGen(WaveformVisitor):
         for sub_expr in ast.waveforms[1:]:
             new_times, new_values = self.visit(sub_expr)
 
+            # skip instructions with duration=0
+            if new_times[-1] == Decimal(0):
+                continue
+
             if values[-1] != new_values[0]:
                 diff = abs(new_values[0] - values[-1])
                 raise ValueError(
@@ -171,12 +175,7 @@ class PiecewiseLinearCodeGen(WaveformVisitor):
         return times, values
 
     def visit_sample(self, ast: waveform.Sample) -> Tuple[List[Decimal], List[Decimal]]:
-        def eval_sample(time: float) -> Tuple[Decimal, Decimal]:
-            return Decimal(time), Decimal(ast.waveform(time, **self.assignments))
-
-        times = ast.sample_times(**self.assignments)
-        times, values = list(zip(*map(eval_sample, times)))
-        return list(times), list(values)
+        return ast.samples(**self.assignments)
 
 
 class PiecewiseConstantCodeGen(WaveformVisitor):
@@ -279,6 +278,10 @@ class PiecewiseConstantCodeGen(WaveformVisitor):
         for sub_expr in ast.waveforms[1:]:
             new_times, new_values = self.visit(sub_expr)
 
+            # skip instructions with duration=0
+            if new_times[-1] == Decimal(0):
+                continue
+
             shifted_times = [time + times[-1] for time in new_times[1:]]
             times.extend(shifted_times)
             values[-1] = new_values[0]
@@ -287,14 +290,7 @@ class PiecewiseConstantCodeGen(WaveformVisitor):
         return times, values
 
     def visit_sample(self, ast: waveform.Sample) -> Tuple[List[Decimal], List[Decimal]]:
-        def eval_sample(time: float) -> Tuple[Decimal, Decimal]:
-            return Decimal(time), Decimal(ast.waveform(time, **self.assignments))
-
-        times = ast.sample_times(**self.assignments)
-        times, values = list(zip(*map(eval_sample, times)))
-
-        times = list(times)
-        values = list(values)
+        times, values = ast.samples(**self.assignments)
 
         values[-1] = values[-2]
         return times, values
