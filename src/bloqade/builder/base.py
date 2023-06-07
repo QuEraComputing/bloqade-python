@@ -20,7 +20,7 @@ class Builder:
         self.__parent__ = parent
 
         if self.__parent__ is not None:
-            self.__build_cache__ = self.__parent__.__build_cache__
+            self.__build_cache__ = BuildCache(**self.__parent__.__build_cache__.dict())
             self.__register__ = self.__parent__.__register__
         else:
             self.__register__ = register
