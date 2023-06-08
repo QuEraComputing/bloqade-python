@@ -44,7 +44,7 @@ class QuEraBackend(SubmissionBackend):
         )
 
     def task_results(self, task_id: str) -> QuEraTaskResults:
-        return QuEraTaskResults(**self.queue_api.get_task_results(task_id))
+        return QuEraTaskResults(**self.queue_api.poll_task_results(task_id))
 
     def cancel_task(self, task_id: str):
         self.queue_api.cancel_task_in_queue(task_id)
