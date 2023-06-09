@@ -49,7 +49,7 @@ class Waveform:
         self._duration = None
 
     def __call__(self, clock_s: float, **kwargs) -> float:
-        return float(self.eval_decimal(Decimal(clock_s), **kwargs))
+        return float(self.eval_decimal(Decimal(str(clock_s)), **kwargs))
 
     def __mul__(self, scalar: Scalar) -> "Waveform":
         return self.scale(cast(scalar))
