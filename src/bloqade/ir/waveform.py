@@ -218,7 +218,7 @@ class Linear(Instruction):
         stop_value = self.stop(**kwargs)
 
         if clock_s > self.duration(**kwargs):
-            return 0.0
+            return Decimal(0)
         else:
             return ((stop_value - start_value) / self.duration(**kwargs)) * clock_s
 
