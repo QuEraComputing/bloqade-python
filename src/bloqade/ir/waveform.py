@@ -682,7 +682,7 @@ class Sample(Waveform):
 
         return clocks, values
 
-    def __call__(self, clock_s: Decimal, **kwargs) -> Decimal:
+    def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
         times = self.sample_times(**kwargs)
 
         i = bisect_left(times, clock_s)
