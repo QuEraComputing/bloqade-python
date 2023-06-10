@@ -106,6 +106,9 @@ class Waveform:
     def __getitem__(self, s: slice) -> "Waveform":
         return self.canonicalize(Slice(self, Interval.from_slice(s)))
 
+    def record(self, variable_name: str):
+        return Record(self, Variable(variable_name))
+
     @property
     def duration(self) -> Scalar:
         if self._duration:
@@ -135,6 +138,8 @@ class Waveform:
             case Sample(waveform=waveform, interpolation=_, dt=_):
                 self._duration = waveform.duration
             case Smooth(waveform=waveform, kernel=_, radius=_):
+                return waveform.duration
+            case Record(waveform=waveform, var=_):
                 return waveform.duration
             case _:
                 raise ValueError(f"Cannot compute duration of {self}")
@@ -220,7 +225,9 @@ class Linear(Instruction):
         if clock_s > self.duration(**kwargs):
             return Decimal(0)
         else:
-            return ((stop_value - start_value) / self.duration(**kwargs)) * clock_s
+            return (
+                (stop_value - start_value) / self.duration(**kwargs)
+            ) * clock_s + start_value
 
     def __repr__(self) -> str:
         return (
@@ -254,7 +261,7 @@ class Constant(Instruction):
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
         constant_value = self.value(**kwargs)
         if clock_s > self.duration(**kwargs):
-            return Decimal(0.0)
+            return Decimal(0)
         else:
             return constant_value
 
@@ -287,11 +294,11 @@ class Poly(Instruction):
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
         # b + x + x^2 + ... + x^n-1 + x^n
         if clock_s > self.duration(**kwargs):
-            return Decimal(0.0)
+            return Decimal(0)
         else:
             # call clock_s on each element of the scalars,
             # then apply the proper powers
-            value = Decimal(0.0)
+            value = Decimal(0)
             for exponent, scalar_expr in enumerate(self.checkpoints):
                 value += scalar_expr(**kwargs) * clock_s**exponent
 
@@ -350,7 +357,7 @@ class PythonFn(Instruction):
 
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
         if clock_s > self.duration(**kwargs):
-            return Decimal(0.0)
+            return Decimal(0)
 
         return Decimal(
             self.fn(
@@ -502,10 +509,12 @@ class Slice(Waveform):
 
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
         if clock_s > self.duration(**kwargs):
-            return 0.0
-
-        start_time = self.interval.start(**kwargs)
-        return self.waveform(clock_s + start_time, **kwargs)
+            return Decimal(0)
+        if self.interval.start is None:
+            start_time = Decimal(0)
+        else:
+            start_time = self.interval.start(**kwargs)
+        return self.waveform.eval_decimal(clock_s + start_time, **kwargs)
 
     def print_node(self):
         return "Slice"
@@ -526,7 +535,7 @@ class Append(Waveform):
     waveforms: List[Waveform]
 
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
-        append_time = Decimal("0.0")
+        append_time = Decimal(0)
         for waveform in self.waveforms:
             duration = waveform.duration(**kwargs)
 
@@ -535,7 +544,7 @@ class Append(Waveform):
 
             append_time += duration
 
-        return 0.0
+        return Decimal(0)
 
     def __repr__(self) -> str:
         return f"waveform.Append(waveforms={self.waveforms!r})"
@@ -688,15 +697,15 @@ class Sample(Waveform):
         i = bisect_left(times, clock_s)
 
         if i == len(times):
-            return Decimal(0.0)
+            return Decimal(0)
 
         match self.interpolation:
             case Interpolation.Linear:
                 return self._linear_interpolation(
-                    clock_s, times[i - 1], times[i], **kwargs
+                    clock_s, times[i], times[i + 1], **kwargs
                 )
             case Interpolation.Constant:
-                return self._constant_interpolation(times[i - 1], **kwargs)
+                return self._constant_interpolation(times[i], **kwargs)
             case _:
                 raise ValueError("No interpolation specified")
 
@@ -705,7 +714,6 @@ class Sample(Waveform):
     ) -> Decimal:
         start_value = self.waveform.eval_decimal(start_time, **kwargs)
         stop_value = self.waveform.eval_decimal(stop_time, **kwargs)
-
         slope = (stop_value - start_value) / (stop_time - start_time)
 
         return float(slope) * (clock_s - float(start_time)) + float(start_value)
