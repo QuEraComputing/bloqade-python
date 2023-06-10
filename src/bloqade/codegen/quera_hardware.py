@@ -29,6 +29,7 @@ from bloqade.ir import Program
 from bloqade.codegen.program_visitor import ProgramVisitor
 from bloqade.codegen.waveform_visitor import WaveformVisitor
 from bloqade.codegen.assignment_scan import AssignmentScan
+from bloqade.ir.waveform import Record
 from bloqade.submission.ir.parallel import ParallelDecoder, ClusterLocationInfo
 
 import bloqade.submission.ir.task_specification as task_spec
@@ -131,24 +132,16 @@ class PiecewiseLinearCodeGen(WaveformVisitor):
                 )
             )
 
+        if start_time == stop_time:
+            return [Decimal(0, 0), Decimal(0.0)], [Decimal(0.0), Decimal(0.0)]
+
         times, values = self.visit(ast.waveform)
 
         start_index = bisect_left(times, start_time)
         stop_index = bisect_left(times, stop_time)
+        start_value = ast.waveform.eval_decimal(start_time, **self.assignments)
+        stop_value = ast.waveform.eval_decimal(stop_time, **self.assignments)
 
-        # evaluate start value using linear interpolation
-        start_slope = (values[start_index + 1] - values[start_index]) / (
-            times[start_index + 1] - times[start_index]
-        )
-        start_value = (
-            start_slope * (start_time - times[start_index]) + values[start_index]
-        )
-
-        # evaluate stop value using linear interpolation
-        stop_slope = (values[stop_index] - values[stop_index - 1]) / (
-            times[stop_index] - times[stop_index - 1]
-        )
-        stop_value = stop_slope * (stop_time - times[stop_index]) + values[stop_index]
         match (start_index, stop_index):
             case (0, int(index)) if index == len(times):
                 absolute_times = times
@@ -165,6 +158,7 @@ class PiecewiseLinearCodeGen(WaveformVisitor):
                 values = [start_value] + values[start_index:stop_index] + [stop_value]
 
         times = [time - start_time for time in absolute_times]
+
         return times, values
 
     def visit_append(self, ast: waveform.Append) -> Tuple[List[Decimal], List[Decimal]]:
@@ -176,7 +170,6 @@ class PiecewiseLinearCodeGen(WaveformVisitor):
             # skip instructions with duration=0
             if new_times[-1] == Decimal(0):
                 continue
-
             if values[-1] != new_values[0]:
                 diff = abs(new_values[0] - values[-1])
                 raise ValueError(
@@ -192,6 +185,9 @@ class PiecewiseLinearCodeGen(WaveformVisitor):
 
     def visit_sample(self, ast: waveform.Sample) -> Tuple[List[Decimal], List[Decimal]]:
         return ast.samples(**self.assignments)
+
+    def visit_record(self, ast: Record) -> Tuple[List[Decimal], List[Decimal]]:
+        return self.visit(ast.waveform)
 
 
 class PiecewiseConstantCodeGen(WaveformVisitor):
@@ -316,6 +312,9 @@ class PiecewiseConstantCodeGen(WaveformVisitor):
 
         values[-1] = values[-2]
         return times, values
+
+    def visit_record(self, ast: Record) -> Tuple[List[Decimal], List[Decimal]]:
+        return self.visit(ast.waveform)
 
 
 class SchemaCodeGen(ProgramVisitor):
