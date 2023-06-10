@@ -5,6 +5,7 @@ import uuid
 from typing import Optional, Union, Dict, Tuple
 import requests
 from requests_sigv4 import Sigv4Request
+import time
 
 
 class ApiRequest:
@@ -46,7 +47,7 @@ class ApiRequest:
         self.logger = logging.getLogger(self.__class__.__name__)
 
     @staticmethod
-    def _result_as_json(result: requests.Response) -> dict:
+    def _result_as_json(result: requests.Response) -> Dict:
         content_type = result.headers["Content-Type"]
         if content_type != "application/json":
             raise ApiRequest.InvalidResponseError(
@@ -58,7 +59,7 @@ class ApiRequest:
 
         return json.loads(result.content)
 
-    def _generate_headers(self, base: Optional[dict] = None) -> dict:
+    def _generate_headers(self, base: Optional[dict] = None) -> Dict:
         match (base, self.hostname):
             case (None, None):
                 return {"Content-Type": "application/json"}
@@ -340,7 +341,7 @@ class QueueApi:
         except KeyError:
             raise QueueApi.InvalidResponseError('Response did not contain "task_id".')
 
-    def get_capabilities(self) -> dict:
+    def get_capabilities(self) -> Dict:
         """
         Request the QPU capabilities from the task API.
         @return: dictionary containing different fields for capabilities.
@@ -397,7 +398,7 @@ class QueueApi:
                 self.logger.error(message)
                 raise QueueApi.QueueApiError(message)
 
-    def get_task_results(self, task_id: Union[str, uuid.UUID]) -> dict:
+    def get_task_results(self, task_id: Union[str, uuid.UUID]) -> Dict:
         """
         Return task results as given by API.
         @return: Parsed JSON of the task results.
@@ -455,7 +456,17 @@ class QueueApi:
 
         return ApiRequest._result_as_json(result)
 
-    def get_task_status_in_queue(self, task_id: Union[str, uuid.UUID]) -> dict:
+    def poll_task_results(
+        self, task_id: Union[str, uuid.UUID], polling_interval=3
+    ) -> Dict:
+        results = self.get_task_results(task_id)
+        while results["task_status"] in ("Created", "Running"):
+            results = self.get_task_results(task_id)
+            time.sleep(polling_interval)
+
+        return results
+
+    def get_task_status_in_queue(self, task_id: Union[str, uuid.UUID]) -> Dict:
         """
         Request task status in a queue for a given task.
         @param task_id: Task ID.
@@ -516,7 +527,7 @@ class QueueApi:
                 self.logger.error(message)
                 raise QueueApi.QueueApiError(message)
 
-    def get_task_summary(self, task_id: Union[str, uuid.UUID]) -> dict:
+    def get_task_summary(self, task_id: Union[str, uuid.UUID]) -> Dict:
         """
         Request the task summary for a given task. The summary contains the status of
         the current task.
