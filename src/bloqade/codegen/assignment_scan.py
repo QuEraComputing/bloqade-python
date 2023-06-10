@@ -47,7 +47,8 @@ class AssignmentScan(ProgramVisitor):
         match ast:
             case waveform.Record(sub_waveform, scalar.Variable(name)):
                 duration = sub_waveform.duration(**self.assignments)
-                self.assignments[name] = sub_waveform(duration, **self.assignments)
+                value = sub_waveform.eval_decimal(duration, **self.assignments)
+                self.assignments[name] = value
                 self.visit(sub_waveform)
 
             case waveform.Append(waveforms):
