@@ -86,7 +86,6 @@ class Scalar:
     def __sub__(self, other: "Scalar") -> "Scalar":
         try:
             expr = Add(lhs=self, rhs=-cast(other))
-            print(expr)
             return Scalar.canonicalize(expr)
         except TypeError:
             return NotImplemented
