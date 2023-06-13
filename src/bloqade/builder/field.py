@@ -1,6 +1,6 @@
 from .base import Builder
 from .spatial import SpatialModulation
-from bloqade.ir.pulse import rabi
+from bloqade.ir.control.pulse import rabi
 
 
 class Detuning(SpatialModulation):
