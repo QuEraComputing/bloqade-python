@@ -101,6 +101,8 @@ class WaveformVisitor:
                 return self.visit_negative(ast)
             case Scale():
                 return self.visit_scale(ast)
+            case Slice():
+                return self.visit_slice(ast)
             case Add():
                 return self.visit_add(ast)
             case Record():
