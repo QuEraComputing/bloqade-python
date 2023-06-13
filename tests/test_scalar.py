@@ -1,20 +1,55 @@
+from bloqade import cast, var
 import bloqade.ir.scalar as scalar
+import pytest
+from decimal import Decimal
 
 
-def test_scalar():
-    x = scalar.cast("x").add(1.0).add("z").div(2.0).max("y")
-    print(x(x=2, y=3, z=4))
+def test_var():
+    assert var("a") == scalar.Variable("a")
+    assert var("a") != scalar.Variable("b")
+
+    with pytest.raises(TypeError):
+        var(1)
+
+    with pytest.raises(ValueError):
+        var("a*b")
 
 
-# x = scalar.Variable("x") + scalar.Variable("y")
-# print(x)
+def test_cast():
+    assert cast("a") == scalar.Variable("a")
+    assert cast(1) == scalar.Literal(Decimal("1"))
+    assert cast(1.20391023) == scalar.Literal(Decimal("1.20391023"))
 
-# print(-(-scalar.Variable("x")))
-# ex = scalar.Variable("x").min(scalar.Literal(1.0)).min(scalar.Literal(2.0))
-# print(ex)
+    with pytest.raises(ValueError):
+        cast("a-b")
 
-x = scalar.Variable("x").add(1.0).add("z").div(2.0)
-x.min(scalar.Literal(1.0)).max(scalar.Literal(5.5))
 
-i = scalar.Interval(scalar.Variable("z"), scalar.Literal(5.0))
-y = scalar.Slice(x, i)
+def test_add():
+    assert var("a") + var("b") == scalar.Add(var("a"), var("b"))
+    assert var("a") + 1 == scalar.Add(var("a"), scalar.Literal(Decimal("1")))
+    assert 0 + var("a") == var("a")
+    assert var("a") + 0 == var("a")
+    assert 1 + var("a") == scalar.Add(scalar.Literal(Decimal("1")), var("a"))
+    assert cast(1) + cast(2) == scalar.Literal(Decimal("3"))
+
+
+def test_mul():
+    assert var("a") * var("b") == scalar.Mul(var("a"), var("b"))
+    assert 1 * var("a") == var("a")
+    assert var("a") * 1 == var("a")
+    assert 3 * var("a") == scalar.Mul(scalar.Literal(Decimal("3")), var("a"))
+    assert cast(1) * cast(2) == scalar.Literal(Decimal("2"))
+
+
+def test_sub():
+    assert var("a") - var("b") == scalar.Add(var("a"), scalar.Negative(var("b")))
+    assert var("a") - 1 == scalar.Add(var("a"), scalar.Negative(cast(1)))
+    assert 1 - var("a") == scalar.Add(
+        scalar.Literal(Decimal("1")), scalar.Negative(var("a"))
+    )
+    assert cast(1) - cast(2) == scalar.Literal(Decimal("-1"))
+    assert -cast(1) + cast(2) == scalar.Literal(Decimal("1"))
+
+
+def test_div():
+    pass
