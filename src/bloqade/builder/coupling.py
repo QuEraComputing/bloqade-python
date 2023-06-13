@@ -1,3 +1,4 @@
+from bloqade.ir.pulse import detuning
 from .base import Builder
 
 
@@ -6,6 +7,7 @@ class LevelCoupling(Builder):
     def detuning(self):
         from .field import Detuning
 
+        self.__build_cache__.field_name = detuning
         return Detuning(self)
 
     @property

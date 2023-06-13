@@ -2,7 +2,7 @@ from bisect import bisect_left
 from dataclasses import InitVar
 from decimal import Decimal
 from pydantic.dataclasses import dataclass
-from typing import Any, Tuple, Union, List, Callable, Optional
+from typing import Any, Tuple, Union, List, Callable
 from enum import Enum
 
 
@@ -360,10 +360,10 @@ class PythonFn(Instruction):
         )
 
     def print_node(self):
-        return "PythonFn"
+        return f"PythonFn: {self.fn.__name__}"
 
     def children(self):
-        return {"Function": self.fn, "duration": self.duration}
+        return {"duration": self.duration}
 
     def _repr_pretty_(self, p, cycle):
         Printer(p).print(self, cycle)
@@ -662,8 +662,8 @@ class Sample(Waveform):
     """
 
     waveform: Waveform
-    interpolation: Optional[Interpolation]
-    dt: Optional[Scalar]
+    interpolation: Interpolation
+    dt: Scalar
 
     def samples(self, **kwargs) -> Tuple[List[Decimal], List[Decimal]]:
         duration = self.duration(**kwargs)
@@ -714,7 +714,7 @@ class Sample(Waveform):
         return self.waveform(start_time, **kwargs)
 
     def print_node(self):
-        return "Sample"
+        return f"Sample {self.interpolation}"
 
     def children(self):
         return {"Waveform": self.waveform, "sample_step": self.dt}
