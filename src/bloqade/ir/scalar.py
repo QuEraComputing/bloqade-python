@@ -158,17 +158,17 @@ class Scalar:
                 return new_expr
 
         match expr:
-            case Negative(Negative(expr)):
-                return Scalar.canonicalize(expr)
+            case Negative(Negative(sub_expr)):
+                return Scalar.canonicalize(sub_expr)
             case Negative(Literal(value)) if value < 0:
                 return Literal(-value)
             case Add(Literal(lhs), Literal(rhs)):
                 return Literal(lhs + rhs)
-            case Add(Literal(0.0), expr):
-                return Scalar.canonicalize(expr)
-            case Add(expr, Literal(0.0)):
-                return Scalar.canonicalize(expr)
-            case Add(expr, Negative(other_expr)) if expr == other_expr:
+            case Add(Literal(0.0), sub_expr):
+                return Scalar.canonicalize(sub_expr)
+            case Add(sub_expr, Literal(0.0)):
+                return Scalar.canonicalize(sub_expr)
+            case Add(sub_expr, Negative(other_expr)) if sub_expr == other_expr:
                 return Literal(0.0)
             case Mul(Literal(lhs), Literal(rhs)):
                 return Literal(lhs * rhs)
@@ -176,10 +176,10 @@ class Scalar:
                 return Literal(0.0)
             case Mul(_, Literal(0.0)):
                 return Literal(0.0)
-            case Mul(Literal(1.0), expr):
-                return Scalar.canonicalize(expr)
-            case Mul(expr, Literal(1.0)):
-                return Scalar.canonicalize(expr)
+            case Mul(Literal(1.0), sub_expr):
+                return Scalar.canonicalize(sub_expr)
+            case Mul(sub_expr, Literal(1.0)):
+                return Scalar.canonicalize(sub_expr)
             case Min(exprs):
                 return minmax(Min, exprs)
             case Max(exprs):
@@ -260,7 +260,7 @@ class Variable(Real):
     name: str
 
     def __repr__(self) -> str:
-        return f"{self.name!r}"
+        return f"var({self.name!r})"
 
     def children(self):
         return []
