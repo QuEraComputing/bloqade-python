@@ -57,8 +57,7 @@ class Emit(Builder):
         register: Optional[Union["AtomArrangement", "ParallelRegister"]] = None,
         sequence: Optional[ir.Sequence] = None,
     ) -> None:
-        super().__init__(builder, register=register)
-
+        super().__init__(builder)
         self.__batch__ = {}
         if batch:
             first_key, *other_keys = batch.keys()
@@ -81,6 +80,7 @@ class Emit(Builder):
 
         self.__assignments__ = assignments
         self.__sequence__ = sequence
+        self.__register__ = register
 
     def assign(self, **assignments):
         # these methods terminate no build steps can
