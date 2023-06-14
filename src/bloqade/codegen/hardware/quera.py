@@ -1,6 +1,6 @@
 from bloqade.ir.scalar import Literal
-import bloqade.ir.waveform as waveform
-from bloqade.ir.field import (
+import bloqade.ir.control.waveform as waveform
+from bloqade.ir.control.field import (
     Field,
     Location,
     SpatialModulation,
@@ -8,7 +8,7 @@ from bloqade.ir.field import (
     RunTimeVector,
     Uniform,
 )
-from bloqade.ir.pulse import (
+from bloqade.ir.control.pulse import (
     PulseExpr,
     Pulse,
     NamedPulse,
@@ -16,7 +16,7 @@ from bloqade.ir.pulse import (
     RabiFrequencyPhase,
     Detuning,
 )
-from bloqade.ir.sequence import (
+from bloqade.ir.control.sequence import (
     SequenceExpr,
     Sequence,
     NamedSequence,
@@ -24,16 +24,17 @@ from bloqade.ir.sequence import (
     HyperfineLevelCoupling,
 )
 from bloqade.ir.location.base import AtomArrangement, ParallelRegister
+from bloqade.ir.control.waveform import Record
 from bloqade.ir import Program
 
-from bloqade.codegen.program_visitor import ProgramVisitor
-from bloqade.codegen.waveform_visitor import WaveformVisitor
-from bloqade.codegen.assignment_scan import AssignmentScan
-from bloqade.ir.waveform import Record
-from bloqade.submission.ir.parallel import ParallelDecoder, ClusterLocationInfo
+from bloqade.codegen.base.program_visitor import ProgramVisitor
+from bloqade.codegen.base.waveform_visitor import WaveformVisitor
+from bloqade.codegen.common.assignment_scan import AssignmentScan
 
 import bloqade.submission.ir.task_specification as task_spec
+from bloqade.submission.ir.parallel import ParallelDecoder, ClusterLocationInfo
 from bloqade.submission.ir.capabilities import QuEraCapabilities
+
 from typing import Any, Dict, Tuple, List, Union, Optional
 from bisect import bisect_left
 from numbers import Number

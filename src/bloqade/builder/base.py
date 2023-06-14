@@ -1,5 +1,5 @@
 from typing import TYPE_CHECKING, Optional, Union
-from bloqade.ir.pulse import FieldName
+from bloqade.ir.control.pulse import FieldName
 from pydantic import BaseModel
 
 
