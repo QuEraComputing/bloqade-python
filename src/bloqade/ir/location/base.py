@@ -119,8 +119,8 @@ class AtomArrangement(ProgramStart):
             if rng.random() < p:
                 location_list.append(
                     LocationInfo(
-                        position=location_info.position,
-                        filled=(
+                        location_info.position,
+                        (
                             False
                             if location_info.filling is SiteFilling.filled
                             else True
