@@ -117,13 +117,15 @@ class AtomArrangement(ProgramStart):
 
         for location_info in self.enumerate():
             if rng.random() < p:
-                new_filling = (
-                    SiteFilling.vacant
-                    if location_info.filling is SiteFilling.filled
-                    else SiteFilling.filled
-                )
                 location_list.append(
-                    LocationInfo(position=location_info.position, filling=new_filling)
+                    LocationInfo(
+                        position=location_info.position,
+                        filled=(
+                            False
+                            if location_info.filling is SiteFilling.filled
+                            else True
+                        ),
+                    )
                 )
             else:
                 location_list.append(location_info)
