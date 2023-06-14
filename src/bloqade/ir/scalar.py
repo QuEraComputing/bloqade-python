@@ -117,7 +117,7 @@ class Scalar:
 
         return lhs.mul(self)
 
-    def __div__(self, other: "Scalar") -> "Scalar":
+    def __truediv__(self, other: "Scalar") -> "Scalar":
         try:
             rhs = cast(other)
         except BaseException:
@@ -125,7 +125,7 @@ class Scalar:
 
         return self.div(rhs)
 
-    def __rdiv__(self, other: "Scalar") -> "Scalar":
+    def __rtruediv__(self, other: "Scalar") -> "Scalar":
         try:
             lhs = cast(other)
         except BaseException:
@@ -207,6 +207,10 @@ class Scalar:
             case Mul(lhs=Literal(1.0), rhs=sub_expr):
                 return Scalar.canonicalize(sub_expr)
             case Mul(lhs=sub_expr, rhs=Literal(1.0)):
+                return Scalar.canonicalize(sub_expr)
+            case Div(lhs=Literal(lhs), rhs=Literal(rhs)):
+                return Literal(lhs / rhs)
+            case Div(lhs=sub_expr, rhs=Literal(1.0)):
                 return Scalar.canonicalize(sub_expr)
             case Min(exprs):
                 return minmax(Min, exprs)

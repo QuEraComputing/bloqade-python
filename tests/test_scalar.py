@@ -33,14 +33,6 @@ def test_add():
     assert cast(1) + cast(2) == scalar.Literal(Decimal("3"))
 
 
-def test_mul():
-    assert var("a") * var("b") == scalar.Mul(var("a"), var("b"))
-    assert 1 * var("a") == var("a")
-    assert var("a") * 1 == var("a")
-    assert 3 * var("a") == scalar.Mul(scalar.Literal(Decimal("3")), var("a"))
-    assert cast(1) * cast(2) == scalar.Literal(Decimal("2"))
-
-
 def test_sub():
     assert var("a") - var("b") == scalar.Add(var("a"), scalar.Negative(var("b")))
     assert var("a") - 1 == scalar.Add(var("a"), scalar.Negative(cast(1)))
@@ -51,5 +43,17 @@ def test_sub():
     assert -cast(1) + cast(2) == scalar.Literal(Decimal("1"))
 
 
+def test_mul():
+    assert var("a") * var("b") == scalar.Mul(var("a"), var("b"))
+    assert 1 * var("a") == var("a")
+    assert var("a") * 1 == var("a")
+    assert 3 * var("a") == scalar.Mul(scalar.Literal(Decimal("3")), var("a"))
+    assert cast(1) * cast(2) == scalar.Literal(Decimal("2"))
+
+
 def test_div():
-    pass
+    assert var("a") / var("b") == scalar.Div(var("a"), var("b"))
+    assert 1 / var("a") == scalar.Div(cast(1), var("a"))
+    assert var("a") / 1 == var("a")
+    assert 3 / var("a") == scalar.Div(cast(3), var("a"))
+    assert cast(1) / cast(2) == cast(0.5)
