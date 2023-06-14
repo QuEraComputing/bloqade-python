@@ -1,7 +1,7 @@
 from pydantic.dataclasses import dataclass
 from pydantic import validator
 from typing import Optional, Union, List
-from .tree_print import Printer
+from bloqade.ir.tree_print import Printer
 import re
 from decimal import Decimal
 

@@ -1,4 +1,4 @@
-from bloqade.ir.waveform import (
+from bloqade.ir.control.waveform import (
     Waveform,
     AlignedWaveform,
     Linear,
