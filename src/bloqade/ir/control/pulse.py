@@ -1,8 +1,8 @@
-from .scalar import Interval
+from ..scalar import Interval
 from .field import Field
 from typing import List
 from pydantic.dataclasses import dataclass
-from .tree_print import Printer
+from ..tree_print import Printer
 
 
 __all__ = [
