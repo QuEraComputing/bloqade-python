@@ -6,8 +6,8 @@ from typing import Any, Tuple, Union, List, Callable
 from enum import Enum
 
 
-from .tree_print import Printer
-from .scalar import Scalar, Interval, Variable, cast
+from ..tree_print import Printer
+from ..scalar import Scalar, Interval, Variable, cast
 from bokeh.plotting import figure
 import numpy as np
 import inspect

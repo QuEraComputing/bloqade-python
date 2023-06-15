@@ -1,4 +1,4 @@
-from bloqade.ir.pulse import detuning
+from bloqade.ir.control.pulse import detuning
 from .base import Builder
 
 
