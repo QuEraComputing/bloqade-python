@@ -846,7 +846,7 @@ dependencies = [
 
 [[package]]
 name = "mkdocs-material"
-version = "9.1.15"
+version = "9.1.16"
 requires_python = ">=3.7"
 summary = "Documentation that simply works"
 dependencies = [
@@ -2566,9 +2566,9 @@ content_hash = "sha256:ad816c58214dd33e327dc7f2c287860c39471806e63f966c05c35099d
     {url = "https://files.pythonhosted.org/packages/46/91/75eb48eafdbe609ca80d6c271ad5bc4edc75cffde4d1d70604f2a4c2145a/mkdocs_literate_nav-0.6.0.tar.gz", hash = "sha256:81ccbea18163ae8e10bd0bd39237fe70c32a1f2dff6c170779f5d52dd98a0470"},
     {url = "https://files.pythonhosted.org/packages/8d/e0/4c04aa187e4c0a3f1218681e7389106fad8f25ecaae90b1e68636f04d15b/mkdocs_literate_nav-0.6.0-py3-none-any.whl", hash = "sha256:8c1b84714e5974da5e44e011ec0069275ae7647270c13a679662cf6ffce675a4"},
 ]
-"mkdocs-material 9.1.15" = [
-    {url = "https://files.pythonhosted.org/packages/12/f0/e25212dc7a0b028ba95f6b2db0ff8efd3317d9631ecd56bcff434212c2fa/mkdocs_material-9.1.15.tar.gz", hash = "sha256:8513ab847c9a541ed3d11a3a7eed556caf72991ee786c31c5aac6691a121088a"},
-    {url = "https://files.pythonhosted.org/packages/48/c7/9f4e97ea777e1dfa8e072cc07299a67509819f2d3da09dccf52d26a2eb4f/mkdocs_material-9.1.15-py3-none-any.whl", hash = "sha256:b49e12869ab464558e2dd3c5792da5b748a7e0c48ee83b4d05715f98125a7a39"},
+"mkdocs-material 9.1.16" = [
+    {url = "https://files.pythonhosted.org/packages/b5/35/96d2fae52aad6e6c0a79a3106ec013f4c4270dfcc52bb01e9cb1895b85ff/mkdocs_material-9.1.16.tar.gz", hash = "sha256:1021bfea20f00a9423530c8c2ae9be3c78b80f5a527b3f822e6de3d872e5ab79"},
+    {url = "https://files.pythonhosted.org/packages/f6/96/91ce1e8305e6ef11139a4ec4ad529323ace81e7a71ca4899a1503847f071/mkdocs_material-9.1.16-py3-none-any.whl", hash = "sha256:f9e62558a6b01ffac314423cbc223d970c25fbc78999860226245b64e64d6751"},
 ]
 "mkdocs-material-extensions 1.1.1" = [
     {url = "https://files.pythonhosted.org/packages/cd/3f/e5e3c9bfbb42e4cb661f71bcec787ae6bdf4a161b8c4bb68fd7d991c436c/mkdocs_material_extensions-1.1.1.tar.gz", hash = "sha256:9c003da71e2cc2493d910237448c672e00cefc800d3d6ae93d2fc69979e3bd93"},
