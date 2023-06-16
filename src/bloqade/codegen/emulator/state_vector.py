@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from scipy.sparse import csr_matrix
-from bloqade.emulator.sparse_operator import IndexMapping, Diagonal
+from bloqade.codegen.emulator.sparse_operator import IndexMapping, Diagonal
 from numpy.typing import NDArray
 from typing import List, Callable, Union
 import numpy as np

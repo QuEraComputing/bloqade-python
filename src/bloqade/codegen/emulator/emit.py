@@ -1,10 +1,10 @@
-from bloqade.ir.sequence import (
+from bloqade.ir.control.sequence import (
     RydbergLevelCoupling,
     HyperfineLevelCoupling,
     LevelCoupling,
 )
-from bloqade.emulator.sparse_operator import IndexMapping, Diagonal
-from bloqade.emulator.space import (
+from bloqade.codegen.emulator.sparse_operator import IndexMapping, Diagonal
+from bloqade.codegen.emulator.space import (
     Space,
     SpaceType,
     LocalHilbertSpace,
