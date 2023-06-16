@@ -140,8 +140,12 @@ class RunTimeVector(SpatialModulation):
         Printer(p).print(self, cycle)
 
 
+class FieldExpr:
+    pass
+
+
 @dataclass
-class Field:
+class Field(FieldExpr):
     """
     <field> ::= ('field' <spatial modulation>  <padded waveform>)*
     """
@@ -199,7 +203,7 @@ class RabiWaveform:
 
 
 @dataclass(frozen=True)
-class RabiField:
+class RabiField(FieldExpr):
     """
     <rabi field> ::= ('rabi_field' <spatial modulation>  <rabi_waveform>)*
 

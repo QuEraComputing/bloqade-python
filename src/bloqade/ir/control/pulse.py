@@ -1,6 +1,6 @@
 from ..scalar import Interval
-from .field import Field
-from typing import List
+from .field import Field, RabiField
+from typing import List, Optional
 from pydantic.dataclasses import dataclass
 from ..tree_print import Printer
 
@@ -126,31 +126,28 @@ class Pulse(PulseExpr):
     <pulse> ::= (<field name> <field>)+
     """
 
-    value: dict[FieldName, Field]
+    detuning: Optional[Field]
+    rabi: Optional[RabiField]
 
-    def __init__(self, field_pairs):
-        value = dict()
-        for k, v in field_pairs.items():
-            if isinstance(v, Field):
-                value[k] = v
-            elif isinstance(v, dict):
-                value[k] = Field(v)
-            else:
-                raise TypeError(f"Expected Field or dict, got {type(v)}")
-        self.value = value
+    def __init__(self, detuning: Optional[Field], rabi: Optional[RabiField]) -> None:
+        if detuning is None and rabi is None:
+            raise ValueError("Pulse must have at least one field")
+
+        self.detuning = detuning
+        self.rabi = rabi
 
     def __repr__(self) -> str:
-        return f"Pulse(value={self.value!r})"
+        return f"Pulse(detuning={self.detuning!r}, rabi={self.rabi!r})"
 
     def print_node(self):
         return "Pulse"
 
     def children(self):
         # annotated children
-        annotated_children = {
-            field_name.print_node(): field for field_name, field in self.value.items()
+        return {
+            self.detuning.print_node(): self.detuning,
+            self.rabi.print_node(): self.rabi,
         }
-        return annotated_children
 
     def _repr_pretty_(self, p, cycle):
         Printer(p).print(self, cycle)
