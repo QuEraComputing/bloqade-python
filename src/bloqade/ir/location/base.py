@@ -1,12 +1,15 @@
 from bloqade.builder.start import ProgramStart
 from bloqade.ir.scalar import Scalar, cast
 from pydantic.dataclasses import dataclass
-from typing import List, Generator, Tuple, Any
+from typing import List, Generator, Tuple, Any, TYPE_CHECKING
 from bokeh.plotting import show
 import numpy as np
 from enum import Enum
 from bokeh.models import ColumnDataSource, Plot
 from bokeh.plotting import figure
+
+if TYPE_CHECKING:
+    from .list import ListOfLocations
 
 
 class SiteFilling(int, Enum):
@@ -102,6 +105,31 @@ class AtomArrangement(ProgramStart):
     def n_dims(self) -> int:
         raise NotImplementedError
 
+    def add_defects(
+        self,
+        defect_probability: float,
+        rng: np.random.Generator = np.random.default_rng(),
+    ) -> "ListOfLocations":
+        from bloqade.ir.location.list import ListOfLocations
+
+        p = min(1, max(0, defect_probability))
+        location_list = []
+
+        for location_info in self.enumerate():
+            if rng.random() < p:
+                new_filling = (
+                    SiteFilling.vacant
+                    if location_info.filling is SiteFilling.filled
+                    else SiteFilling.filled
+                )
+                location_list.append(
+                    LocationInfo(position=location_info.position, filling=new_filling)
+                )
+            else:
+                location_list.append(location_info)
+
+            return ListOfLocations(location_list=location_list)
+
 
 @dataclass(init=False)
 class ParallelRegister(ProgramStart):
@@ -113,12 +141,14 @@ class ParallelRegister(ProgramStart):
         if register.n_atoms > 0:
             # calculate bounding box
             # of this register
-            x_min = np.inf
-            x_max = -np.inf
-            y_min = np.inf
-            y_max = -np.inf
+            location_iter = register.enumerate()
+            (x, y) = next(location_iter).position
+            x_min = x
+            x_max = x
+            y_min = y
+            y_max = y
 
-            for location_info in register.enumerate():
+            for location_info in location_iter:
                 (x, y) = location_info.position
                 x_min = x.min(x_min)
                 x_max = x.max(x_max)

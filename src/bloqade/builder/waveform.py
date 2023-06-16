@@ -72,14 +72,32 @@ class PythonFn(WaveformTerminate):
         super().__init__(parent)
         self._waveform = ir.PythonFn(fn, duration)
 
-    def sample(self, dt: ScalarType, interpolation: Optional[str] = None) -> "Sample":
-        return Sample(self, dt, interpolation=interpolation)
+    def sample(
+        self,
+        dt: ScalarType,
+        interpolation: Optional[Union[ir.Interpolation, str]] = None,
+    ) -> "Sample":
+        if interpolation is not None:
+            return Sample(self, dt, interpolation=interpolation)
+
+        match self.__build_cache__.field_name:
+            case ir.pulse.rabi.amplitude | ir.pulse.detuning:
+                return Sample(self, dt, interpolation=ir.Interpolation.Linear)
+            case ir.pulse.rabi.phase:
+                return Sample(self, dt, interpolation=ir.Interpolation.Constant)
+            case _:
+                raise NotImplementedError(
+                    f"Sampling for {self.__build_cache__.field_name} is not implemented"
+                )
 
 
 class Sample(WaveformTerminate):
     def __init__(
-        self, parent: Builder, dt: ScalarType, interpolation: Optional[str] = None
+        self,
+        parent: Builder,
+        dt: ScalarType,
+        interpolation: Union[ir.Interpolation, str],
     ) -> None:
         super().__init__(parent)
         self._dt = ir.cast(dt)
-        self._interpolation = ir.Interpolation(interpolation) if interpolation else None
+        self._interpolation = ir.Interpolation(interpolation)

@@ -79,6 +79,7 @@ print(prog.sequence)
 
 job = (
     Square(4, lattice_spacing="a")
+    .add_defects(0.1)
     .rydberg.detuning.uniform.piecewise_linear(
         durations=[0.1, 3.8, 0.1], values=[-10, -10, "final_detuning", "final_detuning"]
     )

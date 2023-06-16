@@ -1,8 +1,8 @@
 from pydantic.dataclasses import dataclass
-from .scalar import Scalar, cast, Literal
+from ..scalar import Scalar, cast, Literal
 from .waveform import Waveform
-from typing import Dict, Optional, Tuple, Union
-from .tree_print import Printer
+from typing import Dict, Union, Optional, Tuple
+from ..tree_print import Printer
 
 
 __all__ = [

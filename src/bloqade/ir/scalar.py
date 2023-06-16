@@ -1,8 +1,9 @@
 from pydantic.dataclasses import dataclass
 from pydantic import validator
-from typing import Optional
-from .tree_print import Printer
+from typing import Optional, Union, List
+from bloqade.ir.tree_print import Printer
 import re
+from decimal import Decimal
 
 __all__ = [
     "var",
@@ -40,13 +41,13 @@ class Scalar:
     ```
     """
 
-    def __call__(self, **kwargs):
+    def __call__(self, **kwargs) -> Decimal:
         match self:
             case Literal(value):
                 return value
             case Variable(name):
                 if name in kwargs:
-                    return kwargs[name]
+                    return Decimal(str(kwargs[name]))
                 else:
                     raise Exception(f"Unknown variable: {name}")
             case Negative(expr):
@@ -157,17 +158,17 @@ class Scalar:
                 return new_expr
 
         match expr:
-            case Negative(Negative(expr)):
-                return Scalar.canonicalize(expr)
+            case Negative(Negative(sub_expr)):
+                return Scalar.canonicalize(sub_expr)
             case Negative(Literal(value)) if value < 0:
                 return Literal(-value)
             case Add(Literal(lhs), Literal(rhs)):
                 return Literal(lhs + rhs)
-            case Add(Literal(0.0), expr):
-                return Scalar.canonicalize(expr)
-            case Add(expr, Literal(0.0)):
-                return Scalar.canonicalize(expr)
-            case Add(expr, Negative(other_expr)) if expr == other_expr:
+            case Add(Literal(0.0), sub_expr):
+                return Scalar.canonicalize(sub_expr)
+            case Add(sub_expr, Literal(0.0)):
+                return Scalar.canonicalize(sub_expr)
+            case Add(sub_expr, Negative(other_expr)) if sub_expr == other_expr:
                 return Literal(0.0)
             case Mul(Literal(lhs), Literal(rhs)):
                 return Literal(lhs * rhs)
@@ -175,10 +176,10 @@ class Scalar:
                 return Literal(0.0)
             case Mul(_, Literal(0.0)):
                 return Literal(0.0)
-            case Mul(Literal(1.0), expr):
-                return Scalar.canonicalize(expr)
-            case Mul(expr, Literal(1.0)):
-                return Scalar.canonicalize(expr)
+            case Mul(Literal(1.0), sub_expr):
+                return Scalar.canonicalize(sub_expr)
+            case Mul(sub_expr, Literal(1.0)):
+                return Scalar.canonicalize(sub_expr)
             case Min(exprs):
                 return minmax(Min, exprs)
             case Max(exprs):
@@ -204,12 +205,16 @@ def cast(py) -> Scalar:
     return ret
 
 
-def var(py: str) -> "Variable":
+def var(py: Union[str, List[str]]) -> "Union[Variable, List[Variable]]":
     ret = None
     if type(py) is str:
-        ret = trycast(py)
+        return trycast(py)
+    elif type(py) is list:
+        if any(type(x) is not str for x in py):
+            raise TypeError(f"Cannot cast {py} to Variable")
 
-    if ret is None:
+        return trycast(py)
+    else:
         raise TypeError(f"Cannot cast {py} to Variable")
 
     return ret
@@ -218,7 +223,9 @@ def var(py: str) -> "Variable":
 def trycast(py) -> Optional[Scalar]:
     match py:
         case int(x) | float(x) | bool(x):
-            return Literal(x)
+            return Literal(Decimal(str(x)))
+        case Decimal():
+            return Literal(py)
         case str(x):
             regex = "^[A-Za-z_][A-Za-z0-9_]*"
             if re.search(regex, x):
@@ -242,10 +249,10 @@ class Real(Scalar):
 
 @dataclass(frozen=True)
 class Literal(Real):
-    value: float
+    value: Decimal
 
     def __repr__(self) -> str:
-        return f"{self.value!r}"
+        return f"{self.value}"
 
     def children(self):
         return []
@@ -262,7 +269,7 @@ class Variable(Real):
     name: str
 
     def __repr__(self) -> str:
-        return f"{self.name!r}"
+        return f"var({self.name!r})"
 
     def children(self):
         return []
