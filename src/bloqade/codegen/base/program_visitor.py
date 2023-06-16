@@ -1,7 +1,7 @@
-from bloqade.ir.waveform import Waveform
-from bloqade.ir.field import Field, SpatialModulation
-from bloqade.ir.pulse import PulseExpr
-from bloqade.ir.sequence import SequenceExpr
+from bloqade.ir.control.waveform import Waveform
+from bloqade.ir.control.field import Field, SpatialModulation
+from bloqade.ir.control.pulse import PulseExpr
+from bloqade.ir.control.sequence import SequenceExpr
 from bloqade.ir.location.base import AtomArrangement, ParallelRegister
 from typing import Union, Any
 

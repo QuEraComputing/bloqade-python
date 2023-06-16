@@ -57,8 +57,7 @@ class Emit(Builder):
         register: Optional[Union["AtomArrangement", "ParallelRegister"]] = None,
         sequence: Optional[ir.Sequence] = None,
     ) -> None:
-        super().__init__(builder, register=register)
-
+        super().__init__(builder)
         self.__batch__ = {}
         if batch:
             first_key, *other_keys = batch.keys()
@@ -81,6 +80,7 @@ class Emit(Builder):
 
         self.__assignments__ = assignments
         self.__sequence__ = sequence
+        self.__register__ = register
 
     def assign(self, **assignments):
         # these methods terminate no build steps can
@@ -331,7 +331,7 @@ class Emit(Builder):
     def __compile_hardware(
         self, nshots: int, backend: SubmissionBackend
     ) -> HardwareJob:
-        from bloqade.codegen.quera_hardware import SchemaCodeGen
+        from bloqade.codegen.hardware.quera import SchemaCodeGen
 
         capabilities = backend.get_capabilities()
 
@@ -386,7 +386,7 @@ class Emit(Builder):
         raise NotImplementedError
 
     def braket_local_simulator(self, nshots: int):
-        from bloqade.codegen.quera_hardware import SchemaCodeGen
+        from bloqade.codegen.hardware.quera import SchemaCodeGen
 
         if isinstance(self.register, ParallelRegister):
             raise TypeError("Braket emulator doesn't support parallel registers.")
