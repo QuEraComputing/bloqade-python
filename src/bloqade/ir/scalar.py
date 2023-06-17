@@ -1,7 +1,7 @@
 from pydantic.dataclasses import dataclass
 from pydantic import validator
-from typing import Optional, Union, List
-from bloqade.ir.tree_print import Printer
+from typing import Any, Union, List
+from .tree_print import Printer
 import re
 from decimal import Decimal
 
@@ -71,45 +71,67 @@ class Scalar:
 
     def __add__(self, other: "Scalar") -> "Scalar":
         try:
-            expr = Add(lhs=self, rhs=cast(other))
-            return Scalar.canonicalize(expr)
-        except TypeError:
+            rhs = cast(other)
+        except BaseException:
             return NotImplemented
+
+        return self.add(rhs)
 
     def __radd__(self, other: "Scalar") -> "Scalar":
         try:
-            expr = Add(rhs=self, lhs=cast(other))
-            return Scalar.canonicalize(expr)
-        except TypeError:
+            lhs = cast(other)
+        except BaseException:
             return NotImplemented
+
+        return lhs.add(self)
 
     def __sub__(self, other: "Scalar") -> "Scalar":
         try:
-            expr = Add(lhs=self, rhs=-cast(other))
-            return Scalar.canonicalize(expr)
-        except TypeError:
+            rhs = cast(other)
+        except BaseException:
             return NotImplemented
+
+        return self.sub(rhs)
 
     def __rsub__(self, other: "Scalar") -> "Scalar":
         try:
-            expr = Add(lhs=-(self), rhs=cast(other))
-            return Scalar.canonicalize(expr)
-        except TypeError:
+            lhs = cast(other)
+        except BaseException:
             return NotImplemented
+
+        return lhs.sub(self)
 
     def __mul__(self, other: "Scalar") -> "Scalar":
         try:
-            expr = Mul(lhs=self, rhs=cast(other))
-            return Scalar.canonicalize(expr)
-        except TypeError:
+            rhs = cast(other)
+        except BaseException:
             return NotImplemented
+
+        return self.mul(rhs)
 
     def __rmul__(self, other: "Scalar") -> "Scalar":
         try:
-            expr = Mul(rhs=self, lhs=cast(other))
-            return Scalar.canonicalize(expr)
-        except TypeError:
+            lhs = cast(other)
+        except BaseException:
             return NotImplemented
+
+        return lhs.mul(self)
+
+    def __truediv__(self, other: "Scalar") -> "Scalar":
+        try:
+            rhs = cast(other)
+        except BaseException:
+            return NotImplemented
+
+        return self.div(rhs)
+
+    def __rtruediv__(self, other: "Scalar") -> "Scalar":
+        try:
+            lhs = cast(other)
+        except BaseException:
+            return NotImplemented
+
+        return lhs.div(self)
 
     def __neg__(self) -> "Scalar":
         return Scalar.canonicalize(Negative(self))
@@ -160,25 +182,35 @@ class Scalar:
         match expr:
             case Negative(Negative(sub_expr)):
                 return Scalar.canonicalize(sub_expr)
-            case Negative(Literal(value)) if value < 0:
+            case Negative(expr=Literal(value)) if value < 0:
                 return Literal(-value)
-            case Add(Literal(lhs), Literal(rhs)):
+            case Add(lhs=Literal(lhs), rhs=Literal(rhs)):
                 return Literal(lhs + rhs)
-            case Add(Literal(0.0), sub_expr):
+            case Add(lhs=Literal(lhs), rhs=Negative(Literal(rhs))):
+                return Literal(lhs - rhs)
+            case Add(lhs=Negative(Literal(lhs)), rhs=Literal(rhs)):
+                return Literal(rhs - lhs)
+            case Add(lhs=Literal(0.0), rhs=sub_expr):
                 return Scalar.canonicalize(sub_expr)
-            case Add(sub_expr, Literal(0.0)):
+            case Add(lhs=sub_expr, rhs=Literal(0.0)):
                 return Scalar.canonicalize(sub_expr)
-            case Add(sub_expr, Negative(other_expr)) if sub_expr == other_expr:
+            case Add(lhs=sub_expr, rhs=Negative(other_expr)) if sub_expr == other_expr:
                 return Literal(0.0)
-            case Mul(Literal(lhs), Literal(rhs)):
+            case Add(lhs=sub_expr, rhs=Negative(other_expr)) if sub_expr == other_expr:
+                return Literal(0.0)
+            case Mul(lhs=Literal(lhs), rhs=Literal(rhs)):
                 return Literal(lhs * rhs)
-            case Mul(Literal(0.0), _):
+            case Mul(lhs=Literal(0.0), rhs=_):
                 return Literal(0.0)
-            case Mul(_, Literal(0.0)):
+            case Mul(lhs=_, rhs=Literal(0.0)):
                 return Literal(0.0)
-            case Mul(Literal(1.0), sub_expr):
+            case Mul(lhs=Literal(1.0), rhs=sub_expr):
                 return Scalar.canonicalize(sub_expr)
-            case Mul(sub_expr, Literal(1.0)):
+            case Mul(lhs=sub_expr, rhs=Literal(1.0)):
+                return Scalar.canonicalize(sub_expr)
+            case Div(lhs=Literal(lhs), rhs=Literal(rhs)):
+                return Literal(lhs / rhs)
+            case Div(lhs=sub_expr, rhs=Literal(1.0)):
                 return Scalar.canonicalize(sub_expr)
             case Min(exprs):
                 return minmax(Min, exprs)
@@ -188,7 +220,14 @@ class Scalar:
                 return expr
 
 
-def cast(py) -> Scalar:
+def check_variable_name(name: str) -> None:
+    regex = "^[A-Za-z_][A-Za-z0-9_]*"
+    re_match = re.match(regex, name)
+    if re_match.group() != name:
+        raise ValueError(f"string '{name}' is not a valid python identifier")
+
+
+def cast(py) -> Any:
     ret = trycast(py)
     if ret is None:
         raise TypeError(f"Cannot cast {py} to Scalar")
@@ -196,36 +235,40 @@ def cast(py) -> Scalar:
     return ret
 
 
-def var(py: Union[str, List[str]]) -> "Union[Variable, List[Variable]]":
-    ret = None
-    if type(py) is str:
-        return trycast(py)
-    elif type(py) is list:
-        if any(type(x) is not str for x in py):
-            raise TypeError(f"Cannot cast {py} to Variable")
-
-        return trycast(py)
-    else:
-        raise TypeError(f"Cannot cast {py} to Variable")
-
-    return ret
-
-
-def trycast(py) -> Optional[Scalar]:
+def trycast(py) -> Any:
     match py:
         case int(x) | float(x) | bool(x):
             return Literal(Decimal(str(x)))
         case Decimal():
             return Literal(py)
         case str(x):
-            regex = "^[A-Za-z_][A-Za-z0-9_]*"
-            if re.search(regex, x):
-                return Variable(x)
-            else:
-                raise ValueError(f"string '{x}' is not a valid python identifier")
-
+            check_variable_name(x)
+            return Variable(x)
         case list() as xs:
             return list(map(cast, xs))
+        case Scalar():
+            return py
+        case _:
+            return
+
+
+def var(py: Union[str, List[str]]) -> Any:
+    ret = tryvar(py)
+    if ret is None:
+        raise TypeError(f"Cannot cast {py} to Variable")
+
+    return ret
+
+
+def tryvar(py) -> Any:
+    match py:
+        case str(x):
+            check_variable_name(x)
+            return Variable(x)
+        case list() as xs:
+            return list(map(var, xs))
+        case tuple() as xs:
+            return tuple(map(var, xs))
         case Scalar():
             return py
         case _:
