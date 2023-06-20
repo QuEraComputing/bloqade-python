@@ -1,5 +1,5 @@
 from .base import AtomArrangement, LocationInfo
-from typing import List, Tuple, Optional, Any, Union
+from typing import List, Tuple, Any, Union
 
 
 class ListOfLocations(AtomArrangement):
@@ -19,25 +19,6 @@ class ListOfLocations(AtomArrangement):
             self.__n_dims = None
 
         super().__init__()
-
-    def add_position(self, position: Tuple[Any, Any], filled: bool = True):
-        new_location = LocationInfo(position, filled)
-        return ListOfLocations(self.location_list + [new_location])
-
-    def add_positions(
-        self, positions: List[Tuple[Any, Any]], filling: Optional[List[bool]] = None
-    ):
-        new_locations = []
-
-        if filling:
-            for position, filled in zip(positions, filling):
-                new_locations.append(LocationInfo(position, filled))
-
-        else:
-            for position in positions:
-                new_locations.append(LocationInfo(position, True))
-
-        return ListOfLocations(self.location_list + new_locations)
 
     @property
     def n_atoms(self):

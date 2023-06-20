@@ -1,7 +1,7 @@
 from bloqade.builder.start import ProgramStart
 from bloqade.ir.scalar import Scalar, cast
 from pydantic.dataclasses import dataclass
-from typing import List, Generator, Tuple, Any, TYPE_CHECKING
+from typing import List, Generator, Tuple, Any, Optional, TYPE_CHECKING
 from bokeh.plotting import show
 import numpy as np
 from enum import Enum
@@ -104,6 +104,31 @@ class AtomArrangement(ProgramStart):
     @property
     def n_dims(self) -> int:
         raise NotImplementedError
+
+    def add_position(self, position: Tuple[Any, Any], filled: bool = True):
+        location_list = [LocationInfo(position, filled)]
+        for location_info in self.enumerate():
+            location_list.append(location_info)
+
+        return ListOfLocations(location_list)
+
+    def add_positions(
+        self, positions: List[Tuple[Any, Any]], filling: Optional[List[bool]] = None
+    ):
+        location_list = []
+
+        if filling:
+            for position, filled in zip(positions, filling):
+                location_list.append(LocationInfo(position, filled))
+
+        else:
+            for position in positions:
+                location_list.append(LocationInfo(position, True))
+
+        for location_info in self.enumerate():
+            location_list.append(location_info)
+
+        return ListOfLocations(location_list)
 
     def add_defects(
         self,
