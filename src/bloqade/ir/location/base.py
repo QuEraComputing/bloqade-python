@@ -105,7 +105,11 @@ class AtomArrangement(ProgramStart):
     def n_dims(self) -> int:
         raise NotImplementedError
 
-    def add_position(self, position: Tuple[Any, Any], filled: bool = True):
+    def add_position(
+        self, position: Tuple[Any, Any], filled: bool = True
+    ) -> "ListOfLocations":
+        from .list import ListOfLocations
+
         location_list = [LocationInfo(position, filled)]
         for location_info in self.enumerate():
             location_list.append(location_info)
@@ -114,7 +118,9 @@ class AtomArrangement(ProgramStart):
 
     def add_positions(
         self, positions: List[Tuple[Any, Any]], filling: Optional[List[bool]] = None
-    ):
+    ) -> "ListOfLocations":
+        from .list import ListOfLocations
+
         location_list = []
 
         if filling:
