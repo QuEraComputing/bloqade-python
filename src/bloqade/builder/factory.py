@@ -2,6 +2,14 @@ from bloqade.ir.control.waveform import Waveform, Linear, Constant
 from typing import Any, List
 
 
+def linear(duration, start, stop):
+    return Linear(start, stop, duration)
+
+
+def constant(duration, value):
+    return Constant(value, duration)
+
+
 def piecewise_linear(durations: List[Any], values: List[Any]) -> Waveform:
     pwl_wf = None
     for duration, start, stop in zip(durations, values[:-1], values[1:]):
