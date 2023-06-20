@@ -105,12 +105,30 @@ class AtomArrangement(ProgramStart):
     def n_dims(self) -> int:
         raise NotImplementedError
 
-    def add_defects(
+    def apply_defect_count(
+        self, n_defects: int, rng: np.random.Generator = np.random.default_rng()
+    ) -> "ListOfLocations":
+        from .list import ListOfLocations
+
+        location_list = []
+        for location_info in self.enumerate():
+            location_list.append(location_info)
+
+        for _ in range(n_defects):
+            idx = rng.integers(0, len(location_list))
+            location_list[idx] = LocationInfo(
+                location_list[idx].position,
+                (False if location_list[idx].filling is SiteFilling.filled else True),
+            )
+
+        return ListOfLocations(location_list)
+
+    def apply_defect_density(
         self,
         defect_probability: float,
         rng: np.random.Generator = np.random.default_rng(),
     ) -> "ListOfLocations":
-        from bloqade.ir.location.list import ListOfLocations
+        from .list import ListOfLocations
 
         p = min(1, max(0, defect_probability))
         location_list = []
