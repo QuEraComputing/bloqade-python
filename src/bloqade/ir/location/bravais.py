@@ -60,10 +60,10 @@ class Chain(BoundedBravais):
         super().__init__(L, lattice_spacing=lattice_spacing)
 
     def cell_vectors(self) -> List[List[float]]:
-        return [[1]]
+        return [[1, 0]]
 
     def cell_atoms(self) -> List[List[float]]:
-        return [[0]]
+        return [[0, 0]]
 
 
 @dataclass
