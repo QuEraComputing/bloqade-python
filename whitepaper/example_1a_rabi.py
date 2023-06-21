@@ -1,9 +1,7 @@
-from bloqade.ir.scalar import Variable
 import numpy as np
 from bloqade import start
 
-
-durations = [Variable("ramp_time"), Variable("run_time"), Variable("ramp_time")]
+durations = ["ramp_time", "run_time", "ramp_time"]
 
 rabi_oscillations_program = (
     start.add_position((0, 0))
