@@ -1,5 +1,5 @@
 from .scalar import var, cast, Scalar, Interval, Variable, Literal
-from .waveform import (
+from .control.waveform import (
     Waveform,
     Linear,
     Constant,
@@ -8,8 +8,22 @@ from .waveform import (
     AlignedWaveform,
     AlignedValue,
     Alignment,
+    Interpolation,
+    Sample,
+    PythonFn,
+    instruction,
+    GuassianKernel,
+    LogisticKernel,
+    SigmoidKernel,
+    TriangleKernel,
+    UniformKernel,
+    ParabolicKernel,
+    BiweightKernel,
+    TriweightKernel,
+    TricubeKernel,
+    CosineKernel,
 )
-from .field import (
+from .control.field import (
     Field,
     Location,
     ScaledLocations,
@@ -17,8 +31,8 @@ from .field import (
     SpatialModulation,
     RunTimeVector,
 )
-from .pulse import Pulse, NamedPulse, FieldName, rabi, detuning
-from .sequence import rydberg, hyperfine, Sequence, LevelCoupling
+from .control.pulse import Pulse, NamedPulse, FieldName, rabi, detuning
+from .control.sequence import rydberg, hyperfine, Sequence, LevelCoupling
 from .program import Program
 
 __all__ = [
@@ -36,6 +50,20 @@ __all__ = [
     "Alignment",
     "AlignedValue",
     "Waveform",
+    "Sample",
+    "Interpolation",
+    "PythonFn",
+    "instruction",
+    "GuassianKernel",
+    "LogisticKernel",
+    "SigmoidKernel",
+    "TriangleKernel",
+    "UniformKernel",
+    "ParabolicKernel",
+    "BiweightKernel",
+    "TriweightKernel",
+    "TricubeKernel",
+    "CosineKernel",
     "Field",
     "Location",
     "ScaledLocations",
