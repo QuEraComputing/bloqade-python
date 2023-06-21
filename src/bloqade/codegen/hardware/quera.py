@@ -1,6 +1,6 @@
 from bloqade.ir.scalar import Literal
-import bloqade.ir.waveform as waveform
-from bloqade.ir.field import (
+import bloqade.ir.control.waveform as waveform
+from bloqade.ir.control.field import (
     Field,
     Location,
     SpatialModulation,
@@ -8,7 +8,7 @@ from bloqade.ir.field import (
     RunTimeVector,
     Uniform,
 )
-from bloqade.ir.pulse import (
+from bloqade.ir.control.pulse import (
     PulseExpr,
     Pulse,
     NamedPulse,
@@ -16,7 +16,7 @@ from bloqade.ir.pulse import (
     RabiFrequencyPhase,
     Detuning,
 )
-from bloqade.ir.sequence import (
+from bloqade.ir.control.sequence import (
     SequenceExpr,
     Sequence,
     NamedSequence,
@@ -24,18 +24,21 @@ from bloqade.ir.sequence import (
     HyperfineLevelCoupling,
 )
 from bloqade.ir.location.base import AtomArrangement, ParallelRegister
+from bloqade.ir.control.waveform import Record
 from bloqade.ir import Program
 
-from bloqade.codegen.program_visitor import ProgramVisitor
-from bloqade.codegen.waveform_visitor import WaveformVisitor
-from bloqade.codegen.assignment_scan import AssignmentScan
-from bloqade.submission.ir.parallel import ParallelDecoder, ClusterLocationInfo
+from bloqade.ir.visitor.program_visitor import ProgramVisitor
+from bloqade.ir.visitor.waveform_visitor import WaveformVisitor
+from bloqade.codegen.common.assignment_scan import AssignmentScan
 
 import bloqade.submission.ir.task_specification as task_spec
+from bloqade.submission.ir.parallel import ParallelDecoder, ClusterLocationInfo
 from bloqade.submission.ir.capabilities import QuEraCapabilities
+
 from typing import Any, Dict, Tuple, List, Union, Optional
 from bisect import bisect_left
 from numbers import Number
+from decimal import Decimal
 import numpy as np
 
 
@@ -43,29 +46,33 @@ class PiecewiseLinearCodeGen(WaveformVisitor):
     def __init__(self, assignments: Dict[str, Union[Number, List[Number]]]):
         self.assignments = assignments
 
-    def visit_negative(self, ast: waveform.Negative) -> Tuple[List[float], List[float]]:
-        times, values = ast.waveform
+    def visit_negative(
+        self, ast: waveform.Negative
+    ) -> Tuple[List[Decimal], List[Decimal]]:
+        times, values = self.visit(ast.waveform)
         return times, [-value for value in values]
 
-    def visit_scale(self, ast: waveform.Scale) -> Tuple[List[float], List[float]]:
+    def visit_scale(self, ast: waveform.Scale) -> Tuple[List[Decimal], List[Decimal]]:
         times, values = self.visit(ast.waveform)
         scaler = ast.scalar(**self.assignments)
         return times, [scaler * value for value in values]
 
-    def visit_linear(self, ast: waveform.Linear) -> Tuple[List[float], List[float]]:
+    def visit_linear(self, ast: waveform.Linear) -> Tuple[List[Decimal], List[Decimal]]:
         duration = ast.duration(**self.assignments)
         start = ast.start(**self.assignments)
         stop = ast.stop(**self.assignments)
 
-        return [0, duration], [start, stop]
+        return [Decimal(0), duration], [start, stop]
 
-    def visit_constant(self, ast: waveform.Constant) -> Tuple[List[float], List[float]]:
+    def visit_constant(
+        self, ast: waveform.Constant
+    ) -> Tuple[List[Decimal], List[Decimal]]:
         duration = ast.duration(**self.assignments)
         value = ast.value(**self.assignments)
 
-        return [0, duration], [value, value]
+        return [Decimal(0), duration], [value, value]
 
-    def visit_poly(self, ast: waveform.Poly) -> Tuple[List[float], List[float]]:
+    def visit_poly(self, ast: waveform.Poly) -> Tuple[List[Decimal], List[Decimal]]:
         match ast:
             case waveform.Poly(
                 checkpoints=checkpoint_exprs, duration=duration_expr
@@ -75,7 +82,7 @@ class PiecewiseLinearCodeGen(WaveformVisitor):
                     checkpoint_expr(**self.assignments)
                     for checkpoint_expr in checkpoint_exprs
                 ]
-                return [0, duration], [value, value]
+                return [Decimal(0), duration], [value, value]
 
             case waveform.Poly(
                 checkpoints=checkpoint_exprs, duration=duration_expr
@@ -89,7 +96,7 @@ class PiecewiseLinearCodeGen(WaveformVisitor):
                 start = values[0]
                 stop = values[0] + values[1] * duration
 
-                return [0, duration], [start, stop]
+                return [Decimal(0), duration], [start, stop]
 
             case waveform.Poly(checkpoints=checkpoints):
                 order = len(checkpoints) - 1
@@ -98,11 +105,17 @@ class PiecewiseLinearCodeGen(WaveformVisitor):
                     f"found Polynomial of order {order}."
                 )
 
-    def visit_slice(self, ast: waveform.Slice) -> Tuple[List[float], List[float]]:
+    def visit_slice(self, ast: waveform.Slice) -> Tuple[List[Decimal], List[Decimal]]:
         duration = ast.waveform.duration(**self.assignments)
+        if ast.interval.start is None:
+            start_time = Decimal(0)
+        else:
+            start_time = ast.interval.start(**self.assignments)
 
-        start_time = ast.iterval.start(**self.assignments)
-        stop_time = ast.interval.stop(**self.assignments)
+        if ast.interval.stop is None:
+            stop_time = duration
+        else:
+            stop_time = ast.interval.stop(**self.assignments)
 
         if start_time < 0:
             raise ValueError((f"start time for slice {start_time} is smaller than 0."))
@@ -120,27 +133,44 @@ class PiecewiseLinearCodeGen(WaveformVisitor):
                 )
             )
 
-        start_value = ast.waveform(start_time, **self.assignments)
-        stop_value = ast.waveform(stop_time, **self.assignments)
+        if start_time == stop_time:
+            return [Decimal(0, 0), Decimal(0.0)], [Decimal(0.0), Decimal(0.0)]
 
         times, values = self.visit(ast.waveform)
 
         start_index = bisect_left(times, start_time)
         stop_index = bisect_left(times, stop_time)
+        start_value = ast.waveform.eval_decimal(start_time, **self.assignments)
+        stop_value = ast.waveform.eval_decimal(stop_time, **self.assignments)
 
-        absolute_times = [start_time] + times[start_index:stop_index] + [stop_time]
+        match (start_index, stop_index):
+            case (0, int(index)) if index == len(times):
+                absolute_times = times
+            case (0, _):
+                absolute_times = times[start_index:stop_index] + [stop_time]
+                values = values[start_index:stop_index] + [stop_value]
+            case (_, int(index)) if index == len(times):
+                absolute_times = [start_time] + times[start_index:stop_index]
+                values = [start_value] + values[start_index:stop_index]
+            case (_, _):
+                absolute_times = (
+                    [start_time] + times[start_index:stop_index] + [stop_time]
+                )
+                values = [start_value] + values[start_index:stop_index] + [stop_value]
 
         times = [time - start_time for time in absolute_times]
-        values = [start_value] + values[start_index:stop_index] + [stop_value]
 
         return times, values
 
-    def visit_append(self, ast: waveform.Append) -> Tuple[List[float], List[float]]:
+    def visit_append(self, ast: waveform.Append) -> Tuple[List[Decimal], List[Decimal]]:
         times, values = self.visit(ast.waveforms[0])
 
         for sub_expr in ast.waveforms[1:]:
             new_times, new_values = self.visit(sub_expr)
 
+            # skip instructions with duration=0
+            if new_times[-1] == Decimal(0):
+                continue
             if values[-1] != new_values[0]:
                 diff = abs(new_values[0] - values[-1])
                 raise ValueError(
@@ -154,21 +184,34 @@ class PiecewiseLinearCodeGen(WaveformVisitor):
 
         return times, values
 
+    def visit_sample(self, ast: waveform.Sample) -> Tuple[List[Decimal], List[Decimal]]:
+        if ast.interpolation != waveform.Interpolation.Linear:
+            raise ValueError(
+                "Failed to compile waveform to piecewise linear, "
+                f"found piecewise {ast.interpolation.value} interpolation."
+            )
+        return ast.samples(**self.assignments)
+
+    def visit_record(self, ast: Record) -> Tuple[List[Decimal], List[Decimal]]:
+        return self.visit(ast.waveform)
+
 
 class PiecewiseConstantCodeGen(WaveformVisitor):
     def __init__(self, assignments: Dict[str, Union[Number, List[Number]]]):
         self.assignments = assignments
 
-    def visit_negative(self, ast: waveform.Negative) -> Tuple[List[float], List[float]]:
+    def visit_negative(
+        self, ast: waveform.Negative
+    ) -> Tuple[List[Decimal], List[Decimal]]:
         times, values = ast.waveform
         return times, [-value for value in values]
 
-    def visit_scale(self, ast: waveform.Scale) -> Tuple[List[float], List[float]]:
+    def visit_scale(self, ast: waveform.Scale) -> Tuple[List[Decimal], List[Decimal]]:
         times, values = self.visit(ast.waveform)
         scaler = ast.scalar(**self.assignments)
         return times, [scaler * value for value in values]
 
-    def visit_linear(self, ast: waveform.Linear) -> Tuple[List[float], List[float]]:
+    def visit_linear(self, ast: waveform.Linear) -> Tuple[List[Decimal], List[Decimal]]:
         duration = ast.duration(**self.assignments)
         start = ast.start(**self.assignments)
         stop = ast.stop(**self.assignments)
@@ -181,13 +224,15 @@ class PiecewiseConstantCodeGen(WaveformVisitor):
 
         return [0, duration], [start, stop]
 
-    def visit_constant(self, ast: waveform.Constant) -> Tuple[List[float], List[float]]:
+    def visit_constant(
+        self, ast: waveform.Constant
+    ) -> Tuple[List[Decimal], List[Decimal]]:
         duration = ast.duration(**self.assignments)
         value = ast.value(**self.assignments)
 
-        return [0, duration], [value, value]
+        return [Decimal(0), duration], [value, value]
 
-    def visit_poly(self, ast: waveform.Poly) -> Tuple[List[float], List[float]]:
+    def visit_poly(self, ast: waveform.Poly) -> Tuple[List[Decimal], List[Decimal]]:
         match ast:
             case waveform.Poly(
                 checkpoints=checkpoint_exprs, duration=duration_expr
@@ -197,7 +242,7 @@ class PiecewiseConstantCodeGen(WaveformVisitor):
                     checkpoint_expr(**self.assignments)
                     for checkpoint_expr in checkpoint_exprs
                 ]
-                return [0, duration], [value, value]
+                return [Decimal(0), duration], [value, value]
 
             case waveform.Poly(checkpoints=checkpoints):
                 order = len(checkpoints) - 1
@@ -206,11 +251,17 @@ class PiecewiseConstantCodeGen(WaveformVisitor):
                     f"found Polynomial of order {order}."
                 )
 
-    def visit_slice(self, ast: waveform.Slice) -> Tuple[List[float], List[float]]:
+    def visit_slice(self, ast: waveform.Slice) -> Tuple[List[Decimal], List[Decimal]]:
         duration = ast.waveform.duration(**self.assignments)
+        if ast.interval.start is None:
+            start_time = Decimal(0)
+        else:
+            start_time = ast.interval.start(**self.assignments)
 
-        start_time = ast.iterval.start(**self.assignments)
-        stop_time = ast.interval.stop(**self.assignments)
+        if ast.interval.stop is None:
+            stop_time = duration
+        else:
+            stop_time = ast.interval.stop(**self.assignments)
 
         if start_time < 0:
             raise ValueError((f"start time for slice {start_time} is smaller than 0."))
@@ -228,13 +279,15 @@ class PiecewiseConstantCodeGen(WaveformVisitor):
                 )
             )
 
-        start_value = ast.waveform(start_time, **self.assignments)
-        stop_value = ast.waveform(stop_time, **self.assignments)
-
         times, values = self.visit(ast.waveform)
 
         start_index = bisect_left(times, start_time)
         stop_index = bisect_left(times, stop_time)
+
+        # evaluate start value using constant interpolation
+        start_value = values[start_index]
+        # evaluate stop value using constant interpolation
+        stop_value = values[stop_index]
 
         absolute_times = [start_time] + times[start_index:stop_index] + [stop_time]
 
@@ -243,11 +296,15 @@ class PiecewiseConstantCodeGen(WaveformVisitor):
 
         return times, values
 
-    def visit_append(self, ast: waveform.Append) -> Tuple[List[float], List[float]]:
+    def visit_append(self, ast: waveform.Append) -> Tuple[List[Decimal], List[Decimal]]:
         times, values = self.visit(ast.waveforms[0])
 
         for sub_expr in ast.waveforms[1:]:
             new_times, new_values = self.visit(sub_expr)
+
+            # skip instructions with duration=0
+            if new_times[-1] == Decimal(0):
+                continue
 
             shifted_times = [time + times[-1] for time in new_times[1:]]
             times.extend(shifted_times)
@@ -255,6 +312,20 @@ class PiecewiseConstantCodeGen(WaveformVisitor):
             values.extend(new_values[1:])
 
         return times, values
+
+    def visit_sample(self, ast: waveform.Sample) -> Tuple[List[Decimal], List[Decimal]]:
+        if ast.interpolation != waveform.Interpolation.Constant:
+            raise ValueError(
+                "Failed to compile waveform to piecewise linear, "
+                f"found piecewise {ast.interpolation.value} interpolation."
+            )
+        times, values = ast.samples(**self.assignments)
+
+        values[-1] = values[-2]
+        return times, values
+
+    def visit_record(self, ast: Record) -> Tuple[List[Decimal], List[Decimal]]:
+        return self.visit(ast.waveform)
 
 
 class SchemaCodeGen(ProgramVisitor):
@@ -276,16 +347,16 @@ class SchemaCodeGen(ProgramVisitor):
         self.lattice_site_coefficients = None
 
     @staticmethod
-    def convert_time_to_SI_units(times: List[float]):
-        return [time * 1e-6 for time in times]
+    def convert_time_to_SI_units(times: List[Decimal]):
+        return [time * Decimal("1e-6") for time in times]
 
     @staticmethod
-    def convert_energy_to_SI_units(values: List[float]):
-        return [value * 1e6 for value in values]
+    def convert_energy_to_SI_units(values: List[Decimal]):
+        return [value * Decimal("1e6") for value in values]
 
     @staticmethod
-    def convert_position_to_SI_units(position: Tuple[float]):
-        return tuple(coordinate * 1e-6 for coordinate in position)
+    def convert_position_to_SI_units(position: Tuple[Decimal]):
+        return tuple(coordinate * Decimal("1e-6") for coordinate in position)
 
     def visit_spatial_modulation(self, ast: SpatialModulation):
         lattice_site_coefficients = []

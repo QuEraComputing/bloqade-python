@@ -6,11 +6,21 @@ from bloqade.ir import (
     AlignedWaveform,
     Alignment,
     AlignedValue,
+    instruction,
+    GuassianKernel,
+    BiweightKernel,
 )
 from bloqade.ir import scalar
 
 wf = Linear(start=1.0, stop="x", duration=3.0)
 wf = Constant(value=1.0, duration=3.0)
+
+
+@instruction(duration="r")
+def my_func(time, *, omega, phi=0, amplitude):
+    import numpy as np
+
+    return amplitude * np.cos(omega * time + phi)
 
 
 print(wf[:0.5].duration)
@@ -30,6 +40,11 @@ wf = (
     .append(Linear("rabi_amplitude_max", 0.0, "up_time"))
 )
 print(wf)
+
+smooth_wf = wf.smooth(0.1, GuassianKernel)
+print(smooth_wf(1.0, rabi_amplitude_max=1.0, up_time=1.0, anneal_time=1.0))
+smooth_wf = wf.smooth(0.1, BiweightKernel)
+print(smooth_wf(1.0, rabi_amplitude_max=1.0, up_time=1.0, anneal_time=1.0))
 
 # try scaling
 wf * scalar.Literal(5.0)
