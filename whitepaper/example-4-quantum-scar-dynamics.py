@@ -11,7 +11,7 @@ atom_spacing = 6.1
 run_time = var("run_time")
 
 quantum_scar_program = (
-    Chain(11, lattice_spacing=atom_spacing)
+    Chain(n_atoms, lattice_spacing=atom_spacing)
     .rydberg.rabi.amplitude.uniform.piecewise_linear(
         [0.3, 1.6, 0.3], [0.0, 15.7, 15.7, 0.0]
     )
