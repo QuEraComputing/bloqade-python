@@ -25,6 +25,7 @@ class QuEraTaskStatusCode(str, Enum):
     Enqueued = "Enqueued"
     Accepted = "Accepted"
     Unaccepted = "Unaccepted"
+    Partial = "Partial"
 
 
 class QuEraShotResult(BaseModel):

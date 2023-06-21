@@ -17,8 +17,9 @@ from bloqade.task.base import (
     TaskFuture,
     Job,
 )
-from typing import List, Optional
+from typing import Optional
 from concurrent.futures import ProcessPoolExecutor
+from collections import OrderedDict
 
 
 class BraketEmulatorTask(BaseModel, Task):
@@ -57,22 +58,25 @@ class BraketEmulatorTaskFuture(BaseModel, TaskFuture):
 
 
 class BraketEmulatorJob(JSONInterface, Job):
-    tasks: List[BraketEmulatorTask] = []
+    tasks: OrderedDict[int, BraketEmulatorTask] = {}
 
-    def _task_list(self) -> List[BraketEmulatorTask]:
+    def _task_dict(self) -> OrderedDict[int, BraketEmulatorTask]:
         return self.tasks
 
     def _emit_future(
-        self, futures: List[BraketEmulatorTaskFuture]
+        self, futures: OrderedDict[int, BraketEmulatorTaskFuture]
     ) -> "BraketEmulatorFuture":
         return BraketEmulatorFuture(futures=futures)
 
     def init_from_dict(self, **params) -> None:
         match params:
-            case {"tasks": list() as task_list}:
-                self.tasks = [
-                    BraketEmulatorTask(**task_json) for task_json in task_list
-                ]
+            case {"tasks": dict() as tasks}:
+                self.tasks = OrderedDict(
+                    [
+                        (task_number, BraketEmulatorTask(**tasks[task_number]))
+                        for task_number in sorted(tasks.keys())
+                    ]
+                )
             case _:
                 raise ValueError(
                     f"Cannot parse JSON file to {self.__class__.__name__}, "
@@ -81,36 +85,40 @@ class BraketEmulatorJob(JSONInterface, Job):
 
     def submit(
         self,
-        submission_order: Optional[List[int]] = None,
         multiprocessing: bool = False,
         max_workers: Optional[int] = None,
     ) -> Future:
         if multiprocessing:
-            if submission_order is None:
-                submission_order = list(range(len(self.tasks)))
-
-            futures = []
+            futures = {}
             with ProcessPoolExecutor(max_workers=max_workers) as executor:
-                for i in submission_order:
-                    futures.append(executor.submit(self.tasks[i].submit))
+                for task_number, task in self.tasks.items():
+                    futures[task_number] = executor.submit(task.submit)
 
-            return self._emit_future([future.result() for future in futures])
+            return self._emit_future(
+                {
+                    task_number: future.result()
+                    for task_number, future in futures.items()
+                }
+            )
         else:
-            return super().submit(submission_order=submission_order)
+            return super().submit()
 
 
 class BraketEmulatorFuture(JSONInterface, Future):
-    futures: List[BraketEmulatorTaskFuture]
+    futures: OrderedDict[int, BraketEmulatorTaskFuture]
 
-    def futures_list(self) -> List[BraketEmulatorTaskFuture]:
+    def futures_dict(self) -> OrderedDict[int, BraketEmulatorTaskFuture]:
         return self.futures
 
     def init_from_dict(self, **params) -> None:
         match params:
-            case {"futures": list() as futures_list}:
-                self.tasks = [
-                    BraketEmulatorFuture(**future_json) for future_json in futures_list
-                ]
+            case {"futures": dict() as futures}:
+                self.futures = OrderedDict(
+                    [
+                        (task_number, BraketEmulatorTaskFuture(**futures[task_number]))
+                        for task_number in sorted(futures.keys())
+                    ]
+                )
             case _:
                 raise ValueError(
                     f"Cannot parse JSON file to {self.__class__.__name__}, "
