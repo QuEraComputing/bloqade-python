@@ -1,8 +1,8 @@
-from bloqade.codegen.program_visitor import ProgramVisitor
-import bloqade.ir.sequence as sequence
-import bloqade.ir.pulse as pulse
-import bloqade.ir.field as field
-import bloqade.ir.waveform as waveform
+from bloqade.ir.visitor.program_visitor import ProgramVisitor
+import bloqade.ir.control.sequence as sequence
+import bloqade.ir.control.pulse as pulse
+import bloqade.ir.control.field as field
+import bloqade.ir.control.waveform as waveform
 import bloqade.ir.scalar as scalar
 from numbers import Number
 from typing import Dict
@@ -47,7 +47,8 @@ class AssignmentScan(ProgramVisitor):
         match ast:
             case waveform.Record(sub_waveform, scalar.Variable(name)):
                 duration = sub_waveform.duration(**self.assignments)
-                self.assignments[name] = sub_waveform(duration, **self.assignments)
+                value = sub_waveform.eval_decimal(duration, **self.assignments)
+                self.assignments[name] = value
                 self.visit(sub_waveform)
 
             case waveform.Append(waveforms):

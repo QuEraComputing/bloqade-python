@@ -17,7 +17,7 @@ from bloqade.ir import Program
 from bloqade.ir.location.base import AtomArrangement, ParallelRegister
 
 from pydantic import BaseModel
-from typing import Optional, Dict, Union, List, Any
+from typing import Optional, Dict, Union, List, Any, Tuple
 from numbers import Number
 import json
 import os
@@ -33,6 +33,10 @@ class BuildError(Exception):
 
 class BuildState(BaseModel):
     waveform: Optional[ir.Waveform] = None
+    waveform_build: Optional[ir.Waveform] = None
+
+    waveform_slice: Optional[Tuple[Optional[ir.Scalar], Optional[ir.Scalar]]] = None
+    waveform_record: Optional[str] = None
     scaled_locations: ir.ScaledLocations = ir.ScaledLocations({})
     field: ir.Field = ir.Field({})
     detuning: ir.Field = ir.Field({})
@@ -57,8 +61,7 @@ class Emit(Builder):
         register: Optional[Union["AtomArrangement", "ParallelRegister"]] = None,
         sequence: Optional[ir.Sequence] = None,
     ) -> None:
-        super().__init__(builder, register=register)
-
+        super().__init__(builder)
         self.__batch__ = {}
         if batch:
             first_key, *other_keys = batch.keys()
@@ -81,6 +84,7 @@ class Emit(Builder):
 
         self.__assignments__ = assignments
         self.__sequence__ = sequence
+        self.__register__ = register
 
     def assign(self, **assignments):
         # these methods terminate no build steps can
@@ -120,24 +124,46 @@ class Emit(Builder):
         )
 
     @staticmethod
+    def __terminate_waveform_append(build_state):
+        # this function denotes the termination
+        # of a sequence of dots that are appending
+        # one waveform to another. This is necessary
+        # because the builder traverses the tree in the
+        # opposite order of the waveform AST
+        # hence we need to have a way to terminate the
+        # append sequence and apply the wrapper nodes.
+        # These particular nodes wrap the sequence of appended
+        # waveforms and then reset the append sequence
+        # in the future we can add to this list of nodes.
+        if build_state.waveform_build is None:
+            return
+
+        if build_state.waveform_slice:
+            start_value, stop_value = build_state.waveform_slice
+            build_state.waveform_build = build_state.waveform_build[
+                start_value:stop_value
+            ]
+            build_state.waveform_slice = None
+
+        if build_state.waveform_record:
+            build_state.waveform_build = build_state.waveform_build.record(
+                build_state.waveform_record
+            )
+            build_state.waveform_record = None
+
+        if build_state.waveform:
+            build_state.waveform = build_state.waveform_build.append(
+                build_state.waveform
+            )
+        else:
+            build_state.waveform = build_state.waveform_build
+
+        build_state.waveform_build = None
+
+    @staticmethod
     def __build_ast(builder: Builder, build_state: BuildState):
+        # print(type(build_state.waveform))
         match builder:
-            case waveform.Sample():
-                if build_state.waveform:
-                    build_state.waveform = ir.Sample(
-                        builder.__parent__._waveform,
-                        dt=builder._dt,
-                        interpolation=builder._interpolation,
-                    ).append(build_state.waveform)
-
-                else:
-                    build_state.waveform = ir.Sample(
-                        builder.__parent__._waveform,
-                        dt=builder._dt,
-                        interpolation=builder._interpolation,
-                    )
-                Emit.__build_ast(builder.__parent__.__parent__, build_state)
-
             case (
                 waveform.Linear()
                 | waveform.Poly()
@@ -147,17 +173,19 @@ class Emit(Builder):
             ):
                 # because builder traverese the tree in the opposite order
                 # the builder must be appended to the current waveform.
-                if build_state.waveform:
-                    build_state.waveform = builder._waveform.append(
-                        build_state.waveform
+                if build_state.waveform_build:
+                    build_state.waveform_build = builder._waveform.append(
+                        build_state.waveform_build
                     )
                 else:
-                    build_state.waveform = builder._waveform
+                    build_state.waveform_build = builder._waveform
                 Emit.__build_ast(builder.__parent__, build_state)
 
             case location.Scale() if isinstance(
                 builder.__parent__.__parent__, spatial.SpatialModulation
             ):
+                Emit.__terminate_waveform_append(build_state)
+
                 scale = builder._scale
                 loc = ir.Location(builder.__parent__._label)
                 build_state.scaled_locations.value[loc] = scale
@@ -172,9 +200,47 @@ class Emit(Builder):
 
                 Emit.__build_ast(builder.__parent__.__parent__, build_state)
 
+            case waveform.Sample():
+                if build_state.waveform_build:
+                    build_state.waveform_build = ir.Sample(
+                        builder.__parent__._waveform,
+                        dt=builder._dt,
+                        interpolation=builder._interpolation,
+                    ).append(build_state.waveform_build)
+
+                else:
+                    build_state.waveform_build = ir.Sample(
+                        builder.__parent__._waveform,
+                        dt=builder._dt,
+                        interpolation=builder._interpolation,
+                    )
+                Emit.__build_ast(builder.__parent__.__parent__, build_state)
+
+            case waveform.Record() if isinstance(builder.__parent__, waveform.Slice):
+                Emit.__terminate_waveform_append(build_state)
+
+                build_state.waveform_slice = (
+                    builder.__parent__._start,
+                    builder.__parent__._stop,
+                )
+                build_state.waveform_record = builder._name
+
+                Emit.__build_ast(builder.__parent__.__parent__, build_state)
+
+            case waveform.Slice():
+                Emit.__terminate_waveform_append(build_state)
+                build_state.waveform_slice = (builder._start, builder._stop)
+                Emit.__build_ast(builder.__parent__, build_state)
+
+            case waveform.Record():
+                Emit.__terminate_waveform_append(build_state)
+                build_state.waveform_record = builder._name
+                Emit.__build_ast(builder.__parent__, build_state)
+
             case location.Location() if isinstance(
                 builder.__parent__, spatial.SpatialModulation
             ):
+                Emit.__terminate_waveform_append(build_state)
                 scale = ir.cast(1.0)
                 loc = ir.Location(builder._label)
                 build_state.scaled_locations.value[loc] = scale
@@ -204,6 +270,7 @@ class Emit(Builder):
                 Emit.__build_ast(builder.__parent__, build_state)
 
             case location.Uniform():
+                Emit.__terminate_waveform_append(build_state)
                 new_field = ir.Field({ir.Uniform: build_state.waveform})
                 build_state.field = build_state.field.add(new_field)
 
@@ -212,6 +279,7 @@ class Emit(Builder):
                 Emit.__build_ast(builder.__parent__, build_state)
 
             case location.Var():
+                Emit.__terminate_waveform_append(build_state)
                 new_field = ir.Field(
                     {ir.RunTimeVector(builder._name): build_state.waveform}
                 )
@@ -331,7 +399,7 @@ class Emit(Builder):
     def __compile_hardware(
         self, nshots: int, backend: SubmissionBackend
     ) -> HardwareJob:
-        from bloqade.codegen.quera_hardware import SchemaCodeGen
+        from bloqade.codegen.hardware.quera import SchemaCodeGen
 
         capabilities = backend.get_capabilities()
 
@@ -386,7 +454,7 @@ class Emit(Builder):
         raise NotImplementedError
 
     def braket_local_simulator(self, nshots: int):
-        from bloqade.codegen.quera_hardware import SchemaCodeGen
+        from bloqade.codegen.hardware.quera import SchemaCodeGen
 
         if isinstance(self.register, ParallelRegister):
             raise TypeError("Braket emulator doesn't support parallel registers.")

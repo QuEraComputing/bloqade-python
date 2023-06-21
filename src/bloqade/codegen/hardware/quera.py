@@ -1,6 +1,6 @@
 from bloqade.ir.scalar import Literal
-import bloqade.ir.waveform as waveform
-from bloqade.ir.field import (
+import bloqade.ir.control.waveform as waveform
+from bloqade.ir.control.field import (
     Field,
     Location,
     SpatialModulation,
@@ -8,7 +8,7 @@ from bloqade.ir.field import (
     RunTimeVector,
     Uniform,
 )
-from bloqade.ir.pulse import (
+from bloqade.ir.control.pulse import (
     PulseExpr,
     Pulse,
     NamedPulse,
@@ -16,7 +16,7 @@ from bloqade.ir.pulse import (
     RabiFrequencyPhase,
     Detuning,
 )
-from bloqade.ir.sequence import (
+from bloqade.ir.control.sequence import (
     SequenceExpr,
     Sequence,
     NamedSequence,
@@ -24,15 +24,17 @@ from bloqade.ir.sequence import (
     HyperfineLevelCoupling,
 )
 from bloqade.ir.location.base import AtomArrangement, ParallelRegister
+from bloqade.ir.control.waveform import Record
 from bloqade.ir import Program
 
-from bloqade.codegen.program_visitor import ProgramVisitor
-from bloqade.codegen.waveform_visitor import WaveformVisitor
-from bloqade.codegen.assignment_scan import AssignmentScan
-from bloqade.submission.ir.parallel import ParallelDecoder, ClusterLocationInfo
+from bloqade.ir.visitor.program_visitor import ProgramVisitor
+from bloqade.ir.visitor.waveform_visitor import WaveformVisitor
+from bloqade.codegen.common.assignment_scan import AssignmentScan
 
 import bloqade.submission.ir.task_specification as task_spec
+from bloqade.submission.ir.parallel import ParallelDecoder, ClusterLocationInfo
 from bloqade.submission.ir.capabilities import QuEraCapabilities
+
 from typing import Any, Dict, Tuple, List, Union, Optional
 from bisect import bisect_left
 from numbers import Number
@@ -105,9 +107,15 @@ class PiecewiseLinearCodeGen(WaveformVisitor):
 
     def visit_slice(self, ast: waveform.Slice) -> Tuple[List[Decimal], List[Decimal]]:
         duration = ast.waveform.duration(**self.assignments)
+        if ast.interval.start is None:
+            start_time = Decimal(0)
+        else:
+            start_time = ast.interval.start(**self.assignments)
 
-        start_time = ast.iterval.start(**self.assignments)
-        stop_time = ast.interval.stop(**self.assignments)
+        if ast.interval.stop is None:
+            stop_time = duration
+        else:
+            stop_time = ast.interval.stop(**self.assignments)
 
         if start_time < 0:
             raise ValueError((f"start time for slice {start_time} is smaller than 0."))
@@ -125,29 +133,32 @@ class PiecewiseLinearCodeGen(WaveformVisitor):
                 )
             )
 
+        if start_time == stop_time:
+            return [Decimal(0, 0), Decimal(0.0)], [Decimal(0.0), Decimal(0.0)]
+
         times, values = self.visit(ast.waveform)
 
         start_index = bisect_left(times, start_time)
         stop_index = bisect_left(times, stop_time)
+        start_value = ast.waveform.eval_decimal(start_time, **self.assignments)
+        stop_value = ast.waveform.eval_decimal(stop_time, **self.assignments)
 
-        # evaluate start value using linear interpolation
-        start_slope = (values[start_index + 1] - values[start_index]) / (
-            times[start_index + 1] - times[start_index]
-        )
-        start_value = (
-            start_slope * (start_time - times[start_index]) + values[start_index]
-        )
-
-        # evaluate stop value using linear interpolation
-        stop_slope = (values[stop_index + 1] - values[stop_index]) / (
-            times[stop_index + 1] - times[stop_index]
-        )
-        stop_value = stop_slope * (stop_time - times[stop_index]) + values[stop_index]
-
-        absolute_times = [start_time] + times[start_index:stop_index] + [stop_time]
+        match (start_index, stop_index):
+            case (0, int(index)) if index == len(times):
+                absolute_times = times
+            case (0, _):
+                absolute_times = times[start_index:stop_index] + [stop_time]
+                values = values[start_index:stop_index] + [stop_value]
+            case (_, int(index)) if index == len(times):
+                absolute_times = [start_time] + times[start_index:stop_index]
+                values = [start_value] + values[start_index:stop_index]
+            case (_, _):
+                absolute_times = (
+                    [start_time] + times[start_index:stop_index] + [stop_time]
+                )
+                values = [start_value] + values[start_index:stop_index] + [stop_value]
 
         times = [time - start_time for time in absolute_times]
-        values = [start_value] + values[start_index:stop_index] + [stop_value]
 
         return times, values
 
@@ -160,7 +171,6 @@ class PiecewiseLinearCodeGen(WaveformVisitor):
             # skip instructions with duration=0
             if new_times[-1] == Decimal(0):
                 continue
-
             if values[-1] != new_values[0]:
                 diff = abs(new_values[0] - values[-1])
                 raise ValueError(
@@ -175,7 +185,15 @@ class PiecewiseLinearCodeGen(WaveformVisitor):
         return times, values
 
     def visit_sample(self, ast: waveform.Sample) -> Tuple[List[Decimal], List[Decimal]]:
+        if ast.interpolation != waveform.Interpolation.Linear:
+            raise ValueError(
+                "Failed to compile waveform to piecewise linear, "
+                f"found piecewise {ast.interpolation.value} interpolation."
+            )
         return ast.samples(**self.assignments)
+
+    def visit_record(self, ast: Record) -> Tuple[List[Decimal], List[Decimal]]:
+        return self.visit(ast.waveform)
 
 
 class PiecewiseConstantCodeGen(WaveformVisitor):
@@ -235,9 +253,15 @@ class PiecewiseConstantCodeGen(WaveformVisitor):
 
     def visit_slice(self, ast: waveform.Slice) -> Tuple[List[Decimal], List[Decimal]]:
         duration = ast.waveform.duration(**self.assignments)
+        if ast.interval.start is None:
+            start_time = Decimal(0)
+        else:
+            start_time = ast.interval.start(**self.assignments)
 
-        start_time = ast.iterval.start(**self.assignments)
-        stop_time = ast.interval.stop(**self.assignments)
+        if ast.interval.stop is None:
+            stop_time = duration
+        else:
+            stop_time = ast.interval.stop(**self.assignments)
 
         if start_time < 0:
             raise ValueError((f"start time for slice {start_time} is smaller than 0."))
@@ -290,10 +314,18 @@ class PiecewiseConstantCodeGen(WaveformVisitor):
         return times, values
 
     def visit_sample(self, ast: waveform.Sample) -> Tuple[List[Decimal], List[Decimal]]:
+        if ast.interpolation != waveform.Interpolation.Constant:
+            raise ValueError(
+                "Failed to compile waveform to piecewise linear, "
+                f"found piecewise {ast.interpolation.value} interpolation."
+            )
         times, values = ast.samples(**self.assignments)
 
         values[-1] = values[-2]
         return times, values
+
+    def visit_record(self, ast: Record) -> Tuple[List[Decimal], List[Decimal]]:
+        return self.visit(ast.waveform)
 
 
 class SchemaCodeGen(ProgramVisitor):
