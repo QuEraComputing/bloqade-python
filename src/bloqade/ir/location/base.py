@@ -1,7 +1,7 @@
 from bloqade.builder.start import ProgramStart
 from bloqade.ir.scalar import Scalar, cast
 from pydantic.dataclasses import dataclass
-from typing import List, Generator, Tuple, Any, Optional, TYPE_CHECKING
+from typing import List, Generator, Tuple, Any, TYPE_CHECKING
 from bokeh.plotting import show
 import numpy as np
 from enum import Enum
