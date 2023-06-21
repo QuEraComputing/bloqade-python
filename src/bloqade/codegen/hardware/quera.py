@@ -27,8 +27,8 @@ from bloqade.ir.location.base import AtomArrangement, ParallelRegister
 from bloqade.ir.control.waveform import Record
 from bloqade.ir import Program
 
-from bloqade.codegen.base.program_visitor import ProgramVisitor
-from bloqade.codegen.base.waveform_visitor import WaveformVisitor
+from bloqade.ir.visitor.program_visitor import ProgramVisitor
+from bloqade.ir.visitor.waveform_visitor import WaveformVisitor
 from bloqade.codegen.common.assignment_scan import AssignmentScan
 
 import bloqade.submission.ir.task_specification as task_spec
