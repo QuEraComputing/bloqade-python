@@ -105,7 +105,6 @@ class AtomArrangement(ProgramStart):
     def n_dims(self) -> int:
         raise NotImplementedError
 
-
     def apply_defect_count(
         self, n_defects: int, rng: np.random.Generator = np.random.default_rng()
     ) -> "ListOfLocations":
