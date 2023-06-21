@@ -278,7 +278,7 @@ class Report:
         perfect_sorting = self.dataframe.index.get_level_values("perfect_sorting")
         pre_sequence = self.dataframe.index.get_level_values("pre_sequence")
 
-        return (
+        return 1 - (
             self.dataframe.loc[perfect_sorting == pre_sequence]
             .groupby("task_number")
             .mean()
