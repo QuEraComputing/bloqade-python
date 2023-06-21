@@ -1,4 +1,3 @@
-from bloqade.ir.scalar import Variable
 from bloqade import start
 import numpy as np
 
@@ -14,13 +13,22 @@ ramsey_program = (
     )
     .constant(value=0, duration="t_run")
     .piecewise_linear(durations=pi_over_two_durations, values=pi_over_two_values)
-    .detuning.uniform.constant(
-        value=10.5,
-        duration=Variable("t_run") + (2 * np.sum(pi_over_two_durations)),
+    .detuning.uniform.piecewise_constant(
+        durations=pi_over_two_durations + ["t_run"] + pi_over_two_durations,
+        values=[10.5] * 7,
     )
 )
 
-# list object is not calllable
-ramsey_program.parallelize(24).batch_assign(
-    t_run=np.around(np.arange(0, 30, 1) * 0.1, 13)
-).mock(100)
+# run on local emulator
+ramsey_job = (
+    ramsey_program.batch_assign(t_run=np.around(np.arange(0, 30, 1) * 0.1, 13))
+    .braket_local_simulator(10000)
+    .submit()
+    .report()
+    .rydberg_densities()
+)
+
+# run on HW
+# ramsey_program.parallelize(24).batch_assign(
+#    t_run=np.around(np.arange(0, 30, 1) * 0.1, 13)
+# ).mock(100)
