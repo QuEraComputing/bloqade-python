@@ -10,8 +10,21 @@ two_qubit_adiabatic_program = (
 )
 
 # Submit to actual hardware
-(
-    two_qubit_adiabatic_program.parallelize(24)
-    .batch_assign(distance=np.around(np.arange(4, 11, 1), 13))
-    .mock(1000)
+# (
+#    two_qubit_adiabatic_program.parallelize(24)
+#    .batch_assign(distance=np.around(np.arange(4, 11, 1), 13))
+#    .mock(1000)
+# )
+
+# Emulate locally
+# (left out multithreading for simpler testing)
+two_qubit_adiabatic_job = (
+    two_qubit_adiabatic_program.batch_assign(
+        distance=np.around(np.arange(4, 11, 1), 13)
+    )
+    .braket_local_simulator(10000)
+    .submit()
+    .report()
+    .rydberg_densities()
 )
+print(two_qubit_adiabatic_job)
