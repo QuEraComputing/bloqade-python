@@ -79,7 +79,21 @@ print(prog.sequence)
 
 job = (
     Square(4, lattice_spacing="a")
-    .add_defects(0.1)
+    .apply_defect_density(0.1)
+    .rydberg.detuning.uniform.piecewise_linear(
+        durations=[0.1, 3.8, 0.1], values=[-10, -10, "final_detuning", "final_detuning"]
+    )
+    .rabi.amplitude.uniform.piecewise_linear(
+        durations=[0.1, 3.8, 0.1], values=[0.0, 15.0, 15.0, 0.0]
+    )
+    .assign(final_detuning=20, a=4)
+    .mock(100)
+)
+print(job)
+
+job = (
+    Square(4, lattice_spacing="a")
+    .apply_defect_count(4)
     .rydberg.detuning.uniform.piecewise_linear(
         durations=[0.1, 3.8, 0.1], values=[-10, -10, "final_detuning", "final_detuning"]
     )
