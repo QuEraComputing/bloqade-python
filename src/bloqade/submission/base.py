@@ -6,6 +6,10 @@ from bloqade.submission.capabilities import get_capabilities
 from bloqade.submission.ir.capabilities import QuEraCapabilities
 
 
+class ValidationError(Exception):
+    pass
+
+
 class SubmissionBackend(BaseModel):
     def get_capabilities(self) -> QuEraCapabilities:
         return get_capabilities()

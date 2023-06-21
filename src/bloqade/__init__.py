@@ -1,3 +1,20 @@
-from .ir.location import start
+from bloqade.ir.location import start
+from bloqade.ir import var, cast, Variable, Literal
+from bloqade.builder.factory import (
+    piecewise_linear,
+    piecewise_constant,
+    linear,
+    constant,
+)
 
-__all__ = ["start"]
+__all__ = [
+    "start",
+    "var",
+    "cast",
+    "Variable",
+    "Literal",
+    "piecewise_linear",
+    "piecewise_constant",
+    "linear",
+    "constant",
+]

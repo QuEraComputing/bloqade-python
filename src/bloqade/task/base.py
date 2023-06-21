@@ -1,3 +1,4 @@
+from bloqade.submission.base import ValidationError
 from bloqade.submission.ir.task_results import (
     QuEraTaskResults,
     QuEraTaskStatusCode,
@@ -5,6 +6,7 @@ from bloqade.submission.ir.task_results import (
 )
 from bloqade.submission.ir.parallel import ParallelDecoder
 from typing import List, Union, TextIO, Tuple, Optional
+from collections import OrderedDict
 from numpy.typing import NDArray
 from pydantic.dataclasses import dataclass
 from pydantic import BaseModel
@@ -80,37 +82,44 @@ class JSONInterface(BaseModel):
 
 
 class Job:
-    def _task_list(self) -> List[Task]:
+    def _task_dict(self) -> OrderedDict[int, Task]:
         raise NotImplementedError
 
-    def _emit_future(self, futures: List[TaskFuture]) -> "Future":
+    def _emit_future(self, futures: OrderedDict[int, TaskFuture]) -> "Future":
         raise NotImplementedError
 
-    def submit(self, submission_order: Optional[List[int]] = None) -> "Future":
-        task_list = self._task_list()
+    def remove_invalid_tasks(self) -> "Job":
+        valid_tasks = OrderedDict()
 
-        if submission_order is None:
-            submission_order = np.random.permutation(len(task_list))
-
-        if sorted(submission_order) != list(range(len(task_list))):
-            raise ValueError("Submission order must be a permutation of the tasks.")
-
-        try:
-            task_list[0].run_validation()
-            has_validation = True
-        except NotImplementedError:
-            has_validation = False
-
-        if has_validation:
-            for task in task_list[1:]:
+        for task_number, task in self._task_dict().items():
+            try:
                 task.run_validation()
+                valid_tasks[task_number] = task
+            except ValidationError:
+                continue
+
+        return self.__class__(tasks=valid_tasks)
+
+    def submit(self, shuffle_submit_order: bool = True) -> "Future":
+        task_dict = self._task_dict()
+
+        if shuffle_submit_order:
+            submission_order = np.random.permutation(list(task_dict.keys()))
+        else:
+            submission_order = list(task_dict.keys())
+
+        for task in task_dict.values():
+            try:
+                task.run_validation()
+            except NotImplementedError:
+                break
 
         # submit tasks in random order but store them
         # in the original order of tasks.
-        futures = [None for _ in task_list]
+        futures = {}
         for task_index in submission_order:
             try:
-                futures[task_index] = task_list[task_index].submit()
+                futures[task_index] = task_dict[task_index].submit()
             except BaseException as e:
                 for future in futures:
                     if future is not None:
@@ -122,17 +131,22 @@ class Job:
 
 class Future:
     @property
-    def task_results(self) -> List[QuEraTaskResults]:
-        return [future.task_result for future in self.futures_list()]
+    def task_results(self) -> OrderedDict[int, QuEraTaskResults]:
+        return OrderedDict(
+            [
+                (task_number, future.task_result)
+                for task_number, future in self.futures_dict().items()
+            ]
+        )
 
     def report(self) -> "Report":
         return Report(self)
 
     def cancel(self) -> None:
-        for future in self.futures_list():
+        for future in self.futures_dict().values():
             future.cancel()
 
-    def futures_list(self) -> List[TaskFuture]:
+    def futures_dict(self) -> OrderedDict[int, TaskFuture]:
         raise NotImplementedError
 
 
@@ -144,13 +158,14 @@ class Report:
         self._future = future
         self._dataframe = None  # df cache
         self._bitstrings = None  # bitstring cache
+        self._counts = None  # counts cache
 
     @property
     def future(self) -> Future:
         return self._future
 
     @property
-    def task_results(self) -> List[QuEraTaskResults]:
+    def task_results(self) -> OrderedDict[int, QuEraTaskResults]:
         return self.future.task_results
 
     @property
@@ -165,7 +180,7 @@ class Report:
         index = []
         data = []
 
-        for task_number, task_future in enumerate(self.future.futures_list()):
+        for task_number, task_future in self.future.futures_dict().items():
             perfect_sorting = "".join(map(str, task_future.geometry.filling))
             parallel_decoder = task_future.geometry.parallel_decoder
 
@@ -228,18 +243,42 @@ class Report:
         perfect_sorting = self.dataframe.index.get_level_values("perfect_sorting")
         pre_sequence = self.dataframe.index.get_level_values("pre_sequence")
         filtered_df = self.dataframe[perfect_sorting == pre_sequence]
-        bitstrings = []
         task_numbers = filtered_df.index.get_level_values("task_number")
+
+        n_atoms = len(perfect_sorting[0])
+        bitstrings = [np.zeros((0, n_atoms)) for _ in range(task_numbers.max() + 1)]
+
         for task_number in task_numbers.unique():
-            bitstrings.append(filtered_df.loc[task_number, ...].to_numpy())
+            bitstrings[task_number] = filtered_df.loc[task_number, ...].to_numpy()
 
         return bitstrings
 
+    @property
+    def counts(self) -> List[OrderedDict[str, int]]:
+        if self._counts is not None:
+            return self._counts
+        self._counts = self._construct_counts()
+        return self._counts
+
+    def _construct_counts(self) -> List[OrderedDict[str, int]]:
+        counts = []
+        for bitstring in self.bitstrings:
+            output = np.unique(bitstring, axis=0, return_counts=True)
+            counts.append(
+                {
+                    "".join(map(str, unique_bitstring)): bitstring_count
+                    for unique_bitstring, bitstring_count in zip(*output)
+                }
+            )
+
+        return counts
+
     def rydberg_densities(self) -> pd.Series:
+        # TODO: implement nan for missing task numbers
         perfect_sorting = self.dataframe.index.get_level_values("perfect_sorting")
         pre_sequence = self.dataframe.index.get_level_values("pre_sequence")
 
-        return (
+        return 1 - (
             self.dataframe.loc[perfect_sorting == pre_sequence]
             .groupby("task_number")
             .mean()
