@@ -34,7 +34,6 @@ rabi_wf_values = [
 
 lp_gate_program = (
     start.add_position((0, 0))
-    .add_position((0, 4))
     .rydberg.rabi.amplitude.uniform.piecewise_linear(durations, rabi_wf_values)
     .slice(0, "t_run")
     .detuning.uniform.piecewise_linear(
@@ -57,9 +56,11 @@ lp_gate_job = (
 )
 
 # can plot in terminal via plotext
+# for one atom, remove the second call to plt.plot
 """
 import plotext as plt
-plt.plot(lp_gate_job.iloc[:,0])
-plt.plot(lp_gate_job.iloc[:,1])
+plt.plot_size(100, 50)
+plt.plot(lp_gate_job.iloc[:,0], color = "red", label = "Atom 1 Density")
+plt.plot(lp_gate_job.iloc[:,1], color = "green", label = "Atom 2 Density")
 plt.show()
 """
