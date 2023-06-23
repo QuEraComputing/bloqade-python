@@ -11,7 +11,7 @@ from bloqade.submission.base import SubmissionBackend
 from bloqade.submission.braket import BraketBackend
 from bloqade.submission.mock import DumbMockBackend
 from bloqade.submission.quera import QuEraBackend
-from bloqade.submission.ir.braket import to_braket_task_ir
+from bloqade.optimize import BraketSimulatorTaskGenerator, HardwareTaskGenerator
 
 from bloqade.ir import Program
 from bloqade.ir.location.base import AtomArrangement, ParallelRegister
@@ -22,7 +22,6 @@ from numbers import Number
 import json
 import os
 from bloqade.task import HardwareTask, HardwareJob
-from bloqade.task.braket_simulator import BraketEmulatorJob, BraketEmulatorTask
 from itertools import repeat
 from collections import OrderedDict
 
@@ -453,42 +452,34 @@ class Emit(Builder):
     def simu(self, *args, **kwargs):
         raise NotImplementedError
 
-    def braket_local_simulator(self, nshots: int):
-        from bloqade.codegen.hardware.quera import SchemaCodeGen
+    def braket_local_simulator(
+        self, **static_assignments
+    ) -> BraketSimulatorTaskGenerator:
+        return BraketSimulatorTaskGenerator(
+            self.program, static_assignments=static_assignments
+        )
 
-        if isinstance(self.register, ParallelRegister):
-            raise TypeError("Braket emulator doesn't support parallel registers.")
-
-        tasks = OrderedDict()
-
-        for task_number, assignments in enumerate(self.__assignments_iterator()):
-            schema_compiler = SchemaCodeGen(assignments)
-            task_ir = schema_compiler.emit(nshots, self.program)
-            task = BraketEmulatorTask(task_ir=to_braket_task_ir(task_ir))
-            tasks[task_number] = task
-
-        return BraketEmulatorJob(tasks=tasks)
-
-    def braket(self, nshots: int) -> "HardwareJob":
+    def braket(self, **static_assignments) -> HardwareTaskGenerator:
         backend = BraketBackend()
-        return self.__compile_hardware(nshots, backend)
+        return HardwareTaskGenerator(self.program, static_assignments, backend)
 
     def quera(
-        self, nshots: int, config_file: Optional[str] = None, **api_config
-    ) -> "HardwareJob":
-        if config_file is None:
+        self, api_config_file: Optional[str] = None, **static_assignments
+    ) -> HardwareTaskGenerator:
+        if api_config_file is None:
             path = os.path.dirname(__file__)
             api_config_file = os.path.join(
                 path, "submission", "quera_api_client", "config", "integ_quera_api.json"
             )
-            with open(api_config_file, "r") as io:
-                api_config.update(**json.load(io))
 
-        backend = QuEraBackend(**api_config)
+        with open(api_config_file, "r") as f:
+            api_config = json.load(f)
+            backend = QuEraBackend(**api_config)
 
-        return self.__compile_hardware(nshots, backend)
+        return HardwareTaskGenerator(self.program, static_assignments, backend)
 
-    def mock(self, nshots: int, state_file: str = ".mock_state.txt") -> "HardwareJob":
+    def mock(
+        self, state_file: str = ".mock_state.txt", **static_assignments
+    ) -> HardwareTaskGenerator:
         backend = DumbMockBackend(state_file=state_file)
-
-        return self.__compile_hardware(nshots, backend)
+        return HardwareTaskGenerator(self.program, {}, backend)

@@ -118,12 +118,12 @@ class TaskOptimizer:
     def __init__(
         self,
         nshots: int,
-        task_generator: JobGenerator,
+        job_generator: JobGenerator,
         cost_function: Callable,
         optimizer,
     ):
         self.nshots = nshots
-        self.task_generator = task_generator
+        self.job_generator = job_generator
         self.cost_function = cost_function
         self.optimizer = optimizer
 
@@ -133,7 +133,7 @@ class TaskOptimizer:
 
     def cost_function(self, params: List[List[float]]):
         # evaluates the cost function for a list of parameters
-        future = self.task_generator.submit(
+        future = self.job_generator.submit(
             nshots=self.nshots, batch_assignments=self.map_param_to_dict(params)
         )
         return self.cost_function(future.report())
