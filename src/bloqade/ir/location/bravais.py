@@ -114,6 +114,7 @@ class Rectangular(BoundedBravais):
         lattice_spacing_x = cast(factor) * self.lattice_spacing
         return Chain(
             self.shape[0],
+            self.shape[1],
             lattice_spacing_x=lattice_spacing_x,
             lattice_spacing_y=lattice_spacing_y,
         )
