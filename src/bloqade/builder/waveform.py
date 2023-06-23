@@ -41,13 +41,25 @@ class WaveformTerminate(Waveform, Terminate):
     pass
 
 
-class Apply(WaveformTerminate):
+class Sliceable:
+    def slice(
+        self, start: Optional[ScalarType] = None, stop: Optional[ScalarType] = None
+    ):
+        return Slice(self, start, stop)
+
+
+class Recordable:
+    def record(self, name: str):
+        return Record(self, name)
+
+
+class Apply(Sliceable, Recordable, WaveformTerminate):
     def __init__(self, builder: Builder, wf: ir.Waveform) -> None:
         super().__init__(builder)
         self._waveform = wf
 
 
-class Linear(WaveformTerminate):
+class Linear(Sliceable, Recordable, WaveformTerminate):
     def __init__(
         self, parent: Builder, start: float, stop: float, duration: str
     ) -> None:
@@ -55,31 +67,71 @@ class Linear(WaveformTerminate):
         self._waveform = ir.Linear(start, stop, duration)
 
 
-class Constant(WaveformTerminate):
+class Constant(Sliceable, Recordable, WaveformTerminate):
     def __init__(self, parent: Builder, value: float, duration: str) -> None:
         super().__init__(parent)
         self._waveform = ir.Constant(value, duration)
 
 
-class Poly(WaveformTerminate):
+class Poly(Sliceable, Recordable, WaveformTerminate):
     def __init__(self, parent: Builder, coeffs: list, duration: str) -> None:
         super().__init__(parent)
         self._waveform = ir.Poly(coeffs, duration)
 
 
-class PythonFn(WaveformTerminate):
+class PythonFn(Sliceable, Recordable, WaveformTerminate):
     def __init__(self, parent: Builder, fn: Callable, duration: str) -> None:
         super().__init__(parent)
         self._waveform = ir.PythonFn(fn, duration)
 
-    def sample(self, dt: ScalarType, interpolation: Optional[str] = None) -> "Sample":
-        return Sample(self, dt, interpolation=interpolation)
+    def sample(
+        self,
+        dt: ScalarType,
+        interpolation: Optional[Union[ir.Interpolation, str]] = None,
+    ) -> "Sample":
+        if interpolation is not None:
+            return Sample(self, dt, interpolation=interpolation)
+
+        match self.__build_cache__.field_name:
+            case ir.pulse.rabi.amplitude | ir.pulse.detuning:
+                return Sample(self, dt, interpolation=ir.Interpolation.Linear)
+            case ir.pulse.rabi.phase:
+                return Sample(self, dt, interpolation=ir.Interpolation.Constant)
+            case _:
+                raise NotImplementedError(
+                    f"Sampling for {self.__build_cache__.field_name} is not implemented"
+                )
 
 
-class Sample(WaveformTerminate):
+class Sample(Sliceable, Recordable, WaveformTerminate):
     def __init__(
-        self, parent: Builder, dt: ScalarType, interpolation: Optional[str] = None
+        self,
+        parent: Builder,
+        dt: ScalarType,
+        interpolation: Union[ir.Interpolation, str],
     ) -> None:
         super().__init__(parent)
         self._dt = ir.cast(dt)
-        self._interpolation = ir.Interpolation(interpolation) if interpolation else None
+        self._interpolation = ir.Interpolation(interpolation)
+
+
+class Slice(Recordable, WaveformTerminate):  # slice should not be sliceable
+    def __init__(
+        self,
+        parent: Builder,
+        start: Optional[ScalarType] = None,
+        stop: Optional[ScalarType] = None,
+    ) -> None:
+        super().__init__(parent)
+        self._start = ir.cast(start) if start is not None else None
+        self._stop = ir.cast(stop) if stop is not None else None
+
+
+class Record(WaveformTerminate):  # record should not be sliceable
+    def __init__(
+        self,
+        parent: Builder,
+        name: str,
+    ) -> None:
+        super().__init__(parent)
+        self._name = name
