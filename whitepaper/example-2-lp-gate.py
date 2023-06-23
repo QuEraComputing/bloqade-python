@@ -36,9 +36,7 @@ lp_gate_program = (
     start.add_position((0, 0))
     .rydberg.rabi.amplitude.uniform.piecewise_linear(durations, rabi_wf_values)
     .slice(0, "t_run")
-    .detuning.uniform.piecewise_linear(
-        durations, [detuning_value] * (len(durations) + 1)
-    )
+    .detuning.uniform.constant(detuning_value, sum(durations))
     .slice(0, "t_run")
     .phase.uniform.piecewise_constant(durations, [0.0] * 4 + [xi] * 3)
     .slice(0, "t_run")
