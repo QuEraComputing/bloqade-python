@@ -6,7 +6,7 @@ from bloqade.submission.ir.braket import to_braket_task_ir
 from bloqade.submission.ir.capabilities import QuEraCapabilities
 from bloqade.task import Task
 from pydantic import BaseModel
-from typing import Callable, Dict, List, Optional
+from typing import Callable, Dict, List, Optional, Union
 from bloqade.task.base import Future, Report, Job
 
 from bloqade.task.hardware import HardwareJob, HardwareTask
@@ -37,7 +37,7 @@ class JobGenerator(BaseModel):
     def optimize(
         self,
         nshots: int,
-        cost_function: Callable[Report, float],
+        cost_function: Callable[[Report], Union[float, List[float]]],
         optimizer=default_optimizer(),
     ) -> "TaskOptimizer":
         return TaskOptimizer(nshots, self, cost_function, optimizer)
@@ -133,7 +133,7 @@ class TaskOptimizer:
 
     def cost_function(self, params: List[List[float]]):
         # evaluates the cost function for a list of parameters
-        job = self.task_generator.generate_job(
+        future = self.task_generator.submit(
             nshots=self.nshots, batch_assignments=self.map_param_to_dict(params)
         )
-        return self.cost_function(job.submit().report())
+        return self.cost_function(future.report())
