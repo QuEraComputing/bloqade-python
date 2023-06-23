@@ -1,6 +1,5 @@
-from bloqade import start
-from bloqade.ir import cast
-import matplotlib.pyplot as plt
+from bloqade.ir.location import Chain
+from bokeh.plotting import figure, show
 import numpy as np
 
 n_atoms = 11
@@ -10,33 +9,45 @@ rabi_detuning_values = [-16.33, -16.33, 16.33, 16.33]
 durations = [0.8, "sweep_time", 0.8]
 
 fixed_1d_z2_prog = (
-    start.add_positions([(0.0, i * cast("lattice_constant")) for i in range(n_atoms)])
+    Chain(n_atoms, 6.1)
     .rydberg.rabi.amplitude.uniform.piecewise_linear(durations, rabi_amplitude_values)
     .detuning.uniform.piecewise_linear(durations, rabi_detuning_values)
 )
 
-fixed_1d_z2_job = fixed_1d_z2_prog.assign(
-    lattice_constant=6.1, sweep_time=2.4
-).braket_local_simulator(10000)
+fixed_1d_z2_report = (
+    fixed_1d_z2_prog.assign(sweep_time=2.4)
+    .braket_local_simulator(10000)
+    .submit()
+    .report()
+)
 
-report = fixed_1d_z2_job.submit().report()
+# get densities
+fixed_1d_z2_densities = fixed_1d_z2_report.rydberg_densities()
 
 # plot density at end of evolution
+p = figure(
+    title="Simulated Densities",
+    toolbar_location=None,
+    tools="",
+)
 
-plt.rcParams["font.size"] = 20
-plt.rcParams["font.family"] = ["serif"]
+p.vbar(x=list(range(n_atoms)), top=fixed_1d_z2_densities.iloc[0], width=0.9)
 
-rydberg_densities = report.rydberg_densities()
-fixed_1d_z2_results = rydberg_densities.iloc[0]
+p.title.text_font_size = "15pt"
+p.axis.axis_label_text_font_size = "15pt"
+p.axis.major_label_text_font_size = "10pt"
 
-plt.title("Simulated Densities")
-plt.bar(range(n_atoms), fixed_1d_z2_results, color="grey")
-plt.xlabel("Site Index")
-plt.ylabel("Rydberg Density")
+p.xaxis.ticker = list(range(11))
+p.xaxis.axis_label = "Site Index"
+p.yaxis.axis_label = "Rydberg Density"
 
-# plot states with highest probabilities at end of evolution
+p.y_range.start = 0
 
-state_counts = report.counts[0]
+show(p)
+
+# Get states and their associated probabilities
+
+state_counts = fixed_1d_z2_report.counts[0]
 state_probabilities = {state: counts / 10000 for state, counts in state_counts.items()}
 sorted_state_probabilities = sorted(
     state_probabilities.items(), key=lambda item: item[1], reverse=True
@@ -52,12 +63,24 @@ for i in range(n_probable_states):
     top_n_states.append(state)
     top_n_probabilities.append(probability)
 
-plt.bar(range(n_probable_states), top_n_probabilities, color="grey")
-plt.title("Simulated Probabilities")
-plt.xlabel("Measured State")
-plt.ylabel("Probability")
-plt.xticks(range(n_probable_states), top_n_states, rotation=90)
-plt.tick_params(axis="x", direction="in", pad=-175)
+p = figure(
+    x_range=top_n_states,
+    title="Simulated Probabilities",
+    toolbar_location=None,
+    tools="",
+)
+
+p.vbar(x=top_n_states, top=top_n_probabilities, width=0.9)
+
+p.title.text_font_size = "15pt"
+p.axis.axis_label_text_font_size = "15pt"
+p.axis.major_label_text_font_size = "10pt"
+
+p.xaxis.major_label_orientation = np.pi / 4
+p.xaxis.axis_label = "Measured State"
+p.yaxis.axis_label = "Probability"
+
+show(p)
 
 # correlation plot
 correlation_table = np.zeros((n_atoms, n_atoms))
@@ -66,11 +89,27 @@ correlation_table = np.zeros((n_atoms, n_atoms))
 for i in range(n_atoms):
     for j in range(n_atoms):
         correlation_table[i, j] = (
-            (1 - report.dataframe.iloc[:, i]) * (1 - report.dataframe.iloc[:, j])
-        ).mean() - rydberg_densities.iloc[0, i] * rydberg_densities.iloc[0, j]
+            (1 - fixed_1d_z2_report.dataframe.iloc[:, i])
+            * (1 - fixed_1d_z2_report.dataframe.iloc[:, j])
+        ).mean() - fixed_1d_z2_densities.iloc[0, i] * fixed_1d_z2_densities.iloc[0, j]
 
+p = figure(
+    title="Simulated Correlation",
+    x_range=(0, n_atoms),
+    y_range=(0, n_atoms),
+    toolbar_location=None,
+    tools="",
+)
 
-plt.matshow(correlation_table, cmap="plasma")
-plt.title("Simulated Correlation")
-plt.xlabel("index i")
-plt.ylabel("index j")
+p.image(
+    image=[correlation_table], palette="Plasma256", x=0, y=0, dw=n_atoms, dh=n_atoms
+)
+
+p.title.text_font_size = "15pt"
+p.axis.axis_label_text_font_size = "15pt"
+p.axis.major_label_text_font_size = "10pt"
+
+p.xaxis.axis_label = "index i"
+p.yaxis.axis_label = "index j"
+
+show(p)
