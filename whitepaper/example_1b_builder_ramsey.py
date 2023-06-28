@@ -1,7 +1,6 @@
 from bloqade import start
 
 import numpy as np
-import os
 from bokeh.plotting import figure, show
 
 plateau_time = (np.pi / 2 - 0.625) / 12.5
@@ -19,14 +18,6 @@ ramsey_job = ramsey_program.batch_assign(t_run=np.around(np.arange(0, 30, 1) * 0
 
 # run on emulator
 emu_job = ramsey_job.braket_local_simulator(10000).submit().report()
-
-# run on HW
-os.environ["AWS_DEFAULT_REGION"] = "us-east-1"
-os.environ["AWS_ACCESS_KEY_ID"] = ""
-os.environ["AWS_SECRET_ACCESS_KEY"] = ""
-os.environ["AWS_SESSION_TOKEN"] = ""
-
-hw_job = ramsey_job.parallelize(24).braket(100).submit()
 
 # plot results
 p = figure(
