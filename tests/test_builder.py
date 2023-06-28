@@ -181,3 +181,24 @@ quantum_scar_program = (
     .batch_assign(run_time=run_times)
     .braket_local_simulator(10000)
 )
+
+
+sequence = (
+    start.rydberg.detuning.uniform.fn(my_func, total_duration)
+    .sample(0.05, "linear")
+    .rydberg.rabi.amplitude.uniform.piecewise_linear(
+        durations, [0, "rabi_max", "rabi_max", 0]
+    )
+    .sequence
+)
+
+builder = start
+for site in range(11):
+    builder = builder.add_position((6 * site, 0))
+    job = (
+        builder.apply(sequence)
+        .assign(omega=15, amplitude=15, rabi_max=15)
+        .batch_assign(run_time=np.linspace(0, 4.0, 101))
+        .braket_local_simulator(1000)
+    )
+    print(job)
