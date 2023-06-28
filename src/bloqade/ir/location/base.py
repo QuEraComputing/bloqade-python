@@ -105,6 +105,20 @@ class AtomArrangement(ProgramStart):
     def n_dims(self) -> int:
         raise NotImplementedError
 
+    def scale(self, scale: float | Scalar) -> "ListOfLocations":
+        from .list import ListOfLocations
+
+        scale = cast(scale)
+        location_list = []
+        for location_info in self.enumerate():
+            x, y = location_info.position
+            new_position = (scale * x, scale * y)
+            location_list.append(
+                LocationInfo(new_position, bool(location_info.filling.value))
+            )
+
+        return ListOfLocations(location_list)
+
     def add_position(
         self, position: Tuple[Any, Any], filled: bool = True
     ) -> "ListOfLocations":
