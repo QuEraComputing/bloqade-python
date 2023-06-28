@@ -1,5 +1,8 @@
 from bloqade.ir.location import Chain
+
+
 from bokeh.plotting import figure, show
+from bokeh.layouts import row
 import numpy as np
 
 n_atoms = 11
@@ -25,25 +28,25 @@ fixed_1d_z2_report = (
 fixed_1d_z2_densities = fixed_1d_z2_report.rydberg_densities()
 
 # plot density at end of evolution
-p = figure(
+end_evolution_densities = figure(
     title="Simulated Densities",
     toolbar_location=None,
     tools="",
 )
 
-p.vbar(x=list(range(n_atoms)), top=fixed_1d_z2_densities.iloc[0], width=0.9)
+end_evolution_densities.vbar(
+    x=list(range(n_atoms)), top=fixed_1d_z2_densities.iloc[0], width=0.9
+)
 
-p.title.text_font_size = "15pt"
-p.axis.axis_label_text_font_size = "15pt"
-p.axis.major_label_text_font_size = "10pt"
+end_evolution_densities.title.text_font_size = "15pt"
+end_evolution_densities.axis.axis_label_text_font_size = "15pt"
+end_evolution_densities.axis.major_label_text_font_size = "10pt"
 
-p.xaxis.ticker = list(range(11))
-p.xaxis.axis_label = "Site Index"
-p.yaxis.axis_label = "Rydberg Density"
+end_evolution_densities.xaxis.ticker = list(range(11))
+end_evolution_densities.xaxis.axis_label = "Site Index"
+end_evolution_densities.yaxis.axis_label = "Rydberg Density"
 
-p.y_range.start = 0
-
-show(p)
+end_evolution_densities.y_range.start = 0
 
 # Get states and their associated probabilities
 
@@ -63,24 +66,24 @@ for i in range(n_probable_states):
     top_n_states.append(state)
     top_n_probabilities.append(probability)
 
-p = figure(
+probable_states = figure(
     x_range=top_n_states,
     title="Simulated Probabilities",
     toolbar_location=None,
     tools="",
 )
 
-p.vbar(x=top_n_states, top=top_n_probabilities, width=0.9)
+probable_states.vbar(x=top_n_states, top=top_n_probabilities, width=0.9)
 
-p.title.text_font_size = "15pt"
-p.axis.axis_label_text_font_size = "15pt"
-p.axis.major_label_text_font_size = "10pt"
+probable_states.title.text_font_size = "15pt"
+probable_states.axis.axis_label_text_font_size = "15pt"
+probable_states.axis.major_label_text_font_size = "10pt"
 
-p.xaxis.major_label_orientation = np.pi / 4
-p.xaxis.axis_label = "Measured State"
-p.yaxis.axis_label = "Probability"
+probable_states.xaxis.major_label_orientation = np.pi / 4
+probable_states.xaxis.axis_label = "Measured State"
+probable_states.yaxis.axis_label = "Probability"
 
-show(p)
+probable_states.y_range.start = 0
 
 # correlation plot
 correlation_table = np.zeros((n_atoms, n_atoms))
@@ -93,7 +96,7 @@ for i in range(n_atoms):
             * (1 - fixed_1d_z2_report.dataframe.iloc[:, j])
         ).mean() - fixed_1d_z2_densities.iloc[0, i] * fixed_1d_z2_densities.iloc[0, j]
 
-p = figure(
+correlation_plot = figure(
     title="Simulated Correlation",
     x_range=(0, n_atoms),
     y_range=(0, n_atoms),
@@ -101,15 +104,17 @@ p = figure(
     tools="",
 )
 
-p.image(
+correlation_plot.image(
     image=[correlation_table], palette="Plasma256", x=0, y=0, dw=n_atoms, dh=n_atoms
 )
 
-p.title.text_font_size = "15pt"
-p.axis.axis_label_text_font_size = "15pt"
-p.axis.major_label_text_font_size = "10pt"
+correlation_plot.title.text_font_size = "15pt"
+correlation_plot.axis.axis_label_text_font_size = "15pt"
+correlation_plot.axis.major_label_text_font_size = "10pt"
 
-p.xaxis.axis_label = "index i"
-p.yaxis.axis_label = "index j"
+correlation_plot.xaxis.axis_label = "index i"
+correlation_plot.yaxis.axis_label = "index j"
+
+p = row(end_evolution_densities, probable_states, correlation_plot)
 
 show(p)
