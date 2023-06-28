@@ -1,4 +1,6 @@
 from bloqade import start, cast
+
+from bokeh.plotting import figure, show
 import numpy as np
 
 
@@ -36,6 +38,8 @@ def program_init(num_atoms):
     return new_program
 
 
+# whitepaper example defaults to 7 qubits,
+# can become quite slow trying to get results on laptop
 program = program_init(7)
 
 durations = cast(["ramp_time", "t_run", "ramp_time"])
@@ -45,22 +49,25 @@ multi_qubit_blockade_program = program.rydberg.rabi.amplitude.uniform.piecewise_
 ).detuning.uniform.constant(value=0, duration=sum(durations))
 
 # run on local emulator
+multi_qubit_blockade_job = multi_qubit_blockade_program.batch_assign(
+    t_run=0.05 * np.arange(21)
+).assign(ramp_time=0.06)
 
-multi_qubit_blockade_job = (
-    multi_qubit_blockade_program.batch_assign(t_run=0.05 * np.arange(21))
-    .assign(ramp_time=0.06)
-    .braket_local_simulator(10000)
-    .submit()
-    .report()
-    .rydberg_densities()
+emu_job = multi_qubit_blockade_job.braket_local_simulator(10000).submit().report()
+
+# plot results
+p = figure(
+    x_axis_label="Time (us)",
+    y_axis_label="Rydberg Density",
+    tools="",
+    toolbar_location=None,
 )
 
-# run on hardware
-"""
-(
-    multi_qubit_blockade_program.parallelize(24)
-    .assign(ramp_time=0.06)
-    .batch_assign(t_run=0.05 * np.arange(21))
-    .mock(1000)
-)
-"""
+p.axis.axis_label_text_font_size = "15pt"
+p.axis.major_label_text_font_size = "10pt"
+
+# take the mean of the rydberg densities
+p.line(0.05 * np.arange(21), emu_job.rydberg_densities().mean(axis=1), line_width=2)
+p.x(0.05 * np.arange(21), emu_job.rydberg_densities().mean(axis=1), size=20)
+
+show(p)
