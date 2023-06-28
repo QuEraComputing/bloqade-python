@@ -19,4 +19,7 @@ class ProgramStart(Builder):
     def apply(self, sequence: SequenceExpr) -> "Emit":
         from .emit import Emit
 
-        return Emit(self, register=self.register, sequence=sequence)
+        if getattr(self, "__sequence__", None) is not None:
+            raise NotImplementedError("Cannot apply multiple sequences")
+
+        return Emit(self, register=self.__register__, sequence=sequence)
