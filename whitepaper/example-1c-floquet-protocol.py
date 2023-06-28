@@ -1,5 +1,9 @@
 from bloqade import start, cast
+
 import numpy as np
+import os
+
+from bokeh.plotting import figure, show
 
 drive_frequency = 15
 drive_amplitude = 15
@@ -20,25 +24,41 @@ floquet_program = (
     .sample("min_time_step", "linear")  # should sample via minimum time step
 )
 
-# submit to hardware
-"""
-(
-    floquet_program
-    .parallelize(24)
-    .assign(ramp_time = 0.06, min_time_step = 0.05, rabi_max = 15)
-    .batch_assign(t_run = np.around(np.linspace(0, 3, 101), 13))
-    .mock(1000)
-)
-"""
+floquet_job = floquet_program.assign(
+    ramp_time=0.06, min_time_step=0.05, rabi_max=15
+).batch_assign(t_run=np.around(np.linspace(0, 3, 101), 13))
 
 # submit to emulator
-floquet_job = (
-    floquet_program.assign(ramp_time=0.06, min_time_step=0.05, rabi_max=15)
-    .batch_assign(t_run=np.around(np.linspace(0, 3, 101), 13))
-    .braket_local_simulator(10000)
-    .submit()
-    .report()
-    .rydberg_densities()
+emu_job = floquet_job.braket_local_simulator(10000).submit().report()
+
+# submit to hardware
+os.environ["AWS_DEFAULT_REGION"] = "us-east-1"
+os.environ["AWS_ACCESS_KEY_ID"] = ""
+os.environ["AWS_SECRET_ACCESS_KEY"] = ""
+os.environ["AWS_SESSION_TOKEN"] = ""
+
+hw_job = floquet_job.parallelize(24).braket(50).submit()
+
+# plot results
+p = figure(
+    x_axis_label="Time (us)",
+    y_axis_label="Rydberg Density",
+    tools="",
+    toolbar_location=None,
 )
 
-print(floquet_job)
+p.axis.axis_label_text_font_size = "15pt"
+p.axis.major_label_text_font_size = "10pt"
+
+p.line(
+    np.linspace(0, 3, 101),
+    emu_job.rydberg_densities()[0].to_list(),
+    line_width=2,
+)
+p.cross(
+    np.linspace(0, 3, 101),
+    emu_job.rydberg_densities()[0].to_list(),
+    size=20,
+)
+
+show(p)
