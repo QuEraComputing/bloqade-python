@@ -1,4 +1,5 @@
 from pydantic.dataclasses import dataclass
+from dataclasses import fields
 from typing import List, Tuple, Generator, Optional, Any
 import numpy as np
 import itertools
@@ -53,6 +54,16 @@ class BoundedBravais(AtomArrangement):
                 position = tuple(self.lattice_spacing * pos)
                 yield LocationInfo(position, True)
 
+    def scale(self, factor: float | Scalar) -> "BoundedBravais":
+        factor = cast(factor)
+        obj = self.__new__(type(self))
+        for f in fields(self):
+            if f.name == "lattice_spacing":
+                obj.lattice_spacing = factor * self.lattice_spacing
+            else:
+                setattr(obj, f.name, getattr(self, f.name))
+        return obj
+
 
 @dataclass
 class Chain(BoundedBravais):
@@ -65,9 +76,6 @@ class Chain(BoundedBravais):
     def cell_atoms(self) -> List[List[float]]:
         return [[0, 0]]
 
-    def scale(self, factor: Scalar) -> "Chain":
-        return Chain(self.shape[0], lattice_spacing=cast(factor) * self.lattice_spacing)
-
 
 @dataclass
 class Square(BoundedBravais):
@@ -79,11 +87,6 @@ class Square(BoundedBravais):
 
     def cell_atoms(self) -> List[List[float]]:
         return [[0, 0]]
-
-    def scale(self, factor: Scalar) -> "Square":
-        return Square(
-            self.shape[0], lattice_spacing=cast(factor) * self.lattice_spacing
-        )
 
 
 @dataclass
@@ -109,16 +112,6 @@ class Rectangular(BoundedBravais):
     def cell_atoms(self) -> List[List[float]]:
         return [[0, 0]]
 
-    def scale(self, factor: Scalar) -> "Chain":
-        lattice_spacing_y = cast(factor) * self.ratio * self.lattice_spacing
-        lattice_spacing_x = cast(factor) * self.lattice_spacing
-        return Chain(
-            self.shape[0],
-            self.shape[1],
-            lattice_spacing_x=lattice_spacing_x,
-            lattice_spacing_y=lattice_spacing_y,
-        )
-
 
 @dataclass
 class Honeycomb(BoundedBravais):
@@ -131,11 +124,6 @@ class Honeycomb(BoundedBravais):
     def cell_atoms(self) -> List[List[float]]:
         return [[0.0, 0.0], [1 / 2, np.sqrt(3) / 2]]
 
-    def scale(self, factor: Scalar) -> "Honeycomb":
-        return Honeycomb(
-            self.shape[0], lattice_spacing=cast(factor) * self.lattice_spacing
-        )
-
 
 @dataclass
 class Triangular(BoundedBravais):
@@ -147,11 +135,6 @@ class Triangular(BoundedBravais):
 
     def cell_atoms(self) -> List[List[float]]:
         return [[0.0, 0.0]]
-
-    def scale(self, factor: Scalar) -> "Triangular":
-        return Triangular(
-            self.shape[0], lattice_spacing=cast(factor) * self.lattice_spacing
-        )
 
 
 @dataclass
@@ -167,9 +150,6 @@ class Lieb(BoundedBravais):
     def cell_atoms(self) -> List[List[float]]:
         return [[0.0, 0.0], [1 / 2, 0.0], [0.0, 1 / 2]]
 
-    def scale(self, factor: Scalar) -> "Lieb":
-        return Lieb(self.shape[0], lattice_spacing=cast(factor) * self.lattice_spacing)
-
 
 @dataclass
 class Kagome(BoundedBravais):
@@ -181,8 +161,3 @@ class Kagome(BoundedBravais):
 
     def cell_atoms(self) -> List[List[float]]:
         return [[0.0, 0.0], [1 / 4, np.sqrt(3) / 4], [3 / 4, np.sqrt(3) / 2]]
-
-    def scale(self, factor: Scalar) -> "Kagome":
-        return Kagome(
-            self.shape[0], lattice_spacing=cast(factor) * self.lattice_spacing
-        )
