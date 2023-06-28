@@ -105,7 +105,7 @@ class AtomArrangement(ProgramStart):
     def n_dims(self) -> int:
         raise NotImplementedError
 
-    def scale(self, scale: Any) -> "ListOfLocations":
+    def scale(self, scale: float | Scalar) -> "ListOfLocations":
         from .list import ListOfLocations
 
         scale = cast(scale)
