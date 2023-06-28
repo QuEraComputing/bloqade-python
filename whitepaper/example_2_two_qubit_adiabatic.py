@@ -51,21 +51,21 @@ p.line(
     np.arange(4, 11, 1),
     zero_rydberg_probs,
     legend_label="0 Rydberg",
-    line_color="blue",
+    line_color="green",
     line_width=2,
 )
 p.line(
     np.arange(4, 11, 1),
     one_rydberg_probs,
     legend_label="1 Rydberg",
-    line_color="red",
+    line_color="yellow",
     line_width=2,
 )
 p.line(
     np.arange(4, 11, 1),
     two_rydberg_probs,
     legend_label="2 Rydberg",
-    line_color="green",
+    line_color="red",
     line_width=2,
 )
 
