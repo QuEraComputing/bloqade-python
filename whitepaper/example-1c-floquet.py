@@ -1,7 +1,6 @@
 from bloqade import start, cast
 
 import numpy as np
-import os
 
 from bokeh.plotting import figure, show
 
@@ -30,14 +29,6 @@ floquet_job = floquet_program.assign(
 
 # submit to emulator
 emu_job = floquet_job.braket_local_simulator(10000).submit().report()
-
-# submit to hardware
-os.environ["AWS_DEFAULT_REGION"] = "us-east-1"
-os.environ["AWS_ACCESS_KEY_ID"] = ""
-os.environ["AWS_SECRET_ACCESS_KEY"] = ""
-os.environ["AWS_SESSION_TOKEN"] = ""
-
-hw_job = floquet_job.parallelize(24).braket(50).submit()
 
 # plot results
 p = figure(
