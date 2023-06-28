@@ -1,41 +1,44 @@
 # range(5,14,2) goes from 5 to 13 in steps of 2 for n_atoms
 
+from bloqade import start
 from bloqade.ir.location import Chain
+
 from bokeh.plotting import figure, show
 
 rabi_amplitude_values = [0.0, 15.8, 15.8, 0.0]
 rabi_detuning_values = [-16.33, -16.33, 16.33, 16.33]
 durations = [0.8, "sweep_time", 0.8]
 
-n_atom_reports = []
+sweep_sequence = (
+    start.rydberg.rabi.amplitude.uniform.piecewise_linear(
+        durations, rabi_amplitude_values
+    )
+    .detuning.uniform.piecewise_linear(durations, rabi_detuning_values)
+    .sequence
+)
+
+n_atom_programs = []
 
 for n_atoms in range(5, 14, 2):
-    n_atom_sweep_program = (
-        Chain(n_atoms, 6.1)
-        .rydberg.rabi.amplitude.uniform.piecewise_linear(
-            durations, rabi_amplitude_values
-        )
-        .detuning.uniform.piecewise_linear(durations, rabi_detuning_values)
+    n_atom_programs.append(
+        Chain(n_atoms, 6.1).apply(sweep_sequence).assign(sweep_time=2.4)
     )
 
-    n_atom_reports.append(
-        n_atom_sweep_program.assign(sweep_time=2.4)
-        .braket_local_simulator(10000)
-        .submit()
-        .report()
-    )
+# run on emulator
+n_atom_reports = []
 
-# 5 different reports for atoms, need to get the state probability
-# can use the r.counts method
+for program in n_atom_programs:
+    n_atom_reports.append(program.braket_local_simulator(10000).submit().report())
 
 
+# needs to be inverted
 def gen_z2_str_sequence(seq_len):
-    seq = "1"
+    seq = "0"
     for _ in range(seq_len - 1):
-        if seq[-1] == "1":
-            seq += "0"
-        else:
+        if seq[-1] == "0":
             seq += "1"
+        else:
+            seq += "0"
     return seq
 
 
