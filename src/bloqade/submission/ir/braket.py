@@ -60,7 +60,7 @@ def extract_braket_program(quera_task_ir: QuEraTaskSpecification):
         quera_task_ir.effective_hamiltonian.rydberg.rabi_frequency_amplitude.global_
     )
     rabi_phase = (
-        quera_task_ir.effective_hamiltonian.rydberg.rabi_frequency_amplitude.global_
+        quera_task_ir.effective_hamiltonian.rydberg.rabi_frequency_phase.global_
     )
     global_detuning = quera_task_ir.effective_hamiltonian.rydberg.detuning.global_
     local_detuning = quera_task_ir.effective_hamiltonian.rydberg.detuning.local
