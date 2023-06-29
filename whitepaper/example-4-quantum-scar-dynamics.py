@@ -34,20 +34,16 @@ prep_times = np.around(np.arange(0.2, 2.2, 0.2), 13)
 scar_times = np.around(np.arange(2.2, 4.01, 0.01), 13)
 run_times = np.unique(np.hstack((prep_times, scar_times)))
 
-quantum_scar_job = (
-        quantum_scar_program.batch_assign(run_time=run_times)
-)
+quantum_scar_job = quantum_scar_program.batch_assign(run_time=run_times)
 
 n_shots = 10000
 # Run on emulator, taking advantage of multiprocessing
 
-if __name__ == '__main__':
-
+if __name__ == "__main__":
     print("Submitting Jobs with Multiprocessing Enabled...")
 
     emu_job = (
-        quantum_scar_job
-        .braket_local_simulator(n_shots)
+        quantum_scar_job.braket_local_simulator(n_shots)
         .submit(multiprocessing=True)
         .report()
     )
@@ -67,7 +63,9 @@ if __name__ == '__main__':
     mean_rydberg_densities_plot.axis.axis_label_text_font_size = "15pt"
     mean_rydberg_densities_plot.axis.major_label_text_font_size = "10pt"
 
-    mean_rydberg_densities_plot.line(run_times, emu_job.rydberg_densities().mean(axis=1), line_width=2)
+    mean_rydberg_densities_plot.line(
+        run_times, emu_job.rydberg_densities().mean(axis=1), line_width=2
+    )
 
     ## Probability of Ground State
 
@@ -75,16 +73,16 @@ if __name__ == '__main__':
     ground_state = "01" * 5 + "0"
 
     for bitstring_counts in emu_job.counts:
-        print(bitstring_counts)
-        print("\n")
-        ground_state_probabilities.append(bitstring_counts.get(ground_state, 0) / n_shots)
+        ground_state_probabilities.append(
+            bitstring_counts.get(ground_state, 0) / n_shots
+        )
 
     ground_state_plot = figure(
         title="Probability of Ground State",
         x_axis_label="Run Time (us)",
         y_axis_label="Probability of Ground State",
         tools="",
-        toolbar_location=None
+        toolbar_location=None,
     )
 
     ground_state_plot.line(run_times, ground_state_probabilities, line_width=2)
@@ -95,9 +93,9 @@ if __name__ == '__main__':
     ## Density Plot over Time w/ Interpolation
 
     density_over_time_plot = figure(
-        title = "Density Over Time",
-        x_axis_label = "Time (us)",
-        y_axis_label = "Site",
+        title="Density Over Time",
+        x_axis_label="Time (us)",
+        y_axis_label="Site",
         tools="",
         toolbar_location=None,
     )
@@ -110,15 +108,17 @@ if __name__ == '__main__':
 
     densities_array = emu_job.rydberg_densities().to_numpy().transpose()
 
-    color_mapping = LinearColorMapper(palette = "Viridis11", low = 0, high = 1)
-    color_bar = ColorBar(color_mapper = color_mapping)
+    color_mapping = LinearColorMapper(palette="Viridis11", low=0, high=1)
+    color_bar = ColorBar(color_mapper=color_mapping)
 
-    density_over_time_plot.image(image=[emu_job.rydberg_densities().to_numpy().transpose()], 
-                            x=0, 
-                            y=0, 
-                            dw=densities_array.shape[1], 
-                            dh=densities_array.shape[0],
-                            color_mapper = color_mapping)
+    density_over_time_plot.image(
+        image=[emu_job.rydberg_densities().to_numpy().transpose()],
+        x=0,
+        y=0,
+        dw=densities_array.shape[1],
+        dh=densities_array.shape[0],
+        color_mapper=color_mapping,
+    )
 
     density_over_time_plot.add_layout(color_bar, "right")
 
