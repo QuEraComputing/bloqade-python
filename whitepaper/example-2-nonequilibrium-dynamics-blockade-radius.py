@@ -17,14 +17,22 @@ noneq_dynamics_blockade_radius_program = (
 n_shots = 10000
 run_times = 0.05 * np.arange(31)
 
-noneq_dynamics_blockade_radius_job = (
-    noneq_dynamics_blockade_radius_program.assign(ramp_time=0.06, rabi_value=15)
-    .batch_assign(t_run=run_times)
-    .braket_local_simulator(n_shots)
-)
+noneq_dynamics_blockade_radius_job = noneq_dynamics_blockade_radius_program.assign(
+    ramp_time=0.06, rabi_value=15
+).batch_assign(t_run=run_times)
 
 # submit to emulator
-emu_job = noneq_dynamics_blockade_radius_job.submit().report()
+emu_job = (
+    noneq_dynamics_blockade_radius_job.braket_local_simulator(n_shots).submit().report()
+)
+
+# submit to HW
+hw_job = (
+    noneq_dynamics_blockade_radius_job.parallelize(24)
+    .braket(100)
+    .submit()
+    .save_json("example-2-nonequilibrium-dynamics-blockade-radius-job.json")
+)
 
 bitstring_dicts = emu_job.counts
 zero_rydberg_probs = []  # "00"
@@ -53,7 +61,6 @@ gg_density.axis.axis_label_text_font_size = "15pt"
 gg_density.axis.major_label_text_font_size = "10pt"
 
 gg_density.line(run_times, zero_rydberg_probs, line_width=2, color="green")
-gg_density.x(run_times, zero_rydberg_probs, size=20, color="green")
 
 
 gr_rg_density = figure(
@@ -68,7 +75,6 @@ gr_rg_density.axis.axis_label_text_font_size = "15pt"
 gr_rg_density.axis.major_label_text_font_size = "10pt"
 
 gr_rg_density.line(run_times, one_rydberg_probs, line_width=2, color="blue")
-gr_rg_density.x(run_times, one_rydberg_probs, size=20, color="blue")
 
 
 rr_density = figure(
@@ -83,7 +89,6 @@ rr_density.axis.axis_label_text_font_size = "15pt"
 rr_density.axis.major_label_text_font_size = "10pt"
 
 rr_density.line(run_times, two_rydberg_probs, line_width=2, color="red")
-rr_density.x(run_times, two_rydberg_probs, size=20, color="red")
 
 p = row(gg_density, gr_rg_density, rr_density)
 
