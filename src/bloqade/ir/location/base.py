@@ -1,12 +1,15 @@
 from bloqade.builder.start import ProgramStart
 from bloqade.ir.scalar import Scalar, cast
 from pydantic.dataclasses import dataclass
-from typing import List, Generator, Tuple, Any
+from typing import List, Generator, Tuple, Optional, Any, TYPE_CHECKING
 from bokeh.plotting import show
 import numpy as np
 from enum import Enum
 from bokeh.models import ColumnDataSource, Plot
 from bokeh.plotting import figure
+
+if TYPE_CHECKING:
+    from .list import ListOfLocations
 
 
 class SiteFilling(int, Enum):
@@ -102,6 +105,96 @@ class AtomArrangement(ProgramStart):
     def n_dims(self) -> int:
         raise NotImplementedError
 
+    def scale(self, scale: float | Scalar) -> "ListOfLocations":
+        from .list import ListOfLocations
+
+        scale = cast(scale)
+        location_list = []
+        for location_info in self.enumerate():
+            x, y = location_info.position
+            new_position = (scale * x, scale * y)
+            location_list.append(
+                LocationInfo(new_position, bool(location_info.filling.value))
+            )
+
+        return ListOfLocations(location_list)
+
+    def add_position(
+        self, position: Tuple[Any, Any], filled: bool = True
+    ) -> "ListOfLocations":
+        from .list import ListOfLocations
+
+        location_list = [LocationInfo(position, filled)]
+        for location_info in self.enumerate():
+            location_list.append(location_info)
+
+        return ListOfLocations(location_list)
+
+    def add_positions(
+        self, positions: List[Tuple[Any, Any]], filling: Optional[List[bool]] = None
+    ) -> "ListOfLocations":
+        from .list import ListOfLocations
+
+        location_list = []
+
+        if filling:
+            for position, filled in zip(positions, filling):
+                location_list.append(LocationInfo(position, filled))
+
+        else:
+            for position in positions:
+                location_list.append(LocationInfo(position, True))
+
+        for location_info in self.enumerate():
+            location_list.append(location_info)
+
+        return ListOfLocations(location_list)
+
+    def apply_defect_count(
+        self, n_defects: int, rng: np.random.Generator = np.random.default_rng()
+    ) -> "ListOfLocations":
+        from .list import ListOfLocations
+
+        location_list = []
+        for location_info in self.enumerate():
+            location_list.append(location_info)
+
+        for _ in range(n_defects):
+            idx = rng.integers(0, len(location_list))
+            location_list[idx] = LocationInfo(
+                location_list[idx].position,
+                (False if location_list[idx].filling is SiteFilling.filled else True),
+            )
+
+        return ListOfLocations(location_list)
+
+    def apply_defect_density(
+        self,
+        defect_probability: float,
+        rng: np.random.Generator = np.random.default_rng(),
+    ) -> "ListOfLocations":
+        from .list import ListOfLocations
+
+        p = min(1, max(0, defect_probability))
+        location_list = []
+
+        for location_info in self.enumerate():
+            if rng.random() < p:
+                location_list.append(
+                    LocationInfo(
+                        location_info.position,
+                        (
+                            False
+                            if location_info.filling is SiteFilling.filled
+                            else True
+                        ),
+                    )
+                )
+            else:
+                location_list.append(location_info)
+
+            return ListOfLocations(location_list=location_list)
+
 
 @dataclass(init=False)
 class ParallelRegister(ProgramStart):
@@ -113,12 +206,14 @@ class ParallelRegister(ProgramStart):
         if register.n_atoms > 0:
             # calculate bounding box
             # of this register
-            x_min = np.inf
-            x_max = -np.inf
-            y_min = np.inf
-            y_max = -np.inf
+            location_iter = register.enumerate()
+            (x, y) = next(location_iter).position
+            x_min = x
+            x_max = x
+            y_min = y
+            y_max = y
 
-            for location_info in register.enumerate():
+            for location_info in location_iter:
                 (x, y) = location_info.position
                 x_min = x.min(x_min)
                 x_max = x.max(x_max)

@@ -6,9 +6,8 @@
 #     prog = prog.location(i)
 # prog.linear(start=1.0, stop=2.0, duration="x")
 import bloqade.ir as ir
-from bloqade.builder.start import ProgramStart
-from bloqade import start
-from bloqade.ir.location import Square
+from bloqade import start, var
+from bloqade.ir.location import Square, Chain
 import numpy as np
 
 
@@ -19,8 +18,8 @@ def test_issue_107():
         .append(ir.Linear("final_detuning", "final_detuning", "up_time"))
     )
 
-    prog1 = ProgramStart().rydberg.detuning.uniform.apply(waveform)
-    prog2 = ProgramStart().rydberg.detuning.uniform.piecewise_linear(
+    prog1 = start.rydberg.detuning.uniform.apply(waveform)
+    prog2 = start.rydberg.detuning.uniform.piecewise_linear(
         durations=["up_time", "anneal_time", "up_time"],
         values=[
             "initial_detuning",
@@ -50,7 +49,7 @@ def test_issue_150():
     )
 
 
-prog = ProgramStart()
+prog = start
 prog = (
     prog.rydberg.detuning.location(1)
     .location(2)
@@ -79,6 +78,21 @@ print(prog.sequence)
 
 job = (
     Square(4, lattice_spacing="a")
+    .apply_defect_density(0.1)
+    .rydberg.detuning.uniform.piecewise_linear(
+        durations=[0.1, 3.8, 0.1], values=[-10, -10, "final_detuning", "final_detuning"]
+    )
+    .rabi.amplitude.uniform.piecewise_linear(
+        durations=[0.1, 3.8, 0.1], values=[0.0, 15.0, 15.0, 0.0]
+    )
+    .assign(final_detuning=20, a=4)
+    .mock(100)
+)
+print(job)
+
+job = (
+    Square(4, lattice_spacing="a")
+    .apply_defect_count(4)
     .rydberg.detuning.uniform.piecewise_linear(
         durations=[0.1, 3.8, 0.1], values=[-10, -10, "final_detuning", "final_detuning"]
     )
@@ -145,3 +159,46 @@ job = (
 )
 
 print(job)
+
+
+n_atoms = 11
+atom_spacing = 6.1
+run_time = var("run_time")
+run_times = np.linspace(0.1, 4.0, 11)
+
+quantum_scar_program = (
+    Chain(11, lattice_spacing=atom_spacing)
+    .rydberg.rabi.amplitude.uniform.piecewise_linear(
+        [0.3, 1.6, 0.3], [0.0, 15.7, 15.7, 0.0]
+    )
+    .piecewise_linear([0.2, 1.4, 0.2], [0, 15.7, 15.7, 0])
+    .slice(stop=run_time - 0.06)
+    .record("rabi_value")
+    .linear("rabi_value", 0, 0.06)
+    .detuning.uniform.piecewise_linear([0.3, 1.6, 0.3], [-18.8, -18.8, 16.3, 16.3])
+    .piecewise_linear([0.2, 1.6], [16.3, 0.0, 0.0])
+    .slice(stop=run_time)
+    .batch_assign(run_time=run_times)
+    .braket_local_simulator(10000)
+)
+
+
+sequence = (
+    start.rydberg.detuning.uniform.fn(my_func, total_duration)
+    .sample(0.05, "linear")
+    .rydberg.rabi.amplitude.uniform.piecewise_linear(
+        durations, [0, "rabi_max", "rabi_max", 0]
+    )
+    .sequence
+)
+
+builder = start
+for site in range(11):
+    builder = builder.add_position((6 * site, 0))
+    job = (
+        builder.apply(sequence)
+        .assign(omega=15, amplitude=15, rabi_max=15)
+        .batch_assign(run_time=np.linspace(0, 4.0, 101))
+        .braket_local_simulator(1000)
+    )
+    print(job)

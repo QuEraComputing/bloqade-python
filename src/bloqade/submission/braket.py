@@ -2,7 +2,7 @@ from bloqade.submission.base import SubmissionBackend
 from bloqade.submission.ir.braket import (
     from_braket_task_results,
     from_braket_status_codes,
-    to_braket_task_ir,
+    to_braket_task,
 )
 from bloqade.submission.ir.task_results import (
     QuEraTaskStatusCode,
@@ -28,8 +28,8 @@ class BraketBackend(SubmissionBackend):
         return AwsDevice(self.device_arn)
 
     def submit_task(self, task_ir: QuEraTaskSpecification) -> str:
-        braket_task_ir = to_braket_task_ir(task_ir)
-        task = self.device.run(braket_task_ir.program, shots=braket_task_ir.nshots)
+        shots, ahs_program = to_braket_task(task_ir)
+        task = self.device.run(ahs_program, shots=shots)
         return task.id
 
     def task_results(self, task_id: str) -> QuEraTaskResults:

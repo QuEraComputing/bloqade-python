@@ -1,4 +1,5 @@
 from pydantic.dataclasses import dataclass
+from dataclasses import fields
 from typing import List, Tuple, Generator, Optional, Any
 import numpy as np
 import itertools
@@ -53,6 +54,16 @@ class BoundedBravais(AtomArrangement):
                 position = tuple(self.lattice_spacing * pos)
                 yield LocationInfo(position, True)
 
+    def scale(self, factor: float | Scalar) -> "BoundedBravais":
+        factor = cast(factor)
+        obj = self.__new__(type(self))
+        for f in fields(self):
+            if f.name == "lattice_spacing":
+                obj.lattice_spacing = factor * self.lattice_spacing
+            else:
+                setattr(obj, f.name, getattr(self, f.name))
+        return obj
+
 
 @dataclass
 class Chain(BoundedBravais):
@@ -60,10 +71,10 @@ class Chain(BoundedBravais):
         super().__init__(L, lattice_spacing=lattice_spacing)
 
     def cell_vectors(self) -> List[List[float]]:
-        return [[1]]
+        return [[1, 0]]
 
     def cell_atoms(self) -> List[List[float]]:
-        return [[0]]
+        return [[0, 0]]
 
 
 @dataclass
