@@ -19,6 +19,14 @@ ramsey_job = ramsey_program.batch_assign(t_run=np.around(np.arange(0, 30, 1) * 0
 # run on emulator
 emu_job = ramsey_job.braket_local_simulator(10000).submit().report()
 
+# hardware job
+hw_job = (
+    ramsey_job.parallelize(24)
+    .braket(100)
+    .submit()
+    .save_json("example-1b-ramsey-job.json")
+)
+
 # plot results
 p = figure(
     x_axis_label="Time (us)",
