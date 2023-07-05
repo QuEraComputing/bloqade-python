@@ -30,6 +30,11 @@ floquet_job = floquet_program.assign(
 # submit to emulator
 emu_job = floquet_job.braket_local_simulator(10000).submit().report()
 
+# submit to HW
+hw_job = (
+    floquet_job.parallelize(24).braket(50).submit().save_json("example-1c-floquet.json")
+)
+
 # plot results
 p = figure(
     x_axis_label="Time (us)",
