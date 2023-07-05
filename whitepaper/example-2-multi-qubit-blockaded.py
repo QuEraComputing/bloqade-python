@@ -55,6 +55,13 @@ multi_qubit_blockade_job = multi_qubit_blockade_program.batch_assign(
 
 emu_job = multi_qubit_blockade_job.braket_local_simulator(10000).submit().report()
 
+hw_job = (
+    multi_qubit_blockade_job.parallelize(24)
+    .braket(100)
+    .submit()
+    .save_json("example-2-multi-qubit-blockaded-job.json")
+)
+
 # plot results
 p = figure(
     x_axis_label="Time (us)",
