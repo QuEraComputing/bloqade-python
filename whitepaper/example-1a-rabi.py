@@ -22,15 +22,6 @@ rabi_oscillation_job = rabi_oscillations_program.assign(
 # Simulation Results
 emu_job = rabi_oscillation_job.braket_local_simulator(10000).submit().report()
 
-# Hardware Results
-hw_job = (
-    rabi_oscillation_job
-    .parallelize(24)
-    .braket(100)
-    .submit()
-    .save_json("test.json")
-)
-
 p = figure(
     x_axis_label="Time (us)",
     y_axis_label="Rydberg Density",
