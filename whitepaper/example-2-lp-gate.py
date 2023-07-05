@@ -1,4 +1,4 @@
-from bloqade import start
+from bloqade import start, var
 
 import numpy as np
 from bokeh.layouts import row
@@ -35,13 +35,17 @@ rabi_wf_values = [
     0.0,
 ]
 
+t_run = var("t_run")
+
 lp_gate_sequence = (
     start.rydberg.rabi.amplitude.uniform.piecewise_linear(durations, rabi_wf_values)
-    .slice(0, "t_run")
+    .slice(0, t_run - min_time_step)
+    .record("rabi_value")
+    .linear("rabi_value", 0, min_time_step)
     .detuning.uniform.constant(detuning_value, sum(durations))
-    .slice(0, "t_run")
+    .slice(0, t_run)
     .phase.uniform.piecewise_constant(durations, [0.0] * 4 + [xi] * 3)
-    .slice(0, "t_run")
+    .slice(0, t_run)
     .sequence
 )
 
@@ -49,6 +53,8 @@ run_times = np.arange(min_time_step, sum(durations), min_time_step)
 
 # create a one atom and two atom example
 atom_positions = [[(0, 0)], [(0, 0), (0, 4.0)]]
+# file names for saving jobs
+atom_positions_names = ["single_atom", "dual_atom"]
 
 lp_gate_programs = []
 for atom_position in atom_positions:
@@ -67,6 +73,17 @@ for lp_gate_program in lp_gate_programs:
 emu_jobs = []
 for lp_gate_job in lp_gate_jobs:
     emu_jobs.append(lp_gate_job.braket_local_simulator(10000).submit().report())
+
+# submit to HW
+hw_jobs = []
+for lp_gate_job, file_name in zip(lp_gate_jobs, atom_positions_names):
+    hw_jobs.append(
+        lp_gate_job.parallelize(24)
+        .braket(100)
+        .submit()
+        .save_json("example-2-lp-gate-" + file_name + "-job.json")
+    )
+
 
 # plot results
 single_atom_lp = figure(
