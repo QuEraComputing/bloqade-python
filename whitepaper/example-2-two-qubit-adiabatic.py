@@ -20,6 +20,13 @@ n_shots = 10000
 
 emu_job = two_qubit_adiabatic_job.braket_local_simulator(n_shots).submit().report()
 
+hw_job = (
+    two_qubit_adiabatic_job.parallelize(24)
+    .braket(100)
+    .submit()
+    .save_json("example-2-two-qubit-adiabatic-job.json")
+)
+
 # want to plot the 0 rydberg probability,
 # 1 rydberg probability,
 # and 2 rydberg probabilities
