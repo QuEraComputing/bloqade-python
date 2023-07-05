@@ -22,11 +22,19 @@ rabi_oscillation_job = rabi_oscillations_program.assign(
 # Simulation Results
 emu_job = rabi_oscillation_job.braket_local_simulator(10000).submit().report()
 
+# HW results
+hw_job = (
+    rabi_oscillation_job.parallelize(24)
+    .braket(100)
+    .submit()
+    .save_json("example-1a-rabi-job.json")
+)
+
 p = figure(
     x_axis_label="Time (us)",
     y_axis_label="Rydberg Density",
     toolbar_location="right",
-    tools="pan,wheel_zoom,box_zoom,reset,save"
+    tools="pan,wheel_zoom,box_zoom,reset,save",
 )
 
 p.axis.axis_label_text_font_size = "15pt"
