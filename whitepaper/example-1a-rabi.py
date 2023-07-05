@@ -22,11 +22,20 @@ rabi_oscillation_job = rabi_oscillations_program.assign(
 # Simulation Results
 emu_job = rabi_oscillation_job.braket_local_simulator(10000).submit().report()
 
+# Hardware Results
+hw_job = (
+    rabi_oscillation_job
+    .parallelize(24)
+    .braket(100)
+    .submit()
+    .save_json("test.json")
+)
+
 p = figure(
     x_axis_label="Time (us)",
     y_axis_label="Rydberg Density",
-    toolbar_location=None,
-    tools="",
+    toolbar_location="right",
+    tools="pan,wheel_zoom,box_zoom,reset,save"
 )
 
 p.axis.axis_label_text_font_size = "15pt"
@@ -36,11 +45,6 @@ p.line(
     np.around(np.arange(0, 21, 1) * 0.05, 13),
     emu_job.rydberg_densities()[0].to_list(),
     line_width=2,
-)
-p.cross(
-    np.around(np.arange(0, 21, 1) * 0.05, 13),
-    emu_job.rydberg_densities()[0].to_list(),
-    size=20,
 )
 
 show(p)
