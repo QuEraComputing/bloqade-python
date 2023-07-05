@@ -25,9 +25,9 @@ from collections import OrderedDict
 class BraketEmulatorTask(BaseModel, Task):
     task_ir: BraketTaskSpecification
 
-    def submit(self) -> "BraketEmulatorTaskFuture":
+    def submit(self, **kwargs) -> "BraketEmulatorTaskFuture":
         aws_task = LocalSimulator("braket_ahs").run(
-            self.task_ir.program, shots=self.task_ir.nshots
+            self.task_ir.program, shots=self.task_ir.nshots, **kwargs
         )
 
         return BraketEmulatorTaskFuture(
@@ -84,15 +84,13 @@ class BraketEmulatorJob(JSONInterface, Job):
                 )
 
     def submit(
-        self,
-        multiprocessing: bool = False,
-        max_workers: Optional[int] = None,
+        self, multiprocessing: bool = False, max_workers: Optional[int] = None, **kwargs
     ) -> Future:
         if multiprocessing:
             futures = {}
             with ProcessPoolExecutor(max_workers=max_workers) as executor:
                 for task_number, task in self.tasks.items():
-                    futures[task_number] = executor.submit(task.submit)
+                    futures[task_number] = executor.submit(task.submit, **kwargs)
 
             return self._emit_future(
                 {
