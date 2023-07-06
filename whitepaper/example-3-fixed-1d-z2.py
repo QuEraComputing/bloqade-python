@@ -6,26 +6,34 @@ from bokeh.layouts import row
 import numpy as np
 
 n_atoms = 11
+lattice_const = 6.1
 
 rabi_amplitude_values = [0.0, 15.8, 15.8, 0.0]
 rabi_detuning_values = [-16.33, -16.33, 16.33, 16.33]
 durations = [0.8, "sweep_time", 0.8]
 
 fixed_1d_z2_prog = (
-    Chain(n_atoms, 6.1)
+    Chain(n_atoms, lattice_const)
     .rydberg.rabi.amplitude.uniform.piecewise_linear(durations, rabi_amplitude_values)
     .detuning.uniform.piecewise_linear(durations, rabi_detuning_values)
 )
 
-fixed_1d_z2_report = (
-    fixed_1d_z2_prog.assign(sweep_time=2.4)
-    .braket_local_simulator(10000)
+fixed_1d_z2_job = fixed_1d_z2_prog.assign(sweep_time=2.4)
+
+# Emulator
+emu_job = fixed_1d_z2_job.braket_local_simulator(10000).submit().report()
+
+# Hardware
+hw_job = (
+    fixed_1d_z2_job.parallelize(3 * lattice_const)
+    .braket(100)
     .submit()
-    .report()
+    .save_json("example-3-fixed-1d-z2-job.json")
 )
 
+
 # get densities
-fixed_1d_z2_densities = fixed_1d_z2_report.rydberg_densities()
+fixed_1d_z2_densities = emu_job.rydberg_densities()
 
 # plot density at end of evolution
 end_evolution_densities = figure(
@@ -50,7 +58,7 @@ end_evolution_densities.y_range.start = 0
 
 # Get states and their associated probabilities
 
-state_counts = fixed_1d_z2_report.counts[0]
+state_counts = emu_job.counts[0]
 state_probabilities = {state: counts / 10000 for state, counts in state_counts.items()}
 sorted_state_probabilities = sorted(
     state_probabilities.items(), key=lambda item: item[1], reverse=True
@@ -92,8 +100,7 @@ correlation_table = np.zeros((n_atoms, n_atoms))
 for i in range(n_atoms):
     for j in range(n_atoms):
         correlation_table[i, j] = (
-            (1 - fixed_1d_z2_report.dataframe.iloc[:, i])
-            * (1 - fixed_1d_z2_report.dataframe.iloc[:, j])
+            (1 - emu_job.dataframe.iloc[:, i]) * (1 - emu_job.dataframe.iloc[:, j])
         ).mean() - fixed_1d_z2_densities.iloc[0, i] * fixed_1d_z2_densities.iloc[0, j]
 
 correlation_plot = figure(
