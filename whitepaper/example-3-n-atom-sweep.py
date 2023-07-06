@@ -3,6 +3,7 @@
 from bloqade import start
 from bloqade.ir.location import Chain
 
+import os
 from bokeh.plotting import figure, show
 
 rabi_amplitude_values = [0.0, 15.8, 15.8, 0.0]
@@ -19,16 +20,31 @@ sweep_sequence = (
 
 n_atom_programs = []
 
+lattice_const = 6.1
+
 for n_atoms in range(5, 14, 2):
     n_atom_programs.append(
-        Chain(n_atoms, 6.1).apply(sweep_sequence).assign(sweep_time=2.4)
+        Chain(n_atoms, lattice_const).apply(sweep_sequence).assign(sweep_time=2.4)
     )
 
 # run on emulator
-n_atom_reports = []
+emu_jobs = []
 
 for program in n_atom_programs:
-    n_atom_reports.append(program.braket_local_simulator(10000).submit().report())
+    emu_jobs.append(program.braket_local_simulator(10000).submit().report())
+
+# run on HW
+hw_jobs = []
+# make a folder to store results
+hw_jobs_json_dir = "./example-3-n-atom-sweep-jobs"
+os.makedirs(hw_jobs_json_dir)
+for program, n_atoms in zip(n_atom_programs, range(5, 14, 2)):
+    hw_jobs.append(
+        program.parallelize(3 * lattice_const)
+        .braket(100)
+        .submit()
+        .save_json(hw_jobs_json_dir + "/" + str(n_atoms) + ".json")
+    )
 
 
 # needs to be inverted
@@ -44,10 +60,10 @@ def gen_z2_str_sequence(seq_len):
 
 z2_probabilities = []
 
-for n_atom_report, n_atoms in zip(n_atom_reports, range(5, 14, 2)):
+for emu_job, n_atoms in zip(emu_jobs, range(5, 14, 2)):
     z2_probabilities.append(
-        n_atom_report.counts[0][gen_z2_str_sequence(n_atoms)]
-        / sum(list(n_atom_report.counts[0].values()))
+        emu_job.counts[0][gen_z2_str_sequence(n_atoms)]
+        / sum(list(emu_job.counts[0].values()))
     )
 
 # Plot results
