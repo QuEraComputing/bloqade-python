@@ -6,6 +6,7 @@ from bokeh.plotting import figure, show
 
 drive_frequency = 15
 drive_amplitude = 15
+min_time_step = 0.05
 
 durations = cast(["ramp_time", "t_run", "ramp_time"])
 
@@ -20,12 +21,14 @@ floquet_program = (
         durations, [0, "rabi_max", "rabi_max", 0]
     )
     .detuning.uniform.fn(detuning_wf, sum(durations))
-    .sample("min_time_step", "linear")  # should sample via minimum time step
+    .sample("min_time_step", "linear")
 )
 
 floquet_job = floquet_program.assign(
     ramp_time=0.06, min_time_step=0.05, rabi_max=15
-).batch_assign(t_run=np.around(np.linspace(0, 3, 101), 13))
+).batch_assign(t_run=np.around(np.linspace(min_time_step, 3, 101), 13))
+# have to start the time at 0.05 considering 0.03 (generated if we start at 0.0)
+# is considered too small by validation
 
 # submit to emulator
 emu_job = floquet_job.braket_local_simulator(10000).submit().report()
@@ -47,14 +50,9 @@ p.axis.axis_label_text_font_size = "15pt"
 p.axis.major_label_text_font_size = "10pt"
 
 p.line(
-    np.linspace(0, 3, 101),
+    np.linspace(min_time_step, 3, 101),
     emu_job.rydberg_densities()[0].to_list(),
     line_width=2,
-)
-p.cross(
-    np.linspace(0, 3, 101),
-    emu_job.rydberg_densities()[0].to_list(),
-    size=20,
 )
 
 show(p)
