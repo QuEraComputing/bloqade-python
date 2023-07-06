@@ -13,7 +13,8 @@ mis_udg_program = (
     )
 )
 
+mis_udg_job = mis_udg_program.batch_assign(final_detuning=np.linspace(0, 80, 81))
 # submit to HW
-mis_udg_program.batch_assign(final_detuning=np.linspace(0, 80, 81)).mock(1000)
+hw_job = mis_udg_job.braket(1000).submit().save_json("example-5-MIS-UDG.json")
 
 # submit to emulator would take too many resources
