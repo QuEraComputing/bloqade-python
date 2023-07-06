@@ -48,6 +48,13 @@ if __name__ == "__main__":
         .report()
     )
 
+    hw_job = (
+        quantum_scar_job.parallelize(24)
+        .braket(100)
+        .submit()
+        .save_json("example-4-quantum-scar-dynamics-job.json")
+    )
+
     print("Plotting Results...")
 
     # Plot results
