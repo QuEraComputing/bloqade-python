@@ -134,7 +134,7 @@ class PiecewiseLinearCodeGen(WaveformVisitor):
             )
 
         if start_time == stop_time:
-            return [Decimal(0, 0), Decimal(0.0)], [Decimal(0.0), Decimal(0.0)]
+            return [Decimal(0.0), Decimal(0.0)], [Decimal(0.0), Decimal(0.0)]
 
         times, values = self.visit(ast.waveform)
 
