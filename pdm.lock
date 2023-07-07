@@ -26,7 +26,7 @@ dependencies = [
 
 [[package]]
 name = "amazon-braket-sdk"
-version = "1.47.0"
+version = "1.48.0"
 requires_python = ">= 3.8.2"
 summary = "An open source library for interacting with quantum computing devices on Amazon Braket"
 dependencies = [
@@ -34,7 +34,8 @@ dependencies = [
     "amazon-braket-schemas>=1.17.0",
     "backoff",
     "boltons",
-    "boto3>=1.22.3",
+    "boto3<1.26.160,>=1.22.3",
+    "botocore<1.29.160",
     "nest-asyncio",
     "networkx",
     "numpy",
@@ -1736,9 +1737,9 @@ content_hash = "sha256:ad816c58214dd33e327dc7f2c287860c39471806e63f966c05c35099d
     {url = "https://files.pythonhosted.org/packages/69/d8/07e46a782f97d6d54933eaf27ac7f9f66bf7ac3fc788d3ca8c0a1311c1e4/amazon-braket-schemas-1.17.0.tar.gz", hash = "sha256:003b7bf00cfaaf5860ce85c68759626dae67ecb2edcfa92fbd9a2a7d0f74a8ad"},
     {url = "https://files.pythonhosted.org/packages/b6/95/e820589badd6b77be52ee7ab380459411aea4010dee2445950c682dd7aa2/amazon_braket_schemas-1.17.0-py3-none-any.whl", hash = "sha256:36809ca4e925921ee4c99350f2db4ca21f7bec7105075cafbe752eaebf2602ba"},
 ]
-"amazon-braket-sdk 1.47.0" = [
-    {url = "https://files.pythonhosted.org/packages/0c/1a/17b27f438c0d0c98cbbd2fde66695c291fcb19c06077b1bf2467a7556bca/amazon-braket-sdk-1.47.0.tar.gz", hash = "sha256:be50148c8308fcdf1a2c42f1451cde52675694ff02af98ebaf0a2eb485beed5c"},
-    {url = "https://files.pythonhosted.org/packages/4b/94/b8107b1ca55d1d6a39b86b6b4a63e8ad1daa58efee77f0c750f1b42f9040/amazon_braket_sdk-1.47.0-py3-none-any.whl", hash = "sha256:95a2d628a017db49ec635567e25bcd0ee88003f13b281a3acdf28be3440d6479"},
+"amazon-braket-sdk 1.48.0" = [
+    {url = "https://files.pythonhosted.org/packages/54/6f/755937b19ffbc916510d18b105570e88256c974739c6d056bed8df01fba0/amazon-braket-sdk-1.48.0.tar.gz", hash = "sha256:766192eb1f50e4ae9b684599878c26f848c5f49faa8d1513e03bc179b878e3c4"},
+    {url = "https://files.pythonhosted.org/packages/8c/ae/7df6068e2c594fb8519f99473dfc2fad3f68974804c6fc36b4faaba87917/amazon_braket_sdk-1.48.0-py3-none-any.whl", hash = "sha256:ef73f49b5b9edca5f403bb66cc4e7edc083c47a05cd2f97ec5c0f54cc38bb4aa"},
 ]
 "antlr4-python3-runtime 4.9.2" = [
     {url = "https://files.pythonhosted.org/packages/04/9c/d5ef93dc1e5a862cae004a64d15425c2a1ae8ba967a08f03dfb11aedf7bf/antlr4-python3-runtime-4.9.2.tar.gz", hash = "sha256:31f5abdc7faf16a1a6e9bf2eb31565d004359b821b09944436a34361929ae85a"},
