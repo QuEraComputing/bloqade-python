@@ -1,8 +1,9 @@
 from bloqade import start, cast
+from bloqade.task import HardwareFuture
 
 import numpy as np
-
 from bokeh.plotting import figure, show
+from bokeh.models import ColumnDataSource, HoverTool, CrosshairTool
 
 drive_frequency = 15
 drive_amplitude = 15
@@ -34,25 +35,78 @@ floquet_job = floquet_program.assign(
 emu_job = floquet_job.braket_local_simulator(10000).submit().report()
 
 # submit to HW
-hw_job = (
-    floquet_job.parallelize(24).braket(50).submit().save_json("example-1c-floquet.json")
+"""
+(
+    floquet_job.parallelize(24).braket(50).submit().save_json("example-1c-floquet-job.json")
 )
+"""
+
+hw_future = HardwareFuture()
+hw_future.load_json("example-1c-floquet-job.json")
+hw_rydberg_densities = hw_future.report().rydberg_densities()
 
 # plot results
+data = {
+    "times": np.around(np.linspace(min_time_step, 3, 101), 13),
+    "emu_densities": emu_job.rydberg_densities()[0].to_list(),
+    "hw_densities": hw_rydberg_densities[0].to_list(),
+}
+source = ColumnDataSource(data=data)
+
 p = figure(
-    x_axis_label="Time (us)",
+    x_axis_label="Time (μs)",
     y_axis_label="Rydberg Density",
-    tools="",
-    toolbar_location=None,
+    toolbar_location="right",
+    tools=["pan,wheel_zoom,box_zoom,reset,save"],
 )
 
 p.axis.axis_label_text_font_size = "15pt"
 p.axis.major_label_text_font_size = "10pt"
 
-p.line(
-    np.linspace(min_time_step, 3, 101),
-    emu_job.rydberg_densities()[0].to_list(),
+# emulator densities
+emu_line = p.line(
+    x="times",
+    y="emu_densities",
+    source=source,
+    legend_label="Emulator",
+    color="grey",
     line_width=2,
 )
+p.circle(x="times", y="emu_densities", source=source, color="grey", size=8)
+# hardware densities
+hw_line = p.line(
+    x="times",
+    y="hw_densities",
+    source=source,
+    legend_label="Hardware",
+    color="purple",
+    line_width=2,
+)
+p.circle(x="times", y="hw_densities", source=source, color="purple", size=8)
+
+hw_hover_tool = HoverTool(
+    renderers=[hw_line],
+    tooltips=[
+        ("Backend", "Hardware"),
+        ("Density", "@hw_densities"),
+        ("Time", "@times μs"),
+    ],
+    mode="vline",
+    attachment="right",
+)
+p.add_tools(hw_hover_tool)
+emu_hover_tool = HoverTool(
+    renderers=[emu_line],
+    tooltips=[
+        ("Backend", "Emulator"),
+        ("Density", "@emu_densities"),
+        ("Time", "@times μs"),
+    ],
+    mode="vline",
+    attachment="left",
+)
+p.add_tools(emu_hover_tool)
+cross_hair_tool = CrosshairTool(dimensions="height")
+p.add_tools(cross_hair_tool)
 
 show(p)
