@@ -20,7 +20,7 @@ class BraketBackend(SubmissionBackend):
             return from_braket_task_results(task.result())
         else:
             return QuEraTaskResults(
-                task_status=from_braket_status_codes(task.status()), shot_outputs=[]
+                task_status=from_braket_status_codes(task.state()), shot_outputs=[]
             )
 
     @property
