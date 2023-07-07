@@ -239,7 +239,7 @@ class HardwareJob(JSONInterface, Job):
             case {"tasks": dict() as tasks}:
                 self.tasks = OrderedDict(
                     [
-                        (task_number, HardwareTask(**tasks[task_number]))
+                        (int(task_number), HardwareTask(**tasks[task_number]))
                         for task_number in sorted(tasks.keys())
                     ]
                 )
@@ -261,7 +261,7 @@ class HardwareFuture(JSONInterface, Future):
             case {"futures": dict() as futures}:
                 self.futures = OrderedDict(
                     [
-                        (task_number, HardwareTaskFuture(**futures[task_number]))
+                        (int(task_number), HardwareTaskFuture(**futures[task_number]))
                         for task_number in sorted(futures.keys())
                     ]
                 )
