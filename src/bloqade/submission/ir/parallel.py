@@ -1,6 +1,6 @@
 from pydantic import BaseModel, validator, ValidationError
 
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 from itertools import combinations
 
 
@@ -26,18 +26,32 @@ class ParallelDecoder(BaseModel):
     class Config:
         frozen = True
 
-    def __init__(self, mapping: List[ClusterLocationInfo]):
-        cluster_location_indices = set()
-        cluster_indices = set()
+    def __init__(
+        self,
+        mapping: List[ClusterLocationInfo],
+        locations_per_cluster: Optional[int] = None,
+        number_of_cluster: Optional[int] = None,
+    ):
+        if locations_per_cluster is None:
+            cluster_location_indices = set()
 
-        for site in mapping:
-            cluster_location_indices.add(site.cluster_location_index)
-            cluster_indices.add(site.cluster_index)
+            for site in mapping:
+                cluster_location_indices.add(site.cluster_location_index)
+
+            locations_per_cluster = len(cluster_location_indices)
+
+        if number_of_cluster is None:
+            cluster_indices = set()
+
+            for site in mapping:
+                cluster_indices.add(site.cluster_index)
+
+            number_of_cluster = len(cluster_indices)
 
         super().__init__(
             mapping=mapping,
-            locations_per_cluster=len(cluster_location_indices),
-            number_of_cluster=len(cluster_indices),
+            locations_per_cluster=number_of_cluster,
+            number_of_cluster=number_of_cluster,
         )
 
     # should work if we go to the coordinate-based indexing system
