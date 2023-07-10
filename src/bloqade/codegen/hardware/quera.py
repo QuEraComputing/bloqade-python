@@ -585,10 +585,10 @@ class SchemaCodeGen(ProgramVisitor):
         sites = []
         filling = []
 
-        for locaiton_info in ast.enumerate():
-            site = tuple(ele(**self.assignments) for ele in locaiton_info.position)
+        for location_info in ast.enumerate():
+            site = tuple(ele(**self.assignments) for ele in location_info.position)
             sites.append(SchemaCodeGen.convert_position_to_SI_units(site))
-            filling.append(locaiton_info.filling.value)
+            filling.append(location_info.filling.value)
 
         self.n_atoms = len(sites)
 
@@ -607,11 +607,14 @@ class SchemaCodeGen(ProgramVisitor):
         )
 
         register_filling = np.asarray(ast.register_filling)
-        register_locations = np.asarray(ast.register_locations)
-        shift_vectors = np.asarray(ast.shift_vectors)
+
+        register_locations = np.asarray([[s(**self.assignments) for s in location] for location in ast.register_locations])
+        register_locations = register_locations - register_locations.min(axis=0)
+
+        shift_vectors = np.asarray([[s(**self.assignments) for s in shift_vector] for shift_vector in ast.shift_vectors])
 
         # build register by stack method because
-        # shift_vectosr might not be rectangular
+        # shift_vectors might not be rectangular
         c_stack = [(0, 0)]
         visited = set([(0, 0)])
         mapping = []
@@ -629,9 +632,7 @@ class SchemaCodeGen(ProgramVisitor):
                 + shift_vectors[1] * cluster_index[1]
             )
 
-            new_register_locations = np.asarray(
-                [ele(**self.assignments) for ele in (register_locations + shift).flat]
-            ).reshape(register_locations.shape)
+            new_register_locations = register_locations + shift
 
             # skip clusters that fall out of bounds
             if (
