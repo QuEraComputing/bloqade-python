@@ -1,6 +1,7 @@
 from bloqade import start, var
 
 import numpy as np
+import os
 from bokeh.layouts import row
 from bokeh.plotting import figure, show
 
@@ -75,13 +76,16 @@ for lp_gate_job in lp_gate_jobs:
     emu_jobs.append(lp_gate_job.braket_local_simulator(10000).submit().report())
 
 # submit to HW
-hw_jobs = []
+hw_jobs_json_dir = "./example-2-lp-gate-jobs/"
+os.makedirs(hw_jobs_json_dir, exist_ok=True)
 for lp_gate_job, file_name in zip(lp_gate_jobs, atom_positions_names):
-    hw_jobs.append(
+    (
         lp_gate_job.parallelize(24)
         .braket(100)
         .submit()
-        .save_json("example-2-lp-gate-" + file_name + "-job.json")
+        .save_json(
+            hw_jobs_json_dir + "/" + "example-2-lp-gate-" + file_name + "-job.json"
+        )
     )
 
 
