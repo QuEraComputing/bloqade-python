@@ -160,7 +160,9 @@ gr_rg_emu_line = gr_rg_plt.line(
     color="grey",
     line_width=2,
 )
-gr_rg_plt.circle(x="times", y="emu_densities", source=gr_rg_source, color="grey", size=8)
+gr_rg_plt.circle(
+    x="times", y="emu_densities", source=gr_rg_source, color="grey", size=8
+)
 gr_rg_hw_line = gr_rg_plt.line(
     x="times",
     y="hw_densities",
@@ -169,7 +171,9 @@ gr_rg_hw_line = gr_rg_plt.line(
     color="purple",
     line_width=2,
 )
-gr_rg_plt.circle(x="times", y="hw_densities", source=gr_rg_source, color="purple", size=8)
+gr_rg_plt.circle(
+    x="times", y="hw_densities", source=gr_rg_source, color="purple", size=8
+)
 
 gr_rg_hw_hover_tool = HoverTool(
     renderers=[gr_rg_hw_line],
