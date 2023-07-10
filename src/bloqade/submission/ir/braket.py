@@ -132,5 +132,8 @@ def from_braket_status_codes(braket_message: str) -> QuEraTaskStatusCode:
         case str("CANCELLED"):
             return QuEraTaskStatusCode.Cancelled
 
+        case str("QUEUED"):
+            return QuEraTaskStatusCode.Enqueued
+
         case _:
             raise ValueError(f"unexpected argument {braket_message}")
