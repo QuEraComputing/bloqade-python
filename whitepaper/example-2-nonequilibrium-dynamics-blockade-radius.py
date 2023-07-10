@@ -67,15 +67,15 @@ hw_zero_probs, hw_one_probs, hw_two_probs = generate_probabilities(hw_report)
 
 # make three separate plots
 
-# "00" density
+# gg density
 gg_data = {
     "times": run_times,
     "emu_densities": emu_zero_probs,
-    "hw_densities": emu_one_probs,
+    "hw_densities": hw_zero_probs,
 }
 gg_source = ColumnDataSource(data=gg_data)
 
-gg_density = figure(
+gg_plt = figure(
     title="0 Rydberg",
     x_axis_label="Time (μs)",
     y_axis_label="Rydberg Density",
@@ -83,10 +83,10 @@ gg_density = figure(
     toolbar_location=None,
 )
 
-gg_density.axis.axis_label_text_font_size = "15pt"
-gg_density.axis.major_label_text_font_size = "10pt"
+gg_plt.axis.axis_label_text_font_size = "15pt"
+gg_plt.axis.major_label_text_font_size = "10pt"
 
-emu_line = gg_density.line(
+gg_emu_line = gg_plt.line(
     x="times",
     y="emu_densities",
     source=gg_source,
@@ -94,8 +94,8 @@ emu_line = gg_density.line(
     color="grey",
     line_width=2,
 )
-gg_density.circle(x="times", y="emu_densities", source=gg_source, color="grey", size=8)
-hw_line = gg_density.line(
+gg_plt.circle(x="times", y="emu_densities", source=gg_source, color="grey", size=8)
+gg_hw_line = gg_plt.line(
     x="times",
     y="hw_densities",
     source=gg_source,
@@ -103,10 +103,10 @@ hw_line = gg_density.line(
     color="purple",
     line_width=2,
 )
-gg_density.circle(x="times", y="hw_densities", source=gg_source, color="purple", size=8)
+gg_plt.circle(x="times", y="hw_densities", source=gg_source, color="purple", size=8)
 
-hw_hover_tool = HoverTool(
-    renderers=[hw_line],
+gg_hw_hover_tool = HoverTool(
+    renderers=[gg_hw_line],
     tooltips=[
         ("Backend", "Hardware"),
         ("Density", "@hw_densities"),
@@ -115,9 +115,9 @@ hw_hover_tool = HoverTool(
     mode="vline",
     attachment="right",
 )
-gg_density.add_tools(hw_hover_tool)
-emu_hover_tool = HoverTool(
-    renderers=[emu_line],
+gg_plt.add_tools(gg_hw_hover_tool)
+gg_emu_hover_tool = HoverTool(
+    renderers=[gg_emu_line],
     tooltips=[
         ("Backend", "Emulator"),
         ("Density", "@emu_densities"),
@@ -127,40 +127,144 @@ emu_hover_tool = HoverTool(
     attachment="left",
 )
 
-gg_density.add_tools(emu_hover_tool)
-cross_hair_tool = CrosshairTool(dimensions="height")
-gg_density.add_tools(cross_hair_tool)
+gg_plt.add_tools(gg_emu_hover_tool)
+gg_cross_hair_tool = CrosshairTool(dimensions="height")
+gg_plt.add_tools(gg_cross_hair_tool)
 
-show(gg_density)
+# show(gg_plt)
 
+# gr + rg density
+gr_rg_data = {
+    "times": run_times,
+    "emu_densities": emu_one_probs,
+    "hw_densities": hw_one_probs,
+}
+gr_rg_source = ColumnDataSource(data=gr_rg_data)
 
-gr_rg_density = figure(
+gr_rg_plt = figure(
     title="1 Rydberg",
-    x_axis_label="Time (us)",
+    x_axis_label="Time (μs)",
     y_axis_label="Rydberg Density",
-    tools="",
+    tools="pan,wheel_zoom,box_zoom,reset,save",
     toolbar_location=None,
 )
 
-gr_rg_density.axis.axis_label_text_font_size = "15pt"
-gr_rg_density.axis.major_label_text_font_size = "10pt"
+gr_rg_plt.axis.axis_label_text_font_size = "15pt"
+gr_rg_plt.axis.major_label_text_font_size = "10pt"
 
-gr_rg_density.line(run_times, emu_one_probs, line_width=2, color="blue")
+gr_rg_emu_line = gr_rg_plt.line(
+    x="times",
+    y="emu_densities",
+    source=gr_rg_source,
+    label="Emulator",
+    color="grey",
+    line_width=2,
+)
+gr_rg_plt.circle(x="times", y="emu_densities", source=gr_rg_source, color="grey", size=8)
+gr_rg_hw_line = gr_rg_plt.line(
+    x="times",
+    y="hw_densities",
+    source=gr_rg_source,
+    label="Hardware",
+    color="purple",
+    line_width=2,
+)
+gr_rg_plt.circle(x="times", y="hw_densities", source=gr_rg_source, color="purple", size=8)
 
+gr_rg_hw_hover_tool = HoverTool(
+    renderers=[gr_rg_hw_line],
+    tooltips=[
+        ("Backend", "Hardware"),
+        ("Density", "@hw_densities"),
+        ("Time", "@times μs"),
+    ],
+    mode="vline",
+    attachment="right",
+)
+gr_rg_plt.add_tools(gr_rg_hw_hover_tool)
+gr_rg_emu_hover_tool = HoverTool(
+    renderers=[gr_rg_emu_line],
+    tooltips=[
+        ("Backend", "Emulator"),
+        ("Density", "@emu_densities"),
+        ("Time", "@times μs"),
+    ],
+    mode="vline",
+    attachment="left",
+)
 
-rr_density = figure(
+gr_rg_plt.add_tools(gr_rg_emu_hover_tool)
+gr_rg_cross_hair_tool = CrosshairTool(dimensions="height")
+gr_rg_plt.add_tools(gr_rg_cross_hair_tool)
+
+# show(gr_rg_plt)
+
+## plot rr density
+rr_data = {
+    "times": run_times,
+    "emu_densities": emu_one_probs,
+    "hw_densities": hw_one_probs,
+}
+rr_source = ColumnDataSource(data=rr_data)
+
+rr_plt = figure(
     title="2 Rydberg",
-    x_axis_label="Time (us)",
+    x_axis_label="Time (μs)",
     y_axis_label="Rydberg Density",
-    tools="",
+    tools="pan,wheel_zoom,box_zoom,reset,save",
     toolbar_location=None,
 )
 
-rr_density.axis.axis_label_text_font_size = "15pt"
-rr_density.axis.major_label_text_font_size = "10pt"
+rr_plt.axis.axis_label_text_font_size = "15pt"
+rr_plt.axis.major_label_text_font_size = "10pt"
 
-rr_density.line(run_times, emu_two_probs, line_width=2, color="red")
+rr_emu_line = rr_plt.line(
+    x="times",
+    y="emu_densities",
+    source=rr_source,
+    label="Emulator",
+    color="grey",
+    line_width=2,
+)
+rr_plt.circle(x="times", y="emu_densities", source=rr_source, color="grey", size=8)
+rr_hw_line = rr_plt.line(
+    x="times",
+    y="hw_densities",
+    source=rr_source,
+    label="Hardware",
+    color="purple",
+    line_width=2,
+)
+rr_plt.circle(x="times", y="hw_densities", source=rr_source, color="purple", size=8)
 
-p = row(gg_density, gr_rg_density, rr_density)
+rr_hw_hover_tool = HoverTool(
+    renderers=[rr_hw_line],
+    tooltips=[
+        ("Backend", "Hardware"),
+        ("Density", "@hw_densities"),
+        ("Time", "@times μs"),
+    ],
+    mode="vline",
+    attachment="right",
+)
+rr_plt.add_tools(rr_hw_hover_tool)
+rr_emu_hover_tool = HoverTool(
+    renderers=[rr_emu_line],
+    tooltips=[
+        ("Backend", "Emulator"),
+        ("Density", "@emu_densities"),
+        ("Time", "@times μs"),
+    ],
+    mode="vline",
+    attachment="left",
+)
+
+rr_plt.add_tools(rr_emu_hover_tool)
+rr_cross_hair_tool = CrosshairTool(dimensions="height")
+rr_plt.add_tools(rr_cross_hair_tool)
+
+# show(rr_plt)
+
+p = row(gg_plt, gr_rg_plt, rr_plt)
 
 show(p)
