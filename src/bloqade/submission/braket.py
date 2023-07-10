@@ -16,11 +16,11 @@ class BraketBackend(SubmissionBackend):
     device_arn: str = "arn:aws:braket:us-east-1::device/qpu/quera/Aquila"
 
     def _convert_task_results(self, task: AwsQuantumTask) -> QuEraTaskResults:
-        if task.status() == "COMPLETED":
+        if task.state() == "COMPLETED":
             return from_braket_task_results(task.result())
         else:
             return QuEraTaskResults(
-                task_status=from_braket_status_codes(task.status()), shot_outputs=[]
+                task_status=from_braket_status_codes(task.state()), shot_outputs=[]
             )
 
     @property
@@ -41,4 +41,4 @@ class BraketBackend(SubmissionBackend):
 
     def task_status(self, task_id: str) -> QuEraTaskStatusCode:
         task = AwsQuantumTask(task_id)
-        return self._convert_status_codes(task.state)
+        return self._convert_status_codes(task.state())
