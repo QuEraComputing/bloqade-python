@@ -608,10 +608,20 @@ class SchemaCodeGen(ProgramVisitor):
 
         register_filling = np.asarray(ast.register_filling)
 
-        register_locations = np.asarray([[s(**self.assignments) for s in location] for location in ast.register_locations])
+        register_locations = np.asarray(
+            [
+                [s(**self.assignments) for s in location]
+                for location in ast.register_locations
+            ]
+        )
         register_locations = register_locations - register_locations.min(axis=0)
 
-        shift_vectors = np.asarray([[s(**self.assignments) for s in shift_vector] for shift_vector in ast.shift_vectors])
+        shift_vectors = np.asarray(
+            [
+                [s(**self.assignments) for s in shift_vector]
+                for shift_vector in ast.shift_vectors
+            ]
+        )
 
         # build register by stack method because
         # shift_vectors might not be rectangular
