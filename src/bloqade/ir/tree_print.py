@@ -46,7 +46,6 @@ class Printer:
         self.state = State()
         self.p = p
         self.max_tree_depth = max_tree_depth
-        print(self.max_tree_depth)
 
     def should_print_annotation(self, children):
         if (
