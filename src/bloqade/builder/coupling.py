@@ -5,6 +5,7 @@ from .base import Builder
 class LevelCoupling(Builder):
     @property
     def detuning(self):
+        """Pick the detuning field as coupling."""
         from .field import Detuning
 
         self.__build_cache__.field_name = detuning
@@ -12,6 +13,7 @@ class LevelCoupling(Builder):
 
     @property
     def rabi(self):
+        """Pick the rabi field as coupling."""
         from .field import Rabi
 
         return Rabi(self)
