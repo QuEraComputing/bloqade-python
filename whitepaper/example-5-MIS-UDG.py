@@ -5,8 +5,8 @@ import numpy as np
 durations = [0.3, 1.6, 0.3]
 
 mis_udg_program = (
-    Square(15, 0.5)
-    .apply_defect_density(0.5)
+    Square(15, 5.0)
+    .apply_defect_density(0.3)
     .rydberg.rabi.amplitude.uniform.piecewise_linear(durations, [0.0, 15.0, 15.0, 0.0])
     .detuning.uniform.piecewise_linear(
         durations, [-30, -30, "final_detuning", "final_detuning"]
