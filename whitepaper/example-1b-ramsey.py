@@ -37,7 +37,7 @@ hw_future.load_json("example-1b-ramsey-job.json")
 hw_rydberg_densities = hw_future.report().rydberg_densities()
 
 data = {
-    "times": np.around(np.arange(0, 21, 1) * 0.05, 13),
+    "times": np.around(np.arange(0, 30, 1) * 0.1, 13),
     "emu_densities": emu_job.rydberg_densities()[0].to_list(),
     "hw_densities": hw_rydberg_densities[0].to_list(),
 }
