@@ -32,9 +32,9 @@ class MockTask(BaseModel, Task):
 
     def run_validation(self) -> None:
         if self.mock_backend:
-            self.mock_backend.validate_task(self.task_ir)
+            return self.mock_backend.validate_task(self.task_ir)
 
-        super().run_validation()
+        return super().run_validation()
 
 
 class BraketTask(MockTask):
@@ -53,9 +53,9 @@ class BraketTask(MockTask):
 
     def run_validation(self) -> None:
         if self.braket_backend:
-            self.braket_backend.validate_task(self.task_ir)
+            return self.braket_backend.validate_task(self.task_ir)
 
-        super().run_validation()
+        return super().run_validation()
 
 
 class QuEraTask(BraketTask):
@@ -74,9 +74,9 @@ class QuEraTask(BraketTask):
 
     def run_validation(self) -> None:
         if self.quera_backend:
-            self.quera_backend.validate_task(self.task_ir)
+            return self.quera_backend.validate_task(self.task_ir)
 
-        super().run_validation()
+        return super().run_validation()
 
 
 class HardwareTask(QuEraTask):

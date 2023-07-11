@@ -67,7 +67,7 @@ def extract_braket_program(quera_task_ir: QuEraTaskSpecification):
 
     register = AtomArrangement()
     for site, filled in zip(lattice.sites, lattice.filling):
-        site_type = SiteType.FILLED if filled == 1 else SiteType.EMPTY
+        site_type = SiteType.FILLED if filled == 1 else SiteType.VACANT
         register.add(site, site_type)
 
     hamiltonian = DrivingField(
@@ -131,6 +131,9 @@ def from_braket_status_codes(braket_message: str) -> QuEraTaskStatusCode:
 
         case str("CANCELLED"):
             return QuEraTaskStatusCode.Cancelled
+
+        case str("QUEUED"):
+            return QuEraTaskStatusCode.Enqueued
 
         case _:
             raise ValueError(f"unexpected argument {braket_message}")
