@@ -1,5 +1,5 @@
 from pydantic.dataclasses import dataclass
-from dataclasses import fields
+from dataclasses import InitVar, fields
 from typing import List, Tuple, Generator, Optional, Any
 import numpy as np
 import itertools
@@ -89,22 +89,25 @@ class Square(BoundedBravais):
         return [[0, 0]]
 
 
-@dataclass
+@dataclass(init=False)
 class Rectangular(BoundedBravais):
     ratio: Scalar = 1.0
+    lattice_spacing_x: InitVar[Any]
+    lattice_spacing_y: InitVar[Any]
 
     def __init__(
         self,
         width: int,
         height: int,
-        lattice_sapcing_x: Any = 1.0,
+        lattice_spacing_x: Any = 1.0,
         lattice_spacing_y: Optional[Any] = None,
     ):
-        super().__init__(width, height, lattice_spacing=lattice_sapcing_x)
-        if lattice_spacing_y:
-            self.ratio = cast(lattice_spacing_y) / cast(lattice_sapcing_x)
-        else:
+        if lattice_spacing_y is None:
             self.ratio = cast(1.0)
+        else:
+            self.ratio = cast(lattice_spacing_y) / cast(lattice_spacing_x)
+
+        super().__init__(width, height, lattice_spacing=lattice_spacing_x)
 
     def cell_vectors(self) -> List[List[float]]:
         return [[1, 0], [0, self.ratio]]
