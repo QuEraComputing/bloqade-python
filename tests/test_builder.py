@@ -5,10 +5,30 @@
 # for i in range(5):
 #     prog = prog.location(i)
 # prog.linear(start=1.0, stop=2.0, duration="x")
+import pytest
 import bloqade.ir as ir
-from bloqade import start, var
+from bloqade.ir import rydberg, detuning
+from bloqade import start, var, cast
 from bloqade.ir.location import Square, Chain
 import numpy as np
+
+
+def test_scale():
+    prog = start
+    prog = (
+        prog.rydberg.detuning.location(1).scale(1.2)
+        .piecewise_linear([0.1, 3.8, 0.1], [-10, -10, "a", "b"])
+    )
+    
+    ## let Emit build ast 
+    seq = prog.sequence
+    
+    print(type(list(seq.value.keys())[0]))
+    Loc1 = list(seq.value[rydberg].value[detuning].value.keys())[0]
+    
+    assert type(Loc1) == ir.ScaledLocations
+    assert Loc1.value[ir.Location(1)] == cast(1.2)
+    
 
 
 def test_issue_107():
