@@ -3,7 +3,6 @@ from bloqade.task import HardwareFuture
 
 import numpy as np
 
-from bokeh.layouts import row
 from bokeh.plotting import show, figure
 from bokeh.models import HoverTool, CrosshairTool, ColumnDataSource
 
@@ -44,28 +43,80 @@ hw_future.load_json("example-2-nonequilibrium-dynamics-blockade-radius-job.json"
 hw_report = hw_future.report()
 
 
-def generate_probabilities(report):
+def get_rydberg_probs(report):
+    bitstring_dicts = report.counts
     zero_rydberg_probs = []  # "00"
     one_rydberg_probs = []  # "01" or "10"
     two_rydberg_probs = []  # "11"
 
-    for bitstring_counts in report.counts:
-        zero_rydberg_probs.append(bitstring_counts.get("11", 0) / n_shots)
-        one_rydberg_probs.append(
-            (bitstring_counts.get("01", 0) + bitstring_counts.get("10", 0)) / n_shots
+    for bitstring_dict in bitstring_dicts:
+        successful_presort_shots = sum(bitstring_dict.values())
+        zero_rydberg_probs.append(
+            bitstring_dict.get("11", 0) / successful_presort_shots
         )
-        two_rydberg_probs.append(bitstring_counts.get("00", 0) / n_shots)
+        one_rydberg_probs.append(
+            (bitstring_dict.get("01", 0) + bitstring_dict.get("10", 0))
+            / successful_presort_shots
+        )
+        two_rydberg_probs.append(bitstring_dict.get("00", 0) / successful_presort_shots)
 
     return zero_rydberg_probs, one_rydberg_probs, two_rydberg_probs
 
 
 # get probabilities of 0, 1, and 2 atoms in Rydberg state for emulator
-emu_zero_probs, emu_one_probs, emu_two_probs = generate_probabilities(emu_job)
+emu_zero_probs, emu_one_probs, emu_two_probs = get_rydberg_probs(emu_job)
 
 # get probabilities of 0, 1, and 2 atoms in Rydberg state for HW
-hw_zero_probs, hw_one_probs, hw_two_probs = generate_probabilities(hw_report)
+hw_zero_probs, hw_one_probs, hw_two_probs = get_rydberg_probs(hw_report)
+
 
 # make three separate plots
+def generate_plot(plt_title, source):
+    plt = figure(
+        title=plt_title,
+        x_axis_label="Time (μs)",
+        y_axis_label="Rydberg Density",
+        tools="pan,wheel_zoom,box_zoom,reset,save",
+        toolbar_location="right",
+    )
+
+    plt.axis.axis_label_text_font_size = "15pt"
+    plt.axis.major_label_text_font_size = "10pt"
+
+    source_keys = ["emu_densities", "hw_densities"]
+    legend_labels = ["Emulator", "Hardware"]
+    colors = ["grey", "purple"]
+    hover_tool_attachments = ["left", "right"]
+    for source_key, legend_label, color, hover_tool_attachment in zip(
+        source_keys, legend_labels, colors, hover_tool_attachments
+    ):
+        line = plt.line(
+            x="times",
+            y=source_key,
+            source=source,
+            legend_label=legend_label,
+            color=color,
+        )
+
+        plt.circle(x="times", y=source_key, source=source, color=color, size=8)
+
+        plt.add_tools(
+            HoverTool(
+                renderers=[line],
+                tooltips=[
+                    ("Backend", legend_label),
+                    ("Density", "@hw_densities"),
+                    ("Time", "@times μs"),
+                ],
+                mode="vline",
+                attachment=hover_tool_attachment,
+            )
+        )
+
+    plt.add_tools(CrosshairTool(dimensions="height"))
+
+    return plt
+
 
 # gg density
 gg_data = {
@@ -75,63 +126,7 @@ gg_data = {
 }
 gg_source = ColumnDataSource(data=gg_data)
 
-gg_plt = figure(
-    title="0 Rydberg",
-    x_axis_label="Time (μs)",
-    y_axis_label="Rydberg Density",
-    tools="pan,wheel_zoom,box_zoom,reset,save",
-    toolbar_location=None,
-)
-
-gg_plt.axis.axis_label_text_font_size = "15pt"
-gg_plt.axis.major_label_text_font_size = "10pt"
-
-gg_emu_line = gg_plt.line(
-    x="times",
-    y="emu_densities",
-    source=gg_source,
-    label="Emulator",
-    color="grey",
-    line_width=2,
-)
-gg_plt.circle(x="times", y="emu_densities", source=gg_source, color="grey", size=8)
-gg_hw_line = gg_plt.line(
-    x="times",
-    y="hw_densities",
-    source=gg_source,
-    label="Hardware",
-    color="purple",
-    line_width=2,
-)
-gg_plt.circle(x="times", y="hw_densities", source=gg_source, color="purple", size=8)
-
-gg_hw_hover_tool = HoverTool(
-    renderers=[gg_hw_line],
-    tooltips=[
-        ("Backend", "Hardware"),
-        ("Density", "@hw_densities"),
-        ("Time", "@times μs"),
-    ],
-    mode="vline",
-    attachment="right",
-)
-gg_plt.add_tools(gg_hw_hover_tool)
-gg_emu_hover_tool = HoverTool(
-    renderers=[gg_emu_line],
-    tooltips=[
-        ("Backend", "Emulator"),
-        ("Density", "@emu_densities"),
-        ("Time", "@times μs"),
-    ],
-    mode="vline",
-    attachment="left",
-)
-
-gg_plt.add_tools(gg_emu_hover_tool)
-gg_cross_hair_tool = CrosshairTool(dimensions="height")
-gg_plt.add_tools(gg_cross_hair_tool)
-
-# show(gg_plt)
+show(generate_plot("0 Rydberg", gg_source))
 
 # gr + rg density
 gr_rg_data = {
@@ -141,134 +136,14 @@ gr_rg_data = {
 }
 gr_rg_source = ColumnDataSource(data=gr_rg_data)
 
-gr_rg_plt = figure(
-    title="1 Rydberg",
-    x_axis_label="Time (μs)",
-    y_axis_label="Rydberg Density",
-    tools="pan,wheel_zoom,box_zoom,reset,save",
-    toolbar_location=None,
-)
+show(generate_plot("1 Rydberg", gr_rg_source))
 
-gr_rg_plt.axis.axis_label_text_font_size = "15pt"
-gr_rg_plt.axis.major_label_text_font_size = "10pt"
-
-gr_rg_emu_line = gr_rg_plt.line(
-    x="times",
-    y="emu_densities",
-    source=gr_rg_source,
-    label="Emulator",
-    color="grey",
-    line_width=2,
-)
-gr_rg_plt.circle(
-    x="times", y="emu_densities", source=gr_rg_source, color="grey", size=8
-)
-gr_rg_hw_line = gr_rg_plt.line(
-    x="times",
-    y="hw_densities",
-    source=gr_rg_source,
-    label="Hardware",
-    color="purple",
-    line_width=2,
-)
-gr_rg_plt.circle(
-    x="times", y="hw_densities", source=gr_rg_source, color="purple", size=8
-)
-
-gr_rg_hw_hover_tool = HoverTool(
-    renderers=[gr_rg_hw_line],
-    tooltips=[
-        ("Backend", "Hardware"),
-        ("Density", "@hw_densities"),
-        ("Time", "@times μs"),
-    ],
-    mode="vline",
-    attachment="right",
-)
-gr_rg_plt.add_tools(gr_rg_hw_hover_tool)
-gr_rg_emu_hover_tool = HoverTool(
-    renderers=[gr_rg_emu_line],
-    tooltips=[
-        ("Backend", "Emulator"),
-        ("Density", "@emu_densities"),
-        ("Time", "@times μs"),
-    ],
-    mode="vline",
-    attachment="left",
-)
-
-gr_rg_plt.add_tools(gr_rg_emu_hover_tool)
-gr_rg_cross_hair_tool = CrosshairTool(dimensions="height")
-gr_rg_plt.add_tools(gr_rg_cross_hair_tool)
-
-# show(gr_rg_plt)
-
-## plot rr density
 rr_data = {
     "times": run_times,
-    "emu_densities": emu_one_probs,
-    "hw_densities": hw_one_probs,
+    "emu_densities": emu_two_probs,
+    "hw_densities": hw_two_probs,
 }
+
 rr_source = ColumnDataSource(data=rr_data)
 
-rr_plt = figure(
-    title="2 Rydberg",
-    x_axis_label="Time (μs)",
-    y_axis_label="Rydberg Density",
-    tools="pan,wheel_zoom,box_zoom,reset,save",
-    toolbar_location=None,
-)
-
-rr_plt.axis.axis_label_text_font_size = "15pt"
-rr_plt.axis.major_label_text_font_size = "10pt"
-
-rr_emu_line = rr_plt.line(
-    x="times",
-    y="emu_densities",
-    source=rr_source,
-    label="Emulator",
-    color="grey",
-    line_width=2,
-)
-rr_plt.circle(x="times", y="emu_densities", source=rr_source, color="grey", size=8)
-rr_hw_line = rr_plt.line(
-    x="times",
-    y="hw_densities",
-    source=rr_source,
-    label="Hardware",
-    color="purple",
-    line_width=2,
-)
-rr_plt.circle(x="times", y="hw_densities", source=rr_source, color="purple", size=8)
-
-rr_hw_hover_tool = HoverTool(
-    renderers=[rr_hw_line],
-    tooltips=[
-        ("Backend", "Hardware"),
-        ("Density", "@hw_densities"),
-        ("Time", "@times μs"),
-    ],
-    mode="vline",
-    attachment="right",
-)
-rr_plt.add_tools(rr_hw_hover_tool)
-rr_emu_hover_tool = HoverTool(
-    renderers=[rr_emu_line],
-    tooltips=[
-        ("Backend", "Emulator"),
-        ("Density", "@emu_densities"),
-        ("Time", "@times μs"),
-    ],
-    mode="vline",
-    attachment="left",
-)
-
-rr_plt.add_tools(rr_emu_hover_tool)
-rr_cross_hair_tool = CrosshairTool(dimensions="height")
-rr_plt.add_tools(rr_cross_hair_tool)
-
-# show(rr_plt)
-
-p = row(gg_plt, gr_rg_plt, rr_plt)
-
-show(p)
+show(generate_plot("2 Rydberg", rr_source))
