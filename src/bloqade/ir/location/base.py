@@ -193,7 +193,7 @@ class AtomArrangement(ProgramStart):
             else:
                 location_list.append(location_info)
 
-            return ListOfLocations(location_list=location_list)
+        return ListOfLocations(location_list=location_list)
 
 
 @dataclass(init=False)
