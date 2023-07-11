@@ -44,7 +44,6 @@ class BraketBackend(SubmissionBackend):
         return self._convert_status_codes(task.state())
 
     def validate_task(self, task_ir: QuEraTaskSpecification):
-        print("validate task called!")
         try:
             task_id = self.submit_task(task_ir)
         except Exception as e:
