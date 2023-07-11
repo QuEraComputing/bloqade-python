@@ -3,7 +3,7 @@
 
 [[package]]
 name = "amazon-braket-default-simulator"
-version = "1.16.0"
+version = "1.18.1"
 requires_python = ">= 3.8"
 summary = "An open source quantum circuit simulator to be run locally with the Amazon Braket SDK"
 dependencies = [
@@ -17,7 +17,7 @@ dependencies = [
 
 [[package]]
 name = "amazon-braket-schemas"
-version = "1.17.0"
+version = "1.18.0"
 requires_python = ">= 3.8"
 summary = "An open source library that contains the schemas for Amazon Braket"
 dependencies = [
@@ -26,12 +26,12 @@ dependencies = [
 
 [[package]]
 name = "amazon-braket-sdk"
-version = "1.48.1"
+version = "1.49.0"
 requires_python = ">= 3.8.2"
 summary = "An open source library for interacting with quantum computing devices on Amazon Braket"
 dependencies = [
-    "amazon-braket-default-simulator>=1.15.0",
-    "amazon-braket-schemas>=1.17.0",
+    "amazon-braket-default-simulator>=1.18.1",
+    "amazon-braket-schemas>=1.18.0",
     "backoff",
     "boltons",
     "boto3>=1.22.3",
@@ -1728,17 +1728,17 @@ groups = ["default", "dev", "doc"]
 content_hash = "sha256:ad816c58214dd33e327dc7f2c287860c39471806e63f966c05c35099d2b7a460"
 
 [metadata.files]
-"amazon-braket-default-simulator 1.16.0" = [
-    {url = "https://files.pythonhosted.org/packages/63/21/e39819f54bf8015b68d7c05b3bc61ae3acdaeb9e53aab4d4838f9b73f9cb/amazon_braket_default_simulator-1.16.0-py3-none-any.whl", hash = "sha256:e9483ea3749bc5992b9367892bd0c82fc7508bcddc40c0ad2327703a149919c5"},
-    {url = "https://files.pythonhosted.org/packages/95/f5/fa3dc1fc3e0cedae921c2b510b92bd65d3af105db17daf2d7c56e7620445/amazon-braket-default-simulator-1.16.0.tar.gz", hash = "sha256:190e256a872dca2402c9217e3b88e5e13a3b573c746c31ee5423203cc9c4396a"},
+"amazon-braket-default-simulator 1.18.1" = [
+    {url = "https://files.pythonhosted.org/packages/5b/95/7a8f58d760abedf2cbd4030e8658644a4fda048fd5889d118847215060e2/amazon-braket-default-simulator-1.18.1.tar.gz", hash = "sha256:8e90ec4c0a6d89cbc5e2d62fa7ea7699065bc42ed888c323bd45ce070da11c51"},
+    {url = "https://files.pythonhosted.org/packages/e7/cf/9eb00685661159695409ce515c83b6783a19e3ccb75135ba05835d0182ee/amazon_braket_default_simulator-1.18.1-py3-none-any.whl", hash = "sha256:3795aa765c7e0edcc1e2a4ef6fbf670bd3e7d89b1147014f6ea83f440a4e0c8e"},
 ]
-"amazon-braket-schemas 1.17.0" = [
-    {url = "https://files.pythonhosted.org/packages/69/d8/07e46a782f97d6d54933eaf27ac7f9f66bf7ac3fc788d3ca8c0a1311c1e4/amazon-braket-schemas-1.17.0.tar.gz", hash = "sha256:003b7bf00cfaaf5860ce85c68759626dae67ecb2edcfa92fbd9a2a7d0f74a8ad"},
-    {url = "https://files.pythonhosted.org/packages/b6/95/e820589badd6b77be52ee7ab380459411aea4010dee2445950c682dd7aa2/amazon_braket_schemas-1.17.0-py3-none-any.whl", hash = "sha256:36809ca4e925921ee4c99350f2db4ca21f7bec7105075cafbe752eaebf2602ba"},
+"amazon-braket-schemas 1.18.0" = [
+    {url = "https://files.pythonhosted.org/packages/9d/8c/f0e95f980382f48d1269aae8260bde2df0a1b3582118b2179a5e5b66bcaf/amazon_braket_schemas-1.18.0-py3-none-any.whl", hash = "sha256:2912f26f0dd9e4b6131930db755c7adbe844a0500ebc4fd84a78bb3a4ab448c6"},
+    {url = "https://files.pythonhosted.org/packages/ec/57/e587dd979d84fb3633a07465be19400f53f8e9ce861279623db68a5a7ef2/amazon-braket-schemas-1.18.0.tar.gz", hash = "sha256:1bc6166b7a1c7e353a51733805fb34453bb0238526a81a5048336b3c72a1e3ae"},
 ]
-"amazon-braket-sdk 1.48.1" = [
-    {url = "https://files.pythonhosted.org/packages/80/5b/0ed3a53cd446118caf5deb59bb0900af4890683dcbc0a3e8da31e3f8f827/amazon-braket-sdk-1.48.1.tar.gz", hash = "sha256:6a931d3e61dd2092b5469c4a0edc4e398c77557028075ae374c3579ddefdff6d"},
-    {url = "https://files.pythonhosted.org/packages/91/f8/4497c0bf765de96fd5cc940c650c12fce1aafc2d43a4c850dfa01ca59dc2/amazon_braket_sdk-1.48.1-py3-none-any.whl", hash = "sha256:ccfc34e6e9f884459046779bc7f29576e641f5d6a41690c2c420048af7bde59a"},
+"amazon-braket-sdk 1.49.0" = [
+    {url = "https://files.pythonhosted.org/packages/e3/85/881ae3c69f9d97bbe84c9878b2e3fe12f396b9a5038bec177d365c0ce103/amazon-braket-sdk-1.49.0.tar.gz", hash = "sha256:13a19d61f5544367ceb199229f787d9345bcbd3238ea2ba5ab8643c9d7102a0c"},
+    {url = "https://files.pythonhosted.org/packages/fd/06/1e5b06e86b60bef5ff0d7f1d0e2479173c3644ef998486f7f7426fa6e02a/amazon_braket_sdk-1.49.0-py3-none-any.whl", hash = "sha256:bf47945c24405f7dad0ac07fa2d91f2120dee3de2a3e4c1d90aae6b7b7dd7881"},
 ]
 "antlr4-python3-runtime 4.9.2" = [
     {url = "https://files.pythonhosted.org/packages/04/9c/d5ef93dc1e5a862cae004a64d15425c2a1ae8ba967a08f03dfb11aedf7bf/antlr4-python3-runtime-4.9.2.tar.gz", hash = "sha256:31f5abdc7faf16a1a6e9bf2eb31565d004359b821b09944436a34361929ae85a"},
