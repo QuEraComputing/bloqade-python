@@ -18,7 +18,7 @@
 # # Adiabatic Evolution of Rydberg Atoms
 
 # %%
-import bloqade.location as location
+import bloqade.ir.location as location
 from bloqade.ir import Sequence, rydberg, detuning, rabi, Uniform, Linear, Constant
 
 # %% [markdown]
@@ -37,33 +37,27 @@ rabi_waveform = (
 )
 
 task_builder = location.Square(6)
-task_builder.rydberg.detuning.uniform.apply(detuning_waveform)
-task_builder.rabi.amplitude.uniform.apply(rabi_waveform)
-
-# stop building for small task
-small_program = task_builder.program.copy()
-
-# continue constructing larger task
-task_builder.multiplex(spacing=25.0)  # make multiplex a terminating action
-large_program = task_builder.program
-
-# single task
-small_program.assign(
+task_builder = task_builder.rydberg.detuning.uniform.apply(detuning_waveform)
+task_builder = task_builder.rabi.amplitude.uniform.apply(rabi_waveform)
+task_builder = task_builder.assign(
     initial_detuning=-15,
     final_detuning=10,
     up_time=0.1,
     anneal_time=10,
     rabi_amplitude_max=15,
-).simulate()
+)
+# stop building for small task
+small_program = task_builder.braket_local_simulator(1000)
 
-simulation_task = small_program.simulate()
-simulation_task_report = simulation_task.report()
+# continue constructing larger task
+large_program = task_builder.parallelize(25.0).mock(1000)
 
-large_program.assign(config="config_file.toml")
+# single task
+small_program.submit()
 
-braket_batch_program = large_program.braket(nshots=1000)
-braket_batch_task = large_program.submit(token="112312312")
-braket_batch_task_report = braket_batch_task.report()
+# parallelized task
+large_program.submit()
+
 
 # %%
 location.Square(6).rydberg.detuning.uniform.apply(
@@ -74,17 +68,17 @@ location.Square(6).rydberg.detuning.uniform.apply(
     Linear(0.0, "rabi_amplitude_max", "up_time")
     .append(Constant("rabi_amplitude_max", "anneal_time"))
     .append(Linear("rabi_amplitude_max", 0.0, "up_time"))
-).multiplex().assign(
+).parallelize(
+    20
+).assign(
     initial_detuning=-15,
     final_detuning=10,
     up_time=0.1,
     anneal_time=10,
     rabi_amplitude_max=15,
-).braket(
+).mock(
     nshots=1000
-).submit(
-    token="112312312"
-).report()
+).submit().report()
 
 # %% [markdown]
 # dict interface (only used by developmenet team)
