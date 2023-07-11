@@ -14,7 +14,7 @@ FloatType = Union[Decimal, float]
 
 def discretize_list(list_of_values: list, resolution: FloatType):
     resolution = Decimal(str(float(resolution)))
-    return [Decimal(value).quantize(resolution) for value in list_of_values]
+    return [round(Decimal(value) / resolution) * resolution for value in list_of_values]
 
 
 class GlobalField(BaseModel):
