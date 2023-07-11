@@ -67,7 +67,7 @@ def extract_braket_program(quera_task_ir: QuEraTaskSpecification):
 
     register = AtomArrangement()
     for site, filled in zip(lattice.sites, lattice.filling):
-        site_type = SiteType.FILLED if filled == 1 else SiteType.EMPTY
+        site_type = SiteType.FILLED if filled == 1 else SiteType.VACANT
         register.add(site, site_type)
 
     hamiltonian = DrivingField(
