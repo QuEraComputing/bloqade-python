@@ -22,8 +22,9 @@ import bloqade.ir.location as location
 from bloqade.ir import Sequence, rydberg, detuning, rabi, Uniform, Linear, Constant
 
 # %% [markdown]
-# split up waveform construction
+# # split up waveform construction
 
+# %%
 detuning_waveform = (
     Constant("initial_detuning", "up_time")
     .append(Linear("initial_detuning", "final_detuning", "anneal_time"))
@@ -46,18 +47,11 @@ task_builder = task_builder.assign(
     anneal_time=10,
     rabi_amplitude_max=15,
 )
-# stop building for small task
+
 small_program = task_builder.braket_local_simulator(1000)
-
-# continue constructing larger task
-large_program = task_builder.parallelize(25.0).mock(1000)
-
-# single task
 small_program.submit()
-
-# parallelized task
+large_program = task_builder.parallelize(25.0).mock(1000)
 large_program.submit()
-
 
 # %%
 location.Square(6).rydberg.detuning.uniform.apply(
