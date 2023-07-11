@@ -1,6 +1,8 @@
 from bloqade import start, cast
+from bloqade.task import HardwareFuture
 
 from bokeh.plotting import figure, show
+from bokeh.models import ColumnDataSource, HoverTool, CrosshairTool
 import numpy as np
 
 
@@ -48,33 +50,99 @@ multi_qubit_blockade_program = program.rydberg.rabi.amplitude.uniform.piecewise_
     durations, [0, 5, 5, 0]
 ).detuning.uniform.constant(value=0, duration=sum(durations))
 
-# run on local emulator
+
 multi_qubit_blockade_job = multi_qubit_blockade_program.batch_assign(
     t_run=0.05 * np.arange(21)
 ).assign(ramp_time=0.06)
 
+# run on local emulator
 emu_job = multi_qubit_blockade_job.braket_local_simulator(10000).submit().report()
 
-hw_job = (
+# run on hardware
+"""
+(
     multi_qubit_blockade_job.parallelize(24)
     .braket(100)
     .submit()
     .save_json("example-2-multi-qubit-blockaded-job.json")
 )
+"""
+
+# load results from HW
+hw_future = HardwareFuture()
+hw_future.load_json("example-2-multi-qubit-blockaded-job.json")
+hw_densities = hw_future.result().rydberg_densities()
+
+# Put data into format that Bokeh can consume,
+# want to take the mean across all the densities
+data = {
+    "times": 0.05 * np.arange(21),
+    "emu_mean_densities": emu_job.rydberg_densities().mean(axis=1),
+    "hw_mean_densities": hw_densities.mean(axis=1),
+}
+source = ColumnDataSource(data=data)
 
 # plot results
-p = figure(
+mean_densities_plt = figure(
     x_axis_label="Time (us)",
-    y_axis_label="Rydberg Density",
+    y_axis_label="Mean Rydberg Density",
     tools="",
     toolbar_location=None,
 )
 
-p.axis.axis_label_text_font_size = "15pt"
-p.axis.major_label_text_font_size = "10pt"
+mean_densities_plt.axis.axis_label_text_font_size = "15pt"
+mean_densities_plt.axis.major_label_text_font_size = "10pt"
 
-# take the mean of the rydberg densities
-p.line(0.05 * np.arange(21), emu_job.rydberg_densities().mean(axis=1), line_width=2)
-p.x(0.05 * np.arange(21), emu_job.rydberg_densities().mean(axis=1), size=20)
+# plot emulator data
+emu_line = mean_densities_plt.line(
+    x="times",
+    y="emu_mean_densities",
+    source=source,
+    legend_label="Emulator",
+    color="grey",
+    line_width=2,
+)
+mean_densities_plt.circle(
+    x="times", y="emu_mean_densities", source=source, color="grey", size=8
+)
 
-show(p)
+# hardware densities
+hw_line = mean_densities_plt.line(
+    x="times",
+    y="hw_mean_densities",
+    source=source,
+    legend_label="Hardware",
+    color="purple",
+    line_width=2,
+)
+mean_densities_plt.circle(
+    x="times", y="hw_mean_densities", source=source, color="purple", size=8
+)
+
+# add hover tools and interactive goodies
+hw_hover_tool = HoverTool(
+    renderers=[hw_line],
+    tooltips=[
+        ("Backend", "Hardware"),
+        ("Mean Density", "@hw_mean_densities"),
+        ("Time", "@times μs"),
+    ],
+    mode="vline",
+    attachment="right",
+)
+mean_densities_plt.add_tools(hw_hover_tool)
+emu_hover_tool = HoverTool(
+    renderers=[emu_line],
+    tooltips=[
+        ("Backend", "Emulator"),
+        ("Mean Density", "@emu_mean_densities"),
+        ("Time", "@times μs"),
+    ],
+    mode="vline",
+    attachment="left",
+)
+mean_densities_plt.add_tools(emu_hover_tool)
+cross_hair_tool = CrosshairTool(dimensions="height")
+mean_densities_plt.add_tools(cross_hair_tool)
+
+show(mean_densities_plt)
