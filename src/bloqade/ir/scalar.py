@@ -246,6 +246,8 @@ def trycast(py) -> Any:
             return Variable(x)
         case list() as xs:
             return list(map(cast, xs))
+        case tuple() as xs:
+            return tuple(map(cast, xs))
         case Scalar():
             return py
         case _:
