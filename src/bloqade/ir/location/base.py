@@ -48,7 +48,7 @@ class AtomArrangement(ProgramStart):
         y_max = -np.inf
         for idx, location_info in enumerate(self.enumerate()):
             (x_var, y_var) = location_info.position
-            (x, y) = (x_var(**assignments), y_var(**assignments))
+            (x, y) = (float(x_var(**assignments)), float(y_var(**assignments)))
             x_min = min(x, x_min)
             y_min = min(y, y_min)
             x_max = max(x, x_max)
@@ -193,7 +193,7 @@ class AtomArrangement(ProgramStart):
             else:
                 location_list.append(location_info)
 
-            return ListOfLocations(location_list=location_list)
+        return ListOfLocations(location_list=location_list)
 
 
 @dataclass(init=False)
