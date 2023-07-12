@@ -19,7 +19,7 @@
 
 # %%
 import bloqade.ir.location as location
-from bloqade.ir import Sequence, rydberg, detuning, rabi, Uniform, Linear, Constant
+from bloqade.ir import Linear, Constant
 
 # %% [markdown]
 # # split up waveform construction
@@ -37,66 +37,37 @@ rabi_waveform = (
     .append(Linear("rabi_amplitude_max", 0.0, "up_time"))
 )
 
-task_builder = location.Square(6)
+task_builder = location.Square(3, lattice_spacing=6.1)
 task_builder = task_builder.rydberg.detuning.uniform.apply(detuning_waveform)
 task_builder = task_builder.rabi.amplitude.uniform.apply(rabi_waveform)
 task_builder = task_builder.assign(
     initial_detuning=-15,
     final_detuning=10,
     up_time=0.1,
-    anneal_time=10,
+    anneal_time=3,
     rabi_amplitude_max=15,
 )
 
 small_program = task_builder.braket_local_simulator(1000)
-small_program.submit()
 large_program = task_builder.parallelize(25.0).mock(1000)
 large_program.submit()
+small_program.submit()
 
 # %%
-location.Square(6).rydberg.detuning.uniform.apply(
-    Constant("initial_detuning", "up_time")
-    .append(Linear("initial_detuning", "final_detuning", "anneal_time"))
-    .append(Constant("final_detuning", "up_time"))
-).rabi.amplitude.uniform.apply(
-    Linear(0.0, "rabi_amplitude_max", "up_time")
-    .append(Constant("rabi_amplitude_max", "anneal_time"))
-    .append(Linear("rabi_amplitude_max", 0.0, "up_time"))
+location.Square(15).rydberg.detuning.uniform.piecewise_linear(
+    ["up_time", "anneal_time", "up_time"],
+    ["initial_detuning", "initial_detuning", "final_detuning", "final_detuning"],
+).rabi.amplitude.uniform.piecewise_linear(
+    ["up_time", "anneal_time", "up_time"],
+    [0.0, "rabi_amplitude_max", "rabi_amplitude_max", 0.0],
 ).parallelize(
     20
 ).assign(
     initial_detuning=-15,
     final_detuning=10,
     up_time=0.1,
-    anneal_time=10,
+    anneal_time=3,
     rabi_amplitude_max=15,
 ).mock(
     nshots=1000
 ).submit().report()
-
-# %% [markdown]
-# dict interface (only used by developmenet team)
-
-# %%
-seq = Sequence(
-    {
-        rydberg: {
-            detuning: {
-                Uniform: Constant("initial_detuning", "up_time")
-                .append(Linear("initial_detuning", "final_detuning", "anneal_time"))
-                .append(Constant("final_detuning", "up_time")),
-            },
-            rabi.amplitude: {
-                Uniform: Linear(0.0, "rabi_amplitude_max", "up_time")
-                .append(Constant("rabi_amplitude_max", "anneal_time"))
-                .append(Linear("rabi_amplitude_max", 0.0, "up_time"))
-            },
-        }
-    }
-)
-
-# %%
-location.Square(6).apply(seq).braket(nshots=1000).submit(token="112312312").report()
-
-# %%
-print(seq)
