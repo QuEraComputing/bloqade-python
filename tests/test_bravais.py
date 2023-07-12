@@ -3,7 +3,7 @@ from bloqade import cast
 import pytest
 
 
-@pytest.mark.skipif(True, reason="Not implemented")
+# @pytest.mark.skipif(True, reason="Not implemented")
 def test_square():
     lattice = Square(3, lattice_spacing=2.0)
     positions = set(map(lambda info: info.position, lattice.enumerate()))
@@ -14,9 +14,9 @@ def test_square():
     assert positions == positions_expected
 
 
-@pytest.mark.skipif(True, reason="Not implemented")
+# @pytest.mark.skipif(True, reason="Not implemented")
 def test_rectangular():
-    lattice = Rectangular(2, 3, lattice_sapcing_x=0.5, lattice_spacing_y=2)
+    lattice = Rectangular(2, 3, lattice_spacing_x=0.5, lattice_spacing_y=2)
     positions = set(map(lambda info: info.position, lattice.enumerate()))
     positions_expected = set(
         cast([(0, 0), (0, 2.0), (0, 4.0), (0.5, 0), (0.5, 2.0), (0.5, 4.0)])
