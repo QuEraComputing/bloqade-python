@@ -105,7 +105,6 @@ def test_lieb():
             ]
         )
     )    
-    
     assert positions == positions_expected   
 
 def test_scale_lattice():
