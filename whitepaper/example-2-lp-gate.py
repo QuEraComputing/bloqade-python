@@ -1,8 +1,10 @@
 from bloqade import start, var
+from bloqade.task import HardwareFuture
 
 import numpy as np
 import os
-from bokeh.layouts import row
+
+from bokeh.models import ColumnDataSource, HoverTool
 from bokeh.plotting import figure, show
 
 delta = 0.377371  # Detuning
@@ -12,9 +14,7 @@ tau = 4.29268  # Time of each pulse
 amplitude_max = 10
 min_time_step = 0.05
 detuning_value = delta * amplitude_max
-T = (
-    tau / amplitude_max - min_time_step
-)  # this T ends up being smaller than the minimum time step
+T = tau / amplitude_max - min_time_step
 
 durations = [
     min_time_step,
@@ -76,8 +76,10 @@ for lp_gate_job in lp_gate_jobs:
     emu_jobs.append(lp_gate_job.braket_local_simulator(10000).submit().report())
 
 # submit to HW
+
 hw_jobs_json_dir = "./example-2-lp-gate-jobs/"
-os.makedirs(hw_jobs_json_dir, exist_ok=True)
+os.makedirs(hw_jobs_json_dir)
+"""
 for lp_gate_job, file_name in zip(lp_gate_jobs, atom_positions_names):
     (
         lp_gate_job.parallelize(24)
@@ -87,44 +89,79 @@ for lp_gate_job, file_name in zip(lp_gate_jobs, atom_positions_names):
             hw_jobs_json_dir + "/" + "example-2-lp-gate-" + file_name + "-job.json"
         )
     )
+"""
 
-
-# plot results
-single_atom_lp = figure(
-    title="Single Atom LP Gate",
-    x_axis_label="Time (us)",
-    y_axis_label="Rydberg Density",
-    tools="",
-    toolbar_location=None,
+# load results from HW
+single_atom_hw_future = HardwareFuture()
+single_atom_hw_future.load_json(
+    hw_jobs_json_dir + "example-2-lp-gate-" + atom_positions_names[0] + "-job.json"
+)
+dual_atom_hw_future = HardwareFuture()
+dual_atom_hw_future.load_json(
+    hw_jobs_json_dir + "example-2-lp-gate-" + atom_positions_names[1] + "-job.json"
 )
 
-single_atom_lp.axis.axis_label_text_font_size = "15pt"
-single_atom_lp.axis.major_label_text_font_size = "10pt"
+hw_jobs = [single_atom_hw_future.report(), dual_atom_hw_future.report()]
 
-single_atom_lp.line(run_times, emu_jobs[0].rydberg_densities()[0], line_width=2)
 
-dual_atom_lp = figure(
-    title="Dual Atom LP Gate",
-    x_axis_label="Time (us)",
-    y_axis_label="Rydberg Density",
-    tools="",
-    toolbar_location=None,
+def generate_plots(title, source):
+    plt = figure(
+        title=title, x_axis_label="Time (μs)", y_axis_label="Rydberg Density", tools=""
+    )
+
+    backends = ["Emulator", "Hardware"]
+    src_keys = ["emu_densities", "hw_densities"]
+    colors = ["grey", "purple"]
+    hover_tool_attachment = ["left", "right"]
+
+    for backend, src_key, color in zip(backends, src_keys, colors):
+        line = plt.line(
+            x="times",
+            y=src_key,
+            source=source,
+            legend_label=backend,
+        )
+        plt.circle(
+            x="times",
+            y=src_key,
+            source=source,
+            color=color,
+            size=8,
+        )
+        plt.add_tools(
+            HoverTool(
+                renders=[line],
+                tooltips=[
+                    ("Backend", backend),
+                    ("Density", "@" + src_key),
+                    ("Time", "@times μs"),
+                ],
+                mode="vline",
+                attachment=hover_tool_attachment,
+            )
+        )
+
+    return plt
+
+
+## Single Atom data source
+single_atom_src = ColumnDataSource(
+    data={
+        "times": run_times,
+        "emu_densities": emu_jobs[0].rydberg_densities(),
+        "hw_densities": hw_jobs[0].rydberg_densities(),
+    }
 )
 
-dual_atom_lp.axis.axis_label_text_font_size = "15pt"
-dual_atom_lp.axis.major_label_text_font_size = "10pt"
-
-dual_atom_lp.line(
-    run_times, emu_jobs[1].rydberg_densities()[0], line_width=2, legend_label="Atom 1"
-)
-dual_atom_lp.line(
-    run_times,
-    emu_jobs[1].rydberg_densities()[1],
-    line_width=2,
-    color="red",
-    legend_label="Atom 2",
+## Dual Atom data source
+dual_atom_src = ColumnDataSource(
+    data={
+        "times": run_times,
+        "emu_densities": emu_jobs[1].rydberg_densities(),
+        "hw_densities": hw_jobs[1].rydberg_densities(),
+    }
 )
 
-p = row(single_atom_lp, dual_atom_lp)
+show(generate_plots("Single Atom LP Gate", single_atom_src))
 
-show(p)
+show(generate_plots("Dual Atom LP Gate", dual_atom_src))
