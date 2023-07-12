@@ -20,7 +20,6 @@ def test_rectangular():
     positions_expected = set(
         cast([(0, 0), (0, 2.0), (0, 4.0), (0.5, 0), (0.5, 2.0), (0.5, 4.0)])
     )
-    
     assert positions == positions_expected
     
     lattice = Rectangular(2, 3, lattice_spacing_x=0.5)
@@ -28,16 +27,28 @@ def test_rectangular():
     positions_expected = set(
         cast([(0, 0), (0, 1.0), (0, 2.0), (0.5, 0), (0.5, 1.0), (0.5, 2.0)])
     )
-
     assert positions == positions_expected
 
 def test_kagome():
     lattice = Kagome(2, lattice_spacing=2.0)
     positions = set(map(lambda info: info.position, lattice.enumerate()))
     positions_expected = set(
-        cast([(0, 0), (1.0, 0), (2, 0), (3, 0),(0.5,sqrt(3)*0.5), (2.5,sqrt(3)*0.5),
-              (1,sqrt(3)), (3,sqrt(3)), (2,sqrt(3)), (4,sqrt(3)),
-              (1.5,sqrt(3)*1.5), (3.5,sqrt(3)*1.5)])
+        cast(
+            [
+                (0, 0), 
+                (1.0, 0), 
+                (2, 0), 
+                (3, 0),
+                (0.5, sqrt(3) * 0.5), 
+                (2.5, sqrt(3) * 0.5),
+                (1, sqrt(3)), 
+                (3, sqrt(3)), 
+                (2, sqrt(3)), 
+                (4, sqrt(3)),
+                (1.5, sqrt(3) * 1.5), 
+                (3.5, sqrt(3) * 1.5)
+            ]
+        )
     )
 
     assert positions == positions_expected
@@ -45,9 +56,7 @@ def test_kagome():
 def test_triangular():
     lattice = Triangular(2, lattice_spacing=2.0)
     positions = set(map(lambda info: info.position, lattice.enumerate()))
-    positions_expected = set(
-        cast([(0, 0), (2, 0), (1.0, sqrt(3)),(3,sqrt(3))])
-    )
+    positions_expected = set(cast([(0, 0), (2, 0), (1.0, sqrt(3)),(3, sqrt(3))]))
 
     assert positions == positions_expected
 
@@ -59,14 +68,14 @@ def test_honeycomb():
     positions_expected = set(
         cast(
             [
-                (0., 0),
-                (2., 0),
-                (1., 1/sqrt(3)),
-                (3., 1/sqrt(3)),
-                (1., sqrt(3)),
-                (3., sqrt(3)),
-                (2., sqrt(3)+ 1/sqrt(3)),
-                (4., sqrt(3)+ 1/sqrt(3))               
+                (0.0, 0),
+                (2.0, 0),
+                (1.0, 1 / sqrt(3)),
+                (3.0, 1 / sqrt(3)),
+                (1.0, sqrt(3)),
+                (3.0, sqrt(3)),
+                (2.0, sqrt(3) + 1 / sqrt(3)),
+                (4.0, sqrt(3) + 1 / sqrt(3)),         
             ]
         )
     )
@@ -75,22 +84,22 @@ def test_honeycomb():
 
 
 def test_lieb():
-    lattice = Lieb(2,lattice_spacing=2)
+    lattice = Lieb(2, lattice_spacing=2)
     positions = set(map(lambda info: info.position, lattice.enumerate()))
     positions_expected = set(
         cast(
             [
-                (0., 0),
-                (2., 0),
-                (0 , 2),
+                (0, 0),
+                (2, 0),
+                (0, 2),
                 (2, 2),
                 (1, 0),
                 (3, 0),
-                (1 , 2),
+                (1, 2),
                 (3, 2),    
-                (0., 1),
-                (2., 1),
-                (0 , 3),
+                (0, 1),
+                (2, 1),
+                (0, 3),
                 (2, 3)   
             ]
         )
@@ -102,8 +111,6 @@ def test_scale_lattice():
     lattice = Triangular(2, lattice_spacing=1)
     latt2 = lattice.scale(2)
     positions = set(map(lambda info: info.position, latt2.enumerate()))
-    positions_expected = set(
-        cast([(0, 0), (2, 0), (1.0, sqrt(3)),(3,sqrt(3))])
-    )
+    positions_expected = set(cast([(0, 0), (2, 0), (1.0, sqrt(3)),(3, sqrt(3))]))
 
     assert positions == positions_expected

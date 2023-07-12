@@ -1,9 +1,9 @@
-#import pytest
-#import bloqade.ir as ir
-#from bloqade.ir import rydberg, detuning
-from bloqade.builder.factory import piecewise_linear,\
-                                    piecewise_constant,\
-                                    constant, linear
+from bloqade.builder.factory import (
+    piecewise_linear,
+    piecewise_constant,
+    constant,
+    linear,
+)
 from bloqade import cast
 
 
@@ -34,7 +34,7 @@ def test_ir_const():
     
 
 def test_ir_linear():
-    A = linear(start = 0.5, stop = 3.2, duration = 0.76)
+    A = linear(start=0.5, stop=3.2, duration=0.76)
     
     ## Linear type ir node:
     assert A.start == cast(0.5)
