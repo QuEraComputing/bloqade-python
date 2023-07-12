@@ -5,7 +5,7 @@
 # for i in range(5):
 #     prog = prog.location(i)
 # prog.linear(start=1.0, stop=2.0, duration="x")
-import pytest
+#import pytest
 import bloqade.ir as ir
 from bloqade.builder import location 
 from bloqade.ir import rydberg, detuning
@@ -14,7 +14,8 @@ from bloqade.ir.location import Square, Chain
 import numpy as np
 
 def test_piecewise_const():
-    prog = start.rydberg.detuning.uniform.piecewise_constant(durations=[0.1,3.1,0.05], values=[4,4,7.5])
+    prog = start.rydberg.detuning.uniform\
+           .piecewise_constant(durations=[0.1,3.1,0.05], values=[4,4,7.5])
 
     ## inspect ir
     node1 = prog
@@ -73,7 +74,9 @@ def test_scale_location():
     assert prog.__parent__.__parent__._scale == cast(1.2)
     
 def test_build_ast_Scale():
-    prog = start.rydberg.detuning.location(1).scale(1.2).location(2).scale(3.3).piecewise_constant(durations=[0.1],values=[1])
+    prog = start.rydberg.detuning.location(1).scale(1.2)\
+                                 .location(2).scale(3.3)\
+                                 .piecewise_constant(durations=[0.1],values=[1])
     
     # compile ast:
     tmp = prog.sequence
@@ -81,7 +84,8 @@ def test_build_ast_Scale():
     locs = list(tmp.value[rydberg].value[detuning].value.keys())[0]
     wvfm = tmp.value[rydberg].value[detuning].value[locs]
 
-    assert locs == ir.ScaledLocations({ir.Location(2): cast(3.3), ir.Location(1): cast(1.2)})
+    assert locs == ir.ScaledLocations({ ir.Location(2): cast(3.3), 
+                                        ir.Location(1): cast(1.2) })
     assert wvfm == ir.Constant(value=cast(1),duration=cast(0.1))
 
 
