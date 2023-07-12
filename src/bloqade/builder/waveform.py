@@ -8,18 +8,23 @@ ScalarType = Union[float, str]
 
 class Waveform(Builder):
     def linear(self, start: ScalarType, stop: ScalarType, duration: ScalarType):
+        """append a linear waveform to the current location."""
         return Linear(self, start, stop, duration)
 
     def constant(self, value: ScalarType, duration: ScalarType):
+        """append a constant waveform to the current location."""
         return Constant(self, value, duration)
 
     def poly(self, coeffs: ScalarType, duration: ScalarType):
+        """append a polynomial waveform to the current location."""
         return Poly(self, coeffs, duration)
 
     def apply(self, wf: ir.Waveform):
+        """apply a pre-defined waveform to the current location."""
         return Apply(self, wf)
 
     def piecewise_linear(self, durations: List[ScalarType], values: List[ScalarType]):
+        """append a piecewise linear waveform to the current location."""
         builder = self
         for duration, start, stop in zip(durations, values[:-1], values[1:]):
             builder = builder.linear(start, stop, duration)
@@ -27,6 +32,7 @@ class Waveform(Builder):
         return builder
 
     def piecewise_constant(self, durations: List[ScalarType], values: List[ScalarType]):
+        """append a piecewise constant waveform to the current location."""
         builder = self
         for duration, value in zip(durations, values):
             builder = builder.constant(value, duration)
@@ -34,6 +40,7 @@ class Waveform(Builder):
         return builder
 
     def fn(self, fn: Callable, duration: ScalarType):
+        """append a waveform defined by a python function to the current location."""
         return PythonFn(self, fn, duration)
 
 
@@ -45,11 +52,13 @@ class Sliceable:
     def slice(
         self, start: Optional[ScalarType] = None, stop: Optional[ScalarType] = None
     ):
+        """slice the current waveform."""
         return Slice(self, start, stop)
 
 
 class Recordable:
     def record(self, name: str):
+        """record the value of the current waveform to a variable."""
         return Record(self, name)
 
 
@@ -89,6 +98,7 @@ class PythonFn(Sliceable, Recordable, WaveformTerminate):
         dt: ScalarType,
         interpolation: Optional[Union[ir.Interpolation, str]] = None,
     ) -> "Sample":
+        """sample the current waveform at the specified time interval."""
         if interpolation is not None:
             return Sample(self, dt, interpolation=interpolation)
 

@@ -14,9 +14,11 @@ class Location(Waveform):
         self._label = label
 
     def scale(self, scale: float):
+        """scale the following waveform by the specified factor."""
         return Scale(self, scale)
 
     def location(self, label: int):
+        """append another location to the current location."""
         return Location(self, label)
 
 
@@ -26,6 +28,7 @@ class Scale(Waveform):
         self._scale = cast(scale)
 
     def location(self, label: int):
+        """append another location to the current location."""
         return Location(self, label)
 
 
