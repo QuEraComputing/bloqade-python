@@ -426,11 +426,13 @@ class Emit(Builder):
 
     @property
     def register(self) -> Union["AtomArrangement", "ParallelRegister"]:
+        
         if self.__register__:
             return self.__register__
 
         current = self
         while current.__parent__ is not None:
+            
             if current.__register__ is not None:
                 self.__register__ = current.__register__
                 return self.__register__
