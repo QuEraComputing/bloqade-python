@@ -1,9 +1,10 @@
 #import pytest
 #import bloqade.ir as ir
 #from bloqade.ir import rydberg, detuning
-from bloqade.builder.factory import piecewise_linear, constant, linear, piecewise_constant
-from bloqade import start, var, cast
-from bloqade.ir.location import Square, Chain
+from bloqade.builder.factory import piecewise_linear,\
+                                    piecewise_constant,\
+                                    constant, linear
+from bloqade import cast
 
 
 def test_ir_piecewise_linear():
