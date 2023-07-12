@@ -1,6 +1,5 @@
 from bloqade.ir.location import Lieb, Square, Rectangular, Honeycomb, Kagome, Triangular
 from bloqade import cast
-import pytest
 from math import sqrt
 
 
