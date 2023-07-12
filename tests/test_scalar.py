@@ -8,7 +8,6 @@ def test_var():
     assert var("a") == scalar.Variable("a")
     assert var("a") != scalar.Variable("b")
 
-
     with pytest.raises(TypeError):
         var(1)
 
