@@ -22,6 +22,7 @@ def test_rectangular():
     )
     assert positions == positions_expected
     
+def test_rectagnular_default_yscale():
     lattice = Rectangular(2, 3, lattice_spacing_x=0.5)
     positions = set(map(lambda info: info.position, lattice.enumerate()))
     positions_expected = set(
@@ -56,14 +57,14 @@ def test_kagome():
 def test_triangular():
     lattice = Triangular(2, lattice_spacing=2.0)
     positions = set(map(lambda info: info.position, lattice.enumerate()))
-    positions_expected = set(cast([(0, 0), (2, 0), (1.0, sqrt(3)),(3, sqrt(3))]))
+    positions_expected = set(cast([(0, 0), (2, 0), (1.0, sqrt(3)), (3, sqrt(3))]))
 
     assert positions == positions_expected
 
 
 
 def test_honeycomb():
-    lattice = Honeycomb(2,lattice_spacing=2)
+    lattice = Honeycomb(2, lattice_spacing=2)
     positions = set(map(lambda info: info.position, lattice.enumerate()))
     positions_expected = set(
         cast(
@@ -111,6 +112,6 @@ def test_scale_lattice():
     lattice = Triangular(2, lattice_spacing=1)
     latt2 = lattice.scale(2)
     positions = set(map(lambda info: info.position, latt2.enumerate()))
-    positions_expected = set(cast([(0, 0), (2, 0), (1.0, sqrt(3)),(3, sqrt(3))]))
+    positions_expected = set(cast([(0, 0), (2, 0), (1.0, sqrt(3)), (3, sqrt(3))]))
 
     assert positions == positions_expected
