@@ -77,6 +77,7 @@ for lp_gate_job in lp_gate_jobs:
 
 # submit to HW
 
+
 hw_jobs_json_dir = "./example-2-lp-gate-jobs/"
 os.makedirs(hw_jobs_json_dir)
 """
@@ -84,12 +85,14 @@ for lp_gate_job, file_name in zip(lp_gate_jobs, atom_positions_names):
     (
         lp_gate_job.parallelize(24)
         .braket(100)
+        .remove_invalid_tasks()
         .submit()
         .save_json(
             hw_jobs_json_dir + "/" + "example-2-lp-gate-" + file_name + "-job.json"
         )
     )
 """
+
 
 # load results from HW
 single_atom_hw_future = HardwareFuture()
