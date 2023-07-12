@@ -21,7 +21,8 @@ def test_rectangular():
         cast([(0, 0), (0, 2.0), (0, 4.0), (0.5, 0), (0.5, 2.0), (0.5, 4.0)])
     )
     assert positions == positions_expected
-    
+
+
 def test_rectagnular_default_yscale():
     lattice = Rectangular(2, 3, lattice_spacing_x=0.5)
     positions = set(map(lambda info: info.position, lattice.enumerate()))
@@ -30,29 +31,31 @@ def test_rectagnular_default_yscale():
     )
     assert positions == positions_expected
 
+
 def test_kagome():
     lattice = Kagome(2, lattice_spacing=2.0)
     positions = set(map(lambda info: info.position, lattice.enumerate()))
     positions_expected = set(
         cast(
             [
-                (0, 0), 
-                (1.0, 0), 
-                (2, 0), 
+                (0, 0),
+                (1.0, 0),
+                (2, 0),
                 (3, 0),
-                (0.5, sqrt(3) * 0.5), 
+                (0.5, sqrt(3) * 0.5),
                 (2.5, sqrt(3) * 0.5),
-                (1, sqrt(3)), 
-                (3, sqrt(3)), 
-                (2, sqrt(3)), 
+                (1, sqrt(3)),
+                (3, sqrt(3)),
+                (2, sqrt(3)),
                 (4, sqrt(3)),
-                (1.5, sqrt(3) * 1.5), 
-                (3.5, sqrt(3) * 1.5)
+                (1.5, sqrt(3) * 1.5),
+                (3.5, sqrt(3) * 1.5),
             ]
         )
     )
 
     assert positions == positions_expected
+
 
 def test_triangular():
     lattice = Triangular(2, lattice_spacing=2.0)
@@ -60,7 +63,6 @@ def test_triangular():
     positions_expected = set(cast([(0, 0), (2, 0), (1.0, sqrt(3)), (3, sqrt(3))]))
 
     assert positions == positions_expected
-
 
 
 def test_honeycomb():
@@ -76,7 +78,7 @@ def test_honeycomb():
                 (1.0, sqrt(3)),
                 (3.0, sqrt(3)),
                 (2.0, sqrt(3) + 1 / sqrt(3)),
-                (4.0, sqrt(3) + 1 / sqrt(3)),         
+                (4.0, sqrt(3) + 1 / sqrt(3)),
             ]
         )
     )
@@ -97,15 +99,17 @@ def test_lieb():
                 (1, 0),
                 (3, 0),
                 (1, 2),
-                (3, 2),    
+                (3, 2),
                 (0, 1),
                 (2, 1),
                 (0, 3),
-                (2, 3)   
+                (2, 3),
             ]
         )
-    )    
-    assert positions == positions_expected   
+    )
+
+    assert positions == positions_expected
+
 
 def test_scale_lattice():
     lattice = Triangular(2, lattice_spacing=1)
