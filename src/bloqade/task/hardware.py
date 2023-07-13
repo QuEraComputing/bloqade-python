@@ -32,9 +32,9 @@ class MockTask(BaseModel, Task):
 
     def run_validation(self) -> None:
         if self.mock_backend:
-            self.mock_backend.validate_task(self.task_ir)
+            return self.mock_backend.validate_task(self.task_ir)
 
-        super().run_validation()
+        return super().run_validation()
 
 
 class BraketTask(MockTask):
@@ -53,9 +53,9 @@ class BraketTask(MockTask):
 
     def run_validation(self) -> None:
         if self.braket_backend:
-            self.braket_backend.validate_task(self.task_ir)
+            return self.braket_backend.validate_task(self.task_ir)
 
-        super().run_validation()
+        return super().run_validation()
 
 
 class QuEraTask(BraketTask):
@@ -74,9 +74,9 @@ class QuEraTask(BraketTask):
 
     def run_validation(self) -> None:
         if self.quera_backend:
-            self.quera_backend.validate_task(self.task_ir)
+            return self.quera_backend.validate_task(self.task_ir)
 
-        super().run_validation()
+        return super().run_validation()
 
 
 class HardwareTask(QuEraTask):
@@ -239,7 +239,7 @@ class HardwareJob(JSONInterface, Job):
             case {"tasks": dict() as tasks}:
                 self.tasks = OrderedDict(
                     [
-                        (task_number, HardwareTask(**tasks[task_number]))
+                        (int(task_number), HardwareTask(**tasks[task_number]))
                         for task_number in sorted(tasks.keys())
                     ]
                 )
@@ -261,7 +261,7 @@ class HardwareFuture(JSONInterface, Future):
             case {"futures": dict() as futures}:
                 self.futures = OrderedDict(
                     [
-                        (task_number, HardwareTaskFuture(**futures[task_number]))
+                        (int(task_number), HardwareTaskFuture(**futures[task_number]))
                         for task_number in sorted(futures.keys())
                     ]
                 )

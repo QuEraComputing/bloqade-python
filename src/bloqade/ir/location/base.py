@@ -40,6 +40,7 @@ class AtomArrangement(ProgramStart):
         raise NotImplementedError
 
     def figure(self, **assignments) -> Plot:
+        """obtain a figure object from the atom arrangement."""
         xs_filled, ys_filled, labels_filled = [], [], []
         xs_vacant, ys_vacant, labels_vacant = [], [], []
         x_min = np.inf
@@ -48,7 +49,7 @@ class AtomArrangement(ProgramStart):
         y_max = -np.inf
         for idx, location_info in enumerate(self.enumerate()):
             (x_var, y_var) = location_info.position
-            (x, y) = (x_var(**assignments), y_var(**assignments))
+            (x, y) = (float(x_var(**assignments)), float(y_var(**assignments)))
             x_min = min(x, x_min)
             y_min = min(y, y_min)
             x_max = max(x, x_max)
@@ -99,13 +100,16 @@ class AtomArrangement(ProgramStart):
 
     @property
     def n_atoms(self) -> int:
+        """number of atoms in the register."""
         raise NotImplementedError
 
     @property
     def n_dims(self) -> int:
+        """number of dimensions in the register."""
         raise NotImplementedError
 
     def scale(self, scale: float | Scalar) -> "ListOfLocations":
+        """scale the atom arrangement with a given factor"""
         from .list import ListOfLocations
 
         scale = cast(scale)
@@ -122,6 +126,7 @@ class AtomArrangement(ProgramStart):
     def add_position(
         self, position: Tuple[Any, Any], filled: bool = True
     ) -> "ListOfLocations":
+        """add a position to existing atom arrangement."""
         from .list import ListOfLocations
 
         location_list = [LocationInfo(position, filled)]
@@ -133,6 +138,7 @@ class AtomArrangement(ProgramStart):
     def add_positions(
         self, positions: List[Tuple[Any, Any]], filling: Optional[List[bool]] = None
     ) -> "ListOfLocations":
+        """add a list of positions to existing atom arrangement."""
         from .list import ListOfLocations
 
         location_list = []
@@ -153,6 +159,7 @@ class AtomArrangement(ProgramStart):
     def apply_defect_count(
         self, n_defects: int, rng: np.random.Generator = np.random.default_rng()
     ) -> "ListOfLocations":
+        """apply n_defects randomly to existing atom arrangement."""
         from .list import ListOfLocations
 
         location_list = []
@@ -173,6 +180,7 @@ class AtomArrangement(ProgramStart):
         defect_probability: float,
         rng: np.random.Generator = np.random.default_rng(),
     ) -> "ListOfLocations":
+        """apply defect_probability randomly to existing atom arrangement."""
         from .list import ListOfLocations
 
         p = min(1, max(0, defect_probability))
@@ -193,7 +201,7 @@ class AtomArrangement(ProgramStart):
             else:
                 location_list.append(location_info)
 
-            return ListOfLocations(location_list=location_list)
+        return ListOfLocations(location_list=location_list)
 
 
 @dataclass(init=False)
