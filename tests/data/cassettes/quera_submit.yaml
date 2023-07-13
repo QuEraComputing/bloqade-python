@@ -1,0 +1,192 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Authorization:
+      - AWS4-HMAC-SHA256 Credential=AWS_ACCESS_KEY_ID/20230713/us-east-1/execute-api/aws4_request,
+        SignedHeaders=host;x-amz-date;x-amz-security-token, Signature=52e619bb56d561b7d616ea289ac5bc2eb0735e62691d097211c4d646294c64da
+      Content-Type:
+      - application/json
+      Host:
+      - sqi0gyx8pc.execute-api.us-east-1.amazonaws.com
+      X-Amz-Date:
+      - 20230713T185205Z
+      X-Amz-Security-Token:
+      - AWS_SESSION_TOKEN
+    method: GET
+    uri: https://vpce-04dde304af887b529-oa3tcw6o.execute-api.us-east-1.vpce.amazonaws.com/v0/qpu1-mock/capabilities
+  response:
+    body:
+      string: '{"version":"0.7","capabilities":{"task":{"number_shots_min":1,"number_shots_max":1000},"lattice":{"number_qubits_max":256,"area":{"width":7.5E-5,"height":7.6E-5},"geometry":{"spacing_radial_min":4.0E-6,"spacing_vertical_min":4.0E-6,"position_resolution":1.0E-7,"number_sites_max":256}},"rydberg":{"c6_coefficient":5.42E-24,"global":{"rabi_frequency_min":0.0,"rabi_frequency_max":1.58E7,"rabi_frequency_resolution":400.0,"rabi_frequency_slew_rate_max":2.5E14,"detuning_min":-1.25E8,"detuning_max":1.25E8,"detuning_resolution":0.2,"detuning_slew_rate_max":2.5E15,"phase_min":-99.0,"phase_max":99.0,"phase_resolution":5.0E-7,"time_min":0.0,"time_max":4.0E-6,"time_resolution":1.0E-9,"time_delta_min":5.0E-8},"local":{"detuning_min":0.0,"detuning_max":1.25E8,"detuning_slew_rate_max":1.2566E15,"site_coefficient_min":0.0,"site_coefficient_max":1.0,"number_local_detuning_sites":200,"spacing_radial_min":5.0E-6,"time_resolution":1.0E-9,"time_delta_min":5.0E-8}}}}'
+    headers:
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '958'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 13 Jul 2023 18:52:05 GMT
+      Server:
+      - Server
+      x-amz-apigw-id:
+      - IBApaHTWoAMF4Mw=
+      x-amzn-Remapped-Connection:
+      - keep-alive
+      x-amzn-RequestId:
+      - 4da4b5de-447d-4797-9cd7-52401cb642c2
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"nshots": 10, "lattice": {"sites": [[0.0, 0.0], [0.0, 2e-05], [0.0, 4e-05],
+      [0.0, 6e-05], [2e-05, 6e-05], [4e-05, 6e-05], [4e-05, 4e-05], [4e-05, 2e-05],
+      [4e-05, 0.0], [6e-05, 0.0], [6e-05, 2e-05], [6e-05, 4e-05], [6e-05, 6e-05],
+      [2e-05, 4e-05], [2e-05, 2e-05], [2e-05, 0.0]], "filling": [1, 1, 1, 1, 1, 1,
+      1, 1, 1, 1, 1, 1, 1, 1, 1, 1]}, "effective_hamiltonian": {"rydberg": {"rabi_frequency_amplitude":
+      {"global": {"times": [0.0, 1e-07, 2.1e-06, 2.2e-06], "values": [0.0, 15000000.0,
+      15000000.0, 0.0]}}, "rabi_frequency_phase": {"global": {"times": [0.0, 2.2e-06],
+      "values": [0.0, 0.0]}}, "detuning": {"global": {"times": [0.0, 2.2e-06], "values":
+      [0.0, 0.0]}}}}}'
+    headers:
+      Authorization:
+      - AWS4-HMAC-SHA256 Credential=AWS_ACCESS_KEY_ID/20230713/us-east-1/execute-api/aws4_request,
+        SignedHeaders=host;x-amz-date;x-amz-security-token, Signature=782218c07186762747382945daa74c47d43f772ae205769ff802dd7c2a8fedf9
+      Content-Length:
+      - '666'
+      Content-Type:
+      - application/json
+      Host:
+      - sqi0gyx8pc.execute-api.us-east-1.amazonaws.com
+      X-Amz-Date:
+      - 20230713T185205Z
+      X-Amz-Security-Token:
+      - AWS_SESSION_TOKEN
+    method: POST
+    uri: https://vpce-04dde304af887b529-oa3tcw6o.execute-api.us-east-1.vpce.amazonaws.com/v0/qpu1-mock/task/validate
+  response:
+    body:
+      string: ''
+    headers:
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '0'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 13 Jul 2023 18:52:05 GMT
+      Server:
+      - Server
+      x-amz-apigw-id:
+      - IBApcGapoAMFTSA=
+      x-amzn-Remapped-Connection:
+      - keep-alive
+      x-amzn-Remapped-Content-Length:
+      - '0'
+      x-amzn-RequestId:
+      - 4024335e-41ad-4bd1-9492-918a4c927b8e
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"nshots": 10, "lattice": {"sites": [[0.0, 0.0], [0.0, 2e-05], [0.0, 4e-05],
+      [0.0, 6e-05], [2e-05, 6e-05], [4e-05, 6e-05], [4e-05, 4e-05], [4e-05, 2e-05],
+      [4e-05, 0.0], [6e-05, 0.0], [6e-05, 2e-05], [6e-05, 4e-05], [6e-05, 6e-05],
+      [2e-05, 4e-05], [2e-05, 2e-05], [2e-05, 0.0]], "filling": [1, 1, 1, 1, 1, 1,
+      1, 1, 1, 1, 1, 1, 1, 1, 1, 1]}, "effective_hamiltonian": {"rydberg": {"rabi_frequency_amplitude":
+      {"global": {"times": [0.0, 1e-07, 2.1e-06, 2.2e-06], "values": [0.0, 15000000.0,
+      15000000.0, 0.0]}}, "rabi_frequency_phase": {"global": {"times": [0.0, 2.2e-06],
+      "values": [0.0, 0.0]}}, "detuning": {"global": {"times": [0.0, 2.2e-06], "values":
+      [0.0, 0.0]}}}}}'
+    headers:
+      Authorization:
+      - AWS4-HMAC-SHA256 Credential=AWS_ACCESS_KEY_ID/20230713/us-east-1/execute-api/aws4_request,
+        SignedHeaders=host;x-amz-date;x-amz-security-token, Signature=782218c07186762747382945daa74c47d43f772ae205769ff802dd7c2a8fedf9
+      Content-Length:
+      - '666'
+      Content-Type:
+      - application/json
+      Host:
+      - sqi0gyx8pc.execute-api.us-east-1.amazonaws.com
+      X-Amz-Date:
+      - 20230713T185205Z
+      X-Amz-Security-Token:
+      - AWS_SESSION_TOKEN
+    method: POST
+    uri: https://vpce-04dde304af887b529-oa3tcw6o.execute-api.us-east-1.vpce.amazonaws.com/v0/qpu1-mock/task/validate
+  response:
+    body:
+      string: ''
+    headers:
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '0'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 13 Jul 2023 18:52:05 GMT
+      Server:
+      - Server
+      x-amz-apigw-id:
+      - IBApdFn9IAMF_rw=
+      x-amzn-Remapped-Connection:
+      - keep-alive
+      x-amzn-Remapped-Content-Length:
+      - '0'
+      x-amzn-RequestId:
+      - 88ace90b-44c8-41b0-919a-3ba83012d482
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"nshots": 10, "lattice": {"sites": [[0.0, 0.0], [0.0, 2e-05], [0.0, 4e-05],
+      [0.0, 6e-05], [2e-05, 6e-05], [4e-05, 6e-05], [4e-05, 4e-05], [4e-05, 2e-05],
+      [4e-05, 0.0], [6e-05, 0.0], [6e-05, 2e-05], [6e-05, 4e-05], [6e-05, 6e-05],
+      [2e-05, 4e-05], [2e-05, 2e-05], [2e-05, 0.0]], "filling": [1, 1, 1, 1, 1, 1,
+      1, 1, 1, 1, 1, 1, 1, 1, 1, 1]}, "effective_hamiltonian": {"rydberg": {"rabi_frequency_amplitude":
+      {"global": {"times": [0.0, 1e-07, 2.1e-06, 2.2e-06], "values": [0.0, 15000000.0,
+      15000000.0, 0.0]}}, "rabi_frequency_phase": {"global": {"times": [0.0, 2.2e-06],
+      "values": [0.0, 0.0]}}, "detuning": {"global": {"times": [0.0, 2.2e-06], "values":
+      [0.0, 0.0]}}}}}'
+    headers:
+      Authorization:
+      - AWS4-HMAC-SHA256 Credential=AWS_ACCESS_KEY_ID/20230713/us-east-1/execute-api/aws4_request,
+        SignedHeaders=host;x-amz-date;x-amz-security-token, Signature=dae8577d4c77006a0752c54a74e8ba3b406dbb99e89602ab172bcc818410eb93
+      Content-Length:
+      - '666'
+      Content-Type:
+      - application/json
+      Host:
+      - sqi0gyx8pc.execute-api.us-east-1.amazonaws.com
+      X-Amz-Date:
+      - 20230713T185205Z
+      X-Amz-Security-Token:
+      - AWS_SESSION_TOKEN
+    method: POST
+    uri: https://vpce-04dde304af887b529-oa3tcw6o.execute-api.us-east-1.vpce.amazonaws.com/v0/qpu1-mock/queue/task
+  response:
+    body:
+      string: '{"task_id":"3cf3fbf9-b3e3-44fe-9892-30f1dd156951","task_queue_id":43243,"task_def_id":43243,"status":"Enqueued","created":null}'
+    headers:
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '127'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 13 Jul 2023 18:52:06 GMT
+      Server:
+      - Server
+      x-amz-apigw-id:
+      - IBApfH_2oAMFYTw=
+      x-amzn-Remapped-Connection:
+      - keep-alive
+      x-amzn-RequestId:
+      - d1f4f62a-0e2a-4f1a-adb8-5a2cd689d9ff
+    status:
+      code: 201
+      message: Created
+version: 1
