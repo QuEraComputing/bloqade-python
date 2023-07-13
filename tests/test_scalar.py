@@ -134,7 +134,7 @@ def test_interval():
     assert itvl_no_stop.children() == {"start": cast(0)}
 
 
-def canonicalize_neg_neg():
+def test_canonicalize_neg_neg():
     sa = cast(1.0)
     nsa = -sa
     nsa2 = -nsa
@@ -142,10 +142,16 @@ def canonicalize_neg_neg():
     out2 = scalar.Scalar.canonicalize(nsa2)
     assert out2.value == Decimal("1.0")
 
+    sb = cast(-1.0)
+    nsb = scalar.Negative(sb)
 
-def canonicalize_add_neg():
+    out3 = scalar.Scalar.canonicalize(nsb)
+    assert out3 == cast(1.0)
+
+
+def test_canonicalize_add_neg():
     sa = cast(1.0)
-    nsa = -sa
+    nsa = scalar.Negative(sa)
 
     outR = scalar.Add(sa, nsa)
     outL = scalar.Add(nsa, sa)
@@ -156,8 +162,17 @@ def canonicalize_add_neg():
     assert outR == scalar.Literal(0.0)
     assert outL == scalar.Literal(0.0)
 
+    A = cast(1.0)
+    B = cast(2.0)
 
-def canonicalize_mul_zero():
+    C = scalar.Add(A, B)
+    nC = -C
+
+    assert scalar.Scalar.canonicalize(scalar.Add(C, nC)) == scalar.Literal(0.0)
+    assert scalar.Scalar.canonicalize(scalar.Add(nC, C)) == scalar.Literal(0.0)
+
+
+def test_canonicalize_mul_zero():
     zero = scalar.Literal(0.0)
     one = cast(1)
 
@@ -169,3 +184,11 @@ def canonicalize_mul_zero():
 
     assert outR == scalar.Literal(0.0)
     assert outL == scalar.Literal(0.0)
+
+    A = cast(1.0)
+    B = cast(2.0)
+
+    C = scalar.Add(A, B)
+
+    assert scalar.Scalar.canonicalize(scalar.Mul(zero, C)) == scalar.Literal(0.0)
+    assert scalar.Scalar.canonicalize(scalar.Mul(C, zero)) == scalar.Literal(0.0)
