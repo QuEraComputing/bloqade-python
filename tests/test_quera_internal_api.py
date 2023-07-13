@@ -1,9 +1,9 @@
 from bloqade import start
 from bloqade.task import HardwareFuture
-import vcr
+import pytest
 
 
-@vcr.use_cassette("tests/data/cassettes/quera_submit.yaml")
+@pytest.mark.vcr
 def test_quera_submit():
     job_future = (
         start.add_position((0, 0))
@@ -12,22 +12,17 @@ def test_quera_submit():
         )
         .assign(run_time=2.0)
         .parallelize(20)
-        .quera(10, config_file="tests/data/config/mock_quera_api.json")
-        .remove_invalid_tasks()
+        .quera(10, config_file="tests/data/config/submit_quera_api.json")
         .submit()
     )
 
     job_future.save_json("tests/data/jobs/quera_submit.json")
 
 
-@vcr.use_cassette("tests/data/cassettes/quera_fetch.yaml")
+@pytest.mark.vcr
 def test_quera_retrieve():
     job_future = HardwareFuture()
     job_future.load_json("tests/data/jobs/quera_submit.json")
     for number, future in job_future.futures.items():
-        print(future.status())
+        print(f"{number}: {future.status()}")
     print(job_future.report().markdown)
-
-
-test_quera_submit()
-test_quera_retrieve()

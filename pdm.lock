@@ -1302,6 +1302,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "pytest-recording"
+version = "0.12.2"
+requires_python = ">=3.5"
+summary = "A pytest plugin that allows you recording of network interactions via VCR.py"
+dependencies = [
+    "attrs",
+    "pytest>=3.5.0",
+    "vcrpy>=2.0.1",
+]
+
+[[package]]
 name = "python-dateutil"
 version = "2.8.2"
 requires_python = "!=3.0.*,!=3.1.*,!=3.2.*,>=2.7"
@@ -1667,8 +1678,8 @@ summary = "HTTP library with thread-safe connection pooling, file post, and more
 
 [[package]]
 name = "vcrpy"
-version = "5.0.0"
-requires_python = ">=3.8"
+version = "4.4.0"
+requires_python = ">=3.7"
 summary = "Automatically mock your HTTP interactions to simplify and speed up testing"
 dependencies = [
     "PyYAML",
@@ -1759,7 +1770,7 @@ summary = "Backport of pathlib-compatible object wrapper for zip files"
 lock_version = "4.2"
 cross_platform = true
 groups = ["default", "dev", "doc", "testing"]
-content_hash = "sha256:c00e8daa857eb23baa1adc0573f70155346ca08ddd26b807944cf347d6fd59c7"
+content_hash = "sha256:6b1a40eaed5f3255ff2d98c1af69c818d95d78149ada2b752dcdfdd9b27be267"
 
 [metadata.files]
 "amazon-braket-default-simulator 1.18.1" = [
@@ -3067,6 +3078,10 @@ content_hash = "sha256:c00e8daa857eb23baa1adc0573f70155346ca08ddd26b807944cf347d
     {url = "https://files.pythonhosted.org/packages/33/b2/741130cbcf2bbfa852ed95a60dc311c9e232c7ed25bac3d9b8880a8df4ae/pytest-7.4.0-py3-none-any.whl", hash = "sha256:78bf16451a2eb8c7a2ea98e32dc119fd2aa758f1d5d66dbf0a59d69a3969df32"},
     {url = "https://files.pythonhosted.org/packages/a7/f3/dadfbdbf6b6c8b5bd02adb1e08bc9fbb45ba51c68b0893fa536378cdf485/pytest-7.4.0.tar.gz", hash = "sha256:b4bf8c45bd59934ed84001ad51e11b4ee40d40a1229d2c79f9c592b0a3f6bd8a"},
 ]
+"pytest-recording 0.12.2" = [
+    {url = "https://files.pythonhosted.org/packages/6c/f4/2f74cd201d2019b305eeedb4b220449a5139113aea8901dd59b1d0224f7f/pytest-recording-0.12.2.tar.gz", hash = "sha256:7c8949c24e5546a699f8fbbff0c5d6896cd09463378ac3d3f1ebb110d2186847"},
+    {url = "https://files.pythonhosted.org/packages/a3/f3/af741185b4610edb1f66c52ec4387eeb08be5b6d38882a8da65700b6fcce/pytest_recording-0.12.2-py3-none-any.whl", hash = "sha256:f055f97eb98bbefd0453a7796aa3a6833502c173421928b9d878cf1420b36406"},
+]
 "python-dateutil 2.8.2" = [
     {url = "https://files.pythonhosted.org/packages/36/7a/87837f39d0296e723bb9b62bbb257d0355c7f6128853c78955f57342a56d/python_dateutil-2.8.2-py2.py3-none-any.whl", hash = "sha256:961d03dc3453ebbc59dbdea9e4e11c5651520a876d0f4db161e8674aae935da9"},
     {url = "https://files.pythonhosted.org/packages/4c/c4/13b4776ea2d76c115c1d1b84579f3764ee6d57204f6be27119f13a61d0a9/python-dateutil-2.8.2.tar.gz", hash = "sha256:0123cacc1627ae19ddf3c27a5de5bd67ee4586fbdd6440d9748f8abb483d3e86"},
@@ -3509,9 +3524,9 @@ content_hash = "sha256:c00e8daa857eb23baa1adc0573f70155346ca08ddd26b807944cf347d
     {url = "https://files.pythonhosted.org/packages/21/79/6372d8c0d0641b4072889f3ff84f279b738cd8595b64c8e0496d4e848122/urllib3-1.26.15.tar.gz", hash = "sha256:8a388717b9476f934a21484e8c8e61875ab60644d29b9b39e11e4b9dc1c6b305"},
     {url = "https://files.pythonhosted.org/packages/7b/f5/890a0baca17a61c1f92f72b81d3c31523c99bec609e60c292ea55b387ae8/urllib3-1.26.15-py2.py3-none-any.whl", hash = "sha256:aa751d169e23c7479ce47a0cb0da579e3ede798f994f5816a74e4f4500dcea42"},
 ]
-"vcrpy 5.0.0" = [
-    {url = "https://files.pythonhosted.org/packages/83/c7/67fdd6879130deab4b673f8f61b58d1d67ea553f8ce136299f3cdcd38563/vcrpy-5.0.0.tar.gz", hash = "sha256:1ef3ddea819a26eda10b560c70bd74c41855241d431745712e31a5b2de2d05a8"},
-    {url = "https://files.pythonhosted.org/packages/c6/65/b660368b2c14791ac31c2310cbe2e466b73aadc92908f5523154ee200115/vcrpy-5.0.0-py2.py3-none-any.whl", hash = "sha256:28b66c87be7678896e9e78fee4f6695e3fb153d5d7e5f635416a33658452bb44"},
+"vcrpy 4.4.0" = [
+    {url = "https://files.pythonhosted.org/packages/5f/03/d22af9c60b8e7e48cefb491b74b1eec46a3df071f4d024c159393a34690e/vcrpy-4.4.0.tar.gz", hash = "sha256:d1109ae93dbc2e7fcbc485849a7600d5dea510d3bef070eec4419c9a72ca2639"},
+    {url = "https://files.pythonhosted.org/packages/e9/eb/4a375b1cea2a3012487bc86b9eda667adb3d541e38419968a5d97c0497ae/vcrpy-4.4.0-py2.py3-none-any.whl", hash = "sha256:560c9d0d8436ced29223ceefb513c3ac3f2e2a60d51a9830f236a1e63167905a"},
 ]
 "verspec 0.1.0" = [
     {url = "https://files.pythonhosted.org/packages/a4/ce/3b6fee91c85626eaf769d617f1be9d2e15c1cca027bbdeb2e0d751469355/verspec-0.1.0-py3-none-any.whl", hash = "sha256:741877d5633cc9464c45a469ae2a31e801e6dbbaa85b9675d481cda100f11c31"},

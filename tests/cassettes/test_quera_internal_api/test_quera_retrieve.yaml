@@ -1,0 +1,199 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Authorization:
+      - AWS4-HMAC-SHA256 Credential=ASIAZ3D4R46YUMKJP45U/20230713/us-east-1/execute-api/aws4_request,
+        SignedHeaders=host;x-amz-date;x-amz-security-token, Signature=88898329ad72d677c9aa157db1523d4d5d05d758d8dbec6bee551c8cea4ec24b
+      Content-Type:
+      - application/json
+      Host:
+      - sqi0gyx8pc.execute-api.us-east-1.amazonaws.com
+      X-Amz-Date:
+      - 20230713T223621Z
+      X-Amz-Security-Token:
+      - IQoJb3JpZ2luX2VjEH8aCXVzLWVhc3QtMSJIMEYCIQCjD+8e6brYHnaZ4IDOjJNg5f9N5zguQPnefoL2BELzOAIhALxp6CZNCxoQzbVBVPJ35UCyjzcqu+OzfeR0a46UG9QEKo0DCPj//////////wEQARoMNjc2NzE4NTY5MzkzIgyUmJ0p/FxmFzvhC+0q4QJei73kI9O2788vv0AAIvzDqruCoe0vj4wDQB3JdTmD7mVf+cvNSwn0ZjCMi803LBNYnhtYI8rwjJvE3HiLw77HU5q69WuTufbDJPjXq3+5lYu809fnWYoMmum0qTKAVHd9YsGf/RAa1y4rj5ZA1pmTBHLlkIOVbA6VipooOTO/3eJUCoLNk3CgwcGS610HrwQcs0hH0F51UUMmedn7gP3LVxh8zIIaM7U7wP2bth8bkYK+LAegoFw051NFAW5nY3zfVGwCMU2PS6ADM2Q++iTu2TURdjNnJmidfa+/6POujHeJK90XxMHmvL/uwNjq79Qh5eHpo4kcIJKRM3N7dI4N1MpZwoP86wePjj8g3zRgHcUwVE+Rm5DwhDYVnbc1QijF8sGsUkqmABLdgmKXLSblvqNFUS15gofN0lvv8vwzOcRMfJkXStSCUR9KRNl6jr4AY+TFKZmZnmFQUYhttOh/ODC7+MGlBjqlASXap3v5iY5ULpNTgTdtmqqcteyYvn8mlqLEwYNxMthhyP4O9J6ZUSVTRdWIvr1C3lgCPV1KLnSN9lU5tLF9UqhoE+/tIAybZl5LT8MRkqvB9S5tRLzeShUs44vmmFmP+xb2YoonEL7gQX8VFU0gRQZThQ62AiQkBLZY2jxMHcuQ2NUYXtYOHshnjXRENyGmkh0xmoQNfyp+Y65R8WsqxHXrofUodA==
+    method: GET
+    uri: https://vpce-04dde304af887b529-oa3tcw6o.execute-api.us-east-1.vpce.amazonaws.com/v0/qpu1-mock/queue/task/f1407a7b-9548-4d57-b20a-63d88f5bf964
+  response:
+    body:
+      string: '{"task_id":"f1407a7b-9548-4d57-b20a-63d88f5bf964","task_queue_id":43244,"task_def_id":43244,"status":"Enqueued","created":"2023-07-13T22:36:21.433Z"}'
+    headers:
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '149'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 13 Jul 2023 22:36:21 GMT
+      Server:
+      - Server
+      x-amz-apigw-id:
+      - IBhf7EOpIAMFtsg=
+      x-amzn-Remapped-Connection:
+      - keep-alive
+      x-amzn-RequestId:
+      - 1b68b60a-6d60-4324-92b6-ab5d6225c1db
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Authorization:
+      - AWS4-HMAC-SHA256 Credential=ASIAZ3D4R46YUMKJP45U/20230713/us-east-1/execute-api/aws4_request,
+        SignedHeaders=host;x-amz-date;x-amz-security-token, Signature=88898329ad72d677c9aa157db1523d4d5d05d758d8dbec6bee551c8cea4ec24b
+      Content-Type:
+      - application/json
+      Host:
+      - sqi0gyx8pc.execute-api.us-east-1.amazonaws.com
+      X-Amz-Date:
+      - 20230713T223621Z
+      X-Amz-Security-Token:
+      - IQoJb3JpZ2luX2VjEH8aCXVzLWVhc3QtMSJIMEYCIQCjD+8e6brYHnaZ4IDOjJNg5f9N5zguQPnefoL2BELzOAIhALxp6CZNCxoQzbVBVPJ35UCyjzcqu+OzfeR0a46UG9QEKo0DCPj//////////wEQARoMNjc2NzE4NTY5MzkzIgyUmJ0p/FxmFzvhC+0q4QJei73kI9O2788vv0AAIvzDqruCoe0vj4wDQB3JdTmD7mVf+cvNSwn0ZjCMi803LBNYnhtYI8rwjJvE3HiLw77HU5q69WuTufbDJPjXq3+5lYu809fnWYoMmum0qTKAVHd9YsGf/RAa1y4rj5ZA1pmTBHLlkIOVbA6VipooOTO/3eJUCoLNk3CgwcGS610HrwQcs0hH0F51UUMmedn7gP3LVxh8zIIaM7U7wP2bth8bkYK+LAegoFw051NFAW5nY3zfVGwCMU2PS6ADM2Q++iTu2TURdjNnJmidfa+/6POujHeJK90XxMHmvL/uwNjq79Qh5eHpo4kcIJKRM3N7dI4N1MpZwoP86wePjj8g3zRgHcUwVE+Rm5DwhDYVnbc1QijF8sGsUkqmABLdgmKXLSblvqNFUS15gofN0lvv8vwzOcRMfJkXStSCUR9KRNl6jr4AY+TFKZmZnmFQUYhttOh/ODC7+MGlBjqlASXap3v5iY5ULpNTgTdtmqqcteyYvn8mlqLEwYNxMthhyP4O9J6ZUSVTRdWIvr1C3lgCPV1KLnSN9lU5tLF9UqhoE+/tIAybZl5LT8MRkqvB9S5tRLzeShUs44vmmFmP+xb2YoonEL7gQX8VFU0gRQZThQ62AiQkBLZY2jxMHcuQ2NUYXtYOHshnjXRENyGmkh0xmoQNfyp+Y65R8WsqxHXrofUodA==
+    method: GET
+    uri: https://vpce-04dde304af887b529-oa3tcw6o.execute-api.us-east-1.vpce.amazonaws.com/v0/qpu1-mock/queue/task/f1407a7b-9548-4d57-b20a-63d88f5bf964
+  response:
+    body:
+      string: '{"task_id":"f1407a7b-9548-4d57-b20a-63d88f5bf964","task_queue_id":43244,"task_def_id":43244,"status":"Accepted","created":"2023-07-13T22:36:21.433Z"}'
+    headers:
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '149'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 13 Jul 2023 22:36:21 GMT
+      Server:
+      - Server
+      x-amz-apigw-id:
+      - IBhf-GRfoAMFhXQ=
+      x-amzn-Remapped-Connection:
+      - keep-alive
+      x-amzn-RequestId:
+      - 71c20fe4-e2e8-468c-98cf-2bcb48c079d6
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Authorization:
+      - AWS4-HMAC-SHA256 Credential=ASIAZ3D4R46YUMKJP45U/20230713/us-east-1/execute-api/aws4_request,
+        SignedHeaders=host;x-amz-date;x-amz-security-token, Signature=88898329ad72d677c9aa157db1523d4d5d05d758d8dbec6bee551c8cea4ec24b
+      Content-Type:
+      - application/json
+      Host:
+      - sqi0gyx8pc.execute-api.us-east-1.amazonaws.com
+      X-Amz-Date:
+      - 20230713T223621Z
+      X-Amz-Security-Token:
+      - IQoJb3JpZ2luX2VjEH8aCXVzLWVhc3QtMSJIMEYCIQCjD+8e6brYHnaZ4IDOjJNg5f9N5zguQPnefoL2BELzOAIhALxp6CZNCxoQzbVBVPJ35UCyjzcqu+OzfeR0a46UG9QEKo0DCPj//////////wEQARoMNjc2NzE4NTY5MzkzIgyUmJ0p/FxmFzvhC+0q4QJei73kI9O2788vv0AAIvzDqruCoe0vj4wDQB3JdTmD7mVf+cvNSwn0ZjCMi803LBNYnhtYI8rwjJvE3HiLw77HU5q69WuTufbDJPjXq3+5lYu809fnWYoMmum0qTKAVHd9YsGf/RAa1y4rj5ZA1pmTBHLlkIOVbA6VipooOTO/3eJUCoLNk3CgwcGS610HrwQcs0hH0F51UUMmedn7gP3LVxh8zIIaM7U7wP2bth8bkYK+LAegoFw051NFAW5nY3zfVGwCMU2PS6ADM2Q++iTu2TURdjNnJmidfa+/6POujHeJK90XxMHmvL/uwNjq79Qh5eHpo4kcIJKRM3N7dI4N1MpZwoP86wePjj8g3zRgHcUwVE+Rm5DwhDYVnbc1QijF8sGsUkqmABLdgmKXLSblvqNFUS15gofN0lvv8vwzOcRMfJkXStSCUR9KRNl6jr4AY+TFKZmZnmFQUYhttOh/ODC7+MGlBjqlASXap3v5iY5ULpNTgTdtmqqcteyYvn8mlqLEwYNxMthhyP4O9J6ZUSVTRdWIvr1C3lgCPV1KLnSN9lU5tLF9UqhoE+/tIAybZl5LT8MRkqvB9S5tRLzeShUs44vmmFmP+xb2YoonEL7gQX8VFU0gRQZThQ62AiQkBLZY2jxMHcuQ2NUYXtYOHshnjXRENyGmkh0xmoQNfyp+Y65R8WsqxHXrofUodA==
+    method: GET
+    uri: https://vpce-04dde304af887b529-oa3tcw6o.execute-api.us-east-1.vpce.amazonaws.com/v0/qpu1-mock/queue/task/f1407a7b-9548-4d57-b20a-63d88f5bf964
+  response:
+    body:
+      string: '{"task_id":"f1407a7b-9548-4d57-b20a-63d88f5bf964","task_queue_id":43244,"task_def_id":43244,"status":"Executing","created":"2023-07-13T22:36:21.433Z"}'
+    headers:
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '150'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 13 Jul 2023 22:36:22 GMT
+      Server:
+      - Server
+      x-amz-apigw-id:
+      - IBhgBEnPoAMF4Gg=
+      x-amzn-Remapped-Connection:
+      - keep-alive
+      x-amzn-RequestId:
+      - 8f543013-a7f6-495c-8a09-d5394dcb5e62
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Authorization:
+      - AWS4-HMAC-SHA256 Credential=ASIAZ3D4R46YUMKJP45U/20230713/us-east-1/execute-api/aws4_request,
+        SignedHeaders=host;x-amz-date;x-amz-security-token, Signature=7c850db079f26a903c4eac3a5c3634f096f6c6061beb1e8d03ab80f1718fc925
+      Content-Type:
+      - application/json
+      Host:
+      - sqi0gyx8pc.execute-api.us-east-1.amazonaws.com
+      X-Amz-Date:
+      - 20230713T223625Z
+      X-Amz-Security-Token:
+      - IQoJb3JpZ2luX2VjEH8aCXVzLWVhc3QtMSJIMEYCIQCjD+8e6brYHnaZ4IDOjJNg5f9N5zguQPnefoL2BELzOAIhALxp6CZNCxoQzbVBVPJ35UCyjzcqu+OzfeR0a46UG9QEKo0DCPj//////////wEQARoMNjc2NzE4NTY5MzkzIgyUmJ0p/FxmFzvhC+0q4QJei73kI9O2788vv0AAIvzDqruCoe0vj4wDQB3JdTmD7mVf+cvNSwn0ZjCMi803LBNYnhtYI8rwjJvE3HiLw77HU5q69WuTufbDJPjXq3+5lYu809fnWYoMmum0qTKAVHd9YsGf/RAa1y4rj5ZA1pmTBHLlkIOVbA6VipooOTO/3eJUCoLNk3CgwcGS610HrwQcs0hH0F51UUMmedn7gP3LVxh8zIIaM7U7wP2bth8bkYK+LAegoFw051NFAW5nY3zfVGwCMU2PS6ADM2Q++iTu2TURdjNnJmidfa+/6POujHeJK90XxMHmvL/uwNjq79Qh5eHpo4kcIJKRM3N7dI4N1MpZwoP86wePjj8g3zRgHcUwVE+Rm5DwhDYVnbc1QijF8sGsUkqmABLdgmKXLSblvqNFUS15gofN0lvv8vwzOcRMfJkXStSCUR9KRNl6jr4AY+TFKZmZnmFQUYhttOh/ODC7+MGlBjqlASXap3v5iY5ULpNTgTdtmqqcteyYvn8mlqLEwYNxMthhyP4O9J6ZUSVTRdWIvr1C3lgCPV1KLnSN9lU5tLF9UqhoE+/tIAybZl5LT8MRkqvB9S5tRLzeShUs44vmmFmP+xb2YoonEL7gQX8VFU0gRQZThQ62AiQkBLZY2jxMHcuQ2NUYXtYOHshnjXRENyGmkh0xmoQNfyp+Y65R8WsqxHXrofUodA==
+    method: GET
+    uri: https://vpce-04dde304af887b529-oa3tcw6o.execute-api.us-east-1.vpce.amazonaws.com/v0/qpu1-mock/queue/task/f1407a7b-9548-4d57-b20a-63d88f5bf964
+  response:
+    body:
+      string: '{"task_id":"f1407a7b-9548-4d57-b20a-63d88f5bf964","task_queue_id":43244,"task_def_id":43244,"status":"Completed","created":"2023-07-13T22:36:21.433Z"}'
+    headers:
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '150'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 13 Jul 2023 22:36:25 GMT
+      Server:
+      - Server
+      x-amz-apigw-id:
+      - IBhghE1zIAMF3oA=
+      x-amzn-Remapped-Connection:
+      - keep-alive
+      x-amzn-RequestId:
+      - e5eb25c4-e162-4604-bef2-c7b98e9bfc6b
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Authorization:
+      - AWS4-HMAC-SHA256 Credential=ASIAZ3D4R46YUMKJP45U/20230713/us-east-1/execute-api/aws4_request,
+        SignedHeaders=host;x-amz-date;x-amz-security-token, Signature=d49cc2427db95e8cacd37729c6e28d6b7983ebf12f9ba0a4bca9680cadfceb70
+      Content-Type:
+      - application/json
+      Host:
+      - sqi0gyx8pc.execute-api.us-east-1.amazonaws.com
+      X-Amz-Date:
+      - 20230713T223625Z
+      X-Amz-Security-Token:
+      - IQoJb3JpZ2luX2VjEH8aCXVzLWVhc3QtMSJIMEYCIQCjD+8e6brYHnaZ4IDOjJNg5f9N5zguQPnefoL2BELzOAIhALxp6CZNCxoQzbVBVPJ35UCyjzcqu+OzfeR0a46UG9QEKo0DCPj//////////wEQARoMNjc2NzE4NTY5MzkzIgyUmJ0p/FxmFzvhC+0q4QJei73kI9O2788vv0AAIvzDqruCoe0vj4wDQB3JdTmD7mVf+cvNSwn0ZjCMi803LBNYnhtYI8rwjJvE3HiLw77HU5q69WuTufbDJPjXq3+5lYu809fnWYoMmum0qTKAVHd9YsGf/RAa1y4rj5ZA1pmTBHLlkIOVbA6VipooOTO/3eJUCoLNk3CgwcGS610HrwQcs0hH0F51UUMmedn7gP3LVxh8zIIaM7U7wP2bth8bkYK+LAegoFw051NFAW5nY3zfVGwCMU2PS6ADM2Q++iTu2TURdjNnJmidfa+/6POujHeJK90XxMHmvL/uwNjq79Qh5eHpo4kcIJKRM3N7dI4N1MpZwoP86wePjj8g3zRgHcUwVE+Rm5DwhDYVnbc1QijF8sGsUkqmABLdgmKXLSblvqNFUS15gofN0lvv8vwzOcRMfJkXStSCUR9KRNl6jr4AY+TFKZmZnmFQUYhttOh/ODC7+MGlBjqlASXap3v5iY5ULpNTgTdtmqqcteyYvn8mlqLEwYNxMthhyP4O9J6ZUSVTRdWIvr1C3lgCPV1KLnSN9lU5tLF9UqhoE+/tIAybZl5LT8MRkqvB9S5tRLzeShUs44vmmFmP+xb2YoonEL7gQX8VFU0gRQZThQ62AiQkBLZY2jxMHcuQ2NUYXtYOHshnjXRENyGmkh0xmoQNfyp+Y65R8WsqxHXrofUodA==
+    method: GET
+    uri: https://vpce-04dde304af887b529-oa3tcw6o.execute-api.us-east-1.vpce.amazonaws.com/v0/qpu1-mock/task/f1407a7b-9548-4d57-b20a-63d88f5bf964/results
+  response:
+    body:
+      string: '{"task_status":"Completed","shot_outputs":[{"shot_status":"Completed","pre_sequence":[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],"post_sequence":[0,1,0,0,1,1,1,1,1,1,0,0,0,0,1,1]},{"shot_status":"Completed","pre_sequence":[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],"post_sequence":[1,1,0,0,1,1,1,1,1,0,1,1,0,0,1,0]},{"shot_status":"Completed","pre_sequence":[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],"post_sequence":[0,1,0,0,1,0,0,0,0,0,0,1,1,1,1,0]},{"shot_status":"Completed","pre_sequence":[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],"post_sequence":[0,0,0,1,0,1,1,0,0,0,0,1,0,0,1,0]},{"shot_status":"Completed","pre_sequence":[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],"post_sequence":[1,0,1,1,1,1,1,0,0,0,0,1,0,1,1,0]},{"shot_status":"Completed","pre_sequence":[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],"post_sequence":[1,0,1,0,1,0,0,1,0,0,1,1,1,0,1,0]},{"shot_status":"Completed","pre_sequence":[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],"post_sequence":[1,1,0,0,0,0,1,0,1,0,0,1,0,0,0,0]},{"shot_status":"Completed","pre_sequence":[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],"post_sequence":[1,0,0,1,0,0,1,0,1,0,0,0,0,1,1,1]},{"shot_status":"Completed","pre_sequence":[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],"post_sequence":[0,1,1,1,1,1,1,0,1,1,1,0,1,1,0,1]},{"shot_status":"Completed","pre_sequence":[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],"post_sequence":[0,1,1,1,0,0,1,0,1,0,0,1,1,1,1,1]}]}'
+    headers:
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '1314'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 13 Jul 2023 22:36:27 GMT
+      Server:
+      - Server
+      x-amz-apigw-id:
+      - IBhgkGYMoAMFimA=
+      x-amzn-Remapped-Connection:
+      - keep-alive
+      x-amzn-Remapped-Content-Length:
+      - '1314'
+      x-amzn-RequestId:
+      - 88c933c2-ea6a-429e-9c15-7d02356f1da3
+    status:
+      code: 200
+      message: OK
+version: 1
