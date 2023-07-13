@@ -81,16 +81,13 @@ dev = [
     "jupytext>=1.14.5",
     "vcrpy>=5.0.0",
 ]
-testing = [
-    "vcrpy>=5.0.0",
-]
 
 [tool.pdm.scripts]
 _.env_file = "./.env"
 upload = "python -m twine upload -r bloqade dist/*"
 build = {cmd = "pdm build"}
 publish = {composite = ["build", "upload"]}
-test = "pytest tests/ docs/docs/examples/*.py"
+test = {shell = "pytest tests docs/docs/examples/*.py"}
 coverage = {shell = "coverage run -m pytest tests/ docs/docs/examples/*.py && coverage report"}
 coverage-html = {shell = "coverage run -m pytest tests/ docs/docs/examples/*.py && coverage html"}
 doc = {cmd = "mkdocs serve -f docs/mkdocs.yml"}
