@@ -196,7 +196,7 @@ class Scalar:
                 return Scalar.canonicalize(sub_expr)
             case Add(lhs=sub_expr, rhs=Negative(other_expr)) if sub_expr == other_expr:
                 return Literal(0.0)
-            case Add(lhs=sub_expr, rhs=Negative(other_expr)) if sub_expr == other_expr:
+            case Add(lhs=Negative(sub_expr), rhs=other_expr) if sub_expr == other_expr:
                 return Literal(0.0)
             case Mul(lhs=Literal(lhs), rhs=Literal(rhs)):
                 return Literal(lhs * rhs)

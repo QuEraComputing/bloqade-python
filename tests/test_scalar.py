@@ -105,6 +105,8 @@ def test_negative_node():
     assert nsa.children() == [sa]
     assert nsa.print_node() == "-"
 
+    assert nsa.__repr__() == "-(1.0)"
+
 
 # def test_base_invalid():
 
@@ -132,23 +134,38 @@ def test_interval():
     assert itvl_no_stop.children() == {"start": cast(0)}
 
 
-def test_scalar_base_invalid():
-    pass
-    # base_s = scalar.Scalar()
-    # val = cast(1.0)
+def canonicalize_neg_neg():
+    sa = cast(1.0)
+    nsa = -sa
+    nsa2 = -nsa
 
-    """
+    out2 = scalar.Scalar.canonicalize(nsa2)
+    assert out2.value == Decimal("1.0")
 
-    with pytest.raises(BaseException):
-        base_s + val
 
-    with pytest.raises(BaseException):
-        base_s - val
+def canonicalize_add_neg():
+    sa = cast(1.0)
+    nsa = -sa
 
-    with pytest.raises(BaseException):
-        base_s * val
+    outR = scalar.Add(sa, nsa)
+    outL = scalar.Add(nsa, sa)
 
-    with pytest.raises(BaseException):
-        base_s / val
+    outR = scalar.Scalar.canonicalize(outR)
+    outL = scalar.Scalar.canonicalize(outL)
 
-    """
+    assert outR == scalar.Literal(0.0)
+    assert outL == scalar.Literal(0.0)
+
+
+def canonicalize_mul_zero():
+    zero = scalar.Literal(0.0)
+    one = cast(1)
+
+    outR = scalar.Mul(zero, one)
+    outL = scalar.Mul(one, zero)
+
+    outR = scalar.Scalar.canonicalize(outR)
+    outL = scalar.Scalar.canonicalize(outL)
+
+    assert outR == scalar.Literal(0.0)
+    assert outL == scalar.Literal(0.0)
