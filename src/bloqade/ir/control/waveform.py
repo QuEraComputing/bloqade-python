@@ -392,7 +392,7 @@ class InfiniteSmoothingKernel(SmoothingKernel):
     pass
 
 
-class Guassian(InfiniteSmoothingKernel):
+class Gaussian(InfiniteSmoothingKernel):
     def __call__(self, value: float) -> float:
         return np.exp(-(value**2) / 2) / np.sqrt(2 * np.pi)
 
@@ -442,7 +442,7 @@ class Cosine(FiniteSmoothingKernel):
         return np.maximum(0, np.pi / 4 * np.cos(np.pi / 2 * value))
 
 
-GuassianKernel = Guassian()
+GaussianKernel = Gaussian()
 LogisticKernel = Logistic()
 SigmoidKernel = Sigmoid()
 TriangleKernel = Triangle()
