@@ -5,10 +5,101 @@
 # for i in range(5):
 #     prog = prog.location(i)
 # prog.linear(start=1.0, stop=2.0, duration="x")
+# import pytest
 import bloqade.ir as ir
-from bloqade import start, var
+from bloqade.builder import location
+from bloqade.ir import rydberg, detuning
+from bloqade import start, var, cast
 from bloqade.ir.location import Square, Chain
 import numpy as np
+
+
+def test_piecewise_const():
+    prog = start.rydberg.detuning.uniform.piecewise_constant(
+        durations=[0.1, 3.1, 0.05], values=[4, 4, 7.5]
+    )
+
+    ## inspect ir
+    node1 = prog
+    ir1 = node1._waveform
+    assert ir1.value == cast(7.5)
+    assert ir1.duration == cast(0.05)
+
+    node2 = node1.__parent__
+    ir2 = node2._waveform
+    assert ir2.value == cast(4)
+    assert ir2.duration == cast(3.1)
+
+    node3 = node2.__parent__
+    ir3 = node3._waveform
+    assert ir3.value == cast(4)
+    assert ir3.duration == cast(0.1)
+
+
+def test_registers():
+    waveform = (
+        ir.Linear("initial_detuning", "initial_detuning", "up_time")
+        .append(ir.Linear("initial_detuning", "final_detuning", "anneal_time"))
+        .append(ir.Linear("final_detuning", "final_detuning", "up_time"))
+    )
+    prog1 = start.rydberg.detuning.uniform.apply(waveform)
+    reg = prog1.register
+
+    assert reg.n_atoms == 0
+    assert reg.n_dims is None
+
+
+def test_scale():
+    prog = start
+    prog = (
+        prog.rydberg.detuning.location(1)
+        .scale(1.2)
+        .piecewise_linear([0.1, 3.8, 0.1], [-10, -10, "a", "b"])
+    )
+
+    ## let Emit build ast
+    seq = prog.sequence
+
+    print(type(list(seq.value.keys())[0]))
+    Loc1 = list(seq.value[rydberg].value[detuning].value.keys())[0]
+
+    assert type(Loc1) == ir.ScaledLocations
+    assert Loc1.value[ir.Location(1)] == cast(1.2)
+
+
+def test_scale_location():
+    prog = start.rydberg.detuning.location(1).scale(1.2).location(2).scale(3.3)
+
+    assert prog._scale == cast(3.3)
+    assert type(prog.__parent__) == location.Location
+    assert prog.__parent__.__parent__._scale == cast(1.2)
+
+
+def test_build_ast_Scale():
+    prog = (
+        start.rydberg.detuning.location(1)
+        .scale(1.2)
+        .location(2)
+        .scale(3.3)
+        .piecewise_constant(durations=[0.1], values=[1])
+    )
+
+    # compile ast:
+    tmp = prog.sequence
+
+    locs = list(tmp.value[rydberg].value[detuning].value.keys())[0]
+    wvfm = tmp.value[rydberg].value[detuning].value[locs]
+
+    assert locs == ir.ScaledLocations(
+        {ir.Location(2): cast(3.3), ir.Location(1): cast(1.2)}
+    )
+    assert wvfm == ir.Constant(value=cast(1), duration=cast(0.1))
+
+
+def test_spatial_var():
+    prog = start.rydberg.detuning.var("a")
+
+    assert prog._name == "a"
 
 
 def test_issue_107():
