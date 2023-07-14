@@ -196,7 +196,7 @@ class Scalar:
                 return Scalar.canonicalize(sub_expr)
             case Add(lhs=sub_expr, rhs=Negative(other_expr)) if sub_expr == other_expr:
                 return Literal(0.0)
-            case Add(lhs=sub_expr, rhs=Negative(other_expr)) if sub_expr == other_expr:
+            case Add(lhs=Negative(sub_expr), rhs=other_expr) if sub_expr == other_expr:
                 return Literal(0.0)
             case Mul(lhs=Literal(lhs), rhs=Literal(rhs)):
                 return Literal(lhs * rhs)
@@ -250,8 +250,6 @@ def trycast(py) -> Any:
             return tuple(map(cast, xs))
         case Scalar():
             return py
-        case tuple() as xs:
-            return tuple(map(cast, xs))
         case _:
             return
 
@@ -273,7 +271,7 @@ def tryvar(py) -> Any:
             return list(map(var, xs))
         case tuple() as xs:
             return tuple(map(var, xs))
-        case Scalar():
+        case Variable():
             return py
         case _:
             return
