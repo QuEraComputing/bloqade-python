@@ -82,12 +82,8 @@ def test_var_member():
 
 def test_scalar_var():
     va = cast(1.0)
-    vva = var(va)
-
-    assert va == vva
-
-    assert vva.children() == []
-    assert vva.print_node() == "Literal: 1.0"
+    with pytest.raises(TypeError):
+        var(va)
 
 
 def test_invalid_keyword():

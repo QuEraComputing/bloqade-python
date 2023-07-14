@@ -498,7 +498,7 @@ class Emit(Builder):
         if len(api_config) == 0:
             with open(config_file, "r") as io:
                 api_config.update(**json.load(io))
-        print(api_config)
+
         backend = QuEraBackend(**api_config)
 
         return self.__compile_hardware(nshots, backend)
