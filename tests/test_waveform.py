@@ -19,11 +19,18 @@ from bloqade.ir import (
     CosineKernel,
 )
 from bloqade import cast
-from bloqade.ir.control.waveform import PythonFn, Append
-from bloqade.ir.control.waveform import SmoothingKernel
+from bloqade.ir.scalar import Interval
+from bloqade.ir.control.waveform import PythonFn, Append, Slice
+from bloqade.ir.control.waveform import SmoothingKernel, Waveform
 from decimal import Decimal
 import pytest
 import numpy as np
+
+
+def test_wvfm_base():
+    wf = Waveform()
+    with pytest.raises(NotImplementedError):
+        wf.eval_decimal(Decimal("0.5"))
 
 
 def test_wvfm_linear():
@@ -84,6 +91,7 @@ def test_wvfm_pyfn():
 
     assert wf.print_node() == "PythonFn: my_func"
     assert wf.children() == {"duration": cast(1.0)}
+    assert wf.duration == cast(1.0)
 
 
 def test_wvfm_app():
@@ -149,6 +157,7 @@ def test_wvfn_rec():
     assert re.__repr__() == "Record(%s, %s)" % (wf.__repr__(), cast("tst").__repr__())
 
     assert re.eval_decimal(Decimal("0")) == Decimal("1.0")
+    assert re.duration == cast(3.0)
 
 
 def test_wvfn_poly():
@@ -162,6 +171,7 @@ def test_wvfn_poly():
         "duration": cast(10),
     }
     assert wf.eval_decimal(Decimal("0.5")) == (1) + (2) * 0.5 + (3) * 0.5**2
+    assert wf.eval_decimal(Decimal("20")) == Decimal("0")
 
 
 ##-----------------------------
@@ -235,6 +245,29 @@ def test_wvfn_smooth():
     )
 
     assert wf.eval_decimal(Decimal("0.1")) == 1.0844831620655968
+
+
+def test_wvfn_slice():
+    iv = Interval(cast(0), cast(0.3))
+    wv = Constant(value=2.0, duration=3.0)
+
+    wf = Slice(wv, iv)
+
+    assert wf.print_node() == "Slice"
+    assert wf.__repr__() == "%s[%s]" % (wv.__repr__(), iv.__repr__())
+    assert wf.eval_decimal(Decimal("0.4")) == 0
+    assert wf.eval_decimal(Decimal("0.2")) == 2.0
+    assert wf.children() == [wv, iv]
+
+    iv_err1 = Interval(None, None)
+    wf2 = Slice(wv, iv_err1)
+    with pytest.raises(ValueError):
+        wf2.duration
+
+    iv2 = Interval(cast(0), None)
+    wf3 = Slice(wv, iv2)
+
+    assert wf3.duration == cast(3.0)
 
 
 """
