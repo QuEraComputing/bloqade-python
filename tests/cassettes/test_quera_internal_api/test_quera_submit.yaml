@@ -1,0 +1,141 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Authorization:
+      - AWS4-HMAC-SHA256 Credential=XXXXXXXXXXXXXXXXXXXX/20230713/us-east-1/execute-api/aws4_request,
+        SignedHeaders=host;x-amz-date;x-amz-security-token, Signature=9a14b061e2518958d37e37f4c6db88d2d12817e45c81adc0234e3f1f2e7efb4c
+      Content-Type:
+      - application/json
+      Host:
+      - ***REMOVED***.execute-api.us-east-1.amazonaws.com
+      X-Amz-Date:
+      - 20230713T225937Z
+      X-Amz-Security-Token:
+      - XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+    method: GET
+    uri: https://***REMOVED***.execute-api.us-east-1.vpce.amazonaws.com/v0/qpu1-mock/capabilities
+  response:
+    body:
+      string: '{"version":"0.7","capabilities":{"task":{"number_shots_min":1,"number_shots_max":1000},"lattice":{"number_qubits_max":256,"area":{"width":7.5E-5,"height":7.6E-5},"geometry":{"spacing_radial_min":4.0E-6,"spacing_vertical_min":4.0E-6,"position_resolution":1.0E-7,"number_sites_max":256}},"rydberg":{"c6_coefficient":5.42E-24,"global":{"rabi_frequency_min":0.0,"rabi_frequency_max":1.58E7,"rabi_frequency_resolution":400.0,"rabi_frequency_slew_rate_max":2.5E14,"detuning_min":-1.25E8,"detuning_max":1.25E8,"detuning_resolution":0.2,"detuning_slew_rate_max":2.5E15,"phase_min":-99.0,"phase_max":99.0,"phase_resolution":5.0E-7,"time_min":0.0,"time_max":4.0E-6,"time_resolution":1.0E-9,"time_delta_min":5.0E-8},"local":{"detuning_min":0.0,"detuning_max":1.25E8,"detuning_slew_rate_max":1.2566E15,"site_coefficient_min":0.0,"site_coefficient_max":1.0,"number_local_detuning_sites":200,"spacing_radial_min":5.0E-6,"time_resolution":1.0E-9,"time_delta_min":5.0E-8}}}}'
+    headers:
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '958'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 13 Jul 2023 22:59:37 GMT
+      Server:
+      - Server
+      x-amz-apigw-id:
+      - IBk6GGuJoAMFdHA=
+      x-amzn-Remapped-Connection:
+      - keep-alive
+      x-amzn-RequestId:
+      - e31a5654-4bca-40d7-8dd4-052d53242d85
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"nshots": 10, "lattice": {"sites": [[0.0, 0.0], [0.0, 2e-05], [0.0, 4e-05],
+      [0.0, 6e-05], [2e-05, 6e-05], [4e-05, 6e-05], [4e-05, 4e-05], [4e-05, 2e-05],
+      [4e-05, 0.0], [6e-05, 0.0], [6e-05, 2e-05], [6e-05, 4e-05], [6e-05, 6e-05],
+      [2e-05, 4e-05], [2e-05, 2e-05], [2e-05, 0.0]], "filling": [1, 1, 1, 1, 1, 1,
+      1, 1, 1, 1, 1, 1, 1, 1, 1, 1]}, "effective_hamiltonian": {"rydberg": {"rabi_frequency_amplitude":
+      {"global": {"times": [0.0, 1e-07, 2.1e-06, 2.2e-06], "values": [0.0, 15000000.0,
+      15000000.0, 0.0]}}, "rabi_frequency_phase": {"global": {"times": [0.0, 2.2e-06],
+      "values": [0.0, 0.0]}}, "detuning": {"global": {"times": [0.0, 2.2e-06], "values":
+      [0.0, 0.0]}}}}}'
+    headers:
+      Authorization:
+      - AWS4-HMAC-SHA256 Credential=XXXXXXXXXXXXXXXXXXXX/20230713/us-east-1/execute-api/aws4_request,
+        SignedHeaders=host;x-amz-date;x-amz-security-token, Signature=4eeb3cdeb4b4e18ce1fbb618473a797f203619cfc7ede24b5dd258ccef5e1484
+      Content-Length:
+      - '666'
+      Content-Type:
+      - application/json
+      Host:
+      - ***REMOVED***.execute-api.us-east-1.amazonaws.com
+      X-Amz-Date:
+      - 20230713T225937Z
+      X-Amz-Security-Token:
+      - XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+    method: POST
+    uri: https://***REMOVED***.execute-api.us-east-1.vpce.amazonaws.com/v0/qpu1-mock/task/validate
+  response:
+    body:
+      string: ''
+    headers:
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '0'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 13 Jul 2023 22:59:38 GMT
+      Server:
+      - Server
+      x-amz-apigw-id:
+      - IBk6JEElIAMFjeQ=
+      x-amzn-Remapped-Connection:
+      - keep-alive
+      x-amzn-Remapped-Content-Length:
+      - '0'
+      x-amzn-RequestId:
+      - 90ef6b85-ba27-45a1-ab98-7385b1cc671a
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"nshots": 10, "lattice": {"sites": [[0.0, 0.0], [0.0, 2e-05], [0.0, 4e-05],
+      [0.0, 6e-05], [2e-05, 6e-05], [4e-05, 6e-05], [4e-05, 4e-05], [4e-05, 2e-05],
+      [4e-05, 0.0], [6e-05, 0.0], [6e-05, 2e-05], [6e-05, 4e-05], [6e-05, 6e-05],
+      [2e-05, 4e-05], [2e-05, 2e-05], [2e-05, 0.0]], "filling": [1, 1, 1, 1, 1, 1,
+      1, 1, 1, 1, 1, 1, 1, 1, 1, 1]}, "effective_hamiltonian": {"rydberg": {"rabi_frequency_amplitude":
+      {"global": {"times": [0.0, 1e-07, 2.1e-06, 2.2e-06], "values": [0.0, 15000000.0,
+      15000000.0, 0.0]}}, "rabi_frequency_phase": {"global": {"times": [0.0, 2.2e-06],
+      "values": [0.0, 0.0]}}, "detuning": {"global": {"times": [0.0, 2.2e-06], "values":
+      [0.0, 0.0]}}}}}'
+    headers:
+      Authorization:
+      - AWS4-HMAC-SHA256 Credential=XXXXXXXXXXXXXXXXXXXX/20230713/us-east-1/execute-api/aws4_request,
+        SignedHeaders=host;x-amz-date;x-amz-security-token, Signature=e68cb4eec15bc4f284806639e9af81136611e43c34340d1968a03cba5b8d45ca
+      Content-Length:
+      - '666'
+      Content-Type:
+      - application/json
+      Host:
+      - ***REMOVED***.execute-api.us-east-1.amazonaws.com
+      X-Amz-Date:
+      - 20230713T225938Z
+      X-Amz-Security-Token:
+      - XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+    method: POST
+    uri: https://***REMOVED***.execute-api.us-east-1.vpce.amazonaws.com/v0/qpu1-mock/queue/task
+  response:
+    body:
+      string: '{"task_id":"739fac2f-3486-4c35-9769-212852bb6609","task_queue_id":43245,"task_def_id":43245,"status":"Enqueued","created":null}'
+    headers:
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '127'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 13 Jul 2023 22:59:38 GMT
+      Server:
+      - Server
+      x-amz-apigw-id:
+      - IBk6MHIioAMF2cQ=
+      x-amzn-Remapped-Connection:
+      - keep-alive
+      x-amzn-RequestId:
+      - 0f25c4ff-b218-43fd-a76a-9b83a412b9ec
+    status:
+      code: 201
+      message: Created
+version: 1
