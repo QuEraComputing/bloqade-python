@@ -1,0 +1,121 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Authorization:
+      - AWS4-HMAC-SHA256 Credential=XXXXXXXXXXXXXXXXXXXX/20230714/us-east-1/execute-api/aws4_request,
+        SignedHeaders=host;x-amz-date;x-amz-security-token, Signature=307820250bb7aa99c0dd9df826832d6163ec3ba7a6de89febc3a83e2a314a03c
+      Content-Type:
+      - application/json
+      Host:
+      - sqi0gyx8pc.execute-api.us-east-1.amazonaws.com
+      X-Amz-Date:
+      - 20230714T131654Z
+      X-Amz-Security-Token:
+      - XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+    method: GET
+    uri: https://vpce-04dde304af887b529-oa3tcw6o.execute-api.us-east-1.vpce.amazonaws.com/v0/qpu1-mock/queue/task/739fac2f-3486-4c35-9769-212852bb6609
+  response:
+    body:
+      string: '{"task_id":"739fac2f-3486-4c35-9769-212852bb6609","task_queue_id":43245,"task_def_id":43245,"status":"Completed","created":"2023-07-13T22:59:38.592Z"}'
+    headers:
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '150'
+      Content-Type:
+      - application/json
+      Date:
+      - Fri, 14 Jul 2023 13:16:54 GMT
+      Server:
+      - Server
+      x-amz-apigw-id:
+      - IDifHG7nIAMFqFw=
+      x-amzn-Remapped-Connection:
+      - keep-alive
+      x-amzn-RequestId:
+      - 23b65364-7c35-4f9e-bb7d-3778f2844598
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Authorization:
+      - AWS4-HMAC-SHA256 Credential=XXXXXXXXXXXXXXXXXXXX/20230714/us-east-1/execute-api/aws4_request,
+        SignedHeaders=host;x-amz-date;x-amz-security-token, Signature=307820250bb7aa99c0dd9df826832d6163ec3ba7a6de89febc3a83e2a314a03c
+      Content-Type:
+      - application/json
+      Host:
+      - sqi0gyx8pc.execute-api.us-east-1.amazonaws.com
+      X-Amz-Date:
+      - 20230714T131654Z
+      X-Amz-Security-Token:
+      - XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+    method: GET
+    uri: https://vpce-04dde304af887b529-oa3tcw6o.execute-api.us-east-1.vpce.amazonaws.com/v0/qpu1-mock/queue/task/739fac2f-3486-4c35-9769-212852bb6609
+  response:
+    body:
+      string: '{"task_id":"739fac2f-3486-4c35-9769-212852bb6609","task_queue_id":43245,"task_def_id":43245,"status":"Completed","created":"2023-07-13T22:59:38.592Z"}'
+    headers:
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '150'
+      Content-Type:
+      - application/json
+      Date:
+      - Fri, 14 Jul 2023 13:16:55 GMT
+      Server:
+      - Server
+      x-amz-apigw-id:
+      - IDifKEQSIAMFedw=
+      x-amzn-Remapped-Connection:
+      - keep-alive
+      x-amzn-RequestId:
+      - a17b716f-c526-45fa-b754-025f8bcb69e0
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Authorization:
+      - AWS4-HMAC-SHA256 Credential=XXXXXXXXXXXXXXXXXXXX/20230714/us-east-1/execute-api/aws4_request,
+        SignedHeaders=host;x-amz-date;x-amz-security-token, Signature=15febb0ea748c705b747fad13a9bbd9f4d03f52c1f6ada55c7af5d11d409eb8a
+      Content-Type:
+      - application/json
+      Host:
+      - sqi0gyx8pc.execute-api.us-east-1.amazonaws.com
+      X-Amz-Date:
+      - 20230714T131655Z
+      X-Amz-Security-Token:
+      - XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+    method: GET
+    uri: https://vpce-04dde304af887b529-oa3tcw6o.execute-api.us-east-1.vpce.amazonaws.com/v0/qpu1-mock/task/739fac2f-3486-4c35-9769-212852bb6609/results
+  response:
+    body:
+      string: '{"task_status":"Completed","shot_outputs":[{"shot_status":"Completed","pre_sequence":[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],"post_sequence":[1,1,0,0,0,0,0,1,0,0,0,1,1,1,0,0]},{"shot_status":"Completed","pre_sequence":[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],"post_sequence":[0,1,0,0,1,1,1,1,0,0,1,1,0,1,0,0]},{"shot_status":"Completed","pre_sequence":[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],"post_sequence":[0,0,1,0,0,0,1,0,1,0,1,0,1,0,0,0]},{"shot_status":"Completed","pre_sequence":[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],"post_sequence":[0,0,0,0,0,0,0,1,1,0,0,1,1,0,1,0]},{"shot_status":"Completed","pre_sequence":[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],"post_sequence":[1,1,0,1,1,1,1,1,0,0,0,1,0,0,1,0]},{"shot_status":"Completed","pre_sequence":[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],"post_sequence":[1,0,1,0,1,1,1,1,1,0,0,1,1,0,0,1]},{"shot_status":"Completed","pre_sequence":[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],"post_sequence":[1,1,0,0,0,0,0,1,0,1,0,1,0,1,0,1]},{"shot_status":"Completed","pre_sequence":[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],"post_sequence":[0,1,0,1,1,0,1,1,0,0,1,1,1,0,1,0]},{"shot_status":"Completed","pre_sequence":[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],"post_sequence":[0,0,0,1,0,1,0,1,0,1,1,0,0,1,0,1]},{"shot_status":"Completed","pre_sequence":[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],"post_sequence":[0,1,1,0,1,1,1,1,1,1,0,0,1,1,1,1]}]}'
+    headers:
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '1314'
+      Content-Type:
+      - application/json
+      Date:
+      - Fri, 14 Jul 2023 13:16:55 GMT
+      Server:
+      - Server
+      x-amz-apigw-id:
+      - IDifNGTSIAMFhww=
+      x-amzn-Remapped-Connection:
+      - keep-alive
+      x-amzn-Remapped-Content-Length:
+      - '1314'
+      x-amzn-RequestId:
+      - 1d2c02ce-c56b-4e67-81c6-c6e56d9c9ec7
+    status:
+      code: 200
+      message: OK
+version: 1
