@@ -485,15 +485,18 @@ class Emit(Builder):
     ) -> "HardwareJob":
         if config_file is None:
             path = os.path.dirname(__file__)
-            api_config_file = os.path.join(
+
+            config_file = os.path.join(
                 path,
-                os.pardir,
+                "..",
                 "submission",
                 "quera_api_client",
                 "config",
                 "integ_quera_api.json",
             )
-            with open(api_config_file, "r") as io:
+
+        if len(api_config) == 0:
+            with open(config_file, "r") as io:
                 api_config.update(**json.load(io))
         print(api_config)
         backend = QuEraBackend(**api_config)
