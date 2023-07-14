@@ -1,7 +1,7 @@
 from bloqade.submission.ir.braket import BraketTaskSpecification
 from bloqade.submission.ir.task_specification import QuEraTaskSpecification
 from typing import Union
-from pydantic import BaseModel
+from pydantic import BaseModel, Extra
 from bloqade.submission.capabilities import get_capabilities
 from bloqade.submission.ir.capabilities import QuEraCapabilities
 
@@ -11,6 +11,9 @@ class ValidationError(Exception):
 
 
 class SubmissionBackend(BaseModel):
+    class Config:
+        extra = Extra.forbid
+
     def get_capabilities(self) -> QuEraCapabilities:
         return get_capabilities()
 
