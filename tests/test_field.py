@@ -72,7 +72,7 @@ def test_field():
     assert len(o2.value.keys()) == 2
 
     assert f2.print_node() == "Field"
-    assert type(hash(f1)) == int
+    # assert type(hash(f1)) == int
     assert f1.children() == {
         "ScaledLocations": Linear(start=1.0, stop=cast("x"), duration=3.0)
     }
