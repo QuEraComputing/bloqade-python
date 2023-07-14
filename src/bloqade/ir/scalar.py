@@ -271,7 +271,7 @@ def tryvar(py) -> Any:
             return list(map(var, xs))
         case tuple() as xs:
             return tuple(map(var, xs))
-        case Scalar():
+        case Variable():
             return py
         case _:
             return
