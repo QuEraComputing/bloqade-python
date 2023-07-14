@@ -399,7 +399,7 @@ class Gaussian(InfiniteSmoothingKernel):
 
 class Logistic(InfiniteSmoothingKernel):
     def __call__(self, value: float) -> float:
-        np.exp(-(np.logaddexp(0, value) + np.logaddexp(0, -value)))
+        return np.exp(-(np.logaddexp(0, value) + np.logaddexp(0, -value)))
 
 
 class Sigmoid(InfiniteSmoothingKernel):
@@ -654,6 +654,9 @@ class Record(Waveform):
 
     def children(self):
         return {"Waveform": self.waveform, "Variable": self.var}
+
+    def __repr__(self) -> str:
+        return f"Record({self.waveform!r}, {self.var!r})"
 
     def _repr_pretty_(self, p, cycle):
         Printer(p).print(self, cycle)
