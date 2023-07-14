@@ -485,6 +485,7 @@ class Emit(Builder):
     ) -> "HardwareJob":
         if config_file is None:
             path = os.path.dirname(__file__)
+
             config_file = os.path.join(
                 path,
                 "..",

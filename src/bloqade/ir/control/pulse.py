@@ -62,7 +62,7 @@ class RabiRouter:
         self.phase = RabiFrequencyPhase()
 
     def __repr__(self) -> str:
-        "rabi (amplitude, phase)"
+        return "rabi (amplitude, phase)"
 
     def print_node(self):
         return "RabiRouter"
