@@ -192,3 +192,140 @@ def test_canonicalize_mul_zero():
 
     assert scalar.Scalar.canonicalize(scalar.Mul(zero, C)) == scalar.Literal(0.0)
     assert scalar.Scalar.canonicalize(scalar.Mul(C, zero)) == scalar.Literal(0.0)
+
+
+def test_add_scalar():
+    A = cast(1)
+    B = cast(2)
+
+    C = scalar.Add(A, B)
+
+    assert C.children() == [A, B]
+    assert C.print_node() == "+"
+    assert C.__repr__() == "(1 + 2)"
+
+
+def test_add_zero():
+    A = cast(1)
+    B = cast(2)
+
+    C = scalar.Add(A, B)  # expression
+    zero = cast(0.0)
+
+    LC = scalar.Scalar.canonicalize(scalar.Add(C, zero))
+    RC = scalar.Scalar.canonicalize(scalar.Add(zero, C))
+
+    assert LC == cast(3)
+    assert RC == cast(3)
+
+
+def test_mul_one():
+    A = cast(2)
+    B = cast(2)
+
+    C = scalar.Add(A, B)  # expression
+    one = cast(1.0)
+
+    LC = scalar.Scalar.canonicalize(scalar.Mul(C, one))
+    RC = scalar.Scalar.canonicalize(scalar.Mul(one, C))
+
+    assert LC == cast(4)
+    assert RC == cast(4)
+
+
+def test_div_rone():
+    A = cast(2)
+    B = cast(2)
+
+    C = scalar.Add(A, B)  # expression
+    one = cast(1.0)
+
+    LC = scalar.Scalar.canonicalize(scalar.Div(C, one))
+
+    assert LC == cast(4)
+
+    dC = A / B
+    assert dC == cast(1)
+
+
+def test_mul_scalar():
+    A = cast(1)
+    B = cast(2)
+
+    C = scalar.Mul(A, B)
+
+    assert C.children() == [A, B]
+    assert C.print_node() == "*"
+    assert C.__repr__() == "(1 * 2)"
+
+
+def test_div_scalar():
+    A = cast(1)
+    B = cast(2)
+
+    C = scalar.Div(A, B)
+
+    assert C.children() == [A, B]
+    assert C.print_node() == "/"
+    assert C.__repr__() == "(1 / 2)"
+
+    assert C() == 0.5
+
+
+def test_min_scalar():
+    A = cast(1)
+    B = cast(2)
+    C = cast(3)
+
+    D = scalar.Min([A, B, C])
+    assert D.children() == [A, B, C]
+    assert D.print_node() == "min"
+    assert D.__repr__() == "scalar.Min(frozenset({1, 2, 3}))"
+
+
+def test_max_scalar():
+    A = cast(1)
+    B = cast(2)
+    C = cast(3)
+
+    D = scalar.Max([A, B, C])
+    assert D.children() == [A, B, C]
+    assert D.print_node() == "max"
+    assert D.__repr__() == "scalar.Max(frozenset({1, 2, 3}))"
+
+
+def test_cast_decimal():
+    A = cast(Decimal("1.0"))
+
+    assert A.value == Decimal("1.0")
+
+
+def test_Interval_from_pyslice():
+    with pytest.raises(ValueError):
+        scalar.Interval.from_slice(slice(None, None, None))
+
+    with pytest.raises(ValueError):
+        scalar.Interval.from_slice(slice(None, 3, 3))
+
+    with pytest.raises(ValueError):
+        scalar.Interval.from_slice(slice(3, None, 3))
+
+    with pytest.raises(ValueError):
+        scalar.Interval.from_slice(slice(3, 3, 3))
+
+    with pytest.raises(ValueError):
+        scalar.Interval.from_slice(slice(None, None, 3))
+
+    itvl = scalar.Interval.from_slice(slice(5, 6, None))
+    assert itvl.start == cast(5)
+    assert itvl.stop == cast(6)
+
+
+def test_Slice():
+    itvl = scalar.Interval(cast(5), cast(6))
+
+    slc = scalar.Slice(cast(1), itvl)
+
+    assert slc.__repr__() == "1[5:6]"
+    assert slc.children() == {"Scalar": cast(1), None: itvl}
+    assert slc.print_node() == "Slice"
