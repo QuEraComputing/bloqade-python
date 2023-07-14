@@ -494,8 +494,9 @@ class Emit(Builder):
                 "integ_quera_api.json",
             )
 
-        with open(config_file, "r") as io:
-            api_config.update(**json.load(io))
+        if len(api_config) == 0:
+            with open(config_file, "r") as io:
+                api_config.update(**json.load(io))
 
         backend = QuEraBackend(**api_config)
 
