@@ -24,6 +24,7 @@ nav:
   - Tutorials:
     - tutorials/index.md
     - examples/adiabatic.py
+    - examples/example-1c-floquet.py
   - Reference:
     - reference/bloqade/
   - Blog:

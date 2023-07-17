@@ -1,9 +1,34 @@
+# ---
+# jupyter:
+#   jupytext:
+#     formats: ipynb,py:percent
+#     hide_notebook_metadata: false
+#     text_representation:
+#       extension: .py
+#       format_name: percent
+#       format_version: '1.3'
+#       jupytext_version: 1.14.5
+#   kernelspec:
+#     display_name: .venv
+#     language: python
+#     name: python3
+# ---
+
+# %% [markdown]
+# # Whitepaper Example 1C: Floquet Protocol
+
+# %%
 from bloqade import start, cast
 from bloqade.task import HardwareFuture
 
 import numpy as np
+import os
+
+from bokeh.io import output_notebook
 from bokeh.plotting import figure, show
 from bokeh.models import ColumnDataSource, HoverTool, CrosshairTool
+
+output_notebook()
 
 drive_frequency = 15
 drive_amplitude = 15
@@ -42,7 +67,9 @@ emu_job = floquet_job.braket_local_simulator(10000).submit().report()
 """
 
 hw_future = HardwareFuture()
-hw_future.load_json("example-1c-floquet-job.json")
+hw_future.load_json(
+    os.getcwd() + "/docs/docs/examples/" + "example-1c-floquet-job.json"
+)
 hw_rydberg_densities = hw_future.report().rydberg_densities()
 
 # plot results
