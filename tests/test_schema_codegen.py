@@ -14,6 +14,14 @@ def test_location_exceedloc():
         start.rydberg.detuning.location(0).apply(seq).mock(10)
 
 
+def test_hyperfine_schema():
+    with pytest.raises(ValueError):
+        seq = Linear(start=0.0, stop=1.0, duration=0.5).append(
+            2 * Constant(0.5, duration=0.5)
+        )
+        Square(1).hyperfine.detuning.location(0).apply(seq).mock(10)
+
+
 def test_local_no_global():
     seq = Linear(start=0.0, stop=1.0, duration=0.5).append(
         2 * Constant(0.5, duration=0.5)
