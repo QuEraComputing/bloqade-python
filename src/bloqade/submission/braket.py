@@ -15,14 +15,6 @@ from braket.aws import AwsDevice, AwsQuantumTask
 class BraketBackend(SubmissionBackend):
     device_arn: str = "arn:aws:braket:us-east-1::device/qpu/quera/Aquila"
 
-    def _convert_task_results(self, task: AwsQuantumTask) -> QuEraTaskResults:
-        if task.state() == "COMPLETED":
-            return from_braket_task_results(task.result())
-        else:
-            return QuEraTaskResults(
-                task_status=from_braket_status_codes(task.state()), shot_outputs=[]
-            )
-
     @property
     def device(self) -> AwsDevice:
         return AwsDevice(self.device_arn)
@@ -33,15 +25,13 @@ class BraketBackend(SubmissionBackend):
         return task.id
 
     def task_results(self, task_id: str) -> QuEraTaskResults:
-        task = AwsQuantumTask(task_id)
-        return self._convert_task_results(task)
+        return from_braket_task_results(AwsQuantumTask(task_id).result())
 
     def cancel_task(self, task_id: str) -> None:
         AwsQuantumTask(task_id).cancel()
 
     def task_status(self, task_id: str) -> QuEraTaskStatusCode:
-        task = AwsQuantumTask(task_id)
-        return self._convert_status_codes(task.state())
+        return from_braket_status_codes(AwsQuantumTask(task_id).state())
 
     def validate_task(self, task_ir: QuEraTaskSpecification):
         try:

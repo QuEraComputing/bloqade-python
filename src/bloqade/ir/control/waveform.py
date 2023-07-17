@@ -392,14 +392,14 @@ class InfiniteSmoothingKernel(SmoothingKernel):
     pass
 
 
-class Guassian(InfiniteSmoothingKernel):
+class Gaussian(InfiniteSmoothingKernel):
     def __call__(self, value: float) -> float:
         return np.exp(-(value**2) / 2) / np.sqrt(2 * np.pi)
 
 
 class Logistic(InfiniteSmoothingKernel):
     def __call__(self, value: float) -> float:
-        np.exp(-(np.logaddexp(0, value) + np.logaddexp(0, -value)))
+        return np.exp(-(np.logaddexp(0, value) + np.logaddexp(0, -value)))
 
 
 class Sigmoid(InfiniteSmoothingKernel):
@@ -442,7 +442,7 @@ class Cosine(FiniteSmoothingKernel):
         return np.maximum(0, np.pi / 4 * np.cos(np.pi / 2 * value))
 
 
-GuassianKernel = Guassian()
+GaussianKernel = Gaussian()
 LogisticKernel = Logistic()
 SigmoidKernel = Sigmoid()
 TriangleKernel = Triangle()
@@ -654,6 +654,9 @@ class Record(Waveform):
 
     def children(self):
         return {"Waveform": self.waveform, "Variable": self.var}
+
+    def __repr__(self) -> str:
+        return f"Record({self.waveform!r}, {self.var!r})"
 
     def _repr_pretty_(self, p, cycle):
         Printer(p).print(self, cycle)
