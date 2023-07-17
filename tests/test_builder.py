@@ -12,6 +12,7 @@ from bloqade.ir import rydberg, detuning, hyperfine, rabi
 from bloqade import start, var, cast
 from bloqade.ir.location import Square, Chain
 import numpy as np
+import pytest
 
 
 def test_piecewise_const():
@@ -183,6 +184,29 @@ def test_hyperfine_amplitude():
     assert seq.value[hyperfine].value[rabi.amplitude].value[
         ir.ScaledLocations({ir.Location(1): cast(1)})
     ] == ir.Constant(value=30, duration=0.1)
+
+
+def test_fatal_apply():
+    prog = start.hyperfine.rabi.amplitude.location(1).piecewise_constant([0.1], [30])
+
+    st = start
+    seq = prog.sequence
+    st.__sequence__ = seq
+
+    with pytest.raises(NotImplementedError):
+        st.apply(seq)
+
+
+def test_piecewise_constant_mismatch():
+    with pytest.raises(ValueError):
+        start.hyperfine.rabi.amplitude.location(1).piecewise_constant([0.1, 0.5], [30])
+
+
+def test_piecewise_linear_mismatch():
+    with pytest.raises(ValueError):
+        start.hyperfine.rabi.amplitude.location(1).piecewise_linear(
+            durations=[0.1, 0.5], values=[30, 20]
+        )
 
 
 prog = start
