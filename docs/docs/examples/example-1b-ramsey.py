@@ -1,9 +1,34 @@
+# ---
+# jupyter:
+#   jupytext:
+#     formats: ipynb,py:percent
+#     hide_notebook_metadata: false
+#     text_representation:
+#       extension: .py
+#       format_name: percent
+#       format_version: '1.3'
+#       jupytext_version: 1.14.5
+#   kernelspec:
+#     display_name: .venv
+#     language: python
+#     name: python3
+# ---
+
+# %% [markdown]
+# # Whitepaper Example 1B: Ramsey Protocol
+
+# %%
 from bloqade import start
 from bloqade.task import HardwareFuture
 
+import os
+
 import numpy as np
+from bokeh.io import output_notebook
 from bokeh.plotting import figure, show
 from bokeh.models import ColumnDataSource, HoverTool, CrosshairTool
+
+output_notebook()
 
 plateau_time = (np.pi / 2 - 0.625) / 12.5
 wf_durations = [0.05, plateau_time, 0.05, "t_run", 0.05, plateau_time, 0.05]
@@ -33,7 +58,7 @@ emu_job = ramsey_job.braket_local_simulator(10000).submit().report()
 
 # load JSON, get results
 hw_future = HardwareFuture()
-hw_future.load_json("example-1b-ramsey-job.json")
+hw_future.load_json(os.getcwd() + "/docs/docs/examples/" + "example-1b-ramsey-job.json")
 hw_rydberg_densities = hw_future.report().rydberg_densities()
 
 data = {
