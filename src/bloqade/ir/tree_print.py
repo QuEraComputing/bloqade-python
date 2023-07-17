@@ -67,7 +67,7 @@ class Printer:
                 self.p.text("\n")
 
         if (
-            self.state.depth > self.max_tree_depth or cycle
+            self.state.depth > self.max_tree_depth or self.state.depth > cycle
         ):  # need to set this variable dynamically
             self.p.text(self.charset.trunc)
             self.p.text("\n")
