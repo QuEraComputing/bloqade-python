@@ -289,10 +289,22 @@ class PiecewiseConstantCodeGen(WaveformVisitor):
         # evaluate stop value using constant interpolation
         stop_value = values[stop_index]
 
-        absolute_times = [start_time] + times[start_index:stop_index] + [stop_time]
+        match (start_index, stop_index):
+            case (0, int(index)) if index == len(times):
+                absolute_times = times
+            case (0, _):
+                absolute_times = times[start_index:stop_index] + [stop_time]
+                values = values[start_index:stop_index] + [stop_value]
+            case (_, int(index)) if index == len(times):
+                absolute_times = [start_time] + times[start_index:stop_index]
+                values = [start_value] + values[start_index:stop_index]
+            case (_, _):
+                absolute_times = (
+                    [start_time] + times[start_index:stop_index] + [stop_time]
+                )
+                values = [start_value] + values[start_index:stop_index] + [stop_value]
 
         times = [time - start_time for time in absolute_times]
-        values = [start_value] + values[start_index:stop_index] + [stop_value]
 
         return times, values
 
