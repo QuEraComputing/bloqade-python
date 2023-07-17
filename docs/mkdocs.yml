@@ -24,6 +24,7 @@ nav:
   - Tutorials:
     - tutorials/index.md
     - examples/adiabatic.py
+    - examples/example-1a-rabi.py
   - Reference:
     - reference/bloqade/
   - Blog:
