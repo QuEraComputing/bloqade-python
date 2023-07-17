@@ -3,6 +3,7 @@
 
 from bloqade import var
 from bloqade.ir.location import Chain
+from bloqade.task import HardwareFuture
 
 import numpy as np
 from bokeh.plotting import show, figure
@@ -37,22 +38,24 @@ run_times = np.unique(np.hstack((prep_times, scar_times)))
 quantum_scar_job = quantum_scar_program.batch_assign(run_time=run_times)
 
 n_shots = 10000
-# Run on emulator, taking advantage of multiprocessing
 
+# run on emulator
+emu_job = quantum_scar_job.braket_local_simulator(n_shots).submit().report()
 
-emu_job = (
-    quantum_scar_job.braket_local_simulator(n_shots)
-    .submit(multiprocessing=True)
-    .report()
-)
-
-hw_job = (
+# run on HW
+"""
+(
     quantum_scar_job.parallelize(24)
     .braket(100)
     .remove_invalid_tasks()
     .submit()
     .save_json("example-4-quantum-scar-dynamics-job.json")
 )
+"""
+
+# retrieve results from HW
+hw_future = HardwareFuture()
+hw_future.load_json("example-4-quantum-scar-dynamics-job.json")
 
 # Plot results
 ## Mean of Rydberg Densities
