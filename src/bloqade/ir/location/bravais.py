@@ -45,7 +45,7 @@ class BoundedBravais(AtomArrangement):
         # damn! this is like stone age broadcasting
         vectors = np.array(self.cell_vectors())
         index = np.array(index)
-        pos = np.sum(index * vectors.T, axis=1)
+        pos = np.sum(vectors.T * index, axis=1)
         return pos + np.array(self.cell_atoms())
 
     def enumerate(self) -> Generator[LocationInfo, None, None]:
@@ -103,7 +103,7 @@ class Rectangular(BoundedBravais):
         lattice_spacing_y: Optional[Any] = None,
     ):
         if lattice_spacing_y is None:
-            self.ratio = cast(1.0)
+            self.ratio = cast(1.0) / cast(lattice_spacing_x)
         else:
             self.ratio = cast(lattice_spacing_y) / cast(lattice_spacing_x)
 
@@ -125,7 +125,7 @@ class Honeycomb(BoundedBravais):
         return [[1.0, 0.0], [1 / 2, np.sqrt(3) / 2]]
 
     def cell_atoms(self) -> List[List[float]]:
-        return [[0.0, 0.0], [1 / 2, np.sqrt(3) / 2]]
+        return [[0.0, 0.0], [1 / 2, 1 / (2 * np.sqrt(3))]]
 
 
 @dataclass
@@ -163,4 +163,4 @@ class Kagome(BoundedBravais):
         return [[1.0, 0.0], [1 / 2, np.sqrt(3) / 2]]
 
     def cell_atoms(self) -> List[List[float]]:
-        return [[0.0, 0.0], [1 / 4, np.sqrt(3) / 4], [3 / 4, np.sqrt(3) / 2]]
+        return [[0.0, 0.0], [1 / 2, 0], [1 / 4, np.sqrt(3) / 4]]
