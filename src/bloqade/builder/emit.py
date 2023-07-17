@@ -87,6 +87,11 @@ class Emit(Builder):
         self.__register__ = register
 
     def assign(self, **assignments):
+        """assign values to variables declared previously in the program.
+
+        ### Examples
+        """
+
         # these methods terminate no build steps can
         # happens after this other than updating parameters
         new_assignments = dict(self.__assignments__)
@@ -100,6 +105,8 @@ class Emit(Builder):
         )
 
     def batch_assign(self, **batch):
+        """assign values to variables declared previously in the program."""
+
         new_batch = dict(self.__batch__)
         new_batch.update(**batch)
         return Emit(
@@ -478,10 +485,18 @@ class Emit(Builder):
     ) -> "HardwareJob":
         if config_file is None:
             path = os.path.dirname(__file__)
-            api_config_file = os.path.join(
-                path, "submission", "quera_api_client", "config", "integ_quera_api.json"
+
+            config_file = os.path.join(
+                path,
+                "..",
+                "submission",
+                "quera_api_client",
+                "config",
+                "integ_quera_api.json",
             )
-            with open(api_config_file, "r") as io:
+
+        if len(api_config) == 0:
+            with open(config_file, "r") as io:
                 api_config.update(**json.load(io))
 
         backend = QuEraBackend(**api_config)
