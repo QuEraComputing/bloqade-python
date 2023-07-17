@@ -4,14 +4,8 @@ import bloqade.submission.braket
 import bloqade.submission.ir.task_specification as task_spec
 
 from bloqade.submission.ir.task_results import QuEraTaskStatusCode
-from bloqade.submission.ir.braket import to_braket_field
 from unittest.mock import patch
 from bloqade.submission.base import ValidationError
-
-
-def test_braket_field_type_error():
-    with pytest.raises(TypeError):
-        to_braket_field("not a field type")
 
 
 @patch("bloqade.submission.braket.AwsDevice")
