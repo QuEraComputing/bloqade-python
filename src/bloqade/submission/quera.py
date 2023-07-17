@@ -50,8 +50,8 @@ class QuEraBackend(SubmissionBackend):
         self.queue_api.cancel_task_in_queue(task_id)
 
     def task_status(self, task_id: str) -> QuEraTaskStatusCode:
-        return_body = self.queue_api.get_task_summary(task_id)
-        return QuEraTaskStatusCode(return_body["status"])
+        return_body = self.queue_api.get_task_status_in_queue(task_id)
+        return QuEraTaskStatusCode(return_body)
 
     def validate_task(self, task_ir: BraketTaskSpecification | QuEraTaskSpecification):
         try:
