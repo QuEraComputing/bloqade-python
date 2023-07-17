@@ -3,6 +3,3 @@ omit = */tests/*
 
 [report]
 omit = */tests/*
-
-[html]
-omit = */tests/*

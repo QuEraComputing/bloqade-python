@@ -14,8 +14,8 @@ def test_printer():
 
     assert (
         mystdout.getvalue()
-        == "Linear\n├─ start ⇒ Literal: 0\n├─ stop ⇒ Literal: 1\n\
-            └─ duration ⇒ Literal: 1"
+        == "Linear\n├─ start ⇒ Literal: 0\n├─ stop ⇒ Literal: 1\n"
+        + "└─ duration ⇒ Literal: 1"
     )
 
 
@@ -45,6 +45,6 @@ def test_printer_nodes_dict():
 
     assert (
         mystdout.getvalue()
-        == "Poly\n├─ b ⇒ Literal: 1\n├─ t ⇒ Literal: 2\n\
-            ├─ t^2 ⇒ Literal: 3\n└─ duration ⇒ Literal: 1"
+        == "Poly\n├─ b ⇒ Literal: 1\n├─ t ⇒ Literal: 2\n"
+        + "├─ t^2 ⇒ Literal: 3\n└─ duration ⇒ Literal: 1"
     )
