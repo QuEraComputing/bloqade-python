@@ -304,8 +304,8 @@ def test_integration_phase_slice():
     assert ir["lattice"]["filling"] == [1]
 
     phase_ir = ir["effective_hamiltonian"]["rydberg"]["rabi_frequency_phase"]
-    assert all(phase_ir["global"]["times"] == np.array([0, 0, 0.5]) * 1e-6)
-    assert all(phase_ir["global"]["values"] == np.array([1.0, 1.0, 1.0]))
+    assert all(phase_ir["global"]["times"] == np.array([0, 0.5]) * 1e-6)
+    assert all(phase_ir["global"]["values"] == np.array([1.0, 1.0]))
 
 
 def test_integration_phase_scale():
@@ -349,7 +349,6 @@ def test_integration_phase_neg():
 
 
 def test_integration_phase_slice_no_start():
-    ##[Further investigate!]
     seq = Poly(checkpoints=[1], duration=1.0)[:0.5]
     job = location.Square(1).rydberg.rabi.phase.uniform.apply(seq).mock(10)
 
@@ -365,8 +364,8 @@ def test_integration_phase_slice_no_start():
     assert ir["lattice"]["filling"] == [1]
 
     phase_ir = ir["effective_hamiltonian"]["rydberg"]["rabi_frequency_phase"]
-    assert all(phase_ir["global"]["times"] == np.array([0, 0, 0.5]) * 1e-6)
-    assert all(phase_ir["global"]["values"] == np.array([1.0, 1.0, 1.0]))
+    assert all(phase_ir["global"]["times"] == np.array([0, 0.5]) * 1e-6)
+    assert all(phase_ir["global"]["values"] == np.array([1.0, 1.0]))
 
 
 def test_integration_phase_slice_no_stop():
@@ -392,20 +391,17 @@ def test_integration_phase_slice_no_stop():
 
 def test_integration_phase_slice_error_neg_start():
     with pytest.raises(ValueError):
-        ##[Further investigate!]
         seq = Poly(checkpoints=[1], duration=1.0)[-0.1:0.5]
         location.Square(1).rydberg.rabi.phase.uniform.apply(seq).mock(10)
 
 
 def test_integration_phase_slice_error_exceed_stop():
     with pytest.raises(ValueError):
-        ##[Further investigate!]
         seq = Poly(checkpoints=[1], duration=1.0)[0:2.0]
         location.Square(1).rydberg.rabi.phase.uniform.apply(seq).mock(10)
 
 
 def test_integration_phase_slice_error_reverse():
     with pytest.raises(ValueError):
-        ##[Further investigate!]
         seq = Poly(checkpoints=[1], duration=1.0)[2.0:0.0]
         location.Square(1).rydberg.rabi.phase.uniform.apply(seq).mock(10)
