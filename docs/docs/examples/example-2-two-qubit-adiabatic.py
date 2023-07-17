@@ -1,9 +1,35 @@
+# ---
+# jupyter:
+#   jupytext:
+#     formats: ipynb,py:percent
+#     hide_notebook_metadata: false
+#     text_representation:
+#       extension: .py
+#       format_name: percent
+#       format_version: '1.3'
+#       jupytext_version: 1.14.5
+#   kernelspec:
+#     display_name: .venv
+#     language: python
+#     name: python3
+# ---
+
+# %% [markdown]
+# # Whitepaper Example 2A: Two Qubit Adiabatic Sweep
+
+# %%
+
 from bloqade import start
 from bloqade.task import HardwareFuture
 
 import numpy as np
+import os
+
+from bokeh.io import output_notebook
 from bokeh.plotting import figure, show
 from bokeh.models import ColumnDataSource, CrosshairTool, HoverTool
+
+output_notebook()
 
 durations = [1, 2, 1]
 
@@ -33,7 +59,9 @@ emu_job = two_qubit_adiabatic_job.braket_local_simulator(10000).submit().report(
 
 # retrieve data from HW
 hw_future = HardwareFuture()
-hw_future.load_json("example-2-two-qubit-adiabatic-job.json")
+hw_future.load_json(
+    os.getcwd() + "/docs/docs/examples/" + "example-2-two-qubit-adiabatic-job.json"
+)
 hw_report = hw_future.report()
 
 # want to plot the 0 rydberg probability,
