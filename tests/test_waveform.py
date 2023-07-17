@@ -304,7 +304,14 @@ def test_wvfm_sample():
 
     assert wf.print_node() == "Sample constant"
     assert wf.children() == {"Waveform": wv, "sample_step": dt}
-    # assert wf.eval_decimal(0.05) == my_cos(0)
+    assert wf.eval_decimal(Decimal(0.05)) == my_cos(0)
+
+    wf2 = Sample(wv, Interpolation.Linear, dt)
+
+    assert wf2.print_node() == "Sample linear"
+    assert wf2.children() == {"Waveform": wv, "sample_step": dt}
+    slope = (my_cos(0.1) - my_cos(0)) / 0.1
+    assert float(wf2.eval_decimal(Decimal(0.05))) == float(my_cos(0) + slope * 0.05)
 
 
 """

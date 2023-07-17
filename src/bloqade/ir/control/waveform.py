@@ -696,7 +696,6 @@ class Sample(Waveform):
 
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
         times, values = self.samples(**kwargs)
-
         i = bisect_left(times, clock_s)
 
         if i == len(times):
@@ -704,8 +703,11 @@ class Sample(Waveform):
 
         match self.interpolation:
             case Interpolation.Linear:
-                slope = (values[i + 1] - values[i]) / (times[i + 1] - times[i])
-                return slope * (clock_s - times[i]) + values[i]
+                if i == 0:
+                    return values[i]
+                else:
+                    slope = (values[i] - values[i - 1]) / (times[i] - times[i - 1])
+                    return slope * (clock_s - times[i - 1]) + values[i - 1]
 
             case Interpolation.Constant:
                 if i == 0:
