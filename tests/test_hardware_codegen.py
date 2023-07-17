@@ -1,6 +1,6 @@
 # from bloqade import start
-from bloqade.ir import location
-from bloqade.ir import Constant, Linear, Poly
+from bloqade.ir import location, cast, Interpolation
+from bloqade.ir import Constant, Linear, Poly, PythonFn, Sample
 import pytest
 import json
 import numpy as np
@@ -116,6 +116,21 @@ def test_integration_poly_linear():
     detune_ir = ir["effective_hamiltonian"]["rydberg"]["detuning"]
     assert all(detune_ir["global"]["times"] == np.array([0, 0.5, 1.0]) * 1e-6)
     assert all(detune_ir["global"]["values"] == np.array([1, 2, 2]) * 1e6)
+
+
+def test_integration_linear_sampl_const_err():
+    def my_cos(time):
+        return np.cos(time)
+
+    assert my_cos(1) == np.cos(1)
+
+    wv = PythonFn(my_cos, duration=1.0)
+    dt = cast(0.1)
+
+    wf = Sample(wv, Interpolation.Constant, dt)
+    ## phase can only have piecewise constant.
+    with pytest.raises(ValueError):
+        location.Square(1).rydberg.detuning.uniform.apply(wf).mock(10)
 
 
 def test_integration_slice_linear_const():
@@ -426,3 +441,18 @@ def test_integration_phase_slice_error_reverse():
     with pytest.raises(ValueError):
         seq = Poly(checkpoints=[1], duration=1.0)[2.0:0.0]
         location.Square(1).rydberg.rabi.phase.uniform.apply(seq).mock(10)
+
+
+def test_integration_phase_sampl_linear_err():
+    def my_cos(time):
+        return np.cos(time)
+
+    assert my_cos(1) == np.cos(1)
+
+    wv = PythonFn(my_cos, duration=1.0)
+    dt = cast(0.1)
+
+    wf = Sample(wv, Interpolation.Linear, dt)
+    ## phase can only have piecewise constant.
+    with pytest.raises(ValueError):
+        location.Square(1).rydberg.rabi.phase.uniform.apply(wf).mock(10)
