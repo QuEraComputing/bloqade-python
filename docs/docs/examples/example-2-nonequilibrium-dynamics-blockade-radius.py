@@ -1,10 +1,35 @@
+# ---
+# jupyter:
+#   jupytext:
+#     formats: ipynb,py:percent
+#     hide_notebook_metadata: false
+#     text_representation:
+#       extension: .py
+#       format_name: percent
+#       format_version: '1.3'
+#       jupytext_version: 1.14.5
+#   kernelspec:
+#     display_name: .venv
+#     language: python
+#     name: python3
+# ---
+
+# %% [markdown]
+# # Whitepaper Example 2: Nonequilibrium Dynamics at Blockade Radius
+
+# %%
+
 from bloqade import start, cast
 from bloqade.task import HardwareFuture
 
 import numpy as np
+import os
 
 from bokeh.plotting import show, figure
+from bokeh.io import output_notebook
 from bokeh.models import HoverTool, CrosshairTool, ColumnDataSource
+
+output_notebook()
 
 durations = ["ramp_time", "t_run", "ramp_time"]
 
@@ -39,7 +64,11 @@ hw_job = (
 """
 # get HW results back
 hw_future = HardwareFuture()
-hw_future.load_json("example-2-nonequilibrium-dynamics-blockade-radius-job.json")
+hw_future.load_json(
+    os.getcwd()
+    + "/docs/docs/examples/"
+    + "example-2-nonequilibrium-dynamics-blockade-radius-job.json"
+)
 hw_report = hw_future.report()
 
 
@@ -118,6 +147,7 @@ def generate_plot(plt_title, source):
     return plt
 
 
+# %%
 # gg density
 gg_data = {
     "times": run_times,
@@ -128,6 +158,7 @@ gg_source = ColumnDataSource(data=gg_data)
 
 show(generate_plot("0 Rydberg", gg_source))
 
+# %%
 # gr + rg density
 gr_rg_data = {
     "times": run_times,
@@ -138,6 +169,7 @@ gr_rg_source = ColumnDataSource(data=gr_rg_data)
 
 show(generate_plot("1 Rydberg", gr_rg_source))
 
+# %%
 rr_data = {
     "times": run_times,
     "emu_densities": emu_two_probs,

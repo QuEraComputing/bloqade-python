@@ -24,6 +24,7 @@ nav:
   - Tutorials:
     - tutorials/index.md
     - examples/adiabatic.py
+    - examples/example-2-nonequilibrium-dynamics-blockade-radius.py
   - Reference:
     - reference/bloqade/
   - Blog:
