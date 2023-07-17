@@ -197,6 +197,18 @@ def test_fatal_apply():
         st.apply(seq)
 
 
+def test_piecewise_constant_mismatch():
+    with pytest.raises(ValueError):
+        start.hyperfine.rabi.amplitude.location(1).piecewise_constant([0.1, 0.5], [30])
+
+
+def test_piecewise_linear_mismatch():
+    with pytest.raises(ValueError):
+        start.hyperfine.rabi.amplitude.location(1).piecewise_linear(
+            durations=[0.1, 0.5], values=[30, 20]
+        )
+
+
 prog = start
 prog = (
     prog.rydberg.detuning.location(1)

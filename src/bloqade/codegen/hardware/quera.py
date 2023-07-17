@@ -203,7 +203,7 @@ class PiecewiseConstantCodeGen(WaveformVisitor):
     def visit_negative(
         self, ast: waveform.Negative
     ) -> Tuple[List[Decimal], List[Decimal]]:
-        times, values = ast.waveform
+        times, values = self.visit(ast.waveform)
         return times, [-value for value in values]
 
     def visit_scale(self, ast: waveform.Scale) -> Tuple[List[Decimal], List[Decimal]]:
