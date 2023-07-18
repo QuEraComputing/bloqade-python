@@ -684,7 +684,7 @@ class Sample(Waveform):
         clock = Decimal("0.0")
         clocks = []
         values = []
-        while clock < duration - dt:
+        while clock < duration:
             values.append(self.waveform.eval_decimal(clock, **kwargs))
             clocks.append(clock)
             clock += dt

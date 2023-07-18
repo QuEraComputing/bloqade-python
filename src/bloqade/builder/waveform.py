@@ -109,9 +109,9 @@ class PythonFn(Sliceable, Recordable, WaveformTerminate):
             return Sample(self, dt, interpolation=interpolation)
 
         match self.__build_cache__.field_name:
-            case ir.pulse.rabi.amplitude | ir.pulse.detuning:
+            case ir.control.pulse.rabi.amplitude | ir.control.pulse.detuning:
                 return Sample(self, dt, interpolation=ir.Interpolation.Linear)
-            case ir.pulse.rabi.phase:
+            case ir.control.pulse.rabi.phase:
                 return Sample(self, dt, interpolation=ir.Interpolation.Constant)
             case _:
                 raise NotImplementedError(
