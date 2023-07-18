@@ -44,6 +44,10 @@ def test_local_no_global():
     assert all(detune_ir["local"]["values"] == np.array([0, 1, 1]) * 1e6)
     assert detune_ir["local"]["lattice_site_coefficients"] == [0.5]
 
+    # should have global even without assign:
+    assert all(detune_ir["global"]["times"] == np.array([0, 1]) * 1e-6)
+    assert all(detune_ir["global"]["values"] == np.array([0, 0]))
+
 
 def test_local_global():
     seq = Linear(start=0.0, stop=1.0, duration=0.5).append(
