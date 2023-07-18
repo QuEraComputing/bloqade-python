@@ -459,6 +459,28 @@ def test_integration_phase_sampl_linear_err():
         location.Square(1).rydberg.rabi.phase.uniform.apply(wf).mock(10)
 
 
+def test_integration_batchassign_assign():
+    ## jump at the end of linear -- constant
+    with pytest.raises(ValueError):
+        (
+            location.Square(6)
+            .rydberg.detuning.uniform.apply(Constant("initial_detuning", "time"))
+            .batch_assign(initial_detuning=[1, 2, 3, 4], time=[2, 4, 5])
+            .mock(10)
+        )
+
+    ## jump at the end of linear -- constant
+
+    job = (
+        location.Square(6)
+        .rydberg.detuning.uniform.apply(Constant("initial_detuning", "time"))
+        .batch_assign(initial_detuning=[1, 2, 3, 4], time=[2, 4, 5, 0.6])
+        .mock(10)
+    )
+
+    assert len(job.tasks) == 4
+
+
 """
 def test_integration_record():
     job = (
