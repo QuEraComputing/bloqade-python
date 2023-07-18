@@ -88,9 +88,9 @@ _.env_file = "./.env"
 upload = "python -m twine upload -r bloqade dist/*"
 build = {cmd = "pdm build"}
 publish = {composite = ["build", "upload"]}
-test = {shell = "pytest tests docs/docs/examples/*.py"}
-coverage = {shell = "coverage run -m pytest tests/ docs/docs/examples/*.py && coverage report"}
-coverage-html = {shell = "coverage run -m pytest tests/ docs/docs/examples/*.py && coverage html"}
+test = {shell = "rm .mock_state.txt && pytest tests docs/docs/examples/*.py"}
+coverage = {shell = "rm .mock_state.txt && coverage run -m pytest tests/ docs/docs/examples/*.py && coverage report"}
+coverage-html = {shell = "rm .mock_state.txt && coverage run -m pytest tests/ docs/docs/examples/*.py && coverage html"}
 doc = {cmd = "mkdocs serve -f docs/mkdocs.yml"}
 doc_build = {cmd = "mkdocs build -f docs/mkdocs.yml"}
 doc_deploy = {cmd = "pdm mike deploy --push --update-aliases dev -F docs/mkdocs.yml"}
