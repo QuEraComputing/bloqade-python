@@ -122,7 +122,7 @@ class BatchTask:
         raise NotImplementedError
 
     @property
-    def task(self) -> OrderedDict[int, Task]:
+    def tasks(self) -> OrderedDict[int, Task]:
         return self._tasks()
 
     def submit(self) -> "BatchFuture":
