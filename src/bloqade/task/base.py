@@ -5,6 +5,7 @@ from bloqade.submission.ir.task_results import (
     QuEraShotStatusCode,
 )
 from bloqade.submission.ir.parallel import ParallelDecoder
+from bloqade.submission.base import SubmissionBackend
 from typing import List, Union, TextIO, Tuple, Optional, Type
 from collections import OrderedDict
 from numpy.typing import NDArray
@@ -24,13 +25,13 @@ class Geometry:
 
 
 class JSONInterface(BaseModel):
+    def _init_from_dict(self, **params) -> None:
+        raise NotImplementedError
+
     def json(self, exclude_none=True, by_alias=True, **json_options) -> str:
         return super().json(
             exclude_none=exclude_none, by_alias=by_alias, **json_options
         )
-
-    def init_from_dict(self, **params) -> None:
-        raise NotImplementedError
 
     def save_json(
         self, filename_or_io: Union[str, TextIO], mode="w", **json_options
@@ -48,7 +49,7 @@ class JSONInterface(BaseModel):
         else:
             params = json.load(filename_or_io)
 
-        self.init_from_dict(**params)
+        self._init_from_dict(**params)
 
 
 class Task:
@@ -67,7 +68,7 @@ class Task:
 
 
 class SerializableTask(JSONInterface, Task):
-    def _backend(self):
+    def _backend(self) -> SubmissionBackend:
         raise NotImplementedError
 
     @property

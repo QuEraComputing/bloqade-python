@@ -198,7 +198,7 @@ class HardwareBatchTask(SerializableBatchTask):
     ) -> "HardwareBatchFuture":
         return HardwareBatchFuture(hardware_task_futures=futures)
 
-    def init_from_dict(self, **params) -> None:
+    def _init_from_dict(self, **params) -> None:
         match params:
             case {"hardware_tasks": dict() as tasks}:
                 self.hardware_tasks = OrderedDict(
@@ -220,7 +220,7 @@ class HardwareBatchFuture(SerializableBatchFuture):
     def _task_futures(self) -> OrderedDict[int, HardwareTaskFuture]:
         return self.hardware_task_futures
 
-    def init_from_dict(self, **params) -> None:
+    def _init_from_dict(self, **params) -> None:
         match params:
             case {"hardware_task_futures": dict() as futures}:
                 self.hardware_task_futures = OrderedDict(
