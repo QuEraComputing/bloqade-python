@@ -26,6 +26,8 @@ from bloqade.ir.control.waveform import SmoothingKernel, Waveform
 from decimal import Decimal
 import pytest
 import numpy as np
+from io import StringIO
+from IPython.lib.pretty import PrettyPrinter as PP
 
 
 def test_wvfm_base():
@@ -53,6 +55,16 @@ def test_wvfm_constant():
     assert wf.print_node() == "Constant"
     assert wf.eval_decimal(clock_s=Decimal("6.0")) == 0
     assert wf.children() == {"value": cast(1.0), "duration": cast(3.0)}
+
+    mystdout = StringIO()
+    p = PP(mystdout)
+
+    wf._repr_pretty_(p, 0)
+
+    assert (
+        mystdout.getvalue()
+        == "Constant\n├─ value ⇒ Literal: 1.0\n⋮\n└─ duration ⇒ Literal: 3.0⋮\n"
+    )
 
 
 def test_wvfm_pyfn():
@@ -98,6 +110,13 @@ def test_wvfm_pyfn():
     assert wf.children() == {"duration": cast(1.0)}
     assert wf.duration == cast(1.0)
 
+    mystdout = StringIO()
+    p = PP(mystdout)
+
+    wf._repr_pretty_(p, 0)
+
+    assert mystdout.getvalue() == "PythonFn: my_func\n└─ duration ⇒ Literal: 1.0⋮\n"
+
 
 def test_wvfm_app():
     wf = Linear(start=1.0, stop=2.0, duration=3.0)
@@ -107,6 +126,14 @@ def test_wvfm_app():
 
     assert wf3.print_node() == "Append"
     assert wf3.children() == [wf, wf2]
+    assert wf3.eval_decimal(Decimal(10)) == Decimal(0)
+
+    mystdout = StringIO()
+    p = PP(mystdout)
+
+    wf3._repr_pretty_(p, 0)
+
+    assert mystdout.getvalue() == "Append\n├─ Linear\n⋮\n└─ Constant\n⋮\n"
 
 
 def test_wvfm_neg():
@@ -118,6 +145,19 @@ def test_wvfm_neg():
     assert wf2.__repr__() == "-(" + wf2.children()[0].__repr__() + ")"
 
     assert wf2.eval_decimal(Decimal("0.5")) == Decimal("-1.0")
+
+    mystdout = StringIO()
+    p = PP(mystdout)
+
+    wf2._repr_pretty_(p, 2)
+
+    assert (
+        mystdout.getvalue()
+        == "-\n"
+        + "└─ Constant\n"
+        + "   ├─ value ⇒ Literal: 1.0\n"
+        + "   └─ duration ⇒ Literal: 3.0"
+    )
 
 
 def test_wvfm_scale():
@@ -137,6 +177,20 @@ def test_wvfm_scale():
 
     assert wf3.eval_decimal(Decimal("0.5")) == Decimal("2.0")
 
+    mystdout = StringIO()
+    p = PP(mystdout)
+
+    wf3._repr_pretty_(p, 2)
+
+    assert (
+        mystdout.getvalue()
+        == "Scale\n"
+        + "├─ Literal: 2.0\n"
+        + "└─ Constant\n"
+        + "   ├─ value ⇒ Literal: 1.0\n"
+        + "   └─ duration ⇒ Literal: 3.0"
+    )
+
 
 def test_wvfn_add():
     wf = Constant(value=1.0, duration=3.0)
@@ -151,6 +205,23 @@ def test_wvfn_add():
     assert wf3.eval_decimal(Decimal("0")) == Decimal("2.0")
     assert wf3.eval_decimal(Decimal("2.5")) == Decimal("1.0")
 
+    mystdout = StringIO()
+    p = PP(mystdout)
+
+    wf3._repr_pretty_(p, 2)
+
+    assert (
+        mystdout.getvalue()
+        == "+\n"
+        + "├─ Constant\n"
+        + "│  ├─ value ⇒ Literal: 1.0\n"
+        + "│  └─ duration ⇒ Literal: 3.0\n"
+        + "└─ Linear\n"
+        + "   ├─ start ⇒ Literal: 1.0\n"
+        + "   ├─ stop ⇒ Literal: 2.0\n"
+        + "   └─ duration ⇒ Literal: 2.0"
+    )
+
 
 def test_wvfn_rec():
     wf = Linear(start=1.0, stop=2.0, duration=3.0)
@@ -163,6 +234,21 @@ def test_wvfn_rec():
 
     assert re.eval_decimal(Decimal("0")) == Decimal("1.0")
     assert re.duration == cast(3.0)
+
+    mystdout = StringIO()
+    p = PP(mystdout)
+
+    re._repr_pretty_(p, 2)
+
+    assert (
+        mystdout.getvalue()
+        == "Record\n"
+        + "├─ Waveform ⇒ Linear\n"
+        + "│             ├─ start ⇒ Literal: 1.0\n"
+        + "│             ├─ stop ⇒ Literal: 2.0\n"
+        + "│             └─ duration ⇒ Literal: 3.0\n"
+        + "└─ Variable ⇒ Variable: tst"
+    )
 
 
 def test_wvfn_poly():
@@ -264,6 +350,21 @@ def test_wvfn_slice():
     assert wf.eval_decimal(Decimal("0.2")) == 2.0
     assert wf.children() == [wv, iv]
 
+    mystdout = StringIO()
+    p = PP(mystdout)
+    wf._repr_pretty_(p, 2)
+
+    assert (
+        mystdout.getvalue()
+        == "Slice\n"
+        + "├─ Constant\n"
+        + "│  ├─ value ⇒ Literal: 2.0\n"
+        + "│  └─ duration ⇒ Literal: 3.0\n"
+        + "└─ Interval\n"
+        + "   ├─ start ⇒ Literal: 0\n"
+        + "   └─ stop ⇒ Literal: 0.3"
+    )
+
     iv_err1 = Interval(None, None)
     wf2 = Slice(wv, iv_err1)
     with pytest.raises(ValueError):
@@ -290,6 +391,19 @@ def test_wvfm_align():
     assert wf3.print_node() == "AlignedWaveform"
     assert wf3.children() == {"Waveform": wv, "Alignment": "Right", "Value": "Left"}
 
+    mystdout = StringIO()
+    p = PP(mystdout)
+    wf3._repr_pretty_(p, 2)
+
+    assert (
+        mystdout.getvalue()
+        == "AlignedWaveform\n"
+        + "├─ Waveform ⇒ Constant\n"
+        + "│             ├─ value ⇒ Literal: 2.0\n"
+        + "│             └─ duration ⇒ Literal: 3.0\n"
+        + "├─ Alignment ⇒ Right\n└─ Value ⇒ Left\n"
+    )
+
 
 def test_wvfm_sample():
     def my_cos(time):
@@ -305,6 +419,7 @@ def test_wvfm_sample():
     assert wf.print_node() == "Sample constant"
     assert wf.children() == {"Waveform": wv, "sample_step": dt}
     assert wf.eval_decimal(Decimal(0.05)) == my_cos(0)
+    assert float(wf.eval_decimal(Decimal(0))) == my_cos(0)
 
     wf2 = Sample(wv, Interpolation.Linear, dt)
 
@@ -312,6 +427,21 @@ def test_wvfm_sample():
     assert wf2.children() == {"Waveform": wv, "sample_step": dt}
     slope = (my_cos(0.1) - my_cos(0)) / 0.1
     assert float(wf2.eval_decimal(Decimal(0.05))) == float(my_cos(0) + slope * 0.05)
+    assert float(wf2.eval_decimal(Decimal(3))) == 0
+    assert float(wf2.eval_decimal(Decimal(0))) == my_cos(0)
+
+    mystdout = StringIO()
+    p = PP(mystdout)
+
+    wf2._repr_pretty_(p, 2)
+
+    assert (
+        mystdout.getvalue()
+        == "Sample linear\n"
+        + "├─ Waveform ⇒ PythonFn: my_cos\n"
+        + "│             └─ duration ⇒ Literal: 1.0\n"
+        + "└─ sample_step ⇒ Literal: 0.1"
+    )
 
 
 """
