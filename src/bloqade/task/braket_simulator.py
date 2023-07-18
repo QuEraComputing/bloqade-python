@@ -1,4 +1,3 @@
-from pydantic import BaseModel
 from braket.devices import LocalSimulator
 
 from bloqade.submission.ir.braket import (
@@ -10,19 +9,18 @@ from bloqade.submission.ir.task_results import (
     QuEraTaskStatusCode,
 )
 from bloqade.task.base import (
-    Future,
+    SerializableBatchFuture,
+    SerializableBatchTask,
     Geometry,
-    JSONInterface,
-    Task,
-    TaskFuture,
-    Job,
+    SerializableTask,
+    SerializableTaskFuture,
 )
 from typing import Optional
 from concurrent.futures import ProcessPoolExecutor
 from collections import OrderedDict
 
 
-class BraketEmulatorTask(BaseModel, Task):
+class BraketEmulatorTask(SerializableTask):
     task_ir: BraketTaskSpecification
 
     def submit(self, **kwargs) -> "BraketEmulatorTaskFuture":
@@ -36,7 +34,7 @@ class BraketEmulatorTask(BaseModel, Task):
         )
 
 
-class BraketEmulatorTaskFuture(BaseModel, TaskFuture):
+class BraketEmulatorTaskFuture(SerializableTaskFuture):
     task_ir: BraketTaskSpecification
     task_results_ir: QuEraTaskResults
 
@@ -57,13 +55,13 @@ class BraketEmulatorTaskFuture(BaseModel, TaskFuture):
         pass
 
 
-class BraketEmulatorJob(JSONInterface, Job):
-    tasks: OrderedDict[int, BraketEmulatorTask] = {}
+class BraketEmulatorJob(SerializableBatchTask):
+    braket_emulator_tasks: OrderedDict[int, BraketEmulatorTask] = {}
 
-    def _task_dict(self) -> OrderedDict[int, BraketEmulatorTask]:
-        return self.tasks
+    def _tasks(self) -> OrderedDict[int, BraketEmulatorTask]:
+        return self.braket_emulator_tasks
 
-    def _emit_future(
+    def _emit_batch_future(
         self, futures: OrderedDict[int, BraketEmulatorTaskFuture]
     ) -> "BraketEmulatorFuture":
         return BraketEmulatorFuture(futures=futures)
@@ -71,7 +69,7 @@ class BraketEmulatorJob(JSONInterface, Job):
     def init_from_dict(self, **params) -> None:
         match params:
             case {"tasks": dict() as tasks}:
-                self.tasks = OrderedDict(
+                self.braket_emulator_tasks = OrderedDict(
                     [
                         (task_number, BraketEmulatorTask(**tasks[task_number]))
                         for task_number in sorted(tasks.keys())
@@ -85,14 +83,14 @@ class BraketEmulatorJob(JSONInterface, Job):
 
     def submit(
         self, multiprocessing: bool = False, max_workers: Optional[int] = None, **kwargs
-    ) -> Future:
+    ) -> "BraketEmulatorFuture":
         if multiprocessing:
             futures = {}
             with ProcessPoolExecutor(max_workers=max_workers) as executor:
-                for task_number, task in self.tasks.items():
+                for task_number, task in self.braket_emulator_tasks.items():
                     futures[task_number] = executor.submit(task.submit, **kwargs)
 
-            return self._emit_future(
+            return self._emit_batch_future(
                 {
                     task_number: future.result()
                     for task_number, future in futures.items()
@@ -102,10 +100,10 @@ class BraketEmulatorJob(JSONInterface, Job):
             return super().submit()
 
 
-class BraketEmulatorFuture(JSONInterface, Future):
+class BraketEmulatorFuture(SerializableBatchFuture):
     futures: OrderedDict[int, BraketEmulatorTaskFuture]
 
-    def futures_dict(self) -> OrderedDict[int, BraketEmulatorTaskFuture]:
+    def _task_futures(self) -> OrderedDict[int, BraketEmulatorTaskFuture]:
         return self.futures
 
     def init_from_dict(self, **params) -> None:

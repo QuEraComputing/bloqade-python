@@ -5,7 +5,7 @@ from bloqade.submission.ir.task_results import (
     QuEraShotStatusCode,
 )
 from bloqade.submission.ir.parallel import ParallelDecoder
-from typing import List, Union, TextIO, Tuple, Optional
+from typing import List, Union, TextIO, Tuple, Optional, Type
 from collections import OrderedDict
 from numpy.typing import NDArray
 from pydantic.dataclasses import dataclass
@@ -16,41 +16,11 @@ import numpy as np
 import json
 
 
-class Task:
-    def submit(self) -> "TaskFuture":
-        raise NotImplementedError
-
-    def run_validation(self) -> None:
-        raise NotImplementedError
-
-
 @dataclass(frozen=True)
 class Geometry:
     sites: List[Tuple[float, float]]
     filling: List[int]
     parallel_decoder: Optional[ParallelDecoder]
-
-
-class TaskFuture:
-    @property
-    def geometry(self) -> Geometry:
-        return self._task_geometry()
-
-    def _task_geometry(self) -> Geometry:
-        raise NotImplementedError
-
-    @property
-    def task_result(self) -> QuEraTaskResults:
-        return self.fetch(cache_result=True)
-
-    def fetch(self, cache_result=False) -> QuEraTaskResults:
-        raise NotImplementedError
-
-    def status(self) -> QuEraTaskStatusCode:
-        raise NotImplementedError
-
-    def cancel(self) -> None:
-        raise NotImplementedError
 
 
 class JSONInterface(BaseModel):
@@ -81,17 +51,90 @@ class JSONInterface(BaseModel):
         self.init_from_dict(**params)
 
 
-class Job:
-    def _task_dict(self) -> OrderedDict[int, Task]:
+class Task:
+    @property
+    def geometry(self) -> Geometry:
+        return self._geometry()
+
+    def _geometry(self) -> Geometry:
         raise NotImplementedError
 
-    def _emit_future(self, futures: OrderedDict[int, TaskFuture]) -> "Future":
+    def submit(self) -> "TaskFuture":
         raise NotImplementedError
 
-    def remove_invalid_tasks(self) -> "Job":
+    def run_validation(self) -> None:
+        raise NotImplementedError
+
+
+class SerializableTask(JSONInterface, Task):
+    def _backend(self):
+        raise NotImplementedError
+
+    @property
+    def backend(self):
+        return self._backend()
+
+
+class TaskFuture:
+    def _task(self) -> Task:
+        raise NotImplementedError
+
+    def _resubmit_if_not_submitted(self) -> "TaskFuture":
+        raise NotImplementedError
+
+    @property
+    def task(self) -> Task:
+        return self._task()
+
+    @property
+    def task_result(self) -> QuEraTaskResults:
+        return self.fetch(cache_result=True)
+
+    def fetch(self, cache_result=False) -> QuEraTaskResults:
+        raise NotImplementedError
+
+    def status(self) -> QuEraTaskStatusCode:
+        raise NotImplementedError
+
+    def cancel(self) -> None:
+        raise NotImplementedError
+
+
+class SerializableTaskFuture(JSONInterface, TaskFuture):
+    pass
+
+
+class BatchTask:
+    def _tasks(self) -> OrderedDict[int, Task]:
+        raise NotImplementedError
+
+    def _emit_batch_future(
+        self, futures: OrderedDict[int, TaskFuture]
+    ) -> "BatchFuture":
+        raise NotImplementedError
+
+    @property
+    def task(self) -> OrderedDict[int, Task]:
+        return self._tasks()
+
+    def submit(self) -> "BatchFuture":
+        task_dict = self._tasks()
+
+        futures = OrderedDict()
+        for task_index, task in task_dict.items():
+            futures[task_index] = task.submit()
+
+        return self._emit_batch_future(futures)
+
+
+class SerializableBatchTask(JSONInterface, BatchTask):
+    def _task_future_class(self) -> "Type[TaskFuture]":
+        raise NotImplementedError
+
+    def remove_invalid_tasks(self) -> "BatchTask":
         valid_tasks = OrderedDict()
 
-        for task_number, task in self._task_dict().items():
+        for task_number, task in self._tasks().items():
             try:
                 task.run_validation()
                 valid_tasks[task_number] = task
@@ -100,8 +143,8 @@ class Job:
 
         return self.__class__(tasks=valid_tasks)
 
-    def submit(self, shuffle_submit_order: bool = True) -> "Future":
-        task_dict = self._task_dict()
+    def submit(self, shuffle_submit_order: bool = True) -> "SerializableBatchFuture":
+        task_dict = self._tasks()
 
         if shuffle_submit_order:
             submission_order = np.random.permutation(list(task_dict.keys()))
@@ -116,26 +159,32 @@ class Job:
 
         # submit tasks in random order but store them
         # in the original order of tasks.
-        futures = {}
+        futures = OrderedDict()
         for task_index in submission_order:
+            task = task_dict[task_index]
             try:
-                futures[task_index] = task_dict[task_index].submit()
-            except BaseException as e:
-                for future in futures:
-                    if future is not None:
-                        future.cancel()
-                raise e
+                futures[task_index] = task.submit()
+            except BaseException:
+                TaskFutureType = self._task_future_class()
+                futures[task_index] = TaskFutureType(task=task, task_id=None)
 
-        return self._emit_future(futures)
+        return self._emit_batch_future(futures)
 
 
-class Future:
+class BatchFuture:
+    def _task_futures(self) -> OrderedDict[int, TaskFuture]:
+        raise NotImplementedError
+
+    @property
+    def task_futures(self) -> OrderedDict[int, TaskFuture]:
+        return self._task_futures()
+
     @property
     def task_results(self) -> OrderedDict[int, QuEraTaskResults]:
         return OrderedDict(
             [
                 (task_number, future.task_result)
-                for task_number, future in self.futures_dict().items()
+                for task_number, future in self.task_futures.items()
             ]
         )
 
@@ -143,25 +192,31 @@ class Future:
         return Report(self)
 
     def cancel(self) -> None:
-        for future in self.futures_dict().values():
+        for future in self.task_futures.values():
             future.cancel()
 
-    def futures_dict(self) -> OrderedDict[int, TaskFuture]:
-        raise NotImplementedError
+
+class SerializableBatchFuture(JSONInterface, BatchFuture):
+    def resubmit_missing_tasks(self) -> "SerializableBatchFuture":
+        new_futures = OrderedDict()
+        for task_number, future in self.task_futures.items():
+            new_futures[task_number] = future._resubmit_if_not_submitted()
+
+        return self.__class__(futures=new_futures)
 
 
 # NOTE: this is only the basic report, we should provide
 #      a way to customize the report class,
 #      e.g result.plot() returns a `TaskPlotReport` class instead
 class Report:
-    def __init__(self, future: Future) -> None:
+    def __init__(self, future: BatchFuture) -> None:
         self._future = future
         self._dataframe = None  # df cache
         self._bitstrings = None  # bitstring cache
         self._counts = None  # counts cache
 
     @property
-    def future(self) -> Future:
+    def future(self) -> BatchFuture:
         return self._future
 
     @property
@@ -180,9 +235,9 @@ class Report:
         index = []
         data = []
 
-        for task_number, task_future in self.future.futures_dict().items():
-            perfect_sorting = "".join(map(str, task_future.geometry.filling))
-            parallel_decoder = task_future.geometry.parallel_decoder
+        for task_number, task_future in self.future.task_futures.items():
+            perfect_sorting = "".join(map(str, task_future.task.geometry.filling))
+            parallel_decoder = task_future.task.geometry.parallel_decoder
 
             if parallel_decoder:
                 cluster_indices = parallel_decoder.get_cluster_indices()

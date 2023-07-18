@@ -1,5 +1,5 @@
 from bloqade import start
-from bloqade.task import HardwareFuture
+from bloqade.task import HardwareBatchFuture
 import pytest
 
 
@@ -21,8 +21,8 @@ def test_quera_submit():
 
 @pytest.mark.vcr
 def test_quera_retrieve():
-    job_future = HardwareFuture()
+    job_future = HardwareBatchFuture()
     job_future.load_json("tests/data/jobs/quera_submit.json")
-    for number, future in job_future.futures.items():
+    for number, future in job_future.hardware_task_futures.items():
         print(f"{number}: {future.status()}")
     print(job_future.report().markdown)

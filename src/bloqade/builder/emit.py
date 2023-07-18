@@ -21,7 +21,7 @@ from typing import Optional, Dict, Union, List, Any, Tuple
 from numbers import Number
 import json
 import os
-from bloqade.task import HardwareTask, HardwareJob
+from bloqade.task import HardwareTask, HardwareBatchTask
 from bloqade.task.braket_simulator import BraketEmulatorJob, BraketEmulatorTask
 from itertools import repeat
 from collections import OrderedDict
@@ -405,7 +405,7 @@ class Emit(Builder):
 
     def __compile_hardware(
         self, nshots: int, backend: SubmissionBackend
-    ) -> HardwareJob:
+    ) -> HardwareBatchTask:
         from bloqade.codegen.hardware.quera import SchemaCodeGen
 
         capabilities = backend.get_capabilities()
@@ -422,7 +422,7 @@ class Emit(Builder):
                 parallel_decoder=schema_compiler.parallel_decoder,
             )
 
-        return HardwareJob(tasks=tasks)
+        return HardwareBatchTask(hardware_tasks=tasks)
 
     @property
     def register(self) -> Union["AtomArrangement", "ParallelRegister"]:
@@ -474,15 +474,15 @@ class Emit(Builder):
             task = BraketEmulatorTask(task_ir=to_braket_task_ir(task_ir))
             tasks[task_number] = task
 
-        return BraketEmulatorJob(tasks=tasks)
+        return BraketEmulatorJob(braket_emulator_tasks=tasks)
 
-    def braket(self, nshots: int) -> "HardwareJob":
+    def braket(self, nshots: int) -> "HardwareBatchTask":
         backend = BraketBackend()
         return self.__compile_hardware(nshots, backend)
 
     def quera(
         self, nshots: int, config_file: Optional[str] = None, **api_config
-    ) -> "HardwareJob":
+    ) -> "HardwareBatchTask":
         if config_file is None:
             path = os.path.dirname(__file__)
 
@@ -503,7 +503,9 @@ class Emit(Builder):
 
         return self.__compile_hardware(nshots, backend)
 
-    def mock(self, nshots: int, state_file: str = ".mock_state.txt") -> "HardwareJob":
+    def mock(
+        self, nshots: int, state_file: str = ".mock_state.txt"
+    ) -> "HardwareBatchTask":
         backend = DumbMockBackend(state_file=state_file)
 
         return self.__compile_hardware(nshots, backend)
