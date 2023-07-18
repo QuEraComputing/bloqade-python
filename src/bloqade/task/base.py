@@ -80,9 +80,6 @@ class TaskFuture:
     def _task(self) -> Task:
         raise NotImplementedError
 
-    def _resubmit_if_not_submitted(self) -> "TaskFuture":
-        raise NotImplementedError
-
     @property
     def task(self) -> Task:
         return self._task()
@@ -102,7 +99,8 @@ class TaskFuture:
 
 
 class SerializableTaskFuture(JSONInterface, TaskFuture):
-    pass
+    def _resubmit_if_not_submitted(self) -> "SerializableTaskFuture":
+        raise NotImplementedError
 
 
 class BatchTask:
