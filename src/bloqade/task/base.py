@@ -1,4 +1,5 @@
 import datetime
+from numbers import Number
 from bloqade.submission.base import ValidationError
 from bloqade.submission.ir.task_results import (
     QuEraTaskResults,
@@ -7,7 +8,7 @@ from bloqade.submission.ir.task_results import (
 )
 from bloqade.submission.ir.parallel import ParallelDecoder
 from bloqade.submission.base import SubmissionBackend
-from typing import List, Union, TextIO, Tuple, Optional, Type
+from typing import Dict, List, Union, TextIO, Tuple, Optional, Type
 from collections import OrderedDict
 from numpy.typing import NDArray
 from pydantic.dataclasses import dataclass
@@ -55,11 +56,18 @@ class JSONInterface(BaseModel):
 
 class Task:
     @property
+    def metadata(self) -> Dict[str, Number]:
+        return self._metadata()
+
+    @property
     def geometry(self) -> Geometry:
         return self._geometry()
 
     def _geometry(self) -> Geometry:
         raise NotImplementedError
+
+    def _metadata(self) -> Dict[str, Number]:
+        return {}
 
     def submit(self) -> "TaskFuture":
         raise NotImplementedError
@@ -112,10 +120,6 @@ class BatchTask:
         self, futures: OrderedDict[int, TaskFuture]
     ) -> "BatchFuture":
         raise NotImplementedError
-
-    @property
-    def name(self) -> Union[str, None]:
-        return self._name()
 
     @property
     def task(self) -> OrderedDict[int, Task]:
