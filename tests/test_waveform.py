@@ -3,10 +3,11 @@ from bloqade.ir import (
     Constant,
     Poly,
     Record,
-    # AlignedWaveform,
-    # Alignment,
-    # AlignedValue,
+    AlignedWaveform,
+    Alignment,
+    AlignedValue,
     instruction,
+    Interpolation,
     GaussianKernel,
     LogisticKernel,
     SigmoidKernel,
@@ -20,7 +21,7 @@ from bloqade.ir import (
 )
 from bloqade import cast
 from bloqade.ir.scalar import Interval
-from bloqade.ir.control.waveform import PythonFn, Append, Slice
+from bloqade.ir.control.waveform import PythonFn, Append, Slice, Sample
 from bloqade.ir.control.waveform import SmoothingKernel, Waveform
 from decimal import Decimal
 import pytest
@@ -70,9 +71,13 @@ def test_wvfm_pyfn():
     def my_func2(time, *omega):
         return time
 
+    assert my_func2(3) == 3
+
     ## have varkw:
     def my_func3(time, omega, **phi):
         return time
+
+    assert my_func3(3, 2) == 3
 
     with pytest.raises(ValueError):
         PythonFn(my_func2, duration=1.0)
@@ -268,6 +273,45 @@ def test_wvfn_slice():
     wf3 = Slice(wv, iv2)
 
     assert wf3.duration == cast(3.0)
+
+
+def test_wvfm_align():
+    wv = Constant(value=2.0, duration=3.0)
+
+    wf = AlignedWaveform(wv, Alignment.Left, cast(0.2))
+    assert wf.print_node() == "AlignedWaveform"
+    assert wf.children() == {"Waveform": wv, "Alignment": "Left", "Value": cast(0.2)}
+
+    wf2 = AlignedWaveform(wv, Alignment.Left, AlignedValue.Right)
+    assert wf2.print_node() == "AlignedWaveform"
+    assert wf2.children() == {"Waveform": wv, "Alignment": "Left", "Value": "Right"}
+
+    wf3 = AlignedWaveform(wv, Alignment.Right, AlignedValue.Left)
+    assert wf3.print_node() == "AlignedWaveform"
+    assert wf3.children() == {"Waveform": wv, "Alignment": "Right", "Value": "Left"}
+
+
+def test_wvfm_sample():
+    def my_cos(time):
+        return np.cos(time)
+
+    assert my_cos(1) == np.cos(1)
+
+    wv = PythonFn(my_cos, duration=1.0)
+    dt = cast(0.1)
+
+    wf = Sample(wv, Interpolation.Constant, dt)
+
+    assert wf.print_node() == "Sample constant"
+    assert wf.children() == {"Waveform": wv, "sample_step": dt}
+    assert wf.eval_decimal(Decimal(0.05)) == my_cos(0)
+
+    wf2 = Sample(wv, Interpolation.Linear, dt)
+
+    assert wf2.print_node() == "Sample linear"
+    assert wf2.children() == {"Waveform": wv, "sample_step": dt}
+    slope = (my_cos(0.1) - my_cos(0)) / 0.1
+    assert float(wf2.eval_decimal(Decimal(0.05))) == float(my_cos(0) + slope * 0.05)
 
 
 """

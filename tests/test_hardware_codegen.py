@@ -140,6 +140,70 @@ def test_integration_slice_linear_const():
     assert all(detune_ir["global"]["values"] == np.array([0, 0.5, 0.5]) * 1e6)
 
 
+def test_integration_slice_linear_no_stop():
+    seq = Linear(start=0.0, stop=1.0, duration=1.0)[0:]
+    job = location.Square(1).rydberg.detuning.uniform.apply(seq).mock(10)
+
+    panel = json.loads(job.json())
+
+    print(panel)
+
+    ir = panel["tasks"]["0"]["task_ir"]
+
+    assert ir["nshots"] == 10
+    assert ir["lattice"]["sites"][0] == [0.0, 0.0]
+    assert ir["lattice"]["filling"] == [1]
+    assert ir["lattice"]["filling"] == [1]
+
+    detune_ir = ir["effective_hamiltonian"]["rydberg"]["detuning"]
+    assert all(detune_ir["global"]["times"] == np.array([0, 1.0]) * 1e-6)
+    assert all(detune_ir["global"]["values"] == np.array([0, 1.0]) * 1e6)
+
+
+def test_integration_slice_linear_no_start():
+    seq = Linear(start=0.0, stop=1.0, duration=1.0)[:1.0]
+    job = location.Square(1).rydberg.detuning.uniform.apply(seq).mock(10)
+
+    panel = json.loads(job.json())
+
+    print(panel)
+
+    ir = panel["tasks"]["0"]["task_ir"]
+
+    assert ir["nshots"] == 10
+    assert ir["lattice"]["sites"][0] == [0.0, 0.0]
+    assert ir["lattice"]["filling"] == [1]
+    assert ir["lattice"]["filling"] == [1]
+
+    detune_ir = ir["effective_hamiltonian"]["rydberg"]["detuning"]
+    assert all(detune_ir["global"]["times"] == np.array([0, 1.0]) * 1e-6)
+    assert all(detune_ir["global"]["values"] == np.array([0, 1.0]) * 1e6)
+
+
+def test_integration_slice_linear_error_neg_start():
+    with pytest.raises(ValueError):
+        seq = Linear(start=0.0, stop=1.0, duration=1.0)[-0.1:1.0]
+        location.Square(1).rydberg.detuning.uniform.apply(seq).mock(10)
+
+
+def test_integration_slice_linear_error_exceed_stop():
+    with pytest.raises(ValueError):
+        seq = Linear(start=0.0, stop=1.0, duration=1.0)[:4.0]
+        location.Square(1).rydberg.detuning.uniform.apply(seq).mock(10)
+
+
+def test_integration_slice_linear_error_revese():
+    with pytest.raises(ValueError):
+        seq = Linear(start=0.0, stop=1.0, duration=1.0)[0.5:0.0]
+        location.Square(1).rydberg.detuning.uniform.apply(seq).mock(10)
+
+
+def test_integration_slice_linear_error_same_vals_nofield():
+    with pytest.raises(ValueError):
+        seq = Linear(start=0.0, stop=1.0, duration=1.0)[0.0:0.0]
+        location.Square(1).rydberg.detuning.uniform.apply(seq).mock(10)
+
+
 def test_integration_phase():
     job = (
         location.Square(1)
@@ -286,6 +350,48 @@ def test_integration_phase_neg():
 
 def test_integration_phase_slice_no_start():
     seq = Poly(checkpoints=[1], duration=1.0)[:0.5]
+    job = location.Square(1).rydberg.rabi.phase.uniform.apply(seq).mock(10)
+
+    panel = json.loads(job.json())
+
+    print(panel)
+
+    ir = panel["tasks"]["0"]["task_ir"]
+
+    assert ir["nshots"] == 10
+    assert ir["lattice"]["sites"][0] == [0.0, 0.0]
+    assert ir["lattice"]["filling"] == [1]
+    assert ir["lattice"]["filling"] == [1]
+
+    phase_ir = ir["effective_hamiltonian"]["rydberg"]["rabi_frequency_phase"]
+    assert all(phase_ir["global"]["times"] == np.array([0, 0.5]) * 1e-6)
+    assert all(phase_ir["global"]["values"] == np.array([1.0, 1.0]))
+
+
+def test_integration_phase_slice_no_stop():
+    ##[Further investigate!]
+    seq = Poly(checkpoints=[1], duration=0.5)[0:]
+    job = location.Square(1).rydberg.rabi.phase.uniform.apply(seq).mock(10)
+
+    panel = json.loads(job.json())
+
+    print(panel)
+
+    ir = panel["tasks"]["0"]["task_ir"]
+
+    assert ir["nshots"] == 10
+    assert ir["lattice"]["sites"][0] == [0.0, 0.0]
+    assert ir["lattice"]["filling"] == [1]
+    assert ir["lattice"]["filling"] == [1]
+
+    phase_ir = ir["effective_hamiltonian"]["rydberg"]["rabi_frequency_phase"]
+    assert all(phase_ir["global"]["times"] == np.array([0, 0.5]) * 1e-6)
+    assert all(phase_ir["global"]["values"] == np.array([1.0, 1.0]))
+
+
+def test_integration_phase_slice_same_start_stop():
+    ##[Further investigate!]
+    seq = Poly(checkpoints=[1], duration=0.5)[0:0.5]
     job = location.Square(1).rydberg.rabi.phase.uniform.apply(seq).mock(10)
 
     panel = json.loads(job.json())
