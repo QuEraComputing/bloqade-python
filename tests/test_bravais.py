@@ -1,4 +1,5 @@
 from bloqade.ir.location import Lieb, Square, Rectangular, Honeycomb, Kagome, Triangular
+from bloqade.ir.location.bravais import Cell
 from bloqade import cast
 from math import sqrt
 
@@ -84,6 +85,7 @@ def test_honeycomb():
     )
 
     assert positions == positions_expected
+    assert lattice.n_dims == 2
 
 
 def test_lieb():
@@ -109,6 +111,7 @@ def test_lieb():
     )
 
     assert positions == positions_expected
+    assert lattice.n_dims == 2
 
 
 def test_scale_lattice():
@@ -118,3 +121,11 @@ def test_scale_lattice():
     positions_expected = set(cast([(0, 0), (2, 0), (1.0, sqrt(3)), (3, sqrt(3))]))
 
     assert positions == positions_expected
+    assert lattice.n_dims == 2
+
+
+def test_cell():
+    c = Cell(10, 2)
+
+    assert c.natoms == 10
+    assert c.ndims == 2

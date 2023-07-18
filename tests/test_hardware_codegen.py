@@ -1,6 +1,6 @@
 # from bloqade import start
-from bloqade.ir import location
-from bloqade.ir import Constant, Linear, Poly
+from bloqade.ir import location, cast, Interpolation
+from bloqade.ir import Constant, Linear, Poly, PythonFn, Sample
 import pytest
 import json
 import numpy as np
@@ -118,6 +118,21 @@ def test_integration_poly_linear():
     assert all(detune_ir["global"]["values"] == np.array([1, 2, 2]) * 1e6)
 
 
+def test_integration_linear_sampl_const_err():
+    def my_cos(time):
+        return np.cos(time)
+
+    assert my_cos(1) == np.cos(1)
+
+    wv = PythonFn(my_cos, duration=1.0)
+    dt = cast(0.1)
+
+    wf = Sample(wv, Interpolation.Constant, dt)
+    ## phase can only have piecewise constant.
+    with pytest.raises(ValueError):
+        location.Square(1).rydberg.detuning.uniform.apply(wf).mock(10)
+
+
 def test_integration_slice_linear_const():
     seq = Linear(start=0.0, stop=1.0, duration=1.0)[0:0.5].append(
         Constant(0.5, duration=0.5)
@@ -210,6 +225,7 @@ def test_integration_phase():
         .rydberg.rabi.phase.uniform.piecewise_constant(
             durations=[0.5, 0.5], values=[0, 1]
         )
+        .record("a")
         .mock(10)
     )
 
@@ -426,3 +442,69 @@ def test_integration_phase_slice_error_reverse():
     with pytest.raises(ValueError):
         seq = Poly(checkpoints=[1], duration=1.0)[2.0:0.0]
         location.Square(1).rydberg.rabi.phase.uniform.apply(seq).mock(10)
+
+
+def test_integration_phase_sampl_linear_err():
+    def my_cos(time):
+        return np.cos(time)
+
+    assert my_cos(1) == np.cos(1)
+
+    wv = PythonFn(my_cos, duration=1.0)
+    dt = cast(0.1)
+
+    wf = Sample(wv, Interpolation.Linear, dt)
+    ## phase can only have piecewise constant.
+    with pytest.raises(ValueError):
+        location.Square(1).rydberg.rabi.phase.uniform.apply(wf).mock(10)
+
+
+def test_integration_batchassign_assign():
+    ## jump at the end of linear -- constant
+    with pytest.raises(ValueError):
+        (
+            location.Square(6)
+            .rydberg.detuning.uniform.apply(Constant("initial_detuning", "time"))
+            .batch_assign(initial_detuning=[1, 2, 3, 4], time=[2, 4, 5])
+            .mock(10)
+        )
+
+    ## jump at the end of linear -- constant
+
+    job = (
+        location.Square(6)
+        .rydberg.detuning.uniform.apply(Constant("initial_detuning", "time"))
+        .batch_assign(initial_detuning=[1, 2, 3, 4], time=[2, 4, 5, 0.6])
+        .mock(10)
+    )
+
+    assert len(job.tasks) == 4
+
+
+"""
+def test_integration_record():
+    job = (
+        location.Square(1)
+        .rydberg.rabi.phase.uniform.piecewise_constant(
+            durations=[0.5, 0.5], values=[0, 1]
+        ).record("a")
+        .piecewise_constant(
+            durations=[0.3] ,values = ["a"]
+        ).mock(10)
+    )
+
+    panel = json.loads(job.json())
+
+    print(panel)
+
+    ir = panel["tasks"]["0"]["task_ir"]
+
+    assert ir["nshots"] == 10
+    assert ir["lattice"]["sites"][0] == [0.0, 0.0]
+    assert ir["lattice"]["filling"] == [1]
+    assert ir["lattice"]["filling"] == [1]
+
+    phase_ir = ir["effective_hamiltonian"]["rydberg"]["rabi_frequency_phase"]
+    assert all(phase_ir["global"]["times"] == np.array([0, 0.5, 1.0,1.3]) * 1e-6)
+    assert all(phase_ir["global"]["values"] == np.array([0, 1.0, 1.0,1.0]))
+"""
