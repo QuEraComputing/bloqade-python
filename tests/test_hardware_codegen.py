@@ -148,7 +148,7 @@ def test_integration_slice_linear_no_stop():
 
     print(panel)
 
-    ir = panel["tasks"]["0"]["task_ir"]
+    ir = panel["hardware_tasks"]["0"]["task_ir"]
 
     assert ir["nshots"] == 10
     assert ir["lattice"]["sites"][0] == [0.0, 0.0]
@@ -168,7 +168,7 @@ def test_integration_slice_linear_no_start():
 
     print(panel)
 
-    ir = panel["tasks"]["0"]["task_ir"]
+    ir = panel["hardware_tasks"]["0"]["task_ir"]
 
     assert ir["nshots"] == 10
     assert ir["lattice"]["sites"][0] == [0.0, 0.0]
@@ -377,7 +377,7 @@ def test_integration_phase_slice_no_stop():
 
     print(panel)
 
-    ir = panel["tasks"]["0"]["task_ir"]
+    ir = panel["hardware_tasks"]["0"]["task_ir"]
 
     assert ir["nshots"] == 10
     assert ir["lattice"]["sites"][0] == [0.0, 0.0]
@@ -398,7 +398,7 @@ def test_integration_phase_slice_same_start_stop():
 
     print(panel)
 
-    ir = panel["tasks"]["0"]["task_ir"]
+    ir = panel["hardware_tasks"]["0"]["task_ir"]
 
     assert ir["nshots"] == 10
     assert ir["lattice"]["sites"][0] == [0.0, 0.0]
