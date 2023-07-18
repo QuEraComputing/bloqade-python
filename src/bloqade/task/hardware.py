@@ -143,8 +143,7 @@ class HardwareTaskFuture(SerializableTaskFuture):
 
     def __init__(self, **kwargs):
         if "task" in kwargs.keys():
-            kwargs["hardware_task"] = kwargs["task"]
-            kwargs.pop("task")
+            kwargs["hardware_task"] = kwargs.pop("task")
 
         super().__init__(**kwargs)
 
@@ -216,6 +215,12 @@ class HardwareBatchTask(SerializableBatchTask):
 
 class HardwareBatchFuture(SerializableBatchFuture):
     hardware_task_futures: OrderedDict[int, HardwareTaskFuture] = OrderedDict()
+
+    def __init__(self, **kwargs):
+        if "futures" in kwargs.keys():
+            kwargs["hardware_task_futures"] = kwargs.pop("futures")
+
+        super().__init__(**kwargs)
 
     def _task_futures(self) -> OrderedDict[int, HardwareTaskFuture]:
         return self.hardware_task_futures

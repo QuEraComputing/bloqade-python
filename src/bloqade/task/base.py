@@ -205,6 +205,13 @@ class SerializableBatchFuture(JSONInterface, BatchFuture):
 
         return self.__class__(futures=new_futures)
 
+    def removing_futures_with_task_id(self) -> "SerializableBatchFuture":
+        new_futures = OrderedDict()
+        for task_number, future in self.task_futures.items():
+            new_futures[task_number] = future._resubmit_if_not_submitted()
+
+        return self.__class__(futures=new_futures)
+
 
 # NOTE: this is only the basic report, we should provide
 #      a way to customize the report class,

@@ -45,6 +45,12 @@ class BraketEmulatorTaskFuture(SerializableTaskFuture):
     braket_emulator_task: BraketEmulatorTask
     task_results_ir: QuEraTaskResults
 
+    def __init__(self, **kwargs):
+        if "task" in kwargs:
+            kwargs["braket_emulator_task"] = kwargs.pop("task")
+
+        super().__init__(**kwargs)
+
     def _task(self) -> Task:
         return self.braket_emulator_task
 
@@ -125,6 +131,12 @@ class BraketEmulatorBatchTask(SerializableBatchTask):
 
 class BraketEmulatorBatchFuture(SerializableBatchFuture):
     braket_emulator_task_futures: OrderedDict[int, BraketEmulatorTaskFuture]
+
+    def __init__(self, **kwargs):
+        if "futures" in kwargs:
+            kwargs["braket_emulator_task_futures"] = kwargs.pop("futures")
+
+        super().__init__(**kwargs)
 
     def _task_futures(self) -> OrderedDict[int, BraketEmulatorTaskFuture]:
         return self.braket_emulator_task_futures
