@@ -225,6 +225,7 @@ def test_integration_phase():
         .rydberg.rabi.phase.uniform.piecewise_constant(
             durations=[0.5, 0.5], values=[0, 1]
         )
+        .record("a")
         .mock(10)
     )
 
@@ -456,3 +457,32 @@ def test_integration_phase_sampl_linear_err():
     ## phase can only have piecewise constant.
     with pytest.raises(ValueError):
         location.Square(1).rydberg.rabi.phase.uniform.apply(wf).mock(10)
+
+
+"""
+def test_integration_record():
+    job = (
+        location.Square(1)
+        .rydberg.rabi.phase.uniform.piecewise_constant(
+            durations=[0.5, 0.5], values=[0, 1]
+        ).record("a")
+        .piecewise_constant(
+            durations=[0.3] ,values = ["a"]
+        ).mock(10)
+    )
+
+    panel = json.loads(job.json())
+
+    print(panel)
+
+    ir = panel["tasks"]["0"]["task_ir"]
+
+    assert ir["nshots"] == 10
+    assert ir["lattice"]["sites"][0] == [0.0, 0.0]
+    assert ir["lattice"]["filling"] == [1]
+    assert ir["lattice"]["filling"] == [1]
+
+    phase_ir = ir["effective_hamiltonian"]["rydberg"]["rabi_frequency_phase"]
+    assert all(phase_ir["global"]["times"] == np.array([0, 0.5, 1.0,1.3]) * 1e-6)
+    assert all(phase_ir["global"]["values"] == np.array([0, 1.0, 1.0,1.0]))
+"""

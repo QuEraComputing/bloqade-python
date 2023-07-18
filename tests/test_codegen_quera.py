@@ -6,12 +6,18 @@ from bloqade.ir import (
     Pulse,
     Uniform,
     Linear,
+    Constant,
     Interval,
 )
 from bloqade import cast
 import bloqade.codegen.common.assignment_scan as asn
+import bloqade.codegen.hardware.quera as quer
 from bloqade.ir.control.sequence import NamedSequence
 from bloqade.ir.control.pulse import Slice
+
+
+def cf(inlist):
+    return list(map(lambda x: float(x), inlist))
 
 
 def test_assignment_scan_app():
@@ -93,3 +99,103 @@ def test_assignment_scan_pulse_slice():
     scanner = asn.AssignmentScan(asgn)
 
     assert scanner.emit(seq_full) == asgn
+
+
+def test_plin_codegen_slice():
+    wv = Linear(start=0, stop=1.0, duration=1.0)
+    wv = wv.append(Linear(start=1.0, stop=2.0, duration=2.0))
+
+    asgn = {"test": 40}
+    scanner = quer.PiecewiseLinearCodeGen(asgn)
+
+    wf = wv[:0.5]
+    times, values = scanner.visit_slice(wf)
+    assert (cf(times), cf(values)) == ([0, 0.5], [0, 0.5])
+
+    wf2 = wv[0:1]
+    times, values = scanner.visit_slice(wf2)
+    assert (cf(times), cf(values)) == ([0, 1], [0, 1])
+
+    wf3 = wv[0.7:1]
+    times, values = scanner.visit_slice(wf3)
+    assert (cf(times), cf(values)) == ([0, 0.3], [0.7, 1])
+
+    wf4 = wv[0:0.6]
+    times, values = scanner.visit_slice(wf4)
+    assert (cf(times), cf(values)) == ([0, 0.6], [0.0, 0.6])
+
+    wf5 = wv[0.2:0.6]
+    times, values = scanner.visit_slice(wf5)
+    assert (cf(times), cf(values)) == ([0, 0.4], [0.2, 0.6])
+
+    wf6 = wv[0.6:1.5]
+    times, values = scanner.visit_slice(wf6)
+    assert (cf(times), cf(values)) == ([0, 0.4, 0.9], [0.6, 1.0, 1.25])
+
+    wf7 = wv[1.0:1.5]
+    times, values = scanner.visit_slice(wf7)
+    assert (cf(times), cf(values)) == ([0, 0.5], [1.0, 1.25])
+
+    wf8 = wv[1.0:3.0]
+    times, values = scanner.visit_slice(wf8)
+    assert (cf(times), cf(values)) == ([0, 2.0], [1.0, 2.0])
+
+    wf9 = wv[1.5:3.0]
+    times, values = scanner.visit_slice(wf9)
+    assert (cf(times), cf(values)) == ([0, 1.5], [1.25, 2.0])
+
+
+def test_pconst_codegen_slice():
+    wv = Constant(value=1.0, duration=1.0)
+    wv = wv.append(Constant(value=2.0, duration=1.5))
+
+    asgn = {"test": 40}
+    scanner = quer.PiecewiseConstantCodeGen(asgn)
+
+    wf = wv[:1.3]
+    times, values = scanner.visit_slice(wf)
+    assert (cf(times), cf(values)) == ([0, 1.0, 1.3], [1.0, 2.0, 2.0])
+
+    wf2 = wv[0:1]
+    times, values = scanner.visit_slice(wf2)
+    assert (cf(times), cf(values)) == ([0, 1.0], [1.0, 1.0])
+
+    wf3 = wv[0.7:1.2]
+    times, values = scanner.visit_slice(wf3)
+    assert (cf(times), cf(values)) == ([0, 0.3, 0.5], [1.0, 2.0, 2.0])
+
+    wf4 = wv[0.7:1]
+    times, values = scanner.visit_slice(wf4)
+    assert (cf(times), cf(values)) == ([0, 0.3], [1.0, 1])
+
+    wf4 = wv[0:0.6]
+    times, values = scanner.visit_slice(wf4)
+    assert (cf(times), cf(values)) == ([0, 0.6], [1.0, 1.0])
+
+    wf5 = wv[0.2:0.6]
+    times, values = scanner.visit_slice(wf5)
+    assert (cf(times), cf(values)) == ([0, 0.4], [1.0, 1.0])
+
+    wf6 = wv[0:0]
+    times, values = scanner.visit_slice(wf6)
+    assert (cf(times), cf(values)) == ([0, 0], [0, 0])
+
+    wf8 = wv[1:1]
+    times, values = scanner.visit_slice(wf8)
+    assert (cf(times), cf(values)) == ([0, 0], [0, 0])
+
+    wf7 = wv[1.3:1.3]
+    times, values = scanner.visit_slice(wf7)
+    assert (cf(times), cf(values)) == ([0, 0], [0, 0])
+
+    wf9 = wv[1:2.5]
+    times, values = scanner.visit_slice(wf9)
+    assert (cf(times), cf(values)) == ([0, 1.5], [2.0, 2.0])
+
+    wf10 = wv[1.5:2.5]
+    times, values = scanner.visit_slice(wf10)
+    assert (cf(times), cf(values)) == ([0, 1.0], [2.0, 2.0])
+
+    wf11 = wv[1:1.5]
+    times, values = scanner.visit_slice(wf11)
+    assert (cf(times), cf(values)) == ([0, 0.5], [2.0, 2.0])
