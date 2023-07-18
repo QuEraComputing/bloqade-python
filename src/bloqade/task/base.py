@@ -1,3 +1,4 @@
+import datetime
 from bloqade.submission.base import ValidationError
 from bloqade.submission.ir.task_results import (
     QuEraTaskResults,
@@ -113,6 +114,10 @@ class BatchTask:
         raise NotImplementedError
 
     @property
+    def name(self) -> Union[str, None]:
+        return self._name()
+
+    @property
     def task(self) -> OrderedDict[int, Task]:
         return self._tasks()
 
@@ -127,6 +132,11 @@ class BatchTask:
 
 
 class SerializableBatchTask(JSONInterface, BatchTask):
+    name: Optional[str] = None
+
+    class SubmissionException(Exception):
+        pass
+
     def _task_future_class(self) -> "Type[TaskFuture]":
         raise NotImplementedError
 
@@ -159,15 +169,42 @@ class SerializableBatchTask(JSONInterface, BatchTask):
         # submit tasks in random order but store them
         # in the original order of tasks.
         futures = OrderedDict()
+        errors = OrderedDict()
         for task_index in submission_order:
             task = task_dict[task_index]
             try:
                 futures[task_index] = task.submit()
-            except BaseException:
+            except BaseException as error:
                 TaskFutureType = self._task_future_class()
                 futures[task_index] = TaskFutureType(task=task, task_id=None)
+                errors[task_index] = {
+                    "exception_type": error.__name__,
+                    "message": str(error),
+                }
 
-        return self._emit_batch_future(futures)
+        batch_future = self._emit_batch_future(futures)
+        if errors:
+            time_stamp = datetime.datetime.now()
+            if self.name:
+                future_file = f"{self.name}-partial-batch-future-{time_stamp}.json"
+                error_file = f"{self.name}-partial-batch-errors-{time_stamp}.json"
+            else:
+                future_file = f"partial-batch-future-{time_stamp}.json"
+                error_file = f"partial-batch-errors-{time_stamp}.json"
+
+            with open(future_file, "w") as f:
+                f.write(batch_future.json(indent=2))
+
+            with open(error_file, "w") as f:
+                json.dump(errors, f, indent=2)
+
+            raise SerializableBatchTask.SubmissionException(
+                "One or more error(s) occured during submission, please see "
+                "the following files for more information:\n"
+                f"  - {future_file}\n  - {error_file}\n"
+            )
+
+        return batch_future
 
 
 class BatchFuture:
