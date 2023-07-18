@@ -539,7 +539,7 @@ class Append(Waveform):
         for waveform in self.waveforms:
             duration = waveform.duration(**kwargs)
 
-            if clock_s < append_time + duration:
+            if clock_s <= append_time + duration:
                 return waveform.eval_decimal(clock_s - append_time, **kwargs)
 
             append_time += duration
