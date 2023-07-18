@@ -11,11 +11,12 @@ from bloqade.submission.ir.task_results import (
 from bloqade.task.base import (
     SerializableBatchFuture,
     SerializableBatchTask,
-    Geometry,
     SerializableTask,
     SerializableTaskFuture,
+    Geometry,
+    Task,
 )
-from typing import Optional
+from typing import Optional, Type
 from concurrent.futures import ProcessPoolExecutor
 from collections import OrderedDict
 
@@ -23,27 +24,46 @@ from collections import OrderedDict
 class BraketEmulatorTask(SerializableTask):
     task_ir: BraketTaskSpecification
 
+    def _geometry(self) -> Geometry:
+        return Geometry(
+            sites=self.task_ir.lattice.sites,
+            filling=self.task_ir.lattice.filling,
+        )
+
     def submit(self, **kwargs) -> "BraketEmulatorTaskFuture":
         aws_task = LocalSimulator("braket_ahs").run(
             self.task_ir.program, shots=self.task_ir.nshots, **kwargs
         )
 
         return BraketEmulatorTaskFuture(
-            task_ir=self.task_ir,
+            braket_emulator_task=self,
             task_results_ir=from_braket_task_results(aws_task.result()),
         )
 
 
 class BraketEmulatorTaskFuture(SerializableTaskFuture):
-    task_ir: BraketTaskSpecification
+    braket_emulator_task: BraketEmulatorTask
     task_results_ir: QuEraTaskResults
 
-    def _task_geometry(self) -> Geometry:
-        return Geometry(
-            sites=self.task_ir.program.setup.ahs_register.sites,
-            filling=self.task_ir.program.setup.ahs_register.filling,
-            parallel_decoder=None,
-        )
+    def _task(self) -> Task:
+        return self.braket_emulator_task
+
+    def _resubmit_if_not_submitted(self) -> "BraketEmulatorTaskFuture":
+        return self
+
+    def _init_from_dict(self, **params) -> None:
+        match params:
+            case {
+                "task_results_ir": dict() as task_results_ir,
+                "braket_emulator_task": dict() as braket_emulator_task,
+            }:
+                self.task_results_ir = QuEraTaskResults(**task_results_ir)
+                self.braket_emulator_task = BraketEmulatorTask(**braket_emulator_task)
+            case _:
+                raise ValueError(
+                    f"Cannot parse JSON file to {self.__class__.__name__}, "
+                    "invalided format."
+                )
 
     def fetch(self, cache_result=False) -> QuEraTaskResults:
         return self.task_results_ir
@@ -55,20 +75,23 @@ class BraketEmulatorTaskFuture(SerializableTaskFuture):
         pass
 
 
-class BraketEmulatorJob(SerializableBatchTask):
+class BraketEmulatorBatchTask(SerializableBatchTask):
     braket_emulator_tasks: OrderedDict[int, BraketEmulatorTask] = {}
+
+    def _task_future_class(self) -> Type[BraketEmulatorTaskFuture]:
+        return BraketEmulatorTaskFuture
 
     def _tasks(self) -> OrderedDict[int, BraketEmulatorTask]:
         return self.braket_emulator_tasks
 
     def _emit_batch_future(
         self, futures: OrderedDict[int, BraketEmulatorTaskFuture]
-    ) -> "BraketEmulatorFuture":
-        return BraketEmulatorFuture(futures=futures)
+    ) -> "BraketEmulatorBatchFuture":
+        return BraketEmulatorBatchFuture(braket_emulator_task_futures=futures)
 
-    def init_from_dict(self, **params) -> None:
+    def _init_from_dict(self, **params) -> None:
         match params:
-            case {"tasks": dict() as tasks}:
+            case {"braket_emulator_tasks": dict() as tasks}:
                 self.braket_emulator_tasks = OrderedDict(
                     [
                         (task_number, BraketEmulatorTask(**tasks[task_number]))
@@ -83,7 +106,7 @@ class BraketEmulatorJob(SerializableBatchTask):
 
     def submit(
         self, multiprocessing: bool = False, max_workers: Optional[int] = None, **kwargs
-    ) -> "BraketEmulatorFuture":
+    ) -> "BraketEmulatorBatchFuture":
         if multiprocessing:
             futures = {}
             with ProcessPoolExecutor(max_workers=max_workers) as executor:
@@ -100,16 +123,16 @@ class BraketEmulatorJob(SerializableBatchTask):
             return super().submit()
 
 
-class BraketEmulatorFuture(SerializableBatchFuture):
-    futures: OrderedDict[int, BraketEmulatorTaskFuture]
+class BraketEmulatorBatchFuture(SerializableBatchFuture):
+    braket_emulator_task_futures: OrderedDict[int, BraketEmulatorTaskFuture]
 
     def _task_futures(self) -> OrderedDict[int, BraketEmulatorTaskFuture]:
-        return self.futures
+        return self.braket_emulator_task_futures
 
-    def init_from_dict(self, **params) -> None:
+    def _init_from_dict(self, **params) -> None:
         match params:
-            case {"futures": dict() as futures}:
-                self.futures = OrderedDict(
+            case {"braket_emulator_task_futures": dict() as futures}:
+                self.braket_emulator_task_futures = OrderedDict(
                     [
                         (task_number, BraketEmulatorTaskFuture(**futures[task_number]))
                         for task_number in sorted(futures.keys())

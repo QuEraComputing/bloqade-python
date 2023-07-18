@@ -22,7 +22,7 @@ from numbers import Number
 import json
 import os
 from bloqade.task import HardwareTask, HardwareBatchTask
-from bloqade.task.braket_simulator import BraketEmulatorJob, BraketEmulatorTask
+from bloqade.task.braket_simulator import BraketEmulatorBatchTask, BraketEmulatorTask
 from itertools import repeat
 from collections import OrderedDict
 
@@ -474,7 +474,7 @@ class Emit(Builder):
             task = BraketEmulatorTask(task_ir=to_braket_task_ir(task_ir))
             tasks[task_number] = task
 
-        return BraketEmulatorJob(braket_emulator_tasks=tasks)
+        return BraketEmulatorBatchTask(braket_emulator_tasks=tasks)
 
     def braket(self, nshots: int) -> "HardwareBatchTask":
         backend = BraketBackend()
