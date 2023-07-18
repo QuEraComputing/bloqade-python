@@ -14,6 +14,8 @@ from bloqade.ir.control.sequence import NamedSequence
 from bloqade.ir import Interval
 import pytest
 from bloqade import cast
+from io import StringIO
+from IPython.lib.pretty import PrettyPrinter as PP
 
 
 def test_lvlcouple_base():
@@ -27,12 +29,24 @@ def test_lvlcouple_hf():
     assert lc.print_node() == "HyperfineLevelCoupling"
     assert lc.__repr__() == "hyperfine"
 
+    mystdout = StringIO()
+    p = PP(mystdout)
+    lc._repr_pretty_(p, 2)
+
+    assert mystdout.getvalue() == "HyperfineLevelCoupling\n"
+
 
 def test_lvlcouple_ryd():
     lc = rydberg
 
     assert lc.print_node() == "RydbergLevelCoupling"
     assert lc.__repr__() == "rydberg"
+
+    mystdout = StringIO()
+    p = PP(mystdout)
+    lc._repr_pretty_(p, 2)
+
+    assert mystdout.getvalue() == "RydbergLevelCoupling\n"
 
 
 def test_seqence():
@@ -75,6 +89,22 @@ def test_slice_sequence():
     assert slc.children() == {"sequence": seq_full, "interval": itvl}
     assert slc.print_node() == "Slice"
 
+    mystdout = StringIO()
+    p = PP(mystdout)
+    slc._repr_pretty_(p, 2)
+
+    assert (
+        mystdout.getvalue()
+        == "Slice\n"
+        + "├─ sequence ⇒ Sequence\n"
+        + "│             └─ RydbergLevelCoupling ⇒ Pulse\n"
+        + "│                                       └─ Detuning ⇒ Field\n"
+        + "⋮\n"
+        + "└─ interval ⇒ Interval\n"
+        + "              ├─ start ⇒ Literal: 0\n"
+        + "              └─ stop ⇒ Literal: 1.5"
+    )
+
 
 def test_append_sequence():
     f = Field({Uniform: Linear(start=1.0, stop=2.0, duration=3.0)})
@@ -85,6 +115,23 @@ def test_append_sequence():
 
     assert app.children() == [seq_full, seq_full]
     assert app.print_node() == "Append"
+
+    mystdout = StringIO()
+    p = PP(mystdout)
+    app._repr_pretty_(p, 2)
+
+    assert (
+        mystdout.getvalue()
+        == "Append\n"
+        + "├─ Sequence\n"
+        + "│  └─ RydbergLevelCoupling ⇒ Pulse\n"
+        + "│                            └─ Detuning ⇒ Field\n"
+        + "⋮\n"
+        + "└─ Sequence\n"
+        + "   └─ RydbergLevelCoupling ⇒ Pulse\n"
+        + "                             └─ Detuning ⇒ Field\n"
+        + "⋮\n"
+    )
 
 
 seq = Sequence(
