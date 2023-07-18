@@ -206,7 +206,8 @@ class SerializableBatchFuture(JSONInterface, BatchFuture):
     def removing_futures_with_task_id(self) -> "SerializableBatchFuture":
         new_futures = OrderedDict()
         for task_number, future in self.task_futures.items():
-            new_futures[task_number] = future._resubmit_if_not_submitted()
+            if future.task_id is not None:
+                new_futures[task_number] = future
 
         return self.__class__(futures=new_futures)
 
