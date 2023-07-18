@@ -16,7 +16,7 @@ from bloqade.task.base import (
 )
 
 from collections import OrderedDict
-from typing import Optional, Union
+from typing import Optional, Type, Union
 
 
 class MockTask(SerializableTask):
@@ -186,6 +186,9 @@ class HardwareTaskFuture(SerializableTaskFuture):
 
 class HardwareBatchTask(SerializableBatchTask):
     hardware_tasks: OrderedDict[int, HardwareTask] = OrderedDict()
+
+    def _task_future_class(self) -> Type[HardwareTaskFuture]:
+        return HardwareTaskFuture
 
     def _tasks(self) -> OrderedDict[int, HardwareTask]:
         return self.hardware_tasks
