@@ -1,3 +1,23 @@
+# ---
+# jupyter:
+#   jupytext:
+#     formats: ipynb,py:percent
+#     hide_notebook_metadata: false
+#     text_representation:
+#       extension: .py
+#       format_name: percent
+#       format_version: '1.3'
+#       jupytext_version: 1.14.5
+#   kernelspec:
+#     display_name: .venv
+#     language: python
+#     name: python3
+# ---
+
+# %% [markdown]
+# # Whitepaper Example 3: 1D Z2 State Fixed Chain
+
+# %%
 from bloqade.ir.location import Chain
 from bloqade.task import HardwareFuture
 
@@ -96,13 +116,16 @@ def generate_density_bar_plots(report, title, color):
 
 ## Plots
 
+# %%
 # plot simulated densities bar plot
 show(generate_density_bar_plots(emu_job, "Simulated Densities", "gray"))
 
+# %%
 # plot HW densities bar plot
 show(generate_density_bar_plots(hw_job, "Actual Densities", "purple"))
 
 
+# %%
 def get_n_most_probable_states(report, top_n):
     state_counts = report.counts[0]
     total_shots = sum(state_counts.values())
@@ -162,11 +185,14 @@ def generate_probability_bar_plots(report, title, color):
     return plt
 
 
+# %%
 show(generate_probability_bar_plots(emu_job, "Simulated Probabilities", "gray"))
 
+# %%
 show(generate_probability_bar_plots(hw_job, "Actual Probabilities", "purple"))
 
 
+# %%
 # correlation plot
 def calculate_correlation(report, n_atoms):
     correlation_table = np.zeros((n_atoms, n_atoms))
@@ -235,6 +261,8 @@ def generate_correlation_plot(report, n_atoms, title):
     return plt
 
 
+# %%
 show(generate_correlation_plot(emu_job, 11, "Simulated Correlation"))
 
+# %%
 show(generate_correlation_plot(hw_job, 11, "Actual Correlation"))

@@ -24,6 +24,7 @@ nav:
   - Tutorials:
     - tutorials/index.md
     - examples/adiabatic.py
+    - examples/example-3-fixed-1d-z2.py
   - Reference:
     - reference/bloqade/
   - Blog:
