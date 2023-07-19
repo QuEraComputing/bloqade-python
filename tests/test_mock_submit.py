@@ -31,9 +31,9 @@ quantum_job.load_json("job.json")
 
 
 quantum_future = quantum_job.submit()
-quantum_future.save_json("job.json")
+quantum_future.save_json("future.json")
 quantum_future = HardwareBatchFuture()
-quantum_future.load_json("job.json")
+quantum_future.load_json("future.json")
 
 quantum_future.json()
 quantum_future.task_results
