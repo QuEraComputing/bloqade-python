@@ -1,10 +1,34 @@
+# ---
+# jupyter:
+#   jupytext:
+#     formats: ipynb,py:percent
+#     hide_notebook_metadata: false
+#     text_representation:
+#       extension: .py
+#       format_name: percent
+#       format_version: '1.3'
+#       jupytext_version: 1.14.5
+#   kernelspec:
+#     display_name: .venv
+#     language: python
+#     name: python3
+# ---
+
+# %% [markdown]
+# # Whitepaper Example 3:
+
+# %%
 from bloqade.ir.location import Chain
 from bloqade.task import HardwareFuture
 
 import numpy as np
+import os
 
 from bokeh.plotting import figure, show
+from bokeh.io import output_notebook
 from bokeh.models import ColumnDataSource, HoverTool, CrosshairTool
+
+output_notebook()
 
 n_atoms = 11
 lattice_const = 6.1
@@ -39,7 +63,9 @@ emu_job = time_sweep_z2_job.braket_local_simulator(10000).submit().report()
 
 # retrieve results from HW
 hw_future = HardwareFuture()
-hw_future.load_json("example-3-time-sweep-job.json")
+hw_future.load_json(
+    os.getcwd() + "/docs/docs/examples/" + "example-3-time-sweep-job.json"
+)
 hw_job = hw_future.report()
 
 
