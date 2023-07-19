@@ -72,6 +72,7 @@ class Task:
     def submit(self) -> "TaskFuture":
         raise NotImplementedError
 
+    # TODO: think about adding string as output to show validation errors.
     def run_validation(self) -> None:
         raise NotImplementedError
 
@@ -82,6 +83,7 @@ class SerializableTask(JSONInterface, Task):
 
     @property
     def backend(self):
+        """The backend that is used to call the web-API."""
         return self._backend()
 
 
@@ -107,6 +109,9 @@ class TaskFuture:
         raise NotImplementedError
 
 
+# TODO: split SerializableTaskFuture into two classes, one for
+#      tasks that use a web-API and one for tasks that use some
+#      other backend.
 class SerializableTaskFuture(JSONInterface, TaskFuture):
     def _resubmit_if_not_submitted(self) -> "SerializableTaskFuture":
         raise NotImplementedError
@@ -154,7 +159,7 @@ class SerializableBatchTask(JSONInterface, BatchTask):
             except ValidationError:
                 continue
 
-        return self.__class__(tasks=valid_tasks)
+        return self.__class__(name=self.name, tasks=valid_tasks)
 
     def submit(self, shuffle_submit_order: bool = True) -> "SerializableBatchFuture":
         task_dict = self._tasks()
@@ -179,8 +184,9 @@ class SerializableBatchTask(JSONInterface, BatchTask):
             try:
                 futures[task_index] = task.submit()
             except BaseException as error:
-                TaskFutureType = self._task_future_class()
-                futures[task_index] = TaskFutureType(task=task, task_id=None)
+                # Create future object without the task id
+                futures[task_index] = task.create_future()
+                # record the error in the error dict
                 errors[task_index] = {
                     "exception_type": error.__name__,
                     "message": str(error),
@@ -208,6 +214,11 @@ class SerializableBatchTask(JSONInterface, BatchTask):
                 f"  - {future_file}\n  - {error_file}\n"
             )
 
+        else:
+            # TODO: think about if we should automatically save successful submissions
+            #       as well.
+            pass
+
         return batch_future
 
 
@@ -221,6 +232,7 @@ class BatchFuture:
 
     @property
     def task_results(self) -> OrderedDict[int, QuEraTaskResults]:
+        # this is a blocking call for fetching the results
         return OrderedDict(
             [
                 (task_number, future.task_result)
@@ -244,7 +256,7 @@ class SerializableBatchFuture(JSONInterface, BatchFuture):
 
         return self.__class__(futures=new_futures)
 
-    def removing_futures_with_task_id(self) -> "SerializableBatchFuture":
+    def removing_futures_without_task_id(self) -> "SerializableBatchFuture":
         new_futures = OrderedDict()
         for task_number, future in self.task_futures.items():
             if future.task_id is not None:
