@@ -24,6 +24,7 @@ nav:
   - Tutorials:
     - tutorials/index.md
     - examples/adiabatic.py
+    - examples/example-3-2d-ordered-state.py
   - Reference:
     - reference/bloqade/
   - Blog:

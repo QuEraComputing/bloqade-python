@@ -1,7 +1,28 @@
+# ---
+# jupyter:
+#   jupytext:
+#     formats: ipynb,py:percent
+#     hide_notebook_metadata: false
+#     text_representation:
+#       extension: .py
+#       format_name: percent
+#       format_version: '1.3'
+#       jupytext_version: 1.14.5
+#   kernelspec:
+#     display_name: .venv
+#     language: python
+#     name: python3
+# ---
+
+# %% [markdown]
+# # Whitepaper Example 3: 2D Ordered State
+
+# %%
 from bloqade.ir.location import Square
 from bloqade.task import HardwareFuture
 
 from bokeh.plotting import figure, show
+from bokeh.io import output_notebook
 from bokeh.palettes import interp_palette
 from bokeh.models import (
     ColumnDataSource,
@@ -12,6 +33,9 @@ from bokeh.models import (
     HoverTool,
 )
 import numpy as np
+import os
+
+output_notebook()
 
 n_atoms = 11
 lattice_const = 5.9
@@ -39,7 +63,9 @@ ordered_state_2D_job = ordered_state_2D_prog.assign(delta_end=42.66, sweep_time=
 
 # retrieve results from HW
 hw_future = HardwareFuture()
-hw_future.load_json("example-3-ordered-state-2D-job.json")
+hw_future.load_json(
+    os.getcwd() + "/docs/docs/examples/" + "example-3-2d-ordered-state-job.json"
+)
 hw_job = hw_future.report()
 
 # Plots
