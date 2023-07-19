@@ -1,12 +1,34 @@
-# range(5,14,2) goes from 5 to 13 in steps of 2 for n_atoms
+# ---
+# jupyter:
+#   jupytext:
+#     formats: ipynb,py:percent
+#     hide_notebook_metadata: false
+#     text_representation:
+#       extension: .py
+#       format_name: percent
+#       format_version: '1.3'
+#       jupytext_version: 1.14.5
+#   kernelspec:
+#     display_name: .venv
+#     language: python
+#     name: python3
+# ---
 
+# %% [markdown]
+# #  Whitepaper Example 3: System Size Dependence for 1D Z2 Chain
+
+# %%
 from bloqade import start
 from bloqade.ir.location import Chain
 from bloqade.task import HardwareFuture
 
 import os
+
+from bokeh.io import output_notebook
 from bokeh.plotting import figure, show
 from bokeh.models import ColumnDataSource, HoverTool, CrosshairTool
+
+output_notebook()
 
 rabi_amplitude_values = [0.0, 15.8, 15.8, 0.0]
 rabi_detuning_values = [-16.33, -16.33, 16.33, 16.33]
@@ -38,8 +60,11 @@ for program in n_atom_programs:
 # make a folder to store results
 hw_jobs_json_dir = "./example-3-n-atom-sweep-jobs"
 
+# if directory is already present, don't overwrite
+# comment out for now because still figuring out how to
+# get mkdocs to play nice with old directory structure
 
-os.makedirs(hw_jobs_json_dir)
+# os.makedirs(hw_jobs_json_dir)
 """
 for program, n_atoms in zip(n_atom_programs, range(5, 14, 2)):
     (
@@ -52,7 +77,14 @@ for program, n_atoms in zip(n_atom_programs, range(5, 14, 2)):
 # retrieve results from HW
 hw_jobs = [HardwareFuture() for _ in range(5, 14, 2)]
 for i, n_atoms in enumerate(range(5, 14, 2)):
-    hw_jobs[i].load_json(hw_jobs_json_dir + "/" + str(n_atoms) + ".json")
+    hw_jobs[i].load_json(
+        os.getcwd()
+        + "/docs/docs/examples/"
+        + hw_jobs_json_dir
+        + "/"
+        + str(n_atoms)
+        + ".json"
+    )
 
 
 # needs to be inverted
@@ -134,22 +166,3 @@ z2_probability_plt.add_tools(CrosshairTool(dimensions="height"))
 
 
 show(z2_probability_plt)
-
-
-# Plot results
-"""
-p = figure(
-    x_axis_label="Number of sites",
-    y_axis_label="Z_2 state probability",
-    toolbar_location=None,
-    tools="",
-)
-p.axis.axis_label_text_font_size = "15pt"
-p.axis.major_label_text_font_size = "10pt"
-
-
-p.line(list(range(5, 14, 2)), z2_probabilities, line_width=2)
-p.cross(list(range(5, 14, 2)), z2_probabilities, size=25, fill_color="black")
-
-show(p)
-"""
