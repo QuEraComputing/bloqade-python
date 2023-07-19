@@ -466,7 +466,7 @@ class QueueApi:
 
         return results
 
-    def get_task_status_in_queue(self, task_id: Union[str, uuid.UUID]) -> Dict:
+    def get_task_status_in_queue(self, task_id: Union[str, uuid.UUID]) -> str:
         """
         Request task status in a queue for a given task.
         @param task_id: Task ID.
@@ -535,6 +535,12 @@ class QueueApi:
         @return: Parsed JSON of the task summary.
         @see: `TaskSummary` in https://github.com/QuEra-QCS/QCS-API/blob/master/qcs-api/openapi.yaml
         """
+
+        if self.get_task_status_in_queue(task_id) != "Completed":
+            raise QueueApi.QueueApiError(
+                "Task is not completed, can't fetch task summary."
+            )
+
         result = self.api_http_request.get("task", str(task_id))
 
         match result.status_code:

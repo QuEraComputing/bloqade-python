@@ -32,9 +32,9 @@ class MockTask(BaseModel, Task):
 
     def run_validation(self) -> None:
         if self.mock_backend:
-            self.mock_backend.validate_task(self.task_ir)
+            return self.mock_backend.validate_task(self.task_ir)
 
-        super().run_validation()
+        return super().run_validation()
 
 
 class BraketTask(MockTask):
@@ -53,9 +53,9 @@ class BraketTask(MockTask):
 
     def run_validation(self) -> None:
         if self.braket_backend:
-            self.braket_backend.validate_task(self.task_ir)
+            return self.braket_backend.validate_task(self.task_ir)
 
-        super().run_validation()
+        return super().run_validation()
 
 
 class QuEraTask(BraketTask):
@@ -74,9 +74,9 @@ class QuEraTask(BraketTask):
 
     def run_validation(self) -> None:
         if self.quera_backend:
-            self.quera_backend.validate_task(self.task_ir)
+            return self.quera_backend.validate_task(self.task_ir)
 
-        super().run_validation()
+        return super().run_validation()
 
 
 class HardwareTask(QuEraTask):
@@ -240,7 +240,7 @@ class HardwareJob(JSONInterface, Job):
                 self.tasks = OrderedDict(
                     [
                         (int(task_number), HardwareTask(**tasks[task_number]))
-                        for task_number in sorted(tasks.keys())
+                        for task_number in tasks.keys()
                     ]
                 )
             case _:
@@ -251,7 +251,7 @@ class HardwareJob(JSONInterface, Job):
 
 
 class HardwareFuture(JSONInterface, Future):
-    futures: OrderedDict[int, HardwareTaskFuture] = {}
+    futures: OrderedDict[int, HardwareTaskFuture] = OrderedDict()
 
     def futures_dict(self) -> OrderedDict[int, HardwareTaskFuture]:
         return self.futures
@@ -262,7 +262,7 @@ class HardwareFuture(JSONInterface, Future):
                 self.futures = OrderedDict(
                     [
                         (int(task_number), HardwareTaskFuture(**futures[task_number]))
-                        for task_number in sorted(futures.keys())
+                        for task_number in futures.keys()
                     ]
                 )
             case _:
