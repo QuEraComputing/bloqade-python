@@ -7,11 +7,12 @@
 # prog.linear(start=1.0, stop=2.0, duration="x")
 # import pytest
 import bloqade.ir as ir
-from bloqade.builder import location
-from bloqade.ir import rydberg, detuning
+from bloqade.builder import location, waveform
+from bloqade.ir import rydberg, detuning, hyperfine, rabi
 from bloqade import start, var, cast
 from bloqade.ir.location import Square, Chain
 import numpy as np
+import pytest
 
 
 def test_piecewise_const():
@@ -101,6 +102,15 @@ def test_spatial_var():
 
     assert prog._name == "a"
 
+    prog = prog.piecewise_constant([0.1], [30])
+
+    # test build ast:
+    seq = prog.sequence
+
+    assert seq.value[rydberg].value[detuning].value[
+        ir.RunTimeVector("a")
+    ] == ir.Constant(value=30, duration=0.1)
+
 
 def test_issue_107():
     waveform = (
@@ -138,6 +148,65 @@ def test_issue_150():
             )
         }
     )
+
+
+def test_record():
+    prog = start
+    prog = (
+        prog.rydberg.detuning.location(1)
+        .piecewise_constant([0.1], [30])
+        .record("detuning")
+    )
+
+    assert type(prog) == waveform.Record
+
+    seq = prog.sequence
+    assert seq.value[rydberg].value[detuning].value[
+        ir.ScaledLocations({ir.Location(1): cast(1)})
+    ] == ir.Record(waveform=ir.Constant(value=30, duration=0.1), var=cast("detuning"))
+
+
+def test_hyperfine_phase():
+    prog = start.hyperfine.rabi.phase.location(1).piecewise_constant([0.1], [30])
+
+    seq = prog.sequence
+
+    assert seq.value[hyperfine].value[rabi.phase].value[
+        ir.ScaledLocations({ir.Location(1): cast(1)})
+    ] == ir.Constant(value=30, duration=0.1)
+
+
+def test_hyperfine_amplitude():
+    prog = start.hyperfine.rabi.amplitude.location(1).piecewise_constant([0.1], [30])
+
+    seq = prog.sequence
+
+    assert seq.value[hyperfine].value[rabi.amplitude].value[
+        ir.ScaledLocations({ir.Location(1): cast(1)})
+    ] == ir.Constant(value=30, duration=0.1)
+
+
+def test_fatal_apply():
+    prog = start.hyperfine.rabi.amplitude.location(1).piecewise_constant([0.1], [30])
+
+    st = start
+    seq = prog.sequence
+    st.__sequence__ = seq
+
+    with pytest.raises(NotImplementedError):
+        st.apply(seq)
+
+
+def test_piecewise_constant_mismatch():
+    with pytest.raises(ValueError):
+        start.hyperfine.rabi.amplitude.location(1).piecewise_constant([0.1, 0.5], [30])
+
+
+def test_piecewise_linear_mismatch():
+    with pytest.raises(ValueError):
+        start.hyperfine.rabi.amplitude.location(1).piecewise_linear(
+            durations=[0.1, 0.5], values=[30, 20]
+        )
 
 
 prog = start

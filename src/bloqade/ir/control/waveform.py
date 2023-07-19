@@ -392,14 +392,14 @@ class InfiniteSmoothingKernel(SmoothingKernel):
     pass
 
 
-class Guassian(InfiniteSmoothingKernel):
+class Gaussian(InfiniteSmoothingKernel):
     def __call__(self, value: float) -> float:
         return np.exp(-(value**2) / 2) / np.sqrt(2 * np.pi)
 
 
 class Logistic(InfiniteSmoothingKernel):
     def __call__(self, value: float) -> float:
-        np.exp(-(np.logaddexp(0, value) + np.logaddexp(0, -value)))
+        return np.exp(-(np.logaddexp(0, value) + np.logaddexp(0, -value)))
 
 
 class Sigmoid(InfiniteSmoothingKernel):
@@ -442,7 +442,7 @@ class Cosine(FiniteSmoothingKernel):
         return np.maximum(0, np.pi / 4 * np.cos(np.pi / 2 * value))
 
 
-GuassianKernel = Guassian()
+GaussianKernel = Gaussian()
 LogisticKernel = Logistic()
 SigmoidKernel = Sigmoid()
 TriangleKernel = Triangle()
@@ -539,7 +539,7 @@ class Append(Waveform):
         for waveform in self.waveforms:
             duration = waveform.duration(**kwargs)
 
-            if clock_s < append_time + duration:
+            if clock_s <= append_time + duration:
                 return waveform.eval_decimal(clock_s - append_time, **kwargs)
 
             append_time += duration
@@ -655,6 +655,9 @@ class Record(Waveform):
     def children(self):
         return {"Waveform": self.waveform, "Variable": self.var}
 
+    def __repr__(self) -> str:
+        return f"Record({self.waveform!r}, {self.var!r})"
+
     def _repr_pretty_(self, p, cycle):
         Printer(p).print(self, cycle)
 
@@ -692,8 +695,7 @@ class Sample(Waveform):
         return clocks, values
 
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
-        times = self.sample_times(**kwargs)
-
+        times, values = self.samples(**kwargs)
         i = bisect_left(times, clock_s)
 
         if i == len(times):
@@ -701,28 +703,22 @@ class Sample(Waveform):
 
         match self.interpolation:
             case Interpolation.Linear:
-                return self._linear_interpolation(
-                    clock_s, times[i], times[i + 1], **kwargs
-                )
+                if i == 0:
+                    return values[i]
+                else:
+                    slope = (values[i] - values[i - 1]) / (times[i] - times[i - 1])
+                    return slope * (clock_s - times[i - 1]) + values[i - 1]
+
             case Interpolation.Constant:
-                return self._constant_interpolation(times[i], **kwargs)
+                if i == 0:
+                    return values[i]
+                else:
+                    return values[i - 1]
             case _:
                 raise ValueError("No interpolation specified")
 
-    def _linear_interpolation(
-        self, clock_s: Decimal, start_time: Decimal, stop_time: Decimal, **kwargs
-    ) -> Decimal:
-        start_value = self.waveform.eval_decimal(start_time, **kwargs)
-        stop_value = self.waveform.eval_decimal(stop_time, **kwargs)
-        slope = (stop_value - start_value) / (stop_time - start_time)
-
-        return float(slope) * (clock_s - float(start_time)) + float(start_value)
-
-    def _constant_interpolation(self, start_time: Decimal, **kwargs) -> Decimal:
-        return self.waveform(start_time, **kwargs)
-
     def print_node(self):
-        return f"Sample {self.interpolation}"
+        return f"Sample {self.interpolation.value}"
 
     def children(self):
         return {"Waveform": self.waveform, "sample_step": self.dt}
