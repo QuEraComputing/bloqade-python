@@ -1,8 +1,22 @@
 from scipy.optimize import minimize
-import functools
 from typing import Callable, Optional, List, Dict, Union, Tuple
 import numpy as np
 import copy 
+
+
+def array_cache(func):
+    cache = {}
+
+    def wrapper(x, *args, **kwargs):
+        x_tuple = tuple(x)
+        if x_tuple in cache:
+            return cache[x_tuple]
+        result = func(x, *args, **kwargs)
+        cache[x_tuple] = result
+        return result
+
+    return wrapper
+
 
 class Optimization:
 
@@ -14,14 +28,8 @@ class Optimization:
         self.__callback_step = callback_step
         self.__method = method
         self.__nev = 0
-        self.__cost_function = self._apply_cache_to_function(cost_function, maxsize=200)
+        self.__cost_function = array_cache(cost_function)
 
-    def _apply_cache_to_function(self, func, maxsize):
-        cached_func = functools.lru_cache(maxsize=maxsize)(func)
-        def wrapper(x, *args, **kwargs):
-            x_tuple = tuple(x)
-            return cached_func(x_tuple, *args, **kwargs)
-        return wrapper
 
     def __callback(self, x: np.ndarray) -> None:
         feval = self.__cost_function(x)
