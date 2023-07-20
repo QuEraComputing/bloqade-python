@@ -2,6 +2,24 @@ from IPython.lib.pretty import PrettyPrinter as PP
 from bloqade.ir import Linear, Poly
 from io import StringIO
 from bloqade.ir.tree_print import Printer
+from bloqade import xprint
+
+
+def test_xprint():
+    wf = Linear(start=0, stop=1, duration=1)
+
+    mystdout = StringIO()
+    xprint(wf, iostream=mystdout)
+
+    assert (
+        mystdout.getvalue()
+        == "Linear\n├─ start ⇒ Literal: 0\n├─ stop ⇒ Literal: 1\n"
+        + "└─ duration ⇒ Literal: 1\n"
+    )
+
+    s = [1, 2, 3]
+    mystdout = StringIO()
+    xprint(s, iostream=mystdout)
 
 
 def test_printer():

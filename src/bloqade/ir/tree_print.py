@@ -1,6 +1,8 @@
 # Ported from the Julia language AbstractTrees.jl implementation: https://github.com/JuliaCollections/AbstractTrees.jl/blob/master/src/printing.jl
 
 from pydantic.dataclasses import dataclass
+from IPython.lib.pretty import PrettyPrinter
+from sys import stdout
 
 max_tree_depth = 10
 unicode_enabled = True
@@ -127,3 +129,56 @@ class Printer:
             self.state.depth -= 1
             self.state.prefix = parent_prefix
             self.state.last = parent_last
+
+
+def xprint(obj, max_depth=10, iostream=stdout):
+    """
+    # Pretty printing function for non-IPython environments
+
+    This function is to provide pretty tree printing for the IR nodes/sequences
+    when not in an IPython environment.
+
+    Args
+    ------
+    obj : generic object
+        - any object that has either __repr__ or _repr_pretty_ method.
+    max_depth : int, (default=10)
+        - the maximum depth to print. Defaults to 10.
+    iostream : stream object, (default=sys.stdout)
+        - standard stream object.
+
+    Returns
+    --------
+    None
+
+    Examples
+    ----------
+    Print a waveform:
+
+    >>> wv = bloqade.ir.waveform.Linear(start=0,stop=1,duration=1)
+    >>> xprint(wv)
+    Linear
+    ├─ start ⇒ Literal: 0
+    ├─ stop ⇒ Literal: 1
+    └─ duration ⇒ Literal: 1
+
+    Print non-bloqade object:
+
+    >>> xprint([1,2,3])
+    [1, 2, 3]
+
+    Redirect output:
+
+    >>> with open("output.txt","w") as f:
+    >>>     xprint(wv,iostream=f)
+
+    """
+    # check if it has _repr_pretty_ method
+    repr_pretty_fn = getattr(obj, "_repr_pretty_", None)
+    if callable(repr_pretty_fn):
+        p = PrettyPrinter(iostream)
+        obj._repr_pretty_(p, max_depth)
+        print("\n", end="", file=iostream)
+    else:
+        print(obj, file=iostream)
+    return None

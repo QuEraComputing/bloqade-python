@@ -32,4 +32,5 @@ class ListOfLocations(AtomArrangement):
         return iter(self.location_list)
 
 
+# Entry point of the builder.
 start = ListOfLocations()
