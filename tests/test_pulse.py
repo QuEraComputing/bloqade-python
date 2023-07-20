@@ -92,6 +92,21 @@ def test_pulse():
     assert ps1.print_node() == "Pulse"
     assert ps1.children() == {"Detuning": f}
 
+    mystdout = StringIO()
+    p = PP(mystdout)
+
+    ps1._repr_pretty_(p, 10)
+
+    assert (
+        mystdout.getvalue()
+        == "Pulse\n"
+        + "└─ Detuning ⇒ Field\n"
+        + "              └─ UniformModulation ⇒ Linear\n"
+        + "                                     ├─ start ⇒ Literal: 1.0\n"
+        + "                                     ├─ stop ⇒ Variable: x\n"
+        + "                                     └─ duration ⇒ Literal: 3.0"
+    )
+
 
 def test_named_pulse():
     f = Field({Uniform: Linear(start=1.0, stop="x", duration=3.0)})
@@ -101,6 +116,25 @@ def test_named_pulse():
     assert ps.__repr__() == "NamedPulse(name='qq', pulse=%s)" % (ps1.__repr__())
 
     assert ps.children() == {"Name": "qq", "Pulse": ps1}
+
+    assert ps.print_node() == "NamedPulse"
+
+    mystdout = StringIO()
+    p = PP(mystdout)
+
+    ps._repr_pretty_(p, 10)
+
+    assert (
+        mystdout.getvalue()
+        == "NamedPulse\n"
+        + "├─ Name ⇒ qq\n"
+        + "└─ Pulse ⇒ Pulse\n"
+        + "           └─ Detuning ⇒ Field\n"
+        + "                         └─ UniformModulation ⇒ Linear\n"
+        + "                                                ├─ start ⇒ Literal: 1.0\n"
+        + "                                                ├─ stop ⇒ Variable: x\n"
+        + "                                                └─ duration ⇒ Literal: 3.0"
+    )
 
 
 def test_slice_pulse():
