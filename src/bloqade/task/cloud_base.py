@@ -20,8 +20,8 @@ from bloqade.submission.base import SubmissionBackend
 JSONSubType = TypeVar("JSONSubType", bound="JSONInterface")
 CloudBatchResultSubType = TypeVar("CloudBatchResultSubType", bound="CloudBatchResult")
 CloudBatchTaskSubType = TypeVar("CloudBatchTaskSubType", bound="CloudBatchTask")
-CloudTaskResultsSubType = TypeVar(
-    "CloudTaskResultsSubType", bound="CloudTaskShotResults"
+CloudTaskShotResultsSubType = TypeVar(
+    "CloudTaskShotResultsSubType", bound="CloudTaskShotResults"
 )
 CloudTaskSubType = TypeVar("CloudTaskSubType", bound="CloudTask")
 
@@ -73,8 +73,8 @@ class CloudTaskShotResults(JSONInterface, TaskShotResults[CloudTaskSubType]):
         raise NotImplementedError(f"{self.__class__.__name__}.cancel() not implemented")
 
     def resubmit_if_failed(
-        self: CloudTaskResultsSubType,
-    ) -> CloudTaskResultsSubType:
+        self: CloudTaskShotResultsSubType,
+    ) -> CloudTaskShotResultsSubType:
         if self.task_id and self.status() not in [
             QuEraTaskStatusCode.Failed,
             QuEraTaskStatusCode.Unaccepted,
@@ -108,13 +108,13 @@ class CloudTask(JSONInterface, Task):
         )
 
 
-class CloudBatchResult(JSONInterface, BatchResult[CloudTaskResultsSubType]):
+class CloudBatchResult(JSONInterface, BatchResult[CloudTaskShotResultsSubType]):
     name: Optional[str] = None
 
     @classmethod
     def create_batch_result(
         cls: Type[CloudBatchResultSubType],
-        ordered_dict: OrderedDict[int, CloudTaskResultsSubType],
+        ordered_dict: OrderedDict[int, CloudTaskShotResultsSubType],
         name: Optional[str] = None,
     ) -> CloudBatchResultSubType:
         raise NotImplementedError(
@@ -155,7 +155,7 @@ class CloudBatchTask(
         pass
 
     def _emit_batch_future(
-        self, futures: OrderedDict[int, CloudTaskResultsSubType]
+        self, futures: OrderedDict[int, CloudTaskShotResultsSubType]
     ) -> CloudBatchResultSubType:
         raise NotImplementedError(
             f"{self.__class__.__name__}._emit_batch_future() not implemented"
