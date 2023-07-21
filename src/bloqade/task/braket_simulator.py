@@ -51,7 +51,9 @@ class BraketEmulatorBatchResult(JSONInterface, BatchResult[BraketEmulatorTaskRes
         return self.braket_emulator_task_results
 
 
-class BraketEmulatorBatchTask(JSONInterface, BatchTask[BraketEmulatorTask]):
+class BraketEmulatorBatchTask(
+    JSONInterface, BatchTask[BraketEmulatorTask, BraketEmulatorBatchResult]
+):
     braket_emulator_tasks: OrderedDict[int, BraketEmulatorTask] = {}
 
     def _tasks(self) -> OrderedDict[int, BraketEmulatorTask]:
