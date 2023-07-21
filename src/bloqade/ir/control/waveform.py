@@ -360,9 +360,11 @@ class PythonFn(Instruction):
             return Decimal(0)
 
         return Decimal(
-            self.fn(
-                float(clock_s),
-                **{k: float(kwargs[k]) for k in self.parameters if k in kwargs},
+            str(
+                self.fn(
+                    float(clock_s),
+                    **{k: float(kwargs[k]) for k in self.parameters if k in kwargs},
+                )
             )
         )
 
@@ -684,7 +686,7 @@ class Sample(Waveform):
         clock = Decimal("0.0")
         clocks = []
         values = []
-        while clock < duration - dt:
+        while clock <= duration - dt:
             values.append(self.waveform.eval_decimal(clock, **kwargs))
             clocks.append(clock)
             clock += dt
