@@ -1,8 +1,8 @@
-from .base import Task, TaskShotResult, BatchTask, BatchResult
+from .base import Task, TaskShotResults, BatchTask, BatchResult
 from .report import Report
 from .hardware import (
     HardwareTask,
-    HardwareTaskShotResult,
+    HardwareTaskShotResults,
     HardwareBatchTask,
     HardwareBatchResult,
 )
@@ -10,8 +10,8 @@ from .hardware import (
 __all__ = [
     "Task",
     "HardwareTask",
-    "TaskShotResult",
-    "HardwareTaskShotResult",
+    "TaskShotResults",
+    "HardwareTaskShotResults",
     "Report",
     "BatchTask",
     "HardwareBatchTask",

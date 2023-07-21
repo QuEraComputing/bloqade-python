@@ -3,13 +3,20 @@ from numbers import Number
 from bloqade.submission.ir.task_results import QuEraTaskResults
 from bloqade.submission.ir.parallel import ParallelDecoder
 
-from typing import TYPE_CHECKING, Dict, List, Tuple, Optional, Union, Type, TypeVar
+from typing import (
+    TYPE_CHECKING,
+    Dict,
+    List,
+    Tuple,
+    Optional,
+    TypeVar,
+    Generic,
+)
 from collections import OrderedDict
 from pydantic.dataclasses import dataclass
 
 
 if TYPE_CHECKING:
-    from bloqade.task.cloud_base import CloudTask, CloudTaskShotResult
     from bloqade.task.report import Report
 
 
@@ -21,13 +28,33 @@ class Geometry:
 
 
 TaskSubType = TypeVar("TaskSubType", bound="Task")
-TaskShotResultSubType = TypeVar("TaskShotResultSubType", bound="TaskShotResult")
+TaskResultsSubType = TypeVar("TaskResultsSubType", bound="TaskResults")
 BatchTaskSubType = TypeVar("BatchTaskSubType", bound="BatchTask")
 BatchResultSubType = TypeVar("BatchResultSubType", bound="BatchResult")
 
 
 # The reason why we do not simply pass objects up to the parent class is because
 # I would like to preserve the ability to serialize the objects to JSON.
+
+
+class TaskResults(Generic[TaskSubType]):
+    def _task(self) -> TaskSubType:
+        raise NotImplementedError(f"{self.__class__.__name__}._task() not implemented")
+
+    @property
+    def task(self) -> TaskSubType:
+        return self._task()
+
+
+class TaskShotResults(TaskResults[TaskSubType]):
+    def _quera_task_result(self) -> QuEraTaskResults:
+        raise NotImplementedError(
+            f"{self.__class__.__name__}._quera_task_result() not implemented"
+        )
+
+    @property
+    def quera_task_result(self) -> QuEraTaskResults:
+        return self._quera_task_result()
 
 
 class Task:
@@ -47,41 +74,11 @@ class Task:
     def geometry(self) -> Geometry:
         return self._geometry()
 
-    def submit(self) -> Union["TaskShotResult", "CloudTaskShotResult"]:
+    def submit(self: TaskSubType) -> TaskResults[TaskSubType]:
         raise NotImplementedError(f"{self.__class__.__name__}.submit() not implemented")
 
 
-class TaskShotResult:
-    def _task(self) -> Union[Task, "CloudTask"]:
-        raise NotImplementedError(f"{self.__class__.__name__}._task() not implemented")
-
-    def _quera_task_result(self) -> QuEraTaskResults:
-        raise NotImplementedError(
-            f"{self.__class__.__name__}._quera_task_result() not implemented"
-        )
-
-    @property
-    def task(self) -> Union[Task, "CloudTask"]:
-        return self._task()
-
-    @property
-    def quera_task_result(self) -> QuEraTaskResults:
-        return self._quera_task_result()
-
-
-class BatchTask:
-    def _tasks(self) -> OrderedDict[int, Union[Task, "CloudTask"]]:
-        raise NotImplementedError(f"{self.__class__.__name__}._tasks() not implemented")
-
-    @property
-    def tasks(self) -> OrderedDict[int, Union[Task, "CloudTask"]]:
-        return self._tasks()
-
-    def submit(self) -> "BatchResult":
-        raise NotImplementedError(f"{self.__class__.__name__}.submit() not implemented")
-
-
-class BatchResult:
+class BatchResult(Generic[TaskResultsSubType]):
     # fundamental interface, list of task results
     # each subclass implements a different way of getting the results
     # e.g. cloud, local, etc. this is the basic interface required by
@@ -89,18 +86,9 @@ class BatchResult:
     # Any Batch Result should at the very least implement this interface
     # Other subclasses will have additional methods for different use cases.
 
-    @classmethod
-    def create_batch_result(
-        cls: Type[BatchResultSubType],
-        ordered_dict: OrderedDict[int, Union[TaskShotResult, "CloudTaskShotResult"]],
-    ) -> BatchResultSubType:
-        raise NotImplementedError(
-            f"{cls.__name__}.from_ordered_dict(ordered_dict: ) not implemented."
-        )
-
     def _task_results(
         self,
-    ) -> OrderedDict[int, Union[TaskShotResult, "CloudTaskShotResult"]]:
+    ) -> OrderedDict[int, TaskResultsSubType]:
         raise NotImplementedError(
             f"{self.__class__.__name__}._task_results() not implemented"
         )
@@ -108,10 +96,22 @@ class BatchResult:
     @property
     def task_results(
         self,
-    ) -> OrderedDict[int, Union[TaskShotResult, "CloudTaskShotResult"]]:
+    ) -> OrderedDict[int, TaskResultsSubType]:
         return self._task_results()
 
     def report(self) -> "Report":
         from bloqade.task.report import Report
 
         return Report(self)
+
+
+class BatchTask(Generic[TaskSubType, BatchResultSubType]):
+    def _tasks(self: BatchTaskSubType) -> OrderedDict[int, TaskSubType]:
+        raise NotImplementedError(f"{self.__class__.__name__}._tasks() not implemented")
+
+    @property
+    def tasks(self) -> OrderedDict[int, TaskSubType]:
+        return self._tasks()
+
+    def submit(self) -> BatchResultSubType:
+        raise NotImplementedError(f"{self.__class__.__name__}.submit() not implemented")

@@ -5,7 +5,7 @@ from bloqade.submission.ir.braket import (
     from_braket_task_results,
 )
 from bloqade.submission.ir.task_results import QuEraTaskResults
-from bloqade.task.base import BatchResult, BatchTask, Geometry, Task, TaskShotResult
+from bloqade.task.base import BatchResult, BatchTask, Geometry, Task, TaskShotResults
 from bloqade.task.cloud_base import JSONInterface
 from typing import Optional
 from concurrent.futures import ProcessPoolExecutor
@@ -22,29 +22,36 @@ class BraketEmulatorTask(JSONInterface, Task):
             filling=self.task_ir.lattice.filling,
         )
 
-    def submit(self, **kwargs) -> "BraketEmulatorTaskResult":
+    def submit(self, **kwargs) -> "BraketEmulatorTaskResults":
         aws_task = LocalSimulator("braket_ahs").run(
             self.task_ir.program, shots=self.task_ir.nshots, **kwargs
         )
 
-        return BraketEmulatorTaskResult(
+        return BraketEmulatorTaskResults(
             braket_emulator_task=self,
             task_results_ir=from_braket_task_results(aws_task.result()),
         )
 
 
-class BraketEmulatorTaskResult(JSONInterface, TaskShotResult):
+class BraketEmulatorTaskResults(JSONInterface, TaskShotResults[BraketEmulatorTask]):
     braket_emulator_task: BraketEmulatorTask
     task_results_ir: QuEraTaskResults
 
-    def _task(self) -> Task:
+    def _task(self) -> BraketEmulatorTask:
         return self.braket_emulator_task
 
     def _quera_task_result(self) -> QuEraTaskResults:
         return self.task_results_ir
 
 
-class BraketEmulatorBatchTask(JSONInterface, BatchTask):
+class BraketEmulatorBatchResult(JSONInterface, BatchResult[BraketEmulatorTaskResults]):
+    braket_emulator_task_results: OrderedDict[int, BraketEmulatorTaskResults]
+
+    def _task_results(self) -> OrderedDict[int, BraketEmulatorTaskResults]:
+        return self.braket_emulator_task_results
+
+
+class BraketEmulatorBatchTask(JSONInterface, BatchTask[BraketEmulatorTask]):
     braket_emulator_tasks: OrderedDict[int, BraketEmulatorTask] = {}
 
     def _tasks(self) -> OrderedDict[int, BraketEmulatorTask]:
@@ -56,7 +63,7 @@ class BraketEmulatorBatchTask(JSONInterface, BatchTask):
         max_workers: Optional[int] = None,
         progress_bar: bool = False,
         **kwargs,
-    ) -> "BraketEmulatorBatchResult":
+    ) -> BraketEmulatorBatchResult:
         if multiprocessing:
             futures = OrderedDict()
             with ProcessPoolExecutor(max_workers=max_workers) as executor:
@@ -83,16 +90,3 @@ class BraketEmulatorBatchTask(JSONInterface, BatchTask):
                 task_results[task_number] = task.submit(**kwargs)
 
         return BraketEmulatorBatchResult(braket_emulator_task_results=task_results)
-
-
-class BraketEmulatorBatchResult(JSONInterface, BatchResult):
-    braket_emulator_task_results: OrderedDict[int, BraketEmulatorTaskResult]
-
-    def __init__(self, **kwargs):
-        if "futures" in kwargs:
-            kwargs["braket_emulator_task_futures"] = kwargs.pop("futures")
-
-        super().__init__(**kwargs)
-
-    def _task_results(self) -> OrderedDict[int, BraketEmulatorTaskResult]:
-        return self.braket_emulator_task_results

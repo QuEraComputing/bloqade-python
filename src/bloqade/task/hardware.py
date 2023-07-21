@@ -14,7 +14,7 @@ from bloqade.task.cloud_base import (
     CloudBatchTask,
     CloudBatchResult,
     CloudTask,
-    CloudTaskShotResult,
+    CloudTaskResults,
 )
 from collections import OrderedDict
 from typing import Optional, Union
@@ -91,9 +91,9 @@ class HardwareTask(QuEraTask):
                     task_ir=task_ir, parallel_decoder=parallel_decoder, **kwargs
                 )
 
-    def submit(self) -> "HardwareTaskShotResult":
+    def submit(self) -> "HardwareTaskShotResults":
         task_id = self.backend.submit_task(self.task_ir)
-        return HardwareTaskShotResult(
+        return HardwareTaskShotResults(
             task_id=task_id,
             hardware_task=self,
         )
@@ -104,32 +104,16 @@ class HardwareTask(QuEraTask):
         except ValidationError as e:
             return str(e)
 
-    def future_no_task_id(self) -> "HardwareTaskShotResult":
-        return HardwareTaskShotResult(hardware_task=self)
+    def future_no_task_id(self) -> "HardwareTaskShotResults":
+        return HardwareTaskShotResults(hardware_task=self)
 
 
-class HardwareTaskShotResult(CloudTaskShotResult):
+class HardwareTaskShotResults(CloudTaskResults[HardwareTask]):
     hardware_task: Optional[HardwareTask]
-    task_id: Optional[str]
     task_result_ir: Optional[QuEraTaskResults]
 
-    def __init__(self, **kwargs):
-        if "task" in kwargs.keys():
-            kwargs["hardware_task"] = kwargs.pop("task")
-
-        super().__init__(**kwargs)
-
-    def _task(self) -> HardwareTask:
+    def _task(self):
         return self.hardware_task
-
-    def resubmit_if_failed(self) -> "HardwareTaskShotResult":
-        if self.task_id and self.status() not in [
-            QuEraTaskStatusCode.Failed,
-            QuEraTaskStatusCode.Unaccepted,
-        ]:
-            return self
-        else:
-            return self.hardware_task.submit()
 
     def fetch_task_result(self, cache_result=False) -> QuEraTaskResults:
         if self.task_id is None:
@@ -159,32 +143,22 @@ class HardwareTaskShotResult(CloudTaskShotResult):
         self.hardware_task.backend.cancel_task(self.task_id)
 
 
-class HardwareBatchResult(CloudBatchResult):
-    hardware_task_shot_results: OrderedDict[int, HardwareTaskShotResult] = OrderedDict()
+class HardwareBatchResult(CloudBatchResult[HardwareTaskShotResults]):
+    hardware_task_shot_results: OrderedDict[
+        int, HardwareTaskShotResults
+    ] = OrderedDict()
 
-    def _task_results(self) -> OrderedDict[int, HardwareTaskShotResult]:
+    def _task_results(self) -> OrderedDict[int, HardwareTaskShotResults]:
         return self.hardware_task_shot_results
 
 
-class HardwareBatchTask(CloudBatchTask):
+class HardwareBatchTask(CloudBatchTask[HardwareTask, HardwareBatchResult]):
     hardware_tasks: OrderedDict[int, HardwareTask] = OrderedDict()
 
-    def _tasks(self) -> OrderedDict[int, HardwareTask]:
+    def _tasks(self):
         return self.hardware_tasks
 
     def _emit_batch_future(
-        self, futures: OrderedDict[int, HardwareTaskShotResult]
+        self, task_results: OrderedDict[int, HardwareTaskShotResults]
     ) -> "HardwareBatchResult":
-        return HardwareBatchResult(hardware_task_shot_results=futures)
-
-    def remove_invalid_tasks(self) -> "HardwareBatchTask":
-        valid_tasks = OrderedDict()
-
-        for task_number, task in self._tasks().items():
-            try:
-                task.run_validation()
-                valid_tasks[task_number] = task
-            except ValidationError:
-                continue
-
-        return HardwareBatchTask(name=self.name, hardware_tasks=valid_tasks)
+        return HardwareBatchResult(hardware_task_shot_results=task_results)

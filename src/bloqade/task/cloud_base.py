@@ -10,18 +10,18 @@ from bloqade.submission.ir.task_results import QuEraTaskResults, QuEraTaskStatus
 
 from bloqade.task.base import (
     Task,
-    TaskShotResult,
+    TaskShotResults,
     BatchTask,
     BatchResult,
 )
 from bloqade.submission.base import SubmissionBackend
 
+
 JSONSubType = TypeVar("JSONSubType", bound="JSONInterface")
 CloudBatchResultSubType = TypeVar("CloudBatchResultSubType", bound="CloudBatchResult")
 CloudBatchTaskSubType = TypeVar("CloudBatchTaskSubType", bound="CloudBatchTask")
-CloudTaskShotResultSubType = TypeVar(
-    "CloudTaskShotResultSubType", bound="CloudTaskShotResult"
-)
+CloudTaskResultsSubType = TypeVar("CloudTaskResultsSubType", bound="CloudTaskResults")
+CloudTaskSubType = TypeVar("CloudTaskSubType", bound="CloudTask")
 
 
 class JSONInterface(BaseModel):
@@ -52,6 +52,36 @@ class JSONInterface(BaseModel):
         return cls(**params)
 
 
+class CloudTaskResults(JSONInterface, TaskShotResults[CloudTaskSubType]):
+    task_id: Optional[str]
+    # CloudTaskShotResult is a TaskShotResult but acts like a future object.
+
+    def _quera_task_result(self) -> QuEraTaskResults:
+        return self.fetch_task_result(cache_result=True)
+
+    def fetch_task_result(self, cache_result=False) -> QuEraTaskResults:
+        raise NotImplementedError(
+            f"{self.__class__.__name__}.fetch_task_result() not implemented"
+        )
+
+    def status(self) -> QuEraTaskStatusCode:
+        raise NotImplementedError(f"{self.__class__.__name__}.status() not implemented")
+
+    def cancel(self) -> None:
+        raise NotImplementedError(f"{self.__class__.__name__}.cancel() not implemented")
+
+    def resubmit_if_failed(
+        self: CloudTaskResultsSubType,
+    ) -> CloudTaskResultsSubType:
+        if self.task_id and self.status() not in [
+            QuEraTaskStatusCode.Failed,
+            QuEraTaskStatusCode.Unaccepted,
+        ]:
+            return self
+        else:
+            return self.task.submit()
+
+
 class CloudTask(JSONInterface, Task):
     def _backend(self) -> SubmissionBackend:
         raise NotImplementedError(
@@ -68,46 +98,61 @@ class CloudTask(JSONInterface, Task):
             f"{self.__class__.__name__}.run_validation() not implemented"
         )
 
-    def submit_no_task_id(self) -> "CloudTaskShotResult":
+    def submit_no_task_id(self: CloudTaskSubType) -> CloudTaskResults[CloudTaskSubType]:
         raise NotImplementedError(
             f"{self.__class__.__name__}.submit_no_task_id() not implemented"
         )
 
 
-class CloudTaskShotResult(JSONInterface, TaskShotResult):
-    # CloudTaskShotResult is a TaskShotResult but acts like a future object.
+class CloudBatchResult(JSONInterface, BatchResult[CloudTaskResultsSubType]):
+    name: Optional[str] = None
 
-    def _quera_task_result(self) -> QuEraTaskResults:
-        return self.fetch_task_result(cache_result=True)
-
-    def resubmit_if_failed(
-        self: CloudTaskShotResultSubType,
-    ) -> CloudTaskShotResultSubType:
+    @classmethod
+    def create_batch_result(
+        cls: Type[CloudBatchResultSubType],
+        ordered_dict: OrderedDict[int, CloudTaskResultsSubType],
+        name: Optional[str] = None,
+    ) -> CloudBatchResultSubType:
         raise NotImplementedError(
-            f"{self.__class__.__name__}.resubmit_if_not_submitted() not implemented"
+            f"{cls.__name__}.create_batch_result(cloud_task_results) not implemented."
         )
 
-    def fetch_task_result(self, cache_result=False) -> QuEraTaskResults:
-        raise NotImplementedError(
-            f"{self.__class__.__name__}.fetch_task_result() not implemented"
-        )
+    def resubmit_failed_tasks(self: CloudBatchResultSubType) -> CloudBatchResultSubType:
+        new_task_results = OrderedDict()
+        for task_number, cloud_task_result in self.task_results.items():
+            new_task_results[task_number] = cloud_task_result.resubmit_if_failed()
 
-    def status(self) -> QuEraTaskStatusCode:
-        raise NotImplementedError(f"{self.__class__.__name__}.status() not implemented")
+        return self.create_batch_result(new_task_results, name=self.name)
+
+    def removing_failed_tasks(self: CloudBatchResultSubType) -> CloudBatchResultSubType:
+        new_results = OrderedDict()
+        for task_number, cloud_task_result in self.task_results.items():
+            if cloud_task_result.status() in [
+                QuEraTaskStatusCode.Failed,
+                QuEraTaskStatusCode.Unaccepted,
+            ]:
+                continue
+
+            new_results[task_number] = cloud_task_result
+
+        return self.create_batch_result(new_results, self.name)
 
     def cancel(self) -> None:
-        raise NotImplementedError(f"{self.__class__.__name__}.cancel() not implemented")
+        for task_result in self.task_results.values():
+            task_result.cancel()
 
 
-class CloudBatchTask(JSONInterface, BatchTask):
+class CloudBatchTask(
+    JSONInterface, BatchTask[CloudTaskSubType, CloudBatchResultSubType]
+):
     name: Optional[str] = None
 
     class SubmissionException(Exception):
         pass
 
     def _emit_batch_future(
-        self: CloudBatchTaskSubType, futures: OrderedDict[int, CloudTaskShotResult]
-    ) -> CloudBatchTaskSubType:
+        self, futures: OrderedDict[int, CloudTaskResultsSubType]
+    ) -> CloudBatchResultSubType:
         raise NotImplementedError(
             f"{self.__class__.__name__}._emit_batch_future() not implemented"
         )
@@ -117,7 +162,7 @@ class CloudBatchTask(JSONInterface, BatchTask):
             f"{self.__class__.__name__}.remove_invalid_tasks() not implemented"
         )
 
-    def submit(self, shuffle_submit_order: bool = True) -> "CloudBatchResult":
+    def submit(self, shuffle_submit_order: bool = True) -> CloudBatchResultSubType:
         if shuffle_submit_order:
             submission_order = np.random.permutation(list(self.tasks.keys()))
         else:
@@ -139,7 +184,7 @@ class CloudBatchTask(JSONInterface, BatchTask):
                 futures[task_index] = task.submit()
             except BaseException as error:
                 # Create future object without the task id
-                futures[task_index] = task.future_no_task_id()
+                futures[task_index] = task.submit_no_task_id()
                 # record the error in the error dict
                 errors[task_index] = {
                     "exception_type": error.__name__,
@@ -156,8 +201,7 @@ class CloudBatchTask(JSONInterface, BatchTask):
                 future_file = f"partial-batch-future-{time_stamp}.json"
                 error_file = f"partial-batch-errors-{time_stamp}.json"
 
-            with open(future_file, "w") as f:
-                f.write(batch_future.json(indent=2))
+            batch_future.save_json(future_file, indent=2)
 
             with open(error_file, "w") as f:
                 json.dump(errors, f, indent=2)
@@ -174,35 +218,3 @@ class CloudBatchTask(JSONInterface, BatchTask):
             pass
 
         return batch_future
-
-
-class CloudBatchResult(JSONInterface, BatchResult):
-    name: Optional[str] = None
-
-    def resubmit_failed_tasks(
-        self: CloudBatchResultSubType,
-    ) -> CloudBatchResultSubType:
-        new_task_results = OrderedDict()
-        for task_number, cloud_task_result in self.task_results.items():
-            new_task_results[task_number] = cloud_task_result.resubmit_if_failed()
-
-        return self.__class__.create_batch_result(new_task_results)
-
-    def removing_failed_tasks(
-        self: CloudBatchResultSubType,
-    ) -> CloudBatchResultSubType:
-        new_results = OrderedDict()
-        for task_number, cloud_task_result in self.task_results.items():
-            if cloud_task_result.status() in [
-                QuEraTaskStatusCode.Failed,
-                QuEraTaskStatusCode.Unaccepted,
-            ]:
-                continue
-
-            new_results[task_number] = cloud_task_result
-
-        return self.__class__.create_batch_result(new_results)
-
-    def cancel(self) -> None:
-        for future in self.task_results.values():
-            future.cancel()
