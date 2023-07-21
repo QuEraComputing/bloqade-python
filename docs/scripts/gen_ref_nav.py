@@ -10,6 +10,10 @@ for path in sorted(Path("../src").rglob("*.py")):
     doc_path = path.relative_to("../src").with_suffix(".md")
     full_doc_path = Path("reference", doc_path)
 
+    ## [KHW] skip for now since we didn't have julia codegen ready:
+    if "julia" in str(doc_path):
+        continue
+
     parts = tuple(module_path.parts)
 
     if parts[-1] == "__init__":
