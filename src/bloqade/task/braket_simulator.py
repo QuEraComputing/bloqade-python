@@ -7,7 +7,7 @@ from bloqade.submission.ir.braket import (
 from bloqade.submission.ir.task_results import QuEraTaskResults
 from bloqade.task.base import BatchResult, BatchTask, Geometry, Task, TaskShotResults
 from bloqade.task.cloud_base import JSONInterface
-from typing import Optional
+from typing import Optional, Type
 from concurrent.futures import ProcessPoolExecutor
 from collections import OrderedDict
 import tqdm
@@ -58,6 +58,9 @@ class BraketEmulatorBatchTask(
 
     def _tasks(self) -> OrderedDict[int, BraketEmulatorTask]:
         return self.braket_emulator_tasks
+
+    def _batch_result_type(self) -> Type[BraketEmulatorBatchResult]:
+        return BraketEmulatorBatchResult
 
     def submit(
         self,

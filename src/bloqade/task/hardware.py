@@ -17,7 +17,7 @@ from bloqade.task.cloud_base import (
     CloudTaskShotResults,
 )
 from collections import OrderedDict
-from typing import Optional, Union
+from typing import Optional, Type, Union
 
 
 class MockTask(CloudTask):
@@ -151,6 +151,17 @@ class HardwareBatchResult(CloudBatchResult[HardwareTaskShotResults]):
     def _task_results(self) -> OrderedDict[int, HardwareTaskShotResults]:
         return self.hardware_task_shot_results
 
+    @classmethod
+    def create_batch_result(
+        cls,
+        task_results: OrderedDict[int, HardwareTaskShotResults],
+        name: Optional[str] = None,
+    ) -> "HardwareBatchResult":
+        return HardwareBatchResult(
+            hardware_task_shot_results=task_results,
+            name=name,
+        )
+
 
 class HardwareBatchTask(CloudBatchTask[HardwareTask, HardwareBatchResult]):
     hardware_tasks: OrderedDict[int, HardwareTask] = OrderedDict()
@@ -158,7 +169,5 @@ class HardwareBatchTask(CloudBatchTask[HardwareTask, HardwareBatchResult]):
     def _tasks(self):
         return self.hardware_tasks
 
-    def _emit_batch_future(
-        self, task_results: OrderedDict[int, HardwareTaskShotResults]
-    ) -> "HardwareBatchResult":
-        return HardwareBatchResult(hardware_task_shot_results=task_results)
+    def _batch_result_type(self) -> Type[HardwareBatchResult]:
+        return HardwareBatchResult

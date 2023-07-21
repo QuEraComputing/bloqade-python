@@ -14,7 +14,7 @@ from bloqade.task.base import (
     BatchTask,
     BatchResult,
 )
-from bloqade.submission.base import SubmissionBackend
+from bloqade.submission.base import SubmissionBackend, ValidationError
 
 
 JSONSubType = TypeVar("JSONSubType", bound="JSONInterface")
@@ -154,17 +154,33 @@ class CloudBatchTask(
     class SubmissionException(Exception):
         pass
 
-    def _emit_batch_future(
-        self, futures: OrderedDict[int, CloudTaskShotResultsSubType]
-    ) -> CloudBatchResultSubType:
+    @classmethod
+    def create_batch_task(
+        cls: Type[CloudBatchTaskSubType],
+        tasks: OrderedDict[int, CloudTaskSubType],
+        name: Optional[str] = None,
+    ) -> CloudBatchTaskSubType:
+        raise NotImplementedError(f"{cls.__name__}.create_batch_task() not implemented")
+
+    def _batch_result_type(self) -> CloudBatchResultSubType:
         raise NotImplementedError(
-            f"{self.__class__.__name__}._emit_batch_future() not implemented"
+            f"{self.__class__.__name__}._batch_result_type() not implemented"
         )
 
+    @property
+    def BatchResultType(self) -> Type[CloudBatchResultSubType]:
+        return self._batch_result_type()
+
     def remove_invalid_tasks(self: CloudBatchTaskSubType) -> CloudBatchTaskSubType:
-        raise NotImplementedError(
-            f"{self.__class__.__name__}.remove_invalid_tasks() not implemented"
-        )
+        new_tasks = OrderedDict()
+        for task_number, task in self.tasks.items():
+            try:
+                task.run_validation()
+                new_tasks[task_number] = task
+            except ValidationError:
+                continue
+
+        return self.create_batch_task(new_tasks, name=self.name)
 
     def submit(self, shuffle_submit_order: bool = True) -> CloudBatchResultSubType:
         if shuffle_submit_order:
@@ -195,7 +211,9 @@ class CloudBatchTask(
                     "message": str(error),
                 }
 
-        batch_future = self._emit_batch_future(futures)
+        cloud_batch_result = self.BatchResultType.create_batch_result(
+            futures, name=self.name
+        )
         if errors:
             time_stamp = datetime.datetime.now()
             if self.name:
@@ -205,7 +223,7 @@ class CloudBatchTask(
                 future_file = f"partial-batch-future-{time_stamp}.json"
                 error_file = f"partial-batch-errors-{time_stamp}.json"
 
-            batch_future.save_json(future_file, indent=2)
+            cloud_batch_result.save_json(future_file, indent=2)
 
             with open(error_file, "w") as f:
                 json.dump(errors, f, indent=2)
@@ -221,4 +239,4 @@ class CloudBatchTask(
             #       as well.
             pass
 
-        return batch_future
+        return cloud_batch_result
