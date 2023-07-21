@@ -10,7 +10,7 @@ def test_printer():
     mystdout = StringIO()
     p = PP(mystdout)
 
-    wf._repr_pretty_(p, True)
+    wf._repr_pretty_(p, 1)
 
     assert (
         mystdout.getvalue()
