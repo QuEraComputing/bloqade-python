@@ -4,10 +4,15 @@ from pathlib import Path
 
 import mkdocs_gen_files
 
+# print("triggerrred!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1")
+
+SRC_PATH = "src"
+
+
 nav = mkdocs_gen_files.Nav()
-for path in sorted(Path("../src").rglob("*.py")):
-    module_path = path.relative_to("../src").with_suffix("")
-    doc_path = path.relative_to("../src").with_suffix(".md")
+for path in sorted(Path(SRC_PATH).rglob("*.py")):
+    module_path = path.relative_to(SRC_PATH).with_suffix("")
+    doc_path = path.relative_to(SRC_PATH).with_suffix(".md")
     full_doc_path = Path("reference", doc_path)
 
     ## [KHW] skip for now since we didn't have julia codegen ready:
@@ -24,7 +29,6 @@ for path in sorted(Path("../src").rglob("*.py")):
         continue
 
     nav[parts] = doc_path.as_posix()
-    print(full_doc_path)
     with mkdocs_gen_files.open(full_doc_path, "w") as fd:
         ident = ".".join(parts)
         fd.write(f"::: {ident}")
