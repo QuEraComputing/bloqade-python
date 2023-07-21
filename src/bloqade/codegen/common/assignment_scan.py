@@ -31,7 +31,7 @@ class AssignmentScan(ProgramVisitor):
                 list(map(self.visit, pulses))
             case pulse.Slice(sub_pulse, _):
                 self.visit(sub_pulse)
-            case pulse.NamedPulse(sub_pulse, _):
+            case pulse.NamedPulse(_, sub_pulse):
                 self.visit(sub_pulse)
 
     def visit_field(self, ast: field.Field):
