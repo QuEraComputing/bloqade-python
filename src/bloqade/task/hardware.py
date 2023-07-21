@@ -14,7 +14,7 @@ from bloqade.task.cloud_base import (
     CloudBatchTask,
     CloudBatchResult,
     CloudTask,
-    CloudTaskResults,
+    CloudTaskShotResults,
 )
 from collections import OrderedDict
 from typing import Optional, Union
@@ -108,7 +108,7 @@ class HardwareTask(QuEraTask):
         return HardwareTaskShotResults(hardware_task=self)
 
 
-class HardwareTaskShotResults(CloudTaskResults[HardwareTask]):
+class HardwareTaskShotResults(CloudTaskShotResults[HardwareTask]):
     hardware_task: Optional[HardwareTask]
     task_result_ir: Optional[QuEraTaskResults]
 

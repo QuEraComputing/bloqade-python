@@ -20,7 +20,9 @@ from bloqade.submission.base import SubmissionBackend
 JSONSubType = TypeVar("JSONSubType", bound="JSONInterface")
 CloudBatchResultSubType = TypeVar("CloudBatchResultSubType", bound="CloudBatchResult")
 CloudBatchTaskSubType = TypeVar("CloudBatchTaskSubType", bound="CloudBatchTask")
-CloudTaskResultsSubType = TypeVar("CloudTaskResultsSubType", bound="CloudTaskResults")
+CloudTaskResultsSubType = TypeVar(
+    "CloudTaskResultsSubType", bound="CloudTaskShotResults"
+)
 CloudTaskSubType = TypeVar("CloudTaskSubType", bound="CloudTask")
 
 
@@ -52,7 +54,7 @@ class JSONInterface(BaseModel):
         return cls(**params)
 
 
-class CloudTaskResults(JSONInterface, TaskShotResults[CloudTaskSubType]):
+class CloudTaskShotResults(JSONInterface, TaskShotResults[CloudTaskSubType]):
     task_id: Optional[str]
     # CloudTaskShotResult is a TaskShotResult but acts like a future object.
 
@@ -98,7 +100,9 @@ class CloudTask(JSONInterface, Task):
             f"{self.__class__.__name__}.run_validation() not implemented"
         )
 
-    def submit_no_task_id(self: CloudTaskSubType) -> CloudTaskResults[CloudTaskSubType]:
+    def submit_no_task_id(
+        self: CloudTaskSubType,
+    ) -> CloudTaskShotResults[CloudTaskSubType]:
         raise NotImplementedError(
             f"{self.__class__.__name__}.submit_no_task_id() not implemented"
         )

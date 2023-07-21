@@ -12,11 +12,13 @@ from numpy.typing import NDArray
 
 if TYPE_CHECKING:
     from bloqade.task.base import BatchResult
-    from bloqade.task.cloud_base import CloudTaskResults
+    from bloqade.task.cloud_base import CloudTaskShotResults
 
 
 class Report:
-    def __init__(self, batch_result: Union["BatchResult", "CloudTaskResults"]) -> None:
+    def __init__(
+        self, batch_result: Union["BatchResult", "CloudTaskShotResults"]
+    ) -> None:
         self._batch_result = batch_result
         self._dataframe = None  # df cache
         self._bitstrings = None  # bitstring cache
