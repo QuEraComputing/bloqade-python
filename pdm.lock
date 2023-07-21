@@ -261,7 +261,7 @@ files = [
 
 [[package]]
 name = "bokeh"
-version = "3.2.0"
+version = "3.2.1"
 requires_python = ">=3.9"
 summary = "Interactive plots and applications in the browser from Python"
 dependencies = [
@@ -276,8 +276,8 @@ dependencies = [
     "xyzservices>=2021.09.1",
 ]
 files = [
-    {file = "bokeh-3.2.0-py3-none-any.whl", hash = "sha256:e6d168bd024bef7b6e11536610d4767997a910242b73e9dee31c84eea5276f64"},
-    {file = "bokeh-3.2.0.tar.gz", hash = "sha256:cdb3a8c3109d8d91a2814f4cddea045c14d049021f7fb6ce2a6b2c15e224bb17"},
+    {file = "bokeh-3.2.1-py3-none-any.whl", hash = "sha256:71b882c2c9233750d80b941ebb980e03d5112f27f84c7bb2293af5c210a8e21c"},
+    {file = "bokeh-3.2.1.tar.gz", hash = "sha256:2371e9a08fd60766879ee8607a4ae54267acfed1e5dee0cc6a20d8348e02e814"},
 ]
 
 [[package]]
