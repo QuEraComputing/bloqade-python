@@ -1,25 +1,26 @@
-from bloqade.submission.ir.task_results import QuEraTaskResults
+import warnings
+from bloqade.submission.base import ValidationError
 from bloqade.submission.mock import DumbMockBackend
 from bloqade.submission.quera import QuEraBackend
 from bloqade.submission.braket import BraketBackend
 from bloqade.submission.ir.task_specification import (
     QuEraTaskSpecification,
 )
+from bloqade.submission.ir.task_results import QuEraTaskResults
 from bloqade.submission.ir.parallel import ParallelDecoder
 from bloqade.submission.ir.task_results import QuEraTaskStatusCode
-from bloqade.task.base import (
-    Geometry,
-    SerializableTask,
-    SerializableTaskFuture,
-    SerializableBatchTask,
-    SerializableBatchFuture,
+from bloqade.task.base import Geometry
+from bloqade.task.cloud_base import (
+    CloudBatchTask,
+    CloudBatchResult,
+    CloudTask,
+    CloudTaskShotResult,
 )
-
 from collections import OrderedDict
-from typing import Optional, Type, Union
+from typing import Optional, Union
 
 
-class MockTask(SerializableTask):
+class MockTask(CloudTask):
     task_ir: Optional[QuEraTaskSpecification]
     mock_backend: Optional[DumbMockBackend]
     parallel_decoder: Optional[ParallelDecoder]
@@ -37,21 +38,6 @@ class MockTask(SerializableTask):
 
         return super()._backend()
 
-    def submit(self):
-        if self.mock_backend:
-            task_id = self.mock_backend.submit_task(self.task_ir)
-            return HardwareTaskFuture(
-                task_id=task_id,
-                hardware_task=self,
-            )
-        return super().submit()
-
-    def run_validation(self) -> None:
-        if self.mock_backend:
-            return self.mock_backend.validate_task(self.task_ir)
-
-        return super().run_validation()
-
 
 class BraketTask(MockTask):
     braket_backend: Optional[BraketBackend]
@@ -62,21 +48,6 @@ class BraketTask(MockTask):
 
         return super()._backend()
 
-    def submit(self):
-        if self.braket_backend:
-            task_id = self.braket_backend.submit_task(self.task_ir)
-            return HardwareTaskFuture(
-                task_id=task_id,
-                hardware_task=self,
-            )
-        return super().submit()
-
-    def run_validation(self) -> None:
-        if self.braket_backend:
-            return self.braket_backend.validate_task(self.task_ir)
-
-        return super().run_validation()
-
 
 class QuEraTask(BraketTask):
     quera_backend: Optional[QuEraBackend]
@@ -86,21 +57,6 @@ class QuEraTask(BraketTask):
             return self.quera_backend
 
         return super()._backend()
-
-    def submit(self):
-        if self.quera_backend:
-            task_id = self.quera_backend.submit_task(self.task_ir)
-            return HardwareTaskFuture(
-                task_id=task_id,
-                hardware_task=self,
-            )
-        return super().submit()
-
-    def run_validation(self) -> None:
-        if self.quera_backend:
-            return self.quera_backend.validate_task(self.task_ir)
-
-        return super().run_validation()
 
 
 class HardwareTask(QuEraTask):
@@ -135,8 +91,24 @@ class HardwareTask(QuEraTask):
                     task_ir=task_ir, parallel_decoder=parallel_decoder, **kwargs
                 )
 
+    def submit(self) -> "HardwareTaskShotResult":
+        task_id = self.backend.submit_task(self.task_ir)
+        return HardwareTaskShotResult(
+            task_id=task_id,
+            hardware_task=self,
+        )
 
-class HardwareTaskFuture(SerializableTaskFuture):
+    def run_validation(self) -> str:
+        try:
+            self.backend.validate_task(self.task_ir)
+        except ValidationError as e:
+            return str(e)
+
+    def future_no_task_id(self) -> "HardwareTaskShotResult":
+        return HardwareTaskShotResult(hardware_task=self)
+
+
+class HardwareTaskShotResult(CloudTaskShotResult):
     hardware_task: Optional[HardwareTask]
     task_id: Optional[str]
     task_result_ir: Optional[QuEraTaskResults]
@@ -150,7 +122,16 @@ class HardwareTaskFuture(SerializableTaskFuture):
     def _task(self) -> HardwareTask:
         return self.hardware_task
 
-    def fetch(self, cache_result=False) -> QuEraTaskResults:
+    def resubmit_if_failed(self) -> "HardwareTaskShotResult":
+        if self.task_id and self.status() not in [
+            QuEraTaskStatusCode.Failed,
+            QuEraTaskStatusCode.Unaccepted,
+        ]:
+            return self
+        else:
+            return self.hardware_task.submit()
+
+    def fetch_task_result(self, cache_result=False) -> QuEraTaskResults:
         if self.task_id is None:
             raise ValueError("Task ID not found.")
 
@@ -172,70 +153,38 @@ class HardwareTaskFuture(SerializableTaskFuture):
 
     def cancel(self) -> None:
         if self.task_id is None:
-            raise ValueError("Task ID not found.")
+            warnings.warn("Cannot cancel task, missing task id.")
+            return
 
-        return self.hardware_task.backend.cancel_task(self.task_id)
-
-    def _resubmit_if_not_submitted(self) -> "HardwareTaskFuture":
-        if self.task_id:
-            return self
-        else:
-            return self.hardware_task.submit()
+        self.hardware_task.backend.cancel_task(self.task_id)
 
 
-class HardwareBatchTask(SerializableBatchTask):
+class HardwareBatchResult(CloudBatchResult):
+    hardware_task_shot_results: OrderedDict[int, HardwareTaskShotResult] = OrderedDict()
+
+    def _task_results(self) -> OrderedDict[int, HardwareTaskShotResult]:
+        return self.hardware_task_shot_results
+
+
+class HardwareBatchTask(CloudBatchTask):
     hardware_tasks: OrderedDict[int, HardwareTask] = OrderedDict()
-
-    def _task_future_class(self) -> Type[HardwareTaskFuture]:
-        return HardwareTaskFuture
 
     def _tasks(self) -> OrderedDict[int, HardwareTask]:
         return self.hardware_tasks
 
     def _emit_batch_future(
-        self, futures: OrderedDict[int, HardwareTaskFuture]
-    ) -> "HardwareBatchFuture":
-        return HardwareBatchFuture(hardware_task_futures=futures)
+        self, futures: OrderedDict[int, HardwareTaskShotResult]
+    ) -> "HardwareBatchResult":
+        return HardwareBatchResult(hardware_task_shot_results=futures)
 
-    def _init_from_dict(self, **params) -> None:
-        match params:
-            case {"hardware_tasks": dict() as tasks}:
-                self.hardware_tasks = OrderedDict(
-                    [
-                        (int(task_number), HardwareTask(**tasks[task_number]))
-                        for task_number in tasks.keys()
-                    ]
-                )
-            case _:
-                raise ValueError(
-                    f"Cannot parse JSON file to {self.__class__.__name__}, "
-                    "invalided format."
-                )
+    def remove_invalid_tasks(self) -> "HardwareBatchTask":
+        valid_tasks = OrderedDict()
 
+        for task_number, task in self._tasks().items():
+            try:
+                task.run_validation()
+                valid_tasks[task_number] = task
+            except ValidationError:
+                continue
 
-class HardwareBatchFuture(SerializableBatchFuture):
-    hardware_task_futures: OrderedDict[int, HardwareTaskFuture] = OrderedDict()
-
-    def __init__(self, **kwargs):
-        if "futures" in kwargs.keys():
-            kwargs["hardware_task_futures"] = kwargs.pop("futures")
-
-        super().__init__(**kwargs)
-
-    def _task_futures(self) -> OrderedDict[int, HardwareTaskFuture]:
-        return self.hardware_task_futures
-
-    def _init_from_dict(self, **params) -> None:
-        match params:
-            case {"hardware_task_futures": dict() as futures}:
-                self.hardware_task_futures = OrderedDict(
-                    [
-                        (int(task_number), HardwareTaskFuture(**futures[task_number]))
-                        for task_number in futures.keys()
-                    ]
-                )
-            case _:
-                raise ValueError(
-                    f"Cannot parse JSON file to {self.__class__.__name__}, "
-                    "invalided format."
-                )
+        return HardwareBatchTask(name=self.name, hardware_tasks=valid_tasks)

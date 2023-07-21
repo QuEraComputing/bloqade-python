@@ -1,6 +1,6 @@
 import bloqade.ir.location as location
 from bloqade.ir import Linear, Constant
-from bloqade.task import HardwareBatchTask, HardwareBatchFuture
+from bloqade.task import HardwareBatchTask, HardwareBatchResult
 
 quantum_job = (
     location.Square(6)
@@ -26,14 +26,12 @@ quantum_job = (
 
 # print(len(quantum_task.task_result.shot_outputs))
 quantum_job.save_json("job.json")
-quantum_job = HardwareBatchTask()
-quantum_job.load_json("job.json")
-
+quantum_job = HardwareBatchTask.load_json("job.json")
 
 quantum_future = quantum_job.submit()
 quantum_future.save_json("future.json")
-quantum_future = HardwareBatchFuture()
-quantum_future.load_json("future.json")
+quantum_future = HardwareBatchResult.load_json("future.json")
+
 
 quantum_future.json()
 quantum_future.task_results
