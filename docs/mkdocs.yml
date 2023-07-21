@@ -24,8 +24,7 @@ nav:
   - Tutorials:
     - tutorials/index.md
     - examples/adiabatic.py
-  - Reference:
-    - reference/bloqade/
+  - Reference: reference/bloqade/
   - Blog:
     - blog/index.md
     - 2023:
@@ -87,6 +86,7 @@ plugins:
         python:
           paths: [../src]
           options:
+            show_if_no_docstring: true
             separate_signature: true
             merge_init_into_class: true
             docstring_options:
