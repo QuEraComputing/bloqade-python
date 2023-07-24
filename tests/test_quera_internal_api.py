@@ -26,13 +26,13 @@ def test_quera_submit():
         .submit()
     )
 
-    job_future.save_json("tests/data/jobs/quera_submit.json")
+    job_future.save_json("quera_submit.json")
 
 
 @pytest.mark.vcr
 def test_quera_retrieve():
     job_future = HardwareFuture()
-    job_future.load_json("tests/data/jobs/quera_submit.json")
+    job_future.load_json("quera_submit.json")
     for number, future in job_future.futures.items():
         print(f"{number}: {future.status()}")
     print(job_future.report().markdown)
