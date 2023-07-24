@@ -87,7 +87,26 @@ class Emit(Builder):
         self.__register__ = register
 
     def assign(self, **assignments):
-        """Assign values to variables declared previously in the program."""
+        """
+        Assign values to variables declared previously in the program.
+
+        Args:
+            assignments (Dict[str, Union[Number]]):
+            The assignments, which should be a kwargs
+            where the key is the variable name and the
+            value is the value to assign to the variable.
+
+        Examples:
+            - Assign the value 0.0 to the variable "ival"
+            and 0.5 to the variable "span_time".
+
+            >>> reg = bloqade.start
+            ...       .add_positions([(0,0),(1,1),(2,2),(3,3)])
+            >>> seq = reg.rydberg.detuning.uniform
+            ...       .linear(start="ival",stop=1,duration="span_time")
+            >>> seq = seq.assign(span_time = 0.5, ival = 0.0)
+
+        """
 
         # these methods terminate no build steps can
         # happens after this other than updating parameters
@@ -106,6 +125,25 @@ class Emit(Builder):
         Assign values to variables declared previously in the program
         for launching batch jobs.
 
+
+        Args:
+            batch (Dict[str, Union[Number]]): The batch assignments of variables,
+            which should be a kwargs where the key is the variable name
+            and the value is the list of value assign to the variable.
+
+        Examples:
+            - Assign the value [0.0,0.5] to the variable "ival" and [0.6,0.8]
+            to the variable "span_time". This will create two batch-jobs
+            of (value,ival) = (0.0,0.6) and (0.5,0.8) with each has 10 shots.
+
+            >>> reg = bloqade.start.add_positions([(0,0),(1,1),(2,2),(3,3)])
+            >>> seq = reg.rydberg.detuning.uniform
+            ...       .linear(start="ival",stop=1,duration="span_time")
+            >>> job = seq.batch_assign(span_time = [0.6,0.8], ival = [0.0,0.5]).mock(10)
+
+        Note:
+            the length of the lists of values should be the same for each variable.
+
         """
 
         new_batch = dict(self.__batch__)
@@ -119,6 +157,26 @@ class Emit(Builder):
         )
 
     def parallelize(self, cluster_spacing: Any) -> "Emit":
+        """
+        Parallelize the current problem (register & sequnece) to fill entire FOV
+        with the given cluster spacing.
+
+        Args:
+            cluster_spacing (Any, should be Real):
+            the spacing between parallel clusters.
+
+        Examples:
+            - Parallelize the current problem with cluster spacing 7.2 um.
+
+            >>> prob = (
+                    bloqade.start.add_positions([(0,0),(1,1),(2,2),(3,3)])
+                    .rydberg.detuning.uniform
+                    .linear(start=0,stop=1,duration=1)
+                    )
+            >>> prob = prob.parallelize(7.2)
+
+        """
+
         if isinstance(self.register, ParallelRegister):
             raise TypeError("cannot parallelize a parallel register.")
 
@@ -427,6 +485,20 @@ class Emit(Builder):
 
     @property
     def register(self) -> Union["AtomArrangement", "ParallelRegister"]:
+        """Get the `register` from the current builder.
+
+        Returns:
+            register (Union["AtomArrangement", "ParallelRegister"])
+
+        Note:
+            If the program is built with
+            [`parallelize()`][bloqade.builder.emit.Emit.parallelize],
+            The the register will be a
+            [`ParallelRegister`][bloqade.ir.location.base.ParallelRegister].
+            Otherwise it will be a
+            [`AtomArrangement`][bloqade.ir.location.base.AtomArrangement].
+
+        """
         if self.__register__:
             return self.__register__
 
@@ -447,6 +519,12 @@ class Emit(Builder):
 
     @property
     def sequence(self):
+        """Get the `sequence` from the current builder.
+
+        Returns:
+            sequence (Sequence)
+
+        """
         if self.__sequence__ is None:
             build_state = BuildState()
             Emit.__build_ast(self, build_state)
@@ -456,12 +534,32 @@ class Emit(Builder):
 
     @property
     def program(self) -> Program:
+        """
+        Get the Program from the current builder.
+        See also [`Program`][bloqade.ir.program.Program]
+
+        Returns:
+            prog (Program)
+
+        """
         return Program(self.register, self.sequence)
 
     def simu(self, *args, **kwargs):
         raise NotImplementedError
 
     def braket_local_simulator(self, nshots: int):
+        """
+        Compile the current builder to a
+        [`BraketEmulatorJob`][bloqade.task.braket_simulator.BraketEmulatorJob]
+        , which can be submit to run on braket local simulator.
+
+        Args:
+            nshots (int): The number of shots to run.
+
+        Returns:
+            BraketEmulatorJob
+
+        """
         from bloqade.codegen.hardware.quera import SchemaCodeGen
 
         if isinstance(self.register, ParallelRegister):
@@ -478,12 +576,38 @@ class Emit(Builder):
         return BraketEmulatorJob(tasks=tasks)
 
     def braket(self, nshots: int) -> "HardwareJob":
+        """
+        Compile the current builder to a Amazon braket
+        [`HardwareJob`][bloqade.task.HardwareJob]
+        , which can be submit to run on QPU through braket service.
+
+        Args:
+            nshots (int): The number of shots to run.
+
+        Returns:
+            HardwareJob
+
+        """
         backend = BraketBackend()
         return self.__compile_hardware(nshots, backend)
 
     def quera(
         self, nshots: int, config_file: Optional[str] = None, **api_config
     ) -> "HardwareJob":
+        """
+        Compile the current builder to a QuEra
+        [`HardwareJob`][bloqade.task.HardwareJob]
+        , which can be submit to run on QPU through QuEra service.
+
+        Args:
+            nshots (int): The number of shots to run.
+            config_file (Optional[str]): The path to the config file.
+            api_config (Dict[str, Any]): The api config.
+
+        Returns:
+            HardwareJob
+
+        """
         if config_file is None:
             path = os.path.dirname(__file__)
 
@@ -505,6 +629,19 @@ class Emit(Builder):
         return self.__compile_hardware(nshots, backend)
 
     def mock(self, nshots: int, state_file: str = ".mock_state.txt") -> "HardwareJob":
+        """
+        Compile the current builder to a Dummy mock
+        [`HardwareJob`][bloqade.task.HardwareJob]
+        , which can be used for testing.
+
+        Args:
+            nshots (int): The number of shots to run.
+            state_file (str): The file to store the state of the mock backend.
+
+        Returns:
+            HardwareJob
+
+        """
         backend = DumbMockBackend(state_file=state_file)
 
         return self.__compile_hardware(nshots, backend)

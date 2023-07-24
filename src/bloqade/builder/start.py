@@ -14,12 +14,18 @@ class ProgramStart(Builder):
 
     @property
     def rydberg(self):
-        """specify the Rydberg level coupling."""
+        """
+        Specify the Rydberg level coupling.
+        See [`Rydberg`][bloqade.builder.coupling.Rydberg] for more details.
+        """
         return Rydberg(self)
 
     @property
     def hyperfine(self):
-        """specify the hyperfine level coupling."""
+        """
+        Specify the Hyperfile level coupling.
+        See [Hyperfine][bloqade.builder.coupling.Hyperfine] for more details.
+        """
         return Hyperfine(self)
 
     def apply(self, sequence: SequenceExpr) -> "Emit":
