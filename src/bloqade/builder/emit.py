@@ -1,10 +1,4 @@
 from bloqade.builder.base import Builder
-import bloqade.builder.waveform as waveform
-import bloqade.builder.location as location
-import bloqade.builder.spatial as spatial
-import bloqade.builder.field as field
-import bloqade.builder.coupling as coupling
-import bloqade.builder.start as start
 import bloqade.ir as ir
 
 from bloqade.submission.base import SubmissionBackend
@@ -169,6 +163,13 @@ class Emit(Builder):
 
     @staticmethod
     def __build_ast(builder: Builder, build_state: BuildState):
+        import bloqade.builder.waveform as waveform
+        import bloqade.builder.location as location
+        import bloqade.builder.spatial as spatial
+        import bloqade.builder.field as field
+        import bloqade.builder.coupling as coupling
+        import bloqade.builder.start as start
+
         # print(type(build_state.waveform))
         match builder:
             case (
@@ -409,7 +410,6 @@ class Emit(Builder):
         from bloqade.codegen.hardware.quera import SchemaCodeGen
 
         capabilities = backend.get_capabilities()
-
         tasks = OrderedDict()
 
         for task_number, assignments in enumerate(self.__assignments_iterator()):
