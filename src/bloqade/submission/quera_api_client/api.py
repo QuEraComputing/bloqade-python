@@ -573,5 +573,8 @@ class QueueApi:
         @param task_id:
         @return: `True` if task is stopped.
         """
-        summary = self.get_task_status_in_queue(task_id)
-        return summary["status"].lower() in ("completed", "failed", "cancelled")
+        return self.get_task_status_in_queue(task_id) in (
+            "Completed",
+            "Failed",
+            "Cancelled",
+        )
