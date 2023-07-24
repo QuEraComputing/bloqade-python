@@ -104,7 +104,7 @@ class HardwareTask(QuEraTask):
         except ValidationError as e:
             return str(e)
 
-    def future_no_task_id(self) -> "HardwareTaskShotResults":
+    def submit_no_task_id(self) -> "HardwareTaskShotResults":
         return HardwareTaskShotResults(hardware_task=self)
 
 
