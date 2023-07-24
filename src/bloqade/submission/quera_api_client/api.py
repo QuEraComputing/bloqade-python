@@ -323,6 +323,7 @@ class QueueApi:
             case 403:
                 message = "QPU return authentication error, check AWS credentials."
                 self.logger.error(message)
+                raise QueueApi.AuthenticationError(message)
 
             case _:
                 message = f"QPU returned unhandled status {result.status_code}."
