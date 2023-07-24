@@ -8,6 +8,10 @@ if TYPE_CHECKING:
 
 
 class ProgramStart(Builder):
+    """
+    ProgramStart is the base class for a starting/entry node for building a program.
+    """
+
     @property
     def rydberg(self):
         """specify the Rydberg level coupling."""

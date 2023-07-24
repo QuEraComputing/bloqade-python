@@ -87,10 +87,7 @@ class Emit(Builder):
         self.__register__ = register
 
     def assign(self, **assignments):
-        """assign values to variables declared previously in the program.
-
-        ### Examples
-        """
+        """Assign values to variables declared previously in the program."""
 
         # these methods terminate no build steps can
         # happens after this other than updating parameters
@@ -105,7 +102,11 @@ class Emit(Builder):
         )
 
     def batch_assign(self, **batch):
-        """assign values to variables declared previously in the program."""
+        """
+        Assign values to variables declared previously in the program
+        for launching batch jobs.
+
+        """
 
         new_batch = dict(self.__batch__)
         new_batch.update(**batch)
