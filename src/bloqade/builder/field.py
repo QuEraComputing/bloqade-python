@@ -84,14 +84,14 @@ class Rabi(Builder):
         Examples:
 
             - rydberg coupling rabi phase
-            (See also [`Amplitude`][bloqade.builder.field.Phase])
+            (See also [`Phase`][bloqade.builder.field.Phase])
 
             >>> ryd_rabi = bloqade.start.rydberg.rabi
             >>> ryd_rabi_ph = ryd_rabi.phase
 
 
             - hyperfine coupling rabi phase
-            (See also [`Amplitude`][bloqade.builder.field.Phase])
+            (See also [`Phase`][bloqade.builder.field.Phase])
 
             >>> hyp_rabi = bloqade.start.hyperfine.rabi
             >>> hyp_rabi_ph = hyp_rabi.phase
