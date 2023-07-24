@@ -576,7 +576,7 @@ def test_integration_fn_detune():
 
     print(panel)
 
-    ir = panel["tasks"]["0"]["task_ir"]
+    ir = panel["hardware_tasks"]["0"]["task_ir"]
 
     assert ir["nshots"] == 10
     assert ir["lattice"]["sites"][0] == [0.0, 0.0]
