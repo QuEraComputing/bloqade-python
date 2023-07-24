@@ -500,7 +500,7 @@ def test_integration_batchassign_assign():
         .mock(10)
     )
 
-    assert len(job.tasks) == 4
+    assert len(job.hardware_tasks) == 4
 
 
 def test_integration_record():
@@ -518,7 +518,7 @@ def test_integration_record():
 
     print(panel)
 
-    ir = panel["tasks"]["0"]["task_ir"]
+    ir = panel["hardware_tasks"]["0"]["task_ir"]
 
     assert ir["nshots"] == 10
     assert ir["lattice"]["sites"][0] == [0.0, 0.0]
@@ -547,7 +547,7 @@ def test_integration_fn_phase():
 
     print(panel)
 
-    ir = panel["tasks"]["0"]["task_ir"]
+    ir = panel["hardware_tasks"]["0"]["task_ir"]
 
     assert ir["nshots"] == 10
     assert ir["lattice"]["sites"][0] == [0.0, 0.0]
