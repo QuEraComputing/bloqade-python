@@ -459,12 +459,12 @@ class QueueApi:
     def poll_task_results(
         self, task_id: Union[str, uuid.UUID], polling_interval=3
     ) -> Dict:
-        results = self.get_task_results(task_id)
-        while results["task_status"] in ("Created", "Running"):
-            results = self.get_task_results(task_id)
+        status = self.get_task_status_in_queue(task_id)
+        while status not in ("Partial", "Completed", "Failed", "Cancelled"):
+            status = self.get_task_status_in_queue(task_id)
             time.sleep(polling_interval)
 
-        return results
+        return self.get_task_results(task_id)
 
     def get_task_status_in_queue(self, task_id: Union[str, uuid.UUID]) -> str:
         """
