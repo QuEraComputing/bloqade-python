@@ -2,7 +2,7 @@ from collections import OrderedDict
 import datetime
 import json
 import numpy as np
-
+import traceback
 
 from pydantic import BaseModel
 from typing import Optional, Union, TextIO, Type, TypeVar
@@ -145,6 +145,10 @@ class CloudBatchResult(JSONInterface, BatchResult[CloudTaskShotResultsSubType]):
         for task_result in self.task_results.values():
             task_result.cancel()
 
+    def fetch_remote_results(self) -> None:
+        for task_result in self.task_results.values():
+            task_result.fetch_task_result(cache_result=True)
+
 
 class CloudBatchTask(
     JSONInterface, BatchTask[CloudTaskSubType, CloudBatchResultSubType]
@@ -206,9 +210,9 @@ class CloudBatchTask(
                 # Create future object without the task id
                 futures[task_index] = task.submit_no_task_id()
                 # record the error in the error dict
-                errors[task_index] = {
-                    "exception_type": error.__name__,
-                    "message": str(error),
+                errors[int(task_index)] = {
+                    "exception_type": error.__class__.__name__,
+                    "stack trace": traceback.format_exc(),
                 }
 
         cloud_batch_result = self.BatchResultType.create_batch_result(
