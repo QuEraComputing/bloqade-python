@@ -11,6 +11,7 @@ skip_keywords = [
     "julia",  ## [KHW] skip for now since we didn't have julia codegen rdy
     "builder/base",  ## hiding from user
     "builder/terminate",  ## hiding from user
+    "ir/tree_print",  ## hiding from user
 ]
 
 nav = mkdocs_gen_files.Nav()
