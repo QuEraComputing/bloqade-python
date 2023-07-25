@@ -2,6 +2,10 @@ from pydantic import BaseModel
 from typing import Optional, List, Tuple, Union
 from decimal import Decimal
 
+from bokeh.plotting import figure, show
+from bokeh.models import ColumnDataSource, Step
+from bokeh.layouts import gridplot
+
 from bloqade.submission.ir.capabilities import QuEraCapabilities
 
 
@@ -65,6 +69,54 @@ class RabiFrequencyAmplitude(BaseModel):
                 values=discretize_list(self.global_.values, global_value_resolution),
             )
         )
+    
+    def figure(self):
+    
+        source = ColumnDataSource(
+            {
+                "times": [float(i) for i in self.global_.times],
+                "values": [float(i) for i in self.global_.values],
+                "values_floor": [0.0] * len(self.global_.values),
+            }
+        )
+
+        line_plt = figure(
+            x_axis_label = "Time (s)",
+            y_axis_label = "Value (rad/s)",
+        )
+
+        line_plt.x_range.start = 0
+        line_plt.y_range.start = 0
+
+        line_plt.line(
+            x="times",
+            y="values",
+            source=source,
+            line_width=2,
+            color="black"
+        )
+
+        line_plt.circle(
+            x = "times",
+            y = "values",
+            source = source,
+            size = 4,
+            color="black"
+        )
+
+        line_plt.varea(
+            x = "times",
+            y1 = "values",
+            y2 = "values_floor",
+            source = source,
+            fill_alpha = 0.3,
+            color="#6437FF"
+        )
+
+        return line_plt
+    
+    def show(self):
+        show(self.figure())
 
 
 class RabiFrequencyPhase(BaseModel):
@@ -91,6 +143,47 @@ class RabiFrequencyPhase(BaseModel):
                 values=discretize_list(self.global_.values, global_value_resolution),
             )
         )
+
+    def figure(self):
+        
+            source = ColumnDataSource(
+                {
+                    "times": [float(i) for i in self.global_.times],
+                    "values": [float(i) for i in self.global_.values]
+                }
+            )
+    
+            line_plt = figure(
+                x_axis_label = "Time (s)",
+                y_axis_label = "Value (rad)",
+            )
+
+            line_plt.y_range.start = 0
+            line_plt.x_range.start = 0
+    
+            steps = Step(
+                x="times",
+                y="values",
+                line_color="black",
+                line_width=2,
+                mode="center"
+            )
+
+            line_plt.add_glyph(source, steps)
+
+            line_plt.circle(
+                x = "times",
+                y = "values",
+                source = source,
+                size = 4,
+                color="black"
+            )
+    
+            return line_plt
+
+    def show(self):
+        show(self.figure())
+
 
 
 class Detuning(BaseModel):
@@ -129,6 +222,55 @@ class Detuning(BaseModel):
             ),
             local=self.local,
         )
+    
+    def global_figure(self):
+    
+        source = ColumnDataSource(
+            {
+                "times": [float(i) for i in self.global_.times],
+                "values": [float(i) for i in self.global_.values],
+                "values_floor": [0.0] * len(self.global_.values),
+            }
+        )
+
+        line_plt = figure(
+            x_axis_label = "Time (s)",
+            y_axis_label = "Value (rad/s)",
+        )
+
+        line_plt.y_range.start = 0
+        line_plt.x_range.start = 0
+
+        line_plt.line(
+            x="times",
+            y="values",
+            source=source,
+            line_width=2,
+            color="black"
+        )
+
+        line_plt.circle(
+            x = "times",
+            y = "values",
+            source = source,
+            size = 4,
+            color="black"
+        )
+
+        line_plt.varea(
+            x = "times",
+            y1 = "values",
+            y2 = "values_floor",
+            source = source,
+            fill_alpha = 0.5,
+            color="#EFD0DE"
+        )
+
+        return line_plt
+    
+    def show_global(self):
+        show(self.global_figure())
+        
 
 
 class RydbergHamiltonian(BaseModel):
@@ -208,3 +350,27 @@ class QuEraTaskSpecification(BaseModel):
                 task_capabilities
             ),
         )
+    
+    def figure(self):
+        # grab global figures
+        rabi_amplitude = self.effective_hamiltonian.rydberg.rabi_frequency_amplitude.figure() 
+        rabi_phase = self.effective_hamiltonian.rydberg.rabi_frequency_phase.figure()
+        global_detuning = self.effective_hamiltonian.rydberg.detuning.global_figure()
+
+        full_plt = gridplot(
+            [
+                [rabi_amplitude],
+                [global_detuning],
+                [rabi_phase]
+            ],
+            merge_tools=False,
+            sizing_mode="stretch_both"
+        )
+
+        full_plt.width_policy = "max"
+
+        return full_plt
+    
+
+    def show(self):
+        show(self.figure())
