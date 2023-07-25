@@ -17,10 +17,10 @@
 # %% [markdown]
 # # Single Qubit Rabi Oscillations
 # ## Introduction
-# In this example we show how to use Bloqade to emulate a 
+# In this example we show how to use Bloqade to emulate a
 # Rabi oscillation as well as run it on hardware.
 
-# %% 
+# %%
 from bloqade import start, cast
 from bloqade.task import HardwareFuture
 
@@ -35,7 +35,7 @@ output_notebook()
 
 # %% [markdown]
 
-# define program with one atom, with constant detuning but variable Rabi frequency, 
+# define program with one atom, with constant detuning but variable Rabi frequency,
 # ramping up to "rabi_value" and then returning to 0.0.
 
 # %%
@@ -46,14 +46,12 @@ rabi_oscillations_program = (
     .rydberg.rabi.amplitude.uniform.piecewise_linear(
         durations=durations, values=[0, "rabi_value", "rabi_value", 0]
     )
-    .detuning.uniform.constant(
-        duration=sum(durations), value=0
-    )
+    .detuning.uniform.constant(duration=sum(durations), value=0)
 )
 
 # %% [markdown]
-# Assign values to the variables in the program, 
-# allowing the `run_time` (time the Rabi amplitude stays at the value of 
+# Assign values to the variables in the program,
+# allowing the `run_time` (time the Rabi amplitude stays at the value of
 # "rabi_frequency" ) to sweep across a range of values.
 
 # %%
@@ -62,8 +60,8 @@ rabi_oscillation_job = rabi_oscillations_program.assign(
 ).batch_assign(run_time=np.around(np.arange(0, 21, 1) * 0.05, 13))
 
 # %% [markdown]
-# Run the program in emulation, obtaining a report 
-# object. For each possible set of variable values 
+# Run the program in emulation, obtaining a report
+# object. For each possible set of variable values
 # to simulate (in this case, centered around the
 # `run_time` variable), let the task have 10000 shots.
 
@@ -71,15 +69,15 @@ rabi_oscillation_job = rabi_oscillations_program.assign(
 emu_report = rabi_oscillation_job.braket_local_simulator(10000).submit().report()
 
 # %% [markdown]
-# Submit the same program to hardware, 
-# this time using `.parallelize` to make a copy of the original geometry 
+# Submit the same program to hardware,
+# this time using `.parallelize` to make a copy of the original geometry
 # (a single atom) that fills the FOV (Field-of-View Space), with at least
 # 24 micrometers of distance between each atom.
 #
-# Unlike the emulation above, we only let each task 
-# run with 100 shots. A collection of tasks is known as a 
-# "Job" in Bloqade and jobs can be saved in JSON format 
-# so you can reload them later (a necessity considering 
+# Unlike the emulation above, we only let each task
+# run with 100 shots. A collection of tasks is known as a
+# "Job" in Bloqade and jobs can be saved in JSON format
+# so you can reload them later (a necessity considering
 # how long it may take for the machine to handle tasks in the queue)
 
 # %%
