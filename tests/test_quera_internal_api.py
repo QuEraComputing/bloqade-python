@@ -21,7 +21,7 @@ def test_quera_submit():
         )
         .assign(run_time=2.0)
         .parallelize(20)
-        .quera(10, config_file="tests/data/config/submit_quera_api.json")
+        .quera(10, config_file="submit_quera_api.json")
         .submit()
     )
 
@@ -31,7 +31,7 @@ def test_quera_submit():
 @pytest.mark.vcr
 def test_quera_retrieve():
     job_future = HardwareBatchResult()
-    job_future.load_json("tests/data/jobs/quera_submit.json")
+    job_future.load_json("quera_submit.json")
     for number, future in job_future.hardware_task_shot_results.items():
         print(f"{number}: {future.status()}")
     print(job_future.report().markdown)
