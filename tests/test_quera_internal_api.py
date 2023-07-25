@@ -7,8 +7,7 @@ import json
 from typing import Dict
 
 from bloqade import start
-from bloqade.task import HardwareFuture
-
+from bloqade.task import HardwareBatchResult
 import pytest
 
 
@@ -31,9 +30,9 @@ def test_quera_submit():
 
 @pytest.mark.vcr
 def test_quera_retrieve():
-    job_future = HardwareFuture()
-    job_future.load_json("quera_submit.json")
-    for number, future in job_future.futures.items():
+    job_future = HardwareBatchResult()
+    job_future.load_json("tests/data/jobs/quera_submit.json")
+    for number, future in job_future.hardware_task_shot_results.items():
         print(f"{number}: {future.status()}")
     print(job_future.report().markdown)
 
