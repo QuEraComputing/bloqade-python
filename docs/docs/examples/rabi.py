@@ -15,58 +15,95 @@
 # ---
 
 # %% [markdown]
-# # Whitepaper Example 1A: Rabi Oscillations
+# # Single Qubit Rabi Oscillations
+# ## Introduction
+# In this example we show how to use Bloqade to emulate a Rabi oscillation as well as run it on hardware.
 
-# %%
-from bloqade import start
+# %% 
+from bloqade import start, cast
 from bloqade.task import HardwareFuture
-import os
 
+import os
 import numpy as np
+
 from bokeh.io import output_notebook
 from bokeh.plotting import figure, show
 from bokeh.models import HoverTool, ColumnDataSource, CrosshairTool
 
-# try to get interactive bokeh to work
 output_notebook()
 
-durations = ["ramp_time", "run_time", "ramp_time"]
+# %% [markdown]
+
+# define program with one atom, with constant detuning but variable Rabi frequency, 
+# ramping up to "rabi_value" and then returning to 0.0.
+
+# %%
+durations = cast(["ramp_time", "run_time", "ramp_time"])
 
 rabi_oscillations_program = (
     start.add_position((0, 0))
     .rydberg.rabi.amplitude.uniform.piecewise_linear(
         durations=durations, values=[0, "rabi_value", "rabi_value", 0]
     )
-    .detuning.uniform.piecewise_linear(
-        durations=durations, values=[0, "detuning_value", "detuning_value", 0]
+    .detuning.uniform.constant(
+        duration=sum(durations), value=0
     )
 )
 
+# %% [markdown]
+# Assign values to the variables in the program, 
+# allowing the `run_time` (time the Rabi amplitude stays at the value of 
+# "rabi_frequency" ) to sweep across a range of values.
+
+# %%
 rabi_oscillation_job = rabi_oscillations_program.assign(
     ramp_time=0.06, rabi_value=15, detuning_value=0.0
 ).batch_assign(run_time=np.around(np.arange(0, 21, 1) * 0.05, 13))
 
-# Simulation Results
-emu_job = rabi_oscillation_job.braket_local_simulator(10000).submit().report()
+# %% [markdown]
+# Run the program in emulation, obtaining a report object.
+# For each possible set of variable values to simulate (in this case, centered around the
+# `run_time` variable), let the task have 10000 shots.
 
-# HW results (store as JSON for later use)
+# %%
+emu_report = rabi_oscillation_job.braket_local_simulator(10000).submit().report()
+
+# %% [markdown]
+# Submit the same program to hardware, 
+# this time using `.parallelize` to make a copy of the original geometry 
+# (a single atom) that fills the FOV (Field-of-View Space), with at least
+# 24 micrometers of distance between each atom.
+#
+# Unlike the emulation above, we only let each task run with 100 shots.
+# A collection of tasks is known as a "Job" in Bloqade and jobs can be saved
+# in JSON format so you can reload them later (a necessity considering how long it may take for the 
+# machine to handle tasks in the queue)
+
+# %%
 """
 (
     rabi_oscillation_job.parallelize(24)
     .braket(100)
     .submit()
-    .save_json("example-1a-rabi-job.json")
+    .save_json("rabi-job.json")
 )
 """
 
+# %% [markdown]
 # Load JSON and pull results from Braket
+
+# %%
 hw_future = HardwareFuture()
-hw_future.load_json(os.getcwd() + "/docs/docs/examples/" + "example-1a-rabi-job.json")
+hw_future.load_json(os.getcwd() + "/docs/docs/examples/" + "rabi-job.json")
 hw_rydberg_densities = hw_future.report().rydberg_densities()
 
+# %% [markdown]
+# We can now plot the results from the hardware and emulation together.
+
+# %%
 data = {
     "times": np.around(np.arange(0, 21, 1) * 0.05, 13),
-    "emu_densities": emu_job.rydberg_densities()[0].to_list(),
+    "emu_densities": emu_report.rydberg_densities()[0].to_list(),
     "hw_densities": hw_rydberg_densities[0].to_list(),
 }
 source = ColumnDataSource(data=data)
@@ -81,7 +118,6 @@ p = figure(
 p.axis.axis_label_text_font_size = "15pt"
 p.axis.major_label_text_font_size = "10pt"
 
-# emulator densities
 emu_line = p.line(
     x="times",
     y="emu_densities",
