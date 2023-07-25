@@ -16,6 +16,20 @@ class ProgramStart(Builder):
     def rydberg(self):
         """
         Specify the Rydberg level coupling.
+
+        Examples:
+            >>> node = bloqade.start.rydberg
+            >>> type(node)
+            <class 'bloqade.builder.coupling.Rydberg'>
+
+            - Rydberg level coupling have two reachable field nodes:
+
+                - detuning term (See also [`Detuning`][bloqade.builder.field.Detuning])
+                - rabi term (See also [`Rabi`][bloqade.builder.field.Rabi])
+
+            >>> ryd_detune = bloqade.start.rydberg.detuning
+            >>> ryd_rabi = bloqade.start.rydberg.rabi
+
         See [`Rydberg`][bloqade.builder.coupling.Rydberg] for more details.
         """
         return Rydberg(self)
@@ -24,6 +38,21 @@ class ProgramStart(Builder):
     def hyperfine(self):
         """
         Specify the Hyperfile level coupling.
+
+        Examples:
+            >>> node = bloqade.start.hyperfine
+            >>> type(node)
+            <class 'bloqade.builder.coupling.Hyperfine'>
+
+            - Hyperfine level coupling have two reachable field nodes:
+
+                - detuning term (See also [`Detuning`][bloqade.builder.field.Detuning])
+                - rabi term (See also [`Rabi`][bloqade.builder.field.Rabi])
+
+            >>> hyp_detune = bloqade.start.hyperfine.detuning
+            >>> hyp_rabi = bloqade.start.hyperfine.rabi
+
+
         See [Hyperfine][bloqade.builder.coupling.Hyperfine] for more details.
         """
         return Hyperfine(self)
