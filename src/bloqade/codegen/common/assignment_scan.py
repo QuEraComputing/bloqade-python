@@ -4,12 +4,12 @@ import bloqade.ir.control.pulse as pulse
 import bloqade.ir.control.field as field
 import bloqade.ir.control.waveform as waveform
 import bloqade.ir.scalar as scalar
-from numbers import Number
+import numbers
 from typing import Dict
 
 
 class AssignmentScan(ProgramVisitor):
-    def __init__(self, assignments: Dict[str, Number]):
+    def __init__(self, assignments: Dict[str, numbers.Real]):
         self.assignments = dict(assignments)
 
     def visit_sequence(self, ast: sequence.SequenceExpr):
@@ -31,7 +31,7 @@ class AssignmentScan(ProgramVisitor):
                 list(map(self.visit, pulses))
             case pulse.Slice(sub_pulse, _):
                 self.visit(sub_pulse)
-            case pulse.NamedPulse(sub_pulse, _):
+            case pulse.NamedPulse(_, sub_pulse):
                 self.visit(sub_pulse)
 
     def visit_field(self, ast: field.Field):
@@ -73,6 +73,6 @@ class AssignmentScan(ProgramVisitor):
             case waveform.Smooth(_, sub_waveform):
                 self.visit(sub_waveform)
 
-    def emit(self, ast: sequence.SequenceExpr) -> Dict[str, Number]:
+    def emit(self, ast: sequence.SequenceExpr) -> Dict[str, numbers.Real]:
         self.visit(ast)
         return self.assignments

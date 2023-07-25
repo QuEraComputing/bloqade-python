@@ -66,6 +66,8 @@ def test_addlocs_filling_options():
         else:
             assert bool(info.filling) is True
 
+    assert lattice.n_dims == 2
+
 
 def test_internal_base_listofloc():
     lattice = AtomArrangement()

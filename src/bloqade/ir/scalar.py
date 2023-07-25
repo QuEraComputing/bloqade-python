@@ -4,6 +4,7 @@ from typing import Any, Union, List
 from .tree_print import Printer
 import re
 from decimal import Decimal
+import numbers
 
 __all__ = [
     "var",
@@ -230,7 +231,7 @@ def check_variable_name(name: str) -> None:
 def cast(py) -> Any:
     ret = trycast(py)
     if ret is None:
-        raise TypeError(f"Cannot cast {py} to Scalar")
+        raise TypeError(f"Cannot cast {type(py)} to Scalar")
 
     return ret
 
@@ -250,6 +251,9 @@ def trycast(py) -> Any:
             return tuple(map(cast, xs))
         case Scalar():
             return py
+        case numbers.Real():
+            return Literal(Decimal(str(py)))
+
         case _:
             return
 
