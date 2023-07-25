@@ -58,7 +58,7 @@ def test_integration_scale():
 
     print(panel)
 
-    ir = panel["tasks"]["0"]["task_ir"]
+    ir = panel["hardware_tasks"]["0"]["task_ir"]
 
     assert ir["nshots"] == 10
     assert ir["lattice"]["sites"][0] == [0.0, 0.0]
@@ -79,7 +79,7 @@ def test_integration_neg():
     panel = json.loads(job.json())
     print(panel)
 
-    ir = panel["tasks"]["0"]["task_ir"]
+    ir = panel["hardware_tasks"]["0"]["task_ir"]
 
     assert ir["nshots"] == 10
     assert ir["lattice"]["sites"][0] == [0.0, 0.0]
@@ -108,7 +108,7 @@ def test_integration_poly_const():
     panel = json.loads(job.json())
     print(panel)
 
-    ir = panel["tasks"]["0"]["task_ir"]
+    ir = panel["hardware_tasks"]["0"]["task_ir"]
 
     assert ir["nshots"] == 12
     assert ir["lattice"]["sites"][0] == [0.0, 0.0]
@@ -128,7 +128,7 @@ def test_integration_poly_linear():
     panel = json.loads(job.json())
     print(panel)
 
-    ir = panel["tasks"]["0"]["task_ir"]
+    ir = panel["hardware_tasks"]["0"]["task_ir"]
 
     assert ir["nshots"] == 10
     assert ir["lattice"]["sites"][0] == [0.0, 0.0]
@@ -165,7 +165,7 @@ def test_integration_slice_linear_const():
 
     print(panel)
 
-    ir = panel["tasks"]["0"]["task_ir"]
+    ir = panel["hardware_tasks"]["0"]["task_ir"]
 
     assert ir["nshots"] == 10
     assert ir["lattice"]["sites"][0] == [0.0, 0.0]
@@ -185,7 +185,7 @@ def test_integration_slice_linear_no_stop():
 
     print(panel)
 
-    ir = panel["tasks"]["0"]["task_ir"]
+    ir = panel["hardware_tasks"]["0"]["task_ir"]
 
     assert ir["nshots"] == 10
     assert ir["lattice"]["sites"][0] == [0.0, 0.0]
@@ -205,7 +205,7 @@ def test_integration_slice_linear_no_start():
 
     print(panel)
 
-    ir = panel["tasks"]["0"]["task_ir"]
+    ir = panel["hardware_tasks"]["0"]["task_ir"]
 
     assert ir["nshots"] == 10
     assert ir["lattice"]["sites"][0] == [0.0, 0.0]
@@ -255,7 +255,7 @@ def test_integration_phase():
 
     print(panel)
 
-    ir = panel["tasks"]["0"]["task_ir"]
+    ir = panel["hardware_tasks"]["0"]["task_ir"]
 
     assert ir["nshots"] == 10
     assert ir["lattice"]["sites"][0] == [0.0, 0.0]
@@ -293,7 +293,7 @@ def test_integration_phase_linear():
 
     print(panel)
 
-    ir = panel["tasks"]["0"]["task_ir"]
+    ir = panel["hardware_tasks"]["0"]["task_ir"]
 
     assert ir["nshots"] == 10
     assert ir["lattice"]["sites"][0] == [0.0, 0.0]
@@ -313,7 +313,7 @@ def test_integration_phase_polyconst():
 
     print(panel)
 
-    ir = panel["tasks"]["0"]["task_ir"]
+    ir = panel["hardware_tasks"]["0"]["task_ir"]
 
     assert ir["nshots"] == 10
     assert ir["lattice"]["sites"][0] == [0.0, 0.0]
@@ -334,7 +334,7 @@ def test_integration_phase_slice():
 
     print(panel)
 
-    ir = panel["tasks"]["0"]["task_ir"]
+    ir = panel["hardware_tasks"]["0"]["task_ir"]
 
     assert ir["nshots"] == 10
     assert ir["lattice"]["sites"][0] == [0.0, 0.0]
@@ -354,7 +354,7 @@ def test_integration_phase_scale():
 
     print(panel)
 
-    ir = panel["tasks"]["0"]["task_ir"]
+    ir = panel["hardware_tasks"]["0"]["task_ir"]
 
     assert ir["nshots"] == 10
     assert ir["lattice"]["sites"][0] == [0.0, 0.0]
@@ -374,7 +374,7 @@ def test_integration_phase_neg():
 
     print(panel)
 
-    ir = panel["tasks"]["0"]["task_ir"]
+    ir = panel["hardware_tasks"]["0"]["task_ir"]
 
     assert ir["nshots"] == 10
     assert ir["lattice"]["sites"][0] == [0.0, 0.0]
@@ -394,7 +394,7 @@ def test_integration_phase_slice_no_start():
 
     print(panel)
 
-    ir = panel["tasks"]["0"]["task_ir"]
+    ir = panel["hardware_tasks"]["0"]["task_ir"]
 
     assert ir["nshots"] == 10
     assert ir["lattice"]["sites"][0] == [0.0, 0.0]
@@ -415,7 +415,7 @@ def test_integration_phase_slice_no_stop():
 
     print(panel)
 
-    ir = panel["tasks"]["0"]["task_ir"]
+    ir = panel["hardware_tasks"]["0"]["task_ir"]
 
     assert ir["nshots"] == 10
     assert ir["lattice"]["sites"][0] == [0.0, 0.0]
@@ -436,7 +436,7 @@ def test_integration_phase_slice_same_start_stop():
 
     print(panel)
 
-    ir = panel["tasks"]["0"]["task_ir"]
+    ir = panel["hardware_tasks"]["0"]["task_ir"]
 
     assert ir["nshots"] == 10
     assert ir["lattice"]["sites"][0] == [0.0, 0.0]
@@ -500,7 +500,7 @@ def test_integration_batchassign_assign():
         .mock(10)
     )
 
-    assert len(job.tasks) == 4
+    assert len(job.hardware_tasks) == 4
 
 
 def test_integration_record():
@@ -518,7 +518,7 @@ def test_integration_record():
 
     print(panel)
 
-    ir = panel["tasks"]["0"]["task_ir"]
+    ir = panel["hardware_tasks"]["0"]["task_ir"]
 
     assert ir["nshots"] == 10
     assert ir["lattice"]["sites"][0] == [0.0, 0.0]
@@ -547,7 +547,7 @@ def test_integration_fn_phase():
 
     print(panel)
 
-    ir = panel["tasks"]["0"]["task_ir"]
+    ir = panel["hardware_tasks"]["0"]["task_ir"]
 
     assert ir["nshots"] == 10
     assert ir["lattice"]["sites"][0] == [0.0, 0.0]
@@ -576,7 +576,7 @@ def test_integration_fn_detune():
 
     print(panel)
 
-    ir = panel["tasks"]["0"]["task_ir"]
+    ir = panel["hardware_tasks"]["0"]["task_ir"]
 
     assert ir["nshots"] == 10
     assert ir["lattice"]["sites"][0] == [0.0, 0.0]
