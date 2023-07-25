@@ -17,7 +17,8 @@
 # %% [markdown]
 # # Single Qubit Rabi Oscillations
 # ## Introduction
-# In this example we show how to use Bloqade to emulate a Rabi oscillation as well as run it on hardware.
+# In this example we show how to use Bloqade to emulate a 
+# Rabi oscillation as well as run it on hardware.
 
 # %% 
 from bloqade import start, cast
@@ -61,8 +62,9 @@ rabi_oscillation_job = rabi_oscillations_program.assign(
 ).batch_assign(run_time=np.around(np.arange(0, 21, 1) * 0.05, 13))
 
 # %% [markdown]
-# Run the program in emulation, obtaining a report object.
-# For each possible set of variable values to simulate (in this case, centered around the
+# Run the program in emulation, obtaining a report 
+# object. For each possible set of variable values 
+# to simulate (in this case, centered around the
 # `run_time` variable), let the task have 10000 shots.
 
 # %%
@@ -74,10 +76,11 @@ emu_report = rabi_oscillation_job.braket_local_simulator(10000).submit().report(
 # (a single atom) that fills the FOV (Field-of-View Space), with at least
 # 24 micrometers of distance between each atom.
 #
-# Unlike the emulation above, we only let each task run with 100 shots.
-# A collection of tasks is known as a "Job" in Bloqade and jobs can be saved
-# in JSON format so you can reload them later (a necessity considering how long it may take for the 
-# machine to handle tasks in the queue)
+# Unlike the emulation above, we only let each task 
+# run with 100 shots. A collection of tasks is known as a 
+# "Job" in Bloqade and jobs can be saved in JSON format 
+# so you can reload them later (a necessity considering 
+# how long it may take for the machine to handle tasks in the queue)
 
 # %%
 """
