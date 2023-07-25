@@ -58,6 +58,14 @@ class BraketEmulatorTaskFuture(BaseModel, TaskFuture):
 
 
 class BraketEmulatorJob(JSONInterface, Job):
+    """
+    BraketEmulatorJob is a compiled job that can be submit to
+    runs on the Braket local simulator.
+
+    (This class is subclass [`Job`][bloqade.task.base.Job].)
+
+    """
+
     tasks: OrderedDict[int, BraketEmulatorTask] = {}
 
     def _task_dict(self) -> OrderedDict[int, BraketEmulatorTask]:
@@ -86,6 +94,20 @@ class BraketEmulatorJob(JSONInterface, Job):
     def submit(
         self, multiprocessing: bool = False, max_workers: Optional[int] = None, **kwargs
     ) -> Future:
+        """Submit the job to the local simulator.
+
+        Args:
+            multiprocessing (bool, optional):
+                If allow simulation to run with multiprocess.
+                Defaults to False.
+            max_workers (Optional[int], optional):
+                <TODO>.
+                Defaults to None.
+
+        Returns:
+            Future (BraKetEmulatorFuture):
+                A future object that can be used to fetch the results.
+        """
         if multiprocessing:
             futures = {}
             with ProcessPoolExecutor(max_workers=max_workers) as executor:
@@ -103,6 +125,12 @@ class BraketEmulatorJob(JSONInterface, Job):
 
 
 class BraketEmulatorFuture(JSONInterface, Future):
+    """
+    Future object that can be used to fetch results
+    that is submitted to braket llocal simulator.
+
+    """
+
     futures: OrderedDict[int, BraketEmulatorTaskFuture]
 
     def futures_dict(self) -> OrderedDict[int, BraketEmulatorTaskFuture]:

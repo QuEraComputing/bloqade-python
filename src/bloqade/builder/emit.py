@@ -133,7 +133,8 @@ class Emit(Builder):
 
         Examples:
             - Assign the value [0.0,0.5] to the variable "ival" and [0.6,0.8]
-            to the variable "span_time". This will create two batch-jobs
+            to the variable "span_time".
+            This will create a job with two tasks
             of (value,ival) = (0.0,0.6) and (0.5,0.8) with each has 10 shots.
 
             >>> reg = bloqade.start.add_positions([(0,0),(1,1),(2,2),(3,3)])
@@ -578,7 +579,7 @@ class Emit(Builder):
     def braket(self, nshots: int) -> "HardwareJob":
         """
         Compile the current builder to a Amazon braket
-        [`HardwareJob`][bloqade.task.HardwareJob]
+        [`HardwareJob`][bloqade.task.hardware.HardwareJob]
         , which can be submit to run on QPU through braket service.
 
         Args:
@@ -596,7 +597,7 @@ class Emit(Builder):
     ) -> "HardwareJob":
         """
         Compile the current builder to a QuEra
-        [`HardwareJob`][bloqade.task.HardwareJob]
+        [`HardwareJob`][bloqade.task.hardware.HardwareJob]
         , which can be submit to run on QPU through QuEra service.
 
         Args:
@@ -631,7 +632,7 @@ class Emit(Builder):
     def mock(self, nshots: int, state_file: str = ".mock_state.txt") -> "HardwareJob":
         """
         Compile the current builder to a Dummy mock
-        [`HardwareJob`][bloqade.task.HardwareJob]
+        [`HardwareJob`][bloqade.task.hardware.HardwareJob]
         , which can be used for testing.
 
         Args:

@@ -224,6 +224,11 @@ class HardwareTaskFuture(QuEraTaskFuture):
 
 
 class HardwareJob(JSONInterface, Job):
+    """
+    A compiled job that can be submitted to a
+    given quantum hardware backend.
+    """
+
     tasks: OrderedDict[int, HardwareTask] = OrderedDict()
 
     def _task_dict(self) -> OrderedDict[int, HardwareTask]:
@@ -251,6 +256,11 @@ class HardwareJob(JSONInterface, Job):
 
 
 class HardwareFuture(JSONInterface, Future):
+    """
+    A future object that can be used to fetch the results of a
+    submitted hardware job.
+    """
+
     futures: OrderedDict[int, HardwareTaskFuture] = OrderedDict()
 
     def futures_dict(self) -> OrderedDict[int, HardwareTaskFuture]:

@@ -82,6 +82,14 @@ class JSONInterface(BaseModel):
 
 
 class Job:
+    """
+    Base class of all job classes.
+    (See also
+    [`HardwareJob`][bloqade.task.hardware.HardwareJob],
+    [`BraketEmulatorJob`][bloqade.task.braket_simulator.BraketEmulatorJob])
+
+    """
+
     def _task_dict(self) -> OrderedDict[int, Task]:
         raise NotImplementedError
 

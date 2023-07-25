@@ -25,7 +25,7 @@ nav:
     - tutorials/index.md
     - examples/adiabatic.py
   - Reference:
-    - Builder tree : tree/builder.md
+    - Builder workflow : tree/builder.md
     - API References : reference/bloqade/
   - Blog:
     - blog/index.md
