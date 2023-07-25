@@ -1,10 +1,4 @@
 from bloqade.builder.base import Builder
-import bloqade.builder.waveform as waveform
-import bloqade.builder.location as location
-import bloqade.builder.spatial as spatial
-import bloqade.builder.field as field
-import bloqade.builder.coupling as coupling
-import bloqade.builder.start as start
 import bloqade.ir as ir
 
 from bloqade.submission.base import SubmissionBackend
@@ -18,11 +12,11 @@ from bloqade.ir.location.base import AtomArrangement, ParallelRegister
 
 from pydantic import BaseModel
 from typing import Optional, Dict, Union, List, Any, Tuple
-from numbers import Number
+import numbers
 import json
 import os
-from bloqade.task import HardwareTask, HardwareJob
-from bloqade.task.braket_simulator import BraketEmulatorJob, BraketEmulatorTask
+from bloqade.task import HardwareTask, HardwareBatchTask
+from bloqade.task.braket_simulator import BraketEmulatorBatchTask, BraketEmulatorTask
 from itertools import repeat
 from collections import OrderedDict
 
@@ -56,8 +50,8 @@ class Emit(Builder):
     def __init__(
         self,
         builder: Builder,
-        assignments: Dict[str, Union[Number, List[Number]]] = {},
-        batch: Dict[str, Union[List[Number], List[List[Number]]]] = {},
+        assignments: Dict[str, Union[numbers.Real, List[numbers.Real]]] = {},
+        batch: Dict[str, Union[List[numbers.Real], List[List[numbers.Real]]]] = {},
         register: Optional[Union["AtomArrangement", "ParallelRegister"]] = None,
         sequence: Optional[ir.Sequence] = None,
     ) -> None:
@@ -229,6 +223,13 @@ class Emit(Builder):
 
     @staticmethod
     def __build_ast(builder: Builder, build_state: BuildState):
+        import bloqade.builder.waveform as waveform
+        import bloqade.builder.location as location
+        import bloqade.builder.spatial as spatial
+        import bloqade.builder.field as field
+        import bloqade.builder.coupling as coupling
+        import bloqade.builder.start as start
+
         # print(type(build_state.waveform))
         match builder:
             case (
@@ -465,11 +466,10 @@ class Emit(Builder):
 
     def __compile_hardware(
         self, nshots: int, backend: SubmissionBackend
-    ) -> HardwareJob:
+    ) -> HardwareBatchTask:
         from bloqade.codegen.hardware.quera import SchemaCodeGen
 
         capabilities = backend.get_capabilities()
-
         tasks = OrderedDict()
 
         for task_number, assignments in enumerate(self.__assignments_iterator()):
@@ -482,7 +482,7 @@ class Emit(Builder):
                 parallel_decoder=schema_compiler.parallel_decoder,
             )
 
-        return HardwareJob(tasks=tasks)
+        return HardwareBatchTask(hardware_tasks=tasks)
 
     @property
     def register(self) -> Union["AtomArrangement", "ParallelRegister"]:
@@ -551,7 +551,7 @@ class Emit(Builder):
     def braket_local_simulator(self, nshots: int):
         """
         Compile the current builder to a
-        [`BraketEmulatorJob`][bloqade.task.braket_simulator.BraketEmulatorJob]
+        [`BraketEmulatorBatchTask`][bloqade.task.braket_simulator.BraketEmulatorBatchTask]
         , which can be submit to run on braket local simulator.
 
         Args:
@@ -574,19 +574,19 @@ class Emit(Builder):
             task = BraketEmulatorTask(task_ir=to_braket_task_ir(task_ir))
             tasks[task_number] = task
 
-        return BraketEmulatorJob(tasks=tasks)
+        return BraketEmulatorBatchTask(braket_emulator_tasks=tasks)
 
-    def braket(self, nshots: int) -> "HardwareJob":
+    def braket(self, nshots: int) -> "HardwareBatchTask":
         """
         Compile the current builder to a Amazon braket
-        [`HardwareJob`][bloqade.task.hardware.HardwareJob]
+        [`HardwareBatchTask`][bloqade.task.hardware.HardwareBatchTask]
         , which can be submit to run on QPU through braket service.
 
         Args:
             nshots (int): The number of shots to run.
 
         Returns:
-            HardwareJob
+            HardwareBatchTask
 
         """
         backend = BraketBackend()
@@ -594,10 +594,10 @@ class Emit(Builder):
 
     def quera(
         self, nshots: int, config_file: Optional[str] = None, **api_config
-    ) -> "HardwareJob":
+    ) -> "HardwareBatchTask":
         """
         Compile the current builder to a QuEra
-        [`HardwareJob`][bloqade.task.hardware.HardwareJob]
+        [`HardwareBatchTask`][bloqade.task.hardware.HardwareBatchTask]
         , which can be submit to run on QPU through QuEra service.
 
         Args:
@@ -606,7 +606,7 @@ class Emit(Builder):
             api_config (Dict[str, Any]): The api config.
 
         Returns:
-            HardwareJob
+            HardwareBatchTask
 
         """
         if config_file is None:
@@ -629,10 +629,12 @@ class Emit(Builder):
 
         return self.__compile_hardware(nshots, backend)
 
-    def mock(self, nshots: int, state_file: str = ".mock_state.txt") -> "HardwareJob":
+    def mock(
+        self, nshots: int, state_file: str = ".mock_state.txt"
+    ) -> "HardwareBatchTask":
         """
         Compile the current builder to a Dummy mock
-        [`HardwareJob`][bloqade.task.hardware.HardwareJob]
+        [`HardwareBatchTask`][bloqade.task.hardware.HardwareBatchTask]
         , which can be used for testing.
 
         Args:
@@ -640,7 +642,7 @@ class Emit(Builder):
             state_file (str): The file to store the state of the mock backend.
 
         Returns:
-            HardwareJob
+            HardwareBatchTask
 
         """
         backend = DumbMockBackend(state_file=state_file)

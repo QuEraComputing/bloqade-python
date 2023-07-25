@@ -98,7 +98,7 @@ plugins:
   - mkdocs-jupyter:
       include: ["*.py"] # only include scripts
       ignore: ["*.ipynb"]
-      execute: true # always execute
+      execute: false # always execute
       include_source: True
   - mike
 
