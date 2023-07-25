@@ -74,19 +74,15 @@ def test_quera_backend_submit(*args):
 
 
 @patch("bloqade.submission.quera.QueueApi")
-def test_quera_backend_validate(QueueApi):
+def test_quera_backend_validate_fail(QueueApi):
     api_config = dict(
         api_hostname="https://api.que-ee.com", qpu_id="qpu-1", api_stage="v0"
     )
 
-    bloqade.submission.quera.QueueApi.ValidationError = (
-        Exception  # spoof ValidationError
-    )
+    bloqade.submission.quera.QueueApi.ValidationError = RuntimeError
     queue = bloqade.submission.quera.QueueApi(**api_config)
 
-    queue.validate_task.side_effect = bloqade.submission.quera.QueueApi.ValidationError(
-        "error"
-    )
+    queue.validate_task.side_effect = RuntimeError("error")
 
     backend = bloqade.submission.quera.QuEraBackend(**api_config)
 
@@ -95,9 +91,18 @@ def test_quera_backend_validate(QueueApi):
 
     queue.validate_task.assert_called_once()
 
-    queue.reset_mock()
 
-    queue.validate_task.side_effect = None
+@patch("bloqade.submission.quera.QueueApi")
+def test_quera_backend_validate_pass(QueueApi):
+    api_config = dict(
+        api_hostname="https://api.que-ee.com", qpu_id="qpu-1", api_stage="v0"
+    )
+
+    queue = bloqade.submission.quera.QueueApi(**api_config)
+
+    queue.validate_task.return_value = None
+
+    backend = bloqade.submission.quera.QuEraBackend(**api_config)
 
     assert backend.validate_task(get_task_ir()) is None
 
@@ -175,3 +180,7 @@ def test_quera_backend_get_capabilities(QueueApi):
 
     assert backend.get_capabilities() == QuEraCapabilities(**get_capabilities().dict())
     queue.get_capabilities.assert_called_once()
+
+
+test_quera_backend_validate_fail()
+test_quera_backend_validate_pass()
