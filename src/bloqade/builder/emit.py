@@ -18,7 +18,7 @@ from bloqade.ir.location.base import AtomArrangement, ParallelRegister
 
 from pydantic import BaseModel
 from typing import Optional, Dict, Union, List, Any, Tuple
-from numbers import Number
+import numbers
 import json
 import os
 from bloqade.task import HardwareTask, HardwareJob
@@ -56,8 +56,8 @@ class Emit(Builder):
     def __init__(
         self,
         builder: Builder,
-        assignments: Dict[str, Union[Number, List[Number]]] = {},
-        batch: Dict[str, Union[List[Number], List[List[Number]]]] = {},
+        assignments: Dict[str, Union[numbers.Real, List[numbers.Real]]] = {},
+        batch: Dict[str, Union[List[numbers.Real], List[List[numbers.Real]]]] = {},
         register: Optional[Union["AtomArrangement", "ParallelRegister"]] = None,
         sequence: Optional[ir.Sequence] = None,
     ) -> None:
