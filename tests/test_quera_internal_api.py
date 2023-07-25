@@ -21,7 +21,7 @@ def test_quera_submit():
         )
         .assign(run_time=2.0)
         .parallelize(20)
-        .quera(10, config_file="submit_quera_api.json")
+        .quera(10, config_file="tests/data/config/submit_quera_api.json")
         .submit()
     )
 
