@@ -26,6 +26,9 @@ class Waveform(Builder):
     def piecewise_linear(self, durations: List[ScalarType], values: List[ScalarType]):
         """append a piecewise linear waveform to the current location."""
         builder = self
+        if len(durations) != len(values) - 1:
+            raise ValueError("len(durations) must be len(values)-1.")
+
         for duration, start, stop in zip(durations, values[:-1], values[1:]):
             builder = builder.linear(start, stop, duration)
 
@@ -34,6 +37,9 @@ class Waveform(Builder):
     def piecewise_constant(self, durations: List[ScalarType], values: List[ScalarType]):
         """append a piecewise constant waveform to the current location."""
         builder = self
+        if len(durations) != len(values):
+            raise ValueError("durations and values lists must have same length.")
+
         for duration, value in zip(durations, values):
             builder = builder.constant(value, duration)
 
@@ -103,9 +109,9 @@ class PythonFn(Sliceable, Recordable, WaveformTerminate):
             return Sample(self, dt, interpolation=interpolation)
 
         match self.__build_cache__.field_name:
-            case ir.pulse.rabi.amplitude | ir.pulse.detuning:
+            case ir.control.pulse.rabi.amplitude | ir.control.pulse.detuning:
                 return Sample(self, dt, interpolation=ir.Interpolation.Linear)
-            case ir.pulse.rabi.phase:
+            case ir.control.pulse.rabi.phase:
                 return Sample(self, dt, interpolation=ir.Interpolation.Constant)
             case _:
                 raise NotImplementedError(
