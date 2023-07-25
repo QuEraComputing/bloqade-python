@@ -12,6 +12,9 @@ skip_keywords = [
     "builder/base",  ## hiding from user
     "builder/terminate",  ## hiding from user
     "ir/tree_print",  ## hiding from user
+    "ir/visitor",  ## hiding from user
+    "codegen/",  ## hiding from user
+    "builder/factory",  ## hiding from user
 ]
 
 nav = mkdocs_gen_files.Nav()
