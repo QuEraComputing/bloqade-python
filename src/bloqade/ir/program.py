@@ -39,8 +39,10 @@ class Program:
     def sequence(self):
         """Get the sequence of the program.
 
+
         Returns:
-            sequence (Sequence)
+            Sequence: the sequence of the program.
+                See also [`Sequence`][bloqade.ir.control.sequence.Sequence].
 
         """
         return self._sequence

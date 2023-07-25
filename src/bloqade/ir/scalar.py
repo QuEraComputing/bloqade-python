@@ -306,14 +306,13 @@ class Real(Scalar):
 
 @dataclass(frozen=True)
 class Literal(Real):
+    value: Decimal
     """Scalar Literal, which stores a decimaal value instance.
 
     Args:
         value (Decimal): decimal value instance
 
     """
-
-    value: Decimal
 
     def __repr__(self) -> str:
         return f"{self.value}"
