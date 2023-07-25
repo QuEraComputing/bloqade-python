@@ -18,7 +18,7 @@ graph TD
   SpaceModulation(SpaceModulation)
   Waveform{Waveform}
 
-  Codegen(["[Codegen]
+  Codegen(["[Compile]
   quera()
   mock()
   braket()
