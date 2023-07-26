@@ -1,9 +1,10 @@
 # Ported from the Julia language AbstractTrees.jl implementation: https://github.com/JuliaCollections/AbstractTrees.jl/blob/master/src/printing.jl
 
 from pydantic.dataclasses import dataclass
+import sys
 
 max_tree_depth = 10
-unicode_enabled = True
+unicode_enabled = sys.stdout.encoding.lower().startswith("utf")
 
 
 # charset object, extracts away charset
@@ -38,6 +39,19 @@ class State:
 # children method  -> either list or Dict
 # print_node method -> should just return str
 # print_annotation ->  should just return str
+
+
+# p is needed for IPython Pretty printer or
+# the following helper wrap:
+class _Phelper:
+    def __init__(self):
+        self.str_out = ""
+
+    def text(self, segs: str):
+        self.str_out += segs
+
+    def get_value(self):
+        return self.str_out
 
 
 class Printer:
