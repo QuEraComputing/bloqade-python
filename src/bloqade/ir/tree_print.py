@@ -14,7 +14,7 @@ class UnicodeCharSet:
     skip = "│"
     dash = "─"
     trunc = "⋮"
-    pair = " ⇒ "
+    pair = "⇒ "
 
 
 @dataclass
@@ -24,7 +24,7 @@ class ASCIICharSet:
     skip = "|"
     dash = "--"
     trunc = "..."
-    pair = " => "
+    pair = "=> "
 
 
 @dataclass
@@ -109,8 +109,9 @@ class Printer:
 
             if this_print_annotation and annotation is not None:
                 self.p.text(annotation)
-                self.p.text(self.charset.pair)
-                child_prefix += " " * (len(annotation) + len(self.charset.pair))
+                self.p.text("\n")
+                self.p.text(child_prefix + self.charset.pair)
+                child_prefix += " " * (len(self.charset.pair))
 
             self.state.depth += 1
             parent_last = self.state.last
