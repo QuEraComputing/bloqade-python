@@ -164,6 +164,10 @@ class HardwareBatchResult(CloudBatchResult[HardwareTaskShotResults]):
 
 
 class HardwareBatchTask(CloudBatchTask[HardwareTask, HardwareBatchResult]):
+    """A compiled batch-tasks that can be submitted to run on
+    quantum hardware with specified backend.
+    """
+
     hardware_tasks: OrderedDict[int, HardwareTask] = OrderedDict()
 
     def _tasks(self):

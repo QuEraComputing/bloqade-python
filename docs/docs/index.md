@@ -1,4 +1,4 @@
-# Welcome to MkDocs
+# Welcome to Bloqade -- QuEra's Neutral Atom SDK
 
 For full documentation visit [mkdocs.org](https://www.mkdocs.org).
 
