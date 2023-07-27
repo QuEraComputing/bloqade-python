@@ -40,13 +40,13 @@ if __name__ == "__main__":
     ansatz = MIS_ansatz.MIS_ansatz(problem=problem, q_hardware=True,
                                     num_shots=30, lattice_spacing=8, 
                                     unitdisk_radius=unitdisk_radius, 
-                                    num_time_points=num_time_points,
-                                    max_iter=30)
+                                    num_time_points=num_time_points)
 
     # Initial paramters 
     x0 = np.array([0.25, 1, 0.25] + [-10, -10, 10, 20])
     opt = optimization.Optimizer(problem=problem, ansatz=ansatz, 
-                                 x_init=x0, save_progress=True)
+                                 x_init=x0,  max_iter=30,
+                                 save_progress=True)
     res = opt.optimize()    
 
     # TODO: Add rest of plotting
