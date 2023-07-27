@@ -21,7 +21,7 @@ def array_cache(func):
 class Optimization:
 
     def __init__(self, callback_step: int, cost_function: Callable, method: str):
-        self.__cost_history = []
+
         # self.__cost_function = cost_function
         self.__iter = 0
         self.__res = None
@@ -30,13 +30,21 @@ class Optimization:
         self.__nev = 0
         self.__cost_function = array_cache(cost_function)
 
+        self.__cost_history = []
+        self.__parameter_history = []
+
 
     def __callback(self, x: np.ndarray) -> None:
+
         feval = self.__cost_function(x)
+
         self.__iter += 1
         if self.__iter % self.__callback_step == 0:
             print(f"Cost function value: {feval}")
+
         self.__cost_history.append(feval)
+        self.__parameter_history.append(x)
+
 
     def optimize(self, x0: np.ndarray, maxiter: int, constraints: Optional[List[Dict]] = None, bounds: Optional[List[Tuple[float, float]]] = None) -> None:
         
@@ -49,12 +57,18 @@ class Optimization:
         else:
             self.__res = minimize(self.__cost_function, x0, method=self.__method, callback=self.__callback, options={"maxiter": maxiter}, constraints=constraints, bounds=bounds)
     
+
+
     def get_cost_history(self) -> List[float]:
         return self.__cost_history
     
     def get_res(self) -> Dict[str, Union[np.ndarray, str, bool]]:
         return self.__res
     
+    def get_parameter_history(self) -> List[np.ndarray]:
+        return [list(p) for p in self.__parameter_history]
+
+
     def __spsa_optimizer(self, cost_function: Callable, x0: np.ndarray, maxiter: int, callback: Callable, alpha=0.602, gamma=0.101) -> Dict[str, Union[np.ndarray, str, bool]]:
         x = copy.deepcopy(x0)
 
@@ -80,10 +94,14 @@ class Optimization:
             # Call the callback function at each iteration
             #callback(x)
             self.__cost_history.append(cost_function(x))
+
+            # FIXME: Number of function evaluations might be wrong
+            # Callback also increases the count
+
             self.__nev += 2
 
         return {
-            'x': x,
+            'x': list(x),
             'nfev': self.__nev,
             'success': True,
             'status': 'Finished iterations',
