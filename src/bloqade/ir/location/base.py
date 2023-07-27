@@ -206,6 +206,8 @@ class AtomArrangement(ProgramStart):
 
 @dataclass(init=False)
 class ParallelRegister(ProgramStart):
+    """Parallel Register"""
+
     register_locations: List[List[Scalar]]
     register_filling: List[int]
     shift_vectors: List[List[Scalar]]

@@ -33,3 +33,12 @@ class ListOfLocations(AtomArrangement):
 
 
 start = ListOfLocations()
+"""Program start
+
+Possible Next:
+    - start.rydberg  : address rydberg level coupling
+    - start.hyperfine: address hyperfine level coupling
+    - start.add_locations() : add multiple atoms to current register
+    - start.add_location() : add atom to current register
+
+"""

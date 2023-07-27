@@ -1,6 +1,8 @@
 from bloqade.ir.control.waveform import Waveform, Linear, Constant
 from typing import Any, List
 
+# this part only for manually build sequences.
+
 
 def linear(duration, start, stop):
     return Linear(start, stop, duration)
