@@ -377,7 +377,7 @@ class Negative(Scalar):
 
     def __repr__(self) -> str:
         ph = _Phelper()
-        Printer(ph).print(self, ph.cycle_byterm)
+        Printer(ph).print(self)
         return ph.get_value()
 
     def __str__(self):
@@ -420,7 +420,7 @@ class Interval:
 
     def __repr__(self) -> str:
         ph = _Phelper()
-        Printer(ph).print(self, ph.cycle_byterm)
+        Printer(ph).print(self)
         return ph.get_value()
 
     def __str__(self):
@@ -459,7 +459,7 @@ class Slice(Scalar):
 
     def __repr__(self) -> str:
         ph = _Phelper()
-        Printer(ph).print(self, ph.cycle_byterm)
+        Printer(ph).print(self)
         return ph.get_value()
 
     def __str__(self):
@@ -482,7 +482,7 @@ class Add(Scalar):
 
     def __repr__(self) -> str:
         ph = _Phelper()
-        Printer(ph).print(self, ph.cycle_byterm)
+        Printer(ph).print(self)
         return ph.get_value()
 
     def __str__(self):
@@ -505,7 +505,7 @@ class Mul(Scalar):
 
     def __repr__(self) -> str:
         ph = _Phelper()
-        Printer(ph).print(self, ph.cycle_byterm)
+        Printer(ph).print(self)
         return ph.get_value()
 
     def __str__(self):
@@ -528,7 +528,7 @@ class Div(Scalar):
 
     def __repr__(self) -> str:
         ph = _Phelper()
-        Printer(ph).print(self, ph.cycle_byterm)
+        Printer(ph).print(self)
         return ph.get_value()
 
     def __str__(self):
@@ -556,7 +556,7 @@ class Min(Scalar):
 
     def __repr__(self) -> str:
         ph = _Phelper()
-        Printer(ph).print(self, ph.cycle_byterm)
+        Printer(ph).print(self)
         return ph.get_value()
 
     def __str__(self):
@@ -578,7 +578,7 @@ class Max(Scalar):
 
     def __repr__(self) -> str:
         ph = _Phelper()
-        Printer(ph).print(self, ph.cycle_byterm)
+        Printer(ph).print(self)
         return ph.get_value()
 
     def __str__(self):

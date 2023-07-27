@@ -20,7 +20,7 @@ class Location:
 
     def __repr__(self) -> str:
         ph = _Phelper()
-        Printer(ph).print(self, ph.cycle_byterm)
+        Printer(ph).print(self)
         return ph.get_value()
 
     def __str__(self):
@@ -49,7 +49,7 @@ class UniformModulation(SpatialModulation):
 
     def __repr__(self) -> str:
         ph = _Phelper()
-        Printer(ph).print(self, ph.cycle_byterm)
+        Printer(ph).print(self)
         return ph.get_value()
 
     def __str__(self):
@@ -77,7 +77,7 @@ class RunTimeVector(SpatialModulation):
 
     def __repr__(self) -> str:
         ph = _Phelper()
-        Printer(ph).print(self, ph.cycle_byterm)
+        Printer(ph).print(self)
         return ph.get_value()
 
     def __str__(self):
@@ -115,7 +115,7 @@ class ScaledLocations(SpatialModulation):
 
     def __repr__(self) -> str:
         ph = _Phelper()
-        Printer(ph).print(self, ph.cycle_byterm)
+        Printer(ph).print(self)
         return ph.get_value()
 
     def __str__(self):
@@ -154,7 +154,7 @@ class Field:
 
     def __repr__(self) -> str:
         ph = _Phelper()
-        Printer(ph).print(self, ph.cycle_byterm)
+        Printer(ph).print(self)
         return ph.get_value()
 
     def __str__(self):

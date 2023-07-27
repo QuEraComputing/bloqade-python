@@ -1,10 +1,12 @@
 # Ported from the Julia language AbstractTrees.jl implementation: https://github.com/JuliaCollections/AbstractTrees.jl/blob/master/src/printing.jl
 
 from pydantic.dataclasses import dataclass
-import os
 import sys
 
+# The maximum depth of the tree to print.
 max_tree_depth = 10
+
+
 unicode_enabled = sys.stdout.encoding.lower().startswith("utf")
 
 
@@ -54,9 +56,9 @@ class _Phelper:
     def get_value(self):
         return self.str_out
 
-    @property
-    def cycle_byterm(self):
-        return int(os.get_terminal_size().columns / 10)
+    # @property
+    # def cycle_byterm(self):
+    #    return int(os.get_terminal_size().columns / 10)
 
 
 class Printer:
@@ -74,7 +76,10 @@ class Printer:
         elif type(children) == dict:
             return True
 
-    def print(self, node, cycle):
+    def print(self, node, cycle=None):
+        if cycle is None or isinstance(cycle, bool):
+            cycle = max_tree_depth
+
         # list of children
         children = node.children().copy()
         node_str = node.print_node()

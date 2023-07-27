@@ -27,7 +27,7 @@ class LevelCoupling:
 class RydbergLevelCoupling(LevelCoupling):
     def __repr__(self) -> str:
         ph = _Phelper()
-        Printer(ph).print(self, ph.cycle_byterm)
+        Printer(ph).print(self)
         return ph.get_value()
 
     def __str__(self):
@@ -44,7 +44,7 @@ class RydbergLevelCoupling(LevelCoupling):
 class HyperfineLevelCoupling(LevelCoupling):
     def __repr__(self) -> str:
         ph = _Phelper()
-        Printer(ph).print(self, ph.cycle_byterm)
+        Printer(ph).print(self)
         return ph.get_value()
 
     def __str__(self):
@@ -83,7 +83,7 @@ class Append(SequenceExpr):
 
     def __repr__(self) -> str:
         ph = _Phelper()
-        Printer(ph).print(self, ph.cycle_byterm)
+        Printer(ph).print(self)
         return ph.get_value()
 
     def __str__(self):
@@ -128,7 +128,7 @@ class Sequence(SequenceExpr):
 
     def __repr__(self) -> str:
         ph = _Phelper()
-        Printer(ph).print(self, ph.cycle_byterm)
+        Printer(ph).print(self)
         return ph.get_value()
 
     def __str__(self):
@@ -155,7 +155,7 @@ class NamedSequence(SequenceExpr):
 
     def __repr__(self) -> str:
         ph = _Phelper()
-        Printer(ph).print(self, ph.cycle_byterm)
+        Printer(ph).print(self)
         return ph.get_value()
 
     def __str__(self):
@@ -178,7 +178,7 @@ class Slice(SequenceExpr):
 
     def __repr__(self) -> str:
         ph = _Phelper()
-        Printer(ph).print(self, ph.cycle_byterm)
+        Printer(ph).print(self)
         return ph.get_value()
 
     def __str__(self):
@@ -191,4 +191,5 @@ class Slice(SequenceExpr):
         return "Slice"
 
     def _repr_pretty_(self, p, cycle):
+        print(cycle)
         Printer(p).print(self, cycle)

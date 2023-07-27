@@ -24,7 +24,7 @@ class FieldName:
 class RabiFrequencyAmplitude(FieldName):
     def __repr__(self) -> str:
         ph = _Phelper()
-        Printer(ph).print(self, ph.cycle_byterm)
+        Printer(ph).print(self)
         return ph.get_value()
 
     def __str__(self):
@@ -41,7 +41,7 @@ class RabiFrequencyAmplitude(FieldName):
 class RabiFrequencyPhase(FieldName):
     def __repr__(self) -> str:
         ph = _Phelper()
-        Printer(ph).print(self, ph.cycle_byterm)
+        Printer(ph).print(self)
         return ph.get_value()
 
     def __str__(self):
@@ -58,7 +58,7 @@ class RabiFrequencyPhase(FieldName):
 class Detuning(FieldName):
     def __repr__(self) -> str:
         ph = _Phelper()
-        Printer(ph).print(self, ph.cycle_byterm)
+        Printer(ph).print(self)
         return ph.get_value()
 
     def __str__(self):
@@ -78,7 +78,7 @@ class RabiRouter:
 
     def __repr__(self) -> str:
         ph = _Phelper()
-        Printer(ph).print(self, ph.cycle_byterm)
+        Printer(ph).print(self)
         return ph.get_value()
 
     def __str__(self):
@@ -133,7 +133,7 @@ class Append(PulseExpr):
 
     def __repr__(self) -> str:
         ph = _Phelper()
-        Printer(ph).print(self, ph.cycle_byterm)
+        Printer(ph).print(self)
         return ph.get_value()
 
     def __str__(self):
@@ -172,7 +172,7 @@ class Pulse(PulseExpr):
 
     def __repr__(self) -> str:
         ph = _Phelper()
-        Printer(ph).print(self, ph.cycle_byterm)
+        Printer(ph).print(self)
         return ph.get_value()
 
     def __str__(self):
@@ -199,7 +199,7 @@ class NamedPulse(PulseExpr):
 
     def __repr__(self) -> str:
         ph = _Phelper()
-        Printer(ph).print(self, ph.cycle_byterm)
+        Printer(ph).print(self)
         return ph.get_value()
 
     def __str__(self):
@@ -222,7 +222,7 @@ class Slice(PulseExpr):
 
     def __repr__(self) -> str:
         ph = _Phelper()
-        Printer(ph).print(self, ph.cycle_byterm)
+        Printer(ph).print(self)
         return ph.get_value()
 
     def __str__(self):

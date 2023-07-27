@@ -281,7 +281,7 @@ class Linear(Instruction):
 
     def __repr__(self) -> str:
         ph = _Phelper()
-        Printer(ph).print(self, ph.cycle_byterm)
+        Printer(ph).print(self)
         return ph.get_value()
 
     def __str__(self):
@@ -331,7 +331,7 @@ class Constant(Instruction):
 
     def __repr__(self) -> str:
         ph = _Phelper()
-        Printer(ph).print(self, ph.cycle_byterm)
+        Printer(ph).print(self)
         return ph.get_value()
 
     def __str__(self):
@@ -384,7 +384,7 @@ class Poly(Instruction):
 
     def __repr__(self) -> str:
         ph = _Phelper()
-        Printer(ph).print(self, ph.cycle_byterm)
+        Printer(ph).print(self)
         return ph.get_value()
 
     def __str__(self):
@@ -456,7 +456,7 @@ class PythonFn(Instruction):
 
     def __repr__(self) -> str:
         ph = _Phelper()
-        Printer(ph).print(self, ph.cycle_byterm)
+        Printer(ph).print(self)
         return ph.get_value()
 
     def print_node(self):
@@ -588,7 +588,7 @@ class Smooth(Waveform):
 
     def __repr__(self) -> str:
         ph = _Phelper()
-        Printer(ph).print(self, ph.cycle_byterm)
+        Printer(ph).print(self)
         return ph.get_value()
 
     def __str__(self):
@@ -608,7 +608,7 @@ class Slice(Waveform):
 
     def __repr__(self) -> str:
         ph = _Phelper()
-        Printer(ph).print(self, ph.cycle_byterm)
+        Printer(ph).print(self)
         return ph.get_value()
 
     def __str__(self):
@@ -657,7 +657,7 @@ class Append(Waveform):
 
     def __repr__(self) -> str:
         ph = _Phelper()
-        Printer(ph).print(self, ph.cycle_byterm)
+        Printer(ph).print(self)
         return ph.get_value()
 
     def __str__(self):
@@ -688,7 +688,7 @@ class Negative(Waveform):
 
     def __repr__(self) -> str:
         ph = _Phelper()
-        Printer(ph).print(self, ph.cycle_byterm)
+        Printer(ph).print(self)
         return ph.get_value()
 
     def __str__(self):
@@ -724,7 +724,7 @@ class Scale(Waveform):
 
     def __repr__(self) -> str:
         ph = _Phelper()
-        Printer(ph).print(self, ph.cycle_byterm)
+        Printer(ph).print(self)
         return ph.get_value()
 
     def __str__(self):
@@ -756,7 +756,7 @@ class Add(Waveform):
 
     def __repr__(self) -> str:
         ph = _Phelper()
-        Printer(ph).print(self, ph.cycle_byterm)
+        Printer(ph).print(self)
         return ph.get_value()
 
     def __str__(self):
@@ -794,7 +794,7 @@ class Record(Waveform):
 
     def __repr__(self) -> str:
         ph = _Phelper()
-        Printer(ph).print(self, ph.cycle_byterm)
+        Printer(ph).print(self)
         return ph.get_value()
 
     def __str__(self):
@@ -872,5 +872,5 @@ class Sample(Waveform):
 
     def __repr__(self) -> str:
         ph = _Phelper()
-        Printer(ph).print(self, ph.cycle_byterm)
+        Printer(ph).print(self)
         return ph.get_value()
