@@ -53,7 +53,7 @@ if __name__ == "__main__":
 
 
     # Shut down EC2 instance and send email notification
-    shutdown(instance_id='i-0533f64d6819bcc79')
+    shutdown(instance_id='i-02f8727d3a2f56772')
 
 
 
