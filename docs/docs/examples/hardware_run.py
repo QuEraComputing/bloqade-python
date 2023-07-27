@@ -5,7 +5,8 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from MIS import MIS_ansatz, MIS_problem, optimization, graph
 import boto3
-
+import os
+import configparser
 
 def send_sns_notification():
     sns = boto3.client('sns')
@@ -22,6 +23,16 @@ def shutdown(instance_id):
 
 
 if __name__ == "__main__":
+
+    # Create a config parser
+    config = configparser.ConfigParser()
+
+    # Read the AWS credentials file
+    config.read(os.path.expanduser("~/.aws/credentials"))
+
+    # Get the access keys
+    aws_access_key_id = config.get('716981252513_QC_App_Algo_RD', 'aws_access_key_id')
+    aws_secret_access_key = config.get('716981252513_QC_App_Algo_RD', 'aws_secret_access_key')
 
     pos, small_G = graph.kings_graph(10, 10, 0.5, seed = 1)
     unitdisk_radius, min_radius, max_radius = graph.find_UDG_radius(pos, small_G)
