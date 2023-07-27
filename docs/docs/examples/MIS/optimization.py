@@ -6,11 +6,12 @@ import os
 
 class Optimizer:
 
-    def __init__(self, problem, ansatz, x_init, save_progress=False):
+    def __init__(self, problem, ansatz, x_init, max_iter, save_progress=False):
         
         self.problem = problem
         self.ansatz = ansatz
         self.x_init = x_init
+        self.max_iter = max_iter
         self.bitstring_history = []
         self.parameter_history = []
         self.cost_history = []
