@@ -1,7 +1,7 @@
 from pydantic.dataclasses import dataclass
 from pydantic import validator
 from typing import Any, Union, List
-from .tree_print import Printer
+from .tree_print import Printer, _Phelper
 import re
 from decimal import Decimal
 import numbers
@@ -315,7 +315,10 @@ class Literal(Real):
     """
 
     def __repr__(self) -> str:
-        return f"{self.value}"
+        return self.__str__()
+
+    def __str__(self):
+        return f"{str(self.value)}"
 
     def children(self):
         return []
@@ -339,7 +342,10 @@ class Variable(Real):
     name: str
 
     def __repr__(self) -> str:
-        return f"var({self.name!r})"
+        return self.__str__()
+
+    def __str__(self):
+        return f"var({str(self.name)})"
 
     def children(self):
         return []
@@ -370,7 +376,12 @@ class Negative(Scalar):
     expr: Scalar
 
     def __repr__(self) -> str:
-        return f"-({self.expr!r})"
+        ph = _Phelper()
+        Printer(ph).print(self, ph.cycle_byterm)
+        return ph.get_value()
+
+    def __str__(self):
+        return f"-({str(self.expr)})"
 
     def children(self):
         return [self.expr]
@@ -408,15 +419,20 @@ class Interval:
                 raise ValueError("Slice step must be None")
 
     def __repr__(self) -> str:
+        ph = _Phelper()
+        Printer(ph).print(self, ph.cycle_byterm)
+        return ph.get_value()
+
+    def __str__(self):
         match (self.start, self.stop):
             case (None, None):
                 raise ValueError("Interval must have at least one bound")
             case (None, stop):
-                return f":{stop!r}"
+                return f":{str(stop)}"
             case (start, None):
-                return f"{start!r}:"
+                return f"{str(start)}:"
             case (start, stop):
-                return f"{self.start!r}:{self.stop!r}"
+                return f"{str(self.start)}:{str(self.stop)}"
 
     def print_node(self):
         return "Interval"
@@ -442,7 +458,12 @@ class Slice(Scalar):
     interval: Interval
 
     def __repr__(self) -> str:
-        return f"{self.expr!r}[{self.interval!r}]"
+        ph = _Phelper()
+        Printer(ph).print(self, ph.cycle_byterm)
+        return ph.get_value()
+
+    def __str__(self):
+        return f"{str(self.expr)}[{str(self.interval)}]"
 
     def children(self):
         return {"Scalar": self.expr, None: self.interval}
@@ -460,7 +481,12 @@ class Add(Scalar):
     rhs: Scalar
 
     def __repr__(self) -> str:
-        return f"({self.lhs!r} + {self.rhs!r})"
+        ph = _Phelper()
+        Printer(ph).print(self, ph.cycle_byterm)
+        return ph.get_value()
+
+    def __str__(self):
+        return f"({str(self.lhs)} + {str(self.rhs)})"
 
     def children(self):
         return [self.lhs, self.rhs]
@@ -478,7 +504,12 @@ class Mul(Scalar):
     rhs: Scalar
 
     def __repr__(self) -> str:
-        return f"({self.lhs!r} * {self.rhs!r})"
+        ph = _Phelper()
+        Printer(ph).print(self, ph.cycle_byterm)
+        return ph.get_value()
+
+    def __str__(self):
+        return f"({str(self.lhs)} * {str(self.rhs)})"
 
     def children(self):
         return [self.lhs, self.rhs]
@@ -496,7 +527,12 @@ class Div(Scalar):
     rhs: Scalar
 
     def __repr__(self) -> str:
-        return f"({self.lhs!r} / {self.rhs!r})"
+        ph = _Phelper()
+        Printer(ph).print(self, ph.cycle_byterm)
+        return ph.get_value()
+
+    def __str__(self):
+        return f"({str(self.lhs)} / {str(self.rhs)})"
 
     def children(self):
         return [self.lhs, self.rhs]
@@ -519,7 +555,12 @@ class Min(Scalar):
         return "min"
 
     def __repr__(self) -> str:
-        return f"scalar.Min({self.exprs!r})"
+        ph = _Phelper()
+        Printer(ph).print(self, ph.cycle_byterm)
+        return ph.get_value()
+
+    def __str__(self):
+        return f"scalar.Min({str(self.exprs)})"
 
     def _repr_pretty_(self, p, cycle):
         Printer(p).print(self, cycle)
@@ -536,7 +577,12 @@ class Max(Scalar):
         return "max"
 
     def __repr__(self) -> str:
-        return f"scalar.Max({self.exprs!r})"
+        ph = _Phelper()
+        Printer(ph).print(self, ph.cycle_byterm)
+        return ph.get_value()
+
+    def __str__(self):
+        return f"scalar.Max({str(self.exprs)})"
 
     def _repr_pretty_(self, p, cycle):
         Printer(p).print(self, cycle)

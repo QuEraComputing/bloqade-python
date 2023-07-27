@@ -63,7 +63,12 @@ def test_wvfm_constant():
 
     assert (
         mystdout.getvalue()
-        == "Constant\n├─ value ⇒ Literal: 1.0\n⋮\n└─ duration ⇒ Literal: 3.0⋮\n"
+        == "Constant\n"
+        + "├─ value\n"
+        + "│  ⇒ Literal: 1.0\n"
+        + "⋮\n"
+        + "└─ duration\n"
+        + "   ⇒ Literal: 3.0⋮\n"
     )
 
 
@@ -115,7 +120,7 @@ def test_wvfm_pyfn():
 
     wf._repr_pretty_(p, 0)
 
-    assert mystdout.getvalue() == "PythonFn: my_func\n└─ duration ⇒ Literal: 1.0⋮\n"
+    assert mystdout.getvalue() == "PythonFn: my_func\n└─ duration\n   ⇒ Literal: 1.0⋮\n"
 
 
 def test_wvfm_app():
@@ -133,7 +138,10 @@ def test_wvfm_app():
 
     wf3._repr_pretty_(p, 0)
 
-    assert mystdout.getvalue() == "Append\n├─ Linear\n⋮\n└─ Constant\n⋮\n"
+    assert (
+        mystdout.getvalue()
+        == "Append\n" + "├─ Linear\n" + "⋮\n" + "└─ Constant\n" + "⋮\n"
+    )
 
 
 def test_wvfm_neg():
@@ -142,7 +150,7 @@ def test_wvfm_neg():
 
     assert wf2.print_node() == "-"
     assert wf2.children() == [wf]
-    assert wf2.__repr__() == "-(" + wf2.children()[0].__repr__() + ")"
+    assert str(wf2) == "-(" + str(wf2.children()[0]) + ")"
 
     assert wf2.eval_decimal(Decimal("0.5")) == Decimal("-1.0")
 
@@ -155,8 +163,10 @@ def test_wvfm_neg():
         mystdout.getvalue()
         == "-\n"
         + "└─ Constant\n"
-        + "   ├─ value ⇒ Literal: 1.0\n"
-        + "   └─ duration ⇒ Literal: 3.0"
+        + "   ├─ value\n"
+        + "   │  ⇒ Literal: 1.0\n"
+        + "   └─ duration\n"
+        + "      ⇒ Literal: 3.0"
     )
 
 
@@ -166,14 +176,14 @@ def test_wvfm_scale():
 
     assert wf2.print_node() == "Scale"
     assert wf2.children() == [cast(2.0), wf]
-    assert wf2.__repr__() == "(2.0 * %s)" % (wf.__repr__())
+    assert str(wf2) == "(2.0 * %s)" % (str(wf))
 
     assert wf2.eval_decimal(Decimal("0.5")) == Decimal("2.0")
 
     wf3 = wf * 2.0
     assert wf3.print_node() == "Scale"
     assert wf3.children() == [cast(2.0), wf]
-    assert wf3.__repr__() == "(2.0 * %s)" % (wf.__repr__())
+    assert str(wf3) == "(2.0 * %s)" % (str(wf))
 
     assert wf3.eval_decimal(Decimal("0.5")) == Decimal("2.0")
 
@@ -187,8 +197,10 @@ def test_wvfm_scale():
         == "Scale\n"
         + "├─ Literal: 2.0\n"
         + "└─ Constant\n"
-        + "   ├─ value ⇒ Literal: 1.0\n"
-        + "   └─ duration ⇒ Literal: 3.0"
+        + "   ├─ value\n"
+        + "   │  ⇒ Literal: 1.0\n"
+        + "   └─ duration\n"
+        + "      ⇒ Literal: 3.0"
     )
 
 
@@ -200,7 +212,7 @@ def test_wvfn_add():
 
     assert wf3.print_node() == "+"
     assert wf3.children() == [wf, wf2]
-    assert wf3.__repr__() == "(%s + %s)" % (wf.__repr__(), wf2.__repr__())
+    assert str(wf3) == "(%s + %s)" % (str(wf), str(wf2))
 
     assert wf3.eval_decimal(Decimal("0")) == Decimal("2.0")
     assert wf3.eval_decimal(Decimal("2.5")) == Decimal("1.0")
@@ -214,12 +226,17 @@ def test_wvfn_add():
         mystdout.getvalue()
         == "+\n"
         + "├─ Constant\n"
-        + "│  ├─ value ⇒ Literal: 1.0\n"
-        + "│  └─ duration ⇒ Literal: 3.0\n"
+        + "│  ├─ value\n"
+        + "│  │  ⇒ Literal: 1.0\n"
+        + "│  └─ duration\n"
+        + "│     ⇒ Literal: 3.0\n"
         + "└─ Linear\n"
-        + "   ├─ start ⇒ Literal: 1.0\n"
-        + "   ├─ stop ⇒ Literal: 2.0\n"
-        + "   └─ duration ⇒ Literal: 2.0"
+        + "   ├─ start\n"
+        + "   │  ⇒ Literal: 1.0\n"
+        + "   ├─ stop\n"
+        + "   │  ⇒ Literal: 2.0\n"
+        + "   └─ duration\n"
+        + "      ⇒ Literal: 2.0"
     )
 
 
@@ -230,7 +247,7 @@ def test_wvfn_rec():
 
     assert re.print_node() == "Record"
     assert re.children() == {"Waveform": wf, "Variable": cast("tst")}
-    assert re.__repr__() == "Record(%s, %s)" % (wf.__repr__(), cast("tst").__repr__())
+    assert str(re) == "Record(%s, %s)" % (str(wf), str(cast("tst")))
 
     assert re.eval_decimal(Decimal("0")) == Decimal("1.0")
     assert re.duration == cast(3.0)
@@ -243,11 +260,16 @@ def test_wvfn_rec():
     assert (
         mystdout.getvalue()
         == "Record\n"
-        + "├─ Waveform ⇒ Linear\n"
-        + "│             ├─ start ⇒ Literal: 1.0\n"
-        + "│             ├─ stop ⇒ Literal: 2.0\n"
-        + "│             └─ duration ⇒ Literal: 3.0\n"
-        + "└─ Variable ⇒ Variable: tst"
+        + "├─ Waveform\n"
+        + "│  ⇒ Linear\n"
+        + "│    ├─ start\n"
+        + "│    │  ⇒ Literal: 1.0\n"
+        + "│    ├─ stop\n"
+        + "│    │  ⇒ Literal: 2.0\n"
+        + "│    └─ duration\n"
+        + "│       ⇒ Literal: 3.0\n"
+        + "└─ Variable\n"
+        + "   ⇒ Variable: tst"
     )
 
 
@@ -330,9 +352,9 @@ def test_wvfn_smooth():
     wf = wv.smooth(radius=0.5, kernel=GaussianKernel)
 
     assert wf.duration == cast(3.0)
-    assert wf.__repr__() == "Smooth(kernel=%s, waveform=%s)" % (
-        GaussianKernel.__repr__(),
-        wv.__repr__(),
+    assert str(wf) == "Smooth(kernel=%s, waveform=%s)" % (
+        str(GaussianKernel),
+        str(wv),
     )
 
     assert wf.eval_decimal(Decimal("0.1")) == 1.0844831620655968
@@ -345,7 +367,7 @@ def test_wvfn_slice():
     wf = Slice(wv, iv)
 
     assert wf.print_node() == "Slice"
-    assert wf.__repr__() == "%s[%s]" % (wv.__repr__(), iv.__repr__())
+    assert str(wf) == "%s[%s]" % (str(wv), str(iv))
     assert wf.eval_decimal(Decimal("0.4")) == 0
     assert wf.eval_decimal(Decimal("0.2")) == 2.0
     assert wf.children() == [wv, iv]
@@ -358,11 +380,15 @@ def test_wvfn_slice():
         mystdout.getvalue()
         == "Slice\n"
         + "├─ Constant\n"
-        + "│  ├─ value ⇒ Literal: 2.0\n"
-        + "│  └─ duration ⇒ Literal: 3.0\n"
+        + "│  ├─ value\n"
+        + "│  │  ⇒ Literal: 2.0\n"
+        + "│  └─ duration\n"
+        + "│     ⇒ Literal: 3.0\n"
         + "└─ Interval\n"
-        + "   ├─ start ⇒ Literal: 0\n"
-        + "   └─ stop ⇒ Literal: 0.3"
+        + "   ├─ start\n"
+        + "   │  ⇒ Literal: 0\n"
+        + "   └─ stop\n"
+        + "      ⇒ Literal: 0.3"
     )
 
     iv_err1 = Interval(None, None)
@@ -398,10 +424,16 @@ def test_wvfm_align():
     assert (
         mystdout.getvalue()
         == "AlignedWaveform\n"
-        + "├─ Waveform ⇒ Constant\n"
-        + "│             ├─ value ⇒ Literal: 2.0\n"
-        + "│             └─ duration ⇒ Literal: 3.0\n"
-        + "├─ Alignment ⇒ Right\n└─ Value ⇒ Left\n"
+        + "├─ Waveform\n"
+        + "│  ⇒ Constant\n"
+        + "│    ├─ value\n"
+        + "│    │  ⇒ Literal: 2.0\n"
+        + "│    └─ duration\n"
+        + "│       ⇒ Literal: 3.0\n"
+        + "├─ Alignment\n"
+        + "│  ⇒ Right\n"
+        + "└─ Value\n"
+        + "   ⇒ Left\n"
     )
 
 
@@ -438,9 +470,12 @@ def test_wvfm_sample():
     assert (
         mystdout.getvalue()
         == "Sample linear\n"
-        + "├─ Waveform ⇒ PythonFn: my_cos\n"
-        + "│             └─ duration ⇒ Literal: 1.0\n"
-        + "└─ sample_step ⇒ Literal: 0.1"
+        + "├─ Waveform\n"
+        + "│  ⇒ PythonFn: my_cos\n"
+        + "│    └─ duration\n"
+        + "│       ⇒ Literal: 1.0\n"
+        + "└─ sample_step\n"
+        + "   ⇒ Literal: 0.1"
     )
 
 

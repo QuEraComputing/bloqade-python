@@ -1,6 +1,6 @@
 from .pulse import PulseExpr, Pulse
 from ..scalar import Interval
-from ..tree_print import Printer
+from ..tree_print import Printer, _Phelper
 
 from pydantic.dataclasses import dataclass
 from typing import List, Dict
@@ -26,6 +26,11 @@ class LevelCoupling:
 @dataclass(frozen=True)
 class RydbergLevelCoupling(LevelCoupling):
     def __repr__(self) -> str:
+        ph = _Phelper()
+        Printer(ph).print(self, ph.cycle_byterm)
+        return ph.get_value()
+
+    def __str__(self):
         return "rydberg"
 
     def print_node(self):
@@ -38,6 +43,11 @@ class RydbergLevelCoupling(LevelCoupling):
 @dataclass(frozen=True)
 class HyperfineLevelCoupling(LevelCoupling):
     def __repr__(self) -> str:
+        ph = _Phelper()
+        Printer(ph).print(self, ph.cycle_byterm)
+        return ph.get_value()
+
+    def __str__(self):
         return "hyperfine"
 
     def print_node(self):
@@ -72,7 +82,12 @@ class Append(SequenceExpr):
     value: List[SequenceExpr]
 
     def __repr__(self) -> str:
-        return f"sequence.Append(value={self.value!r})"
+        ph = _Phelper()
+        Printer(ph).print(self, ph.cycle_byterm)
+        return ph.get_value()
+
+    def __str__(self):
+        return f"sequence.Append(value={str(self.value)})"
 
     def children(self):
         return self.value
@@ -112,7 +127,12 @@ class Sequence(SequenceExpr):
         return self.value[level_coupling](clock_s, *args, **kwargs)
 
     def __repr__(self) -> str:
-        return f"Sequence({self.value!r})"
+        ph = _Phelper()
+        Printer(ph).print(self, ph.cycle_byterm)
+        return ph.get_value()
+
+    def __str__(self):
+        return f"Sequence({str(self.value)})"
 
     # return annotated version
     def children(self):
@@ -134,7 +154,12 @@ class NamedSequence(SequenceExpr):
     name: str
 
     def __repr__(self) -> str:
-        return f"NamedSequence(sequence={self.sequence!r}, name='{self.name!r}')"
+        ph = _Phelper()
+        Printer(ph).print(self, ph.cycle_byterm)
+        return ph.get_value()
+
+    def __str__(self):
+        return f"NamedSequence(sequence={str(self.sequence)}, name='{str(self.name)}')"
 
     def children(self):
         return {"sequence": self.sequence, "name": self.name}
@@ -152,7 +177,12 @@ class Slice(SequenceExpr):
     interval: Interval
 
     def __repr__(self) -> str:
-        return f"{self.sequence!r}[{self.interval!r}]"
+        ph = _Phelper()
+        Printer(ph).print(self, ph.cycle_byterm)
+        return ph.get_value()
+
+    def __str__(self):
+        return f"{str(self.sequence)}[{str(self.interval)}]"
 
     def children(self):
         return {"sequence": self.sequence, "interval": self.interval}

@@ -138,7 +138,7 @@ def test_negative_node():
     assert nsa.children() == [sa]
     assert nsa.print_node() == "-"
 
-    assert nsa.__repr__() == "-(1.0)"
+    assert str(nsa) == "-(1.0)"
 
 
 # def test_base_invalid():
@@ -153,11 +153,11 @@ def test_interval():
     assert itvl.print_node() == "Interval"
 
     with pytest.raises(ValueError):
-        itvl_wrong.__repr__()
+        str(itvl_wrong)
 
-    assert itvl.__repr__() == "0.0:1.0"
-    assert itvl_no_start.__repr__() == ":1.0"
-    assert itvl_no_stop.__repr__() == "0:"
+    assert str(itvl) == "0.0:1.0"
+    assert str(itvl_no_start) == ":1.0"
+    assert str(itvl_no_stop) == "0:"
 
     with pytest.raises(ValueError):
         itvl_wrong.children()
@@ -235,7 +235,7 @@ def test_add_scalar():
 
     assert C.children() == [A, B]
     assert C.print_node() == "+"
-    assert C.__repr__() == "(1 + 2)"
+    assert str(C) == "(1 + 2)"
 
 
 def test_add_zero():
@@ -289,7 +289,7 @@ def test_mul_scalar():
 
     assert C.children() == [A, B]
     assert C.print_node() == "*"
-    assert C.__repr__() == "(1 * 2)"
+    assert str(C) == "(1 * 2)"
 
 
 def test_div_scalar():
@@ -300,7 +300,7 @@ def test_div_scalar():
 
     assert C.children() == [A, B]
     assert C.print_node() == "/"
-    assert C.__repr__() == "(1 / 2)"
+    assert str(C) == "(1 / 2)"
 
     assert C() == 0.5
 
@@ -313,7 +313,7 @@ def test_min_scalar():
     D = scalar.Min([A, B, C])
     assert D.children() == [A, B, C]
     assert D.print_node() == "min"
-    assert D.__repr__() == "scalar.Min(frozenset({1, 2, 3}))"
+    assert str(D) == "scalar.Min(frozenset({1, 2, 3}))"
 
     mystdout = StringIO()
     p = PP(mystdout)
@@ -333,7 +333,7 @@ def test_max_scalar():
     D = scalar.Max([A, B, C])
     assert D.children() == [A, B, C]
     assert D.print_node() == "max"
-    assert D.__repr__() == "scalar.Max(frozenset({1, 2, 3}))"
+    assert str(D) == "scalar.Max(frozenset({1, 2, 3}))"
 
     mystdout = StringIO()
     p = PP(mystdout)
@@ -377,7 +377,7 @@ def test_Slice():
 
     slc = scalar.Slice(cast(1), itvl)
 
-    assert slc.__repr__() == "1[5:6]"
+    assert str(slc) == "1[5:6]"
     assert slc.children() == {"Scalar": cast(1), None: itvl}
     assert slc.print_node() == "Slice"
 
@@ -386,4 +386,12 @@ def test_Slice():
 
     slc._repr_pretty_(p, 0)
 
-    assert mystdout.getvalue() == "Slice\n├─ Scalar ⇒ Literal: 1\n⋮\n└─ Interval\n⋮\n"
+    assert (
+        mystdout.getvalue()
+        == "Slice\n"
+        + "├─ Scalar\n"
+        + "│  ⇒ Literal: 1\n"
+        + "⋮\n"
+        + "└─ Interval\n"
+        + "⋮\n"
+    )

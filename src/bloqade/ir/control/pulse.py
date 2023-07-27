@@ -2,7 +2,7 @@ from ..scalar import Interval
 from .field import Field
 from typing import List
 from pydantic.dataclasses import dataclass
-from ..tree_print import Printer
+from ..tree_print import Printer, _Phelper
 
 
 __all__ = [
@@ -23,6 +23,11 @@ class FieldName:
 @dataclass(frozen=True)
 class RabiFrequencyAmplitude(FieldName):
     def __repr__(self) -> str:
+        ph = _Phelper()
+        Printer(ph).print(self, ph.cycle_byterm)
+        return ph.get_value()
+
+    def __str__(self):
         return "rabi_frequency_amplitude"
 
     def print_node(self):
@@ -35,6 +40,11 @@ class RabiFrequencyAmplitude(FieldName):
 @dataclass(frozen=True)
 class RabiFrequencyPhase(FieldName):
     def __repr__(self) -> str:
+        ph = _Phelper()
+        Printer(ph).print(self, ph.cycle_byterm)
+        return ph.get_value()
+
+    def __str__(self):
         return "rabi_frequency_phase"
 
     def print_node(self):
@@ -47,6 +57,11 @@ class RabiFrequencyPhase(FieldName):
 @dataclass(frozen=True)
 class Detuning(FieldName):
     def __repr__(self) -> str:
+        ph = _Phelper()
+        Printer(ph).print(self, ph.cycle_byterm)
+        return ph.get_value()
+
+    def __str__(self):
         return "detuning"
 
     def print_node(self):
@@ -62,6 +77,11 @@ class RabiRouter:
         self.phase = RabiFrequencyPhase()
 
     def __repr__(self) -> str:
+        ph = _Phelper()
+        Printer(ph).print(self, ph.cycle_byterm)
+        return ph.get_value()
+
+    def __str__(self):
         return "rabi (amplitude, phase)"
 
     def print_node(self):
@@ -112,7 +132,12 @@ class Append(PulseExpr):
     value: List[PulseExpr]
 
     def __repr__(self) -> str:
-        return f"pulse.Append(value={self.value!r})"
+        ph = _Phelper()
+        Printer(ph).print(self, ph.cycle_byterm)
+        return ph.get_value()
+
+    def __str__(self):
+        return "pulse.Append(value=" + f"{str([v.print_node() for v in self.value])})"
 
     def print_node(self):
         return "Append"
@@ -146,7 +171,12 @@ class Pulse(PulseExpr):
         self.value = value
 
     def __repr__(self) -> str:
-        return f"Pulse(value={self.value!r})"
+        ph = _Phelper()
+        Printer(ph).print(self, ph.cycle_byterm)
+        return ph.get_value()
+
+    def __str__(self):
+        return f"Pulse(value={str(self.value)})"
 
     def print_node(self):
         return "Pulse"
@@ -168,7 +198,12 @@ class NamedPulse(PulseExpr):
     pulse: PulseExpr
 
     def __repr__(self) -> str:
-        return f"NamedPulse(name={self.name!r}, pulse={self.pulse!r})"
+        ph = _Phelper()
+        Printer(ph).print(self, ph.cycle_byterm)
+        return ph.get_value()
+
+    def __str__(self):
+        return f"NamedPulse(name={str(self.name)})"
 
     def print_node(self):
         return "NamedPulse"
@@ -186,7 +221,12 @@ class Slice(PulseExpr):
     interval: Interval
 
     def __repr__(self) -> str:
-        return f"{self.pulse!r}[{self.interval}]"
+        ph = _Phelper()
+        Printer(ph).print(self, ph.cycle_byterm)
+        return ph.get_value()
+
+    def __str__(self):
+        return f"{self.pulse.print_node()}[{str(self.interval)}]"
 
     def print_node(self):
         return "Slice"

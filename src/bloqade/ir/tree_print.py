@@ -1,6 +1,7 @@
 # Ported from the Julia language AbstractTrees.jl implementation: https://github.com/JuliaCollections/AbstractTrees.jl/blob/master/src/printing.jl
 
 from pydantic.dataclasses import dataclass
+import os
 import sys
 
 max_tree_depth = 10
@@ -52,6 +53,10 @@ class _Phelper:
 
     def get_value(self):
         return self.str_out
+
+    @property
+    def cycle_byterm(self):
+        return int(os.get_terminal_size().columns / 10)
 
 
 class Printer:
