@@ -159,7 +159,7 @@ class NamedSequence(SequenceExpr):
         return ph.get_value()
 
     def __str__(self):
-        return f"NamedSequence(sequence={str(self.sequence)}, name='{str(self.name)}')"
+        return f"NamedSequence(sequence, name='{str(self.name)}')"
 
     def children(self):
         return {"sequence": self.sequence, "name": self.name}
@@ -182,7 +182,7 @@ class Slice(SequenceExpr):
         return ph.get_value()
 
     def __str__(self):
-        return f"{str(self.sequence)}[{str(self.interval)}]"
+        return f"Sequence[{str(self.interval)}]"
 
     def children(self):
         return {"sequence": self.sequence, "interval": self.interval}
