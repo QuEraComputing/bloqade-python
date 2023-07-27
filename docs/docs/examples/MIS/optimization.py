@@ -34,6 +34,7 @@ class Optimizer:
     def _tracking_cost_function(self, x):
         
         cost, bitstrings = self.problem.cost_function(self.ansatz, x)
+        print(f"Cost value is {cost}")
 
         self.bitstring_history.append(bitstrings.tolist())
         self.parameter_history.append(x.tolist())
@@ -66,6 +67,6 @@ class Optimizer:
         # Update the path of the old JSON file
         self.old_json_path = new_json_path
 
-    def optimize(self, method='COBYLA', options=None):
-        result = minimize(self._array_cache(self._tracking_cost_function), self.x_init, method=method, options=options)
+    def optimize(self, method='COBYLA'):
+        result = minimize(self._array_cache(self._tracking_cost_function), self.x_init, method=method, options={"maxiter": self.max_iter})
         return result
