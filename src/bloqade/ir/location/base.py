@@ -5,7 +5,7 @@ from typing import List, Generator, Tuple, Optional, Any, TYPE_CHECKING
 from bokeh.plotting import show
 import numpy as np
 from enum import Enum
-from bokeh.models import ColumnDataSource, Plot, NumericInput, Button, Range1d, CustomJS
+from bokeh.models import ColumnDataSource, NumericInput, Button, Range1d, CustomJS
 from bokeh.plotting import figure
 from bokeh.layouts import column, row
 
@@ -41,7 +41,7 @@ class AtomArrangement(ProgramStart):
         """enumerate all locations in the register."""
         raise NotImplementedError
 
-    def figure(self, **assignments) -> Plot:
+    def figure(self, **assignments):
         """obtain a figure object from the atom arrangement."""
         xs_filled, ys_filled, labels_filled = [], [], []
         xs_vacant, ys_vacant, labels_vacant = [], [], []
