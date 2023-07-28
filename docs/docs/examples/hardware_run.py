@@ -33,6 +33,11 @@ if __name__ == "__main__":
     # Get the access keys
     aws_access_key_id = config.get('716981252513_QC_App_Algo_RD', 'aws_access_key_id')
     aws_secret_access_key = config.get('716981252513_QC_App_Algo_RD', 'aws_secret_access_key')
+    aws_session_token = config.get('716981252513_QC_App_Algo_RD', 'aws_session_token')
+
+    os.environ['AWS_ACCESS_KEY_ID'] = aws_access_key_id
+    os.environ['AWS_SECRET_ACCESS_KEY'] = aws_secret_access_key
+    os.environ['AWS_SESSION_TOKEN'] = aws_session_token  # If you are using temporary security credentials
 
     pos, small_G = graph.kings_graph(10, 10, 0.5, seed = 1)
     unitdisk_radius, min_radius, max_radius = graph.find_UDG_radius(pos, small_G)
