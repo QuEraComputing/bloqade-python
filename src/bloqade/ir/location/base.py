@@ -89,7 +89,7 @@ class AtomArrangement(ProgramStart):
         )
 
         TOOLTIPS = [
-            ("(x,y)", "($x, $y)"),
+            ("(x,y)", "(@x, @y)"),
             ("index: ", "@labels"),
         ]
 
