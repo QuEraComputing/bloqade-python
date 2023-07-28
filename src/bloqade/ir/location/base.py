@@ -81,14 +81,24 @@ class AtomArrangement(ProgramStart):
             data=dict(x=xs_vacant, y=ys_vacant, labels=labels_vacant)
         )
         source_all = ColumnDataSource(
-            data=dict(x=xs_vacant + xs_filled, y=ys_vacant + ys_filled)
+            data=dict(
+                x=xs_vacant + xs_filled,
+                y=ys_vacant + ys_filled,
+                labels=labels_vacant + labels_filled,
+            )
         )
+
+        TOOLTIPS = [
+            ("(x,y)", "($x, $y)"),
+            ("index: ", "@labels"),
+        ]
 
         ## remove box_zoom since we don't want to change the scale
         p = figure(
             width=400,
             height=400,
-            tools="hover,wheel_zoom,reset, pan",
+            tools="hover,wheel_zoom,reset, undo, redo, pan",
+            tooltips=TOOLTIPS,
             toolbar_location="above",
         )
         p.x_range = Range1d(x_min - 1, x_min + length_scale + 1)
