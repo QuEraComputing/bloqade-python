@@ -127,6 +127,7 @@ class AtomArrangement(ProgramStart):
         self, position: Tuple[Any, Any], filled: bool = True
     ) -> "ListOfLocations":
         """add a position to existing atom arrangement."""
+
         from .list import ListOfLocations
 
         location_list = [LocationInfo(position, filled)]

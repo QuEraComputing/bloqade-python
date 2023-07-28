@@ -5,7 +5,21 @@ from .base import Builder
 class LevelCoupling(Builder):
     @property
     def detuning(self):
-        # """Pick the detuning field as coupling."""
+        """
+        - Specify the Detuning field
+        - Next-step: <SpacialModulation>
+        - Possible Next:
+
+            -> `...detuning.location(int)`
+                :: Address atom at specific location
+
+            -> `...detuning.uniform`
+                :: Address all atoms in register
+
+            -> `...detuning.var(str)`
+                :: Address atom at location labeled by variable
+
+        """
         from .field import Detuning
 
         self.__build_cache__.field_name = detuning
@@ -13,7 +27,18 @@ class LevelCoupling(Builder):
 
     @property
     def rabi(self):
-        # """Pick the rabi field as coupling."""
+        """
+        - Specify the Rabi term/field.
+        - Possible Next:
+
+            -> `...rabi.amplitude`
+                :: address rabi amplitude
+
+            -> `...rabi.phase`
+                :: address rabi phase
+
+
+        """
         from .field import Rabi
 
         return Rabi(self)
