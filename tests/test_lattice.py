@@ -80,7 +80,3 @@ def test_internal_base_listofloc():
 
     with pytest.raises(NotImplementedError):
         lattice.n_dims
-
-
-# from bloqade.ir.location import Kagome
-# Kagome(3, lattice_spacing=1.0).show()
