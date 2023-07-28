@@ -24,6 +24,8 @@ def shutdown(instance_id):
 
 if __name__ == "__main__":
 
+    print("Loading credentials!")
+
     # Create a config parser
     config = configparser.ConfigParser()
 
@@ -39,6 +41,8 @@ if __name__ == "__main__":
     os.environ['AWS_SECRET_ACCESS_KEY'] = aws_secret_access_key
     os.environ['AWS_SESSION_TOKEN'] = aws_session_token  # If you are using temporary security credentials
 
+    print("Credentials successfully loaded!")
+    
     pos, small_G = graph.kings_graph(10, 10, 0.5, seed = 1)
     unitdisk_radius, min_radius, max_radius = graph.find_UDG_radius(pos, small_G)
 
@@ -60,10 +64,15 @@ if __name__ == "__main__":
 
     # Initial paramters 
     x0 = np.array([0.25, 1, 0.25] + [-10, -10, 10, 20])
+
+    print("Starting the optimization!")
+
     opt = optimization.Optimizer(problem=problem, ansatz=ansatz, 
                                  x_init=x0,  max_iter=30,
                                  save_progress=True)
-    res = opt.optimize()    
+    res = opt.optimize()        
+
+    print("Successfully finished!")
 
     # TODO: Add rest of plotting
 
