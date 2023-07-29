@@ -56,7 +56,20 @@ class Rabi(Builder):
 
     @property
     def amplitude(self):
-        """specify the amplitude of the rabi field.
+        """
+        - Specify the amplitude of the rabi field.
+        - Next-step: <SpacialModulation>
+        - Possible Next:
+
+            -> `...amplitude.location(int)`
+                :: Address atom at specific location
+
+            -> `...amplitude.uniform`
+                :: Address all atoms in register
+
+            -> `...amplitude.var(str)`
+                :: Address atom at location labeled by variable
+
 
         Examples:
 
@@ -79,7 +92,20 @@ class Rabi(Builder):
 
     @property
     def phase(self):
-        """specify the phase of the rabi field.
+        """
+        - Specify the phase of the rabi field.
+        - Next-step: <SpacialModulation>
+        - Possible Next:
+
+            -> `...phase.location(int)`
+                :: Address atom at specific location
+
+            -> `...phase.uniform`
+                :: Address all atoms in register
+
+            -> `...phase.var(str)`
+                :: Address atom at location labeled by variable
+
 
         Examples:
 

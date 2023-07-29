@@ -15,7 +15,34 @@ class Location(Waveform):
 
     def scale(self, scale: float):
         """
-        Scale the preceeding waveform by the specified factor.
+        - Scale the preceeding waveform by the specified factor.
+        - Possible Next <Location>:
+
+            -> `...location(int).location(int)`
+                :: keep adding location into current list
+
+        - Possible Next <WaveForm>:
+
+            -> `...location(int).linear()`
+                :: apply linear waveform
+
+            -> `...location(int).constant()`
+                :: apply constant waveform
+
+            -> `...location(int).ploy()`
+                :: apply polynomial waveform
+
+            -> `...location(int).apply()`
+                :: apply pre-constructed waveform
+
+            -> `...location(int).piecewise_linear()`
+                :: apply piecewise linear waveform
+
+            -> `...location(int).piecewise_constant()`
+                :: apply piecewise constant waveform
+
+            -> `...location(int).fn()`
+                :: apply callable as waveform.
 
         Args:
             scale (float): The factor to scale (amplitude of)
@@ -47,6 +74,37 @@ class Location(Waveform):
         """
         Append another location to the current location(s)
 
+        - Possible Next <Location>:
+
+            -> `...location(int).location(int)`
+                :: keep adding location into current list
+
+            -> `...location(int).scale(float)`
+                :: specify scaling factor for the preceeding waveform
+
+        - Possible Next <WaveForm>:
+
+            -> `...location(int).linear()`
+                :: apply linear waveform
+
+            -> `...location(int).constant()`
+                :: apply constant waveform
+
+            -> `...location(int).ploy()`
+                :: apply polynomial waveform
+
+            -> `...location(int).apply()`
+                :: apply pre-constructed waveform
+
+            -> `...location(int).piecewise_linear()`
+                :: apply piecewise linear waveform
+
+            -> `...location(int).piecewise_constant()`
+                :: apply piecewise constant waveform
+
+            -> `...location(int).fn()`
+                :: apply callable as waveform.
+
         Args:
             label (int): The label of the location
 
@@ -75,7 +133,35 @@ class Scale(Waveform):
 
     def location(self, label: int):
         """
-        Append another location to the current location after scale the previous one
+        - Append another location to the current location after scale the previous one
+        - Possible Next <Location>:
+
+            -> `...location(int).location(int)`
+                :: keep adding location into current list
+
+        - Possible Next <WaveForm>:
+
+            -> `...location(int).linear()`
+                :: apply linear waveform
+
+            -> `...location(int).constant()`
+                :: apply constant waveform
+
+            -> `...location(int).ploy()`
+                :: apply polynomial waveform
+
+            -> `...location(int).apply()`
+                :: apply pre-constructed waveform
+
+            -> `...location(int).piecewise_linear()`
+                :: apply piecewise linear waveform
+
+            -> `...location(int).piecewise_constant()`
+                :: apply piecewise constant waveform
+
+            -> `...location(int).fn()`
+                :: apply callable as waveform.
+
 
         Args:
             label (int): The label of the location
