@@ -23,6 +23,66 @@ class Waveform(Builder):
             >>> node = bloqade.start.rydberg.detuning.uniform
             >>> node = node.linear(start=0,stop=1,duration=0.5)
 
+        Possible Next:
+
+        - Possible Next <Location>:
+
+            -> `.location(int)`
+                :: continue building the waveform sequence,
+                Addressing another location
+
+        - Possible Next <WaveForm:: current>:
+
+            -> `.slice()`
+                :: slice current waveform
+
+            -> `.record(str)`
+                :: record the value of waveform at current time
+
+        - Possible Next <WaveForm:: append>:
+
+            -> `.linear()`
+
+            -> `.constant()`
+
+            -> `.ploy()`
+
+            -> `.apply()`
+
+            -> `.piecewise_linear()`
+
+            -> `.piecewise_constant()`
+
+            -> `.fn()`
+
+        - Possible Next <LevelCoupling>:
+
+            -> `.rydberg`
+                :: Switch to specify rydberg level coupling channel
+
+            -> `.hyperfine`
+                :: Switch to specify hyperfine level coupling channel
+
+        - Possible Next <Emit:: Linking Vars>:
+
+            -> `.assign()`
+                :: assign varialbe an actual value/number
+
+            -> `.batch_assign()`
+                :: create batch job with different
+                sets of values assign to each variable.
+
+        - Possible Next <Emit:: Compile >:
+
+            -> `.quera()`
+                :: Compile current program to QuEra job
+
+            -> `.braket()`
+                :: Compile current program to Amazon Braket job
+
+            -> `.braket_local_simulator()`
+                :: Compile current program to local simulator job
+
         """
         return Linear(self, start, stop, duration)
 
@@ -40,6 +100,68 @@ class Waveform(Builder):
 
             >>> node = bloqade.start.rydberg.detuning.uniform
             >>> node = node.constant(value=1,duration=0.5)
+
+        Possible Next:
+
+        - Possible Next <Location>:
+
+            -> `.location(int)`
+                :: continue building the waveform sequence,
+                Addressing another location
+
+        - Possible Next <WaveForm:: current>:
+
+            -> `.slice()`
+                :: slice current waveform
+
+            -> `.record(str)`
+                :: record the value of waveform at current time
+
+        - Possible Next <WaveForm:: append>:
+
+            -> `.linear()`
+
+            -> `.constant()`
+
+            -> `.ploy()`
+
+            -> `.apply()`
+
+            -> `.piecewise_linear()`
+
+            -> `.piecewise_constant()`
+
+            -> `.fn()`
+
+        - Possible Next <LevelCoupling>:
+
+            -> `.rydberg`
+                :: Switch to specify rydberg level coupling channel
+
+            -> `.hyperfine`
+                :: Switch to specify hyperfine level coupling channel
+
+        - Possible Next <Emit:: Linking Vars>:
+
+            -> `.assign()`
+                :: assign varialbe an actual value/number
+
+            -> `.batch_assign()`
+                :: create batch job with different sets
+                of values assign to each variable.
+
+        - Possible Next <Compile>:
+
+            -> `.quera()`
+                :: Compile current program to QuEra job
+
+            -> `.braket()`
+                :: Compile current program to Amazon Braket job
+
+            -> `.braket_local_simulator()`
+                :: Compile current program to local simulator job
+
+
 
         """
         return Constant(self, value, duration)
@@ -62,11 +184,148 @@ class Waveform(Builder):
             >>> node = bloqade.start.rydberg.detuning.uniform
             >>> node = node.poly(coeffs=[1,2,3],duration=0.5)
 
+        Possible Next:
+
+        - Possible Next <Location>:
+
+            -> `.location(int)`
+                :: continue building the waveform sequence,
+                Addressing another location
+
+        - Possible Next <WaveForm:: current>:
+
+            -> `.slice()`
+                :: slice current waveform
+
+            -> `.record(str)`
+                :: record the value of waveform at current time
+
+        - Possible Next <WaveForm:: append>:
+
+            -> `.linear()`
+
+            -> `.constant()`
+
+            -> `.ploy()`
+
+            -> `.apply()`
+
+            -> `.piecewise_linear()`
+
+            -> `.piecewise_constant()`
+
+            -> `.fn()`
+
+        - Possible Next <LevelCoupling>:
+
+            -> `.rydberg`
+                :: Switch to specify rydberg level coupling channel
+
+            -> `.hyperfine`
+                :: Switch to specify hyperfine level coupling channel
+
+        - Possible Next <Emit:: Linking Vars>:
+
+            -> `.assign()`
+                :: assign varialbe an actual value/number
+
+            -> `.batch_assign()`
+                :: create batch job with different sets
+                of values assign to each variable.
+
+        - Possible Next <Compile>:
+
+            -> `.quera()`
+                :: Compile current program to QuEra job
+
+            -> `.braket()`
+                :: Compile current program to Amazon Braket job
+
+            -> `.braket_local_simulator()`
+                :: Compile current program to local simulator job
+
+
+
         """
         return Poly(self, coeffs, duration)
 
     def apply(self, wf: ir.Waveform):
-        """apply a pre-defined waveform to the current location."""
+        """
+        Apply a pre-defined waveform to the current location.
+
+        Args:
+            wf (ir.Waveform): the waveform
+
+        Examples:
+            - apply a pre-defined waveform object to current sequence.
+
+            >>> node = bloqade.start.rydberg.detuning.uniform
+            >>> wv = bloqade.ir.Linear(0,10,0.5)
+            >>> node = node.apply(wv)
+
+        Possible Next:
+
+        - Possible Next <Location>:
+
+            -> `.location(int)`
+                :: continue building the waveform sequence,
+                Addressing another location
+
+        - Possible Next <WaveForm:: current>:
+
+            -> `.slice()`
+                :: slice current waveform
+
+            -> `.record(str)`
+                :: record the value of waveform at current time
+
+        - Possible Next <WaveForm:: append>:
+
+            -> `.linear()`
+
+            -> `.constant()`
+
+            -> `.ploy()`
+
+            -> `.apply()`
+
+            -> `.piecewise_linear()`
+
+            -> `.piecewise_constant()`
+
+            -> `.fn()`
+
+        - Possible Next <LevelCoupling>:
+
+            -> `.rydberg`
+                :: Switch to specify rydberg level coupling channel
+
+            -> `.hyperfine`
+                :: Switch to specify hyperfine level coupling channel
+
+        - Possible Next <Emit:: Linking Vars>:
+
+            -> `.assign()`
+                :: assign varialbe an actual value/number
+
+            -> `.batch_assign()`
+                :: create batch job with different sets
+                of values assign to each variable.
+
+        - Possible Next <Compile>:
+
+            -> `.quera()`
+                :: Compile current program to QuEra job
+
+            -> `.braket()`
+                :: Compile current program to Amazon Braket job
+
+            -> `.braket_local_simulator()`
+                :: Compile current program to local simulator job
+
+
+
+        """
         return Apply(self, wf)
 
     def piecewise_linear(self, durations: List[ScalarType], values: List[ScalarType]):
@@ -90,6 +349,66 @@ class Waveform(Builder):
 
         Note:
             ScalarType can be either float or str.
+
+        Possible Next:
+
+        - Possible Next <Location>:
+
+            -> `.location(int)`
+                :: continue building the waveform sequence,
+                Addressing another location
+
+        - Possible Next <WaveForm:: current>:
+
+            -> `.slice()`
+                :: slice current waveform
+
+            -> `.record(str)`
+                :: record the value of waveform at current time
+
+        - Possible Next <WaveForm:: append>:
+
+            -> `.linear()`
+
+            -> `.constant()`
+
+            -> `.ploy()`
+
+            -> `.apply()`
+
+            -> `.piecewise_linear()`
+
+            -> `.piecewise_constant()`
+
+            -> `.fn()`
+
+        - Possible Next <LevelCoupling>:
+
+            -> `.rydberg`
+                :: Switch to specify rydberg level coupling channel
+
+            -> `.hyperfine`
+                :: Switch to specify hyperfine level coupling channel
+
+        - Possible Next <Emit:: Linking Vars>:
+
+            -> `.assign()`
+                :: assign varialbe an actual value/number
+
+            -> `.batch_assign()`
+                :: create batch job with different sets
+                of values assign to each variable.
+
+        - Possible Next <Compile>:
+
+            -> `.quera()`
+                :: Compile current program to QuEra job
+
+            -> `.braket()`
+                :: Compile current program to Amazon Braket job
+
+            -> `.braket_local_simulator()`
+                :: Compile current program to local simulator job
 
         """
         builder = self
@@ -122,6 +441,68 @@ class Waveform(Builder):
 
             >>> node = bloqade.start.rydberg.detuning.uniform
             >>> node = node.piecewise_constant(values=[0.5,1.5],durations=[0.1,3.8])
+
+        Possible Next:
+
+        - Possible Next <Location>:
+
+            -> `.location(int)`
+                :: continue building the waveform sequence,
+                Addressing another location
+
+        - Possible Next <WaveForm:: current>:
+
+            -> `.slice()`
+                :: slice current waveform
+
+            -> `.record(str)`
+                :: record the value of waveform at current time
+
+        - Possible Next <WaveForm:: append>:
+
+            -> `.linear()`
+
+            -> `.constant()`
+
+            -> `.ploy()`
+
+            -> `.apply()`
+
+            -> `.piecewise_linear()`
+
+            -> `.piecewise_constant()`
+
+            -> `.fn()`
+
+        - Possible Next <LevelCoupling>:
+
+            -> `.rydberg`
+                :: Switch to specify rydberg level coupling channel
+
+            -> `.hyperfine`
+                :: Switch to specify hyperfine level coupling channel
+
+        - Possible Next <Emit:: Linking Vars>:
+
+            -> `.assign()`
+                :: assign varialbe an actual value/number
+
+            -> `.batch_assign()`
+                :: create batch job with different sets
+                of values assign to each variable.
+
+
+        - Possible Next <Compile>:
+
+            -> `.quera()`
+                :: Compile current program to QuEra job
+
+            -> `.braket()`
+                :: Compile current program to Amazon Braket job
+
+            -> `.braket_local_simulator()`
+                :: Compile current program to local simulator job
+
 
         """
         builder = self
@@ -159,6 +540,72 @@ class Waveform(Builder):
             >>> node = bloqade.start.rydberg.detuning.uniform
             >>> node = node.fn(my_fn,duration=0.5)
 
+        Possible Next:
+
+        - Possible Next <Location>:
+
+            -> `.location(int)`
+                :: continue building the waveform sequence,
+                Addressing another location
+
+        - Possible Next <WaveForm:: current>:
+
+            -> `.slice()`
+                :: slice current waveform
+
+            -> `.record(str)`
+                :: record the value of waveform at current time
+
+            -> `.sample()`
+                :: sample the current callable at given time points.
+
+        - Possible Next <WaveForm:: append>:
+
+            -> `.linear()`
+
+            -> `.constant()`
+
+            -> `.ploy()`
+
+            -> `.apply()`
+
+            -> `.piecewise_linear()`
+
+            -> `.piecewise_constant()`
+
+            -> `.fn()`
+
+        - Possible Next <LevelCoupling>:
+
+            -> `.rydberg`
+                :: Switch to specify rydberg level coupling channel
+
+            -> `.hyperfine`
+                :: Switch to specify hyperfine level coupling channel
+
+        - Possible Next <Emit:: Linking Vars>:
+
+            -> `.assign()`
+                :: assign varialbe an actual value/number
+
+            -> `.batch_assign()`
+                :: create batch job with different sets
+                of values assign to each variable.
+
+
+        - Possible Next <Compile>:
+
+            -> `.quera()`
+                :: Compile current program to QuEra job
+
+            -> `.braket()`
+                :: Compile current program to Amazon Braket job
+
+            -> `.braket_local_simulator()`
+                :: Compile current program to local simulator job
+
+
+
         """
         return PythonFn(self, fn, duration)
 
@@ -171,13 +618,137 @@ class Sliceable:
     def slice(
         self, start: Optional[ScalarType] = None, stop: Optional[ScalarType] = None
     ):
-        # """slice the current waveform."""
+        """
+        Slice current waveform
+
+        Possible Next:
+
+        - Possible Next <Location>:
+
+            -> `.location(int)`
+                :: continue building the waveform sequence,
+                Addressing another location
+
+        - Possible Next <WaveForm:: current>:
+
+            -> `.record(str)`
+                :: record the value of waveform at current time
+
+        - Possible Next <WaveForm:: append>:
+
+            -> `.linear()`
+
+            -> `.constant()`
+
+            -> `.ploy()`
+
+            -> `.apply()`
+
+            -> `.piecewise_linear()`
+
+            -> `.piecewise_constant()`
+
+            -> `.fn()`
+
+        - Possible Next <LevelCoupling>:
+
+            -> `.rydberg`
+                :: Switch to specify rydberg level coupling channel
+
+            -> `.hyperfine`
+                :: Switch to specify hyperfine level coupling channel
+
+        - Possible Next <Emit:: Linking Vars>:
+
+            -> `.assign()`
+                :: assign varialbe an actual value/number
+
+            -> `.batch_assign()`
+                :: create batch job with different sets
+                of values assign to each variable.
+
+        - Possible Next <Compile>:
+
+            -> `.quera()`
+                :: Compile current program to QuEra job
+
+            -> `.braket()`
+                :: Compile current program to Amazon Braket job
+
+            -> `.braket_local_simulator()`
+                :: Compile current program to local simulator job
+
+        """
         return Slice(self, start, stop)
 
 
 class Recordable:
     def record(self, name: str):
-        # """record the value of the current waveform to a variable."""
+        """
+        Record the value of the current waveform to a variable.
+
+        Possible Next:
+
+        - Possible Next <Location>:
+
+            -> `.location(int)`
+                :: continue building the waveform sequence,
+                Addressing another location
+
+        - Possible Next <WaveForm:: current>:
+
+            -> `.slice()`
+                :: slice the current waveform
+
+            -> `.record(str)`
+                :: record the value of waveform at current time
+
+        - Possible Next <WaveForm:: append>:
+
+            -> `.linear()`
+
+            -> `.constant()`
+
+            -> `.ploy()`
+
+            -> `.apply()`
+
+            -> `.piecewise_linear()`
+
+            -> `.piecewise_constant()`
+
+            -> `.fn()`
+
+        - Possible Next <LevelCoupling>:
+
+            -> `.rydberg`
+                :: Switch to specify rydberg level coupling channel
+
+            -> `.hyperfine`
+                :: Switch to specify hyperfine level coupling channel
+
+        - Possible Next <Emit:: Linking Vars>:
+
+            -> `.assign()`
+                :: assign varialbe an actual value/number
+
+            -> `.batch_assign()`
+                :: create batch job with different sets
+                of values assign to each variable.
+
+        - Possible Next <Compile>:
+
+            -> `.quera()`
+                :: Compile current program to QuEra job
+
+            -> `.braket()`
+                :: Compile current program to Amazon Braket job
+
+            -> `.braket_local_simulator()`
+                :: Compile current program to local simulator job
+
+
+        """
         return Record(self, name)
 
 
