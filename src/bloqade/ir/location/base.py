@@ -9,6 +9,8 @@ from bokeh.models import ColumnDataSource, NumericInput, Button, Range1d, Custom
 from bokeh.plotting import figure
 from bokeh.layouts import column, row
 
+# from bokeh import events
+
 
 if TYPE_CHECKING:
     from .list import ListOfLocations
