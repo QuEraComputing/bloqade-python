@@ -2,6 +2,7 @@ from .ansatz import Ansatz
 import numpy as np
 from bloqade import start
 from bloqade.submission.capabilities import get_capabilities
+from scipy.interpolate import CubicSpline
 import networkx as nx
 
 
@@ -33,7 +34,7 @@ class MIS_ansatz(Ansatz):
 
         self._ansatz = self.ansatz()
 
-    def ansatz(self):
+    def ansatz_linear(self):
    
         # Initialize MIS program 
         mis_udg_program = (
@@ -43,6 +44,26 @@ class MIS_ansatz(Ansatz):
             .detuning.uniform.piecewise_linear(self.duration_list, self.detuning_list)
         )
         return mis_udg_program
+
+    def ansatz_spline(self):
+
+        def func(xs, *args):
+            # Hard coded initial and final points 
+            x = np.array([0., args[0], args[1], 4])
+            y = np.array([-20, args[2], args[3], 20])
+            # Cubic Spline interpolation
+            cs = CubicSpline(x, y)
+            return  cs(xs)
+
+        mis_udg_program = (
+        start.add_positions([map(int, pos_i) for pos_i in self.positions]).scale(self.lattice_spacing/self.unitdisk_radius)
+        .rydberg.rabi
+        .amplitude.uniform.piecewise_linear([0.5, 3, 0.5], [0., self.amp_max, self.amp_max, 0.])
+        .detuning.uniform.fn(fn=lambda xs: func(xs, [f"params_{i}" for i in range(4)]), duration=0.05)
+        )
+
+        return mis_udg_program
+
     
     def get_bitstrings(self, x):
     
