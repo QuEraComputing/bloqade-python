@@ -10,7 +10,7 @@ def test_printer():
     mystdout = StringIO()
     p = PP(mystdout)
 
-    wf._repr_pretty_(p, True)
+    wf._repr_pretty_(p, 1)
 
     assert (
         mystdout.getvalue()
@@ -47,4 +47,39 @@ def test_printer_nodes_dict():
         mystdout.getvalue()
         == "Poly\n├─ b ⇒ Literal: 1\n├─ t ⇒ Literal: 2\n"
         + "├─ t^2 ⇒ Literal: 3\n└─ duration ⇒ Literal: 1"
+    )
+
+
+def test_printer_nodes_compose_turncate():
+    wf = Poly([1, 2, 3], duration=1)
+    wf1 = Linear(start=0, stop=1, duration=1)
+    wf2 = wf + (wf[:0.5] + wf1)
+
+    mystdout = StringIO()
+    p = PP(mystdout)
+
+    wf2._repr_pretty_(p, 0)
+
+    assert mystdout.getvalue() == "+\n├─ Poly\n⋮\n└─ +\n⋮\n"
+
+
+def test_printer_nodes_compose_all():
+    wf = Poly([1, 2, 3], duration=1)
+    wf1 = Linear(start=0, stop=1, duration=1)
+    wf2 = wf + (wf[:0.5] + wf1)
+
+    mystdout = StringIO()
+    p = PP(mystdout)
+
+    wf2._repr_pretty_(p, 10)
+
+    assert (
+        mystdout.getvalue()
+        == "+\n├─ Poly\n│  ├─ b ⇒ Literal: 1\n│  ├─ t ⇒ Literal: 2\n"
+        + "│  ├─ t^2 ⇒ Literal: 3\n│  └─ duration ⇒ Literal: 1\n"
+        + "└─ +\n   ├─ Slice\n   │  ├─ Poly\n   │  │  ├─ b ⇒ Literal: 1\n"
+        + "   │  │  ├─ t ⇒ Literal: 2\n   │  │  ├─ t^2 ⇒ Literal: 3\n"
+        + "   │  │  └─ duration ⇒ Literal: 1\n   │  └─ Interval\n"
+        + "   │     └─ stop ⇒ Literal: 0.5\n   └─ Linear\n      ├─ start ⇒ Literal: 0\n"
+        + "      ├─ stop ⇒ Literal: 1\n      └─ duration ⇒ Literal: 1"
     )

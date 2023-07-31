@@ -37,13 +37,13 @@ from bloqade.submission.ir.capabilities import QuEraCapabilities
 
 from typing import Any, Dict, Tuple, List, Union, Optional
 from bisect import bisect_left
-from numbers import Number
+import numbers
 from decimal import Decimal
 import numpy as np
 
 
 class PiecewiseLinearCodeGen(WaveformVisitor):
-    def __init__(self, assignments: Dict[str, Union[Number, List[Number]]]):
+    def __init__(self, assignments: Dict[str, Union[numbers.Real, List[numbers.Real]]]):
         self.assignments = assignments
 
     def visit_negative(
@@ -144,19 +144,29 @@ class PiecewiseLinearCodeGen(WaveformVisitor):
         stop_value = ast.waveform.eval_decimal(stop_time, **self.assignments)
 
         match (start_index, stop_index):
-            case (0, int(index)) if index == len(times):
+            case (0, int()) if stop_time == duration:
                 absolute_times = times
             case (0, _):
                 absolute_times = times[start_index:stop_index] + [stop_time]
                 values = values[start_index:stop_index] + [stop_value]
-            case (_, int(index)) if index == len(times):
-                absolute_times = [start_time] + times[start_index:stop_index]
-                values = [start_value] + values[start_index:stop_index]
+            case (_, int()) if stop_time == duration:
+                if start_time == times[start_index]:
+                    absolute_times = times[start_index:]
+                    values = values[start_index:]
+                else:
+                    absolute_times = [start_time] + times[start_index:]
+                    values = [start_value] + values[start_index:]
             case (_, _):
-                absolute_times = (
-                    [start_time] + times[start_index:stop_index] + [stop_time]
-                )
-                values = [start_value] + values[start_index:stop_index] + [stop_value]
+                if start_time == times[start_index]:
+                    absolute_times = times[start_index:stop_index] + [stop_time]
+                    values = values[start_index:stop_index] + [stop_value]
+                else:
+                    absolute_times = (
+                        [start_time] + times[start_index:stop_index] + [stop_time]
+                    )
+                    values = (
+                        [start_value] + values[start_index:stop_index] + [stop_value]
+                    )
 
         times = [time - start_time for time in absolute_times]
 
@@ -197,7 +207,7 @@ class PiecewiseLinearCodeGen(WaveformVisitor):
 
 
 class PiecewiseConstantCodeGen(WaveformVisitor):
-    def __init__(self, assignments: Dict[str, Union[Number, List[Number]]]):
+    def __init__(self, assignments: Dict[str, Union[numbers.Real, List[numbers.Real]]]):
         self.assignments = assignments
 
     def visit_negative(
@@ -279,30 +289,42 @@ class PiecewiseConstantCodeGen(WaveformVisitor):
                 )
             )
 
+        if start_time == stop_time:
+            return [Decimal(0.0), Decimal(0.0)], [Decimal(0.0), Decimal(0.0)]
+
         times, values = self.visit(ast.waveform)
 
         start_index = bisect_left(times, start_time)
         stop_index = bisect_left(times, stop_time)
 
-        # evaluate start value using constant interpolation
-        start_value = values[start_index]
-        # evaluate stop value using constant interpolation
-        stop_value = values[stop_index]
+        # print(start_index,stop_index)
 
         match (start_index, stop_index):
-            case (0, int(index)) if index == len(times):
+            case (0, int()) if stop_time == duration:
                 absolute_times = times
             case (0, _):
-                absolute_times = times[start_index:stop_index] + [stop_time]
-                values = values[start_index:stop_index] + [stop_value]
-            case (_, int(index)) if index == len(times):
-                absolute_times = [start_time] + times[start_index:stop_index]
-                values = [start_value] + values[start_index:stop_index]
+                absolute_times = times[:stop_index] + [stop_time]
+                values = values[:stop_index] + [values[stop_index - 1]]
+            case (_, int()) if stop_time == duration:
+                if start_time == times[start_index]:
+                    absolute_times = times[start_index:]
+                    values = values[start_index:]
+                else:
+                    absolute_times = [start_time] + times[start_index:]
+                    values = [values[start_index - 1]] + values[start_index:]
             case (_, _):
-                absolute_times = (
-                    [start_time] + times[start_index:stop_index] + [stop_time]
-                )
-                values = [start_value] + values[start_index:stop_index] + [stop_value]
+                if start_time == times[start_index]:
+                    absolute_times = times[start_index:stop_index] + [stop_time]
+                    values = values[start_index:stop_index] + [values[stop_index - 1]]
+                else:
+                    absolute_times = (
+                        [start_time] + times[start_index:stop_index] + [stop_time]
+                    )
+                    values = (
+                        [values[start_index - 1]]
+                        + values[start_index:stop_index]
+                        + [values[stop_index - 1]]
+                    )
 
         times = [time - start_time for time in absolute_times]
 
@@ -343,7 +365,7 @@ class PiecewiseConstantCodeGen(WaveformVisitor):
 class SchemaCodeGen(ProgramVisitor):
     def __init__(
         self,
-        assignments: Dict[str, Union[Number, List[Number]]],
+        assignments: Dict[str, Union[numbers.Real, List[numbers.Real]]],
         capabilities: Optional[QuEraCapabilities] = None,
     ):
         self.capabilities = capabilities
