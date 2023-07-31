@@ -22,7 +22,7 @@
 
 # %%
 from bloqade import start, cast
-from bloqade.task import HardwareFuture
+from bloqade.task import HardwareBatchResult
 
 import os
 import numpy as np
@@ -94,8 +94,9 @@ emu_report = rabi_oscillation_job.braket_local_simulator(10000).submit().report(
 # Load JSON and pull results from Braket
 
 # %%
-hw_future = HardwareFuture()
-hw_future.load_json(os.getcwd() + "/docs/docs/examples/" + "rabi-job.json")
+hw_future = HardwareBatchResult.load_json(
+    os.getcwd() + "/docs/docs/examples/" + "rabi-job.json"
+)
 hw_rydberg_densities = hw_future.report().rydberg_densities()
 
 # %% [markdown]
