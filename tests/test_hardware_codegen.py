@@ -6,6 +6,28 @@ import json
 import numpy as np
 
 
+"""
+import bloqade.ir.location as location
+from bloqade.codegen.hardware.quera import SchemaCodeGen
+from bloqade.submission.base import get_capabilities
+
+bloqade_program = (
+    location.Square(1)
+    .rydberg.rabi.phase.uniform.piecewise_constant(
+        durations=[0.5, 0.5], values=[0, 1]
+    )
+    .piecewise_constant(
+        durations=[0.3] ,values = [0.2]
+    ).program
+)
+
+capabilities = get_capabilities()
+schema = SchemaCodeGen({},capabilities=capabilities).emit(10, bloqade_program)
+
+print(schema.effective_hamiltonian.rydberg.rabi_frequency_phase.global_.times)
+"""
+
+
 def test_integration_jump_err():
     ## jump at the end of linear -- constant
     with pytest.raises(ValueError):
@@ -36,7 +58,7 @@ def test_integration_scale():
 
     print(panel)
 
-    ir = panel["tasks"]["0"]["task_ir"]
+    ir = panel["hardware_tasks"]["0"]["task_ir"]
 
     assert ir["nshots"] == 10
     assert ir["lattice"]["sites"][0] == [0.0, 0.0]
@@ -57,7 +79,7 @@ def test_integration_neg():
     panel = json.loads(job.json())
     print(panel)
 
-    ir = panel["tasks"]["0"]["task_ir"]
+    ir = panel["hardware_tasks"]["0"]["task_ir"]
 
     assert ir["nshots"] == 10
     assert ir["lattice"]["sites"][0] == [0.0, 0.0]
@@ -86,7 +108,7 @@ def test_integration_poly_const():
     panel = json.loads(job.json())
     print(panel)
 
-    ir = panel["tasks"]["0"]["task_ir"]
+    ir = panel["hardware_tasks"]["0"]["task_ir"]
 
     assert ir["nshots"] == 12
     assert ir["lattice"]["sites"][0] == [0.0, 0.0]
@@ -106,7 +128,7 @@ def test_integration_poly_linear():
     panel = json.loads(job.json())
     print(panel)
 
-    ir = panel["tasks"]["0"]["task_ir"]
+    ir = panel["hardware_tasks"]["0"]["task_ir"]
 
     assert ir["nshots"] == 10
     assert ir["lattice"]["sites"][0] == [0.0, 0.0]
@@ -143,7 +165,7 @@ def test_integration_slice_linear_const():
 
     print(panel)
 
-    ir = panel["tasks"]["0"]["task_ir"]
+    ir = panel["hardware_tasks"]["0"]["task_ir"]
 
     assert ir["nshots"] == 10
     assert ir["lattice"]["sites"][0] == [0.0, 0.0]
@@ -163,7 +185,7 @@ def test_integration_slice_linear_no_stop():
 
     print(panel)
 
-    ir = panel["tasks"]["0"]["task_ir"]
+    ir = panel["hardware_tasks"]["0"]["task_ir"]
 
     assert ir["nshots"] == 10
     assert ir["lattice"]["sites"][0] == [0.0, 0.0]
@@ -183,7 +205,7 @@ def test_integration_slice_linear_no_start():
 
     print(panel)
 
-    ir = panel["tasks"]["0"]["task_ir"]
+    ir = panel["hardware_tasks"]["0"]["task_ir"]
 
     assert ir["nshots"] == 10
     assert ir["lattice"]["sites"][0] == [0.0, 0.0]
@@ -233,7 +255,7 @@ def test_integration_phase():
 
     print(panel)
 
-    ir = panel["tasks"]["0"]["task_ir"]
+    ir = panel["hardware_tasks"]["0"]["task_ir"]
 
     assert ir["nshots"] == 10
     assert ir["lattice"]["sites"][0] == [0.0, 0.0]
@@ -271,7 +293,7 @@ def test_integration_phase_linear():
 
     print(panel)
 
-    ir = panel["tasks"]["0"]["task_ir"]
+    ir = panel["hardware_tasks"]["0"]["task_ir"]
 
     assert ir["nshots"] == 10
     assert ir["lattice"]["sites"][0] == [0.0, 0.0]
@@ -291,7 +313,7 @@ def test_integration_phase_polyconst():
 
     print(panel)
 
-    ir = panel["tasks"]["0"]["task_ir"]
+    ir = panel["hardware_tasks"]["0"]["task_ir"]
 
     assert ir["nshots"] == 10
     assert ir["lattice"]["sites"][0] == [0.0, 0.0]
@@ -312,7 +334,7 @@ def test_integration_phase_slice():
 
     print(panel)
 
-    ir = panel["tasks"]["0"]["task_ir"]
+    ir = panel["hardware_tasks"]["0"]["task_ir"]
 
     assert ir["nshots"] == 10
     assert ir["lattice"]["sites"][0] == [0.0, 0.0]
@@ -332,7 +354,7 @@ def test_integration_phase_scale():
 
     print(panel)
 
-    ir = panel["tasks"]["0"]["task_ir"]
+    ir = panel["hardware_tasks"]["0"]["task_ir"]
 
     assert ir["nshots"] == 10
     assert ir["lattice"]["sites"][0] == [0.0, 0.0]
@@ -352,7 +374,7 @@ def test_integration_phase_neg():
 
     print(panel)
 
-    ir = panel["tasks"]["0"]["task_ir"]
+    ir = panel["hardware_tasks"]["0"]["task_ir"]
 
     assert ir["nshots"] == 10
     assert ir["lattice"]["sites"][0] == [0.0, 0.0]
@@ -372,7 +394,7 @@ def test_integration_phase_slice_no_start():
 
     print(panel)
 
-    ir = panel["tasks"]["0"]["task_ir"]
+    ir = panel["hardware_tasks"]["0"]["task_ir"]
 
     assert ir["nshots"] == 10
     assert ir["lattice"]["sites"][0] == [0.0, 0.0]
@@ -393,7 +415,7 @@ def test_integration_phase_slice_no_stop():
 
     print(panel)
 
-    ir = panel["tasks"]["0"]["task_ir"]
+    ir = panel["hardware_tasks"]["0"]["task_ir"]
 
     assert ir["nshots"] == 10
     assert ir["lattice"]["sites"][0] == [0.0, 0.0]
@@ -414,7 +436,7 @@ def test_integration_phase_slice_same_start_stop():
 
     print(panel)
 
-    ir = panel["tasks"]["0"]["task_ir"]
+    ir = panel["hardware_tasks"]["0"]["task_ir"]
 
     assert ir["nshots"] == 10
     assert ir["lattice"]["sites"][0] == [0.0, 0.0]
@@ -478,26 +500,25 @@ def test_integration_batchassign_assign():
         .mock(10)
     )
 
-    assert len(job.tasks) == 4
+    assert len(job.hardware_tasks) == 4
 
 
-"""
 def test_integration_record():
     job = (
         location.Square(1)
         .rydberg.rabi.phase.uniform.piecewise_constant(
             durations=[0.5, 0.5], values=[0, 1]
-        ).record("a")
-        .piecewise_constant(
-            durations=[0.3] ,values = ["a"]
-        ).mock(10)
+        )
+        .record("a")
+        .piecewise_constant(durations=[0.3], values=["a"])
+        .mock(10)
     )
 
     panel = json.loads(job.json())
 
     print(panel)
 
-    ir = panel["tasks"]["0"]["task_ir"]
+    ir = panel["hardware_tasks"]["0"]["task_ir"]
 
     assert ir["nshots"] == 10
     assert ir["lattice"]["sites"][0] == [0.0, 0.0]
@@ -505,6 +526,63 @@ def test_integration_record():
     assert ir["lattice"]["filling"] == [1]
 
     phase_ir = ir["effective_hamiltonian"]["rydberg"]["rabi_frequency_phase"]
-    assert all(phase_ir["global"]["times"] == np.array([0, 0.5, 1.0,1.3]) * 1e-6)
-    assert all(phase_ir["global"]["values"] == np.array([0, 1.0, 1.0,1.0]))
-"""
+    assert all(phase_ir["global"]["times"] == np.array([0, 0.5, 1.0, 1.3]) * 1e-6)
+    assert all(phase_ir["global"]["values"] == np.array([0, 1.0, 1.0, 1.0]))
+
+
+def test_integration_fn_phase():
+    def my_cos(time):
+        return np.cos(time)
+
+    assert my_cos(1) == np.cos(1)
+
+    job = (
+        location.Square(1)
+        .rydberg.rabi.phase.uniform.fn(my_cos, duration=1.0)
+        .sample(dt=0.5)
+        .mock(10)
+    )
+
+    panel = json.loads(job.json())
+
+    print(panel)
+
+    ir = panel["hardware_tasks"]["0"]["task_ir"]
+
+    assert ir["nshots"] == 10
+    assert ir["lattice"]["sites"][0] == [0.0, 0.0]
+    assert ir["lattice"]["filling"] == [1]
+    assert ir["lattice"]["filling"] == [1]
+
+    phase_ir = ir["effective_hamiltonian"]["rydberg"]["rabi_frequency_phase"]
+    assert all(phase_ir["global"]["times"] == np.array([0, 0.5, 1.0]) * 1e-6)
+    assert all(phase_ir["global"]["values"] == np.array([1.0, 0.8775825, 0.8775825]))
+
+
+def test_integration_fn_detune():
+    def my_cos(time):
+        return np.cos(time)
+
+    assert my_cos(1) == np.cos(1)
+
+    job = (
+        location.Square(1)
+        .rydberg.detuning.uniform.fn(my_cos, duration=1.0)
+        .sample(dt=0.5)
+        .mock(10)
+    )
+
+    panel = json.loads(job.json())
+
+    print(panel)
+
+    ir = panel["hardware_tasks"]["0"]["task_ir"]
+
+    assert ir["nshots"] == 10
+    assert ir["lattice"]["sites"][0] == [0.0, 0.0]
+    assert ir["lattice"]["filling"] == [1]
+    assert ir["lattice"]["filling"] == [1]
+
+    detune_ir = ir["effective_hamiltonian"]["rydberg"]["detuning"]
+    assert all(detune_ir["global"]["times"] == np.array([0, 0.5, 1.0]) * 1e-6)
+    assert all(detune_ir["global"]["values"] == np.array([1000000, 877582.6, 540302.4]))

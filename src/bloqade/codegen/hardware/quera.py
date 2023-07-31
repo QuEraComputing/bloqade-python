@@ -37,13 +37,13 @@ from bloqade.submission.ir.capabilities import QuEraCapabilities
 
 from typing import Any, Dict, Tuple, List, Union, Optional
 from bisect import bisect_left
-from numbers import Number
+import numbers
 from decimal import Decimal
 import numpy as np
 
 
 class PiecewiseLinearCodeGen(WaveformVisitor):
-    def __init__(self, assignments: Dict[str, Union[Number, List[Number]]]):
+    def __init__(self, assignments: Dict[str, Union[numbers.Real, List[numbers.Real]]]):
         self.assignments = assignments
 
     def visit_negative(
@@ -207,7 +207,7 @@ class PiecewiseLinearCodeGen(WaveformVisitor):
 
 
 class PiecewiseConstantCodeGen(WaveformVisitor):
-    def __init__(self, assignments: Dict[str, Union[Number, List[Number]]]):
+    def __init__(self, assignments: Dict[str, Union[numbers.Real, List[numbers.Real]]]):
         self.assignments = assignments
 
     def visit_negative(
@@ -365,7 +365,7 @@ class PiecewiseConstantCodeGen(WaveformVisitor):
 class SchemaCodeGen(ProgramVisitor):
     def __init__(
         self,
-        assignments: Dict[str, Union[Number, List[Number]]],
+        assignments: Dict[str, Union[numbers.Real, List[numbers.Real]]],
         capabilities: Optional[QuEraCapabilities] = None,
     ):
         self.capabilities = capabilities
