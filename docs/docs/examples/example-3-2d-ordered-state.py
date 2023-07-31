@@ -19,7 +19,7 @@
 
 # %%
 from bloqade.ir.location import Square
-from bloqade.task import HardwareFuture
+from bloqade.task import HardwareBatchResult
 
 from bokeh.plotting import figure, show
 from bokeh.io import output_notebook
@@ -62,8 +62,7 @@ ordered_state_2D_job = ordered_state_2D_prog.assign(delta_end=42.66, sweep_time=
 """
 
 # retrieve results from HW
-hw_future = HardwareFuture()
-hw_future.load_json(
+hw_future = HardwareBatchResult.load_json(
     os.getcwd() + "/docs/docs/examples/" + "example-3-2d-ordered-state-job.json"
 )
 hw_job = hw_future.report()
