@@ -4,10 +4,18 @@ from pathlib import Path
 
 import mkdocs_gen_files
 
-# print("triggerrred!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1")
 
 SRC_PATH = "src"
 
+skip_keywords = [
+    "julia",  ## [KHW] skip for now since we didn't have julia codegen rdy
+    "builder/base",  ## hiding from user
+    "builder/terminate",  ## hiding from user
+    "ir/tree_print",  ## hiding from user
+    "ir/visitor",  ## hiding from user
+    "codegen/",  ## hiding from user
+    "builder/factory",  ## hiding from user
+]
 
 nav = mkdocs_gen_files.Nav()
 for path in sorted(Path(SRC_PATH).rglob("*.py")):
@@ -15,9 +23,17 @@ for path in sorted(Path(SRC_PATH).rglob("*.py")):
     doc_path = path.relative_to(SRC_PATH).with_suffix(".md")
     full_doc_path = Path("reference", doc_path)
 
-    ## [KHW] skip for now since we didn't have julia codegen ready:
-    if "julia" in str(doc_path):
+    iskip = False
+
+    for kwrd in skip_keywords:
+        if kwrd in str(doc_path):
+            iskip = True
+            break
+    if iskip:
+        print("[Ignore]", str(doc_path))
         continue
+
+    print("[>]", str(doc_path))
 
     parts = tuple(module_path.parts)
 
