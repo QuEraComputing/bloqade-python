@@ -1,9 +1,32 @@
+# %% [markdown]
+# # Multi-qubit Blockaded Rabi Oscillations
+#
+# In this example we show how rabi oscillations behave when multiple
+# Rydberg atoms blockade eachother
+
+# %%
 from bloqade import start, cast
-from bloqade.task import HardwareFuture
+from bloqade.task import HardwareBatchResult
+
+import numpy as np
+import os
 
 from bokeh.plotting import figure, show
 from bokeh.models import ColumnDataSource, HoverTool, CrosshairTool
-import numpy as np
+
+# %% [markdown]
+# We define a function below to allow multiple programs to be defined with varying
+# numbers of atoms as well as initial geometries, all of which have the
+# atoms blockade eachother.
+#
+# For this example we choose to use 7 atoms in a hexagonal geometry, with
+# the last atom at the center.
+#
+# The waveforms are the same as the two-qubit adiabatic sweep example you saw earlier,
+# but we sweep over the total run time of the rabi pulse
+# (ignoring the ramp up and ramp down times) versus the distance between atoms.
+
+# %%
 
 
 def program_init(num_atoms):
@@ -55,6 +78,11 @@ multi_qubit_blockade_job = multi_qubit_blockade_program.batch_assign(
     t_run=0.05 * np.arange(21)
 ).assign(ramp_time=0.06)
 
+# %% [markdown]
+# We now run the program on the local emulator as well as hardware
+
+# %%
+
 # run on local emulator
 emu_job = multi_qubit_blockade_job.braket_local_simulator(10000).submit().report()
 
@@ -68,10 +96,21 @@ emu_job = multi_qubit_blockade_job.braket_local_simulator(10000).submit().report
 )
 """
 
+# %% [markdown]
+# We retrieve results from the hardware
+
 # load results from HW
-hw_future = HardwareFuture()
-hw_future.load_json("example-2-multi-qubit-blockaded-job.json")
-hw_densities = hw_future.result().rydberg_densities()
+
+# %%
+hw_future = HardwareBatchResult.load_json(
+    os.getcwd() + "/docs/docs/examples/" + "multi-qubit-blockaded-rabi-job.json"
+)
+hw_densities = hw_future.report().rydberg_densities()
+
+# %% [markdown]
+# Now we plot the results
+
+# %%
 
 # Put data into format that Bokeh can consume,
 # want to take the mean across all the densities
