@@ -12,6 +12,8 @@ class BuildCache(BaseModel):
 
 
 class Builder:
+    # [internal] Base class for all builder nodes.
+    #
     def __init__(
         self,
         parent: Optional["Builder"] = None,

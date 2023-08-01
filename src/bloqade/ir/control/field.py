@@ -119,8 +119,12 @@ class ScaledLocations(SpatialModulation):
 
 @dataclass
 class Field:
-    """
+    """Field node in the IR. Which contains collection(s) of
+    [`Waveform`][bloqade.ir.control.waveform.Waveform]
+
+    ```bnf
     <field> ::= ('field' <spatial modulation>  <padded waveform>)*
+    ```
     """
 
     value: Dict[SpatialModulation, Waveform]

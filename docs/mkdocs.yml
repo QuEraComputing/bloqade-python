@@ -26,7 +26,8 @@ nav:
     - examples/adiabatic.py
     - examples/example-3-fixed-1d-z2.py
   - Reference:
-    - reference/bloqade/
+    - Builder workflow : tree/builder.md
+    - API References : reference/bloqade/
   - Blog:
     - blog/index.md
     - 2023:
@@ -88,6 +89,7 @@ plugins:
         python:
           paths: [../src]
           options:
+            show_if_no_docstring: false
             separate_signature: true
             merge_init_into_class: true
             docstring_options:
@@ -97,7 +99,7 @@ plugins:
   - mkdocs-jupyter:
       include: ["*.py"] # only include scripts
       ignore: ["*.ipynb"]
-      execute: true # always execute
+      execute: false # always execute
       include_source: True
   - mike
 
