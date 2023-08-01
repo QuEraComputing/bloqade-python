@@ -81,10 +81,12 @@ detuning = Detuning()
 @dataclass
 class PulseExpr:
     """
+    ```bnf
     <expr> ::= <pulse>
       | <append>
       | <slice>
       | <named>
+    ```
     """
 
     def append(self, other: "PulseExpr") -> "PulseExpr":
@@ -102,7 +104,9 @@ class PulseExpr:
 @dataclass
 class Append(PulseExpr):
     """
+    ```bnf
     <append> ::= <expr>+
+    ```
     """
 
     value: List[PulseExpr]
@@ -123,7 +127,9 @@ class Append(PulseExpr):
 @dataclass(init=False, repr=False)
 class Pulse(PulseExpr):
     """
+    ```bnf
     <pulse> ::= (<field name> <field>)+
+    ```
     """
 
     value: dict[FieldName, Field]

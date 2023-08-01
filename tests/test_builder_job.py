@@ -31,4 +31,4 @@ def test_braket():
     job = prog.braket(4)
 
     x = json.loads(job.json())
-    assert x["tasks"]["0"]["task_ir"]["nshots"] == 4
+    assert x["hardware_tasks"]["0"]["task_ir"]["nshots"] == 4
