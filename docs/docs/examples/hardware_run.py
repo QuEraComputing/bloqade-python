@@ -35,11 +35,11 @@ if __name__ == "__main__":
     # Get the access keys
     aws_access_key_id = config.get('716981252513_QC_App_Algo_RD', 'aws_access_key_id')
     aws_secret_access_key = config.get('716981252513_QC_App_Algo_RD', 'aws_secret_access_key')
-    aws_session_token = config.get('716981252513_QC_App_Algo_RD', 'aws_session_token')
+    # aws_session_token = config.get('716981252513_QC_App_Algo_RD', 'aws_session_token')
 
     os.environ['AWS_ACCESS_KEY_ID'] = aws_access_key_id
     os.environ['AWS_SECRET_ACCESS_KEY'] = aws_secret_access_key
-    os.environ['AWS_SESSION_TOKEN'] = aws_session_token  # If you are using temporary security credentials
+    # os.environ['AWS_SESSION_TOKEN'] = aws_session_token  # If you are using temporary security credentials
 
     print("Credentials successfully loaded!")
     
@@ -51,7 +51,7 @@ if __name__ == "__main__":
     num_time_points = 3
     ansatz = MIS_ansatz.MIS_ansatz(problem=problem, q_hardware=True,
                                     num_shots=30, lattice_spacing=8, 
-                                    unitdisk_radius=unitdisk_radius, 
+                                    blockade_radius=unitdisk_radius, 
                                     num_time_points=num_time_points)
 
     # Initial paramters 
