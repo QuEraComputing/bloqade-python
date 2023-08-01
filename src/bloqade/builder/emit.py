@@ -1,10 +1,4 @@
 from bloqade.builder.base import Builder
-import bloqade.builder.waveform as waveform
-import bloqade.builder.location as location
-import bloqade.builder.spatial as spatial
-import bloqade.builder.field as field
-import bloqade.builder.coupling as coupling
-import bloqade.builder.start as start
 import bloqade.ir as ir
 
 from bloqade.submission.base import SubmissionBackend
@@ -18,11 +12,11 @@ from bloqade.ir.location.base import AtomArrangement, ParallelRegister
 
 from pydantic import BaseModel
 from typing import Optional, Dict, Union, List, Any, Tuple
-from numbers import Number
+import numbers
 import json
 import os
-from bloqade.task import HardwareTask, HardwareJob
-from bloqade.task.braket_simulator import BraketEmulatorJob, BraketEmulatorTask
+from bloqade.task import HardwareTask, HardwareBatchTask
+from bloqade.task.braket_simulator import BraketEmulatorBatchTask, BraketEmulatorTask
 from itertools import repeat
 from collections import OrderedDict
 
@@ -56,8 +50,8 @@ class Emit(Builder):
     def __init__(
         self,
         builder: Builder,
-        assignments: Dict[str, Union[Number, List[Number]]] = {},
-        batch: Dict[str, Union[List[Number], List[List[Number]]]] = {},
+        assignments: Dict[str, Union[numbers.Real, List[numbers.Real]]] = {},
+        batch: Dict[str, Union[List[numbers.Real], List[List[numbers.Real]]]] = {},
         register: Optional[Union["AtomArrangement", "ParallelRegister"]] = None,
         sequence: Optional[ir.Sequence] = None,
     ) -> None:
@@ -87,9 +81,25 @@ class Emit(Builder):
         self.__register__ = register
 
     def assign(self, **assignments):
-        """assign values to variables declared previously in the program.
+        """
+        Assign values to variables declared previously in the program.
 
-        ### Examples
+        Args:
+            assignments (Dict[str, Union[Number]]):
+            The assignments, which should be a kwargs
+            where the key is the variable name and the
+            value is the value to assign to the variable.
+
+        Examples:
+            - Assign the value 0.0 to the variable "ival"
+            and 0.5 to the variable "span_time".
+
+            >>> reg = bloqade.start
+            ...       .add_positions([(0,0),(1,1),(2,2),(3,3)])
+            >>> seq = reg.rydberg.detuning.uniform
+            ...       .linear(start="ival",stop=1,duration="span_time")
+            >>> seq = seq.assign(span_time = 0.5, ival = 0.0)
+
         """
 
         # these methods terminate no build steps can
@@ -105,7 +115,31 @@ class Emit(Builder):
         )
 
     def batch_assign(self, **batch):
-        """assign values to variables declared previously in the program."""
+        """
+        Assign values to variables declared previously in the program
+        for launching batch jobs.
+
+
+        Args:
+            batch (Dict[str, Union[Number]]): The batch assignments of variables,
+            which should be a kwargs where the key is the variable name
+            and the value is the list of value assign to the variable.
+
+        Examples:
+            - Assign the value [0.0,0.5] to the variable "ival" and [0.6,0.8]
+            to the variable "span_time".
+            This will create a job with two tasks
+            of (value,ival) = (0.0,0.6) and (0.5,0.8) with each has 10 shots.
+
+            >>> reg = bloqade.start.add_positions([(0,0),(1,1),(2,2),(3,3)])
+            >>> seq = reg.rydberg.detuning.uniform
+            ...       .linear(start="ival",stop=1,duration="span_time")
+            >>> job = seq.batch_assign(span_time = [0.6,0.8], ival = [0.0,0.5]).mock(10)
+
+        Note:
+            the length of the lists of values should be the same for each variable.
+
+        """
 
         new_batch = dict(self.__batch__)
         new_batch.update(**batch)
@@ -118,6 +152,26 @@ class Emit(Builder):
         )
 
     def parallelize(self, cluster_spacing: Any) -> "Emit":
+        """
+        Parallelize the current problem (register & sequnece) to fill entire FOV
+        with the given cluster spacing.
+
+        Args:
+            cluster_spacing (Any, should be Real):
+            the spacing between parallel clusters.
+
+        Examples:
+            - Parallelize the current problem with cluster spacing 7.2 um.
+
+            >>> prob = (
+                    bloqade.start.add_positions([(0,0),(1,1),(2,2),(3,3)])
+                    .rydberg.detuning.uniform
+                    .linear(start=0,stop=1,duration=1)
+                    )
+            >>> prob = prob.parallelize(7.2)
+
+        """
+
         if isinstance(self.register, ParallelRegister):
             raise TypeError("cannot parallelize a parallel register.")
 
@@ -169,6 +223,13 @@ class Emit(Builder):
 
     @staticmethod
     def __build_ast(builder: Builder, build_state: BuildState):
+        import bloqade.builder.waveform as waveform
+        import bloqade.builder.location as location
+        import bloqade.builder.spatial as spatial
+        import bloqade.builder.field as field
+        import bloqade.builder.coupling as coupling
+        import bloqade.builder.start as start
+
         # print(type(build_state.waveform))
         match builder:
             case (
@@ -405,11 +466,10 @@ class Emit(Builder):
 
     def __compile_hardware(
         self, nshots: int, backend: SubmissionBackend
-    ) -> HardwareJob:
+    ) -> HardwareBatchTask:
         from bloqade.codegen.hardware.quera import SchemaCodeGen
 
         capabilities = backend.get_capabilities()
-
         tasks = OrderedDict()
 
         for task_number, assignments in enumerate(self.__assignments_iterator()):
@@ -422,10 +482,24 @@ class Emit(Builder):
                 parallel_decoder=schema_compiler.parallel_decoder,
             )
 
-        return HardwareJob(tasks=tasks)
+        return HardwareBatchTask(hardware_tasks=tasks)
 
     @property
     def register(self) -> Union["AtomArrangement", "ParallelRegister"]:
+        """Get the `register` from the current builder.
+
+        Returns:
+            register (Union["AtomArrangement", "ParallelRegister"])
+
+        Note:
+            If the program is built with
+            [`parallelize()`][bloqade.builder.emit.Emit.parallelize],
+            The the register will be a
+            [`ParallelRegister`][bloqade.ir.location.base.ParallelRegister].
+            Otherwise it will be a
+            [`AtomArrangement`][bloqade.ir.location.base.AtomArrangement].
+
+        """
         if self.__register__:
             return self.__register__
 
@@ -446,6 +520,12 @@ class Emit(Builder):
 
     @property
     def sequence(self):
+        """Get the `sequence` from the current builder.
+
+        Returns:
+            sequence (Sequence)
+
+        """
         if self.__sequence__ is None:
             build_state = BuildState()
             Emit.__build_ast(self, build_state)
@@ -455,12 +535,32 @@ class Emit(Builder):
 
     @property
     def program(self) -> Program:
+        """
+        Get the Program from the current builder.
+        See also [`Program`][bloqade.ir.program.Program]
+
+        Returns:
+            prog (Program)
+
+        """
         return Program(self.register, self.sequence)
 
     def simu(self, *args, **kwargs):
         raise NotImplementedError
 
     def braket_local_simulator(self, nshots: int):
+        """
+        Compile the current builder to a
+        [`BraketEmulatorBatchTask`][bloqade.task.braket_simulator.BraketEmulatorBatchTask]
+        , which can be submit to run on braket local simulator.
+
+        Args:
+            nshots (int): The number of shots to run.
+
+        Returns:
+            BraketEmulatorJob
+
+        """
         from bloqade.codegen.hardware.quera import SchemaCodeGen
 
         if isinstance(self.register, ParallelRegister):
@@ -474,15 +574,41 @@ class Emit(Builder):
             task = BraketEmulatorTask(task_ir=to_braket_task_ir(task_ir))
             tasks[task_number] = task
 
-        return BraketEmulatorJob(tasks=tasks)
+        return BraketEmulatorBatchTask(braket_emulator_tasks=tasks)
 
-    def braket(self, nshots: int) -> "HardwareJob":
+    def braket(self, nshots: int) -> "HardwareBatchTask":
+        """
+        Compile the current builder to a Amazon braket
+        [`HardwareBatchTask`][bloqade.task.hardware.HardwareBatchTask]
+        , which can be submit to run on QPU through braket service.
+
+        Args:
+            nshots (int): The number of shots to run.
+
+        Returns:
+            HardwareBatchTask
+
+        """
         backend = BraketBackend()
         return self.__compile_hardware(nshots, backend)
 
     def quera(
         self, nshots: int, config_file: Optional[str] = None, **api_config
-    ) -> "HardwareJob":
+    ) -> "HardwareBatchTask":
+        """
+        Compile the current builder to a QuEra
+        [`HardwareBatchTask`][bloqade.task.hardware.HardwareBatchTask]
+        , which can be submit to run on QPU through QuEra service.
+
+        Args:
+            nshots (int): The number of shots to run.
+            config_file (Optional[str]): The path to the config file.
+            api_config (Dict[str, Any]): The api config.
+
+        Returns:
+            HardwareBatchTask
+
+        """
         if config_file is None:
             path = os.path.dirname(__file__)
 
@@ -503,7 +629,22 @@ class Emit(Builder):
 
         return self.__compile_hardware(nshots, backend)
 
-    def mock(self, nshots: int, state_file: str = ".mock_state.txt") -> "HardwareJob":
+    def mock(
+        self, nshots: int, state_file: str = ".mock_state.txt"
+    ) -> "HardwareBatchTask":
+        """
+        Compile the current builder to a Dummy mock
+        [`HardwareBatchTask`][bloqade.task.hardware.HardwareBatchTask]
+        , which can be used for testing.
+
+        Args:
+            nshots (int): The number of shots to run.
+            state_file (str): The file to store the state of the mock backend.
+
+        Returns:
+            HardwareBatchTask
+
+        """
         backend = DumbMockBackend(state_file=state_file)
 
         return self.__compile_hardware(nshots, backend)

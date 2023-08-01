@@ -127,6 +127,7 @@ class AtomArrangement(ProgramStart):
         self, position: Tuple[Any, Any], filled: bool = True
     ) -> "ListOfLocations":
         """add a position to existing atom arrangement."""
+
         from .list import ListOfLocations
 
         location_list = [LocationInfo(position, filled)]
@@ -206,6 +207,8 @@ class AtomArrangement(ProgramStart):
 
 @dataclass(init=False)
 class ParallelRegister(ProgramStart):
+    """Parallel Register"""
+
     register_locations: List[List[Scalar]]
     register_filling: List[int]
     shift_vectors: List[List[Scalar]]

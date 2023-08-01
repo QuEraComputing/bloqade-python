@@ -8,9 +8,8 @@ from unittest.mock import patch
 from bloqade.submission.base import ValidationError
 
 
-@patch("bloqade.submission.braket.AwsDevice")
-def test_braket_submit(*args, **kwargs):
-    task_ir = task_spec.QuEraTaskSpecification(
+def get_task_ir():
+    return task_spec.QuEraTaskSpecification(
         nshots=10,
         lattice=task_spec.Lattice(sites=[(0, 0)], filling=[1]),
         effective_hamiltonian=task_spec.EffectiveHamiltonian(
@@ -36,6 +35,11 @@ def test_braket_submit(*args, **kwargs):
             )
         ),
     )
+
+
+@patch("bloqade.submission.braket.AwsDevice")
+def test_braket_submit(*args, **kwargs):
+    task_ir = get_task_ir()
 
     backend = bloqade.submission.braket.BraketBackend()
     mock_aws_device = bloqade.submission.braket.AwsDevice(backend.device_arn)
@@ -48,37 +52,7 @@ def test_braket_submit(*args, **kwargs):
 @patch("bloqade.submission.braket.AwsDevice")
 @patch("bloqade.submission.braket.AwsQuantumTask")
 def test_braket_validate_task(*args, **kwargs):
-    task_ir = task_spec.QuEraTaskSpecification(
-        nshots=10,
-        lattice=task_spec.Lattice(sites=[(0, 0)], filling=[1]),
-        effective_hamiltonian=task_spec.EffectiveHamiltonian(
-            rydberg=task_spec.RydbergHamiltonian(
-                rabi_frequency_amplitude=task_spec.RabiFrequencyAmplitude(
-                    global_=task_spec.GlobalField(
-                        times=[0, 1e-6, 2e-6, 3e-6, 4e-6],
-                        values=[0, 15e6, 15e6, 0],
-                    )
-                ),
-                rabi_frequency_phase=task_spec.RabiFrequencyPhase(
-                    global_=task_spec.GlobalField(
-                        times=[0, 4e-6],
-                        values=[0, 0],
-                    )
-                ),
-                detuning=task_spec.Detuning(
-                    global_=task_spec.GlobalField(
-                        times=[0, 1e-6, 2e-6, 3e-6, 4e-6],
-                        values=[0, 15e6, 15e6, 0],
-                    ),
-                    local=task_spec.LocalField(
-                        times=[0, 1e-6, 2e-6, 3e-6, 4e-6],
-                        values=[0, 15e6, 15e6, 0],
-                        lattice_site_coefficients=[1],
-                    ),
-                ),
-            )
-        ),
-    )
+    task_ir = get_task_ir()
 
     backend = bloqade.submission.braket.BraketBackend()
     mock_aws_device = bloqade.submission.braket.AwsDevice(backend.device_arn)
