@@ -45,8 +45,9 @@ class State:
 
 
 # p is needed for IPython Pretty printer or
-# the following helper wrap:
-class _Phelper:
+# the following helper wrap, which collect the tree,
+# and spit out the tree as raw string
+class MockPrinter:
     def __init__(self):
         self.str_out = ""
 
@@ -62,7 +63,7 @@ class _Phelper:
 
 
 class Printer:
-    def __init__(self, p):
+    def __init__(self, p=MockPrinter()):
         self.charset = UnicodeCharSet() if unicode_enabled else ASCIICharSet()
         self.state = State()
         self.p = p
@@ -75,6 +76,9 @@ class Printer:
             return False
         elif type(children) == dict:
             return True
+
+    def _get_full_output(self):
+        return self.p.get_value()
 
     def print(self, node, cycle=None):
         if cycle is None or isinstance(cycle, bool):

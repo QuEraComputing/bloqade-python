@@ -6,7 +6,7 @@ from typing import Any, Tuple, Union, List, Callable
 from enum import Enum
 
 
-from ..tree_print import Printer, _Phelper
+from ..tree_print import Printer
 from ..scalar import Scalar, Interval, Variable, cast
 from bokeh.plotting import figure
 import numpy as np
@@ -178,6 +178,14 @@ class Waveform:
             case _:
                 return expr
 
+    def __repr__(self) -> str:
+        ph = Printer()
+        ph.print(self)
+        return ph.get_value()
+
+    def _repr_pretty_(self, p, cycle):
+        Printer(p).print(self, cycle)
+
 
 @dataclass
 class AlignedWaveform(Waveform):
@@ -279,11 +287,6 @@ class Linear(Instruction):
                 (stop_value - start_value) / self.duration(**kwargs)
             ) * clock_s + start_value
 
-    def __repr__(self) -> str:
-        ph = _Phelper()
-        Printer(ph).print(self)
-        return ph.get_value()
-
     def __str__(self):
         return (
             f"Linear(start={str(self.start)}, stop={str(self.stop)}, "
@@ -295,9 +298,6 @@ class Linear(Instruction):
 
     def children(self):
         return {"start": self.start, "stop": self.stop, "duration": self.duration}
-
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)
 
 
 @dataclass(init=False)
@@ -329,11 +329,6 @@ class Constant(Instruction):
         else:
             return constant_value
 
-    def __repr__(self) -> str:
-        ph = _Phelper()
-        Printer(ph).print(self)
-        return ph.get_value()
-
     def __str__(self):
         return f"Constant(value={str(self.value)}, duration={str(self.duration)})"
 
@@ -342,9 +337,6 @@ class Constant(Instruction):
 
     def children(self):
         return {"value": self.value, "duration": self.duration}
-
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)
 
 
 @dataclass(init=False)
@@ -382,11 +374,6 @@ class Poly(Instruction):
 
             return value
 
-    def __repr__(self) -> str:
-        ph = _Phelper()
-        Printer(ph).print(self)
-        return ph.get_value()
-
     def __str__(self):
         return f"Poly({str(self.checkpoints)}, {str(self.duration)})"
 
@@ -409,9 +396,6 @@ class Poly(Instruction):
         annotated_checkpoints["duration"] = self._duration
 
         return annotated_checkpoints
-
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)
 
 
 @dataclass(init=False)
@@ -454,19 +438,11 @@ class PythonFn(Instruction):
             )
         )
 
-    def __repr__(self) -> str:
-        ph = _Phelper()
-        Printer(ph).print(self)
-        return ph.get_value()
-
     def print_node(self):
         return f"PythonFn: {self.fn.__name__}"
 
     def children(self):
         return {"duration": self.duration}
-
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)
 
 
 @dataclass(init=False)
@@ -586,11 +562,6 @@ class Smooth(Waveform):
         else:
             raise ValueError(f"Invalid kernel: {self.kernel}")
 
-    def __repr__(self) -> str:
-        ph = _Phelper()
-        Printer(ph).print(self)
-        return ph.get_value()
-
     def __str__(self):
         return f"Smooth(kernel={str(self.kernel)}, waveform={str(self.waveform)})"
 
@@ -605,11 +576,6 @@ class Slice(Waveform):
 
     waveform: Waveform
     interval: Interval
-
-    def __repr__(self) -> str:
-        ph = _Phelper()
-        Printer(ph).print(self)
-        return ph.get_value()
 
     def __str__(self):
         return f"{str(self.waveform)}[{str(self.interval)}]"
@@ -628,9 +594,6 @@ class Slice(Waveform):
 
     def children(self):
         return [self.waveform, self.interval]
-
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)
 
 
 @dataclass
@@ -655,11 +618,6 @@ class Append(Waveform):
 
         return Decimal(0)
 
-    def __repr__(self) -> str:
-        ph = _Phelper()
-        Printer(ph).print(self)
-        return ph.get_value()
-
     def __str__(self):
         return f"waveform.Append(waveforms={str(self.waveforms)})"
 
@@ -668,9 +626,6 @@ class Append(Waveform):
 
     def children(self):
         return self.waveforms
-
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)
 
 
 @dataclass
@@ -686,11 +641,6 @@ class Negative(Waveform):
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
         return -self.waveform.eval_decimal(clock_s, **kwargs)
 
-    def __repr__(self) -> str:
-        ph = _Phelper()
-        Printer(ph).print(self)
-        return ph.get_value()
-
     def __str__(self):
         return f"-({str(self.waveform)})"
 
@@ -699,9 +649,6 @@ class Negative(Waveform):
 
     def children(self):
         return [self.waveform]
-
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)
 
 
 @dataclass(init=False)
@@ -722,11 +669,6 @@ class Scale(Waveform):
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
         return self.scalar(**kwargs) * self.waveform.eval_decimal(clock_s, **kwargs)
 
-    def __repr__(self) -> str:
-        ph = _Phelper()
-        Printer(ph).print(self)
-        return ph.get_value()
-
     def __str__(self):
         return f"({str(self.scalar)} * {str(self.waveform)})"
 
@@ -735,9 +677,6 @@ class Scale(Waveform):
 
     def children(self):
         return [self.scalar, self.waveform]
-
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)
 
 
 @dataclass
@@ -754,11 +693,6 @@ class Add(Waveform):
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
         return self.left(clock_s, **kwargs) + self.right(clock_s, **kwargs)
 
-    def __repr__(self) -> str:
-        ph = _Phelper()
-        Printer(ph).print(self)
-        return ph.get_value()
-
     def __str__(self):
         return f"({str(self.left)} + {str(self.right)})"
 
@@ -767,9 +701,6 @@ class Add(Waveform):
 
     def children(self):
         return [self.left, self.right]
-
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)
 
 
 @dataclass
@@ -792,16 +723,8 @@ class Record(Waveform):
     def children(self):
         return {"Waveform": self.waveform, "Variable": self.var}
 
-    def __repr__(self) -> str:
-        ph = _Phelper()
-        Printer(ph).print(self)
-        return ph.get_value()
-
     def __str__(self):
         return f"Record({str(self.waveform)}, {str(self.var)})"
-
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)
 
 
 class Interpolation(str, Enum):
@@ -866,11 +789,3 @@ class Sample(Waveform):
 
     def children(self):
         return {"Waveform": self.waveform, "sample_step": self.dt}
-
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)
-
-    def __repr__(self) -> str:
-        ph = _Phelper()
-        Printer(ph).print(self)
-        return ph.get_value()
