@@ -77,7 +77,7 @@ class Printer:
         elif type(children) == dict:
             return True
 
-    def _get_full_output(self):
+    def get_value(self):
         return self.p.get_value()
 
     def print(self, node, cycle=None):

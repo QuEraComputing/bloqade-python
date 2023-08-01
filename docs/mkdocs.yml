@@ -23,7 +23,6 @@ nav:
       - Asking a question: https://github.com/QuEraComputing/bloqade-python/discussions
   - Tutorials:
     - tutorials/index.md
-    - examples/adiabatic.py
   - Reference:
     - Builder workflow : tree/builder.md
     - API References : reference/bloqade/
@@ -98,7 +97,7 @@ plugins:
   - mkdocs-jupyter:
       include: ["*.py"] # only include scripts
       ignore: ["*.ipynb"]
-      execute: false # always execute
+      execute: true # always execute
       include_source: True
   - mike
 

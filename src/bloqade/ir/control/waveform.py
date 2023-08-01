@@ -226,9 +226,6 @@ class AlignedWaveform(Waveform):
 
         return annotated_children
 
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)
-
 
 @dataclass
 class Instruction(Waveform):
