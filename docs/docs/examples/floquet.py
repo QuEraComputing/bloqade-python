@@ -15,11 +15,11 @@
 # ---
 
 # %% [markdown]
-# # Whitepaper Example 1C: Floquet Protocol
+# # Floquet Protocol
 
 # %%
 from bloqade import start, cast
-from bloqade.task import HardwareFuture
+from bloqade.task import HardwareBatchResult
 
 import numpy as np
 import os
@@ -29,6 +29,16 @@ from bokeh.plotting import figure, show
 from bokeh.models import ColumnDataSource, HoverTool, CrosshairTool
 
 output_notebook()
+
+# %% [markdown]
+# Define the program. For the floquet protocol we keep
+# a constant Rabi frequency but allow the detuning to vary sinusoidally.
+#
+# We do this by defining a smooth function for the detuning and then
+# sampling it at certain intervals (in this case,
+# the minimum hardware-supported time step)
+
+# %%
 
 drive_frequency = 15
 drive_amplitude = 15
@@ -50,6 +60,13 @@ floquet_program = (
     .sample("min_time_step", "linear")
 )
 
+# %% [markdown]
+# We assign values to the necessary variables and then submit
+# the program to both the emulator and
+# actual hardware.
+
+# %%
+
 floquet_job = floquet_program.assign(
     ramp_time=0.06, min_time_step=0.05, rabi_max=15
 ).batch_assign(t_run=np.around(np.linspace(min_time_step, 3, 101), 13))
@@ -66,12 +83,15 @@ emu_job = floquet_job.braket_local_simulator(10000).submit().report()
 )
 """
 
-hw_future = HardwareFuture()
-hw_future.load_json(
-    os.getcwd() + "/docs/docs/examples/" + "example-1c-floquet-job.json"
+hw_future = HardwareBatchResult.load_json(
+    os.getcwd() + "/docs/docs/examples/" + "floquet-job.json"
 )
 hw_rydberg_densities = hw_future.report().rydberg_densities()
 
+# %% [markdown]
+# Now we compare the results between the emulator and hardware.
+
+# %%
 # plot results
 data = {
     "times": np.around(np.linspace(min_time_step, 3, 101), 13),

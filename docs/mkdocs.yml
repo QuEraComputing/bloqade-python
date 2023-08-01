@@ -24,7 +24,7 @@ nav:
   - Tutorials:
     - tutorials/index.md
     - examples/adiabatic.py
-    - examples/example-1c-floquet.py
+    - examples/floquet.py
   - Reference:
     - Builder workflow : tree/builder.md
     - API References : reference/bloqade/
@@ -99,7 +99,7 @@ plugins:
   - mkdocs-jupyter:
       include: ["*.py"] # only include scripts
       ignore: ["*.ipynb"]
-      execute: false # always execute
+      execute: true # always execute
       include_source: True
   - mike
 
