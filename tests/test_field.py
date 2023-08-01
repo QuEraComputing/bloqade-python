@@ -16,7 +16,7 @@ from IPython.lib.pretty import PrettyPrinter as PP
 def test_location():
     loc = Location(3)
 
-    assert loc.__repr__() == "Location(3)"
+    assert str(loc) == "Location(3)"
     assert loc.print_node() == "Location 3"
     assert loc.children() == []
 
@@ -31,7 +31,7 @@ def test_spacmod_base():
 def test_unform():
     x = Uniform
 
-    assert x.__repr__() == "Uniform"
+    assert str(x) == "Uniform"
     assert x.print_node() == "UniformModulation"
     assert x.children() == []
 
@@ -46,7 +46,7 @@ def test_unform():
 def test_runtime_vec():
     x = RunTimeVector("sss")
 
-    assert x.__repr__() == "RunTimeVector('sss')"
+    assert str(x) == "RunTimeVector(sss)"
     assert x.print_node() == "RunTimeVector"
     assert x.children() == ["sss"]
 
@@ -75,9 +75,11 @@ def test_scal_loc():
     assert (
         mystdout.getvalue()
         == "ScaledLocations\n"
-        + "├─ Location 1 ⇒ Literal: 1.0\n"
+        + "├─ Location 1\n"
+        + "│  ⇒ Literal: 1.0\n"
         + "⋮\n"
-        + "└─ Location 2 ⇒ Literal: 2.0⋮\n"
+        + "└─ Location 2\n"
+        + "   ⇒ Literal: 2.0⋮\n"
     )
 
 
@@ -100,10 +102,14 @@ def test_field():
     assert (
         mystdout.getvalue()
         == "Field\n"
-        + "└─ ScaledLocations ⇒ Linear\n"
-        + "                     ├─ start ⇒ Literal: 1.0\n"
-        + "                     ├─ stop ⇒ Variable: x\n"
-        + "                     └─ duration ⇒ Literal: 3.0"
+        + "└─ ScaledLocations\n"
+        + "   ⇒ Linear\n"
+        + "     ├─ start\n"
+        + "     │  ⇒ Literal: 1.0\n"
+        + "     ├─ stop\n"
+        + "     │  ⇒ Variable: x\n"
+        + "     └─ duration\n"
+        + "        ⇒ Literal: 3.0"
     )
 
     # add with field same spat-mod
