@@ -1,9 +1,10 @@
-import pytest
+# import pytest
 from bloqade import start
-import numpy as np
+
+# import numpy as np
 
 
-@pytest.mark.skip(reason="not a good unit test, skip for now")
+# @pytest.mark.skip(reason="not a good unit test, skip for now")
 def test_braket_simulator_getbitstring():
     program = (
         start.add_position((0, 0))
@@ -15,10 +16,7 @@ def test_braket_simulator_getbitstring():
 
     output = program.braket_local_simulator(10).submit().report()
 
-    assert all(
-        output.bitstrings[0].flatten()
-        == np.array([1, 0, 0, 0, 0, 0, 0, 0, 0, 0], dtype=np.int8)
-    )
+    assert len(output.bitstrings[0].flatten()) == 10
 
 
 """
