@@ -1,9 +1,13 @@
 # Ported from the Julia language AbstractTrees.jl implementation: https://github.com/JuliaCollections/AbstractTrees.jl/blob/master/src/printing.jl
 
 from pydantic.dataclasses import dataclass
+import sys
 
+# The maximum depth of the tree to print.
 max_tree_depth = 10
-unicode_enabled = True
+
+
+unicode_enabled = sys.stdout.encoding.lower().startswith("utf")
 
 
 # charset object, extracts away charset
@@ -14,7 +18,7 @@ class UnicodeCharSet:
     skip = "│"
     dash = "─"
     trunc = "⋮"
-    pair = " ⇒ "
+    pair = "⇒ "
 
 
 @dataclass
@@ -24,7 +28,7 @@ class ASCIICharSet:
     skip = "|"
     dash = "--"
     trunc = "..."
-    pair = " => "
+    pair = "=> "
 
 
 @dataclass
@@ -38,6 +42,23 @@ class State:
 # children method  -> either list or Dict
 # print_node method -> should just return str
 # print_annotation ->  should just return str
+
+
+# p is needed for IPython Pretty printer or
+# the following helper wrap:
+class _Phelper:
+    def __init__(self):
+        self.str_out = ""
+
+    def text(self, segs: str):
+        self.str_out += segs
+
+    def get_value(self):
+        return self.str_out
+
+    # @property
+    # def cycle_byterm(self):
+    #    return int(os.get_terminal_size().columns / 10)
 
 
 class Printer:
@@ -55,7 +76,10 @@ class Printer:
         elif type(children) == dict:
             return True
 
-    def print(self, node, cycle):
+    def print(self, node, cycle=None):
+        if cycle is None or isinstance(cycle, bool):
+            cycle = max_tree_depth
+
         # list of children
         children = node.children().copy()
         node_str = node.print_node()
@@ -109,8 +133,9 @@ class Printer:
 
             if this_print_annotation and annotation is not None:
                 self.p.text(annotation)
-                self.p.text(self.charset.pair)
-                child_prefix += " " * (len(annotation) + len(self.charset.pair))
+                self.p.text("\n")
+                self.p.text(child_prefix + self.charset.pair)
+                child_prefix += " " * (len(self.charset.pair))
 
             self.state.depth += 1
             parent_last = self.state.last

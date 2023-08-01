@@ -18,8 +18,8 @@ class BraketEmulatorTask(JSONInterface, Task):
 
     def _geometry(self) -> Geometry:
         return Geometry(
-            sites=self.task_ir.lattice.sites,
-            filling=self.task_ir.lattice.filling,
+            sites=self.task_ir.program.setup.ahs_register.sites,
+            filling=self.task_ir.program.setup.ahs_register.filling,
         )
 
     def submit(self, **kwargs) -> "BraketEmulatorTaskResults":

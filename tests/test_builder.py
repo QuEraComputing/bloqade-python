@@ -9,9 +9,10 @@
 import bloqade.ir as ir
 from bloqade.builder import location, waveform
 from bloqade.ir import rydberg, detuning, hyperfine, rabi
-from bloqade import start, var, cast
-from bloqade.ir.location import Square, Chain
-import numpy as np
+from bloqade import start, cast
+
+# from bloqade.ir.location import Square, Chain
+# import numpy as np
 import pytest
 
 
@@ -209,6 +210,7 @@ def test_piecewise_linear_mismatch():
         )
 
 
+"""
 prog = start
 prog = (
     prog.rydberg.detuning.location(1)
@@ -362,3 +364,4 @@ for site in range(11):
         .braket_local_simulator(1000)
     )
     print(job)
+"""

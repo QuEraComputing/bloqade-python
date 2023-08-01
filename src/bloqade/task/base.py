@@ -24,7 +24,7 @@ if TYPE_CHECKING:
 class Geometry:
     sites: List[Tuple[float, float]]
     filling: List[int]
-    parallel_decoder: Optional[ParallelDecoder]
+    parallel_decoder: Optional[ParallelDecoder] = None
 
 
 TaskSubType = TypeVar("TaskSubType", bound="Task")
