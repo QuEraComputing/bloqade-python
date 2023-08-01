@@ -52,6 +52,9 @@ class Optimizer:
         new_json_path = f"progress_{timestamp}.json"
 
         # Save the progress to the new JSON file
+
+        # TODO: Get rid of bitstring history, & put into ansatz for get_bitstring()
+
         progress = {
             "bitstring_history": self.bitstring_history,
             "parameter_history": self.parameter_history,

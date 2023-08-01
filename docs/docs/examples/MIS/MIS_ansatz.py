@@ -8,13 +8,13 @@ import networkx as nx
 
 class MIS_ansatz(Ansatz):
 
-    def __init__(self, problem, q_hardware, num_shots, lattice_spacing, unitdisk_radius, num_time_points) -> None:
+    def __init__(self, problem, q_hardware, num_shots, blockade_radius, unitdisk_radius, num_time_points) -> None:
 
         self.num_time_points = num_time_points
         self.num_shots = num_shots
         self.graph = problem.graph
         self.positions = problem.positions
-        self.lattice_spacing = lattice_spacing
+        self.blockade_radius = blockade_radius
         self.unitdisk_radius = unitdisk_radius
         self.q_hardware = q_hardware
     
@@ -32,51 +32,90 @@ class MIS_ansatz(Ansatz):
         self.duration_list = [f"duration_{i+1}" for i in range(self.num_time_points)]
         self.detuning_list = [f"detuning_{i+1}" for i in range(self.num_time_points+1)]
 
-        self._ansatz = self.ansatz()
+        #self._ansatz = self.ansatz_linear()
+
+    # TODO: Json this and save 
+
+    def submit(self, params):
+
+        if self.q_hardware == True:
+            job = self.ansatz_spline(params).braket(self.num_shots)
+        elif self.q_hardware == False:
+            job = self.ansatz_spline(params).braket_local_simulator(self.num_shots)
+        
+
+        return job.submit()
+
+    def ansatz(self):
+        return self.ansatz_linear()
+
 
     def ansatz_linear(self):
    
         # Initialize MIS program 
         mis_udg_program = (
-            start.add_positions([map(int, pos_i) for pos_i in self.positions]).scale(self.lattice_spacing/self.unitdisk_radius)
+            start.add_positions(self.positions.astype(float)).scale(self.blockade_radius/self.unitdisk_radius)
             .rydberg.rabi 
             .amplitude.uniform.piecewise_linear(self.duration_list, [0.] + [self.amp_max] * (self.num_time_points-1)  + [0.])
             .detuning.uniform.piecewise_linear(self.duration_list, self.detuning_list)
         )
         return mis_udg_program
+    
+    # TODO: generalize code to work with params list, regardless of param names
+    
+    def ansatz_spline(self, params):
+       
+        x, y = params[:len(params)//2], params[len(params)//2:]
 
-    def ansatz_spline(self):
-
-        def func(xs, *args):
-            # Hard coded initial and final points 
-            x = np.array([0., args[0], args[1], 4])
-            y = np.array([-20, args[2], args[3], 20])
+        def piecewise_spline(time, x, y):
             # Cubic Spline interpolation
             cs = CubicSpline(x, y)
-            return  cs(xs)
-
+            # Construct piecewise function
+            piecewise_func = np.piecewise(time, 
+                                        [time < x[0], 
+                                        (time >= x[0]) & (time <= x[-1]), 
+                                        time > x[-1]], 
+                                        [y[0], cs, y[-1]])
+            return piecewise_func
+        
         mis_udg_program = (
-        start.add_positions([map(int, pos_i) for pos_i in self.positions]).scale(self.lattice_spacing/self.unitdisk_radius)
+        start.add_positions(self.positions.astype(float)).scale(self.blockade_radius/self.unitdisk_radius)
         .rydberg.rabi
         .amplitude.uniform.piecewise_linear([0.5, 3, 0.5], [0., self.amp_max, self.amp_max, 0.])
-        .detuning.uniform.fn(fn=lambda xs: func(xs, [f"params_{i}" for i in range(4)]), duration=0.05)
+        .detuning.uniform.fn(fn=lambda time: piecewise_spline(time, x, y), duration=4).sample(0.05)
         )
-
         return mis_udg_program
 
-    
+    # TODO: make this non-blocking and save stuff into JSON 
     def get_bitstrings(self, x):
     
         var_list = (self.duration_list + self.detuning_list)
 
         if self.q_hardware == True:
-            job = self._ansatz.assign(**dict(zip(var_list, x))).braket(self.num_shots)
+            job = self.ansatz().assign(**dict(zip(var_list, x))).braket(self.num_shots)
         elif self.q_hardware == False:
-            job = self._ansatz.assign(**dict(zip(var_list, x))).braket_local_simulator(self.num_shots)
+            job = self.ansatz().assign(**dict(zip(var_list, x))).braket_local_simulator(self.num_shots)
 
         return np.array(job.submit().report().bitstrings[0])
     
-    
+
+    # TODO: make this non-blocking and save stuff into JSON 
+
+    def get_bitstrings_spline(self, params):
+        
+        if self.q_hardware == True:
+            job = self.ansatz_spline(params).braket(self.num_shots).submit()
+        elif self.q_hardware == False:
+            job = self.ansatz_spline(params).braket_local_simulator(self.num_shots).submit()
+
+        # Save to JSON in case anything goes wrong
+        job.save_json("job.json")
+
+        # TODO: Put code above into a submit function
+        # Load the JSON here? 
+        
+        return np.array(job.report().bitstrings[0])
+        
     def get_solutions(self, x):
         bitstrings = self.get_bitstrings(x)
         return self.post_process_MIS(bitstrings)

@@ -43,7 +43,7 @@ if __name__ == "__main__":
 
     print("Credentials successfully loaded!")
     
-    pos, small_G = graph.kings_graph(10, 10, 0.5, seed = 1)
+    pos, small_G = graph.kings_graph(11, 11, 0.3, seed = 1)
     unitdisk_radius, min_radius, max_radius = graph.find_UDG_radius(pos, small_G)
 
     # Plot and save the graph
