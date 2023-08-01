@@ -32,7 +32,7 @@ def test_parallel_task():
         .mock(10)
     )
 
-    assert quantum_task.tasks[0].parallel_decoder
+    assert quantum_task.hardware_tasks[0].parallel_decoder
 
 
 def test_error_parallel_doublecall():

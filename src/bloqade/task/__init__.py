@@ -1,19 +1,20 @@
-from .base import Task, TaskFuture, Job, Future, Report
+from .base import Task, TaskShotResults, BatchTask, BatchResult
+from .report import Report
 from .hardware import (
     HardwareTask,
-    HardwareTaskFuture,
-    HardwareJob,
-    HardwareFuture,
+    HardwareTaskShotResults,
+    HardwareBatchTask,
+    HardwareBatchResult,
 )
 
 __all__ = [
     "Task",
     "HardwareTask",
-    "TaskFuture",
-    "HardwareTaskFuture",
+    "TaskShotResults",
+    "HardwareTaskShotResults",
     "Report",
-    "Job",
-    "HardwareJob",
-    "Future",
-    "HardwareFuture",
+    "BatchTask",
+    "HardwareBatchTask",
+    "BatchResult",
+    "HardwareBatchResult",
 ]
