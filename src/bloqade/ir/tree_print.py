@@ -63,10 +63,13 @@ class MockPrinter:
 
 
 class Printer:
-    def __init__(self, p=MockPrinter()):
+    def __init__(self, p=None):
         self.charset = UnicodeCharSet() if unicode_enabled else ASCIICharSet()
         self.state = State()
-        self.p = p
+        if p is None:
+            self.p = MockPrinter()
+        else:
+            self.p = p
         self.max_tree_depth = max_tree_depth
 
     def should_print_annotation(self, children):
