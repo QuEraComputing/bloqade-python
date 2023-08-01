@@ -6,7 +6,7 @@ from typing import Any, Tuple, Union, List, Callable
 from enum import Enum
 
 
-from ..tree_print import Printer
+from ..tree_print import Printer, _Phelper
 from ..scalar import Scalar, Interval, Variable, cast
 from bokeh.plotting import figure
 import numpy as np
@@ -280,9 +280,14 @@ class Linear(Instruction):
             ) * clock_s + start_value
 
     def __repr__(self) -> str:
+        ph = _Phelper()
+        Printer(ph).print(self)
+        return ph.get_value()
+
+    def __str__(self):
         return (
-            f"Linear(start={self.start!r}, stop={self.stop!r}, "
-            f"duration={self.duration!r})"
+            f"Linear(start={str(self.start)}, stop={str(self.stop)}, "
+            f"duration={str(self.duration)})"
         )
 
     def print_node(self):
@@ -325,7 +330,12 @@ class Constant(Instruction):
             return constant_value
 
     def __repr__(self) -> str:
-        return f"Constant(value={self.value!r}, duration={self.duration!r})"
+        ph = _Phelper()
+        Printer(ph).print(self)
+        return ph.get_value()
+
+    def __str__(self):
+        return f"Constant(value={str(self.value)}, duration={str(self.duration)})"
 
     def print_node(self):
         return "Constant"
@@ -373,7 +383,12 @@ class Poly(Instruction):
             return value
 
     def __repr__(self) -> str:
-        return f"Poly({self.checkpoints!r}, {self.duration!r})"
+        ph = _Phelper()
+        Printer(ph).print(self)
+        return ph.get_value()
+
+    def __str__(self):
+        return f"Poly({str(self.checkpoints)}, {str(self.duration)})"
 
     def print_node(self) -> str:
         return "Poly"
@@ -438,6 +453,11 @@ class PythonFn(Instruction):
                 )
             )
         )
+
+    def __repr__(self) -> str:
+        ph = _Phelper()
+        Printer(ph).print(self)
+        return ph.get_value()
 
     def print_node(self):
         return f"PythonFn: {self.fn.__name__}"
@@ -567,7 +587,12 @@ class Smooth(Waveform):
             raise ValueError(f"Invalid kernel: {self.kernel}")
 
     def __repr__(self) -> str:
-        return f"Smooth(kernel={self.kernel!r}, waveform={self.waveform!r})"
+        ph = _Phelper()
+        Printer(ph).print(self)
+        return ph.get_value()
+
+    def __str__(self):
+        return f"Smooth(kernel={str(self.kernel)}, waveform={str(self.waveform)})"
 
 
 @dataclass
@@ -582,7 +607,12 @@ class Slice(Waveform):
     interval: Interval
 
     def __repr__(self) -> str:
-        return f"{self.waveform!r}[{self.interval!r}]"
+        ph = _Phelper()
+        Printer(ph).print(self)
+        return ph.get_value()
+
+    def __str__(self):
+        return f"{str(self.waveform)}[{str(self.interval)}]"
 
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
         if clock_s > self.duration(**kwargs):
@@ -626,7 +656,12 @@ class Append(Waveform):
         return Decimal(0)
 
     def __repr__(self) -> str:
-        return f"waveform.Append(waveforms={self.waveforms!r})"
+        ph = _Phelper()
+        Printer(ph).print(self)
+        return ph.get_value()
+
+    def __str__(self):
+        return f"waveform.Append(waveforms={str(self.waveforms)})"
 
     def print_node(self):
         return "Append"
@@ -652,7 +687,12 @@ class Negative(Waveform):
         return -self.waveform.eval_decimal(clock_s, **kwargs)
 
     def __repr__(self) -> str:
-        return f"-({self.waveform!r})"
+        ph = _Phelper()
+        Printer(ph).print(self)
+        return ph.get_value()
+
+    def __str__(self):
+        return f"-({str(self.waveform)})"
 
     def print_node(self):
         return "-"
@@ -683,7 +723,12 @@ class Scale(Waveform):
         return self.scalar(**kwargs) * self.waveform.eval_decimal(clock_s, **kwargs)
 
     def __repr__(self) -> str:
-        return f"({self.scalar!r} * {self.waveform!r})"
+        ph = _Phelper()
+        Printer(ph).print(self)
+        return ph.get_value()
+
+    def __str__(self):
+        return f"({str(self.scalar)} * {str(self.waveform)})"
 
     def print_node(self):
         return "Scale"
@@ -710,7 +755,12 @@ class Add(Waveform):
         return self.left(clock_s, **kwargs) + self.right(clock_s, **kwargs)
 
     def __repr__(self) -> str:
-        return f"({self.left!r} + {self.right!r})"
+        ph = _Phelper()
+        Printer(ph).print(self)
+        return ph.get_value()
+
+    def __str__(self):
+        return f"({str(self.left)} + {str(self.right)})"
 
     def print_node(self):
         return "+"
@@ -743,7 +793,12 @@ class Record(Waveform):
         return {"Waveform": self.waveform, "Variable": self.var}
 
     def __repr__(self) -> str:
-        return f"Record({self.waveform!r}, {self.var!r})"
+        ph = _Phelper()
+        Printer(ph).print(self)
+        return ph.get_value()
+
+    def __str__(self):
+        return f"Record({str(self.waveform)}, {str(self.var)})"
 
     def _repr_pretty_(self, p, cycle):
         Printer(p).print(self, cycle)
@@ -814,3 +869,8 @@ class Sample(Waveform):
 
     def _repr_pretty_(self, p, cycle):
         Printer(p).print(self, cycle)
+
+    def __repr__(self) -> str:
+        ph = _Phelper()
+        Printer(ph).print(self)
+        return ph.get_value()
