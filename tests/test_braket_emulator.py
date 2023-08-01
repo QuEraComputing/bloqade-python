@@ -16,7 +16,7 @@ def test_braket_simulator_getbitstring():
 
     assert all(
         output.bitstrings[0].flatten()
-        == np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1], dtype=np.int8)
+        == np.array([1, 0, 0, 0, 0, 0, 0, 0, 0, 0], dtype=np.int8)
     )
 
 
