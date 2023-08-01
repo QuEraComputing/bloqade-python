@@ -99,7 +99,7 @@ class MIS_ansatz(Ansatz):
         # Save to JSON in case anything goes wrong
         job.save_json("job.json")
 
-        return np.array(job.submit().report().bitstrings[0])
+        return np.array(job.report().bitstrings[0])
     
 
     # TODO: make this non-blocking and save stuff into JSON 
