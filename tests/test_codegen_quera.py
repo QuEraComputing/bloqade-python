@@ -8,6 +8,7 @@ from bloqade.ir import (
     Linear,
     Constant,
     Interval,
+    NamedPulse,
 )
 from bloqade import cast
 import bloqade.codegen.common.assignment_scan as asn
@@ -64,7 +65,8 @@ def test_assignment_scan_waveform():
     wf = wv + wv
 
     f = Field({Uniform: wf})
-    ps = Pulse({detuning: f})
+    ps = ps = NamedPulse("qq", Pulse({detuning: f}))
+
     seq_full = Sequence({rydberg: ps})
 
     asgn = {"test": 40}
