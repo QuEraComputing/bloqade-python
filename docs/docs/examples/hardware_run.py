@@ -8,10 +8,10 @@ import boto3
 import os
 import configparser
 
-def send_sns_notification():
+def send_sns_notification(arn):
     sns = boto3.client('sns')
     response = sns.publish(
-        TopicArn='your-topic-arn',    
+        TopicArn=arn,    
         Message='The optimization task has completed successfully.',
         Subject='Notification from EC2 instance',
     )
@@ -46,14 +46,6 @@ if __name__ == "__main__":
     pos, small_G = graph.kings_graph(11, 11, 0.3, seed = 1)
     unitdisk_radius, min_radius, max_radius = graph.find_UDG_radius(pos, small_G)
 
-    # Plot and save the graph
-    # fig, ax = plt.subplots()
-    # nx.draw(small_G, pos, with_labels=True, ax=ax)
-    # node_of_interest = 3
-    # circle = patches.Circle(pos[node_of_interest], unitdisk_radius,
-    #                        fill=False, linewidth=2, linestyle='--')  # create a circle patch
-    # ax.add_patch(circle)  # add the circle patch to the axes
-
     # Set up the problem
     problem = MIS_problem.MIS_problem(graph=small_G, positions=pos)
     num_time_points = 3
@@ -74,10 +66,10 @@ if __name__ == "__main__":
 
     print("Successfully finished!")
 
-    # TODO: Add rest of plotting
+    print("Send notification!")
+    # send_sns_notification(arn="arn")
 
-
-    # Shut down EC2 instance and send email notification
+    print("Shut down instance")
     # shutdown(instance_id='i-02f8727d3a2f56772')
 
 

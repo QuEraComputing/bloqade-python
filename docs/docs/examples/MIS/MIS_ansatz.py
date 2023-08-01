@@ -92,9 +92,12 @@ class MIS_ansatz(Ansatz):
         var_list = (self.duration_list + self.detuning_list)
 
         if self.q_hardware == True:
-            job = self.ansatz().assign(**dict(zip(var_list, x))).braket(self.num_shots)
+            job = self.ansatz().assign(**dict(zip(var_list, x))).braket(self.num_shots).submit()
         elif self.q_hardware == False:
-            job = self.ansatz().assign(**dict(zip(var_list, x))).braket_local_simulator(self.num_shots)
+            job = self.ansatz().assign(**dict(zip(var_list, x))).braket_local_simulator(self.num_shots).submit()
+
+        # Save to JSON in case anything goes wrong
+        job.save_json("job.json")
 
         return np.array(job.submit().report().bitstrings[0])
     
