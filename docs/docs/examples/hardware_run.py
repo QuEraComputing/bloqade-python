@@ -50,8 +50,8 @@ if __name__ == "__main__":
     problem = MIS_problem.MIS_problem(graph=small_G, positions=pos)
     num_time_points = 3
     ansatz = MIS_ansatz.MIS_ansatz(problem=problem, q_hardware=True,
-                                    num_shots=30, lattice_spacing=8, 
-                                    blockade_radius=unitdisk_radius, 
+                                    num_shots=30, blockade_radius=8, 
+                                    unitdisk_radius=unitdisk_radius, 
                                     num_time_points=num_time_points)
 
     # Initial paramters 
