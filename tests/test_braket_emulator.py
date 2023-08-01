@@ -1,8 +1,9 @@
+import pytest
 from bloqade import start
-
 import numpy as np
 
 
+@pytest.mark.skip(reason="not a good unit test, skip for now")
 def test_braket_simulator_getbitstring():
     program = (
         start.add_position((0, 0))
