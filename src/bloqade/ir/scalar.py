@@ -4,6 +4,7 @@ from typing import Any, Union, List
 from .tree_print import Printer
 import re
 from decimal import Decimal
+import numbers
 
 __all__ = [
     "var",
@@ -228,9 +229,18 @@ def check_variable_name(name: str) -> None:
 
 
 def cast(py) -> Any:
+    """cast Real number (or list/tuple of Real numbers)
+    to [`Scalar Literal`][bloqade.ir.scalar.Literal].
+
+    Args:
+        py (Union[Real,Tuple[Real],List[Real]]): python object to cast
+
+    Returns:
+        Union[Literal,Tuple[Literal],List[Literal]]
+    """
     ret = trycast(py)
     if ret is None:
-        raise TypeError(f"Cannot cast {py} to Scalar")
+        raise TypeError(f"Cannot cast {type(py)} to Scalar Literal")
 
     return ret
 
@@ -250,14 +260,26 @@ def trycast(py) -> Any:
             return tuple(map(cast, xs))
         case Scalar():
             return py
+        case numbers.Real():
+            return Literal(Decimal(str(py)))
+
         case _:
             return
 
 
 def var(py: Union[str, List[str]]) -> Any:
+    """cast string (or list/tuple of strings)
+    to [`Variable`][bloqade.ir.scalar.Variable].
+
+    Args:
+        py (Union[str, List[str], Tuple[str]]): a string or list/tuple of strings
+
+    Returns:
+       Union[Variable, List[Variable], Tuple[Variable]]
+    """
     ret = tryvar(py)
     if ret is None:
-        raise TypeError(f"Cannot cast {py} to Variable")
+        raise TypeError(f"Cannot cast {type(py)} to Variable")
 
     return ret
 
@@ -278,14 +300,19 @@ def tryvar(py) -> Any:
 
 
 class Real(Scalar):
-    """Base class for all real expressions."""
-
+    # """Base class for all real expressions."""
     pass
 
 
 @dataclass(frozen=True)
 class Literal(Real):
     value: Decimal
+    """Scalar Literal, which stores a decimaal value instance.
+
+    Args:
+        value (Decimal): decimal value instance
+
+    """
 
     def __repr__(self) -> str:
         return f"{self.value}"
@@ -302,6 +329,13 @@ class Literal(Real):
 
 @dataclass(frozen=True)
 class Variable(Real):
+    """Variable, which stores a variable name.
+
+    Args:
+        name (str): variable instance.
+
+    """
+
     name: str
 
     def __repr__(self) -> str:

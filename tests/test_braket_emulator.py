@@ -1,8 +1,28 @@
+import pytest
 from bloqade import start
-from bloqade.ir.location import Square
 import numpy as np
 
 
+@pytest.mark.skip(reason="not a good unit test, skip for now")
+def test_braket_simulator_getbitstring():
+    program = (
+        start.add_position((0, 0))
+        .rydberg.rabi.amplitude.uniform.piecewise_linear(
+            durations=[0.05, 1, 0.05], values=[0.0, 15.8, 15.8, 0.0]
+        )
+        .detuning.uniform.piecewise_linear(durations=[1.1], values=[0.0, 0.0])
+    )
+
+    output = program.braket_local_simulator(10).submit().report()
+
+    assert all(
+        output.bitstrings[0].flatten()
+        == np.array([1, 0, 0, 0, 0, 0, 0, 0, 0, 0], dtype=np.int8)
+    )
+
+
+"""
+from bloqade.ir.location import Square
 if __name__ == "__main__":
     simulator_job = (
         start.add_position((0, 0))
@@ -36,3 +56,4 @@ if __name__ == "__main__":
     mis_udg_job = mis_udg_program.batch_assign(final_detuning=np.linspace(0, 80, 81))
 
     hw_job = mis_udg_job.braket_local_simulator(100).submit()
+"""
