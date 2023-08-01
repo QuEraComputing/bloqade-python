@@ -1,6 +1,6 @@
 from .pulse import PulseExpr, Pulse
 from ..scalar import Interval
-from ..tree_print import Printer, _Phelper
+from ..tree_print import Printer
 
 from pydantic.dataclasses import dataclass
 from typing import List, Dict
@@ -20,41 +20,33 @@ class LevelCoupling:
     def children(self):
         return []
 
+    def __repr__(self) -> str:
+        ph = Printer()
+        ph.print(self)
+        return ph.get_value()
+
+    def _repr_pretty_(self, p, cycle):
+        Printer(p).print(self, cycle)
+
     pass
 
 
 @dataclass(frozen=True)
 class RydbergLevelCoupling(LevelCoupling):
-    def __repr__(self) -> str:
-        ph = _Phelper()
-        Printer(ph).print(self)
-        return ph.get_value()
-
     def __str__(self):
         return "rydberg"
 
     def print_node(self):
         return "RydbergLevelCoupling"
 
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)
-
 
 @dataclass(frozen=True)
 class HyperfineLevelCoupling(LevelCoupling):
-    def __repr__(self) -> str:
-        ph = _Phelper()
-        Printer(ph).print(self)
-        return ph.get_value()
-
     def __str__(self):
         return "hyperfine"
 
     def print_node(self):
         return "HyperfineLevelCoupling"
-
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)
 
 
 rydberg = RydbergLevelCoupling()
@@ -76,15 +68,18 @@ class SequenceExpr:
     def canonicalize(expr: "SequenceExpr") -> "SequenceExpr":
         return expr
 
+    def __repr__(self) -> str:
+        ph = Printer()
+        ph.print(self)
+        return ph.get_value()
+
+    def _repr_pretty_(self, p, cycle):
+        Printer(p).print(self, cycle)
+
 
 @dataclass
 class Append(SequenceExpr):
     value: List[SequenceExpr]
-
-    def __repr__(self) -> str:
-        ph = _Phelper()
-        Printer(ph).print(self)
-        return ph.get_value()
 
     def __str__(self):
         return f"sequence.Append(value={str(self.value)})"
@@ -94,9 +89,6 @@ class Append(SequenceExpr):
 
     def print_node(self):
         return "Append"
-
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)
 
 
 @dataclass(init=False, repr=False)
@@ -126,11 +118,6 @@ class Sequence(SequenceExpr):
     def __call__(self, clock_s: float, level_coupling: LevelCoupling, *args, **kwargs):
         return self.value[level_coupling](clock_s, *args, **kwargs)
 
-    def __repr__(self) -> str:
-        ph = _Phelper()
-        Printer(ph).print(self)
-        return ph.get_value()
-
     def __str__(self):
         return f"Sequence({str(self.value)})"
 
@@ -144,19 +131,11 @@ class Sequence(SequenceExpr):
     def print_node(self):
         return "Sequence"
 
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)
-
 
 @dataclass
 class NamedSequence(SequenceExpr):
     sequence: SequenceExpr
     name: str
-
-    def __repr__(self) -> str:
-        ph = _Phelper()
-        Printer(ph).print(self)
-        return ph.get_value()
 
     def __str__(self):
         return f"NamedSequence(sequence, name='{str(self.name)}')"
@@ -167,19 +146,11 @@ class NamedSequence(SequenceExpr):
     def print_node(self):
         return "NamedSequence"
 
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)
-
 
 @dataclass(repr=False)
 class Slice(SequenceExpr):
     sequence: SequenceExpr
     interval: Interval
-
-    def __repr__(self) -> str:
-        ph = _Phelper()
-        Printer(ph).print(self)
-        return ph.get_value()
 
     def __str__(self):
         return f"Sequence[{str(self.interval)}]"
@@ -189,7 +160,3 @@ class Slice(SequenceExpr):
 
     def print_node(self):
         return "Slice"
-
-    def _repr_pretty_(self, p, cycle):
-        print(cycle)
-        Printer(p).print(self, cycle)

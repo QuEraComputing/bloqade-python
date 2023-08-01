@@ -2,7 +2,7 @@ from pydantic.dataclasses import dataclass
 from ..scalar import Scalar, cast
 from .waveform import Waveform
 from typing import Dict
-from ..tree_print import Printer, _Phelper
+from ..tree_print import Printer
 
 __all__ = [
     "Field",
@@ -19,9 +19,12 @@ class Location:
     value: int
 
     def __repr__(self) -> str:
-        ph = _Phelper()
-        Printer(ph).print(self)
+        ph = Printer()
+        ph.print(self)
         return ph.get_value()
+
+    def _repr_pretty_(self, p, cycle):
+        Printer(p).print(self, cycle)
 
     def __str__(self):
         return f"Location({str(self.value)})"
@@ -32,25 +35,25 @@ class Location:
     def print_node(self):
         return f"Location {self.value}"
 
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)
-
 
 @dataclass
 class SpatialModulation:
     def __hash__(self) -> int:
         raise NotImplementedError
 
+    def __repr__(self) -> str:
+        ph = Printer()
+        ph.print(self)
+        return ph.get_value()
+
+    def _repr_pretty_(self, p, cycle):
+        Printer(p).print(self, cycle)
+
 
 @dataclass
 class UniformModulation(SpatialModulation):
     def __hash__(self) -> int:
         return hash(self.__class__)
-
-    def __repr__(self) -> str:
-        ph = _Phelper()
-        Printer(ph).print(self)
-        return ph.get_value()
 
     def __str__(self):
         return "Uniform"
@@ -60,9 +63,6 @@ class UniformModulation(SpatialModulation):
 
     def children(self):
         return []
-
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)
 
 
 Uniform = UniformModulation()
@@ -75,11 +75,6 @@ class RunTimeVector(SpatialModulation):
     def __hash__(self) -> int:
         return hash(self.name) ^ hash(self.__class__)
 
-    def __repr__(self) -> str:
-        ph = _Phelper()
-        Printer(ph).print(self)
-        return ph.get_value()
-
     def __str__(self):
         return f"RunTimeVector({str(self.name)})"
 
@@ -88,9 +83,6 @@ class RunTimeVector(SpatialModulation):
 
     def children(self):
         return [self.name]
-
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)
 
 
 @dataclass(init=False)
@@ -113,11 +105,6 @@ class ScaledLocations(SpatialModulation):
     def __hash__(self) -> int:
         return hash(frozenset(self.value.items())) ^ hash(self.__class__)
 
-    def __repr__(self) -> str:
-        ph = _Phelper()
-        Printer(ph).print(self)
-        return ph.get_value()
-
     def __str__(self):
         return f"ScaledLocations(value={str(self.value)})"
 
@@ -132,9 +119,6 @@ class ScaledLocations(SpatialModulation):
             annotated_children[loc.print_node()] = scalar
 
         return annotated_children
-
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)
 
 
 @dataclass
@@ -153,9 +137,12 @@ class Field:
         return hash(frozenset(self.value.items())) ^ hash(self.__class__)
 
     def __repr__(self) -> str:
-        ph = _Phelper()
-        Printer(ph).print(self)
+        ph = Printer()
+        ph.print(self)
         return ph.get_value()
+
+    def _repr_pretty_(self, p, cycle):
+        Printer(p).print(self, cycle)
 
     def __str__(self):
         return f"Field({str(self.value)})"
@@ -180,6 +167,3 @@ class Field:
     def children(self):
         # return dict with annotations
         return {spatial_mod.print_node(): wf for spatial_mod, wf in self.value.items()}
-
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)
