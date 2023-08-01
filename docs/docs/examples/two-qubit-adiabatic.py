@@ -15,12 +15,12 @@
 # ---
 
 # %% [markdown]
-# # Whitepaper Example 2A: Two Qubit Adiabatic Sweep
+# # Two Qubit Adiabatic Sweep
 
 # %%
 
 from bloqade import start
-from bloqade.task import HardwareFuture
+from bloqade.task import HardwareBatchResult
 
 import numpy as np
 import os
@@ -30,6 +30,16 @@ from bokeh.plotting import figure, show
 from bokeh.models import ColumnDataSource, CrosshairTool, HoverTool
 
 output_notebook()
+
+# %% [markdown]
+# Create a program with two qubits where the distance
+# between the qubits is incrementally increased.
+#
+# A standard adiabatic sweep using a fixed rabi frequency
+# but ramp of the detuning from large negative to positive
+# value is used.
+
+# %%
 
 durations = [1, 2, 1]
 
@@ -43,6 +53,11 @@ two_qubit_adiabatic_program = (
 two_qubit_adiabatic_job = two_qubit_adiabatic_program.batch_assign(
     distance=np.around(np.arange(4, 11, 1), 13)
 )
+
+# %% [markdown]
+# Submit the job to the local emulator and hardware, then retrieve the results.
+
+# %%
 
 # submit to local emulator
 emu_job = two_qubit_adiabatic_job.braket_local_simulator(10000).submit().report()
@@ -58,11 +73,15 @@ emu_job = two_qubit_adiabatic_job.braket_local_simulator(10000).submit().report(
 """
 
 # retrieve data from HW
-hw_future = HardwareFuture()
-hw_future.load_json(
-    os.getcwd() + "/docs/docs/examples/" + "example-2-two-qubit-adiabatic-job.json"
+hw_future = HardwareBatchResult.load_json(
+    os.getcwd() + "/docs/docs/examples/" + "two-qubit-adiabatic-job.json"
 )
 hw_report = hw_future.report()
+
+# %% [markdown]
+# plot the results
+
+# %%
 
 # want to plot the 0 rydberg probability,
 # 1 rydberg probability,
