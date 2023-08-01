@@ -126,7 +126,7 @@ class AtomArrangement(ProgramStart):
             radius=0,  # in the same unit as the data
             fill_alpha=0,
             line_width=0.15 * length_scale,
-            visible=False,  # don't display by default
+            visible=True,  # display by default
         )
 
         # adding rydberg radis input
