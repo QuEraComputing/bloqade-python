@@ -24,7 +24,7 @@ def test_rabi_router():
     R = rabi
 
     assert R.print_node() == "RabiRouter"
-    assert R.__repr__() == "rabi (amplitude, phase)"
+    assert str(R) == "rabi (amplitude, phase)"
     assert R.children() == {
         "Amplitude": RabiFrequencyAmplitude(),
         "Phase": RabiFrequencyPhase(),
@@ -38,8 +38,10 @@ def test_rabi_router():
     assert (
         mystdout.getvalue()
         == "RabiRouter\n"
-        + "├─ Amplitude ⇒ RabiFrequencyAmplitude\n"
-        + "└─ Phase ⇒ RabiFrequencyPhase"
+        + "├─ Amplitude\n"
+        + "│  ⇒ RabiFrequencyAmplitude\n"
+        + "└─ Phase\n"
+        + "   ⇒ RabiFrequencyPhase"
     )
 
 
@@ -100,11 +102,16 @@ def test_pulse():
     assert (
         mystdout.getvalue()
         == "Pulse\n"
-        + "└─ Detuning ⇒ Field\n"
-        + "              └─ UniformModulation ⇒ Linear\n"
-        + "                                     ├─ start ⇒ Literal: 1.0\n"
-        + "                                     ├─ stop ⇒ Variable: x\n"
-        + "                                     └─ duration ⇒ Literal: 3.0"
+        + "└─ Detuning\n"
+        + "   ⇒ Field\n"
+        + "     └─ UniformModulation\n"
+        + "        ⇒ Linear\n"
+        + "          ├─ start\n"
+        + "          │  ⇒ Literal: 1.0\n"
+        + "          ├─ stop\n"
+        + "          │  ⇒ Variable: x\n"
+        + "          └─ duration\n"
+        + "             ⇒ Literal: 3.0"
     )
 
 
@@ -113,7 +120,7 @@ def test_named_pulse():
     ps1 = Pulse({detuning: f})
     ps = NamedPulse("qq", ps1)
 
-    assert ps.__repr__() == "NamedPulse(name='qq', pulse=%s)" % (ps1.__repr__())
+    assert str(ps) == "NamedPulse(name=qq)"
 
     assert ps.children() == {"Name": "qq", "Pulse": ps1}
 
@@ -127,13 +134,20 @@ def test_named_pulse():
     assert (
         mystdout.getvalue()
         == "NamedPulse\n"
-        + "├─ Name ⇒ qq\n"
-        + "└─ Pulse ⇒ Pulse\n"
-        + "           └─ Detuning ⇒ Field\n"
-        + "                         └─ UniformModulation ⇒ Linear\n"
-        + "                                                ├─ start ⇒ Literal: 1.0\n"
-        + "                                                ├─ stop ⇒ Variable: x\n"
-        + "                                                └─ duration ⇒ Literal: 3.0"
+        + "├─ Name\n"
+        + "│  ⇒ qq\n"
+        + "└─ Pulse\n"
+        + "   ⇒ Pulse\n"
+        + "     └─ Detuning\n"
+        + "        ⇒ Field\n"
+        + "          └─ UniformModulation\n"
+        + "             ⇒ Linear\n"
+        + "               ├─ start\n"
+        + "               │  ⇒ Literal: 1.0\n"
+        + "               ├─ stop\n"
+        + "               │  ⇒ Variable: x\n"
+        + "               └─ duration\n"
+        + "                  ⇒ Literal: 3.0"
     )
 
 
@@ -145,7 +159,7 @@ def test_slice_pulse():
     ## invoke slice
     ps = ps1.slice(itvl)
 
-    assert ps.__repr__() == "%s[%s]" % (ps1.__repr__(), itvl.__repr__())
+    assert str(ps) == "Pulse[%s]" % (str(itvl))
     assert ps.print_node() == "Slice"
     assert ps.children() == {"Pulse": ps1, "Interval": itvl}
 
@@ -157,15 +171,24 @@ def test_slice_pulse():
     assert (
         mystdout.getvalue()
         == "Slice\n"
-        + "├─ Pulse ⇒ Pulse\n"
-        + "│          └─ Detuning ⇒ Field\n"
-        + "│                        └─ UniformModulation ⇒ Linear\n"
-        + "│                                               ├─ start ⇒ Literal: 1.0\n"
-        + "│                                               ├─ stop ⇒ Variable: x\n"
-        + "│                                               └─ duration ⇒ Literal: 3.0\n"
-        + "└─ Interval ⇒ Interval\n"
-        + "              ├─ start ⇒ Literal: 0\n"
-        + "              └─ stop ⇒ Literal: 1.5"
+        + "├─ Pulse\n"
+        + "│  ⇒ Pulse\n"
+        + "│    └─ Detuning\n"
+        + "│       ⇒ Field\n"
+        + "│         └─ UniformModulation\n"
+        + "│            ⇒ Linear\n"
+        + "│              ├─ start\n"
+        + "│              │  ⇒ Literal: 1.0\n"
+        + "│              ├─ stop\n"
+        + "│              │  ⇒ Variable: x\n"
+        + "│              └─ duration\n"
+        + "│                 ⇒ Literal: 3.0\n"
+        + "└─ Interval\n"
+        + "   ⇒ Interval\n"
+        + "     ├─ start\n"
+        + "     │  ⇒ Literal: 0\n"
+        + "     └─ stop\n"
+        + "        ⇒ Literal: 1.5"
     )
 
 
@@ -176,10 +199,7 @@ def test_append_pulse():
     # invoke append:
     ps = ps1.append(ps1)
 
-    assert ps.__repr__() == "pulse.Append(value=[%s, %s])" % (
-        ps1.__repr__(),
-        ps1.__repr__(),
-    )
+    assert str(ps) == "pulse.Append(value=['Pulse', 'Pulse'])"
     assert ps.children() == [ps1, ps1]
 
     mystdout = StringIO()
@@ -191,17 +211,27 @@ def test_append_pulse():
         mystdout.getvalue()
         == "Append\n"
         + "├─ Pulse\n"
-        + "│  └─ Detuning ⇒ Field\n"
-        + "│                └─ UniformModulation ⇒ Linear\n"
-        + "│                                       ├─ start ⇒ Literal: 1.0\n"
-        + "│                                       ├─ stop ⇒ Variable: x\n"
-        + "│                                       └─ duration ⇒ Literal: 3.0\n"
+        + "│  └─ Detuning\n"
+        + "│     ⇒ Field\n"
+        + "│       └─ UniformModulation\n"
+        + "│          ⇒ Linear\n"
+        + "│            ├─ start\n"
+        + "│            │  ⇒ Literal: 1.0\n"
+        + "│            ├─ stop\n"
+        + "│            │  ⇒ Variable: x\n"
+        + "│            └─ duration\n"
+        + "│               ⇒ Literal: 3.0\n"
         + "└─ Pulse\n"
-        + "   └─ Detuning ⇒ Field\n"
-        + "                 └─ UniformModulation ⇒ Linear\n"
-        + "                                        ├─ start ⇒ Literal: 1.0\n"
-        + "                                        ├─ stop ⇒ Variable: x\n"
-        + "                                        └─ duration ⇒ Literal: 3.0"
+        + "   └─ Detuning\n"
+        + "      ⇒ Field\n"
+        + "        └─ UniformModulation\n"
+        + "           ⇒ Linear\n"
+        + "             ├─ start\n"
+        + "             │  ⇒ Literal: 1.0\n"
+        + "             ├─ stop\n"
+        + "             │  ⇒ Variable: x\n"
+        + "             └─ duration\n"
+        + "                ⇒ Literal: 3.0"
     )
 
 

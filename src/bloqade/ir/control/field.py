@@ -2,7 +2,7 @@ from pydantic.dataclasses import dataclass
 from ..scalar import Scalar, cast
 from .waveform import Waveform
 from typing import Dict
-from ..tree_print import Printer
+from ..tree_print import Printer, _Phelper
 
 __all__ = [
     "Field",
@@ -19,7 +19,12 @@ class Location:
     value: int
 
     def __repr__(self) -> str:
-        return f"Location({self.value!r})"
+        ph = _Phelper()
+        Printer(ph).print(self)
+        return ph.get_value()
+
+    def __str__(self):
+        return f"Location({str(self.value)})"
 
     def children(self):
         return []
@@ -43,6 +48,11 @@ class UniformModulation(SpatialModulation):
         return hash(self.__class__)
 
     def __repr__(self) -> str:
+        ph = _Phelper()
+        Printer(ph).print(self)
+        return ph.get_value()
+
+    def __str__(self):
         return "Uniform"
 
     def print_node(self):
@@ -66,7 +76,12 @@ class RunTimeVector(SpatialModulation):
         return hash(self.name) ^ hash(self.__class__)
 
     def __repr__(self) -> str:
-        return f"RunTimeVector({self.name!r})"
+        ph = _Phelper()
+        Printer(ph).print(self)
+        return ph.get_value()
+
+    def __str__(self):
+        return f"RunTimeVector({str(self.name)})"
 
     def print_node(self):
         return "RunTimeVector"
@@ -99,7 +114,12 @@ class ScaledLocations(SpatialModulation):
         return hash(frozenset(self.value.items())) ^ hash(self.__class__)
 
     def __repr__(self) -> str:
-        return f"ScaledLocations(value={self.value!r})"
+        ph = _Phelper()
+        Printer(ph).print(self)
+        return ph.get_value()
+
+    def __str__(self):
+        return f"ScaledLocations(value={str(self.value)})"
 
     def print_node(self):
         return "ScaledLocations"
@@ -133,7 +153,12 @@ class Field:
         return hash(frozenset(self.value.items())) ^ hash(self.__class__)
 
     def __repr__(self) -> str:
-        return f"Field({self.value!r})"
+        ph = _Phelper()
+        Printer(ph).print(self)
+        return ph.get_value()
+
+    def __str__(self):
+        return f"Field({str(self.value)})"
 
     def add(self, other):
         if not isinstance(other, Field):

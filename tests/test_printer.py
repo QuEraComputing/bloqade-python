@@ -14,8 +14,13 @@ def test_printer():
 
     assert (
         mystdout.getvalue()
-        == "Linear\n├─ start ⇒ Literal: 0\n├─ stop ⇒ Literal: 1\n"
-        + "└─ duration ⇒ Literal: 1"
+        == "Linear\n"
+        + "├─ start\n"
+        + "│  ⇒ Literal: 0\n"
+        + "├─ stop\n"
+        + "│  ⇒ Literal: 1\n"
+        + "└─ duration\n"
+        + "   ⇒ Literal: 1"
     )
 
 
@@ -45,8 +50,15 @@ def test_printer_nodes_dict():
 
     assert (
         mystdout.getvalue()
-        == "Poly\n├─ b ⇒ Literal: 1\n├─ t ⇒ Literal: 2\n"
-        + "├─ t^2 ⇒ Literal: 3\n└─ duration ⇒ Literal: 1"
+        == "Poly\n"
+        + "├─ b\n"
+        + "│  ⇒ Literal: 1\n"
+        + "├─ t\n"
+        + "│  ⇒ Literal: 2\n"
+        + "├─ t^2\n"
+        + "│  ⇒ Literal: 3\n"
+        + "└─ duration\n"
+        + "   ⇒ Literal: 1"
     )
 
 
@@ -75,11 +87,35 @@ def test_printer_nodes_compose_all():
 
     assert (
         mystdout.getvalue()
-        == "+\n├─ Poly\n│  ├─ b ⇒ Literal: 1\n│  ├─ t ⇒ Literal: 2\n"
-        + "│  ├─ t^2 ⇒ Literal: 3\n│  └─ duration ⇒ Literal: 1\n"
-        + "└─ +\n   ├─ Slice\n   │  ├─ Poly\n   │  │  ├─ b ⇒ Literal: 1\n"
-        + "   │  │  ├─ t ⇒ Literal: 2\n   │  │  ├─ t^2 ⇒ Literal: 3\n"
-        + "   │  │  └─ duration ⇒ Literal: 1\n   │  └─ Interval\n"
-        + "   │     └─ stop ⇒ Literal: 0.5\n   └─ Linear\n      ├─ start ⇒ Literal: 0\n"
-        + "      ├─ stop ⇒ Literal: 1\n      └─ duration ⇒ Literal: 1"
+        == "+\n"
+        + "├─ Poly\n"
+        + "│  ├─ b\n"
+        + "│  │  ⇒ Literal: 1\n"
+        + "│  ├─ t\n"
+        + "│  │  ⇒ Literal: 2\n"
+        + "│  ├─ t^2\n"
+        + "│  │  ⇒ Literal: 3\n"
+        + "│  └─ duration\n"
+        + "│     ⇒ Literal: 1\n"
+        + "└─ +\n"
+        + "   ├─ Slice\n"
+        + "   │  ├─ Poly\n"
+        + "   │  │  ├─ b\n"
+        + "   │  │  │  ⇒ Literal: 1\n"
+        + "   │  │  ├─ t\n"
+        + "   │  │  │  ⇒ Literal: 2\n"
+        + "   │  │  ├─ t^2\n"
+        + "   │  │  │  ⇒ Literal: 3\n"
+        + "   │  │  └─ duration\n"
+        + "   │  │     ⇒ Literal: 1\n"
+        + "   │  └─ Interval\n"
+        + "   │     └─ stop\n"
+        + "   │        ⇒ Literal: 0.5\n"
+        + "   └─ Linear\n"
+        + "      ├─ start\n"
+        + "      │  ⇒ Literal: 0\n"
+        + "      ├─ stop\n"
+        + "      │  ⇒ Literal: 1\n"
+        + "      └─ duration\n"
+        + "         ⇒ Literal: 1"
     )
