@@ -23,8 +23,6 @@ nav:
       - Asking a question: https://github.com/QuEraComputing/bloqade-python/discussions
   - Tutorials:
     - tutorials/index.md
-    - examples/adiabatic.py
-    - examples/rabi.py
   - Reference:
     - Builder workflow : tree/builder.md
     - API References : reference/bloqade/
