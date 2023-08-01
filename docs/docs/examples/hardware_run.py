@@ -35,21 +35,19 @@ if __name__ == "__main__":
     # Get the access keys
     aws_access_key_id = config.get('716981252513_QC_App_Algo_RD', 'aws_access_key_id')
     aws_secret_access_key = config.get('716981252513_QC_App_Algo_RD', 'aws_secret_access_key')
-    # aws_session_token = config.get('716981252513_QC_App_Algo_RD', 'aws_session_token')
 
     os.environ['AWS_ACCESS_KEY_ID'] = aws_access_key_id
     os.environ['AWS_SECRET_ACCESS_KEY'] = aws_secret_access_key
-    # os.environ['AWS_SESSION_TOKEN'] = aws_session_token  # If you are using temporary security credentials
 
     print("Credentials successfully loaded!")
     
-    pos, small_G = graph.kings_graph(11, 11, 0.3, seed = 1)
+    pos, small_G = graph.kings_graph(11, 11, 0.7, seed = 2)
     unitdisk_radius, min_radius, max_radius = graph.find_UDG_radius(pos, small_G)
 
     # Set up the problem
     problem = MIS_problem.MIS_problem(graph=small_G, positions=pos)
     num_time_points = 3
-    ansatz = MIS_ansatz.MIS_ansatz(problem=problem, q_hardware=True,
+    ansatz = MIS_ansatz.MIS_ansatz(problem=problem, q_hardware=False,
                                     num_shots=30, blockade_radius=8, 
                                     unitdisk_radius=unitdisk_radius, 
                                     num_time_points=num_time_points)
@@ -59,6 +57,8 @@ if __name__ == "__main__":
 
     print("Starting the optimization!")
 
+    problem.cost_function(ansatz=ansatz, x=x0)
+    
     opt = optimization.Optimizer(problem=problem, ansatz=ansatz, 
                                  x_init=x0,  max_iter=30,
                                  save_progress=True)
