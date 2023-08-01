@@ -25,6 +25,7 @@ nav:
     - tutorials/index.md
     - examples/adiabatic.py
     - examples/ramsey.py
+    - examples/rabi.py
   - Reference:
     - Builder workflow : tree/builder.md
     - API References : reference/bloqade/
