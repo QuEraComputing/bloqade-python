@@ -3,7 +3,7 @@ name = "bloqade"
 version = "0.0.1"
 description = "neutral atom software development kit"
 authors = [
-    {name = "Roger-luo", email = "info@quera.com"},
+    {name = "QuEra Computing Inc.", email = "info@quera.com"},
 ]
 dependencies = [
     "juliacall>=0.9.12",
