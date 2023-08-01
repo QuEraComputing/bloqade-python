@@ -24,9 +24,10 @@ nav:
   - Tutorials:
     - tutorials/index.md
     - examples/adiabatic.py
-    - examples/example-1b-ramsey.py
+    - examples/ramsey.py
   - Reference:
-    - reference/bloqade/
+    - Builder workflow : tree/builder.md
+    - API References : reference/bloqade/
   - Blog:
     - blog/index.md
     - 2023:
@@ -88,7 +89,7 @@ plugins:
         python:
           paths: [../src]
           options:
-            show_if_no_docstring: true
+            show_if_no_docstring: false
             separate_signature: true
             merge_init_into_class: true
             docstring_options:
@@ -98,7 +99,7 @@ plugins:
   - mkdocs-jupyter:
       include: ["*.py"] # only include scripts
       ignore: ["*.ipynb"]
-      execute: false # always execute
+      execute: true # always execute
       include_source: True
   - mike
 

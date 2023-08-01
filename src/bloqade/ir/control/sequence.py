@@ -86,6 +86,8 @@ class Append(SequenceExpr):
 
 @dataclass(init=False, repr=False)
 class Sequence(SequenceExpr):
+    """Sequence of a program, which includes pulses informations."""
+
     value: dict[LevelCoupling, PulseExpr]
 
     def __init__(self, seq_pairs: Dict | None = None):

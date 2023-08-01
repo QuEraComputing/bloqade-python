@@ -15,11 +15,14 @@
 # ---
 
 # %% [markdown]
-# # Whitepaper Example 1B: Ramsey Protocol
+# # Ramsey Protocol
+# ## Introduction
+# In this example we show how to use Bloqade to emulate a
+# Ramsey protocol as well as run it on hardware.
 
 # %%
 from bloqade import start
-from bloqade.task import HardwareFuture
+from bloqade.task import HardwareBatchResult
 
 import os
 
@@ -30,10 +33,15 @@ from bokeh.models import ColumnDataSource, HoverTool, CrosshairTool
 
 output_notebook()
 
+# %% [markdown]
+
+# define program with one atom, with constant detuning but variable Rabi frequency,
+# where an initial pi/2 pulse is applied, followed by some time gap and a -pi/2 pulse
+
+# %%
 plateau_time = (np.pi / 2 - 0.625) / 12.5
 wf_durations = [0.05, plateau_time, 0.05, "t_run", 0.05, plateau_time, 0.05]
 rabi_wf_values = [0.0, 12.5, 12.5, 0.0] * 2  # repeat values twice
-
 
 ramsey_program = (
     start.add_position([0, 0])
@@ -41,26 +49,57 @@ ramsey_program = (
     .detuning.uniform.piecewise_linear(wf_durations, [10.5] * (len(wf_durations) + 1))
 )
 
+# %% [markdown]
+# Assign values to the variables in the program,
+# allowing `t_run` (time gap between the two pi/2 pulses)
+# to sweep across a range of values.
+
+# %%
 ramsey_job = ramsey_program.batch_assign(t_run=np.around(np.arange(0, 30, 1) * 0.1, 13))
 
-# run on emulator
+# %% [markdown]
+# Run the program in emulation, obtaining a report
+# object. For each possible set of variable values
+# to simulate (in this case, centered around the
+# `t_run` variable), let the task have 10000 shots.
+
+# %%
 emu_job = ramsey_job.braket_local_simulator(10000).submit().report()
 
-# hardware job
+# %% [markdown]
+# Submit the same program to hardware,
+# this time using `.parallelize` to make a copy of the original geometry
+# (a single atom) that fills the FOV (Field-of-View Space), with at least
+# 24 micrometers of distance between each atom.
+#
+# Unlike the emulation above, we only let each task
+# run with 100 shots. A collection of tasks is known as a
+# "Job" in Bloqade and jobs can be saved in JSON format
+# so you can reload them later (a necessity considering
+# how long it may take for the machine to handle tasks in the queue)
+
+# %%
 """
 (
     ramsey_job.parallelize(24)
     .braket(100)
     .submit()
-    .save_json("example-1b-ramsey-job.json")
+    .save_json("ramsey-job.json")
 )
 """
+# %% [markdown]
+# Load JSON and pull results from Braket
 
-# load JSON, get results
-hw_future = HardwareFuture()
-hw_future.load_json(os.getcwd() + "/docs/docs/examples/" + "example-1b-ramsey-job.json")
+# %%
+hw_future = HardwareBatchResult.load_json(
+    os.getcwd() + "/docs/docs/examples/" + "ramsey-job.json"
+)
 hw_rydberg_densities = hw_future.report().rydberg_densities()
 
+# %% [markdown]
+# We can now plot the results from the hardware and emulation together.
+
+# %%
 data = {
     "times": np.around(np.arange(0, 30, 1) * 0.1, 13),
     "emu_densities": emu_job.rydberg_densities()[0].to_list(),

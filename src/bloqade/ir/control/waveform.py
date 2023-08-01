@@ -15,7 +15,7 @@ import scipy.integrate as integrate
 
 
 def instruction(duration: Any) -> "PythonFn":
-    """Turn python function into a waveform instruction."""
+    # urn python function into a waveform instruction."""
 
     def waveform_wrapper(fn: Callable) -> "PythonFn":
         return PythonFn(fn, duration)
@@ -36,6 +36,19 @@ class Alignment(str, Enum):
 @dataclass
 class Waveform:
     """
+    Waveform node in the IR.
+
+    - [`<instruction>`][bloqade.ir.control.waveform.Instruction]
+    - [`<smooth>`][bloqade.ir.control.waveform.Smooth]
+    - [`<slice>`][bloqade.ir.control.waveform.Slice]
+    - [`<apppend>`][bloqade.ir.control.waveform.Append]
+    - [`<negative>`][bloqade.ir.control.waveform.Negative]
+    - [`<scale>`][bloqade.ir.control.waveform.Scale]
+    - [`<add>`][bloqade.ir.control.waveform.Add]
+    - [`<record>`][bloqade.ir.control.waveform.Record]
+    - [`<sample>`][bloqade.ir.control.waveform.Sample]
+
+    ```bnf
     <waveform> ::= <instruction>
         | <smooth>
         | <slice>
@@ -43,6 +56,9 @@ class Waveform:
         | <negative>
         | <scale>
         | <add>
+        | <record>
+        | <sample>
+    ```
     """
 
     def __post_init__(self):
@@ -70,6 +86,11 @@ class Waveform:
         return self.canonicalize(Append([self, other]))
 
     def plot(self, **assignments):
+        """Plot the waveform.
+
+        Returns:
+            figure: a bokeh figure
+        """
         duration = self.duration(**assignments)
         times = np.linspace(0, duration, 1001)
         values = [self.__call__(time, **assignments) for time in times]
@@ -161,10 +182,13 @@ class Waveform:
 @dataclass
 class AlignedWaveform(Waveform):
     """
+
+    ```bnf
     <padded waveform> ::= <waveform> | <waveform> <alignment> <value>
 
     <alignment> ::= 'left aligned' | 'right aligned'
     <value> ::= 'left value' | 'right value' | <scalar expr>
+    ```
     """
 
     waveform: Waveform
@@ -200,13 +224,39 @@ class AlignedWaveform(Waveform):
 
 @dataclass
 class Instruction(Waveform):
+    """Instruction node in the IR.
+
+    - [`<linear>`][bloqade.ir.control.waveform.Linear]
+    - [`<constant>`][bloqade.ir.control.waveform.Constant]
+    - [`<poly>`][bloqade.ir.control.waveform.Poly]
+    - [`<python-fn>`][bloqade.ir.control.waveform.PythonFn]
+
+
+    ```bnf
+    <instruction> ::= <linear>
+        | <constant>
+        | <poly>
+        | <python-fn>
+    ```
+    """
+
     pass
 
 
 @dataclass(init=False)
 class Linear(Instruction):
     """
+    ```bnf
     <linear> ::= 'linear' <scalar expr> <scalar expr>
+    ```
+
+    f(t=0:duration) = start + (stop-start)/duration * t
+
+    Args:
+        start (Scalar): start value
+        stop (Scalar): stop value
+        duration (Scalar): the time span of the linear waveform.
+
     """
 
     start: Scalar
@@ -248,7 +298,16 @@ class Linear(Instruction):
 @dataclass(init=False)
 class Constant(Instruction):
     """
+    ```bnf
     <constant> ::= 'constant' <scalar expr>
+    ```
+
+    f(t=0:duration) = value
+
+    Args:
+        value (Scalar): the constant value
+        duration (Scalar): the time span of the constant waveform.
+
     """
 
     value: Scalar
@@ -281,7 +340,16 @@ class Constant(Instruction):
 @dataclass(init=False)
 class Poly(Instruction):
     """
+    ```bnf
     <poly> ::= <scalar>+
+    ```
+
+    f(t=0:duration) = c[0] + c[1]t + c[2]t^2 + ... + c[n-1]t^n-1 + c[n]t^n
+
+    Args:
+        checkpoints (List[Scalar]): the coefficients c[] of the polynomial.
+        duration (Scalar): the time span of the waveform.
+
     """
 
     checkpoints: List[Scalar]
@@ -334,7 +402,10 @@ class Poly(Instruction):
 @dataclass(init=False)
 class PythonFn(Instruction):
     """
+
+    ```bnf
     <python-fn> ::= 'python-fn' <python function def> <scalar expr>
+    ```
     """
 
     fn: Callable  # [[float, ...], float] # f(t) -> value
@@ -459,7 +530,9 @@ CosineKernel = Cosine()
 @dataclass
 class Smooth(Waveform):
     """
+    ```bnf
     <smooth> ::= 'smooth' <kernel> <waveform>
+    ```
     """
 
     radius: Scalar
@@ -500,7 +573,9 @@ class Smooth(Waveform):
 @dataclass
 class Slice(Waveform):
     """
+    ```
     <slice> ::= <waveform> <scalar.interval>
+    ```
     """
 
     waveform: Waveform
@@ -531,7 +606,9 @@ class Slice(Waveform):
 @dataclass
 class Append(Waveform):
     """
+    ```bnf
     <append> ::= <waveform>+
+    ```
     """
 
     waveforms: List[Waveform]
@@ -564,7 +641,9 @@ class Append(Waveform):
 @dataclass
 class Negative(Waveform):
     """
+    ```bnf
     <negative> ::= '-' <waveform>
+    ```
     """
 
     waveform: Waveform
@@ -588,7 +667,9 @@ class Negative(Waveform):
 @dataclass(init=False)
 class Scale(Waveform):
     """
+    ```bnf
     <scale> ::= <scalar expr> '*' <waveform>
+    ```
     """
 
     scalar: Scalar
@@ -617,7 +698,9 @@ class Scale(Waveform):
 @dataclass
 class Add(Waveform):
     """
+    ```bnf
     <add> ::= <waveform> '+' <waveform>
+    ```
     """
 
     left: Waveform
@@ -642,7 +725,9 @@ class Add(Waveform):
 @dataclass
 class Record(Waveform):
     """
+    ```bnf
     <record> ::= 'record' <waveform> <var>
+    ```
     """
 
     waveform: Waveform
@@ -672,7 +757,9 @@ class Interpolation(str, Enum):
 @dataclass
 class Sample(Waveform):
     """
+    ```bnf
     <sample> ::= 'sample' <waveform> <interpolation> <scalar>
+    ```
     """
 
     waveform: Waveform
