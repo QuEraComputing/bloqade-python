@@ -25,6 +25,8 @@ nav:
     - tutorials/index.md
     - examples/adiabatic.py
     - examples/multi-qubit-blockaded-rabi.py
+    - examples/rabi.py
+
   - Reference:
     - Builder workflow : tree/builder.md
     - API References : reference/bloqade/
