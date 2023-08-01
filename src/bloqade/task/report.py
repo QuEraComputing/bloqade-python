@@ -79,10 +79,14 @@ class Report:
                     dtype=np.int8,
                 )
 
+                pfc_sorting = "".join(
+                    [perfect_sorting[index] for index in cluster_index]
+                )
+
                 key = (
                     task_number,
                     cluster_coordinate,
-                    perfect_sorting,
+                    pfc_sorting,
                     pre_sequence,
                 )
 
