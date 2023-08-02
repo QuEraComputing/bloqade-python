@@ -119,7 +119,7 @@ class AtomArrangement(ProgramStart):
             line_width=0.2 * length_scale,
         )
 
-        cr = p.circle(
+        p.circle(
             "x",
             "y",
             source=source_all,
@@ -127,11 +127,22 @@ class AtomArrangement(ProgramStart):
             fill_alpha=0,
             line_width=0.15 * length_scale,
             visible=True,  # display by default
+            name="Brad",
         )
 
-        # adding rydberg radis input
-        # bind sources:
+        return p
 
+    def show(self, **assignments) -> None:
+        """show the register."""
+        p = self.figure(**assignments)
+
+        # get the Blocade rad object
+        cr = None
+        for rd in p.renderers:
+            if rd.name == "Brad":
+                cr = rd
+
+        # adding rydberg radis input
         Brad_input = NumericInput(
             value=0, low=0, title="Bloqade radius (um):", mode="float"
         )
@@ -146,11 +157,7 @@ class AtomArrangement(ProgramStart):
         # js link radius
         Brad_input.js_link("value", cr.glyph, "radius")
 
-        return p, row(Brad_input, toggle_button)
-
-    def show(self, **assignments) -> None:
-        """show the register."""
-        show(column(*self.figure(**assignments)))
+        show(column(p, row(Brad_input, toggle_button)))
 
     @property
     def n_atoms(self) -> int:

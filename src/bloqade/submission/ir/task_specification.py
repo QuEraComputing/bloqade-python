@@ -8,7 +8,7 @@ from bokeh.layouts import gridplot
 
 from bloqade.submission.ir.capabilities import QuEraCapabilities
 from bloqade.ir.location import ListOfLocations
-from bokeh.layouts import column, row
+from bokeh.layouts import row
 
 __all__ = ["QuEraTaskSpecification"]
 
@@ -316,8 +316,8 @@ class Lattice(BaseModel):
     def figure(self):
         ## use ir.Atom_oarrangement's plotting:
         reg = ListOfLocations().add_positions(self.sites, self.filling)
-        fig_reg, widgets = reg.figure()
-        return column(fig_reg, widgets)
+        fig_reg = reg.figure()  # ignore the B-rad widget
+        return fig_reg
 
     def show(self):
         show(self.figure())
@@ -388,7 +388,6 @@ class QuEraTaskSpecification(BaseModel):
         # full_plt.width_policy = "max"
 
         full_plt = row(full_plt, register)
-        full_plt.sizing_mode = "stretch_both"
         full_plt.width_policy = "max"
 
         return full_plt
