@@ -7,7 +7,8 @@ from bokeh.models import ColumnDataSource, Step
 from bokeh.layouts import gridplot
 
 from bloqade.submission.ir.capabilities import QuEraCapabilities
-
+from bloqade.ir.location import ListOfLocations
+from bokeh.layouts import column, row
 
 __all__ = ["QuEraTaskSpecification"]
 
@@ -312,6 +313,15 @@ class Lattice(BaseModel):
             filling=self.filling,
         )
 
+    def figure(self):
+        ## use ir.Atom_oarrangement's plotting:
+        reg = ListOfLocations().add_positions(self.sites, self.filling)
+        fig_reg, widgets = reg.figure()
+        return column(fig_reg, widgets)
+
+    def show(self):
+        show(self.figure())
+
 
 class QuEraTaskSpecification(BaseModel):
     nshots: int
@@ -367,12 +377,18 @@ class QuEraTaskSpecification(BaseModel):
             global_detuning_src, x_range=rabi_amplitude.x_range
         )
 
+        # lattice:
+        register = self.lattice.figure()
+
         full_plt = gridplot(
             [[rabi_amplitude], [global_detuning], [rabi_phase]],
             merge_tools=False,
             sizing_mode="stretch_both",
         )
+        # full_plt.width_policy = "max"
 
+        full_plt = row(full_plt, register)
+        full_plt.sizing_mode = "stretch_both"
         full_plt.width_policy = "max"
 
         return full_plt
