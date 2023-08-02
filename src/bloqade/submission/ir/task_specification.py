@@ -89,7 +89,8 @@ class RabiFrequencyAmplitude(BaseModel):
         )
 
         line_plt.x_range.start = 0
-        line_plt.y_range.start = 0
+        line_plt.y_range.start = min(source.data["values_amp"]) - 5e6
+        line_plt.y_range.end = max(source.data["values_amp"]) + 5e6
 
         line_plt.line(
             x="times_amp", y="values_amp", source=source, line_width=2, color="black"
@@ -155,7 +156,8 @@ class RabiFrequencyPhase(BaseModel):
             y_axis_label="Value (rad)",
         )
 
-        line_plt.y_range.start = 0
+        line_plt.y_range.start = min(source.data["values_phase"]) - 5e6
+        line_plt.y_range.end = max(source.data["values_phase"]) + 5e6
         line_plt.x_range.start = 0
 
         steps = Step(
@@ -230,8 +232,10 @@ class Detuning(BaseModel):
             **fig_kwargs, x_axis_label="Time (s)", y_axis_label="Value (rad/s)"
         )
 
-        line_plt.y_range.start = 0
         line_plt.x_range.start = 0
+
+        line_plt.y_range.start = min(source.data["values_detune"]) - 5e6
+        line_plt.y_range.end = max(source.data["values_detune"]) + 5e6
 
         line_plt.line(
             x="times_detune",
@@ -366,15 +370,19 @@ class QuEraTaskSpecification(BaseModel):
         # grab global figures
         rabi_amplitude = (
             self.effective_hamiltonian.rydberg.rabi_frequency_amplitude.figure(
-                rabi_amp_src
+                rabi_amp_src, tools="hover,wheel_zoom,reset, undo, redo, pan"
             )
         )
 
         rabi_phase = self.effective_hamiltonian.rydberg.rabi_frequency_phase.figure(
-            rabi_phase_src, x_range=rabi_amplitude.x_range
+            rabi_phase_src,
+            x_range=rabi_amplitude.x_range,
+            tools="hover,wheel_zoom,reset, undo, redo, pan",
         )
         global_detuning = self.effective_hamiltonian.rydberg.detuning.global_figure(
-            global_detuning_src, x_range=rabi_amplitude.x_range
+            global_detuning_src,
+            x_range=rabi_amplitude.x_range,
+            tools="hover,wheel_zoom,reset, undo, redo, pan",
         )
 
         # lattice:
@@ -389,6 +397,7 @@ class QuEraTaskSpecification(BaseModel):
 
         full_plt = row(full_plt, register)
         full_plt.width_policy = "max"
+        full_plt.sizing_mode = "stretch_both"
 
         return full_plt
 

@@ -157,7 +157,9 @@ class AtomArrangement(ProgramStart):
         # js link radius
         Brad_input.js_link("value", cr.glyph, "radius")
 
-        show(column(p, row(Brad_input, toggle_button)))
+        full = column(p, row(Brad_input, toggle_button))
+        # full.sizing_mode="scale_both"
+        show(full)
 
     @property
     def n_atoms(self) -> int:
