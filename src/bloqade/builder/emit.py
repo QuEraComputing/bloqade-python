@@ -225,17 +225,9 @@ class Emit(Builder):
     @staticmethod
     def __terminate_spatial_modulation(build_state: BuildState):
         Emit.__terminate_waveform_append(build_state)
-        if build_state.spatial_modulation in build_state.field.value:
-            build_state.field.value[
-                build_state.spatial_modulation
-            ] = build_state.field.value[build_state.spatial_modulation].append(
-                build_state.waveform
-            )
-        else:
-            build_state.field.value[
-                build_state.spatial_modulation
-            ] = build_state.waveform
-
+        build_state.field = build_state.field.add(
+            ir.Field(value={build_state.spatial_modulation: build_state.waveform})
+        )
         build_state.waveform = None
 
     @staticmethod
@@ -247,7 +239,6 @@ class Emit(Builder):
         import bloqade.builder.coupling as coupling
         import bloqade.builder.start as start
 
-        # print(type(build_state.waveform))
         match builder:
             case (
                 waveform.Linear()
@@ -349,9 +340,9 @@ class Emit(Builder):
                 Emit.__build_ast(builder.__parent__, build_state)
 
             case location.Uniform():
-                print("here")
                 build_state.spatial_modulation = ir.Uniform
                 Emit.__terminate_spatial_modulation(build_state)
+                print(build_state.field)
                 Emit.__build_ast(builder.__parent__, build_state)
 
             case location.Var():
