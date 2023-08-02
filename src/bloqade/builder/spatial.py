@@ -11,14 +11,37 @@ class SpatialModulation(Builder):
 
     def location(self, label: int):
         """
-        - Addressing one or multiple specific location(s) for preceeding waveform.
+        Addressing one or multiple specific location(s) for preceeding waveform.
+
+        (See [`Location`][bloqade.builder.location.Location] for more details])
+
+        Args:
+            label (int): The label of the location to apply the following waveform to.
+
+        Examples:
+
+            - Addressing rydberg detuning to location 1 on a system with 4 sites.
+
+            >>> reg = bloqade.start.add_positions([(0,0),(1,1),(2,2),(3,3)])
+            >>> loc = reg.rydberg.detuning.location(1)
+
+            - Addressing rydberg detuning on both location
+            0 and 2 on a system with 4 sites.
+
+            >>> reg = bloqade.start.add_positions([(0,0),(1,1),(2,2),(3,3)])
+            >>> loc = reg.rydberg.detuning.location(1).location(2)
+
+        Note:
+            label index start with 0, and should be positive.
+
         - Possible Next <Location>:
 
             -> `...location(int).location(int)`
                 :: adding location into current list
 
             -> `...location(int).scale(float)`
-                :: specify scaling factor for the preceeding waveform
+                :: specify scaling factor to current location
+                for the preceeding waveform
 
         - Possible Next <WaveForm>:
 
@@ -42,29 +65,6 @@ class SpatialModulation(Builder):
 
             -> `...location(int).fn()`
                 :: apply callable as waveform.
-
-
-        (See [`Location`][bloqade.builder.location.Location] for more details])
-
-        Args:
-            label (int): The label of the location to apply the following waveform to.
-
-        Examples:
-
-            - Addressing rydberg detuning to location 1 on a system with 4 sites.
-
-            >>> reg = bloqade.start.add_positions([(0,0),(1,1),(2,2),(3,3)])
-            >>> loc = reg.rydberg.detuning.location(1)
-
-            - Addressing rydberg detuning on both location
-            0 and 2 on a system with 4 sites.
-
-            >>> reg = bloqade.start.add_positions([(0,0),(1,1),(2,2),(3,3)])
-            >>> loc = reg.rydberg.detuning.location(1).location(2)
-
-
-        Note:
-            label index start with 0, and should be positive.
 
 
         """
