@@ -19,7 +19,15 @@ class Location:
     value: int
 
     def __repr__(self) -> str:
-        return f"Location({self.value!r})"
+        ph = Printer()
+        ph.print(self)
+        return ph.get_value()
+
+    def _repr_pretty_(self, p, cycle):
+        Printer(p).print(self, cycle)
+
+    def __str__(self):
+        return f"Location({str(self.value)})"
 
     def children(self):
         return []
@@ -27,14 +35,19 @@ class Location:
     def print_node(self):
         return f"Location {self.value}"
 
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)
-
 
 @dataclass
 class SpatialModulation:
     def __hash__(self) -> int:
         raise NotImplementedError
+
+    def __repr__(self) -> str:
+        ph = Printer()
+        ph.print(self)
+        return ph.get_value()
+
+    def _repr_pretty_(self, p, cycle):
+        Printer(p).print(self, cycle)
 
 
 @dataclass
@@ -42,7 +55,7 @@ class UniformModulation(SpatialModulation):
     def __hash__(self) -> int:
         return hash(self.__class__)
 
-    def __repr__(self) -> str:
+    def __str__(self):
         return "Uniform"
 
     def print_node(self):
@@ -50,9 +63,6 @@ class UniformModulation(SpatialModulation):
 
     def children(self):
         return []
-
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)
 
 
 Uniform = UniformModulation()
@@ -65,17 +75,14 @@ class RunTimeVector(SpatialModulation):
     def __hash__(self) -> int:
         return hash(self.name) ^ hash(self.__class__)
 
-    def __repr__(self) -> str:
-        return f"RunTimeVector({self.name!r})"
+    def __str__(self):
+        return f"RunTimeVector({str(self.name)})"
 
     def print_node(self):
         return "RunTimeVector"
 
     def children(self):
         return [self.name]
-
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)
 
 
 @dataclass(init=False)
@@ -98,8 +105,8 @@ class ScaledLocations(SpatialModulation):
     def __hash__(self) -> int:
         return hash(frozenset(self.value.items())) ^ hash(self.__class__)
 
-    def __repr__(self) -> str:
-        return f"ScaledLocations(value={self.value!r})"
+    def __str__(self):
+        return f"ScaledLocations(value={str(self.value)})"
 
     def print_node(self):
         return "ScaledLocations"
@@ -113,14 +120,15 @@ class ScaledLocations(SpatialModulation):
 
         return annotated_children
 
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)
-
 
 @dataclass
 class Field:
-    """
+    """Field node in the IR. Which contains collection(s) of
+    [`Waveform`][bloqade.ir.control.waveform.Waveform]
+
+    ```bnf
     <field> ::= ('field' <spatial modulation>  <padded waveform>)*
+    ```
     """
 
     value: Dict[SpatialModulation, Waveform]
@@ -129,7 +137,15 @@ class Field:
         return hash(frozenset(self.value.items())) ^ hash(self.__class__)
 
     def __repr__(self) -> str:
-        return f"Field({self.value!r})"
+        ph = Printer()
+        ph.print(self)
+        return ph.get_value()
+
+    def _repr_pretty_(self, p, cycle):
+        Printer(p).print(self, cycle)
+
+    def __str__(self):
+        return f"Field({str(self.value)})"
 
     def add(self, other):
         if not isinstance(other, Field):
@@ -151,6 +167,3 @@ class Field:
     def children(self):
         # return dict with annotations
         return {spatial_mod.print_node(): wf for spatial_mod, wf in self.value.items()}
-
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)

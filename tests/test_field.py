@@ -9,12 +9,14 @@ from bloqade.ir import (
 )
 import pytest
 from bloqade import cast
+from io import StringIO
+from IPython.lib.pretty import PrettyPrinter as PP
 
 
 def test_location():
     loc = Location(3)
 
-    assert loc.__repr__() == "Location(3)"
+    assert str(loc) == "Location(3)"
     assert loc.print_node() == "Location 3"
     assert loc.children() == []
 
@@ -29,17 +31,31 @@ def test_spacmod_base():
 def test_unform():
     x = Uniform
 
-    assert x.__repr__() == "Uniform"
+    assert str(x) == "Uniform"
     assert x.print_node() == "UniformModulation"
     assert x.children() == []
+
+    mystdout = StringIO()
+    p = PP(mystdout)
+
+    x._repr_pretty_(p, 0)
+
+    assert mystdout.getvalue() == "UniformModulation\n"
 
 
 def test_runtime_vec():
     x = RunTimeVector("sss")
 
-    assert x.__repr__() == "RunTimeVector('sss')"
+    assert str(x) == "RunTimeVector(sss)"
     assert x.print_node() == "RunTimeVector"
     assert x.children() == ["sss"]
+
+    mystdout = StringIO()
+    p = PP(mystdout)
+
+    x._repr_pretty_(p, 0)
+
+    assert mystdout.getvalue() == "RunTimeVector\n" + "└─ sss\n"
 
 
 def test_scal_loc():
@@ -50,6 +66,21 @@ def test_scal_loc():
 
     assert x.print_node() == "ScaledLocations"
     assert x.children() == {"Location 1": cast(1.0), "Location 2": cast(2.0)}
+
+    mystdout = StringIO()
+    p = PP(mystdout)
+
+    x._repr_pretty_(p, 0)
+
+    assert (
+        mystdout.getvalue()
+        == "ScaledLocations\n"
+        + "├─ Location 1\n"
+        + "│  ⇒ Literal: 1.0\n"
+        + "⋮\n"
+        + "└─ Location 2\n"
+        + "   ⇒ Literal: 2.0⋮\n"
+    )
 
 
 def test_field():
@@ -62,6 +93,24 @@ def test_field():
     # add with non field
     with pytest.raises(ValueError):
         f1.add(Loc)
+
+    mystdout = StringIO()
+    p = PP(mystdout)
+
+    f1._repr_pretty_(p, 10)
+
+    assert (
+        mystdout.getvalue()
+        == "Field\n"
+        + "└─ ScaledLocations\n"
+        + "   ⇒ Linear\n"
+        + "     ├─ start\n"
+        + "     │  ⇒ Literal: 1.0\n"
+        + "     ├─ stop\n"
+        + "     │  ⇒ Variable: x\n"
+        + "     └─ duration\n"
+        + "        ⇒ Literal: 3.0"
+    )
 
     # add with field same spat-mod
     o1 = f1.add(f2)

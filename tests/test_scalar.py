@@ -2,6 +2,8 @@ from bloqade import cast, var
 import bloqade.ir.scalar as scalar
 import pytest
 from decimal import Decimal
+from io import StringIO
+from IPython.lib.pretty import PrettyPrinter as PP
 
 
 def test_var():
@@ -14,6 +16,17 @@ def test_var():
     with pytest.raises(ValueError):
         var("a*b")
 
+    Vv = var("a")
+    vs = var(Vv)
+
+    assert vs == Vv
+
+    mystdout = StringIO()
+    p = PP(mystdout)
+    Vv._repr_pretty_(p, 0)
+
+    assert mystdout.getvalue() == "Variable: a\n"
+
 
 def test_cast():
     assert cast("a") == scalar.Variable("a")
@@ -23,6 +36,12 @@ def test_cast():
     with pytest.raises(ValueError):
         cast("a-b")
 
+    mystdout = StringIO()
+    p = PP(mystdout)
+    cast(1)._repr_pretty_(p, 0)
+
+    assert mystdout.getvalue() == "Literal: 1\n"
+
 
 def test_add():
     assert var("a") + var("b") == scalar.Add(var("a"), var("b"))
@@ -31,6 +50,12 @@ def test_add():
     assert var("a") + 0 == var("a")
     assert 1 + var("a") == scalar.Add(scalar.Literal(Decimal("1")), var("a"))
     assert cast(1) + cast(2) == scalar.Literal(Decimal("3"))
+
+    mystdout = StringIO()
+    p = PP(mystdout)
+    (1 + var("a"))._repr_pretty_(p, 0)
+
+    assert mystdout.getvalue() == "+\n├─ Literal: 1\n⋮\n└─ Variable: a⋮\n"
 
 
 def test_sub():
@@ -50,6 +75,12 @@ def test_mul():
     assert 3 * var("a") == scalar.Mul(scalar.Literal(Decimal("3")), var("a"))
     assert cast(1) * cast(2) == scalar.Literal(Decimal("2"))
 
+    mystdout = StringIO()
+    p = PP(mystdout)
+    (3 * var("a"))._repr_pretty_(p, 0)
+
+    assert mystdout.getvalue() == "*\n├─ Literal: 3\n⋮\n└─ Variable: a⋮\n"
+
 
 def test_div():
     assert var("a") / var("b") == scalar.Div(var("a"), var("b"))
@@ -57,6 +88,12 @@ def test_div():
     assert var("a") / 1 == var("a")
     assert 3 / var("a") == scalar.Div(cast(3), var("a"))
     assert cast(1) / cast(2) == cast(0.5)
+
+    mystdout = StringIO()
+    p = PP(mystdout)
+    (3 / var("a"))._repr_pretty_(p, 0)
+
+    assert mystdout.getvalue() == "/\n├─ Literal: 3\n⋮\n└─ Variable: a⋮\n"
 
 
 def test_list_of_var():
@@ -101,7 +138,7 @@ def test_negative_node():
     assert nsa.children() == [sa]
     assert nsa.print_node() == "-"
 
-    assert nsa.__repr__() == "-(1.0)"
+    assert str(nsa) == "-(1.0)"
 
 
 # def test_base_invalid():
@@ -116,11 +153,11 @@ def test_interval():
     assert itvl.print_node() == "Interval"
 
     with pytest.raises(ValueError):
-        itvl_wrong.__repr__()
+        str(itvl_wrong)
 
-    assert itvl.__repr__() == "0.0:1.0"
-    assert itvl_no_start.__repr__() == ":1.0"
-    assert itvl_no_stop.__repr__() == "0:"
+    assert str(itvl) == "0.0:1.0"
+    assert str(itvl_no_start) == ":1.0"
+    assert str(itvl_no_stop) == "0:"
 
     with pytest.raises(ValueError):
         itvl_wrong.children()
@@ -198,7 +235,7 @@ def test_add_scalar():
 
     assert C.children() == [A, B]
     assert C.print_node() == "+"
-    assert C.__repr__() == "(1 + 2)"
+    assert str(C) == "(1 + 2)"
 
 
 def test_add_zero():
@@ -252,7 +289,7 @@ def test_mul_scalar():
 
     assert C.children() == [A, B]
     assert C.print_node() == "*"
-    assert C.__repr__() == "(1 * 2)"
+    assert str(C) == "(1 * 2)"
 
 
 def test_div_scalar():
@@ -263,7 +300,7 @@ def test_div_scalar():
 
     assert C.children() == [A, B]
     assert C.print_node() == "/"
-    assert C.__repr__() == "(1 / 2)"
+    assert str(C) == "(1 / 2)"
 
     assert C() == 0.5
 
@@ -276,7 +313,16 @@ def test_min_scalar():
     D = scalar.Min([A, B, C])
     assert D.children() == [A, B, C]
     assert D.print_node() == "min"
-    assert D.__repr__() == "scalar.Min(frozenset({1, 2, 3}))"
+    assert str(D) == "scalar.Min(frozenset({1, 2, 3}))"
+
+    mystdout = StringIO()
+    p = PP(mystdout)
+    D._repr_pretty_(p, 0)
+
+    assert (
+        mystdout.getvalue()
+        == "min\n├─ Literal: 1\n⋮\n├─ Literal: 2\n⋮\n└─ Literal: 3⋮\n"
+    )
 
 
 def test_max_scalar():
@@ -287,7 +333,16 @@ def test_max_scalar():
     D = scalar.Max([A, B, C])
     assert D.children() == [A, B, C]
     assert D.print_node() == "max"
-    assert D.__repr__() == "scalar.Max(frozenset({1, 2, 3}))"
+    assert str(D) == "scalar.Max(frozenset({1, 2, 3}))"
+
+    mystdout = StringIO()
+    p = PP(mystdout)
+    D._repr_pretty_(p, 0)
+
+    assert (
+        mystdout.getvalue()
+        == "max\n├─ Literal: 1\n⋮\n├─ Literal: 2\n⋮\n└─ Literal: 3⋮\n"
+    )
 
 
 def test_cast_decimal():
@@ -322,6 +377,21 @@ def test_Slice():
 
     slc = scalar.Slice(cast(1), itvl)
 
-    assert slc.__repr__() == "1[5:6]"
+    assert str(slc) == "1[5:6]"
     assert slc.children() == {"Scalar": cast(1), None: itvl}
     assert slc.print_node() == "Slice"
+
+    mystdout = StringIO()
+    p = PP(mystdout)
+
+    slc._repr_pretty_(p, 0)
+
+    assert (
+        mystdout.getvalue()
+        == "Slice\n"
+        + "├─ Scalar\n"
+        + "│  ⇒ Literal: 1\n"
+        + "⋮\n"
+        + "└─ Interval\n"
+        + "⋮\n"
+    )

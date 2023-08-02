@@ -2,6 +2,7 @@
 job.json
 out.txt
 .DS_Store
+tests/data/jobs/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -173,7 +174,9 @@ cython_debug/
 .pdm-python
 main.py
 *.ipynb
+*.json
 .ruff_cache
 
 .mock_state.txt
 quantum_task.json
+future.json
