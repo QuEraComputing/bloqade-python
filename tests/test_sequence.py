@@ -7,7 +7,7 @@ from bloqade.ir import (
     Pulse,
     Uniform,
     Linear,
-    ScaledLocations,
+    # ScaledLocations,
     LevelCoupling,
 )
 from bloqade.ir.control.sequence import NamedSequence
@@ -27,7 +27,7 @@ def test_lvlcouple_hf():
     lc = hyperfine
 
     assert lc.print_node() == "HyperfineLevelCoupling"
-    assert lc.__repr__() == "hyperfine"
+    assert str(lc) == "hyperfine"
 
     mystdout = StringIO()
     p = PP(mystdout)
@@ -40,7 +40,7 @@ def test_lvlcouple_ryd():
     lc = rydberg
 
     assert lc.print_node() == "RydbergLevelCoupling"
-    assert lc.__repr__() == "rydberg"
+    assert str(lc) == "rydberg"
 
     mystdout = StringIO()
     p = PP(mystdout)
@@ -96,13 +96,19 @@ def test_slice_sequence():
     assert (
         mystdout.getvalue()
         == "Slice\n"
-        + "├─ sequence ⇒ Sequence\n"
-        + "│             └─ RydbergLevelCoupling ⇒ Pulse\n"
-        + "│                                       └─ Detuning ⇒ Field\n"
+        + "├─ sequence\n"
+        + "│  ⇒ Sequence\n"
+        + "│    └─ RydbergLevelCoupling\n"
+        + "│       ⇒ Pulse\n"
+        + "│         └─ Detuning\n"
+        + "│            ⇒ Field\n"
         + "⋮\n"
-        + "└─ interval ⇒ Interval\n"
-        + "              ├─ start ⇒ Literal: 0\n"
-        + "              └─ stop ⇒ Literal: 1.5"
+        + "└─ interval\n"
+        + "   ⇒ Interval\n"
+        + "     ├─ start\n"
+        + "     │  ⇒ Literal: 0\n"
+        + "     └─ stop\n"
+        + "        ⇒ Literal: 1.5"
     )
 
 
@@ -124,16 +130,21 @@ def test_append_sequence():
         mystdout.getvalue()
         == "Append\n"
         + "├─ Sequence\n"
-        + "│  └─ RydbergLevelCoupling ⇒ Pulse\n"
-        + "│                            └─ Detuning ⇒ Field\n"
+        + "│  └─ RydbergLevelCoupling\n"
+        + "│     ⇒ Pulse\n"
+        + "│       └─ Detuning\n"
+        + "│          ⇒ Field\n"
         + "⋮\n"
         + "└─ Sequence\n"
-        + "   └─ RydbergLevelCoupling ⇒ Pulse\n"
-        + "                             └─ Detuning ⇒ Field\n"
+        + "   └─ RydbergLevelCoupling\n"
+        + "      ⇒ Pulse\n"
+        + "        └─ Detuning\n"
+        + "           ⇒ Field\n"
         + "⋮\n"
     )
 
 
+"""
 seq = Sequence(
     {
         rydberg: {
@@ -151,3 +162,4 @@ print(seq)
 print(seq.name("test"))
 print(seq.append(seq))
 print(seq[:0.5])
+"""
