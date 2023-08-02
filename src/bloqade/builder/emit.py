@@ -342,7 +342,6 @@ class Emit(Builder):
             case location.Uniform():
                 build_state.spatial_modulation = ir.Uniform
                 Emit.__terminate_spatial_modulation(build_state)
-                print(build_state.field)
                 Emit.__build_ast(builder.__parent__, build_state)
 
             case location.Var():
