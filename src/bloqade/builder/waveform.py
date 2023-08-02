@@ -1,5 +1,5 @@
 from .base import Builder
-from .terminate import Terminate
+from .route import Route
 import bloqade.ir as ir
 from typing import Union, List, Callable, Optional
 
@@ -610,7 +610,7 @@ class Waveform(Builder):
         return PythonFn(self, fn, duration)
 
 
-class WaveformTerminate(Waveform, Terminate):
+class WaveformRoute(Waveform, Route):
     pass
 
 
@@ -752,13 +752,13 @@ class Recordable:
         return Record(self, name)
 
 
-class Apply(Sliceable, Recordable, WaveformTerminate):
+class Apply(Sliceable, Recordable, WaveformRoute):
     def __init__(self, builder: Builder, wf: ir.Waveform) -> None:
         super().__init__(builder)
         self._waveform = wf
 
 
-class Linear(Sliceable, Recordable, WaveformTerminate):
+class Linear(Sliceable, Recordable, WaveformRoute):
     def __init__(
         self, parent: Builder, start: float, stop: float, duration: str
     ) -> None:
@@ -766,19 +766,19 @@ class Linear(Sliceable, Recordable, WaveformTerminate):
         self._waveform = ir.Linear(start, stop, duration)
 
 
-class Constant(Sliceable, Recordable, WaveformTerminate):
+class Constant(Sliceable, Recordable, WaveformRoute):
     def __init__(self, parent: Builder, value: float, duration: str) -> None:
         super().__init__(parent)
         self._waveform = ir.Constant(value, duration)
 
 
-class Poly(Sliceable, Recordable, WaveformTerminate):
+class Poly(Sliceable, Recordable, WaveformRoute):
     def __init__(self, parent: Builder, coeffs: list, duration: str) -> None:
         super().__init__(parent)
         self._waveform = ir.Poly(coeffs, duration)
 
 
-class PythonFn(Sliceable, Recordable, WaveformTerminate):
+class PythonFn(Sliceable, Recordable, WaveformRoute):
     def __init__(self, parent: Builder, fn: Callable, duration: str) -> None:
         super().__init__(parent)
         self._waveform = ir.PythonFn(fn, duration)
@@ -803,7 +803,7 @@ class PythonFn(Sliceable, Recordable, WaveformTerminate):
                 )
 
 
-class Sample(Sliceable, Recordable, WaveformTerminate):
+class Sample(Sliceable, Recordable, WaveformRoute):
     def __init__(
         self,
         parent: Builder,
@@ -815,7 +815,7 @@ class Sample(Sliceable, Recordable, WaveformTerminate):
         self._interpolation = ir.Interpolation(interpolation)
 
 
-class Slice(Recordable, WaveformTerminate):  # slice should not be sliceable
+class Slice(Recordable, WaveformRoute):  # slice should not be sliceable
     def __init__(
         self,
         parent: Builder,
@@ -827,7 +827,7 @@ class Slice(Recordable, WaveformTerminate):  # slice should not be sliceable
         self._stop = ir.cast(stop) if stop is not None else None
 
 
-class Record(WaveformTerminate):  # record should not be sliceable
+class Record(WaveformRoute):  # record should not be sliceable
     def __init__(
         self,
         parent: Builder,
