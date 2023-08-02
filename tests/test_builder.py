@@ -151,6 +151,35 @@ def test_issue_150():
     )
 
 
+def test_303_replicate_channel_should_add():
+    prog = (
+        start.rydberg.detuning.uniform.linear(0, 1, 1)
+        .rabi.amplitude.uniform.linear(1, 2, 1)
+        .detuning.uniform.linear(0, 2, 3)
+    )
+
+    assert prog.sequence == ir.Sequence(
+        {
+            ir.rydberg: ir.Pulse(
+                {
+                    ir.rabi.amplitude: ir.Field({ir.Uniform: ir.Linear(1, 2, 1)}),
+                    ir.detuning: ir.Field(
+                        {ir.Uniform: ir.Linear(0, 2, 3) + ir.Linear(0, 1, 1)}
+                    ),
+                }
+            )
+        }
+    )
+
+    prog1 = (
+        start.rydberg.detuning.uniform.linear(0, 1, 1)
+        .rabi.amplitude.uniform.linear(1, 2, 1)
+        .rydberg.detuning.uniform.linear(0, 2, 3)
+    )
+
+    assert prog1.sequence == prog.sequence
+
+
 def test_record():
     prog = start
     prog = (
