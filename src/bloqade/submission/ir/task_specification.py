@@ -70,16 +70,19 @@ class RabiFrequencyAmplitude(BaseModel):
             )
         )
 
-    def figure(self):
-        source = ColumnDataSource(
-            {
-                "times": [float(i) for i in self.global_.times],
-                "values": [float(i) for i in self.global_.values],
-                "values_floor": [0.0] * len(self.global_.values),
-            }
-        )
+    def _get_data_source(self):
+        # isolate this for binding glyph later
+        src = {
+            "times_amp": [float(i) for i in self.global_.times],
+            "values_amp": [float(i) for i in self.global_.values],
+            "values_floor_amp": [0.0] * len(self.global_.values),
+        }
 
+        return src
+
+    def figure(self, source, **fig_kwargs):
         line_plt = figure(
+            **fig_kwargs,
             x_axis_label="Time (s)",
             y_axis_label="Value (rad/s)",
         )
@@ -87,14 +90,18 @@ class RabiFrequencyAmplitude(BaseModel):
         line_plt.x_range.start = 0
         line_plt.y_range.start = 0
 
-        line_plt.line(x="times", y="values", source=source, line_width=2, color="black")
+        line_plt.line(
+            x="times_amp", y="values_amp", source=source, line_width=2, color="black"
+        )
 
-        line_plt.circle(x="times", y="values", source=source, size=4, color="black")
+        line_plt.circle(
+            x="times_amp", y="values_amp", source=source, size=4, color="black"
+        )
 
         line_plt.varea(
-            x="times",
-            y1="values",
-            y2="values_floor",
+            x="times_amp",
+            y1="values_amp",
+            y2="values_floor_amp",
             source=source,
             fill_alpha=0.3,
             color="#6437FF",
@@ -103,7 +110,7 @@ class RabiFrequencyAmplitude(BaseModel):
         return line_plt
 
     def show(self):
-        show(self.figure())
+        show(self.figure(ColumnDataSource(self._get_data_source())))
 
 
 class RabiFrequencyPhase(BaseModel):
@@ -131,15 +138,18 @@ class RabiFrequencyPhase(BaseModel):
             )
         )
 
-    def figure(self):
-        source = ColumnDataSource(
-            {
-                "times": [float(i) for i in self.global_.times],
-                "values": [float(i) for i in self.global_.values],
-            }
-        )
+    def _get_data_source(self):
+        # isolate this for binding glyph later
+        src = {
+            "times_phase": [float(i) for i in self.global_.times],
+            "values_phase": [float(i) for i in self.global_.values],
+        }
 
+        return src
+
+    def figure(self, source, **fig_kwargs):
         line_plt = figure(
+            **fig_kwargs,
             x_axis_label="Time (s)",
             y_axis_label="Value (rad)",
         )
@@ -148,17 +158,23 @@ class RabiFrequencyPhase(BaseModel):
         line_plt.x_range.start = 0
 
         steps = Step(
-            x="times", y="values", line_color="black", line_width=2, mode="center"
+            x="times_phase",
+            y="values_phase",
+            line_color="black",
+            line_width=2,
+            mode="center",
         )
 
         line_plt.add_glyph(source, steps)
 
-        line_plt.circle(x="times", y="values", source=source, size=4, color="black")
+        line_plt.circle(
+            x="times_phase", y="values_phase", source=source, size=4, color="black"
+        )
 
         return line_plt
 
     def show(self):
-        show(self.figure())
+        show(self.figure(ColumnDataSource(self._get_data_source())))
 
 
 class Detuning(BaseModel):
@@ -198,31 +214,40 @@ class Detuning(BaseModel):
             local=self.local,
         )
 
-    def global_figure(self):
-        source = ColumnDataSource(
-            {
-                "times": [float(i) for i in self.global_.times],
-                "values": [float(i) for i in self.global_.values],
-                "values_floor": [0.0] * len(self.global_.values),
-            }
-        )
+    def _get_data_source(self):
+        # isolate this for binding glyph later
+        src = {
+            "times_detune": [float(i) for i in self.global_.times],
+            "values_detune": [float(i) for i in self.global_.values],
+            "values_floor_detune": [0.0] * len(self.global_.values),
+        }
 
+        return src
+
+    def global_figure(self, source, **fig_kwargs):
         line_plt = figure(
-            x_axis_label="Time (s)",
-            y_axis_label="Value (rad/s)",
+            **fig_kwargs, x_axis_label="Time (s)", y_axis_label="Value (rad/s)"
         )
 
         line_plt.y_range.start = 0
         line_plt.x_range.start = 0
 
-        line_plt.line(x="times", y="values", source=source, line_width=2, color="black")
+        line_plt.line(
+            x="times_detune",
+            y="values_detune",
+            source=source,
+            line_width=2,
+            color="black",
+        )
 
-        line_plt.circle(x="times", y="values", source=source, size=4, color="black")
+        line_plt.circle(
+            x="times_detune", y="values_detune", source=source, size=4, color="black"
+        )
 
         line_plt.varea(
-            x="times",
-            y1="values",
-            y2="values_floor",
+            x="times_detune",
+            y1="values_detune",
+            y2="values_floor_detune",
             source=source,
             fill_alpha=0.5,
             color="#EFD0DE",
@@ -231,7 +256,7 @@ class Detuning(BaseModel):
         return line_plt
 
     def show_global(self):
-        show(self.global_figure())
+        show(self.global_figure(ColumnDataSource(self._get_data_source())))
 
 
 class RydbergHamiltonian(BaseModel):
@@ -313,12 +338,34 @@ class QuEraTaskSpecification(BaseModel):
         )
 
     def figure(self):
+        # grab all the datas and combine them:
+        rabi_amp_src = (
+            self.effective_hamiltonian.rydberg.rabi_frequency_amplitude._get_data_source()
+        )
+        rabi_phase_src = (
+            self.effective_hamiltonian.rydberg.rabi_frequency_phase._get_data_source()
+        )
+        global_detuning_src = (
+            self.effective_hamiltonian.rydberg.detuning._get_data_source()
+        )
+
+        rabi_amp_src = ColumnDataSource(rabi_amp_src)
+        rabi_phase_src = ColumnDataSource(rabi_phase_src)
+        global_detuning_src = ColumnDataSource(global_detuning_src)
+
         # grab global figures
         rabi_amplitude = (
-            self.effective_hamiltonian.rydberg.rabi_frequency_amplitude.figure()
+            self.effective_hamiltonian.rydberg.rabi_frequency_amplitude.figure(
+                rabi_amp_src
+            )
         )
-        rabi_phase = self.effective_hamiltonian.rydberg.rabi_frequency_phase.figure()
-        global_detuning = self.effective_hamiltonian.rydberg.detuning.global_figure()
+
+        rabi_phase = self.effective_hamiltonian.rydberg.rabi_frequency_phase.figure(
+            rabi_phase_src, x_range=rabi_amplitude.x_range
+        )
+        global_detuning = self.effective_hamiltonian.rydberg.detuning.global_figure(
+            global_detuning_src, x_range=rabi_amplitude.x_range
+        )
 
         full_plt = gridplot(
             [[rabi_amplitude], [global_detuning], [rabi_phase]],
