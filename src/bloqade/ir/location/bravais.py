@@ -80,6 +80,12 @@ class BoundedBravais(AtomArrangement):
                 position = tuple(self.lattice_spacing * pos)
                 yield LocationInfo(position, True)
 
+    def __iter__(self):
+        for index in itertools.product(*[range(n) for n in self.shape]):
+            for pos in self.coordinates(index):
+                position = tuple(self.lattice_spacing * pos)
+                yield LocationInfo(position, True)
+
     def scale(self, factor: float | Scalar) -> "BoundedBravais":
         """Scale the current location with a factor.
 
