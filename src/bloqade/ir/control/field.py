@@ -109,7 +109,9 @@ class ScaledLocations(SpatialModulation):
         return f"ScaledLocations(value={str(self.value)})"
 
     def print_node(self):
-        return "ScaledLocations"
+        ## formatting location: scale pair:
+        tmp = {f"{key.value}": val for key, val in self.value.items()}
+        return f"ScaledLocations({str(tmp)})"
 
     def children(self):
         # can return list or dict
