@@ -50,7 +50,7 @@ class AtomArrangement(ProgramStart):
         """enumerate all locations in the register."""
         raise NotImplementedError
 
-    def figure(self, **assignments):
+    def figure(self, fig_kwargs=None, **assignments):
         """obtain a figure object from the atom arrangement."""
         xs_filled, ys_filled, labels_filled = [], [], []
         xs_vacant, ys_vacant, labels_vacant = [], [], []
@@ -103,7 +103,11 @@ class AtomArrangement(ProgramStart):
         ]
 
         ## remove box_zoom since we don't want to change the scale
+        if fig_kwargs is None:
+            fig_kwargs = {}
+
         p = figure(
+            **fig_kwargs,
             width=400,
             height=400,
             tools="wheel_zoom,reset, undo, redo, pan",

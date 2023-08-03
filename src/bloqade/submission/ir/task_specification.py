@@ -329,14 +329,14 @@ class Lattice(BaseModel):
             filling=self.filling,
         )
 
-    def figure(self):
+    def figure(self, **fig_kwargs):
         ## use ir.Atom_oarrangement's plotting:
         ## covert unit to m -> um
         sites_um = list(
             map(lambda cord: (float(cord[0]) * 1e6, float(cord[1]) * 1e6), self.sites)
         )
         reg = ListOfLocations().add_positions(sites_um, self.filling)
-        fig_reg = reg.figure()  # ignore the B-rad widget
+        fig_reg = reg.figure(fig_kwargs=fig_kwargs)  # ignore the B-rad widget
         return fig_reg
 
     def show(self):
@@ -386,7 +386,7 @@ class QuEraTaskSpecification(BaseModel):
         # grab global figures
         rabi_amplitude = (
             self.effective_hamiltonian.rydberg.rabi_frequency_amplitude.figure(
-                rabi_amp_src, tools="hover,wheel_zoom,reset, undo, redo, pan"
+                rabi_amp_src, tools="wheel_zoom,reset, undo, redo, pan"
             )
         )
 
@@ -402,7 +402,7 @@ class QuEraTaskSpecification(BaseModel):
         )
 
         # lattice:
-        register = self.lattice.figure()
+        register = self.lattice.figure(x_axis_label="x (um)", y_axis_label="y (um)")
 
         col_plt = gridplot(
             [[rabi_amplitude], [global_detuning], [rabi_phase]],
