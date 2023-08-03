@@ -5,7 +5,14 @@ from typing import List, Generator, Tuple, Optional, Any, TYPE_CHECKING
 from bokeh.plotting import show
 import numpy as np
 from enum import Enum
-from bokeh.models import ColumnDataSource, NumericInput, Button, Range1d, CustomJS
+from bokeh.models import (
+    ColumnDataSource,
+    NumericInput,
+    Button,
+    Range1d,
+    CustomJS,
+    HoverTool,
+)
 from bokeh.plotting import figure
 from bokeh.layouts import column, row
 
@@ -77,41 +84,40 @@ class AtomArrangement(ProgramStart):
             length_scale = 1
 
         source_filled = ColumnDataSource(
-            data=dict(x=xs_filled, y=ys_filled, labels=labels_filled)
+            data=dict(_x=xs_filled, _y=ys_filled, _labels=labels_filled)
         )
         source_vacant = ColumnDataSource(
-            data=dict(x=xs_vacant, y=ys_vacant, labels=labels_vacant)
+            data=dict(_x=xs_vacant, _y=ys_vacant, _labels=labels_vacant)
         )
         source_all = ColumnDataSource(
             data=dict(
-                x=xs_vacant + xs_filled,
-                y=ys_vacant + ys_filled,
-                labels=labels_vacant + labels_filled,
+                _x=xs_vacant + xs_filled,
+                _y=ys_vacant + ys_filled,
+                _labels=labels_vacant + labels_filled,
             )
         )
-
-        TOOLTIPS = [
-            ("(x,y)", "(@x, @y)"),
-            ("index: ", "@labels"),
+        hover = HoverTool()
+        hover.tooltips = [
+            ("(x,y)", "(@_x, @_y)"),
+            ("index: ", "@_labels"),
         ]
 
         ## remove box_zoom since we don't want to change the scale
         p = figure(
             width=400,
             height=400,
-            tools="hover,wheel_zoom,reset, undo, redo, pan",
-            tooltips=TOOLTIPS,
+            tools="wheel_zoom,reset, undo, redo, pan",
             toolbar_location="above",
         )
         p.x_range = Range1d(x_min - 1, x_min + length_scale + 1)
         p.y_range = Range1d(y_min - 1, y_min + length_scale + 1)
 
         p.circle(
-            "x", "y", source=source_filled, radius=0.015 * length_scale, fill_alpha=1
+            "_x", "_y", source=source_filled, radius=0.015 * length_scale, fill_alpha=1
         )
         p.circle(
-            "x",
-            "y",
+            "_x",
+            "_y",
             source=source_vacant,
             radius=0.015 * length_scale,
             fill_alpha=0.25,
@@ -120,8 +126,8 @@ class AtomArrangement(ProgramStart):
         )
 
         p.circle(
-            "x",
-            "y",
+            "_x",
+            "_y",
             source=source_all,
             radius=0,  # in the same unit as the data
             fill_alpha=0,
@@ -129,6 +135,7 @@ class AtomArrangement(ProgramStart):
             visible=True,  # display by default
             name="Brad",
         )
+        p.add_tools(hover)
 
         return p
 

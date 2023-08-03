@@ -3,7 +3,7 @@ from typing import Optional, List, Tuple, Union
 from decimal import Decimal
 
 from bokeh.plotting import figure, show
-from bokeh.models import ColumnDataSource, Step
+from bokeh.models import ColumnDataSource, Step, HoverTool
 from bokeh.layouts import gridplot
 
 from bloqade.submission.ir.capabilities import QuEraCapabilities
@@ -82,6 +82,9 @@ class RabiFrequencyAmplitude(BaseModel):
         return src
 
     def figure(self, source, **fig_kwargs):
+        hover = HoverTool()
+        hover.tooltips = [("(x,y)", "(@times_amp, @values_amp)")]
+
         line_plt = figure(
             **fig_kwargs,
             x_axis_label="Time (s)",
@@ -108,6 +111,7 @@ class RabiFrequencyAmplitude(BaseModel):
             fill_alpha=0.3,
             color="#6437FF",
         )
+        line_plt.add_tools(hover)
 
         return line_plt
 
@@ -150,8 +154,11 @@ class RabiFrequencyPhase(BaseModel):
         return src
 
     def figure(self, source, **fig_kwargs):
+        TOOLTIPS = [("(x,y)", "(@times_phase, @values_phase)")]
+
         line_plt = figure(
             **fig_kwargs,
+            tooltips=TOOLTIPS,
             x_axis_label="Time (s)",
             y_axis_label="Value (rad)",
         )
@@ -228,8 +235,13 @@ class Detuning(BaseModel):
         return src
 
     def global_figure(self, source, **fig_kwargs):
+        TOOLTIPS = [("(x,y)", "(@times_detune, @values_detune)")]
+
         line_plt = figure(
-            **fig_kwargs, x_axis_label="Time (s)", y_axis_label="Value (rad/s)"
+            **fig_kwargs,
+            tooltips=TOOLTIPS,
+            x_axis_label="Time (s)",
+            y_axis_label="Value (rad/s)",
         )
 
         line_plt.x_range.start = 0
@@ -319,7 +331,11 @@ class Lattice(BaseModel):
 
     def figure(self):
         ## use ir.Atom_oarrangement's plotting:
-        reg = ListOfLocations().add_positions(self.sites, self.filling)
+        ## covert unit to m -> um
+        sites_um = list(
+            map(lambda cord: (float(cord[0]) * 1e6, float(cord[1]) * 1e6), self.sites)
+        )
+        reg = ListOfLocations().add_positions(sites_um, self.filling)
         fig_reg = reg.figure()  # ignore the B-rad widget
         return fig_reg
 
@@ -388,16 +404,15 @@ class QuEraTaskSpecification(BaseModel):
         # lattice:
         register = self.lattice.figure()
 
-        full_plt = gridplot(
+        col_plt = gridplot(
             [[rabi_amplitude], [global_detuning], [rabi_phase]],
             merge_tools=False,
             sizing_mode="stretch_both",
         )
-        # full_plt.width_policy = "max"
+        col_plt.width_policy = "max"
 
-        full_plt = row(full_plt, register)
+        full_plt = row(col_plt, register, sizing_mode="stretch_both")
         full_plt.width_policy = "max"
-        full_plt.sizing_mode = "stretch_both"
 
         return full_plt
 

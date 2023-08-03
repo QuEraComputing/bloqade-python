@@ -3,21 +3,6 @@ from bloqade.ir.location import Square
 
 # import bloqade.lattice as lattice
 
-# dict interface
-seq = Sequence(
-    {
-        rydberg: {
-            detuning: {
-                Uniform: Linear(start=1.0, stop="x", duration=3.0),
-                ScaledLocations({1: 1.0, 2: 2.0}): Linear(
-                    start=1.0, stop="x", duration=3.0
-                ),
-            },
-        }
-    }
-)
-
-
 n_atoms = 11
 lattice_const = 5.9
 
@@ -35,6 +20,21 @@ ordered_state_2D_job = ordered_state_2D_prog.assign(delta_end=42.66, sweep_time=
 
 pbin = ordered_state_2D_job.quera(10)
 pbin.hardware_tasks[0].task_ir.show()
+
+
+# dict interface
+seq = Sequence(
+    {
+        rydberg: {
+            detuning: {
+                Uniform: Linear(start=1.0, stop="x", duration=3.0),
+                ScaledLocations({1: 1.0, 2: 2.0}): Linear(
+                    start=1.0, stop="x", duration=3.0
+                ),
+            },
+        }
+    }
+)
 
 
 # job = HardwareBatchResult.load_json("example-3-2d-ordered-state-job.json")
