@@ -88,7 +88,7 @@ class RabiFrequencyAmplitude(BaseModel):
         line_plt = figure(
             **fig_kwargs,
             x_axis_label="Time (s)",
-            y_axis_label="Value (rad/s)",
+            y_axis_label="Ω(t) (rad/s)",
         )
 
         line_plt.x_range.start = 0
@@ -160,7 +160,7 @@ class RabiFrequencyPhase(BaseModel):
             **fig_kwargs,
             tooltips=TOOLTIPS,
             x_axis_label="Time (s)",
-            y_axis_label="Value (rad)",
+            y_axis_label="ϕ(t) (rad)",
         )
 
         line_plt.y_range.start = min(source.data["values_phase"]) - 5e6
@@ -241,7 +241,7 @@ class Detuning(BaseModel):
             **fig_kwargs,
             tooltips=TOOLTIPS,
             x_axis_label="Time (s)",
-            y_axis_label="Value (rad/s)",
+            y_axis_label="Δ(t) (rad/s)",
         )
 
         line_plt.x_range.start = 0
