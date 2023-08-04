@@ -1,0 +1,79 @@
+capi_return is NULL
+Call-back cb_calcfc_in__cobyla__user__routines failed.
+Loading credentials!
+Credentials successfully loaded!
+Starting the optimization!
+Cost value is -17.88
+Cost value is -18.82608695652174
+Cost value is -19.210526315789473
+Time penalty enforced with time 4.5!
+Cost value is -21.31278947368419
+Time penalty enforced with time 4.5!
+Cost value is -21.520809523809504
+Time penalty enforced with time 4.5!
+Cost value is -21.28866666666665
+Time penalty enforced with time 4.5!
+Cost value is -21.05949999999998
+Time penalty enforced with time 4.5!
+Cost value is -21.74699999999998
+Time penalty enforced with time 5.922507422204278!
+Cost value is -21.52080952380955
+Cost value is -21.095238095238095
+Time penalty enforced with time 4.091093339350129!
+Cost value is -21.997000000000025
+Time penalty enforced with time 4.03750956513983!
+Cost value is -22.30469230769233
+Cost value is -21.944444444444443
+Cost value is -21.958333333333332
+Cost value is -22.8125
+Cost value is -22.26086956521739
+Traceback (most recent call last):
+  File "/home/ubuntu/bloqade-python/docs/docs/examples/hardware_run.py", line 63, in <module>
+    res = opt.optimize()        
+          ^^^^^^^^^^^^^^
+  File "/home/ubuntu/bloqade-python/docs/docs/examples/MIS/optimization.py", line 74, in optimize
+    result = minimize(self._array_cache(self._tracking_cost_function), self.x_init, method=method, options={"maxiter": self.max_iter})
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/anaconda3/envs/quera/lib/python3.11/site-packages/scipy/optimize/_minimize.py", line 705, in minimize
+    res = _minimize_cobyla(fun, x0, args, constraints, callback=callback,
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/anaconda3/envs/quera/lib/python3.11/site-packages/scipy/optimize/_cobyla_py.py", line 34, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/anaconda3/envs/quera/lib/python3.11/site-packages/scipy/optimize/_cobyla_py.py", line 273, in _minimize_cobyla
+    xopt, info = cobyla.minimize(calcfc, m=m, x=np.copy(x0), rhobeg=rhobeg,
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/anaconda3/envs/quera/lib/python3.11/site-packages/scipy/optimize/_cobyla_py.py", line 261, in calcfc
+    f = fun(np.copy(x), *args)
+        ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/bloqade-python/docs/docs/examples/MIS/optimization.py", line 28, in wrapper
+    result = func(x, *args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/bloqade-python/docs/docs/examples/MIS/optimization.py", line 36, in _tracking_cost_function
+    cost, bitstrings = self.problem.cost_function(self.ansatz, x)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/bloqade-python/docs/docs/examples/MIS/MIS_problem.py", line 16, in cost_function
+    post_processed_bitstrings = ansatz.get_bitstrings(duration_values+detuning_values)
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/bloqade-python/docs/docs/examples/MIS/MIS_ansatz.py", line 95, in get_bitstrings
+    job = self.ansatz().assign(**dict(zip(var_list, x))).braket(self.num_shots).submit()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/bloqade-python/src/bloqade/task/cloud_base.py", line 197, in submit
+    task.run_validation()
+  File "/home/ubuntu/bloqade-python/src/bloqade/task/hardware.py", line 103, in run_validation
+    self.backend.validate_task(self.task_ir)
+  File "/home/ubuntu/bloqade-python/src/bloqade/submission/braket.py", line 46, in validate_task
+    self.cancel_task(task_id)
+  File "/home/ubuntu/bloqade-python/src/bloqade/submission/braket.py", line 31, in cancel_task
+    AwsQuantumTask(task_id).cancel()
+  File "/home/ubuntu/anaconda3/envs/quera/lib/python3.11/site-packages/braket/aws/aws_quantum_task.py", line 267, in cancel
+    self._aws_session.cancel_quantum_task(self._arn)
+  File "/home/ubuntu/anaconda3/envs/quera/lib/python3.11/site-packages/braket/aws/aws_session.py", line 212, in cancel_quantum_task
+    response = self.braket_client.cancel_quantum_task(quantumTaskArn=arn)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/anaconda3/envs/quera/lib/python3.11/site-packages/botocore/client.py", line 534, in _api_call
+    return self._make_api_call(operation_name, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/anaconda3/envs/quera/lib/python3.11/site-packages/botocore/client.py", line 976, in _make_api_call
+    raise error_class(parsed_response, operation_name)
+botocore.errorfactory.ConflictException: An error occurred (ConflictException) when calling the CancelQuantumTask operation: Amazon Braket cannot cancel a quantum task in the RUNNING status for device ARN arn:aws:braket:us-east-1::device/qpu/quera/Aquila.
