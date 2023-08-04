@@ -1,4 +1,4 @@
-from bloqade.builder.start import ProgramStart
+from bloqade.builder2.start import ProgramStart
 from bloqade.ir.scalar import Scalar, cast
 from pydantic.dataclasses import dataclass
 from typing import List, Generator, Tuple, Optional, Any, TYPE_CHECKING
@@ -37,7 +37,7 @@ class LocationInfo:
 
 class AtomArrangement(ProgramStart):
     def __init__(self) -> None:
-        super().__init__(register=self)
+        super().__init__(self)
 
     def enumerate(self) -> Generator[LocationInfo, None, None]:
         """enumerate all locations in the register."""
@@ -301,4 +301,4 @@ class ParallelRegister(ProgramStart):
         self.register_locations = register_locations
         self.register_filling = register_filling
         self.shift_vectors = shift_vectors
-        super().__init__(register=self)
+        super().__init__(self)
