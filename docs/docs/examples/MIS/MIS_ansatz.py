@@ -4,19 +4,20 @@ from bloqade import start
 from bloqade.submission.capabilities import get_capabilities
 from scipy.interpolate import CubicSpline
 import networkx as nx
+from bloqade.builder.emit import Emit
 
 
 class MIS_ansatz(Ansatz):
 
-    def __init__(self, problem, q_hardware, num_shots, blockade_radius, unitdisk_radius, num_time_points) -> None:
-
+    def __init__(self, problem, backend, num_shots, blockade_radius, unitdisk_radius, num_time_points, ansatz_type, config_path=None,) -> None:
+        
+        super().__init__(backend_info={"backend": backend, "num_shots": num_shots, "config_path": config_path})
         self.num_time_points = num_time_points
-        self.num_shots = num_shots
+
         self.graph = problem.graph
         self.positions = problem.positions
         self.blockade_radius = blockade_radius
         self.unitdisk_radius = unitdisk_radius
-        self.q_hardware = q_hardware
     
         # Get parameter bounds 
         caps = get_capabilities()
@@ -29,96 +30,58 @@ class MIS_ansatz(Ansatz):
 
         self.total_time = caps.capabilities.rydberg.global_.time_max * 1E6
 
-        self.duration_list = [f"duration_{i+1}" for i in range(self.num_time_points)]
-        self.detuning_list = [f"detuning_{i+1}" for i in range(self.num_time_points+1)]
-
-        #self._ansatz = self.ansatz_linear()
-
-    # TODO: Json this and save 
-
-    def submit(self, params):
-
-        if self.q_hardware == True:
-            job = self.ansatz_spline(params).braket(self.num_shots)
-        elif self.q_hardware == False:
-            job = self.ansatz_spline(params).braket_local_simulator(self.num_shots)
-        
-
-        return job.submit()
-
-    def ansatz(self):
-        return self.ansatz_linear()
+        self.ansatz_type = ansatz_type
 
 
-    def ansatz_linear(self):
+    def ansatz(self, params)->Emit:
+
+        if self.ansatz_type == "linear":
+            return self._ansatz_linear(params)
+        elif self.ansatz_type == "spline":
+            return self._ansatz_spline(params)
+        else: 
+            NameError("This is not a valid ansatz name!")
+
+    def _ansatz_linear(self, params):
+
+        durations = params[:self.num_time_points]
+        detunings = params[self.num_time_points:]
    
         # Initialize MIS program 
         mis_udg_program = (
             start.add_positions(self.positions.astype(float)).scale(self.blockade_radius/self.unitdisk_radius)
             .rydberg.rabi 
-            .amplitude.uniform.piecewise_linear(self.duration_list, [0.] + [self.amp_max] * (self.num_time_points-1)  + [0.])
-            .detuning.uniform.piecewise_linear(self.duration_list, self.detuning_list)
+            .amplitude.uniform.piecewise_linear(durations, [0.] + [self.amp_max] * (self.num_time_points-1)  + [0.])
+            .detuning.uniform.piecewise_linear(durations, detunings)
         )
         return mis_udg_program
     
     # TODO: generalize code to work with params list, regardless of param names
     
-    def ansatz_spline(self, params):
+    def _ansatz_spline(self, params):
        
         x, y = params[:len(params)//2], params[len(params)//2:]
-
-        def piecewise_spline(time, x, y):
-            # Cubic Spline interpolation
-            cs = CubicSpline(x, y)
-            # Construct piecewise function
-            piecewise_func = np.piecewise(time, 
-                                        [time < x[0], 
-                                        (time >= x[0]) & (time <= x[-1]), 
-                                        time > x[-1]], 
-                                        [y[0], cs, y[-1]])
-            return piecewise_func
         
         mis_udg_program = (
         start.add_positions(self.positions.astype(float)).scale(self.blockade_radius/self.unitdisk_radius)
         .rydberg.rabi
         .amplitude.uniform.piecewise_linear([0.5, 3, 0.5], [0., self.amp_max, self.amp_max, 0.])
-        .detuning.uniform.fn(fn=lambda time: piecewise_spline(time, x, y), duration=4).sample(0.05)
+        .detuning.uniform.fn(fn=lambda time: self._piecewise_spline(time, x, y), duration=4).sample(0.05)
         )
         return mis_udg_program
-
-    # TODO: make this non-blocking and save stuff into JSON 
-    def get_bitstrings(self, x):
     
-        var_list = (self.duration_list + self.detuning_list)
-
-        if self.q_hardware == True:
-            job = self.ansatz().assign(**dict(zip(var_list, x))).braket(self.num_shots).submit()
-        elif self.q_hardware == False:
-            job = self.ansatz().assign(**dict(zip(var_list, x))).braket_local_simulator(self.num_shots).submit()
-
-        # Save to JSON in case anything goes wrong
-        job.save_json("job.json")
-
-        return np.array(job.report().bitstrings[0])
+    def _piecewise_spline(self, time, x, y):
+        # Cubic Spline interpolation
+        cs = CubicSpline(x, y)
+        # Construct piecewise function
+        piecewise_func = np.piecewise(time, 
+                                    [time < x[0], 
+                                    (time >= x[0]) & (time <= x[-1]), 
+                                    time > x[-1]], 
+                                    [y[0], cs, y[-1]])
+        return piecewise_func
     
 
-    # TODO: make this non-blocking and save stuff into JSON 
-
-    def get_bitstrings_spline(self, params):
-        
-        if self.q_hardware == True:
-            job = self.ansatz_spline(params).braket(self.num_shots).submit()
-        elif self.q_hardware == False:
-            job = self.ansatz_spline(params).braket_local_simulator(self.num_shots).submit()
-
-        # Save to JSON in case anything goes wrong
-        job.save_json("job.json")
-
-        # TODO: Put code above into a submit function
-        # Load the JSON here? 
-        
-        return np.array(job.report().bitstrings[0])
-        
     def get_solutions(self, x):
         bitstrings = self.get_bitstrings(x)
         return self.post_process_MIS(bitstrings)
@@ -128,19 +91,22 @@ class MIS_ansatz(Ansatz):
         penalty = 0
 
         if np.any(duration_values < 0):
-            duration_values = np.abs(duration_values)
+            print("Negative time encountered, pentalty term added!")
             penalty += np.sum(np.abs(duration_values))
+            duration_values = np.abs(duration_values)
 
         if np.sum(duration_values) > self.total_time:
             print(f"Time penalty enforced with time {np.sum(duration_values)}!")
-            duration_values = ((duration_values / np.sum(duration_values)) * self.total_time) - 1E-5 # To make sure we are within bounds given numerical errors
             penalty += np.abs(np.sum(duration_values) - self.total_time)
+            duration_values = ((duration_values / np.sum(duration_values)) * self.total_time) - 1E-5 # To make sure we are within bounds given numerical errors
 
         if np.any(detuning_values < self.det_min):
+            print("Detuning out of bounds, penalty term added!")
             penalty += np.sum(np.abs(detuning_values[detuning_values < self.det_min] - self.det_min))**2
             detuning_values[detuning_values < self.det_min] = self.det_min
 
         if np.any(detuning_values > self.det_max):
+            print("Detuning out of bounds, penalty term added!")
             penalty += np.sum(np.abs(detuning_values[detuning_values > self.det_max] - self.det_max))**2
             detuning_values[detuning_values > self.det_max] = self.det_max
 
