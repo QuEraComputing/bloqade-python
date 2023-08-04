@@ -25,6 +25,8 @@ class Detuning(Field):
 
 # this is just an eye candy, thus
 # it's not the actual Field object
+# one can skip this node when doing
+# compilation
 class Rabi(Builder):
     @property
     def amplitude(self) -> "RabiAmplitude":

@@ -1,5 +1,6 @@
 from typing import Optional
 from .base import Builder
+from .flatten import Flattenable
 
 
 class Assignable(Builder):
@@ -16,9 +17,9 @@ class AssignBase(Assignable):
         self._assignments = assignments
 
 
-class Assign(AssignBase):
+class Assign(AssignBase, Flattenable):
     pass
 
 
-class BatchAssign(AssignBase):
+class BatchAssign(AssignBase, Flattenable):
     pass

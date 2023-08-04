@@ -1,6 +1,6 @@
 from typing import Optional, Union, List, Callable
 from .base import Builder
-from .route import PulseRoute, PragmaRoute
+from .route import WaveformRoute
 from .. import ir
 
 ScalarType = Union[float, str, ir.Scalar]
@@ -43,7 +43,7 @@ class WaveformAttachable(Builder):
 
 # NOTE: waveform can refer previous pulse notes
 #       or continue to specify pragma options
-class Waveform(PulseRoute, PragmaRoute, WaveformAttachable):
+class Waveform(WaveformRoute, WaveformAttachable):
     pass
 
 
