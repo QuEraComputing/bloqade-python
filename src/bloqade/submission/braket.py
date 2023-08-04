@@ -1,4 +1,4 @@
-from bloqade.submission.base import SubmissionBackend, ValidationError
+from bloqade.submission.base import SubmissionBackend
 from bloqade.submission.ir.braket import (
     from_braket_task_results,
     from_braket_status_codes,
@@ -33,14 +33,17 @@ class BraketBackend(SubmissionBackend):
     def task_status(self, task_id: str) -> QuEraTaskStatusCode:
         return from_braket_status_codes(AwsQuantumTask(task_id).state())
 
-    def validate_task(self, task_ir: QuEraTaskSpecification):
-        try:
-            task_id = self.submit_task(task_ir)
-        except Exception as e:
-            if "ValidationException" in str(e) and "validation error" in str(e):
-                raise ValidationError(str(e))
-            else:
-                raise e
+    # def validate_task(self, task_ir: QuEraTaskSpecification):
+    #     try:
+    #         task_id = self.submit_task(task_ir)
+    #     except Exception as e:
+    #         if "ValidationException" in str(e) and "validation error" in str(e):
+    #             raise ValidationError(str(e))
+    #         else:
+    #             raise e
 
-        # don't want the task to actually run
-        self.cancel_task(task_id)
+    #     # don't want the task to actually run
+    #     try:
+    #         self.cancel_task(task_id)
+    #     except Exception as e:
+    #         return
