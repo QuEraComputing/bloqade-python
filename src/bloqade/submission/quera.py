@@ -1,5 +1,4 @@
 from bloqade.submission.base import SubmissionBackend, ValidationError
-from bloqade.submission.ir.braket import BraketTaskSpecification
 from bloqade.submission.quera_api_client.api import QueueApi
 from bloqade.submission.ir.task_specification import (
     QuEraTaskSpecification,
@@ -50,13 +49,13 @@ class QuEraBackend(SubmissionBackend):
         self.queue_api.cancel_task_in_queue(task_id)
 
     def task_status(self, task_id: str) -> QuEraTaskStatusCode:
-        return_body = self.queue_api.get_task_summary(task_id)
-        return QuEraTaskStatusCode(return_body["status"])
+        return_body = self.queue_api.get_task_status_in_queue(task_id)
+        return QuEraTaskStatusCode(return_body)
 
-    def validate_task(self, task_ir: BraketTaskSpecification | QuEraTaskSpecification):
+    def validate_task(self, task_ir: QuEraTaskSpecification):
         try:
             self.queue_api.validate_task(
                 task_ir.json(by_alias=True, exclude_none=True, exclude_unset=True)
             )
         except QueueApi.ValidationError as e:
-            raise ValidationError(e.body)
+            raise ValidationError(str(e))

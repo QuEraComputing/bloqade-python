@@ -15,7 +15,7 @@ import scipy.integrate as integrate
 
 
 def instruction(duration: Any) -> "PythonFn":
-    """Turn python function into a waveform instruction."""
+    # urn python function into a waveform instruction."""
 
     def waveform_wrapper(fn: Callable) -> "PythonFn":
         return PythonFn(fn, duration)
@@ -36,6 +36,19 @@ class Alignment(str, Enum):
 @dataclass
 class Waveform:
     """
+    Waveform node in the IR.
+
+    - [`<instruction>`][bloqade.ir.control.waveform.Instruction]
+    - [`<smooth>`][bloqade.ir.control.waveform.Smooth]
+    - [`<slice>`][bloqade.ir.control.waveform.Slice]
+    - [`<apppend>`][bloqade.ir.control.waveform.Append]
+    - [`<negative>`][bloqade.ir.control.waveform.Negative]
+    - [`<scale>`][bloqade.ir.control.waveform.Scale]
+    - [`<add>`][bloqade.ir.control.waveform.Add]
+    - [`<record>`][bloqade.ir.control.waveform.Record]
+    - [`<sample>`][bloqade.ir.control.waveform.Sample]
+
+    ```bnf
     <waveform> ::= <instruction>
         | <smooth>
         | <slice>
@@ -43,6 +56,9 @@ class Waveform:
         | <negative>
         | <scale>
         | <add>
+        | <record>
+        | <sample>
+    ```
     """
 
     def __post_init__(self):
@@ -70,6 +86,11 @@ class Waveform:
         return self.canonicalize(Append([self, other]))
 
     def plot(self, **assignments):
+        """Plot the waveform.
+
+        Returns:
+            figure: a bokeh figure
+        """
         duration = self.duration(**assignments)
         times = np.linspace(0, duration, 1001)
         values = [self.__call__(time, **assignments) for time in times]
@@ -157,14 +178,25 @@ class Waveform:
             case _:
                 return expr
 
+    def __repr__(self) -> str:
+        ph = Printer()
+        ph.print(self)
+        return ph.get_value()
+
+    def _repr_pretty_(self, p, cycle):
+        Printer(p).print(self, cycle)
+
 
 @dataclass
 class AlignedWaveform(Waveform):
     """
+
+    ```bnf
     <padded waveform> ::= <waveform> | <waveform> <alignment> <value>
 
     <alignment> ::= 'left aligned' | 'right aligned'
     <value> ::= 'left value' | 'right value' | <scalar expr>
+    ```
     """
 
     waveform: Waveform
@@ -194,19 +226,42 @@ class AlignedWaveform(Waveform):
 
         return annotated_children
 
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)
-
 
 @dataclass
 class Instruction(Waveform):
+    """Instruction node in the IR.
+
+    - [`<linear>`][bloqade.ir.control.waveform.Linear]
+    - [`<constant>`][bloqade.ir.control.waveform.Constant]
+    - [`<poly>`][bloqade.ir.control.waveform.Poly]
+    - [`<python-fn>`][bloqade.ir.control.waveform.PythonFn]
+
+
+    ```bnf
+    <instruction> ::= <linear>
+        | <constant>
+        | <poly>
+        | <python-fn>
+    ```
+    """
+
     pass
 
 
 @dataclass(init=False)
 class Linear(Instruction):
     """
+    ```bnf
     <linear> ::= 'linear' <scalar expr> <scalar expr>
+    ```
+
+    f(t=0:duration) = start + (stop-start)/duration * t
+
+    Args:
+        start (Scalar): start value
+        stop (Scalar): stop value
+        duration (Scalar): the time span of the linear waveform.
+
     """
 
     start: Scalar
@@ -229,10 +284,10 @@ class Linear(Instruction):
                 (stop_value - start_value) / self.duration(**kwargs)
             ) * clock_s + start_value
 
-    def __repr__(self) -> str:
+    def __str__(self):
         return (
-            f"Linear(start={self.start!r}, stop={self.stop!r}, "
-            f"duration={self.duration!r})"
+            f"Linear(start={str(self.start)}, stop={str(self.stop)}, "
+            f"duration={str(self.duration)})"
         )
 
     def print_node(self):
@@ -241,14 +296,20 @@ class Linear(Instruction):
     def children(self):
         return {"start": self.start, "stop": self.stop, "duration": self.duration}
 
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)
-
 
 @dataclass(init=False)
 class Constant(Instruction):
     """
+    ```bnf
     <constant> ::= 'constant' <scalar expr>
+    ```
+
+    f(t=0:duration) = value
+
+    Args:
+        value (Scalar): the constant value
+        duration (Scalar): the time span of the constant waveform.
+
     """
 
     value: Scalar
@@ -265,8 +326,8 @@ class Constant(Instruction):
         else:
             return constant_value
 
-    def __repr__(self) -> str:
-        return f"Constant(value={self.value!r}, duration={self.duration!r})"
+    def __str__(self):
+        return f"Constant(value={str(self.value)}, duration={str(self.duration)})"
 
     def print_node(self):
         return "Constant"
@@ -274,14 +335,20 @@ class Constant(Instruction):
     def children(self):
         return {"value": self.value, "duration": self.duration}
 
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)
-
 
 @dataclass(init=False)
 class Poly(Instruction):
     """
+    ```bnf
     <poly> ::= <scalar>+
+    ```
+
+    f(t=0:duration) = c[0] + c[1]t + c[2]t^2 + ... + c[n-1]t^n-1 + c[n]t^n
+
+    Args:
+        checkpoints (List[Scalar]): the coefficients c[] of the polynomial.
+        duration (Scalar): the time span of the waveform.
+
     """
 
     checkpoints: List[Scalar]
@@ -304,8 +371,8 @@ class Poly(Instruction):
 
             return value
 
-    def __repr__(self) -> str:
-        return f"Poly({self.checkpoints!r}, {self.duration!r})"
+    def __str__(self):
+        return f"Poly({str(self.checkpoints)}, {str(self.duration)})"
 
     def print_node(self) -> str:
         return "Poly"
@@ -327,14 +394,14 @@ class Poly(Instruction):
 
         return annotated_checkpoints
 
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)
-
 
 @dataclass(init=False)
 class PythonFn(Instruction):
     """
+
+    ```bnf
     <python-fn> ::= 'python-fn' <python function def> <scalar expr>
+    ```
     """
 
     fn: Callable  # [[float, ...], float] # f(t) -> value
@@ -360,9 +427,11 @@ class PythonFn(Instruction):
             return Decimal(0)
 
         return Decimal(
-            self.fn(
-                float(clock_s),
-                **{k: float(kwargs[k]) for k in self.parameters if k in kwargs},
+            str(
+                self.fn(
+                    float(clock_s),
+                    **{k: float(kwargs[k]) for k in self.parameters if k in kwargs},
+                )
             )
         )
 
@@ -371,9 +440,6 @@ class PythonFn(Instruction):
 
     def children(self):
         return {"duration": self.duration}
-
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)
 
 
 @dataclass(init=False)
@@ -392,14 +458,14 @@ class InfiniteSmoothingKernel(SmoothingKernel):
     pass
 
 
-class Guassian(InfiniteSmoothingKernel):
+class Gaussian(InfiniteSmoothingKernel):
     def __call__(self, value: float) -> float:
         return np.exp(-(value**2) / 2) / np.sqrt(2 * np.pi)
 
 
 class Logistic(InfiniteSmoothingKernel):
     def __call__(self, value: float) -> float:
-        np.exp(-(np.logaddexp(0, value) + np.logaddexp(0, -value)))
+        return np.exp(-(np.logaddexp(0, value) + np.logaddexp(0, -value)))
 
 
 class Sigmoid(InfiniteSmoothingKernel):
@@ -442,7 +508,7 @@ class Cosine(FiniteSmoothingKernel):
         return np.maximum(0, np.pi / 4 * np.cos(np.pi / 2 * value))
 
 
-GuassianKernel = Guassian()
+GaussianKernel = Gaussian()
 LogisticKernel = Logistic()
 SigmoidKernel = Sigmoid()
 TriangleKernel = Triangle()
@@ -457,7 +523,9 @@ CosineKernel = Cosine()
 @dataclass
 class Smooth(Waveform):
     """
+    ```bnf
     <smooth> ::= 'smooth' <kernel> <waveform>
+    ```
     """
 
     radius: Scalar
@@ -491,21 +559,23 @@ class Smooth(Waveform):
         else:
             raise ValueError(f"Invalid kernel: {self.kernel}")
 
-    def __repr__(self) -> str:
-        return f"Smooth(kernel={self.kernel!r}, waveform={self.waveform!r})"
+    def __str__(self):
+        return f"Smooth(kernel={str(self.kernel)}, waveform={str(self.waveform)})"
 
 
 @dataclass
 class Slice(Waveform):
     """
+    ```
     <slice> ::= <waveform> <scalar.interval>
+    ```
     """
 
     waveform: Waveform
     interval: Interval
 
-    def __repr__(self) -> str:
-        return f"{self.waveform!r}[{self.interval!r}]"
+    def __str__(self):
+        return f"{str(self.waveform)}[{str(self.interval)}]"
 
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
         if clock_s > self.duration(**kwargs):
@@ -522,14 +592,13 @@ class Slice(Waveform):
     def children(self):
         return [self.waveform, self.interval]
 
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)
-
 
 @dataclass
 class Append(Waveform):
     """
+    ```bnf
     <append> ::= <waveform>+
+    ```
     """
 
     waveforms: List[Waveform]
@@ -539,15 +608,15 @@ class Append(Waveform):
         for waveform in self.waveforms:
             duration = waveform.duration(**kwargs)
 
-            if clock_s < append_time + duration:
+            if clock_s <= append_time + duration:
                 return waveform.eval_decimal(clock_s - append_time, **kwargs)
 
             append_time += duration
 
         return Decimal(0)
 
-    def __repr__(self) -> str:
-        return f"waveform.Append(waveforms={self.waveforms!r})"
+    def __str__(self):
+        return f"waveform.Append(waveforms={str(self.waveforms)})"
 
     def print_node(self):
         return "Append"
@@ -555,14 +624,13 @@ class Append(Waveform):
     def children(self):
         return self.waveforms
 
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)
-
 
 @dataclass
 class Negative(Waveform):
     """
+    ```bnf
     <negative> ::= '-' <waveform>
+    ```
     """
 
     waveform: Waveform
@@ -570,8 +638,8 @@ class Negative(Waveform):
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
         return -self.waveform.eval_decimal(clock_s, **kwargs)
 
-    def __repr__(self) -> str:
-        return f"-({self.waveform!r})"
+    def __str__(self):
+        return f"-({str(self.waveform)})"
 
     def print_node(self):
         return "-"
@@ -579,14 +647,13 @@ class Negative(Waveform):
     def children(self):
         return [self.waveform]
 
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)
-
 
 @dataclass(init=False)
 class Scale(Waveform):
     """
+    ```bnf
     <scale> ::= <scalar expr> '*' <waveform>
+    ```
     """
 
     scalar: Scalar
@@ -599,8 +666,8 @@ class Scale(Waveform):
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
         return self.scalar(**kwargs) * self.waveform.eval_decimal(clock_s, **kwargs)
 
-    def __repr__(self) -> str:
-        return f"({self.scalar!r} * {self.waveform!r})"
+    def __str__(self):
+        return f"({str(self.scalar)} * {str(self.waveform)})"
 
     def print_node(self):
         return "Scale"
@@ -608,14 +675,13 @@ class Scale(Waveform):
     def children(self):
         return [self.scalar, self.waveform]
 
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)
-
 
 @dataclass
 class Add(Waveform):
     """
+    ```bnf
     <add> ::= <waveform> '+' <waveform>
+    ```
     """
 
     left: Waveform
@@ -624,8 +690,8 @@ class Add(Waveform):
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
         return self.left(clock_s, **kwargs) + self.right(clock_s, **kwargs)
 
-    def __repr__(self) -> str:
-        return f"({self.left!r} + {self.right!r})"
+    def __str__(self):
+        return f"({str(self.left)} + {str(self.right)})"
 
     def print_node(self):
         return "+"
@@ -633,14 +699,13 @@ class Add(Waveform):
     def children(self):
         return [self.left, self.right]
 
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)
-
 
 @dataclass
 class Record(Waveform):
     """
+    ```bnf
     <record> ::= 'record' <waveform> <var>
+    ```
     """
 
     waveform: Waveform
@@ -655,8 +720,8 @@ class Record(Waveform):
     def children(self):
         return {"Waveform": self.waveform, "Variable": self.var}
 
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)
+    def __str__(self):
+        return f"Record({str(self.waveform)}, {str(self.var)})"
 
 
 class Interpolation(str, Enum):
@@ -667,7 +732,9 @@ class Interpolation(str, Enum):
 @dataclass
 class Sample(Waveform):
     """
+    ```bnf
     <sample> ::= 'sample' <waveform> <interpolation> <scalar>
+    ```
     """
 
     waveform: Waveform
@@ -681,7 +748,7 @@ class Sample(Waveform):
         clock = Decimal("0.0")
         clocks = []
         values = []
-        while clock < duration - dt:
+        while clock <= duration - dt:
             values.append(self.waveform.eval_decimal(clock, **kwargs))
             clocks.append(clock)
             clock += dt
@@ -692,8 +759,7 @@ class Sample(Waveform):
         return clocks, values
 
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
-        times = self.sample_times(**kwargs)
-
+        times, values = self.samples(**kwargs)
         i = bisect_left(times, clock_s)
 
         if i == len(times):
@@ -701,31 +767,22 @@ class Sample(Waveform):
 
         match self.interpolation:
             case Interpolation.Linear:
-                return self._linear_interpolation(
-                    clock_s, times[i], times[i + 1], **kwargs
-                )
+                if i == 0:
+                    return values[i]
+                else:
+                    slope = (values[i] - values[i - 1]) / (times[i] - times[i - 1])
+                    return slope * (clock_s - times[i - 1]) + values[i - 1]
+
             case Interpolation.Constant:
-                return self._constant_interpolation(times[i], **kwargs)
+                if i == 0:
+                    return values[i]
+                else:
+                    return values[i - 1]
             case _:
                 raise ValueError("No interpolation specified")
 
-    def _linear_interpolation(
-        self, clock_s: Decimal, start_time: Decimal, stop_time: Decimal, **kwargs
-    ) -> Decimal:
-        start_value = self.waveform.eval_decimal(start_time, **kwargs)
-        stop_value = self.waveform.eval_decimal(stop_time, **kwargs)
-        slope = (stop_value - start_value) / (stop_time - start_time)
-
-        return float(slope) * (clock_s - float(start_time)) + float(start_value)
-
-    def _constant_interpolation(self, start_time: Decimal, **kwargs) -> Decimal:
-        return self.waveform(start_time, **kwargs)
-
     def print_node(self):
-        return f"Sample {self.interpolation}"
+        return f"Sample {self.interpolation.value}"
 
     def children(self):
         return {"Waveform": self.waveform, "sample_step": self.dt}
-
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)

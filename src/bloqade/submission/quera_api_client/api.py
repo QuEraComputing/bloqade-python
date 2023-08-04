@@ -323,6 +323,7 @@ class QueueApi:
             case 403:
                 message = "QPU return authentication error, check AWS credentials."
                 self.logger.error(message)
+                raise QueueApi.AuthenticationError(message)
 
             case _:
                 message = f"QPU returned unhandled status {result.status_code}."
@@ -459,14 +460,14 @@ class QueueApi:
     def poll_task_results(
         self, task_id: Union[str, uuid.UUID], polling_interval=3
     ) -> Dict:
-        results = self.get_task_results(task_id)
-        while results["task_status"] in ("Created", "Running"):
-            results = self.get_task_results(task_id)
+        status = self.get_task_status_in_queue(task_id)
+        while status not in ("Partial", "Completed", "Failed", "Cancelled"):
+            status = self.get_task_status_in_queue(task_id)
             time.sleep(polling_interval)
 
-        return results
+        return self.get_task_results(task_id)
 
-    def get_task_status_in_queue(self, task_id: Union[str, uuid.UUID]) -> Dict:
+    def get_task_status_in_queue(self, task_id: Union[str, uuid.UUID]) -> str:
         """
         Request task status in a queue for a given task.
         @param task_id: Task ID.
@@ -535,6 +536,12 @@ class QueueApi:
         @return: Parsed JSON of the task summary.
         @see: `TaskSummary` in https://github.com/QuEra-QCS/QCS-API/blob/master/qcs-api/openapi.yaml
         """
+
+        if self.get_task_status_in_queue(task_id) != "Completed":
+            raise QueueApi.QueueApiError(
+                "Task is not completed, can't fetch task summary."
+            )
+
         result = self.api_http_request.get("task", str(task_id))
 
         match result.status_code:
@@ -567,5 +574,8 @@ class QueueApi:
         @param task_id:
         @return: `True` if task is stopped.
         """
-        summary = self.get_task_status_in_queue(task_id)
-        return summary["status"].lower() in ("completed", "failed", "cancelled")
+        return self.get_task_status_in_queue(task_id) in (
+            "Completed",
+            "Failed",
+            "Cancelled",
+        )

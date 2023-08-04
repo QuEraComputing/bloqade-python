@@ -19,7 +19,7 @@ from typing import Any
 
 class WaveformVisitor:
     def visit_alligned(self, ast: AlignedWaveform) -> Any:
-        raise NotADirectoryError(
+        raise NotImplementedError(
             f"No visitor method implemented in {self.__class__} for AlignedWaveform."
         )
 
@@ -39,7 +39,7 @@ class WaveformVisitor:
         )
 
     def visit_smooth(self, ast: Smooth) -> Any:
-        raise NotADirectoryError(
+        raise NotImplementedError(
             f"No visitor method implemented in {self.__class__} for Smooth."
         )
 
@@ -112,4 +112,4 @@ class WaveformVisitor:
             case Sample():
                 return self.visit_sample(ast)
             case _:
-                raise ValueError()(f"{ast.__class__} is not a Waveform AST type.")
+                raise ValueError(f"{ast.__class__} is not a Waveform AST type.")

@@ -5,8 +5,12 @@ from typing import List, Generator, Tuple, Optional, Any, TYPE_CHECKING
 from bokeh.plotting import show
 import numpy as np
 from enum import Enum
-from bokeh.models import ColumnDataSource, Plot
+from bokeh.models import ColumnDataSource, NumericInput, Button, Range1d, CustomJS
 from bokeh.plotting import figure
+from bokeh.layouts import column, row
+
+# from bokeh import events
+
 
 if TYPE_CHECKING:
     from .list import ListOfLocations
@@ -39,7 +43,8 @@ class AtomArrangement(ProgramStart):
         """enumerate all locations in the register."""
         raise NotImplementedError
 
-    def figure(self, **assignments) -> Plot:
+    def figure(self, **assignments):
+        """obtain a figure object from the atom arrangement."""
         xs_filled, ys_filled, labels_filled = [], [], []
         xs_vacant, ys_vacant, labels_vacant = [], [], []
         x_min = np.inf
@@ -48,7 +53,7 @@ class AtomArrangement(ProgramStart):
         y_max = -np.inf
         for idx, location_info in enumerate(self.enumerate()):
             (x_var, y_var) = location_info.position
-            (x, y) = (x_var(**assignments), y_var(**assignments))
+            (x, y) = (float(x_var(**assignments)), float(y_var(**assignments)))
             x_min = min(x, x_min)
             y_min = min(y, y_min)
             x_max = max(x, x_max)
@@ -62,6 +67,10 @@ class AtomArrangement(ProgramStart):
                 ys_vacant.append(y)
                 labels_vacant.append(idx)
 
+        # Ly = y_max - y_min
+        # Lx = x_max - x_min
+        # scale_x = (Lx+2)/(Ly+2)
+
         if self.n_atoms > 0:
             length_scale = max(y_max - y_min, x_max - x_min, 1)
         else:
@@ -73,11 +82,30 @@ class AtomArrangement(ProgramStart):
         source_vacant = ColumnDataSource(
             data=dict(x=xs_vacant, y=ys_vacant, labels=labels_vacant)
         )
+        source_all = ColumnDataSource(
+            data=dict(
+                x=xs_vacant + xs_filled,
+                y=ys_vacant + ys_filled,
+                labels=labels_vacant + labels_filled,
+            )
+        )
+
+        TOOLTIPS = [
+            ("(x,y)", "(@x, @y)"),
+            ("index: ", "@labels"),
+        ]
+
+        ## remove box_zoom since we don't want to change the scale
         p = figure(
             width=400,
             height=400,
-            tools="hover,wheel_zoom,box_zoom,reset",
+            tools="hover,wheel_zoom,reset, undo, redo, pan",
+            tooltips=TOOLTIPS,
+            toolbar_location="above",
         )
+        p.x_range = Range1d(x_min - 1, x_min + length_scale + 1)
+        p.y_range = Range1d(y_min - 1, y_min + length_scale + 1)
+
         p.circle(
             "x", "y", source=source_filled, radius=0.015 * length_scale, fill_alpha=1
         )
@@ -91,23 +119,69 @@ class AtomArrangement(ProgramStart):
             line_width=0.2 * length_scale,
         )
 
-        return p
+        cr = p.circle(
+            "x",
+            "y",
+            source=source_all,
+            radius=0,  # in the same unit as the data
+            fill_alpha=0,
+            line_width=0.15 * length_scale,
+            visible=True,  # display by default
+        )
+
+        # adding rydberg radis input
+        # bind sources:
+
+        Brad_input = NumericInput(
+            value=0, low=0, title="Bloqade radius (um):", mode="float"
+        )
+
+        # js link toggle btn
+        toggle_button = Button(label="Toggle")
+        toggle_button.js_on_event(
+            "button_click",
+            CustomJS(args=dict(cr=cr), code="""cr.visible = !cr.visible;"""),
+        )
+
+        # js link radius
+        Brad_input.js_link("value", cr.glyph, "radius")
+
+        return p, row(Brad_input, toggle_button)
 
     def show(self, **assignments) -> None:
         """show the register."""
-        show(self.figure(**assignments))
+        show(column(*self.figure(**assignments)))
 
     @property
     def n_atoms(self) -> int:
+        """number of atoms in the register."""
         raise NotImplementedError
 
     @property
     def n_dims(self) -> int:
+        """number of dimensions in the register."""
         raise NotImplementedError
+
+    def scale(self, scale: float | Scalar) -> "ListOfLocations":
+        """scale the atom arrangement with a given factor"""
+        from .list import ListOfLocations
+
+        scale = cast(scale)
+        location_list = []
+        for location_info in self.enumerate():
+            x, y = location_info.position
+            new_position = (scale * x, scale * y)
+            location_list.append(
+                LocationInfo(new_position, bool(location_info.filling.value))
+            )
+
+        return ListOfLocations(location_list)
 
     def add_position(
         self, position: Tuple[Any, Any], filled: bool = True
     ) -> "ListOfLocations":
+        """add a position to existing atom arrangement."""
+
         from .list import ListOfLocations
 
         location_list = [LocationInfo(position, filled)]
@@ -119,6 +193,7 @@ class AtomArrangement(ProgramStart):
     def add_positions(
         self, positions: List[Tuple[Any, Any]], filling: Optional[List[bool]] = None
     ) -> "ListOfLocations":
+        """add a list of positions to existing atom arrangement."""
         from .list import ListOfLocations
 
         location_list = []
@@ -139,6 +214,7 @@ class AtomArrangement(ProgramStart):
     def apply_defect_count(
         self, n_defects: int, rng: np.random.Generator = np.random.default_rng()
     ) -> "ListOfLocations":
+        """apply n_defects randomly to existing atom arrangement."""
         from .list import ListOfLocations
 
         location_list = []
@@ -159,6 +235,7 @@ class AtomArrangement(ProgramStart):
         defect_probability: float,
         rng: np.random.Generator = np.random.default_rng(),
     ) -> "ListOfLocations":
+        """apply defect_probability randomly to existing atom arrangement."""
         from .list import ListOfLocations
 
         p = min(1, max(0, defect_probability))
@@ -179,11 +256,13 @@ class AtomArrangement(ProgramStart):
             else:
                 location_list.append(location_info)
 
-            return ListOfLocations(location_list=location_list)
+        return ListOfLocations(location_list=location_list)
 
 
 @dataclass(init=False)
 class ParallelRegister(ProgramStart):
+    """Parallel Register"""
+
     register_locations: List[List[Scalar]]
     register_filling: List[int]
     shift_vectors: List[List[Scalar]]

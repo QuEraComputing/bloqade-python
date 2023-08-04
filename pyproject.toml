@@ -3,7 +3,7 @@ name = "bloqade"
 version = "0.0.1"
 description = "neutral atom software development kit"
 authors = [
-    {name = "Roger-luo", email = "info@quera.com"},
+    {name = "QuEra Computing Inc.", email = "info@quera.com"},
 ]
 dependencies = [
     "juliacall>=0.9.12",
@@ -16,6 +16,7 @@ dependencies = [
     "tabulate>=0.9.0",
     "requests-sigv4>=0.1.6",
     "amazon-braket-sdk>=1.41.0",
+    "tqdm>=4.65.0",
 ]
 requires-python = ">=3.10"
 readme = "README.md"
@@ -80,6 +81,8 @@ dev = [
     "pre-commit>=3.3.1",
     "coverage>=7.2.5",
     "jupytext>=1.14.5",
+    "pytest-recording>=0.12.2",
+    "vcrpy==4.4.0",
 ]
 
 [tool.pdm.scripts]
@@ -87,13 +90,12 @@ _.env_file = "./.env"
 upload = "python -m twine upload -r bloqade dist/*"
 build = {cmd = "pdm build"}
 publish = {composite = ["build", "upload"]}
-test = "pytest"
-coverage = {shell = "coverage run -m pytest && coverage report"}
-coverage-html = {shell = "coverage run -m pytest && coverage html"}
+test = {shell = "git clean -f && pytest tests"}
+coverage = {shell = "git clean -f && coverage run -m pytest tests/ && coverage report"}
+coverage-html = {shell = "git clean -f && coverage run -m pytest tests/ && coverage html"}
 doc = {cmd = "mkdocs serve -f docs/mkdocs.yml"}
 doc_build = {cmd = "mkdocs build -f docs/mkdocs.yml"}
 doc_deploy = {cmd = "pdm mike deploy --push --update-aliases dev -F docs/mkdocs.yml"}
-jupytext = {cmd = "jupytext --sync docs/docs/examples/*.py"}
 
 [tool.jupytext]
 formats = "ipynb,py:percent"

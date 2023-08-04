@@ -23,9 +23,9 @@ nav:
       - Asking a question: https://github.com/QuEraComputing/bloqade-python/discussions
   - Tutorials:
     - tutorials/index.md
-    - examples/adiabatic.py
   - Reference:
-    - reference/bloqade/
+    - Builder workflow : tree/builder.md
+    - API References : reference/bloqade/
   - Blog:
     - blog/index.md
     - 2023:
@@ -87,6 +87,7 @@ plugins:
         python:
           paths: [../src]
           options:
+            show_if_no_docstring: false
             separate_signature: true
             merge_init_into_class: true
             docstring_options:
