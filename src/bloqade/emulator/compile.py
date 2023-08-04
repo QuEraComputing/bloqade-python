@@ -1,42 +1,19 @@
-from bloqade.codegen.emulator.space import Space
 from bloqade.ir.visitor.program_visitor import ProgramVisitor
 from bloqade.ir.visitor.waveform_visitor import WaveformVisitor
 from bloqade.ir.control.field import Field
 import bloqade.ir.control.sequence as sequence
 import bloqade.ir.control.pulse as pulse
-import bloqade.ir.control.field as field
 import bloqade.ir.control.waveform as waveform
 import bloqade.ir as ir
-from bloqade.ir.location.base import SiteFilling
+from bloqade.ir.location.base import AtomArrangement, SiteFilling
 
-from pydantic.dataclasses import dataclass
-from numpy.typing import NDArray, List, Tuple, Callable
-from typing import TYPE_CHECKING, Any, Dict, Optional
+from bloqade.emulator.space import LocalHilbertSpace, Space
+from bloqade.emulator.ir import EmulatorProgram, LaserCoupling
+
+from numpy.typing import NDArray
+from typing import Any, Dict
+
 from numbers import Number
-
-
-if TYPE_CHECKING:
-    from bloqade.ir.location.base import AtomArrangement
-
-
-@dataclass
-class RabiDrive:
-    amplitude: Dict[field.SpatialModulation, Callable[float, float]] = {}
-    phase: Dict[field.SpatialModulation, Callable[float, float]] = {}
-
-
-@dataclass
-class LaserCoupling:
-    detuning: Dict[field.SpatialModulation, Callable[float, float]] = {}
-    rabi: RabiDrive = RabiDrive()
-
-
-@dataclass
-class EmulatorProgram:
-    space: Space
-    register: List[Tuple[float, float]]
-    rydberg: Optional[LaserCoupling]
-    hyperfine: Optional[LaserCoupling]
 
 
 class WaveformCompiler(WaveformVisitor):
@@ -51,10 +28,12 @@ class WaveformCompiler(WaveformVisitor):
 
 
 class Emulate(ProgramVisitor):
-    def __init__(self, psi: NDArray, space: Space, assignments: Dict[str, Number]):
+    def __init__(
+        self, psi: NDArray, assignments: Dict[str, Number], blockade_radius: float = 0.0
+    ):
         self.assignments = assignments
         self.psi = psi
-        self.space = space
+        self.space = None
         self.current_coupling = None
         self.current_field = None
         self.register = None
@@ -115,9 +94,28 @@ class Emulate(ProgramVisitor):
         for sp_mod, wf in ast.value.items():
             self.current_field[sp_mod] = WaveformCompiler(self.assignments).emit(wf)
 
+    def visit_register(self, ast: AtomArrangement) -> Any:
+        atom_positions = []
+        for loc_info in ast.enumerate():
+            if loc_info.filling == SiteFilling.filled:
+                atom_positions.append(loc_info.position)
+
+        if self.hyperfine is None:
+            self.space = Space(
+                atom_positions,
+                LocalHilbertSpace.TwoLevel,
+                blockade_radius=self.blockade_radius,
+            )
+        else:
+            self.space = Space(
+                atom_positions,
+                LocalHilbertSpace.ThreeLevel,
+                blockade_radius=self.blockade_radius,
+            )
+
     def emit(self, program: ir.Profram) -> EmulatorProgram:
         self.visit(program)
 
         return EmulatorProgram(
-            register=self.register, rydberg=self.rydberg, hyperfine=self.hyperfine
+            register=self.space, rydberg=self.rydberg, hyperfine=self.hyperfine
         )

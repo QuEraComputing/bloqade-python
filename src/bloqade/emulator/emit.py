@@ -3,8 +3,8 @@ from bloqade.ir.control.sequence import (
     HyperfineLevelCoupling,
     LevelCoupling,
 )
-from bloqade.codegen.emulator.sparse_operator import IndexMapping, Diagonal
-from bloqade.codegen.emulator.space import (
+from bloqade.emulator.sparse_operator import IndexMapping, Diagonal
+from bloqade.emulator.space import (
     Space,
     SpaceType,
     LocalHilbertSpace,
