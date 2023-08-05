@@ -2,8 +2,13 @@ from pydantic import BaseModel
 from typing import Optional, List, Tuple, Union
 from decimal import Decimal
 
-from bloqade.submission.ir.capabilities import QuEraCapabilities
+from bokeh.plotting import figure, show
+from bokeh.models import ColumnDataSource, Step, HoverTool
+from bokeh.layouts import gridplot
 
+from bloqade.submission.ir.capabilities import QuEraCapabilities
+from bloqade.ir.location import ListOfLocations
+from bokeh.layouts import row
 
 __all__ = ["QuEraTaskSpecification"]
 
@@ -66,6 +71,53 @@ class RabiFrequencyAmplitude(BaseModel):
             )
         )
 
+    def _get_data_source(self):
+        # isolate this for binding glyph later
+        src = {
+            "times_amp": [float(i) for i in self.global_.times],
+            "values_amp": [float(i) for i in self.global_.values],
+            "values_floor_amp": [0.0] * len(self.global_.values),
+        }
+
+        return src
+
+    def figure(self, source, **fig_kwargs):
+        hover = HoverTool()
+        hover.tooltips = [("(x,y)", "(@times_amp, @values_amp)")]
+
+        line_plt = figure(
+            **fig_kwargs,
+            x_axis_label="Time (s)",
+            y_axis_label="Ω(t) (rad/s)",
+        )
+
+        line_plt.x_range.start = 0
+        line_plt.y_range.start = min(source.data["values_amp"]) - 5e6
+        line_plt.y_range.end = max(source.data["values_amp"]) + 5e6
+
+        line_plt.line(
+            x="times_amp", y="values_amp", source=source, line_width=2, color="black"
+        )
+
+        line_plt.circle(
+            x="times_amp", y="values_amp", source=source, size=4, color="black"
+        )
+
+        line_plt.varea(
+            x="times_amp",
+            y1="values_amp",
+            y2="values_floor_amp",
+            source=source,
+            fill_alpha=0.3,
+            color="#6437FF",
+        )
+        line_plt.add_tools(hover)
+
+        return line_plt
+
+    def show(self):
+        show(self.figure(ColumnDataSource(self._get_data_source())))
+
 
 class RabiFrequencyPhase(BaseModel):
     global_: GlobalField
@@ -91,6 +143,48 @@ class RabiFrequencyPhase(BaseModel):
                 values=discretize_list(self.global_.values, global_value_resolution),
             )
         )
+
+    def _get_data_source(self):
+        # isolate this for binding glyph later
+        src = {
+            "times_phase": [float(i) for i in self.global_.times],
+            "values_phase": [float(i) for i in self.global_.values],
+        }
+
+        return src
+
+    def figure(self, source, **fig_kwargs):
+        TOOLTIPS = [("(x,y)", "(@times_phase, @values_phase)")]
+
+        line_plt = figure(
+            **fig_kwargs,
+            tooltips=TOOLTIPS,
+            x_axis_label="Time (s)",
+            y_axis_label="ϕ(t) (rad)",
+        )
+
+        line_plt.y_range.start = min(source.data["values_phase"]) - 5e6
+        line_plt.y_range.end = max(source.data["values_phase"]) + 5e6
+        line_plt.x_range.start = 0
+
+        steps = Step(
+            x="times_phase",
+            y="values_phase",
+            line_color="black",
+            line_width=2,
+            mode="center",
+        )
+
+        line_plt.add_glyph(source, steps)
+
+        line_plt.circle(
+            x="times_phase", y="values_phase", source=source, size=4, color="black"
+        )
+
+        return line_plt
+
+    def show(self):
+        show(self.figure(ColumnDataSource(self._get_data_source())))
 
 
 class Detuning(BaseModel):
@@ -129,6 +223,57 @@ class Detuning(BaseModel):
             ),
             local=self.local,
         )
+
+    def _get_data_source(self):
+        # isolate this for binding glyph later
+        src = {
+            "times_detune": [float(i) for i in self.global_.times],
+            "values_detune": [float(i) for i in self.global_.values],
+            "values_floor_detune": [0.0] * len(self.global_.values),
+        }
+
+        return src
+
+    def global_figure(self, source, **fig_kwargs):
+        TOOLTIPS = [("(x,y)", "(@times_detune, @values_detune)")]
+
+        line_plt = figure(
+            **fig_kwargs,
+            tooltips=TOOLTIPS,
+            x_axis_label="Time (s)",
+            y_axis_label="Δ(t) (rad/s)",
+        )
+
+        line_plt.x_range.start = 0
+
+        line_plt.y_range.start = min(source.data["values_detune"]) - 5e6
+        line_plt.y_range.end = max(source.data["values_detune"]) + 5e6
+
+        line_plt.line(
+            x="times_detune",
+            y="values_detune",
+            source=source,
+            line_width=2,
+            color="black",
+        )
+
+        line_plt.circle(
+            x="times_detune", y="values_detune", source=source, size=4, color="black"
+        )
+
+        line_plt.varea(
+            x="times_detune",
+            y1="values_detune",
+            y2="values_floor_detune",
+            source=source,
+            fill_alpha=0.5,
+            color="#EFD0DE",
+        )
+
+        return line_plt
+
+    def show_global(self):
+        show(self.global_figure(ColumnDataSource(self._get_data_source())))
 
 
 class RydbergHamiltonian(BaseModel):
@@ -184,6 +329,19 @@ class Lattice(BaseModel):
             filling=self.filling,
         )
 
+    def figure(self, **fig_kwargs):
+        ## use ir.Atom_oarrangement's plotting:
+        ## covert unit to m -> um
+        sites_um = list(
+            map(lambda cord: (float(cord[0]) * 1e6, float(cord[1]) * 1e6), self.sites)
+        )
+        reg = ListOfLocations().add_positions(sites_um, self.filling)
+        fig_reg = reg.figure(fig_kwargs=fig_kwargs)  # ignore the B-rad widget
+        return fig_reg
+
+    def show(self):
+        show(self.figure())
+
 
 class QuEraTaskSpecification(BaseModel):
     nshots: int
@@ -208,3 +366,55 @@ class QuEraTaskSpecification(BaseModel):
                 task_capabilities
             ),
         )
+
+    def figure(self):
+        # grab all the datas and combine them:
+        rabi_amp_src = (
+            self.effective_hamiltonian.rydberg.rabi_frequency_amplitude._get_data_source()
+        )
+        rabi_phase_src = (
+            self.effective_hamiltonian.rydberg.rabi_frequency_phase._get_data_source()
+        )
+        global_detuning_src = (
+            self.effective_hamiltonian.rydberg.detuning._get_data_source()
+        )
+
+        rabi_amp_src = ColumnDataSource(rabi_amp_src)
+        rabi_phase_src = ColumnDataSource(rabi_phase_src)
+        global_detuning_src = ColumnDataSource(global_detuning_src)
+
+        # grab global figures
+        rabi_amplitude = (
+            self.effective_hamiltonian.rydberg.rabi_frequency_amplitude.figure(
+                rabi_amp_src, tools="wheel_zoom,reset, undo, redo, pan"
+            )
+        )
+
+        rabi_phase = self.effective_hamiltonian.rydberg.rabi_frequency_phase.figure(
+            rabi_phase_src,
+            x_range=rabi_amplitude.x_range,
+            tools="hover,wheel_zoom,reset, undo, redo, pan",
+        )
+        global_detuning = self.effective_hamiltonian.rydberg.detuning.global_figure(
+            global_detuning_src,
+            x_range=rabi_amplitude.x_range,
+            tools="hover,wheel_zoom,reset, undo, redo, pan",
+        )
+
+        # lattice:
+        register = self.lattice.figure(x_axis_label="x (um)", y_axis_label="y (um)")
+
+        col_plt = gridplot(
+            [[rabi_amplitude], [global_detuning], [rabi_phase]],
+            merge_tools=False,
+            sizing_mode="stretch_both",
+        )
+        col_plt.width_policy = "max"
+
+        full_plt = row(col_plt, register, sizing_mode="stretch_both")
+        full_plt.width_policy = "max"
+
+        return full_plt
+
+    def show(self):
+        show(self.figure())
