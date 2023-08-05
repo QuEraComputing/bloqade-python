@@ -20,11 +20,16 @@ class Location(SpatialModulation):
         super().__init__(parent)
         self._label = label
 
+    def location(self, label: int) -> "Location":
+        return Location(label, self)
+
     def scale(self, value) -> "Scale":
-        return Scale(self, value)
+        return Scale(value, self)
 
 
-class Scale(SpatialModulation):
+# NOTE: not a spatial modulation itself because it only modifies the
+#       location of the previous spatial modulation
+class Scale(WaveformAttachable):
     def __init__(self, value: ScalarType, parent: Optional[Builder] = None) -> None:
         assert isinstance(value, (float, str, Scalar))
         super().__init__(parent)
