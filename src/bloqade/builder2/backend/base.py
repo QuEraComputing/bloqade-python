@@ -2,17 +2,17 @@ from ..base import Builder
 
 
 class Backend(Builder):
-    pass
-
-
-class LocalBackend(Backend):
     def run(self):
         raise NotImplementedError
 
 
+class LocalBackend(Backend):
+    pass
+
+
 class RemoteBackend(Backend):
-    def __init__(self):
-        self._compile_cache = None
+    # def __init__(self):
+    #     self._compile_cache = None
 
     # NOTE: this is only a sketch, dont use this
     # def __compile__(self):

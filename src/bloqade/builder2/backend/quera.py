@@ -1,6 +1,6 @@
 from typing import Optional
-from bloqade.builder2.base import Builder
-from .base import LocalBackend, RemoteBackend
+from ..base import Builder
+from .base import RemoteBackend
 
 
 class QuEra(Builder):
@@ -15,14 +15,16 @@ class QuEraDevice(Builder):
     ) -> "Aquila":
         return Aquila(nshots, config_file, self, **api_configs)
 
-    def simu(self, solver: str) -> "Simu":
-        return Simu(solver, self)
+    def gemini(
+        self, nshots: int, config_file: Optional[str] = None, **api_configs
+    ) -> "Gemini":
+        return Gemini(nshots, config_file, self, **api_configs)
 
     def mock(self, nshots: int, state_file: str = ".mock_state.txt") -> "Mock":
         return Mock(nshots, state_file, self)
 
 
-class Aquila(RemoteBackend):
+class QuEraBackend(RemoteBackend):
     def __init__(
         self,
         nshots: int,
@@ -36,10 +38,12 @@ class Aquila(RemoteBackend):
         self._api_configs = api_configs
 
 
-class Simu(LocalBackend):
-    def __init__(self, solver: str, parent: Builder | None = None) -> None:
-        super().__init__(parent)
-        self._solver = solver
+class Aquila(QuEraBackend):
+    pass
+
+
+class Gemini(QuEraBackend):
+    pass
 
 
 class Mock(RemoteBackend):
