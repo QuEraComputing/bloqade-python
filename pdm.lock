@@ -191,18 +191,18 @@ summary = "When they're not builtins, they're boltons."
 
 [[package]]
 name = "boto3"
-version = "1.28.19"
+version = "1.28.20"
 requires_python = ">= 3.7"
 summary = "The AWS SDK for Python"
 dependencies = [
-    "botocore<1.32.0,>=1.31.19",
+    "botocore<1.32.0,>=1.31.20",
     "jmespath<2.0.0,>=0.7.1",
     "s3transfer<0.7.0,>=0.6.0",
 ]
 
 [[package]]
 name = "botocore"
-version = "1.31.19"
+version = "1.31.20"
 requires_python = ">= 3.7"
 summary = "Low-level, data-driven core of boto 3."
 dependencies = [
@@ -1458,7 +1458,7 @@ dependencies = [
 
 [[package]]
 name = "referencing"
-version = "0.30.1"
+version = "0.30.2"
 requires_python = ">=3.8"
 summary = "JSON Referencing + Python"
 dependencies = [
@@ -1964,13 +1964,13 @@ content_hash = "sha256:657ce91443cb0472cb87d2be9f896b922d490ff6cefd951867fe7b007
     {url = "https://files.pythonhosted.org/packages/22/f0/d81d7f6688d25cfb8b8fce60504c3cbf5d5890b9a1d71911047aa89707c2/boltons-23.0.0-py2.py3-none-any.whl", hash = "sha256:f716a1b57698a5b19062f3146cb5ce3549904028a2f267c2c0cf584eea3ad75b"},
     {url = "https://files.pythonhosted.org/packages/e1/13/1a38fd4ee194985cfc674358fcf2ca10a80c5b14fafa62abbb1e6088fcab/boltons-23.0.0.tar.gz", hash = "sha256:8c50a71829525835ca3c849c7ed2511610c972b4dddfcd41a4a5447222beb4b0"},
 ]
-"boto3 1.28.19" = [
-    {url = "https://files.pythonhosted.org/packages/28/99/a816915bb2a3535073961df37e7b6265f07fbc42668a9c237f90a7d39bbf/boto3-1.28.19.tar.gz", hash = "sha256:8630c2c38c3130e31e1a4182943aee8bc7dd1a1ad9729092b46fdbc8ac045a77"},
-    {url = "https://files.pythonhosted.org/packages/51/85/48dc639c57cb1a25b1f7b3022d2ab982fd97156715cb11f50102cb5c551f/boto3-1.28.19-py3-none-any.whl", hash = "sha256:1bae3e6222c7272af44ab4dc456fc4cb7d2d7044489b7a4a08f9cd0fbad6d213"},
+"boto3 1.28.20" = [
+    {url = "https://files.pythonhosted.org/packages/97/3c/72fb803f5c84466942b9a2452ecb033fd468ea08ff193e8b49c71e71de9b/boto3-1.28.20.tar.gz", hash = "sha256:e3c2e8e55c17af6671a5332d6ab4635ad9793c80d0ac6d78af7b30a994d0681b"},
+    {url = "https://files.pythonhosted.org/packages/cd/5b/992af4c79af98a1821bcedad6a74b41e373c7cd86893833a54b1472d43fd/boto3-1.28.20-py3-none-any.whl", hash = "sha256:a654d57e3882e7fd2c1260d604a44364a2fed00da4f52faf37e5901e71145df1"},
 ]
-"botocore 1.31.19" = [
-    {url = "https://files.pythonhosted.org/packages/14/36/af5c6f6742773063d6729de739d331f5ed16a034a72242351868cc181e72/botocore-1.31.19-py3-none-any.whl", hash = "sha256:15f269945f319b0263cde9a61a25f2c9a83f6074b62cddae71edafec4a61e637"},
-    {url = "https://files.pythonhosted.org/packages/c5/39/9db8ecec0eaea61f8fa5e534bd488f07a6d480240dabd6f2f5b3dd774181/botocore-1.31.19.tar.gz", hash = "sha256:724f9a1a91f88291f5adc6347705a31e52312c88cddd56e38709215b161e025a"},
+"botocore 1.31.20" = [
+    {url = "https://files.pythonhosted.org/packages/76/d9/5bfab481321a8a9f81a193ef4febfa83e4e192400c4c28cf76542daec561/botocore-1.31.20-py3-none-any.whl", hash = "sha256:be51c5352162700e7beb0aa27af394adbbf86f8e7a2ca0c437d448d0a7b2bdfb"},
+    {url = "https://files.pythonhosted.org/packages/f9/0d/ec24cb66b7651268462d5eb5d9d3c140a99f487db3ed58a45617991b11e8/botocore-1.31.20.tar.gz", hash = "sha256:485ef175cd011ebc965f4577d8cc02a226c46bd608dd2bb75ce6938328cff0fd"},
 ]
 "certifi 2023.7.22" = [
     {url = "https://files.pythonhosted.org/packages/4c/dd/2234eab22353ffc7d94e8d13177aaa050113286e93e7b40eae01fbf7c3d9/certifi-2023.7.22-py3-none-any.whl", hash = "sha256:92d6037539857d8206b8f6ae472e8b77db8058fec5937a1ef3f54304089edbb9"},
@@ -3340,9 +3340,9 @@ content_hash = "sha256:657ce91443cb0472cb87d2be9f896b922d490ff6cefd951867fe7b007
     {url = "https://files.pythonhosted.org/packages/22/ec/12a48255bb1f15e2bd16a75e9f537ea498c8884069de4655afe47d5ffe34/readme_renderer-40.0.tar.gz", hash = "sha256:9f77b519d96d03d7d7dce44977ba543090a14397c4f60de5b6eb5b8048110aa4"},
     {url = "https://files.pythonhosted.org/packages/29/a9/200b7f2397bc9f9d1653cfffa14bd57d38982317d58deac11520b7163f5c/readme_renderer-40.0-py3-none-any.whl", hash = "sha256:e18feb2a1e7706f2865b81ebb460056d93fb29d69daa10b223c00faa7bd9a00a"},
 ]
-"referencing 0.30.1" = [
-    {url = "https://files.pythonhosted.org/packages/c5/32/c5784bd5a3f69b1059bb783b4fd80d3cb7a500b9b466aab2cd01252bf74c/referencing-0.30.1.tar.gz", hash = "sha256:9370c77ceefd39510d70948bbe7375ce2d0125b9c11fd380671d4de959a8e3ce"},
-    {url = "https://files.pythonhosted.org/packages/dd/95/eba31f9bd6d2a16246bce844c5ca7c5ba777f0b854cca05d75a2e4e78e09/referencing-0.30.1-py3-none-any.whl", hash = "sha256:185d4a29f001c6e8ae4dad3861e61282a81cb01b9f0ef70a15450c45c6513a0d"},
+"referencing 0.30.2" = [
+    {url = "https://files.pythonhosted.org/packages/be/8e/56d6f1e2d591f4d6cbcba446cac4a1b0dc4f584537e2071d9bcee8eeab6b/referencing-0.30.2-py3-none-any.whl", hash = "sha256:449b6669b6121a9e96a7f9e410b245d471e8d48964c67113ce9afe50c8dd7bdf"},
+    {url = "https://files.pythonhosted.org/packages/e1/43/d3f6cf3e1ec9003520c5fb31dc363ee488c517f09402abd2a1c90df63bbb/referencing-0.30.2.tar.gz", hash = "sha256:794ad8003c65938edcdbc027f1933215e0d0ccc0291e3ce20a4d87432b59efc0"},
 ]
 "regex 2023.6.3" = [
     {url = "https://files.pythonhosted.org/packages/05/bb/72408a1c713e470abe144bce3622d7b1feadd74fab1f9c7fc5e1e4d5917b/regex-2023.6.3-cp38-cp38-musllinux_1_1_s390x.whl", hash = "sha256:cf67ca618b4fd34aee78740bea954d7c69fdda419eb208c2c0c7060bb822d747"},
