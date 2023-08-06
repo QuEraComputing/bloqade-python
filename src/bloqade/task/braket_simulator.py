@@ -18,8 +18,8 @@ class BraketEmulatorTask(JSONInterface, Task):
 
     def _geometry(self) -> Geometry:
         return Geometry(
-            sites=self.task_ir.lattice.sites,
-            filling=self.task_ir.lattice.filling,
+            sites=self.task_ir.program.setup.ahs_register.sites,
+            filling=self.task_ir.program.setup.ahs_register.filling,
         )
 
     def submit(self, **kwargs) -> "BraketEmulatorTaskResults":
@@ -54,6 +54,10 @@ class BraketEmulatorBatchResult(JSONInterface, BatchResult[BraketEmulatorTaskRes
 class BraketEmulatorBatchTask(
     JSONInterface, BatchTask[BraketEmulatorTask, BraketEmulatorBatchResult]
 ):
+    """A compiled batch-tasks that can be submitted to run on
+    Amazon Braket's local simulator.
+    """
+
     braket_emulator_tasks: OrderedDict[int, BraketEmulatorTask] = {}
 
     def _tasks(self) -> OrderedDict[int, BraketEmulatorTask]:
@@ -66,6 +70,19 @@ class BraketEmulatorBatchTask(
         progress_bar: bool = False,
         **kwargs,
     ) -> BraketEmulatorBatchResult:
+        """Submit the batch tasks to run on Amazon Braket's local simulator.
+
+        Args:
+            multiprocessing (bool, optional):
+                Running with multiprocess. Defaults to False.
+            max_workers (Optional[int], optional):
+                <TODO>. Defaults to None.
+            progress_bar (bool, optional):
+                Display progess bar. Defaults to False.
+
+        Returns:
+            BraketEmulatorBatchResult
+        """
         if multiprocessing:
             futures = OrderedDict()
             with ProcessPoolExecutor(max_workers=max_workers) as executor:

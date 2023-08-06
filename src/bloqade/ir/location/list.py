@@ -31,5 +31,26 @@ class ListOfLocations(AtomArrangement):
     def enumerate(self):
         return iter(self.location_list)
 
+    def __iter__(self):
+        return iter(self.location_list)
+
 
 start = ListOfLocations()
+"""
+    - Program starting node
+    - Possible Next <LevelCoupling>
+
+        -> `start.rydberg`
+            :: address rydberg level coupling
+
+        -> `start.hyperfine`
+            :: address hyperfine level coupling
+
+    - Possible Next <AtomArragement>
+
+        -> `start.add_locations(List[Tuple[int]])`
+            :: add multiple atoms to current register
+
+        -> `start.add_location(Tuple[int])`
+            :: add atom to current register
+"""
