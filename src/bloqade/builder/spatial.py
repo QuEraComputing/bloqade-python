@@ -12,6 +12,7 @@ class SpatialModulation(Builder):
     def location(self, label: int):
         """
         Addressing one or multiple specific location(s) for preceeding waveform.
+
         (See [`Location`][bloqade.builder.location.Location] for more details])
 
         Args:
@@ -30,9 +31,40 @@ class SpatialModulation(Builder):
             >>> reg = bloqade.start.add_positions([(0,0),(1,1),(2,2),(3,3)])
             >>> loc = reg.rydberg.detuning.location(1).location(2)
 
-
         Note:
             label index start with 0, and should be positive.
+
+        - Possible Next <Location>:
+
+            -> `...location(int).location(int)`
+                :: adding location into current list
+
+            -> `...location(int).scale(float)`
+                :: specify scaling factor to current location
+                for the preceeding waveform
+
+        - Possible Next <WaveForm>:
+
+            -> `...location(int).linear()`
+                :: apply linear waveform
+
+            -> `...location(int).constant()`
+                :: apply constant waveform
+
+            -> `...location(int).ploy()`
+                :: apply polynomial waveform
+
+            -> `...location(int).apply()`
+                :: apply pre-constructed waveform
+
+            -> `...location(int).piecewise_linear()`
+                :: apply piecewise linear waveform
+
+            -> `...location(int).piecewise_constant()`
+                :: apply piecewise constant waveform
+
+            -> `...location(int).fn()`
+                :: apply callable as waveform.
 
 
         """
@@ -43,7 +75,31 @@ class SpatialModulation(Builder):
     @property
     def uniform(self):
         """
-        Addressing all atom locations for preceeding waveform
+        - Addressing all atom locations for preceeding waveform
+        - Next-step: <WaveForm>
+        - Possible Next:
+
+            -> `...uniform.linear()`
+                :: apply linear waveform
+
+            -> `...uniform.constant()`
+                :: apply constant waveform
+
+            -> `...uniform.ploy()`
+                :: apply polynomial waveform
+
+            -> `...uniform.apply()`
+                :: apply pre-constructed waveform
+
+            -> `...uniform.piecewise_linear()`
+                :: apply piecewise linear waveform
+
+            -> `...uniform.piecewise_constant()`
+                :: apply piecewise constant waveform
+
+            -> `...uniform.fn()`
+                :: apply callable as waveform.
+
 
         Examples:
 
@@ -60,7 +116,30 @@ class SpatialModulation(Builder):
 
     def var(self, name: str):
         """
-        Addressing atom location associate with given variable for preceeding waveform
+        - Addressing atom location associate with given variable for preceeding waveform
+        - Possible Next <WaveForm>:
+
+            -> `...location(int).linear()`
+                :: apply linear waveform
+
+            -> `...location(int).constant()`
+                :: apply constant waveform
+
+            -> `...location(int).ploy()`
+                :: apply polynomial waveform
+
+            -> `...location(int).apply()`
+                :: apply pre-constructed waveform
+
+            -> `...location(int).piecewise_linear()`
+                :: apply piecewise linear waveform
+
+            -> `...location(int).piecewise_constant()`
+                :: apply piecewise constant waveform
+
+            -> `...location(int).fn()`
+                :: apply callable as waveform.
+
 
         Examples:
 

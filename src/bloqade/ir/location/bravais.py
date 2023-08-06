@@ -80,6 +80,12 @@ class BoundedBravais(AtomArrangement):
                 position = tuple(self.lattice_spacing * pos)
                 yield LocationInfo(position, True)
 
+    def __iter__(self):
+        for index in itertools.product(*[range(n) for n in self.shape]):
+            for pos in self.coordinates(index):
+                position = tuple(self.lattice_spacing * pos)
+                yield LocationInfo(position, True)
+
     def scale(self, factor: float | Scalar) -> "BoundedBravais":
         """Scale the current location with a factor.
 
@@ -115,6 +121,11 @@ class Chain(BoundedBravais):
         L (int): number of sites in the chain
         lattice_spacing (Scalar, Real): lattice spacing. Defaults to 1.0.
 
+
+    - Possible Next:
+        continue with `.` to see possible next step in auto-prompt
+        supported setting (IPython, IDE ...)
+
     """
 
     def __init__(self, L: int, lattice_spacing: Any = 1.0):
@@ -141,6 +152,11 @@ class Square(BoundedBravais):
     Args:
         L (int): number of sites in linear direction. n_atoms = L * L.
         lattice_spacing (Scalar, Real): lattice spacing. Defaults to 1.0.
+
+
+    - Possible Next:
+        continue with `.` to see possible next step in auto-prompt
+        supported setting (IPython, IDE ...)
 
     """
 
@@ -173,6 +189,11 @@ class Rectangular(BoundedBravais):
             lattice spacing. Defaults to 1.0.
         lattice_spacing_y (Scalar, Real):
             lattice spacing in y direction. optional.
+
+
+    - Possible Next:
+        continue with `.` to see possible next step in auto-prompt
+        supported setting (IPython, IDE ...)
 
     """
 
@@ -219,6 +240,11 @@ class Honeycomb(BoundedBravais):
         lattice_spacing (Scalar, Real):
             lattice spacing. Defaults to 1.0.
 
+
+    - Possible Next:
+        continue with `.` to see possible next step in auto-prompt
+        supported setting (IPython, IDE ...)
+
     """
 
     def __init__(self, L: int, lattice_spacing: Any = 1.0):
@@ -247,6 +273,11 @@ class Triangular(BoundedBravais):
         L (int): number of sites in linear direction. n_atoms = L * L.
         lattice_spacing (Scalar, Real):
             lattice spacing. Defaults to 1.0.
+
+
+    - Possible Next:
+        continue with `.` to see possible next step in auto-prompt
+        supported setting (IPython, IDE ...)
 
     """
 
@@ -278,6 +309,11 @@ class Lieb(BoundedBravais):
         lattice_spacing (Scalar, Real):
             lattice spacing. Defaults to 1.0.
 
+
+    - Possible Next:
+        continue with `.` to see possible next step in auto-prompt
+        supported setting (IPython, IDE ...)
+
     """
 
     def __init__(self, L: int, lattice_spacing: Any = 1.0):
@@ -307,6 +343,11 @@ class Kagome(BoundedBravais):
         L (int): number of sites in linear direction. n_atoms = L * L.
         lattice_spacing (Scalar, Real):
             lattice spacing. Defaults to 1.0.
+
+
+    - Possible Next:
+        continue with `.` to see possible next step in auto-prompt
+        supported setting (IPython, IDE ...)
 
     """
 

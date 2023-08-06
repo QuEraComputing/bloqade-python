@@ -161,6 +161,14 @@ class Scalar:
         expr = Max(exprs=frozenset({self, cast(other)}))
         return Scalar.canonicalize(expr)
 
+    def __repr__(self) -> str:
+        ph = Printer()
+        ph.print(self)
+        return ph.get_value()
+
+    def _repr_pretty_(self, p, cycle):
+        Printer(p).print(self, cycle)
+
     @staticmethod
     def canonicalize(expr: "Scalar") -> "Scalar":
         def minmax(op, exprs):
@@ -315,7 +323,10 @@ class Literal(Real):
     """
 
     def __repr__(self) -> str:
-        return f"{self.value}"
+        return self.__str__()
+
+    def __str__(self):
+        return f"{str(self.value)}"
 
     def children(self):
         return []
@@ -339,7 +350,10 @@ class Variable(Real):
     name: str
 
     def __repr__(self) -> str:
-        return f"var({self.name!r})"
+        return self.__str__()
+
+    def __str__(self):
+        return f"var({str(self.name)})"
 
     def children(self):
         return []
@@ -369,17 +383,14 @@ class Variable(Real):
 class Negative(Scalar):
     expr: Scalar
 
-    def __repr__(self) -> str:
-        return f"-({self.expr!r})"
+    def __str__(self):
+        return f"-({str(self.expr)})"
 
     def children(self):
         return [self.expr]
 
     def print_node(self):
         return "-"
-
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)
 
 
 @dataclass(frozen=True)
@@ -408,15 +419,23 @@ class Interval:
                 raise ValueError("Slice step must be None")
 
     def __repr__(self) -> str:
+        ph = Printer()
+        ph.print(self)
+        return ph.get_value()
+
+    def _repr_pretty_(self, p, cycle):
+        Printer(p).print(self, cycle)
+
+    def __str__(self):
         match (self.start, self.stop):
             case (None, None):
                 raise ValueError("Interval must have at least one bound")
             case (None, stop):
-                return f":{stop!r}"
+                return f":{str(stop)}"
             case (start, None):
-                return f"{start!r}:"
+                return f"{str(start)}:"
             case (start, stop):
-                return f"{self.start!r}:{self.stop!r}"
+                return f"{str(self.start)}:{str(self.stop)}"
 
     def print_node(self):
         return "Interval"
@@ -432,17 +451,14 @@ class Interval:
             case (start, stop):
                 return {"start": start, "stop": stop}
 
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)
-
 
 @dataclass(frozen=True)
 class Slice(Scalar):
     expr: Scalar  # duration
     interval: Interval
 
-    def __repr__(self) -> str:
-        return f"{self.expr!r}[{self.interval!r}]"
+    def __str__(self):
+        return f"{str(self.expr)}[{str(self.interval)}]"
 
     def children(self):
         return {"Scalar": self.expr, None: self.interval}
@@ -450,17 +466,14 @@ class Slice(Scalar):
     def print_node(self):
         return "Slice"
 
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)
-
 
 @dataclass(frozen=True)
 class Add(Scalar):
     lhs: Scalar
     rhs: Scalar
 
-    def __repr__(self) -> str:
-        return f"({self.lhs!r} + {self.rhs!r})"
+    def __str__(self):
+        return f"({str(self.lhs)} + {str(self.rhs)})"
 
     def children(self):
         return [self.lhs, self.rhs]
@@ -468,17 +481,14 @@ class Add(Scalar):
     def print_node(self):
         return "+"
 
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)
-
 
 @dataclass(frozen=True)
 class Mul(Scalar):
     lhs: Scalar
     rhs: Scalar
 
-    def __repr__(self) -> str:
-        return f"({self.lhs!r} * {self.rhs!r})"
+    def __str__(self):
+        return f"({str(self.lhs)} * {str(self.rhs)})"
 
     def children(self):
         return [self.lhs, self.rhs]
@@ -486,26 +496,20 @@ class Mul(Scalar):
     def print_node(self):
         return "*"
 
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)
-
 
 @dataclass(frozen=True)
 class Div(Scalar):
     lhs: Scalar
     rhs: Scalar
 
-    def __repr__(self) -> str:
-        return f"({self.lhs!r} / {self.rhs!r})"
+    def __str__(self):
+        return f"({str(self.lhs)} / {str(self.rhs)})"
 
     def children(self):
         return [self.lhs, self.rhs]
 
     def print_node(self):
         return "/"
-
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)
 
 
 @dataclass(frozen=True)
@@ -518,11 +522,8 @@ class Min(Scalar):
     def print_node(self):
         return "min"
 
-    def __repr__(self) -> str:
-        return f"scalar.Min({self.exprs!r})"
-
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)
+    def __str__(self):
+        return f"scalar.Min({str(self.exprs)})"
 
 
 @dataclass(frozen=True)
@@ -535,8 +536,5 @@ class Max(Scalar):
     def print_node(self):
         return "max"
 
-    def __repr__(self) -> str:
-        return f"scalar.Max({self.exprs!r})"
-
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)
+    def __str__(self):
+        return f"scalar.Max({str(self.exprs)})"

@@ -19,41 +19,40 @@ class FieldName:
     def children(self):
         return []
 
+    def __repr__(self) -> str:
+        ph = Printer()
+        ph.print(self)
+        return ph.get_value()
+
+    def _repr_pretty_(self, p, cycle):
+        Printer(p).print(self, cycle)
+
 
 @dataclass(frozen=True)
 class RabiFrequencyAmplitude(FieldName):
-    def __repr__(self) -> str:
+    def __str__(self):
         return "rabi_frequency_amplitude"
 
     def print_node(self):
         return "RabiFrequencyAmplitude"
 
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)
-
 
 @dataclass(frozen=True)
 class RabiFrequencyPhase(FieldName):
-    def __repr__(self) -> str:
+    def __str__(self):
         return "rabi_frequency_phase"
 
     def print_node(self):
         return "RabiFrequencyPhase"
 
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)
-
 
 @dataclass(frozen=True)
 class Detuning(FieldName):
-    def __repr__(self) -> str:
+    def __str__(self):
         return "detuning"
 
     def print_node(self):
         return "Detuning"
-
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)
 
 
 class RabiRouter:
@@ -62,6 +61,14 @@ class RabiRouter:
         self.phase = RabiFrequencyPhase()
 
     def __repr__(self) -> str:
+        ph = Printer()
+        ph.print(self)
+        return ph.get_value()
+
+    def _repr_pretty_(self, p, cycle):
+        Printer(p).print(self, cycle)
+
+    def __str__(self):
         return "rabi (amplitude, phase)"
 
     def print_node(self):
@@ -69,9 +76,6 @@ class RabiRouter:
 
     def children(self):
         return {"Amplitude": self.amplitude, "Phase": self.phase}
-
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)
 
 
 rabi = RabiRouter()
@@ -100,6 +104,14 @@ class PulseExpr:
         # TODO: update canonicalization rules for appending pulses
         return expr
 
+    def __repr__(self) -> str:
+        ph = Printer()
+        ph.print(self)
+        return ph.get_value()
+
+    def _repr_pretty_(self, p, cycle):
+        Printer(p).print(self, cycle)
+
 
 @dataclass
 class Append(PulseExpr):
@@ -111,17 +123,14 @@ class Append(PulseExpr):
 
     value: List[PulseExpr]
 
-    def __repr__(self) -> str:
-        return f"pulse.Append(value={self.value!r})"
+    def __str__(self):
+        return "pulse.Append(value=" + f"{str([v.print_node() for v in self.value])})"
 
     def print_node(self):
         return "Append"
 
     def children(self):
         return self.value
-
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)
 
 
 @dataclass(init=False, repr=False)
@@ -145,8 +154,8 @@ class Pulse(PulseExpr):
                 raise TypeError(f"Expected Field or dict, got {type(v)}")
         self.value = value
 
-    def __repr__(self) -> str:
-        return f"Pulse(value={self.value!r})"
+    def __str__(self):
+        return f"Pulse(value={str(self.value)})"
 
     def print_node(self):
         return "Pulse"
@@ -158,17 +167,14 @@ class Pulse(PulseExpr):
         }
         return annotated_children
 
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)
-
 
 @dataclass
 class NamedPulse(PulseExpr):
     name: str
     pulse: PulseExpr
 
-    def __repr__(self) -> str:
-        return f"NamedPulse(name={self.name!r}, pulse={self.pulse!r})"
+    def __str__(self):
+        return f"NamedPulse(name={str(self.name)})"
 
     def print_node(self):
         return "NamedPulse"
@@ -176,23 +182,17 @@ class NamedPulse(PulseExpr):
     def children(self):
         return {"Name": self.name, "Pulse": self.pulse}
 
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)
-
 
 @dataclass
 class Slice(PulseExpr):
     pulse: PulseExpr
     interval: Interval
 
-    def __repr__(self) -> str:
-        return f"{self.pulse!r}[{self.interval}]"
+    def __str__(self):
+        return f"{self.pulse.print_node()}[{str(self.interval)}]"
 
     def print_node(self):
         return "Slice"
 
     def children(self):
         return {"Pulse": self.pulse, "Interval": self.interval}
-
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)

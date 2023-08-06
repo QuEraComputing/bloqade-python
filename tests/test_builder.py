@@ -9,9 +9,10 @@
 import bloqade.ir as ir
 from bloqade.builder import location, waveform
 from bloqade.ir import rydberg, detuning, hyperfine, rabi
-from bloqade import start, var, cast
-from bloqade.ir.location import Square, Chain
-import numpy as np
+from bloqade import start, cast
+
+# from bloqade.ir.location import Square, Chain
+# import numpy as np
 import pytest
 
 
@@ -150,6 +151,35 @@ def test_issue_150():
     )
 
 
+def test_303_replicate_channel_should_add():
+    prog = (
+        start.rydberg.detuning.uniform.linear(0, 1, 1)
+        .rabi.amplitude.uniform.linear(1, 2, 1)
+        .detuning.uniform.linear(0, 2, 3)
+    )
+
+    assert prog.sequence == ir.Sequence(
+        {
+            ir.rydberg: ir.Pulse(
+                {
+                    ir.rabi.amplitude: ir.Field({ir.Uniform: ir.Linear(1, 2, 1)}),
+                    ir.detuning: ir.Field(
+                        {ir.Uniform: ir.Linear(0, 2, 3) + ir.Linear(0, 1, 1)}
+                    ),
+                }
+            )
+        }
+    )
+
+    prog1 = (
+        start.rydberg.detuning.uniform.linear(0, 1, 1)
+        .rabi.amplitude.uniform.linear(1, 2, 1)
+        .rydberg.detuning.uniform.linear(0, 2, 3)
+    )
+
+    assert prog1.sequence == prog.sequence
+
+
 def test_record():
     prog = start
     prog = (
@@ -209,6 +239,7 @@ def test_piecewise_linear_mismatch():
         )
 
 
+"""
 prog = start
 prog = (
     prog.rydberg.detuning.location(1)
@@ -362,3 +393,4 @@ for site in range(11):
         .braket_local_simulator(1000)
     )
     print(job)
+"""

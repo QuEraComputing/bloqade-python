@@ -15,7 +15,14 @@ class ProgramStart(Builder):
     @property
     def rydberg(self):
         """
-        Specify the Rydberg level coupling.
+        - Specify the Rydberg level coupling.
+        - Possible Next:
+
+            -> `...rydberg.rabi`
+                :: address rabi term
+
+            -> `...rydberg.detuning`
+                :: address detuning field
 
         Examples:
             >>> node = bloqade.start.rydberg
@@ -37,7 +44,15 @@ class ProgramStart(Builder):
     @property
     def hyperfine(self):
         """
-        Specify the Hyperfile level coupling.
+        - Specify the Hyperfile level coupling.
+        - Possible Next:
+
+            -> `...hyperfine.rabi`
+                :: address rabi term
+
+            -> `...hyperfine.detuning`
+                :: address detuning field
+
 
         Examples:
             >>> node = bloqade.start.hyperfine

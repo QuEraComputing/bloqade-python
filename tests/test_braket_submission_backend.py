@@ -49,6 +49,9 @@ def test_braket_submit(*args, **kwargs):
     mock_aws_device.run.assert_called_once()
 
 
+@pytest.mark.skip(
+    reason="removed implementation for validation because of issue with empty queue."
+)
 @patch("bloqade.submission.braket.AwsDevice")
 @patch("bloqade.submission.braket.AwsQuantumTask")
 def test_braket_validate_task(*args, **kwargs):
