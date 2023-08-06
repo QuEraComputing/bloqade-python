@@ -31,6 +31,9 @@ class ListOfLocations(AtomArrangement):
     def enumerate(self):
         return iter(self.location_list)
 
+    def __iter__(self):
+        return iter(self.location_list)
+
 
 start = ListOfLocations()
 """

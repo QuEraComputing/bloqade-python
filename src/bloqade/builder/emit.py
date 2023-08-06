@@ -31,6 +31,7 @@ class BuildState(BaseModel):
 
     waveform_slice: Optional[Tuple[Optional[ir.Scalar], Optional[ir.Scalar]]] = None
     waveform_record: Optional[str] = None
+    spatial_modulation: Optional[ir.SpatialModulation] = None
     scaled_locations: ir.ScaledLocations = ir.ScaledLocations({})
     field: ir.Field = ir.Field({})
     detuning: ir.Field = ir.Field({})
@@ -151,6 +152,14 @@ class Emit(Builder):
         build_state.waveform_build = None
 
     @staticmethod
+    def __terminate_spatial_modulation(build_state: BuildState):
+        Emit.__terminate_waveform_append(build_state)
+        build_state.field = build_state.field.add(
+            ir.Field(value={build_state.spatial_modulation: build_state.waveform})
+        )
+        build_state.waveform = None
+
+    @staticmethod
     def __build_ast(builder: Builder, build_state: BuildState):
         import bloqade.builder.waveform as waveform
         import bloqade.builder.location as location
@@ -159,7 +168,6 @@ class Emit(Builder):
         import bloqade.builder.coupling as coupling
         import bloqade.builder.start as start
 
-        # print(type(build_state.waveform))
         match builder:
             case (
                 waveform.Linear()
@@ -186,14 +194,9 @@ class Emit(Builder):
                 scale = builder._scale
                 loc = ir.Location(builder.__parent__._label)
                 build_state.scaled_locations.value[loc] = scale
-
-                new_field = ir.Field(
-                    {build_state.scaled_locations: build_state.waveform}
-                )
-                build_state.field = build_state.field.add(new_field)
-
+                build_state.spatial_modulation = build_state.scaled_locations
                 build_state.scaled_locations = ir.ScaledLocations({})
-                build_state.waveform = None
+                Emit.__terminate_spatial_modulation(build_state)
 
                 Emit.__build_ast(builder.__parent__.__parent__, build_state)
 
@@ -240,15 +243,14 @@ class Emit(Builder):
                 Emit.__terminate_waveform_append(build_state)
                 scale = ir.cast(1.0)
                 loc = ir.Location(builder._label)
+                # update current list of scaled locations
                 build_state.scaled_locations.value[loc] = scale
-
-                new_field = ir.Field(
-                    {build_state.scaled_locations: build_state.waveform}
-                )
-                build_state.field = build_state.field.add(new_field)
-
+                # copy scaled locations to the current spatial modulation
+                build_state.spatial_modulation = build_state.scaled_locations
+                # reset scaled locations
                 build_state.scaled_locations = ir.ScaledLocations({})
-                build_state.waveform = None
+                # terminate building of a field
+                Emit.__terminate_spatial_modulation(build_state)
 
                 Emit.__build_ast(builder.__parent__, build_state)
 
@@ -267,28 +269,17 @@ class Emit(Builder):
                 Emit.__build_ast(builder.__parent__, build_state)
 
             case location.Uniform():
-                Emit.__terminate_waveform_append(build_state)
-                new_field = ir.Field({ir.Uniform: build_state.waveform})
-                build_state.field = build_state.field.add(new_field)
-
-                # reset build_state values
-                build_state.waveform = None
+                build_state.spatial_modulation = ir.Uniform
+                Emit.__terminate_spatial_modulation(build_state)
                 Emit.__build_ast(builder.__parent__, build_state)
 
             case location.Var():
-                Emit.__terminate_waveform_append(build_state)
-                new_field = ir.Field(
-                    {ir.RunTimeVector(builder._name): build_state.waveform}
-                )
-                build_state.field = build_state.field.add(new_field)
-
-                # reset build_state values
-                build_state.waveform = None
+                build_state.spatial_modulation = ir.RunTimeVector(builder._name)
+                Emit.__terminate_spatial_modulation(build_state)
                 Emit.__build_ast(builder.__parent__, build_state)
 
             case field.Detuning():
                 build_state.detuning = build_state.detuning.add(build_state.field)
-
                 # reset build_state values
                 build_state.field = ir.Field({})
                 Emit.__build_ast(builder.__parent__, build_state)

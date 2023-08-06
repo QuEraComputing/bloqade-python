@@ -28,8 +28,7 @@ class Waveform(Builder):
         - Possible Next <Location>:
 
             -> `.location(int)`
-                :: continue building the waveform sequence,
-                Addressing another location
+                :: creating new channel to address another location(s)
 
         - Possible Next <WaveForm:: current>:
 
@@ -40,6 +39,8 @@ class Waveform(Builder):
                 :: record the value of waveform at current time
 
         - Possible Next <WaveForm:: append>:
+
+            :: Append waveform into current channel
 
             -> `.linear()`
 
@@ -58,10 +59,10 @@ class Waveform(Builder):
         - Possible Next <LevelCoupling>:
 
             -> `.rydberg`
-                :: Switch to specify rydberg level coupling channel
+                :: Create/Switch to new rydberg level coupling channel
 
             -> `.hyperfine`
-                :: Switch to specify hyperfine level coupling channel
+                :: Create/Switch to new hyperfine level coupling channel
 
         - Possible Next <Emit:: Linking Vars>:
 
@@ -106,8 +107,7 @@ class Waveform(Builder):
         - Possible Next <Location>:
 
             -> `.location(int)`
-                :: continue building the waveform sequence,
-                Addressing another location
+                :: creating new channel to address another location(s)
 
         - Possible Next <WaveForm:: current>:
 
@@ -118,6 +118,8 @@ class Waveform(Builder):
                 :: record the value of waveform at current time
 
         - Possible Next <WaveForm:: append>:
+
+            :: Append waveform into current channel
 
             -> `.linear()`
 
@@ -136,10 +138,10 @@ class Waveform(Builder):
         - Possible Next <LevelCoupling>:
 
             -> `.rydberg`
-                :: Switch to specify rydberg level coupling channel
+                :: Create/Switch to new rydberg level coupling channel
 
             -> `.hyperfine`
-                :: Switch to specify hyperfine level coupling channel
+                :: Create/Switch to new hyperfine level coupling channel
 
         - Possible Next <Emit:: Linking Vars>:
 
@@ -189,8 +191,7 @@ class Waveform(Builder):
         - Possible Next <Location>:
 
             -> `.location(int)`
-                :: continue building the waveform sequence,
-                Addressing another location
+                :: creating new channel to address another location(s)
 
         - Possible Next <WaveForm:: current>:
 
@@ -201,6 +202,8 @@ class Waveform(Builder):
                 :: record the value of waveform at current time
 
         - Possible Next <WaveForm:: append>:
+
+            :: Append waveform into current channel
 
             -> `.linear()`
 
@@ -219,10 +222,11 @@ class Waveform(Builder):
         - Possible Next <LevelCoupling>:
 
             -> `.rydberg`
-                :: Switch to specify rydberg level coupling channel
+                :: Create/Switch to new rydberg level coupling channel
 
             -> `.hyperfine`
-                :: Switch to specify hyperfine level coupling channel
+                :: Create/Switch to new hyperfine level coupling channel
+
 
         - Possible Next <Emit:: Linking Vars>:
 
@@ -268,8 +272,7 @@ class Waveform(Builder):
         - Possible Next <Location>:
 
             -> `.location(int)`
-                :: continue building the waveform sequence,
-                Addressing another location
+                :: creating new channel to address another location(s)
 
         - Possible Next <WaveForm:: current>:
 
@@ -280,6 +283,8 @@ class Waveform(Builder):
                 :: record the value of waveform at current time
 
         - Possible Next <WaveForm:: append>:
+
+            :: Append waveform into current channel
 
             -> `.linear()`
 
@@ -298,10 +303,11 @@ class Waveform(Builder):
         - Possible Next <LevelCoupling>:
 
             -> `.rydberg`
-                :: Switch to specify rydberg level coupling channel
+                :: Create/Switch to new rydberg level coupling channel
 
             -> `.hyperfine`
-                :: Switch to specify hyperfine level coupling channel
+                :: Create/Switch to new hyperfine level coupling channel
+
 
         - Possible Next <Emit:: Linking Vars>:
 
@@ -355,8 +361,7 @@ class Waveform(Builder):
         - Possible Next <Location>:
 
             -> `.location(int)`
-                :: continue building the waveform sequence,
-                Addressing another location
+                :: creating new channel to address another location(s)
 
         - Possible Next <WaveForm:: current>:
 
@@ -367,6 +372,8 @@ class Waveform(Builder):
                 :: record the value of waveform at current time
 
         - Possible Next <WaveForm:: append>:
+
+            :: Append waveform into current channel
 
             -> `.linear()`
 
@@ -385,10 +392,11 @@ class Waveform(Builder):
         - Possible Next <LevelCoupling>:
 
             -> `.rydberg`
-                :: Switch to specify rydberg level coupling channel
+                :: Create/Switch to new rydberg level coupling channel
 
             -> `.hyperfine`
-                :: Switch to specify hyperfine level coupling channel
+                :: Create/Switch to new hyperfine level coupling channel
+
 
         - Possible Next <Emit:: Linking Vars>:
 
@@ -447,8 +455,7 @@ class Waveform(Builder):
         - Possible Next <Location>:
 
             -> `.location(int)`
-                :: continue building the waveform sequence,
-                Addressing another location
+                :: creating new channel to address another location(s)
 
         - Possible Next <WaveForm:: current>:
 
@@ -459,6 +466,8 @@ class Waveform(Builder):
                 :: record the value of waveform at current time
 
         - Possible Next <WaveForm:: append>:
+
+            :: Append waveform into current channel
 
             -> `.linear()`
 
@@ -477,10 +486,11 @@ class Waveform(Builder):
         - Possible Next <LevelCoupling>:
 
             -> `.rydberg`
-                :: Switch to specify rydberg level coupling channel
+                :: Create/Switch to new rydberg level coupling channel
 
             -> `.hyperfine`
-                :: Switch to specify hyperfine level coupling channel
+                :: Create/Switch to new hyperfine level coupling channel
+
 
         - Possible Next <Emit:: Linking Vars>:
 
@@ -545,8 +555,7 @@ class Waveform(Builder):
         - Possible Next <Location>:
 
             -> `.location(int)`
-                :: continue building the waveform sequence,
-                Addressing another location
+                :: creating new channel to address another location(s)
 
         - Possible Next <WaveForm:: current>:
 
@@ -557,9 +566,11 @@ class Waveform(Builder):
                 :: record the value of waveform at current time
 
             -> `.sample()`
-                :: sample the current callable at given time points.
+                :: sample current callable at given time points
 
         - Possible Next <WaveForm:: append>:
+
+            :: Append waveform into current channel
 
             -> `.linear()`
 
@@ -578,10 +589,11 @@ class Waveform(Builder):
         - Possible Next <LevelCoupling>:
 
             -> `.rydberg`
-                :: Switch to specify rydberg level coupling channel
+                :: Create/Switch to new rydberg level coupling channel
 
             -> `.hyperfine`
-                :: Switch to specify hyperfine level coupling channel
+                :: Create/Switch to new hyperfine level coupling channel
+
 
         - Possible Next <Emit:: Linking Vars>:
 
@@ -626,8 +638,8 @@ class Sliceable:
         - Possible Next <Location>:
 
             -> `.location(int)`
-                :: continue building the waveform sequence,
-                Addressing another location
+                :: creating new channel to address
+                another location(s)
 
         - Possible Next <WaveForm:: current>:
 
@@ -635,6 +647,8 @@ class Sliceable:
                 :: record the value of waveform at current time
 
         - Possible Next <WaveForm:: append>:
+
+            :: Append waveform into current channel
 
             -> `.linear()`
 
@@ -653,10 +667,11 @@ class Sliceable:
         - Possible Next <LevelCoupling>:
 
             -> `.rydberg`
-                :: Switch to specify rydberg level coupling channel
+                :: Create/Switch to new rydberg level coupling channel
 
             -> `.hyperfine`
-                :: Switch to specify hyperfine level coupling channel
+                :: Create/Switch to new hyperfine level coupling channel
+
 
         - Possible Next <Emit:: Linking Vars>:
 
@@ -692,8 +707,8 @@ class Recordable:
         - Possible Next <Location>:
 
             -> `.location(int)`
-                :: continue building the waveform sequence,
-                Addressing another location
+                :: creating new channel to address
+                another location(s)
 
         - Possible Next <WaveForm:: current>:
 
@@ -704,6 +719,8 @@ class Recordable:
                 :: record the value of waveform at current time
 
         - Possible Next <WaveForm:: append>:
+
+            :: Append waveform into current channel
 
             -> `.linear()`
 
@@ -722,10 +739,10 @@ class Recordable:
         - Possible Next <LevelCoupling>:
 
             -> `.rydberg`
-                :: Switch to specify rydberg level coupling channel
+                :: Create/Switch to new rydberg level coupling channel
 
             -> `.hyperfine`
-                :: Switch to specify hyperfine level coupling channel
+                :: Create/Switch to new hyperfine level coupling channel
 
         - Possible Next <Emit:: Linking Vars>:
 
