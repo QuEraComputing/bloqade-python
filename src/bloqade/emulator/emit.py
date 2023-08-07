@@ -1,7 +1,6 @@
 from bloqade.ir.control.sequence import (
     RydbergLevelCoupling,
     HyperfineLevelCoupling,
-    LevelCoupling,
 )
 from bloqade.emulator.sparse_operator import IndexMapping, Diagonal
 from bloqade.emulator.space import (
@@ -11,25 +10,12 @@ from bloqade.emulator.space import (
     is_rydberg_state,
     is_hyperfine_state,
 )
-from pydantic.dataclasses import dataclass
 from scipy.sparse import csr_matrix
-from enum import Enum
 import numpy as np
 from typing import Dict, Union
 from numbers import Number
 
-
-class RabiOperatorType(str, Enum):
-    RealValued = "real_valued"
-    ComplexValued = "complex_valued"
-
-
-@dataclass
-class RabiInfo:
-    op_type: RabiOperatorType
-    level_coupling: LevelCoupling
-    target_atoms: Dict[int, Number]
-    space: Space
+from bloqade.emulator.ir import RabiTerm, DetuningTerm, RabiOperatorType
 
 
 def get_dtype(target_atoms: Dict[str, Number]):
@@ -37,9 +23,9 @@ def get_dtype(target_atoms: Dict[str, Number]):
     return np.result_type(type_list)
 
 
-def emit_two_level_rabi_index_map(info: RabiInfo) -> IndexMapping:
+def emit_two_level_rabi_index_map(info: RabiTerm) -> IndexMapping:
     match info:
-        case RabiInfo(
+        case RabiTerm(
             op_type=RabiOperatorType.RealValued,
             target_atoms=target_atoms,
             space=Space(
@@ -51,7 +37,7 @@ def emit_two_level_rabi_index_map(info: RabiInfo) -> IndexMapping:
             input_indices = configurations ^ (1 << atom_index)
             return IndexMapping(input_indices)
 
-        case RabiInfo(
+        case RabiTerm(
             op_type=RabiOperatorType.ComplexValued,
             target_atoms=target_atoms,
             space=Space(
@@ -64,7 +50,7 @@ def emit_two_level_rabi_index_map(info: RabiInfo) -> IndexMapping:
             input_indices = configurations[output_indices] ^ (1 << atom_index)
             return IndexMapping(input_indices, output_indices)
 
-        case RabiInfo(
+        case RabiTerm(
             op_type=RabiOperatorType.RealValued,
             target_atoms=target_atoms,
             space=Space(
@@ -80,7 +66,7 @@ def emit_two_level_rabi_index_map(info: RabiInfo) -> IndexMapping:
             input_indices = input_indices[output_indices]
             return IndexMapping(input_indices, output_indices)
 
-        case RabiInfo(
+        case RabiTerm(
             op_type=RabiOperatorType.ComplexValued,
             target_atoms=target_atoms,
             space=Space(
@@ -104,11 +90,11 @@ def emit_two_level_rabi_index_map(info: RabiInfo) -> IndexMapping:
             )
 
 
-def emit_two_level_rabi_csr_matrix(info: RabiInfo) -> csr_matrix:
+def emit_two_level_rabi_csr_matrix(info: RabiTerm) -> csr_matrix:
     shape = (info.space.size, info.space.size)
     dtype = get_dtype(info.target_atoms)
     match info:
-        case RabiInfo(
+        case RabiTerm(
             op_type=RabiOperatorType.RealValued,
             target_atoms=target_atoms,
             space=Space(
@@ -133,7 +119,7 @@ def emit_two_level_rabi_csr_matrix(info: RabiInfo) -> csr_matrix:
                 (data.ravel(), indices.ravel(), indptr), shape=shape, dtype=dtype
             )
 
-        case RabiInfo(
+        case RabiTerm(
             op_type=RabiOperatorType.RealValued,
             target_atoms=target_atoms,
             space=Space(
@@ -170,7 +156,7 @@ def emit_two_level_rabi_csr_matrix(info: RabiInfo) -> csr_matrix:
             indptr[0] = 0
             return csr_matrix((data, indices, indptr), shape=shape, dtype=dtype)
 
-        case RabiInfo(
+        case RabiTerm(
             op_type=RabiOperatorType.ComplexValued,
             target_atoms=target_atoms,
             space=Space(
@@ -203,7 +189,7 @@ def emit_two_level_rabi_csr_matrix(info: RabiInfo) -> csr_matrix:
 
             return csr_matrix((data, indices, indptr), shape=shape, dtype=dtype)
 
-        case RabiInfo(
+        case RabiTerm(
             op_type=RabiOperatorType.ComplexValued,
             target_atoms=target_atoms,
             space=Space(
@@ -252,16 +238,16 @@ def emit_two_level_rabi_csr_matrix(info: RabiInfo) -> csr_matrix:
             )
 
 
-def emit_rabi_matrix(info: RabiInfo) -> Union[csr_matrix, IndexMapping]:
+def emit_rabi_matrix(info: RabiTerm) -> Union[csr_matrix, IndexMapping]:
     match info:
-        case RabiInfo(
+        case RabiTerm(
             target_atoms=target_atoms,
             space=Space(n_level=LocalHilbertSpace.TwoLevel),
         ) if len(target_atoms) == 1:
             return emit_two_level_rabi_index_map(info)
-        case RabiInfo(space=Space(n_level=LocalHilbertSpace.TwoLevel)):
+        case RabiTerm(space=Space(n_level=LocalHilbertSpace.TwoLevel)):
             return emit_two_level_rabi_csr_matrix(info)
-        case RabiInfo(
+        case RabiTerm(
             space=Space(n_level=LocalHilbertSpace.ThreeLevel),
         ):
             raise NotImplementedError
@@ -271,16 +257,9 @@ def emit_rabi_matrix(info: RabiInfo) -> Union[csr_matrix, IndexMapping]:
             )
 
 
-@dataclass
-class DetuningInfo:
-    target_atoms: Dict[int, Number]
-    level_coupling: LevelCoupling
-    space: Space
-
-
-def emit_detuning_matrix(info: DetuningInfo):
+def emit_detuning_matrix(info: DetuningTerm):
     match info:
-        case DetuningInfo(
+        case DetuningTerm(
             target_atoms=target_atoms,
             level_coupling=HyperfineLevelCoupling(),
             space=Space(n_level=n_level, configurations=configurations),
@@ -292,7 +271,7 @@ def emit_detuning_matrix(info: DetuningInfo):
 
             return Diagonal(diagonal)
 
-        case DetuningInfo(
+        case DetuningTerm(
             target_atoms=target_atoms,
             level_coupling=RydbergLevelCoupling(),
             space=Space(n_level=n_level, configurations=configurations),
@@ -310,9 +289,9 @@ def emit_detuning_matrix(info: DetuningInfo):
             )
 
 
-def emit_rydberg_matrix(info: Union[RabiInfo, DetuningInfo], c6=5420441.13265):
+def emit_rydberg_matrix(info: Union[RabiTerm, DetuningTerm], c6=5420441.13265):
     match info:
-        case RabiInfo(
+        case RabiTerm(
             space=Space(
                 atom_coordinates=atom_coordinates,
                 n_level=n_level,
@@ -342,7 +321,7 @@ def emit_rydberg_matrix(info: Union[RabiInfo, DetuningInfo], c6=5420441.13265):
 
             return Diagonal(diagonal)
 
-        case DetuningInfo(
+        case DetuningTerm(
             space=Space(
                 atom_coordinates=atom_coordinates,
                 n_level=LocalHilbertSpace.TwoLevel,

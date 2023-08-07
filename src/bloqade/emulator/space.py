@@ -76,18 +76,22 @@ class Space(BaseModel):
     configurations: NDArray
 
     @property
-    def index_type(self):
+    def index_type(self) -> np.dtype:
         if self.size < np.iinfo(np.int32).max:
             return np.int32
         else:
             return np.int64
 
     @property
-    def size(self):
+    def size(self) -> int:
         return self.configurations.size
 
     @property
-    def state_type(self):
+    def n_atoms(self) -> int:
+        return len(self.atom_coordinates)
+
+    @property
+    def state_type(self) -> np.dtype:
         return np.result_type(np.uint32, np.min_scalar_type(self.configurations[-1]))
 
     def __init__(

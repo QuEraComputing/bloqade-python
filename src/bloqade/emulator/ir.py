@@ -1,21 +1,34 @@
 from pydantic.dataclasses import dataclass
-from numpy.typing import Callable
-from typing import Dict, Optional
+from typing import Dict, List, Optional, Callable
 
-import bloqade.ir.control.field as field
+from bloqade.ir.control.sequence import LevelCoupling
 from bloqade.emulator.space import Space
+from enum import Enum
+
+
+class RabiOperatorType(str, Enum):
+    floatValued = "float_valued"
+    ComplexValued = "complex_valued"
 
 
 @dataclass
-class RabiDrive:
-    amplitude: Dict[field.SpatialModulation, Callable[float, float]] = {}
-    phase: Dict[field.SpatialModulation, Callable[float, float]] = {}
+class RabiTerm:
+    phase: Optional[Callable[[float], float]] = None
+    amplitude: Callable[[float], float]
+    target_atoms: Dict[int, float]
+
+
+@dataclass
+class DetuningTerm:
+    target_atoms: Dict[int, float]
+    amplitude: Callable[[float], float]
 
 
 @dataclass
 class LaserCoupling:
-    detuning: Dict[field.SpatialModulation, Callable[float, float]] = {}
-    rabi: RabiDrive = RabiDrive()
+    level_coupling: LevelCoupling
+    detuning: List[DetuningTerm]
+    rabi: List[RabiTerm]
 
 
 @dataclass
