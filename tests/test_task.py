@@ -1,6 +1,26 @@
 from bloqade.ir import Sequence, rydberg, detuning, Uniform, Linear, ScaledLocations
+from bloqade.ir.location import Square
 
 # import bloqade.lattice as lattice
+
+n_atoms = 11
+lattice_const = 5.9
+
+rabi_amplitude_values = [0.0, 15.8, 15.8, 0.0]
+rabi_detuning_values = [-16.33, -16.33, "delta_end", "delta_end"]
+durations = [0.8, "sweep_time", 0.8]
+
+ordered_state_2D_prog = (
+    Square(n_atoms, lattice_const)
+    .rydberg.rabi.amplitude.uniform.piecewise_linear(durations, rabi_amplitude_values)
+    .detuning.uniform.piecewise_linear(durations, rabi_detuning_values)
+)
+
+ordered_state_2D_job = ordered_state_2D_prog.assign(delta_end=42.66, sweep_time=2.4)
+
+pbin = ordered_state_2D_job.quera(10)
+pbin.hardware_tasks[0].task_ir.show()
+
 
 # dict interface
 seq = Sequence(
@@ -15,6 +35,12 @@ seq = Sequence(
         }
     }
 )
+
+
+# job = HardwareBatchResult.load_json("example-3-2d-ordered-state-job.json")
+
+# res = job.report()
+
 
 # print(lattice.Square(3).apply(seq).__lattice__)
 # print(lattice.Square(3).apply(seq).braket(nshots=1000).submit().report().dataframe)
