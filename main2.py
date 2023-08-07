@@ -26,8 +26,10 @@ prog = (
 
 # pc = PulseCompiler(prog)
 
-# print(pc.next_channel_pair())
-# print(pc.next_channel_pair())
+# print(pc.read_address())
+# print(pc.read_waveform())
+# print(pc.read_address())
+# print(pc.read_waveform())
 
 # print(stream.read())
 # print(stream.read())

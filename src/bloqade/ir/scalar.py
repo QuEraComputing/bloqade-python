@@ -1,6 +1,6 @@
 from pydantic.dataclasses import dataclass
 from pydantic import validator
-from typing import Any, Union, List
+from typing import Union, List
 from .tree_print import Printer
 import re
 from decimal import Decimal
@@ -236,7 +236,7 @@ def check_variable_name(name: str) -> None:
         raise ValueError(f"string '{name}' is not a valid python identifier")
 
 
-def cast(py) -> Any:
+def cast(py) -> "Scalar":
     """cast Real number (or list/tuple of Real numbers)
     to [`Scalar Literal`][bloqade.ir.scalar.Literal].
 
@@ -253,7 +253,10 @@ def cast(py) -> Any:
     return ret
 
 
-def trycast(py) -> Any:
+# TODO: RL: remove support on List and Tuple just use map?
+#       this is making type inference much harder to parse
+#       in human brain
+def trycast(py) -> "Scalar | None":
     match py:
         case int(x) | float(x) | bool(x):
             return Literal(Decimal(str(x)))
@@ -262,10 +265,10 @@ def trycast(py) -> Any:
         case str(x):
             check_variable_name(x)
             return Variable(x)
-        case list() as xs:
-            return list(map(cast, xs))
-        case tuple() as xs:
-            return tuple(map(cast, xs))
+        # case list() as xs:
+        #     return list(map(cast, xs))
+        # case tuple() as xs:
+        #     return tuple(map(cast, xs))
         case Scalar():
             return py
         case numbers.Real():
@@ -275,7 +278,7 @@ def trycast(py) -> Any:
             return
 
 
-def var(py: Union[str, List[str]]) -> Any:
+def var(py: Union[str, List[str]]) -> "Variable":
     """cast string (or list/tuple of strings)
     to [`Variable`][bloqade.ir.scalar.Variable].
 
@@ -292,15 +295,15 @@ def var(py: Union[str, List[str]]) -> Any:
     return ret
 
 
-def tryvar(py) -> Any:
+def tryvar(py) -> "Variable | None":
     match py:
         case str(x):
             check_variable_name(x)
             return Variable(x)
-        case list() as xs:
-            return list(map(var, xs))
-        case tuple() as xs:
-            return tuple(map(var, xs))
+        # case list() as xs:
+        #     return list(map(var, xs))
+        # case tuple() as xs:
+        #     return tuple(map(var, xs))
         case Variable():
             return py
         case _:

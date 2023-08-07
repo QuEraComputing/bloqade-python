@@ -355,7 +355,7 @@ class Poly(Instruction):
     duration: InitVar[Scalar]
 
     def __init__(self, checkpoints, duration):
-        self.checkpoints = cast(checkpoints)
+        self.checkpoints = map(cast, checkpoints)
         self._duration = cast(duration)
 
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:

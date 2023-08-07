@@ -1,4 +1,5 @@
 from typing import Optional, Union, List, Callable
+from functools import reduce
 from .base import Builder
 from .route import WaveformRoute
 from .. import ir
@@ -63,7 +64,8 @@ class Recordable:
 
 
 class WaveformPrimitive(Waveform, Slicible, Recordable):
-    pass
+    def __bloqade_ir__(self):
+        raise NotImplementedError
 
 
 class Linear(WaveformPrimitive):
@@ -79,9 +81,12 @@ class Linear(WaveformPrimitive):
         assert_scalar("duration", duration)
 
         super().__init__(parent)
-        self._start = start
-        self._stop = stop
-        self._duration = duration
+        self._start = ir.cast(start)
+        self._stop = ir.cast(stop)
+        self._duration = ir.cast(duration)
+
+    def __bloqade_ir__(self) -> ir.Linear:
+        return ir.Linear(start=self._start, stop=self._stop)
 
 
 class Constant(WaveformPrimitive):
@@ -92,26 +97,38 @@ class Constant(WaveformPrimitive):
         assert_scalar("duration", duration)
 
         super().__init__(parent)
-        self._value = value
-        self._duration = duration
+        self._value = ir.cast(value)
+        self._duration = ir.cast(duration)
+
+    def __bloqade_ir__(self) -> ir.Constant:
+        return ir.Constant(value=self._value, duration=self._duration)
 
 
 class Poly(WaveformPrimitive):
     def __init__(
-        self, coeffs: ScalarType, duration: ScalarType, parent: Optional[Builder] = None
+        self,
+        coeffs: List[ScalarType],
+        duration: ScalarType,
+        parent: Optional[Builder] = None,
     ) -> None:
         assert_scalar("coeffs", coeffs)
         assert_scalar("duration", duration)
 
         super().__init__(parent)
-        self._coeffs = coeffs
-        self._duration = duration
+        self._coeffs = map(ir.cast, coeffs)
+        self._duration = ir.cast(duration)
+
+    def __bloqade_ir__(self):
+        return ir.Poly(coeffs=self._coeffs, duration=self._duration)
 
 
 class Apply(WaveformPrimitive):
     def __init__(self, wf: ir.Waveform, parent: Optional[Builder] = None):
         super().__init__(parent)
         self._wf = wf
+
+    def __bloqade_ir__(self):
+        return self._wf
 
 
 class PiecewiseLinear(WaveformPrimitive):
@@ -121,13 +138,18 @@ class PiecewiseLinear(WaveformPrimitive):
         values: List[ScalarType],
         parent: Optional[Builder] = None,
     ):
-        assert len(durations) == len(
-            values
+        assert (
+            len(durations) == len(values) - 1
         ), "durations and values must be the same length"
 
         super().__init__(parent)
-        self._durations = durations
-        self._values = values
+        self._durations = map(ir.cast, durations)
+        self._values = map(ir.cast, values)
+
+    def __bloqade_ir__(self):
+        iter = zip(self._values[:-1], self._values[1:], self._durations)
+        wfs = map(lambda v0, v1, t: ir.Linear(start=v0, stop=v1, duration=t), iter)
+        return reduce(lambda a, b: a.append(b), wfs)
 
 
 class PiecewiseConstant(WaveformPrimitive):
@@ -141,8 +163,13 @@ class PiecewiseConstant(WaveformPrimitive):
             values
         ), "durations and values must be the same length"
         super().__init__(parent)
-        self._durations = durations
-        self._values = values
+        self._durations = map(ir.cast, durations)
+        self._values = map(ir.cast, values)
+
+    def __bloqade_ir__(self):
+        iter = zip(self._values, self._durations)
+        wfs = map(lambda v, t: ir.Constant(value=v, duration=t), iter)
+        return reduce(lambda a, b: a.append(b), wfs)
 
 
 class Fn(WaveformPrimitive):
@@ -155,7 +182,10 @@ class Fn(WaveformPrimitive):
         assert_scalar("duration", duration)
         super().__init__(parent)
         self._fn = fn
-        self._duration = duration
+        self._duration = ir.cast(duration)
+
+    def __bloqade_ir__(self):
+        return ir.PythonFn(self._fn, self._duration)
 
 
 # NOTE: no double-slice or double-record
@@ -167,8 +197,9 @@ class Slice(Waveform, Recordable):
         parent: Optional[Builder] = None,
     ) -> None:
         super().__init__(parent)
-        self._start = start
-        self._stop = stop
+        # NOTE: this should no raise for None
+        self._start = ir.scalar.trycast(start)
+        self._stop = ir.scalar.trycast(stop)
 
 
 class Record(Waveform, Slicible):  # record should not be sliceable
@@ -178,4 +209,4 @@ class Record(Waveform, Slicible):  # record should not be sliceable
         parent: Optional[Builder] = None,
     ) -> None:
         super().__init__(parent)
-        self._name = name
+        self._name = ir.var(name)

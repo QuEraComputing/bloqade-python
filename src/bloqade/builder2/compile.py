@@ -1,10 +1,21 @@
 from dataclasses import dataclass
-from typing import Optional, List
+from typing import Optional, List, Type
 from .. import ir
 from .base import Builder
 from .coupling import Rydberg, Hyperfine
 from .field import Detuning, RabiAmplitude, RabiPhase
-from .spatial import SpatialModulation, Location, Uniform, Var, Scale
+from .spatial import Location, Uniform, Var, Scale
+from .waveform import (
+    WaveformPrimitive,
+    Linear,
+    Constant,
+    Poly,
+    PiecewiseConstant,
+    PiecewiseLinear,
+    Fn,
+    Slice,
+    Record,
+)
 
 
 @dataclass
@@ -39,15 +50,16 @@ class BuilderStream:
             node = self.read()
         return None
 
-    def next_spatial(self) -> SpatialModulation | None:
-        return self.read_next([Location, Uniform, Var])
-
-    def eat_spatial(self):
-        head = self.next_spatial()
+    def eat(
+        self, types: List[Type[Builder]], skips: List[Type[Builder]] | None = None
+    ) -> BuilderNode:
+        head = self.read_next(types)
         curr = head
         while curr is not None:
-            if type(curr.node) not in [Location, Uniform, Var, Scale]:
-                break
+            if type(curr.node) not in types:
+                if skips and type(curr.node) not in skips:
+                    break
+
             curr = curr.next
         self.curr = curr
         return head
@@ -73,12 +85,16 @@ class BuilderStream:
         return node
 
 
+def piecewise(cons, start, stop, duration):
+    pass
+
+
 class PulseCompiler:
     def __init__(self, ast: Builder) -> None:
         self.stream = BuilderStream(ast)
 
-    def next_channel_pair(self):
-        spatial = self.stream.eat_spatial()
+    def read_address(self):
+        spatial = self.stream.eat([Location, Uniform, Var], [Scale])
         if type(spatial.node.__parent__) in [Detuning, RabiAmplitude, RabiPhase]:
             field = spatial.node.__parent__  # field is updated
             if type(field) in [RabiAmplitude, RabiPhase]:
@@ -94,14 +110,23 @@ class PulseCompiler:
             return (None, None, spatial)
 
     def read_waveform(self) -> "ir.Waveform":
+        wf_head = self.stream.eat(
+            types=[Linear, Constant, Poly, PiecewiseConstant, PiecewiseLinear, Fn],
+            skips=[Slice, Record],
+        )
+        curr = wf_head
+        waveform: ir.Waveform = wf_head.node.__bloqade_ir__()
+        while curr.next is not None:
+            if isinstance(curr.node, Slice):
+                waveform[slice(curr.node._start, curr.node._stop)]
+            elif isinstance(curr.node, Record):
+                waveform = waveform.record(curr.node._name)
+            else:
+                waveform = waveform.append(curr.node.__bloqade_ir__())
+            curr = curr.next
+            if not isinstance(curr.node, WaveformPrimitive):
+                break
+        return waveform
+
+    def compile(self) -> ir.Sequence:
         pass
-
-
-# class BuilderVisitor:
-
-#     def visit(self, ast: Builder):
-#         name = 'visit_' + type(ast).__name__.lower()
-#         if hasattr(self, name):
-#             return getattr(self, name)(ast)
-#         else:
-#             raise NotImplementedError(f'No method {name} for {type(self).__name__}')
