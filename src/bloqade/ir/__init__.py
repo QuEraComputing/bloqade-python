@@ -45,6 +45,7 @@ from .location import (
     Kagome,
     BoundedBravais,
     ListOfLocations,
+    ParallelRegister,
     start,
 )
 
@@ -105,4 +106,5 @@ __all__ = [
     "Kagome",
     "BoundedBravais",
     "ListOfLocations",
+    "ParallelRegister",
 ]
