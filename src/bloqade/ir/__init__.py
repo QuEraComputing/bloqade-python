@@ -34,6 +34,19 @@ from .control.field import (
 from .control.pulse import Pulse, NamedPulse, FieldName, rabi, detuning
 from .control.sequence import rydberg, hyperfine, Sequence, LevelCoupling
 from .program import Program
+from .location import (
+    AtomArrangement,
+    Chain,
+    Square,
+    Rectangular,
+    Honeycomb,
+    Triangular,
+    Lieb,
+    Kagome,
+    BoundedBravais,
+    ListOfLocations,
+    start,
+)
 
 __all__ = [
     "var",
@@ -80,4 +93,16 @@ __all__ = [
     "hyperfine",
     "Sequence",
     "Program",
+    ### location ir ###
+    "start",
+    "AtomArrangement",
+    "Chain",
+    "Square",
+    "Rectangular",
+    "Honeycomb",
+    "Triangular",
+    "Lieb",
+    "Kagome",
+    "BoundedBravais",
+    "ListOfLocations",
 ]

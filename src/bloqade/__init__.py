@@ -1,5 +1,4 @@
-from bloqade.ir.location import start
-from bloqade.ir import var, cast, Variable, Literal
+from bloqade.ir import var, cast, Variable, Literal, start
 from bloqade.builder.factory import (
     piecewise_linear,
     piecewise_constant,
