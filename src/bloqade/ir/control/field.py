@@ -3,6 +3,8 @@ from ..scalar import Scalar, cast
 from .waveform import Waveform
 from typing import Dict
 from ..tree_print import Printer
+from bokeh.plotting import figure, show
+from bokeh.layouts import gridplot
 
 __all__ = [
     "Field",
@@ -49,6 +51,12 @@ class SpatialModulation:
     def _repr_pretty_(self, p, cycle):
         Printer(p).print(self, cycle)
 
+    def _get_info(self, **assignment):
+        return {}
+
+    def figure(self, **assignment):
+        raise NotImplementedError
+
 
 @dataclass
 class UniformModulation(SpatialModulation):
@@ -63,6 +71,17 @@ class UniformModulation(SpatialModulation):
 
     def children(self):
         return []
+
+    def figure(self, **assignment):
+        p = figure(sizing_mode="stretch_both")
+        p.text(
+            x=[0.5],
+            y=[0.5],
+            text="Uniform",
+            text_algin="center",
+            text_baseline="middle",
+        )
+        return p
 
 
 Uniform = UniformModulation()
@@ -83,6 +102,17 @@ class RunTimeVector(SpatialModulation):
 
     def children(self):
         return [self.name]
+
+    def figure(self, **assginment):
+        p = figure(sizing_mode="stretch_both")
+        p.text(
+            x=[0.5],
+            y=[0.5],
+            text=self.name,
+            text_algin="center",
+            text_baseline="middle",
+        )
+        return p
 
 
 @dataclass(init=False)
@@ -121,6 +151,9 @@ class ScaledLocations(SpatialModulation):
             annotated_children[loc.print_node()] = scalar
 
         return annotated_children
+
+    def figure(self, **assignment):
+        pass
 
 
 @dataclass
@@ -169,3 +202,22 @@ class Field:
     def children(self):
         # return dict with annotations
         return {spatial_mod.print_node(): wf for spatial_mod, wf in self.value.items()}
+
+    def figure(self, **assignments):
+        full_figs = []
+        for spmod, wf in self.value.items():
+            fig_mod = spmod.figure(**assignments)
+            fig_wvfm = wf.figure(**assignments)
+            full_figs.append([fig_mod, fig_wvfm])
+
+        full = gridplot(
+            full_figs,
+            merge_tools=False,
+            sizing_mode="stretch_both",
+        )
+        full.width_policy = "max"
+
+        return full
+
+    def show(self, **assignments):
+        show(self.figure(**assignments))
