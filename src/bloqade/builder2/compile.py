@@ -27,12 +27,15 @@ class BuilderNode:
         return repr(self.node)
 
 
+@dataclass
 class BuilderStream:
     """Represents a stream of builder nodes."""
 
-    def __init__(self, builder: Builder) -> None:
-        self.head = self.build_nodes(builder)
-        self.curr = self.head
+    head: BuilderNode
+    curr: Optional[BuilderNode] = None
+
+    def copy(self) -> "BuilderStream":
+        return BuilderStream(head=self.head, curr=self.curr)
 
     def read(self) -> BuilderNode | None:
         if self.curr is None:
@@ -84,6 +87,11 @@ class BuilderStream:
 
         return node
 
+    @staticmethod
+    def create(builder: Builder) -> "BuilderStream":
+        head = BuilderStream.build_nodes(builder)
+        return BuilderStream(head=head, curr=head)
+
 
 def piecewise(cons, start, stop, duration):
     pass
@@ -91,7 +99,7 @@ def piecewise(cons, start, stop, duration):
 
 class PulseCompiler:
     def __init__(self, ast: Builder) -> None:
-        self.stream = BuilderStream(ast)
+        self.stream = BuilderStream.create(ast)
 
     def read_address(self):
         spatial = self.stream.eat([Location, Uniform, Var], [Scale])
