@@ -301,16 +301,6 @@ class Rectangular(BoundedBravais):
                 self.shape, self.lattice_spacing, self.ratio
             )
 
-    """
-    def coordinates(self, index: List[int]) -> NDArray:
-
-        # damn! this is like stone age broadcasting
-        vectors = np.array(self.cell_vectors())
-        index = np.array(index)
-        pos = np.sum(vectors.T * index, axis=1)
-        return pos + np.array(self.cell_atoms())
-    """
-
     def cell_vectors(self) -> List[List[float]]:
         return [[1, 0], [0, self.ratio]]
 
