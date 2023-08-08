@@ -42,7 +42,7 @@ files = [
 
 [[package]]
 name = "amazon-braket-sdk"
-version = "1.53.1"
+version = "1.53.2"
 requires_python = ">= 3.8.2"
 summary = "An open source library for interacting with quantum computing devices on Amazon Braket"
 dependencies = [
@@ -61,8 +61,8 @@ dependencies = [
     "sympy",
 ]
 files = [
-    {file = "amazon-braket-sdk-1.53.1.tar.gz", hash = "sha256:af4b8b13f6ac4d381a24122f6294d543f306d096d82732e7455d202352cd461e"},
-    {file = "amazon_braket_sdk-1.53.1-py3-none-any.whl", hash = "sha256:9352d17034729f7bf32a04b9a70d951ff594ea3499c545cbeb96e8987a16fe27"},
+    {file = "amazon-braket-sdk-1.53.2.tar.gz", hash = "sha256:21bc02d90f53b4975b065a6a77fdb691a7b800ee80d62892482c90867caaa52f"},
+    {file = "amazon_braket_sdk-1.53.2-py3-none-any.whl", hash = "sha256:0352d18f125be10cc6ce9b52d6e00a1954501d00c920290640e6d44bd13d907b"},
 ]
 
 [[package]]
@@ -758,7 +758,7 @@ files = [
 
 [[package]]
 name = "ipykernel"
-version = "6.25.0"
+version = "6.25.1"
 requires_python = ">=3.8"
 summary = "IPython Kernel for Jupyter"
 dependencies = [
@@ -777,8 +777,8 @@ dependencies = [
     "traitlets>=5.4.0",
 ]
 files = [
-    {file = "ipykernel-6.25.0-py3-none-any.whl", hash = "sha256:f0042e867ac3f6bca1679e6a88cbd6a58ed93a44f9d0866aecde6efe8de76659"},
-    {file = "ipykernel-6.25.0.tar.gz", hash = "sha256:e342ce84712861be4b248c4a73472be4702c1b0dd77448bfd6bcfb3af9d5ddf9"},
+    {file = "ipykernel-6.25.1-py3-none-any.whl", hash = "sha256:c8a2430b357073b37c76c21c52184db42f6b4b0e438e1eb7df3c4440d120497c"},
+    {file = "ipykernel-6.25.1.tar.gz", hash = "sha256:050391364c0977e768e354bdb60cbbfbee7cbb943b1af1618382021136ffd42f"},
 ]
 
 [[package]]
