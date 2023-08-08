@@ -606,7 +606,7 @@ class Slice(Waveform):
         return [self.waveform, self.interval]
 
 
-@dataclass
+@dataclass(repr=False)
 class Append(Waveform):
     """
     ```bnf

@@ -168,8 +168,6 @@ class ScaledLocations(SpatialModulation):
             locs.append(f"loc[{k.value}]")
             literal_val.append(float(v(**assignments)))
 
-        print(locs)
-        print(literal_val)
         source = ColumnDataSource(data=dict(locations=locs, yvals=literal_val))
 
         p = figure(
@@ -254,7 +252,7 @@ class Field:
 
             header = "Ch[%d]\n" % (idx)
             text_box = PreText(text=header + txt_asgn + txt, sizing_mode="stretch_both")
-            text_box.styles = {"overflow": "scroll"}
+            text_box.styles = {"overflow": "scroll", "border": "1px solid black"}
 
             # layout channel:
             fp = gridplot(
@@ -262,6 +260,7 @@ class Field:
                 merge_tools=False,
                 sizing_mode="stretch_both",
             )
+            fp.styles = {"border": "2px solid black"}
             fp.width_policy = "max"
 
             full_figs.append(fp)
