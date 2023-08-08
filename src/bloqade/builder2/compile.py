@@ -56,13 +56,22 @@ class BuilderStream:
     def eat(
         self, types: List[Type[Builder]], skips: List[Type[Builder]] | None = None
     ) -> BuilderNode:
+        """Scan the stream until a node of type in `types` or `skips` is found.
+
+        Args:
+            types (List[Type[Builder]]): List of types to move the stream pointer to
+            skips (List[Type[Builder]] | None, optional): List of types to end the
+            stream scan
+
+        Returns:
+            BuilderNode: The beginning of the stream which matches a type in `types`.
+        """
         head = self.read_next(types)
         curr = head
         while curr is not None:
             if type(curr.node) not in types:
                 if skips and type(curr.node) not in skips:
                     break
-
             curr = curr.next
         self.curr = curr
         return head
