@@ -102,6 +102,15 @@ class PulseExpr:
     @staticmethod
     def canonicalize(expr: "PulseExpr") -> "PulseExpr":
         # TODO: update canonicalization rules for appending pulses
+        match expr:
+            case Append([Append(lhs), Append(rhs)]):
+                return Append(list(map(PulseExpr.canonicalize, lhs + rhs)))
+            case Append([Append(pulses), pulse]):
+                return PulseExpr.canonicalize(Append(pulses + [pulse]))
+            case Append([pulse, Append(pulses)]):
+                return PulseExpr.canonicalize(Append([pulse] + pulses))
+            case _:
+                return expr
         return expr
 
     def __repr__(self) -> str:
@@ -111,6 +120,12 @@ class PulseExpr:
 
     def _repr_pretty_(self, p, cycle):
         Printer(p).print(self, cycle)
+
+    def figure(self, **assignments):
+        return NotImplementedError
+
+    def show(self, **assignments):
+        return NotImplementedError
 
 
 @dataclass
@@ -131,6 +146,12 @@ class Append(PulseExpr):
 
     def children(self):
         return self.value
+
+    def figure(self, **assignments):
+        return NotImplementedError
+
+    def show(self, **assignments):
+        return NotImplementedError
 
 
 @dataclass(init=False, repr=False)

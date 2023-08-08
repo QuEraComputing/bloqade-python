@@ -96,8 +96,6 @@ class Waveform:
         times = np.linspace(0, duration, 1001)
         values = [self.__call__(time, **assignments) for time in times]
         fig = figure(
-            width=250,
-            height=250,
             sizing_mode="stretch_both",
             x_axis_label="Time (s)",
             y_axis_label="Waveform(t)",

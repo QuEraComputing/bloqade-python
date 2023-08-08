@@ -4,7 +4,10 @@ from .waveform import Waveform
 from typing import Dict
 from ..tree_print import Printer
 from bokeh.plotting import figure, show
-from bokeh.layouts import gridplot
+from bokeh.layouts import gridplot, row, layout
+from bokeh.models.widgets import PreText
+from bokeh.models import ColumnDataSource
+
 
 __all__ = [
     "Field",
@@ -83,6 +86,9 @@ class UniformModulation(SpatialModulation):
         )
         return p
 
+    def show(self, **assignment):
+        show(self.figure(**assignment))
+
 
 Uniform = UniformModulation()
 
@@ -113,6 +119,9 @@ class RunTimeVector(SpatialModulation):
             text_baseline="middle",
         )
         return p
+
+    def show(self, **assignment):
+        show(self.figure(**assignment))
 
 
 @dataclass(init=False)
@@ -152,7 +161,26 @@ class ScaledLocations(SpatialModulation):
 
         return annotated_children
 
-    def figure(self, **assignment):
+    def figure(self, **assignments):
+        locs = []
+        literal_val = []
+        for k, v in self.value.items():
+            locs.append(f"loc[{k.value}]")
+            literal_val.append(float(v(**assignments)))
+
+        print(locs)
+        print(literal_val)
+        source = ColumnDataSource(data=dict(locations=locs, yvals=literal_val))
+
+        p = figure(
+            y_range=locs, sizing_mode="stretch_both", x_axis_label="Scale factor"
+        )
+        p.hbar(y="locations", right="yvals", source=source, height=0.4)
+
+        return p
+
+    def show(self, **assignment):
+        show(self.figure(**assignment))
         pass
 
 
@@ -205,14 +233,43 @@ class Field:
 
     def figure(self, **assignments):
         full_figs = []
+        idx = 0
         for spmod, wf in self.value.items():
             fig_mod = spmod.figure(**assignments)
             fig_wvfm = wf.figure(**assignments)
-            full_figs.append([fig_mod, fig_wvfm])
 
-        full = gridplot(
+            # format AST tree:
+            txt = wf.__repr__()
+            txt = "> Waveform AST:\n" + txt
+
+            txt_asgn = ""
+            # format assignment:
+            if len(assignments):
+                txt_asgn = "> Assignments:\n"
+                for key, val in assignments.items():
+                    txt_asgn += f"{key} := {val}\n"
+                txt_asgn += "\n"
+
+            # Display AST tree:
+
+            header = "Ch[%d]\n" % (idx)
+            text_box = PreText(text=header + txt_asgn + txt, sizing_mode="stretch_both")
+            text_box.styles = {"overflow": "scroll"}
+
+            # layout channel:
+            fp = gridplot(
+                [[row(text_box, fig_mod, sizing_mode="stretch_both"), fig_wvfm]],
+                merge_tools=False,
+                sizing_mode="stretch_both",
+            )
+            fp.width_policy = "max"
+
+            full_figs.append(fp)
+            idx += 1
+
+        full = layout(
             full_figs,
-            merge_tools=False,
+            # merge_tools=False,
             sizing_mode="stretch_both",
         )
         full.width_policy = "max"
