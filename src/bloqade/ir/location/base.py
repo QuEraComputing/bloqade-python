@@ -51,7 +51,9 @@ class AtomArrangement(ProgramStart):
         xs_filled, xs_vacant = [], []
         ys_filled, ys_vacant = [], []
 
+        counter = 0
         for _, location_info in enumerate(self.enumerate()):
+            counter += 1
             (x, y) = location_info.position
             if type(x) is Variable or type(y) is Variable:
                 return repr(
@@ -64,6 +66,11 @@ class AtomArrangement(ProgramStart):
                 else:
                     xs_vacant.append(float(x.value))
                     ys_vacant.append(float(y.value))
+
+        if counter == 0:
+            return repr(
+                list(self.enumerate())
+            )  # default to standard print of internal contents
 
         pltxt.clear_figure()
         pltxt.canvas_color("default")

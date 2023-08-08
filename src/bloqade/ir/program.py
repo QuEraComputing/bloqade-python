@@ -46,3 +46,15 @@ class Program:
 
         """
         return self._sequence
+
+    def __repr__(self):
+        out = ""
+        if self._register is not None:
+            out += self._register.__repr__()
+
+        out += "\n"
+
+        if self._sequence is not None:
+            out += self._sequence.__repr__()
+
+        return out
