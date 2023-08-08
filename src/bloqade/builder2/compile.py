@@ -1,10 +1,10 @@
 from dataclasses import dataclass
-from typing import Optional, List, Type
+from typing import Optional, List, Type, Tuple
 from .. import ir
 from .base import Builder
-from .coupling import Rydberg, Hyperfine
-from .field import Detuning, RabiAmplitude, RabiPhase
-from .spatial import Location, Uniform, Var, Scale
+from .coupling import LevelCoupling, Rydberg, Hyperfine
+from .field import Field, Detuning, RabiAmplitude, RabiPhase
+from .spatial import SpatialModulation, Location, Uniform, Var, Scale
 from .waveform import (
     WaveformPrimitive,
     Linear,
@@ -110,8 +110,14 @@ class PulseCompiler:
     def __init__(self, ast: Builder) -> None:
         self.stream = BuilderStream.create(ast)
 
-    def read_address(self):
+    def read_address(self) -> Tuple[LevelCoupling, Field, BuilderNode]:
         spatial = self.stream.eat([Location, Uniform, Var], [Scale])
+        curr = spatial
+        while curr.next is not None:
+            if not isinstance(curr.node, SpatialModulation):
+                break
+            curr = curr.next
+
         if type(spatial.node.__parent__) in [Detuning, RabiAmplitude, RabiPhase]:
             field = spatial.node.__parent__  # field is updated
             if type(field) in [RabiAmplitude, RabiPhase]:
