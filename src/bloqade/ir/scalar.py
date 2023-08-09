@@ -51,8 +51,8 @@ class Scalar:
                     return Decimal(str(kwargs[name]))
                 else:
                     raise Exception(f"Unknown variable: {name}")
-            case DefaultVariable(var, default_value):
-                if var.name in kwargs:
+            case DefaultVariable(name, default_value):
+                if name in kwargs:
                     return Decimal(str(kwargs[name]))
                 else:
                     return default_value
@@ -72,6 +72,43 @@ class Scalar:
                 ret = stop - start
                 ret <= expr(**kwargs)
                 return ret
+            case _:
+                raise Exception(f"Unknown scalar expression: {self} ({type(self)})")
+
+    def static_assign(self, **mapping) -> "Scalar":
+        """Replace variables with literals based on mapping"""
+        match self:
+            case Literal():
+                return self
+            case Variable(name):
+                if name in mapping:
+                    return Literal(Decimal(str(mapping[name])))
+                else:
+                    return self
+            case DefaultVariable(var, _):
+                if var.name in mapping:
+                    return Literal(Decimal(str(mapping[name])))
+                else:
+                    return self
+            case Slice(expr, Interval(start, stop)):
+                return Slice(
+                    expr.static_assign(**mapping),
+                    Interval(
+                        start.static_assign(**mapping), stop.static_assign(**mapping)
+                    ),
+                )
+            case Negative(expr):
+                return -expr.static_assign(**mapping)
+            case Add(lhs, rhs):
+                return lhs.static_assign(**mapping) + rhs.static_assign(**mapping)
+            case Mul(lhs, rhs):
+                return lhs.static_assign(**mapping) * rhs.static_assign(**mapping)
+            case Div(lhs, rhs):
+                return lhs.static_assign(**mapping) / rhs.static_assign(**mapping)
+            case Min(exprs):
+                return min(map(lambda expr: expr.static_assign(**mapping), exprs))
+            case Max(exprs):
+                return max(map(lambda expr: expr.static_assign(**mapping), exprs))
             case _:
                 raise Exception(f"Unknown scalar expression: {self} ({type(self)})")
 
