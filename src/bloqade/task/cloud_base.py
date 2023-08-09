@@ -2,6 +2,7 @@ from collections import OrderedDict
 import datetime
 import json
 import os
+import sys
 import numpy as np
 import traceback
 
@@ -221,6 +222,10 @@ class CloudBatchTask(
         )
         if errors:
             time_stamp = datetime.datetime.now()
+
+            if "win" in sys.platform:
+                time_stamp = str(time_stamp).replace(":", "~")
+
             if self.name:
                 future_file = f"{self.name}-partial-batch-future-{time_stamp}.json"
                 error_file = f"{self.name}-partial-batch-errors-{time_stamp}.json"
