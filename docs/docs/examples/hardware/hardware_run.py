@@ -17,17 +17,17 @@ if __name__ == "__main__":
     print("Loading credentials!")
 
     # # Create a config parser
-    # config = configparser.ConfigParser()
+    config = configparser.ConfigParser()
 
     # # Read the AWS credentials file
-    # config.read(os.path.expanduser("~/.aws/credentials"))
+    config.read(os.path.expanduser("~/.aws/credentials"))
 
     # # Get the access keys
-    # aws_access_key_id = config.get('716981252513_QC_App_Algo_RD', 'aws_access_key_id')
-    # aws_secret_access_key = config.get('716981252513_QC_App_Algo_RD', 'aws_secret_access_key')
+    aws_access_key_id = config.get('716981252513_QC_App_Algo_RD', 'aws_access_key_id')
+    aws_secret_access_key = config.get('716981252513_QC_App_Algo_RD', 'aws_secret_access_key')
 
-    # os.environ['AWS_ACCESS_KEY_ID'] = aws_access_key_id
-    # os.environ['AWS_SECRET_ACCESS_KEY'] = aws_secret_access_key
+    os.environ['AWS_ACCESS_KEY_ID'] = aws_access_key_id
+    os.environ['AWS_SECRET_ACCESS_KEY'] = aws_secret_access_key
 
     print("Credentials successfully loaded!")
     
@@ -45,7 +45,7 @@ if __name__ == "__main__":
                                       post_process=False,
                                       penalty_factor=1E3)
     
-    ansatz = MIS_ansatz.MIS_ansatz(problem=problem, backend="classical_simulator",
+    ansatz = MIS_ansatz.MIS_ansatz(problem=problem, backend="quantum_braket",
                                     num_shots=30, blockade_radius=8, 
                                     unitdisk_radius=unitdisk_radius, 
                                     num_time_points=3,
