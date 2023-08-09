@@ -1,5 +1,8 @@
-from bloqade import start
-from bloqade.builder2.compile import PulseCompiler
+from bloqade import start, piecewise_linear
+
+# from bloqade.builder2.compile import PulseCompiler
+from bloqade.codegen.common.static_assign import StaticAssignWaveform
+import bloqade.ir as ir
 
 
 prog = (
@@ -37,6 +40,20 @@ prog = (
 )
 
 
-sequence = PulseCompiler(prog).compile()
+# sequence = PulseCompiler(prog).compile()
 
-print(repr(sequence))
+# print(repr(sequence))
+
+
+wf = piecewise_linear(["t", "T", "t"], ["a", "b", "a", "d"])
+
+
+new_wf = StaticAssignWaveform(dict(a=3.123091023)).emit(wf)
+
+print(repr(new_wf))
+
+
+scaled_locations = ir.ScaledLocations(
+    {ir.Location(1): ir.cast(1.0), ir.Location(0): ir.cast(2.0)}
+)
+print(scaled_locations)
