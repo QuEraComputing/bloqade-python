@@ -33,6 +33,11 @@ class RemoteBackend(Backend):
         raise NotImplementedError
 
 
+class FlattenedBackend(Builder):
+    def __call__(self, *args, nshots=1):
+        raise NotImplementedError
+
+
 # class QuEraAquilia(RemoteBackend):
 
 #     def submit(self):

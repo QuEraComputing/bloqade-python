@@ -1,19 +1,17 @@
 from .start import ProgramStart
 from .coupling import LevelCoupling
 from .field import Field, Rabi
-from .assign import Assignable
-from .parallelize import Parallelizable
-from .backend import BackendRoute
-from .flatten import Flattenable
+from .pragmas import Assignable, Parallelizable, Flattenable
+from .backend import SubmitBackendRoute
 
 
 class PulseRoute(ProgramStart, LevelCoupling, Field, Rabi):
     pass
 
 
-class PragmaRoute(Assignable, Parallelizable, BackendRoute):
+class PragmaRoute(Assignable, Parallelizable, Flattenable, SubmitBackendRoute):
     pass
 
 
-class WaveformRoute(PulseRoute, Flattenable, PragmaRoute):
+class WaveformRoute(PulseRoute, PragmaRoute):
     pass

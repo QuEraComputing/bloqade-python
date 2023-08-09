@@ -1,15 +1,10 @@
 from typing import List
 from .base import Builder
-from .parallelize import Parallelizable
-from .backend import BackendRoute
+from .pragmas import Parallelizable
+from .backend import FlattenedBackendRoute
 
 
-class Flattenable(Builder):
-    def flatten(self, orders: List[str]) -> "Flatten":
-        return Flatten(orders, self)
-
-
-class Flatten(Parallelizable, BackendRoute):
+class Flatten(Parallelizable, FlattenedBackendRoute):
     def __init__(self, orders: List[str], parent: Builder | None = None) -> None:
         super().__init__(parent)
         self._orders = orders
