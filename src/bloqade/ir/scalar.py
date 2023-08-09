@@ -75,8 +75,7 @@ class Scalar:
             case _:
                 raise Exception(f"Unknown scalar expression: {self} ({type(self)})")
 
-    def static_assign(self, **mapping) -> "Scalar":
-        """Replace variables with literals based on mapping"""
+    def _static_assign(self, **mapping) -> "Scalar":
         match self:
             case Literal():
                 return self
@@ -91,26 +90,36 @@ class Scalar:
                 else:
                     return self
             case Slice(expr, Interval(start, stop)):
+                if start is not None:
+                    start = start._static_assign(**mapping)
+                if stop is not None:
+                    stop = stop._static_assign(**mapping)
                 return Slice(
-                    expr.static_assign(**mapping),
-                    Interval(
-                        start.static_assign(**mapping), stop.static_assign(**mapping)
-                    ),
+                    expr._static_assign(**mapping),
+                    Interval(start, stop),
                 )
             case Negative(expr):
-                return -expr.static_assign(**mapping)
+                return Negative(expr._static_assign(**mapping))
             case Add(lhs, rhs):
-                return lhs.static_assign(**mapping) + rhs.static_assign(**mapping)
+                return Add(lhs._static_assign(**mapping), rhs._static_assign(**mapping))
             case Mul(lhs, rhs):
-                return lhs.static_assign(**mapping) * rhs.static_assign(**mapping)
+                return Mul(lhs._static_assign(**mapping), rhs._static_assign(**mapping))
             case Div(lhs, rhs):
-                return lhs.static_assign(**mapping) / rhs.static_assign(**mapping)
+                return Div(lhs._static_assign(**mapping), rhs._static_assign(**mapping))
             case Min(exprs):
-                return min(map(lambda expr: expr.static_assign(**mapping), exprs))
+                return Min(
+                    frozenset([expr._static_assign(**mapping) for expr in exprs])
+                )
             case Max(exprs):
-                return max(map(lambda expr: expr.static_assign(**mapping), exprs))
+                return Max(
+                    frozenset([expr._static_assign(**mapping) for expr in exprs])
+                )
             case _:
                 raise Exception(f"Unknown scalar expression: {self} ({type(self)})")
+
+    def static_assign(self, **mapping):
+        """Replace variables with literals based on mapping"""
+        return Scalar.canonicalize(self._static_assign(**mapping))
 
     def __add__(self, other: "Scalar") -> "Scalar":
         try:

@@ -31,7 +31,7 @@ class StaticAssignWaveform(WaveformVisitor):
         return waveform.Append(list(map(self.visit, ast.waveforms)))
 
     def visit_constant(self, ast: waveform.Constant) -> Any:
-        value = ast.value.statis_assign(**self.static_assignments)
+        value = ast.value.static_assign(**self.static_assignments)
         duration = ast.duration.static_assign(**self.static_assignments)
         return waveform.Constant(value, duration)
 
@@ -48,25 +48,43 @@ class StaticAssignWaveform(WaveformVisitor):
         return waveform.Poly(checkpoints, duration)
 
     def visit_python_fn(self, ast: waveform.PythonFn) -> Any:
-        pass
+        new_ast = waveform.PythonFn(ast.fn, ast.duration)
+        new_ast.parameters = [
+            param.static_assign(**self.static_assignments) for param in ast.parameters
+        ]
+        return new_ast
 
     def visit_negative(self, ast: waveform.Negative) -> Any:
-        return super().visit_negative(ast)
+        return waveform.Negative(self.visit(ast))
 
     def visit_linear(self, ast: waveform.Linear) -> Any:
-        return super().visit_linear(ast)
+        start = ast.start.static_assign(**self.static_assignments)
+        stop = ast.stop.static_assign(**self.static_assignments)
+        duration = ast.duration.static_assign(**self.static_assignments)
+        return waveform.Linear(start, stop, duration)
 
     def visit_record(self, ast: waveform.Record) -> Any:
-        return super().visit_record(ast)
+        return waveform.Record(self.visit(ast.waveform), ast.var)
 
     def visit_sample(self, ast: waveform.Sample) -> Any:
-        return super().visit_sample(ast)
+        dt = ast.dt.static_assign(**self.static_assignments)
+        return waveform.Sample(self.visit(ast.waveform), ast.interpolation, dt)
 
     def visit_scale(self, ast: waveform.Scale) -> Any:
-        return super().visit_scale(ast)
+        scale = ast.scalar.static_assign(**self.static_assignments)
+        return waveform.Scale(self.visit(ast.waveform), scale)
 
     def visit_slice(self, ast: waveform.Slice) -> Any:
-        return super().visit_slice(ast)
+        start = ast.interval.start
+        stop = ast.interval.stop
+
+        if start is not None:
+            start = start.static_assign(**self.static_assignments)
+
+        if stop is not None:
+            stop = stop.static_assign(**self.static_assignments)
+
+        return waveform.Slice(self.visit(ast.waveform), scalar.Interval(start, stop))
 
     def emit(self, ast: waveform.Waveform) -> waveform.Waveform:
         return self.visit(ast)
