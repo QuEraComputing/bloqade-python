@@ -84,8 +84,8 @@ class Scalar:
                     return Literal(Decimal(str(mapping[name])))
                 else:
                     return self
-            case DefaultVariable(var, _):
-                if var.name in mapping:
+            case DefaultVariable(name, _):
+                if name in mapping:
                     return Literal(Decimal(str(mapping[name])))
                 else:
                     return self
