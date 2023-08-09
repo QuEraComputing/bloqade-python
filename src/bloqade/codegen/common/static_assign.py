@@ -13,15 +13,15 @@ from typing import Any, Dict
 
 
 class StaticAssignWaveform(WaveformVisitor):
-    def __init__(self, static_assignments: Dict[str, numbers.Real]):
-        self.static_assignments = dict(static_assignments)
+    def __init__(self, mapping: Dict[str, numbers.Real]):
+        self.mapping = dict(mapping)
 
     def visit_add(self, ast: waveform.Add) -> Any:
         return waveform.Add(self.visit(ast.left), self.visit(ast.right))
 
     def visit_alligned(self, ast: waveform.AlignedWaveform) -> Any:
         if isinstance(ast.value, scalar.Scalar):
-            value = ast.value.static_assign(**self.static_assignments)
+            value = ast.value.static_assign(**self.mapping)
         else:
             value = ast.value
 
@@ -31,26 +31,25 @@ class StaticAssignWaveform(WaveformVisitor):
         return waveform.Append(list(map(self.visit, ast.waveforms)))
 
     def visit_constant(self, ast: waveform.Constant) -> Any:
-        value = ast.value.static_assign(**self.static_assignments)
-        duration = ast.duration.static_assign(**self.static_assignments)
+        value = ast.value.static_assign(**self.mapping)
+        duration = ast.duration.static_assign(**self.mapping)
         return waveform.Constant(value, duration)
 
     def visit_smooth(self, ast: waveform.Smooth) -> Any:
-        static_radius = ast.radius.static_assign(**self.static_assignments)
+        static_radius = ast.radius.static_assign(**self.mapping)
         return waveform.Smooth(static_radius, ast.kernel, self.visit(ast.waveform))
 
     def visit_poly(self, ast: waveform.Poly) -> Any:
         checkpoints = [
-            checkpoint.static_assign(**self.static_assignments)
-            for checkpoint in ast.checkpoints
+            checkpoint.static_assign(**self.mapping) for checkpoint in ast.checkpoints
         ]
-        duration = ast.duration.static_assign(**self.static_assignments)
+        duration = ast.duration.static_assign(**self.mapping)
         return waveform.Poly(checkpoints, duration)
 
     def visit_python_fn(self, ast: waveform.PythonFn) -> Any:
-        new_ast = waveform.PythonFn(ast.fn, ast.duration)
+        new_ast = waveform.PythonFn(ast.fn, ast.duration.static_assign(self.mapping))
         new_ast.parameters = [
-            param.static_assign(**self.static_assignments) for param in ast.parameters
+            param.static_assign(**self.mapping) for param in ast.parameters
         ]
         return new_ast
 
@@ -58,20 +57,20 @@ class StaticAssignWaveform(WaveformVisitor):
         return waveform.Negative(self.visit(ast))
 
     def visit_linear(self, ast: waveform.Linear) -> Any:
-        start = ast.start.static_assign(**self.static_assignments)
-        stop = ast.stop.static_assign(**self.static_assignments)
-        duration = ast.duration.static_assign(**self.static_assignments)
+        start = ast.start.static_assign(**self.mapping)
+        stop = ast.stop.static_assign(**self.mapping)
+        duration = ast.duration.static_assign(**self.mapping)
         return waveform.Linear(start, stop, duration)
 
     def visit_record(self, ast: waveform.Record) -> Any:
         return waveform.Record(self.visit(ast.waveform), ast.var)
 
     def visit_sample(self, ast: waveform.Sample) -> Any:
-        dt = ast.dt.static_assign(**self.static_assignments)
+        dt = ast.dt.static_assign(**self.mapping)
         return waveform.Sample(self.visit(ast.waveform), ast.interpolation, dt)
 
     def visit_scale(self, ast: waveform.Scale) -> Any:
-        scale = ast.scalar.static_assign(**self.static_assignments)
+        scale = ast.scalar.static_assign(**self.mapping)
         return waveform.Scale(self.visit(ast.waveform), scale)
 
     def visit_slice(self, ast: waveform.Slice) -> Any:
@@ -79,10 +78,10 @@ class StaticAssignWaveform(WaveformVisitor):
         stop = ast.interval.stop
 
         if start is not None:
-            start = start.static_assign(**self.static_assignments)
+            start = start.static_assign(**self.mapping)
 
         if stop is not None:
-            stop = stop.static_assign(**self.static_assignments)
+            stop = stop.static_assign(**self.mapping)
 
         return waveform.Slice(self.visit(ast.waveform), scalar.Interval(start, stop))
 
@@ -91,8 +90,8 @@ class StaticAssignWaveform(WaveformVisitor):
 
 
 class StaticAssignProgram(ProgramVisitor):
-    def __init__(self, static_assignments: Dict[str, numbers.Real]):
-        self.static_assignments = dict(static_assignments)
+    def __init__(self, mapping: Dict[str, numbers.Real]):
+        self.mapping = dict(mapping)
 
     def visit_sequence(self, ast: sequence.SequenceExpr) -> sequence.SequenceExpr:
         match ast:
@@ -137,7 +136,7 @@ class StaticAssignProgram(ProgramVisitor):
         pass
 
     def visit_waveform(self, ast: waveform.Waveform) -> waveform.Waveform:
-        return StaticAssignWaveform(self.static_assignments).emit(ast)
+        return StaticAssignWaveform(self.mapping).emit(ast)
 
     def emit(self, ast: program.Program) -> program.Program:
         return program.Program(self.visit(ast.register), self.visit(ast.sequence))
