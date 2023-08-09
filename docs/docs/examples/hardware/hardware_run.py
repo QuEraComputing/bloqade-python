@@ -32,7 +32,7 @@ if __name__ == "__main__":
     print("Credentials successfully loaded!")
     
     # Create the graph
-    pos, G = graph.kings_graph(4, 4, 0.7, seed = 4)
+    pos, G = graph.kings_graph(11, 11, 0.7, seed = 4)
     # Save the data to a pickle file
     with open('graph.pkl', 'wb') as f:
         pickle.dump((pos, G), f)
