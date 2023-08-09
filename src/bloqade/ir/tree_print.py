@@ -150,7 +150,7 @@ class Printer:
             parent_prefix = self.state.prefix
             self.state.prefix = child_prefix
 
-            if type(child) != str:
+            if not isinstance(child, str):
                 self.print(child, cycle)
             else:
                 self.p.text(child)
