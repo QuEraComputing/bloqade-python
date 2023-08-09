@@ -16,28 +16,16 @@ class StaticAssignWaveform(WaveformVisitor):
     def __init__(self, mapping: Dict[str, numbers.Real]):
         self.mapping = dict(mapping)
 
-    def visit_add(self, ast: waveform.Add) -> Any:
-        return waveform.Add(self.visit(ast.left), self.visit(ast.right))
-
-    def visit_alligned(self, ast: waveform.AlignedWaveform) -> Any:
-        if isinstance(ast.value, scalar.Scalar):
-            value = ast.value.static_assign(**self.mapping)
-        else:
-            value = ast.value
-
-        return waveform.AlignedWaveform(self.visit(ast.waveform), ast.alignment, value)
-
-    def visit_append(self, ast: waveform.Append) -> Any:
-        return waveform.Append(list(map(self.visit, ast.waveforms)))
-
     def visit_constant(self, ast: waveform.Constant) -> Any:
         value = ast.value.static_assign(**self.mapping)
         duration = ast.duration.static_assign(**self.mapping)
         return waveform.Constant(value, duration)
 
-    def visit_smooth(self, ast: waveform.Smooth) -> Any:
-        static_radius = ast.radius.static_assign(**self.mapping)
-        return waveform.Smooth(static_radius, ast.kernel, self.visit(ast.waveform))
+    def visit_linear(self, ast: waveform.Linear) -> Any:
+        start = ast.start.static_assign(**self.mapping)
+        stop = ast.stop.static_assign(**self.mapping)
+        duration = ast.duration.static_assign(**self.mapping)
+        return waveform.Linear(start, stop, duration)
 
     def visit_poly(self, ast: waveform.Poly) -> Any:
         checkpoints = [
@@ -53,14 +41,26 @@ class StaticAssignWaveform(WaveformVisitor):
         ]
         return new_ast
 
+    def visit_add(self, ast: waveform.Add) -> Any:
+        return waveform.Add(self.visit(ast.left), self.visit(ast.right))
+
+    def visit_alligned(self, ast: waveform.AlignedWaveform) -> Any:
+        if isinstance(ast.value, scalar.Scalar):
+            value = ast.value.static_assign(**self.mapping)
+        else:
+            value = ast.value
+
+        return waveform.AlignedWaveform(self.visit(ast.waveform), ast.alignment, value)
+
+    def visit_append(self, ast: waveform.Append) -> Any:
+        return waveform.Append(list(map(self.visit, ast.waveforms)))
+
+    def visit_smooth(self, ast: waveform.Smooth) -> Any:
+        static_radius = ast.radius.static_assign(**self.mapping)
+        return waveform.Smooth(static_radius, ast.kernel, self.visit(ast.waveform))
+
     def visit_negative(self, ast: waveform.Negative) -> Any:
         return waveform.Negative(self.visit(ast))
-
-    def visit_linear(self, ast: waveform.Linear) -> Any:
-        start = ast.start.static_assign(**self.mapping)
-        stop = ast.stop.static_assign(**self.mapping)
-        duration = ast.duration.static_assign(**self.mapping)
-        return waveform.Linear(start, stop, duration)
 
     def visit_record(self, ast: waveform.Record) -> Any:
         return waveform.Record(self.visit(ast.waveform), ast.var)
