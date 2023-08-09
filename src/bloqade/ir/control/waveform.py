@@ -7,7 +7,7 @@ from enum import Enum
 
 
 from ..tree_print import Printer
-from ..scalar import Scalar, Interval, Variable, DefaultVariable, cast, var
+from ..scalar import Scalar, Interval, Literal, Variable, DefaultVariable, cast, var
 from bokeh.plotting import figure
 import numpy as np
 import inspect
@@ -405,7 +405,7 @@ class PythonFn(Instruction):
     """
 
     fn: Callable  # [[float, ...], float] # f(t) -> value
-    parameters: List[Union[Variable, DefaultVariable]]  # come from ast inspect
+    parameters: List[Union[Variable, DefaultVariable, Literal]]  # come from ast inspect
     duration: InitVar[Scalar]
 
     def __init__(self, fn: Callable, duration: Any):
