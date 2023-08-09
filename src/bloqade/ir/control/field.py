@@ -33,7 +33,7 @@ class Location:
         return []
 
     def print_node(self):
-        return f"Location {self.value}"
+        return f"Location({str(self.value)})"
 
 
 @dataclass
@@ -87,7 +87,7 @@ class RunTimeVector(SpatialModulation):
 
 @dataclass(init=False)
 class ScaledLocations(SpatialModulation):
-    value: dict[Location, Scalar]
+    value: Dict[Location, Scalar]
 
     def __init__(self, pairs):
         value = dict()
@@ -106,11 +106,11 @@ class ScaledLocations(SpatialModulation):
         return hash(frozenset(self.value.items())) ^ hash(self.__class__)
 
     def __str__(self):
-        return f"ScaledLocations(value={str(self.value)})"
+        return f"ScaledLocations({str(self.value)})"
 
     def print_node(self):
         ## formatting location: scale pair:
-        tmp = {f"{key.value}": val for key, val in self.value.items()}
+        tmp = {f"{str(key)}": val for key, val in self.value.items()}
         return f"ScaledLocations({str(tmp)})"
 
     def children(self):
@@ -121,6 +121,16 @@ class ScaledLocations(SpatialModulation):
             annotated_children[loc.print_node()] = scalar
 
         return annotated_children
+
+    def __getitem__(self, key):
+        return self.value[key]
+
+    def __setitem__(self, key, value):
+        assert isinstance(key, Location)
+        self.value[key] = cast(value)
+
+    def __bool__(self):
+        return bool(self.value)
 
 
 @dataclass

@@ -303,25 +303,25 @@ class Emit(Builder):
 
             case coupling.Rydberg():
                 if build_state.amplitude.value:
-                    current_field = build_state.rydberg.value.get(
+                    current_field = build_state.rydberg.fields.get(
                         ir.rabi.amplitude, ir.Field({})
                     )
                     result_field = current_field.add(build_state.amplitude)
-                    build_state.rydberg.value[ir.rabi.amplitude] = result_field
+                    build_state.rydberg.fields[ir.rabi.amplitude] = result_field
 
                 if build_state.phase.value:
-                    current_field = build_state.rydberg.value.get(
+                    current_field = build_state.rydberg.fields.get(
                         ir.rabi.phase, ir.Field({})
                     )
                     result_field = current_field.add(build_state.phase)
-                    build_state.rydberg.value[ir.rabi.phase] = result_field
+                    build_state.rydberg.fields[ir.rabi.phase] = result_field
 
                 if build_state.detuning.value:
-                    current_field = build_state.rydberg.value.get(
+                    current_field = build_state.rydberg.fields.get(
                         ir.detuning, ir.Field({})
                     )
                     result_field = current_field.add(build_state.detuning)
-                    build_state.rydberg.value[ir.detuning] = result_field
+                    build_state.rydberg.fields[ir.detuning] = result_field
 
                 # reset fields
                 build_state.amplitude = ir.Field({})
@@ -331,34 +331,34 @@ class Emit(Builder):
 
             case coupling.Hyperfine():
                 if build_state.amplitude.value:
-                    current_field = build_state.hyperfine.value.get(
+                    current_field = build_state.hyperfine.fields.get(
                         ir.rabi.amplitude, ir.Field({})
                     )
                     result_field = current_field.add(build_state.amplitude)
-                    build_state.hyperfine.value[ir.rabi.amplitude] = result_field
+                    build_state.hyperfine.fields[ir.rabi.amplitude] = result_field
 
                 if build_state.phase.value:
-                    current_field = build_state.hyperfine.value.get(
+                    current_field = build_state.hyperfine.fields.get(
                         ir.rabi.phase, ir.Field({})
                     )
                     result_field = current_field.add(build_state.phase)
-                    build_state.hyperfine.value[ir.rabi.phase] = result_field
+                    build_state.hyperfine.fields[ir.rabi.phase] = result_field
 
                 if build_state.detuning.value:
-                    current_field = build_state.hyperfine.value.get(
+                    current_field = build_state.hyperfine.fields.get(
                         ir.detuning, ir.Field({})
                     )
                     result_field = current_field.add(build_state.detuning)
-                    build_state.hyperfine.value[ir.detuning] = result_field
+                    build_state.hyperfine.fields[ir.detuning] = result_field
 
                 Emit.__build_ast(builder.__parent__, build_state)
 
             case start.ProgramStart():
-                if build_state.rydberg.value:
-                    build_state.sequence.value[ir.rydberg] = build_state.rydberg
+                if build_state.rydberg.fields:
+                    build_state.sequence.pulses[ir.rydberg] = build_state.rydberg
 
-                if build_state.hyperfine.value:
-                    build_state.sequence.value[ir.hyperfine] = build_state.hyperfine
+                if build_state.hyperfine.fields:
+                    build_state.sequence.pulses[ir.hyperfine] = build_state.hyperfine
 
                 build_state.rydberg = ir.Pulse({})
                 build_state.hyperfine = ir.Pulse({})

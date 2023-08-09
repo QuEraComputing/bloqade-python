@@ -52,7 +52,7 @@ def test_lvlcouple_ryd():
 def test_seqence():
     # seq empty
     seq = Sequence()
-    assert seq.value == {}
+    assert seq.pulses == {}
 
     # seq non-lvlcoupling:
     with pytest.raises(TypeError):

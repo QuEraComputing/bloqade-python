@@ -141,21 +141,21 @@ class Pulse(PulseExpr):
     ```
     """
 
-    value: dict[FieldName, Field]
+    fields: dict[FieldName, Field]
 
     def __init__(self, field_pairs):
-        value = dict()
+        fields = dict()
         for k, v in field_pairs.items():
             if isinstance(v, Field):
-                value[k] = v
+                fields[k] = v
             elif isinstance(v, dict):
-                value[k] = Field(v)
+                fields[k] = Field(v)
             else:
                 raise TypeError(f"Expected Field or dict, got {type(v)}")
-        self.value = value
+        self.fields = fields
 
     def __str__(self):
-        return f"Pulse(value={str(self.value)})"
+        return f"Pulse(value={str(self.fields)})"
 
     def print_node(self):
         return "Pulse"
@@ -163,7 +163,7 @@ class Pulse(PulseExpr):
     def children(self):
         # annotated children
         annotated_children = {
-            field_name.print_node(): field for field_name, field in self.value.items()
+            field_name.print_node(): field for field_name, field in self.fields.items()
         }
         return annotated_children
 
