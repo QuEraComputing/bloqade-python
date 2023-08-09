@@ -51,6 +51,11 @@ class Scalar:
                     return Decimal(str(kwargs[name]))
                 else:
                     raise Exception(f"Unknown variable: {name}")
+            case DefaultVariable(var, default_value):
+                if var.name in kwargs:
+                    return Decimal(str(kwargs[name]))
+                else:
+                    return default_value
             case Negative(expr):
                 return -expr(**kwargs)
             case Add(lhs, rhs):
@@ -366,6 +371,35 @@ class Variable(Real):
 
     def _repr_pretty_(self, p, cycle):
         Printer(p).print(self, cycle)
+
+    @validator("name")
+    def name_validator(cls, v):
+        match v:
+            case "config_file":
+                raise ValueError(
+                    f'"{v}" is a reserved token, cannot create variable with that name'
+                )
+            case "clock_s":
+                raise ValueError(
+                    f'"{v}" is a reserved token, cannot create variable with that name'
+                )
+
+        return v
+
+
+@dataclass(frozen=True)
+class DefaultVariable(Real):
+    name: str
+    default_value: Decimal
+
+    def __str__(self):
+        return f"{self.name}"
+
+    def children(self):
+        return [self.default_value]
+
+    def print_node(self):
+        return f"DefaultVariable: {self.name}"
 
     @validator("name")
     def name_validator(cls, v):

@@ -20,11 +20,10 @@ prog = (
     .detuning.uniform.linear(0, 1, 1.5)
     .var("x")
     .linear("a", "B", "C")
-    # .assign().flatten(["a"]).quera.aquila()
     .assign()
-    .batch_assign()
-    .quera.aquila(10)
-    .run()
+    .flatten(["a"])
+    .quera.aquila()
+    # .assign().batch_assign().quera.aquila(10)
     # .constant(value=2.0, duration=1.0)
     # .uniform.constant(value=2.0, duration=1.0)
     # .assign()
@@ -38,8 +37,6 @@ prog = (
 )
 
 
-pc = PulseCompiler(prog)
-
-sequence = pc.compile()
+sequence = PulseCompiler(prog).compile()
 
 print(repr(sequence))

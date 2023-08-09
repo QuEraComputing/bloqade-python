@@ -7,7 +7,7 @@ from enum import Enum
 
 
 from ..tree_print import Printer
-from ..scalar import Scalar, Interval, Variable, cast
+from ..scalar import Scalar, Interval, Variable, DefaultVariable, cast, var
 from bokeh.plotting import figure
 import numpy as np
 import inspect
@@ -405,7 +405,7 @@ class PythonFn(Instruction):
     """
 
     fn: Callable  # [[float, ...], float] # f(t) -> value
-    parameters: List[str]  # come from ast inspect
+    parameters: List[Union[Variable, DefaultVariable]]  # come from ast inspect
     duration: InitVar[Scalar]
 
     def __init__(self, fn: Callable, duration: Any):
@@ -420,17 +420,23 @@ class PythonFn(Instruction):
         if signature.varkw is not None:
             raise ValueError("Cannot have varkw")
 
-        self.parameters = list(signature.args[1:]) + list(signature.kwonlyargs)
+        variables = list(map(var, signature.args[1:]))
+        default_variables = [
+            DefaultVariable(name, Decimal(str(value)))
+            for name, value in signature.kwonlydefaults.items()
+        ]
+        self.parameters = variables + default_variables
 
-    def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
-        if clock_s > self.duration(**kwargs):
+    def eval_decimal(self, clock_s: Decimal, **assignments) -> Decimal:
+        if clock_s > self.duration(**assignments):
             return Decimal(0)
 
+        kwargs = {param.name: float(param(**assignments)) for param in self.parameters}
         return Decimal(
             str(
                 self.fn(
                     float(clock_s),
-                    **{k: float(kwargs[k]) for k in self.parameters if k in kwargs},
+                    **kwargs,
                 )
             )
         )
