@@ -3,7 +3,10 @@ from ..base import Builder
 
 class Backend(Builder):
     def run(self):
-        raise NotImplementedError
+        raise NotImplementedError(
+            f"Execution backend not implemented for "
+            f"'{self.__service_name__}.{self.__device_name__}'."
+        )
 
 
 class LocalBackend(Backend):
@@ -30,12 +33,18 @@ class RemoteBackend(Backend):
     #     return
 
     def submit(self):
-        raise NotImplementedError
+        raise NotImplementedError(
+            "Submission backend not implemented for "
+            f"'{self.__service_name__}.{self.__device_name__}'."
+        )
 
 
 class FlattenedBackend(Builder):
     def __call__(self, *args, nshots=1):
-        raise NotImplementedError
+        raise NotImplementedError(
+            "Flattened backend not implemented for "
+            f"'{self.__service_name__}.{self.__device_name__}'."
+        )
 
 
 # class QuEraAquilia(RemoteBackend):

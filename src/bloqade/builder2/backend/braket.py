@@ -17,12 +17,18 @@ class BraketDevice(Builder):
 
 
 class Aquila(RemoteBackend):
+    __service_name__ = "braket"
+    __device_name__ = "aquila"
+
     def __init__(self, nshots: int, parent: Builder | None = None) -> None:
         super().__init__(parent)
         self._nshots = nshots
 
 
 class Simu(LocalBackend):
+    __service_name__ = "braket"
+    __device_name__ = "simu"
+
     def __init__(self, nshots: int, parent: Builder | None = None) -> None:
         super().__init__(parent)
         self._nshots = nshots

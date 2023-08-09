@@ -6,10 +6,10 @@ from .base import RemoteBackend, FlattenedBackend
 class SubmitQuEra(Builder):
     @property
     def quera(self):
-        return QuEraDevice(self)
+        return QuEraDeviceRoute(self)
 
 
-class QuEraDevice(Builder):
+class QuEraDeviceRoute(Builder):
     def aquila(
         self, nshots: int, config_file: Optional[str] = None, **api_configs
     ) -> "Aquila":
@@ -25,6 +25,8 @@ class QuEraDevice(Builder):
 
 
 class QuEraBackend(RemoteBackend):
+    __service_name__ = "quera"
+
     def __init__(
         self,
         nshots: int,
@@ -39,14 +41,17 @@ class QuEraBackend(RemoteBackend):
 
 
 class Aquila(QuEraBackend):
-    pass
+    __device_name__ = "aquila"
 
 
 class Gemini(QuEraBackend):
-    pass
+    __device_name__ = "gemini"
 
 
 class Mock(RemoteBackend):
+    __service_name__ = "quera"
+    __device_name__ = "mock"
+
     def __init__(
         self,
         nshots: int,
@@ -60,11 +65,11 @@ class Mock(RemoteBackend):
 
 class FlattenedQuEra(Builder):
     @property
-    def quera(self) -> "FlattenedQuEraDevice":
-        return FlattenedQuEraDevice(self)
+    def quera(self) -> "FlattenedQuEraDeviceRoute":
+        return FlattenedQuEraDeviceRoute(self)
 
 
-class FlattenedQuEraDevice(Builder):
+class FlattenedQuEraDeviceRoute(Builder):
     def aquila(
         self, config_file: Optional[str] = None, **api_configs
     ) -> "FlattenedAquila":
@@ -80,6 +85,8 @@ class FlattenedQuEraDevice(Builder):
 
 
 class FlattenedQuEraBackend(FlattenedBackend):
+    __service_name__ = "quera"
+
     def __init__(
         self,
         config_file: Optional[str] = None,
@@ -92,14 +99,16 @@ class FlattenedQuEraBackend(FlattenedBackend):
 
 
 class FlattenedAquila(FlattenedQuEraBackend):
-    pass
+    __device_name__ = "aquila"
 
 
 class FlattenedGemini(FlattenedQuEraBackend):
-    pass
+    __device_name__ = "gemini"
 
 
 class FlattenedMock(FlattenedBackend):
+    __device_name__ = "mock"
+
     def __init__(
         self,
         state_file: str = ".mock_state.txt",
