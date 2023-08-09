@@ -1,6 +1,7 @@
 from collections import OrderedDict
 import datetime
 import json
+import os
 import numpy as np
 import traceback
 
@@ -227,6 +228,7 @@ class CloudBatchTask(
                 future_file = f"partial-batch-future-{time_stamp}.json"
                 error_file = f"partial-batch-errors-{time_stamp}.json"
 
+            cwd = os.get_cwd()
             cloud_batch_result.save_json(future_file, indent=2)
 
             with open(error_file, "w") as f:
@@ -235,7 +237,8 @@ class CloudBatchTask(
             raise CloudBatchTask.SubmissionException(
                 "One or more error(s) occured during submission, please see "
                 "the following files for more information:\n"
-                f"  - {future_file}\n  - {error_file}\n"
+                f"  - {os.path.join(cwd, future_file)}\n"
+                f"  - {os.path.join(cwd, error_file)}\n"
             )
 
         else:
