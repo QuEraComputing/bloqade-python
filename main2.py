@@ -1,14 +1,24 @@
 from bloqade import start
+from bloqade.builder2.compile import PulseCompiler
+
 
 prog = (
     start.add_position((1, 1))
     # .hyperfine.rabi.amplitude.location(1)
     # .rydberg.detuning.location(0)
-    .rydberg.rabi.phase.location(0)
+    # .rydberg.rabi.phase
+    .rydberg.detuning.uniform.constant(value=2.0, duration=1.0)
+    .rydberg.rabi.amplitude.location(0)
+    .location(1)
+    .scale(2.0)
+    .constant(value=1.0, duration=2.0)
+    .hyperfine.rabi.amplitude.location(0)
     .location(1)
     .scale(2.0)
     .constant(value=2.0, duration=1.0)
-    .uniform.constant(value=2.0, duration=1.0)
+    .detuning.uniform.linear(0, 1, 1.5)
+    .var("x")
+    .linear("a", "B", "C")
     # .constant(value=2.0, duration=1.0)
     # .uniform.constant(value=2.0, duration=1.0)
     # .assign()
@@ -21,28 +31,9 @@ prog = (
     # .braket.aquila(nshots=100).submit()
 )
 
-# from bloqade.builder2.compile import BuilderStream, PulseCompiler
-# from bloqade.builder2.coupling import LevelCoupling
 
-# pc = PulseCompiler(prog)
+pc = PulseCompiler(prog)
 
-# print(pc.read_address())
-# print(pc.read_waveform())
-# print(pc.read_address())
-# print(pc.read_waveform())
+sequence = pc.compile()
 
-# print(stream.read())
-# print(stream.read())
-# print(stream.read())
-# print(stream.read())
-# print(stream.read())
-# print(stream.read())
-# print(stream.read())
-
-# print(prog)
-# print(prog.__parent__)
-# print(prog.__parent__.__parent__)
-# print(prog.__parent__.__parent__.__parent__)
-# print(prog.__parent__.__parent__.__parent__.__parent__)
-# print(prog.__parent__.__parent__.__parent__.__parent__.__parent__)
-# print(prog.__parent__.__parent__.__parent__.__parent__.__parent__.__parent__)
+print(repr(sequence))

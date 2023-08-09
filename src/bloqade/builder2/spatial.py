@@ -11,10 +11,12 @@ class SpatialModulation(WaveformAttachable):
 
 
 class Uniform(SpatialModulation):
-    pass
+    __match_args__ = ("__parent__",)
 
 
 class Location(SpatialModulation):
+    __match_args__ = ("_label", "__parent__")
+
     def __init__(self, label: int, parent: Optional[Builder] = None) -> None:
         assert isinstance(label, int) and label >= 0
         super().__init__(parent)
@@ -30,6 +32,8 @@ class Location(SpatialModulation):
 # NOTE: not a spatial modulation itself because it only modifies the
 #       location of the previous spatial modulation
 class Scale(WaveformAttachable):
+    __match_args__ = ("_value", "__parent__")
+
     def __init__(self, value: ScalarType, parent: Optional[Builder] = None) -> None:
         assert isinstance(value, (float, str, Scalar))
         super().__init__(parent)
@@ -37,6 +41,8 @@ class Scale(WaveformAttachable):
 
 
 class Var(SpatialModulation):
+    __match_args__ = ("_name", "__parent__")
+
     def __init__(self, name: str, parent: Optional[Builder] = None) -> None:
         assert isinstance(name, str)
         super().__init__(parent)

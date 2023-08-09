@@ -139,17 +139,84 @@ class PulseCompiler:
         )
         curr = wf_head
         waveform: ir.Waveform = wf_head.node.__bloqade_ir__()
-        while curr.next is not None:
-            if isinstance(curr.node, Slice):
-                waveform[slice(curr.node._start, curr.node._stop)]
-            elif isinstance(curr.node, Record):
-                waveform = waveform.record(curr.node._name)
-            else:
-                waveform = waveform.append(curr.node.__bloqade_ir__())
+        curr = curr.next
+        while curr is not None:
+            match curr.node:
+                case WaveformPrimitive() as wf:
+                    waveform = waveform.append(wf.__bloqade_ir__())
+                case Slice(start, stop, _):
+                    waveform = waveform[start:stop]
+                case Record(name, _):
+                    waveform = waveform.record(name)
+                case _:
+                    break
             curr = curr.next
-            if not isinstance(curr.node, WaveformPrimitive):
-                break
         return waveform
 
+    def read_spatial_modulation(self) -> ir.SpatialModulation:
+        curr = self.stream.eat([Location, Uniform, Var], [Scale])
+
+        spatial_modulation = None
+        scaled_locations = ir.ScaledLocations({})
+
+        while curr is not None:
+            match curr.node:
+                case Location(label, _):
+                    scaled_locations[ir.Location(label)] = 1.0
+                case Scale(value, Location(label, _)):
+                    scaled_locations[ir.Location(label)] = ir.cast(value)
+                case Uniform(_):
+                    spatial_modulation = ir.Uniform
+                case Var(name, _):
+                    spatial_modulation = ir.RunTimeVector(name)
+                case _:
+                    break
+            curr = curr.next
+
+        if scaled_locations:
+            return scaled_locations
+        else:
+            return spatial_modulation
+
+    def read_field(self) -> ir.Field:
+        new_field = ir.Field({})
+        while True:
+            sm = self.read_spatial_modulation()
+            wf = self.read_waveform()
+
+            new_field = new_field.add(ir.Field({sm: wf}))
+
+            match self.stream.curr:
+                case BuilderNode(node=SpatialModulation()):
+                    continue
+                case _:
+                    break
+
+        return new_field
+
     def compile(self) -> ir.Sequence:
-        pass
+        sequence = ir.Sequence()
+        while True:
+            node = self.stream.read_next(
+                [Detuning, RabiAmplitude, RabiPhase, Hyperfine, Rydberg]
+            )
+            match node:
+                case BuilderNode(node=Field() as field_node) as field_name:
+                    field_name = field_node.__bloqade_ir__()
+                case BuilderNode(
+                    node=LevelCoupling() as coupling_node
+                ) as coupling_name:
+                    coupling_name = coupling_node.__bloqade_ir__()
+                    continue
+                case None:
+                    break
+
+            pulse = sequence.pulses.get(coupling_name, ir.Pulse({}))
+            field = pulse.fields.get(field_name, ir.Field({}))
+
+            field = field.add(self.read_field())
+
+            pulse.fields[field_name] = field
+            sequence.pulses[coupling_name] = pulse
+
+        return sequence

@@ -1,4 +1,5 @@
 from typing import Optional, Union, List, Callable
+from numbers import Real
 from functools import reduce
 from .base import Builder
 from .route import WaveformRoute
@@ -9,7 +10,7 @@ ScalarType = Union[float, str, ir.Scalar]
 
 def assert_scalar(name, value) -> None:
     assert isinstance(
-        value, (float, str, ir.Scalar)
+        value, (Real, str, ir.Scalar)
     ), f"{name} must be a float, str, or Scalar"
 
 
@@ -86,7 +87,7 @@ class Linear(WaveformPrimitive):
         self._duration = ir.cast(duration)
 
     def __bloqade_ir__(self) -> ir.Linear:
-        return ir.Linear(start=self._start, stop=self._stop)
+        return ir.Linear(start=self._start, stop=self._stop, duration=self._duration)
 
 
 class Constant(WaveformPrimitive):
@@ -190,6 +191,8 @@ class Fn(WaveformPrimitive):
 
 # NOTE: no double-slice or double-record
 class Slice(Waveform, Recordable):
+    __match_args__ = ("_start", "_stop", "__parent__")
+
     def __init__(
         self,
         start: Optional[ScalarType] = None,
@@ -203,6 +206,8 @@ class Slice(Waveform, Recordable):
 
 
 class Record(Waveform, Slicible):  # record should not be sliceable
+    __mathc_args__ = ("_name", "__parent__")
+
     def __init__(
         self,
         name: str,

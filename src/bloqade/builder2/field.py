@@ -20,7 +20,10 @@ class Field(Builder):
 
 
 class Detuning(Field):
-    pass
+    def __bloqade_ir__(self):
+        from bloqade.ir.control.pulse import detuning
+
+        return detuning
 
 
 # this is just an eye candy, thus
@@ -38,8 +41,14 @@ class Rabi(Builder):
 
 
 class RabiAmplitude(Field):
-    pass
+    def __bloqade_ir__(self):
+        from bloqade.ir.control.pulse import rabi
+
+        return rabi.amplitude
 
 
 class RabiPhase(Field):
-    pass
+    def __bloqade_ir__(self):
+        from bloqade.ir.control.pulse import rabi
+
+        return rabi.phase

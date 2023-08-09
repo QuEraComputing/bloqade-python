@@ -16,8 +16,14 @@ class LevelCoupling(Builder):
 
 
 class Rydberg(LevelCoupling):
-    pass
+    def __bloqade_ir__(self):
+        from bloqade.ir.control.sequence import rydberg
+
+        return rydberg
 
 
 class Hyperfine(LevelCoupling):
-    pass
+    def __bloqade_ir__(self):
+        from bloqade.ir.control.sequence import hyperfine
+
+        return hyperfine
