@@ -5,10 +5,10 @@ from .base import LocalBackend, RemoteBackend, FlattenedBackend
 class SubmitBraket(Builder):
     @property
     def braket(self):
-        return BraketDevice(self)
+        return BraketDeviceRoute(self)
 
 
-class BraketDevice(Builder):
+class BraketDeviceRoute(Builder):
     def aquila(self, nshots: int) -> "Aquila":
         return Aquila(nshots, self)
 
