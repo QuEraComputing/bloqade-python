@@ -15,7 +15,7 @@ import scipy.integrate as integrate
 
 
 def instruction(duration: Any) -> "PythonFn":
-    # urn python function into a waveform instruction."""
+    # turn python function into a waveform instruction."""
 
     def waveform_wrapper(fn: Callable) -> "PythonFn":
         return PythonFn(fn, duration)
