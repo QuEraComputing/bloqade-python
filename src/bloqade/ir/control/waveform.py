@@ -200,7 +200,7 @@ class Waveform:
         raise NotImplementedError
 
 
-@dataclass
+@dataclass(repr=False)
 class AlignedWaveform(Waveform):
     """
 
@@ -240,7 +240,7 @@ class AlignedWaveform(Waveform):
         return annotated_children
 
 
-@dataclass
+@dataclass(repr=False)
 class Instruction(Waveform):
     """Instruction node in the IR.
 
@@ -261,7 +261,7 @@ class Instruction(Waveform):
     pass
 
 
-@dataclass(init=False)
+@dataclass(init=False, repr=False)
 class Linear(Instruction):
     """
     ```bnf
@@ -310,7 +310,7 @@ class Linear(Instruction):
         return {"start": self.start, "stop": self.stop, "duration": self.duration}
 
 
-@dataclass(init=False)
+@dataclass(init=False, repr=False)
 class Constant(Instruction):
     """
     ```bnf
@@ -349,7 +349,7 @@ class Constant(Instruction):
         return {"value": self.value, "duration": self.duration}
 
 
-@dataclass(init=False)
+@dataclass(init=False, repr=False)
 class Poly(Instruction):
     """
     ```bnf
@@ -408,7 +408,7 @@ class Poly(Instruction):
         return annotated_checkpoints
 
 
-@dataclass(init=False)
+@dataclass(init=False, repr=False)
 class PythonFn(Instruction):
     """
 
@@ -533,7 +533,7 @@ TricubeKernel = Tricube()
 CosineKernel = Cosine()
 
 
-@dataclass
+@dataclass(repr=False)
 class Smooth(Waveform):
     """
     ```bnf
@@ -576,7 +576,7 @@ class Smooth(Waveform):
         return f"Smooth(kernel={str(self.kernel)}, waveform={str(self.waveform)})"
 
 
-@dataclass
+@dataclass(repr=False)
 class Slice(Waveform):
     """
     ```
@@ -638,7 +638,7 @@ class Append(Waveform):
         return self.waveforms
 
 
-@dataclass
+@dataclass(repr=False)
 class Negative(Waveform):
     """
     ```bnf
@@ -661,7 +661,7 @@ class Negative(Waveform):
         return [self.waveform]
 
 
-@dataclass(init=False)
+@dataclass(init=False, repr=False)
 class Scale(Waveform):
     """
     ```bnf
@@ -689,7 +689,7 @@ class Scale(Waveform):
         return [self.scalar, self.waveform]
 
 
-@dataclass
+@dataclass(repr=False)
 class Add(Waveform):
     """
     ```bnf
@@ -713,7 +713,7 @@ class Add(Waveform):
         return [self.left, self.right]
 
 
-@dataclass
+@dataclass(repr=False)
 class Record(Waveform):
     """
     ```bnf
@@ -742,7 +742,7 @@ class Interpolation(str, Enum):
     Constant = "constant"
 
 
-@dataclass
+@dataclass(repr=False)
 class Sample(Waveform):
     """
     ```bnf
