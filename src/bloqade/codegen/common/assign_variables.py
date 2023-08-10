@@ -1,14 +1,15 @@
-from bloqade.ir.visitor.program import ProgramVisitor
-from bloqade.ir.visitor.waveform import WaveformVisitor
-from bloqade.ir.visitor.scalar import ScalarVisitor
-import bloqade.ir.program as program
-
 # import bloqade.ir.location as location
 import bloqade.ir.control.sequence as sequence
 import bloqade.ir.control.pulse as pulse
 import bloqade.ir.control.field as field
 import bloqade.ir.control.waveform as waveform
 import bloqade.ir.scalar as scalar
+import bloqade.ir.program as program
+
+from bloqade.ir.visitor.program import ProgramVisitor
+from bloqade.ir.visitor.waveform import WaveformVisitor
+from bloqade.ir.visitor.scalar import ScalarVisitor
+
 import numbers
 from typing import Any, Dict, Union
 from decimal import Decimal
