@@ -1,5 +1,5 @@
 from bloqade.builder.start import ProgramStart
-from bloqade.ir.scalar import Scalar, Variable, cast
+from bloqade.ir.scalar import Scalar, Literal, cast
 from pydantic.dataclasses import dataclass
 from typing import List, Generator, Tuple, Optional, Any, TYPE_CHECKING
 from bokeh.plotting import show
@@ -55,7 +55,7 @@ class AtomArrangement(ProgramStart):
         for _, location_info in enumerate(self.enumerate()):
             counter += 1
             (x, y) = location_info.position
-            if type(x) is Variable or type(y) is Variable:
+            if type(x) is not Literal or type(y) is not Literal:
                 return repr(
                     list(self.enumerate())
                 )  # default to standard print of internal contents

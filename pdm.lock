@@ -45,13 +45,10 @@ dependencies = [
     "setuptools",
     "sympy",
 ]
-<<<<<<< HEAD
-=======
 files = [
     {file = "amazon-braket-sdk-1.53.3.tar.gz", hash = "sha256:e8478ec70026aac116ee35ba67473171f90a617510781c4dc4d2f790e0bd5db1"},
     {file = "amazon_braket_sdk-1.53.3-py3-none-any.whl", hash = "sha256:6e3431ab284f064cd43a7611c074d2b296d0fe18f6ac597c2add9aad7b03400e"},
 ]
->>>>>>> main
 
 [[package]]
 name = "antlr4-python3-runtime"
