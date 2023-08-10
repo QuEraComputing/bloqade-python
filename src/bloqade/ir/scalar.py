@@ -16,7 +16,7 @@ __all__ = [
 ]
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, repr=False)
 class Scalar:
     """Base class for all scalar expressions.
 
@@ -74,52 +74,6 @@ class Scalar:
                 return ret
             case _:
                 raise Exception(f"Unknown scalar expression: {self} ({type(self)})")
-
-    def _static_assign(self, **mapping) -> "Scalar":
-        match self:
-            case Literal():
-                return self
-            case Variable(name):
-                if name in mapping:
-                    return Literal(Decimal(str(mapping[name])))
-                else:
-                    return self
-            case DefaultVariable(name, _):
-                if name in mapping:
-                    return Literal(Decimal(str(mapping[name])))
-                else:
-                    return self
-            case Slice(expr, Interval(start, stop)):
-                if start is not None:
-                    start = start._static_assign(**mapping)
-                if stop is not None:
-                    stop = stop._static_assign(**mapping)
-                return Slice(
-                    expr._static_assign(**mapping),
-                    Interval(start, stop),
-                )
-            case Negative(expr):
-                return Negative(expr._static_assign(**mapping))
-            case Add(lhs, rhs):
-                return Add(lhs._static_assign(**mapping), rhs._static_assign(**mapping))
-            case Mul(lhs, rhs):
-                return Mul(lhs._static_assign(**mapping), rhs._static_assign(**mapping))
-            case Div(lhs, rhs):
-                return Div(lhs._static_assign(**mapping), rhs._static_assign(**mapping))
-            case Min(exprs):
-                return Min(
-                    frozenset([expr._static_assign(**mapping) for expr in exprs])
-                )
-            case Max(exprs):
-                return Max(
-                    frozenset([expr._static_assign(**mapping) for expr in exprs])
-                )
-            case _:
-                raise Exception(f"Unknown scalar expression: {self} ({type(self)})")
-
-    def static_assign(self, **mapping):
-        """Replace variables with literals based on mapping"""
-        return Scalar.canonicalize(self._static_assign(**mapping))
 
     def __add__(self, other: "Scalar") -> "Scalar":
         try:
@@ -366,7 +320,7 @@ class Real(Scalar):
     pass
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, repr=False)
 class Literal(Real):
     value: Decimal
     """Scalar Literal, which stores a decimaal value instance.
@@ -392,7 +346,7 @@ class Literal(Real):
         Printer(p).print(self, cycle)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, repr=False)
 class Variable(Real):
     """Variable, which stores a variable name.
 
@@ -433,7 +387,7 @@ class Variable(Real):
         return v
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, repr=False)
 class DefaultVariable(Real):
     name: str
     default_value: Decimal
@@ -462,7 +416,7 @@ class DefaultVariable(Real):
         return v
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, repr=False)
 class Negative(Scalar):
     expr: Scalar
 
@@ -476,7 +430,7 @@ class Negative(Scalar):
         return "-"
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, repr=False)
 class Interval:
     start: Scalar | None
     stop: Scalar | None
@@ -535,7 +489,7 @@ class Interval:
                 return {"start": start, "stop": stop}
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, repr=False)
 class Slice(Scalar):
     expr: Scalar  # duration
     interval: Interval
@@ -550,7 +504,7 @@ class Slice(Scalar):
         return "Slice"
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, repr=False)
 class Add(Scalar):
     lhs: Scalar
     rhs: Scalar
@@ -565,7 +519,7 @@ class Add(Scalar):
         return "+"
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, repr=False)
 class Mul(Scalar):
     lhs: Scalar
     rhs: Scalar
@@ -580,7 +534,7 @@ class Mul(Scalar):
         return "*"
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, repr=False)
 class Div(Scalar):
     lhs: Scalar
     rhs: Scalar
@@ -595,7 +549,7 @@ class Div(Scalar):
         return "/"
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, repr=False)
 class Min(Scalar):
     exprs: frozenset[Scalar]
 
@@ -609,7 +563,7 @@ class Min(Scalar):
         return f"scalar.Min({str(self.exprs)})"
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, repr=False)
 class Max(Scalar):
     exprs: frozenset[Scalar]
 

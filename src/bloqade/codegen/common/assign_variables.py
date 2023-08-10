@@ -14,7 +14,7 @@ from typing import Any, Dict, Union
 from decimal import Decimal
 
 
-class StaticAssignScalar(ScalarVisitor):
+class AssignScalar(ScalarVisitor):
     def __init__(self, mapping: Dict[str, Decimal]):
         self.mapping = dict(mapping)
 
@@ -60,9 +60,9 @@ class StaticAssignScalar(ScalarVisitor):
         return scalar.Scalar.canonicalize(self.visit(ast))
 
 
-class StaticAssignWaveform(WaveformVisitor):
+class AssignWaveform(WaveformVisitor):
     def __init__(self, mapping: Dict[str, numbers.Real]):
-        self.scalar_visitor = StaticAssignScalar(mapping)
+        self.scalar_visitor = AssignScalar(mapping)
 
     def visit_constant(self, ast: waveform.Constant) -> Any:
         value = self.scalar_visitor.emit(ast.value)
@@ -133,9 +133,9 @@ class StaticAssignWaveform(WaveformVisitor):
         return self.visit(ast)
 
 
-class StaticAssignProgram(ProgramVisitor):
+class AssignProgram(ProgramVisitor):
     def __init__(self, mapping: Dict[str, numbers.Real]):
-        self.waveform_visitor = StaticAssignWaveform(mapping)
+        self.waveform_visitor = AssignWaveform(mapping)
 
     def visit_sequence(self, ast: sequence.SequenceExpr) -> sequence.SequenceExpr:
         match ast:
