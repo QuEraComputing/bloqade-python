@@ -113,6 +113,10 @@ class PulseCompiler:
     def read_address(self) -> Tuple[LevelCoupling, Field, BuilderNode]:
         spatial = self.stream.eat([Location, Uniform, Var], [Scale])
         curr = spatial
+
+        if curr is None:
+            return (None, None, None)
+
         while curr.next is not None:
             if not isinstance(curr.node, SpatialModulation):
                 break
@@ -132,13 +136,9 @@ class PulseCompiler:
         else:  # only spatial is updated
             return (None, None, spatial)
 
-    def read_waveform(self) -> "ir.Waveform":
-        wf_head = self.stream.eat(
-            types=[Linear, Constant, Poly, PiecewiseConstant, PiecewiseLinear, Fn],
-            skips=[Slice, Record],
-        )
-        curr = wf_head
-        waveform: ir.Waveform = wf_head.node.__bloqade_ir__()
+    def _read_waveform(self, head: BuilderNode) -> Tuple[ir.Waveform, BuilderNode]:
+        curr = head
+        waveform: ir.Waveform = head.node.__bloqade_ir__()
         curr = curr.next
         while curr is not None:
             match curr.node:
@@ -151,11 +151,12 @@ class PulseCompiler:
                 case _:
                     break
             curr = curr.next
-        return waveform
+        return waveform, curr
 
-    def read_spatial_modulation(self) -> ir.SpatialModulation:
-        curr = self.stream.eat([Location, Uniform, Var], [Scale])
-
+    def _read_spatial_modulation(
+        self, head: BuilderNode
+    ) -> Tuple[ir.SpatialModulation, BuilderNode]:
+        curr = head
         spatial_modulation = None
         scaled_locations = ir.ScaledLocations({})
 
@@ -174,9 +175,27 @@ class PulseCompiler:
             curr = curr.next
 
         if scaled_locations:
-            return scaled_locations
+            return scaled_locations, curr
         else:
-            return spatial_modulation
+            return spatial_modulation, curr
+
+    def _read_field(self, head) -> Tuple[ir.Field, BuilderNode]:
+        sm, curr = self._read_spatial_modulation(head)
+        wf, curr = self._read_waveform(curr)
+        return ir.Field({sm: wf}), curr
+
+    def read_spatial_modulation(self) -> ir.SpatialModulation:
+        head = self.stream.eat([Location, Uniform, Var], [Scale])
+        sm, *_ = self._read_spatial_modulation(head)
+        return sm
+
+    def read_waveform(self) -> ir.Waveform:
+        wf_head = self.stream.eat(
+            types=[Linear, Constant, Poly, PiecewiseConstant, PiecewiseLinear, Fn],
+            skips=[Slice, Record],
+        )
+        wf, *_ = self._read_waveform(wf_head)
+        return wf
 
     def read_field(self) -> ir.Field:
         new_field = ir.Field({})
@@ -220,3 +239,39 @@ class PulseCompiler:
             sequence.pulses[coupling_name] = pulse
 
         return sequence
+
+    def compile2(self) -> ir.Sequence:
+        coupling_builder, field_builder, spatial_head = self.read_address()
+
+        sequence = ir.Sequence({})
+        coupling_name = coupling_builder.__bloqade_ir__()
+        field_name = field_builder.__bloqade_ir__()
+
+        pulse = sequence.pulses.get(coupling_name, ir.Pulse({}))
+        field = pulse.fields.get(field_name, ir.Field({}))
+
+        new_field, _ = self._read_field(spatial_head)
+        field = field.add(new_field)
+
+        while True:
+            coupling_builder, field_builder, spatial_head = self.read_address()
+
+            if coupling_builder is not None:
+                # update old pulse
+                sequence.pulses[coupling_name] = pulse
+                # create/access new pulse
+                coupling_name = coupling_builder.__bloqade_ir__()
+                pulse = sequence.pulses.get(coupling_name, ir.Pulse({}))
+
+            if field_builder is not None:
+                # update old field
+                pulse.fields[field_name] = field
+                # create/access new field
+                field_name = field_builder.__bloqade_ir__()
+                field = pulse.fields.get(field_name, ir.Field({}))
+
+            if spatial_head is None:
+                break
+
+            new_field, _ = self._read_field(spatial_head)
+            field = field.add(new_field)
