@@ -1,5 +1,5 @@
-from bloqade.ir.visitor.program_visitor import ProgramVisitor
-from bloqade.ir.visitor.waveform_visitor import WaveformVisitor
+from bloqade.ir.visitor.program import ProgramVisitor
+from bloqade.ir.visitor.waveform import WaveformVisitor
 import bloqade.ir.program as program
 
 # import bloqade.ir.location as location

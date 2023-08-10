@@ -3,7 +3,7 @@ from bloqade.ir import rabi
 from bloqade.ir import cast
 from bloqade.ir import Interpolation
 from bloqade.ir import Interval
-from bloqade.ir.visitor.waveform_visitor import WaveformVisitor
+from bloqade.ir.visitor.waveform import WaveformVisitor
 from bloqade.ir.control.waveform import (
     GaussianKernel,
     Alignment,

@@ -2,7 +2,7 @@
 from bloqade import start
 from bloqade.ir import rydberg, detuning
 from bloqade.ir.location import Square
-from bloqade.ir.visitor.program_visitor import ProgramVisitor
+from bloqade.ir.visitor.program import ProgramVisitor
 from bloqade.ir.control.waveform import Linear
 from bloqade.ir.control.pulse import Detuning
 import pytest
