@@ -37,23 +37,27 @@ class AssignScalar(ScalarVisitor):
 
         return ast
 
-    def visit_negative(self, ast: scalar.Negative) -> scalar.Negative:
-        return scalar.Negative(self.visit(ast.expr))
+    def visit_negative(self, ast: scalar.Negative) -> scalar.Scalar:
+        return -self.visit(ast.expr)
 
-    def visit_add(self, ast: scalar.Add) -> scalar.Add:
-        return scalar.Add(self.visit(ast.lhs), self.visit(ast.rhs))
+    def visit_add(self, ast: scalar.Add) -> scalar.Scalar:
+        return self.visit(ast.lhs) + self.visit(ast.rhs)
 
-    def visit_div(self, ast: scalar.Div) -> scalar.Div:
-        return scalar.Div(self.visit(ast.lhs), self.visit(ast.rhs))
+    def visit_div(self, ast: scalar.Div) -> scalar.Scalar:
+        return self.visit(ast.lhs) / self.visit(ast.rhs)
 
-    def visit_mul(self, ast: scalar.Mul) -> scalar.Mul:
-        return scalar.Mul(self.visit(ast.lhs), self.visit(ast.rhs))
+    def visit_mul(self, ast: scalar.Mul) -> scalar.Scalar:
+        return self.visit(ast.lhs) * self.visit(ast.rhs)
 
-    def visit_min(self, ast: scalar.Min) -> scalar.Min:
-        return scalar.Min(frozenset(list(map(self.visit, ast.scalars))))
+    def visit_min(self, ast: scalar.Min) -> scalar.Scalar:
+        return scalar.Scalar.canonicalize(
+            scalar.Min(frozenset(list(map(self.visit, ast.scalars))))
+        )
 
-    def visit_max(self, ast: scalar.Min) -> scalar.Min:
-        return scalar.Max(frozenset(list(map(self.visit, ast.scalars))))
+    def visit_max(self, ast: scalar.Min) -> scalar.Scalar:
+        return scalar.Scalar.canonicalize(
+            scalar.Max(frozenset(list(map(self.visit, ast.scalars))))
+        )
 
     def emit(self, ast: scalar.Scalar) -> scalar.Scalar:
         # canonicalize at the end
