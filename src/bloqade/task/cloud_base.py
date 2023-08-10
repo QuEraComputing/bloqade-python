@@ -233,7 +233,7 @@ class CloudBatchTask(
                 future_file = f"partial-batch-future-{time_stamp}.json"
                 error_file = f"partial-batch-errors-{time_stamp}.json"
 
-            cwd = os.get_cwd()
+            cwd = os.getcwd()
             cloud_batch_result.save_json(future_file, indent=2)
 
             with open(error_file, "w") as f:
