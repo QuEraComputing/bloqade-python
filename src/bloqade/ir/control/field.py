@@ -85,7 +85,7 @@ class RunTimeVector(SpatialModulation):
         return [self.name]
 
 
-@dataclass(init=False)
+@dataclass(init=False, repr=False)
 class ScaledLocations(SpatialModulation):
     value: Dict[Location, Scalar]
 
@@ -106,12 +106,12 @@ class ScaledLocations(SpatialModulation):
         return hash(frozenset(self.value.items())) ^ hash(self.__class__)
 
     def __str__(self):
-        return f"ScaledLocations({str(self.value)})"
-
-    def print_node(self):
         ## formatting location: scale pair:
         tmp = {f"{str(key)}": val for key, val in self.value.items()}
         return f"ScaledLocations({str(tmp)})"
+
+    def print_node(self):
+        return self.__str__()
 
     def children(self):
         # can return list or dict
@@ -157,7 +157,10 @@ class Field:
         Printer(p).print(self, cycle)
 
     def __str__(self):
-        return f"Field({str(self.value)})"
+        ## formatting location: scale pair:
+        tmp = {str(key): str(val) for key, val in self.value.items()}
+
+        return f"Field({str(tmp)})"
 
     def add(self, other):
         if not isinstance(other, Field):
