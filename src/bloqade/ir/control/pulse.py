@@ -3,7 +3,8 @@ from .field import Field
 from typing import List
 from pydantic.dataclasses import dataclass
 from ..tree_print import Printer
-
+from bokeh.io import show
+from bloqade.visualization.ir_visualize import get_pulse_figure
 
 __all__ = [
     "Pulse",
@@ -121,6 +122,9 @@ class PulseExpr:
     def _repr_pretty_(self, p, cycle):
         Printer(p).print(self, cycle)
 
+    def _get_data(self, **assigments):
+        return NotImplementedError
+
     def figure(self, **assignments):
         return NotImplementedError
 
@@ -146,12 +150,6 @@ class Append(PulseExpr):
 
     def children(self):
         return self.value
-
-    def figure(self, **assignments):
-        return NotImplementedError
-
-    def show(self, **assignments):
-        return NotImplementedError
 
 
 @dataclass(init=False, repr=False)
@@ -188,6 +186,15 @@ class Pulse(PulseExpr):
         }
         return annotated_children
 
+    def _get_data(self, **assigments):
+        return None, self.value
+
+    def figure(self, **assignments):
+        return get_pulse_figure(self, **assignments)
+
+    def show(self, **assignments):
+        show(self.figure(**assignments))
+
 
 @dataclass
 class NamedPulse(PulseExpr):
@@ -202,6 +209,15 @@ class NamedPulse(PulseExpr):
 
     def children(self):
         return {"Name": self.name, "Pulse": self.pulse}
+
+    def _get_data(self, **assigments):
+        return self.name, self.pulse.value
+
+    def figure(self, **assignments):
+        return get_pulse_figure(self, **assignments)
+
+    def show(self, **assignments):
+        show(self.figure(**assignments))
 
 
 @dataclass

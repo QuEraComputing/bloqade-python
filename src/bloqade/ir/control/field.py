@@ -7,7 +7,7 @@ from bokeh.plotting import figure, show
 from bokeh.layouts import gridplot, row, layout
 from bokeh.models.widgets import PreText
 from bokeh.models import ColumnDataSource
-
+from bloqade.visualization.ir_visualize import get_field_figure
 
 __all__ = [
     "Field",
@@ -54,7 +54,7 @@ class SpatialModulation:
     def _repr_pretty_(self, p, cycle):
         Printer(p).print(self, cycle)
 
-    def _get_info(self, **assignment):
+    def _get_data(self, **assignment):
         return {}
 
     def figure(self, **assignment):
@@ -74,6 +74,9 @@ class UniformModulation(SpatialModulation):
 
     def children(self):
         return []
+
+    def _get_data(self, **assignment):
+        return ["uni"], ["all"]
 
     def figure(self, **assignment):
         p = figure(sizing_mode="stretch_both")
@@ -120,6 +123,9 @@ class RunTimeVector(SpatialModulation):
         )
         return p
 
+    def _get_data(self, **assignment):
+        return [self.name], ["vec"]
+
     def show(self, **assignment):
         show(self.figure(**assignment))
 
@@ -148,6 +154,16 @@ class ScaledLocations(SpatialModulation):
         ## formatting location: scale pair:
         tmp = {f"{key.value}": val for key, val in self.value.items()}
         return f"ScaledLocations({str(tmp)})"
+
+    def _get_data(self, **assignments):
+        names = []
+        scls = []
+
+        for loc, scl in self.value.items():
+            names.append("loc[%d]" % (loc.value))
+            scls.append(str(scl(**assignments)))
+
+        return names, scls
 
     def print_node(self):
         return self.__str__()
@@ -232,7 +248,7 @@ class Field:
         # return dict with annotations
         return {spatial_mod.print_node(): wf for spatial_mod, wf in self.value.items()}
 
-    def figure(self, **assignments):
+    def figure_old(self, **assignments):
         full_figs = []
         idx = 0
         for spmod, wf in self.value.items():
@@ -277,6 +293,9 @@ class Field:
         full.width_policy = "max"
 
         return full
+
+    def figure(self, **assignments):
+        return get_field_figure(self, "Field", None, **assignments)
 
     def show(self, **assignments):
         show(self.figure(**assignments))

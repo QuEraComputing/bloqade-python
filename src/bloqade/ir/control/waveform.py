@@ -105,6 +105,12 @@ class Waveform:
 
         return fig
 
+    def _get_data(self, npoints, **assignments):
+        duration = float(self.duration(**assignments))
+        times = np.linspace(0, duration, npoints + 1)
+        values = [self.__call__(time, **assignments) for time in times]
+        return times, values
+
     def show(self, **assignments):
         show(self.figure(**assignments))
 
