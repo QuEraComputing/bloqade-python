@@ -19,7 +19,7 @@ ordered_state_2D_prog = (
 ordered_state_2D_job = ordered_state_2D_prog.assign(delta_end=42.66, sweep_time=2.4)
 
 pbin = ordered_state_2D_job.quera(10)
-pbin.hardware_tasks[0].task_ir.show()
+# pbin.hardware_tasks[0].task_ir.show()
 
 
 # dict interface
