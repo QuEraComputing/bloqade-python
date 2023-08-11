@@ -1,6 +1,6 @@
 from typing import Union, Optional
 from .waveform import WaveformAttachable
-from .base import Builder
+from .base import Builder, DefaultBuilderEncoder
 from ..ir import Scalar
 
 ScalarType = Union[float, str, Scalar]
@@ -11,7 +11,7 @@ class SpatialModulation(WaveformAttachable):
 
 
 class Uniform(SpatialModulation):
-    __match_args__ = ("__parent__",)
+    pass
 
 
 class Location(SpatialModulation):
@@ -47,3 +47,18 @@ class Var(SpatialModulation):
         assert isinstance(name, str)
         super().__init__(parent)
         self._name = name
+
+
+class SpatialSerializer(DefaultBuilderEncoder):
+    def default(self, obj):
+        match obj:
+            case Uniform(parent):
+                return dict(type="Uniform", parent=self.default(parent))
+            case Var(name, parent):
+                return dict(type="Var", name=name, parent=self.default(parent))
+            case Scale(factor, parent):
+                return dict(type="Scale", factor=factor, parent=self.default(parent))
+            case Location(label, parent):
+                return dict(type="Location", label=label, parent=self.default(parent))
+            case _:
+                return super().default(obj)

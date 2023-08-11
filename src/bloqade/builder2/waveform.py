@@ -51,6 +51,8 @@ class Waveform(WaveformRoute, WaveformAttachable):
 
 # mixin for slice and record
 class Slicible:
+    __match_args__ = ("_start", "_stop", "__parent__")
+
     def slice(
         self,
         start: Optional[ScalarType] = None,
@@ -60,6 +62,8 @@ class Slicible:
 
 
 class Recordable:
+    __mathc_args__ = ("_name", "__parent__")
+
     def record(self, name: str) -> "Record":
         return Record(name, self)
 
@@ -70,6 +74,8 @@ class WaveformPrimitive(Waveform, Slicible, Recordable):
 
 
 class Linear(WaveformPrimitive):
+    __match_args__ = ("_start", "_stop", "_duration", "__parent__")
+
     def __init__(
         self,
         start: ScalarType,
@@ -91,6 +97,8 @@ class Linear(WaveformPrimitive):
 
 
 class Constant(WaveformPrimitive):
+    __match_args__ = ("_value", "_duration", "__parent__")
+
     def __init__(
         self, value: ScalarType, duration: ScalarType, parent: Optional[Builder] = None
     ) -> None:
@@ -106,6 +114,8 @@ class Constant(WaveformPrimitive):
 
 
 class Poly(WaveformPrimitive):
+    __match_args__ = ("_coeffs", "_duration", "__parent__")
+
     def __init__(
         self,
         coeffs: List[ScalarType],
@@ -124,6 +134,8 @@ class Poly(WaveformPrimitive):
 
 
 class Apply(WaveformPrimitive):
+    __match_args__ = ("_wf", "__parent__")
+
     def __init__(self, wf: ir.Waveform, parent: Optional[Builder] = None):
         super().__init__(parent)
         self._wf = wf
@@ -133,6 +145,8 @@ class Apply(WaveformPrimitive):
 
 
 class PiecewiseLinear(WaveformPrimitive):
+    __match_args__ = ("_durations", "_values", "__parent__")
+
     def __init__(
         self,
         durations: List[ScalarType],
@@ -154,6 +168,8 @@ class PiecewiseLinear(WaveformPrimitive):
 
 
 class PiecewiseConstant(WaveformPrimitive):
+    __match_args__ = ("_durations", "_values", "__parent__")
+
     def __init__(
         self,
         durations: List[ScalarType],
@@ -174,6 +190,8 @@ class PiecewiseConstant(WaveformPrimitive):
 
 
 class Fn(WaveformPrimitive):
+    __match_args__ = ("_fn", "_duration", "__parent__")
+
     def __init__(
         self,
         fn: Callable,

@@ -5,6 +5,8 @@ from .backend import SubmitBackendRoute
 
 
 class AssignBase(Builder):
+    __match_args__ = ("_assignments", "__parent__")
+
     def __init__(self, parent: Optional[Builder] = None, **assignments) -> None:
         super().__init__(parent)
         self._assignments = assignments
