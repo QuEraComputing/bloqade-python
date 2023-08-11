@@ -76,7 +76,7 @@ class StaticAssignWaveform(WaveformVisitor):
         return waveform.Linear(start, stop, duration)
 
     def visit_poly(self, ast: waveform.Poly) -> Any:
-        checkpoints = list(map(self.scalar_visitor.emit, ast.checkpoints))
+        checkpoints = list(map(self.scalar_visitor.emit, ast.coeffs))
         duration = self.scalar_visitor.emit(ast.duration)
         return waveform.Poly(checkpoints, duration)
 

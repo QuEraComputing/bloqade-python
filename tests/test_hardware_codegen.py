@@ -94,15 +94,13 @@ def test_integration_neg():
 def test_integration_poly_order_err():
     ## poly
     with pytest.raises(ValueError):
-        seq = Poly(checkpoints=[1, 2, 3], duration=0.5).append(
-            -Constant(0.5, duration=0.5)
-        )
+        seq = Poly(coeffs=[1, 2, 3], duration=0.5).append(-Constant(0.5, duration=0.5))
         (location.Square(1).rydberg.detuning.uniform.apply(seq).mock(10))
 
 
 def test_integration_poly_const():
     ## constant
-    seq = Poly(checkpoints=[1], duration=0.5).append(Constant(1, duration=0.5))
+    seq = Poly(coeffs=[1], duration=0.5).append(Constant(1, duration=0.5))
     job = location.Square(1).rydberg.detuning.uniform.apply(seq).mock(12)
 
     panel = json.loads(job.json())
@@ -122,7 +120,7 @@ def test_integration_poly_const():
 
 def test_integration_poly_linear():
     ## linear
-    seq = Poly(checkpoints=[1, 2], duration=0.5).append(Constant(2, duration=0.5))
+    seq = Poly(coeffs=[1, 2], duration=0.5).append(Constant(2, duration=0.5))
     job = location.Square(1).rydberg.detuning.uniform.apply(seq).mock(10)
 
     panel = json.loads(job.json())
@@ -277,7 +275,7 @@ def test_intergration_phase_nonconst_err():
             .mock(10)
         )
 
-    seq = Poly(checkpoints=[1, 2], duration=0.5)
+    seq = Poly(coeffs=[1, 2], duration=0.5)
     with pytest.raises(ValueError):
         location.Square(1).rydberg.rabi.phase.uniform.apply(seq).mock(10)
 
@@ -306,7 +304,7 @@ def test_integration_phase_linear():
 
 
 def test_integration_phase_polyconst():
-    seq = Poly(checkpoints=[1], duration=0.5)
+    seq = Poly(coeffs=[1], duration=0.5)
     job = location.Square(1).rydberg.rabi.phase.uniform.apply(seq).mock(10)
 
     panel = json.loads(job.json())
@@ -327,7 +325,7 @@ def test_integration_phase_polyconst():
 
 def test_integration_phase_slice():
     ##[Further investigate!]
-    seq = Poly(checkpoints=[1], duration=1.0)[0:0.5]
+    seq = Poly(coeffs=[1], duration=1.0)[0:0.5]
     job = location.Square(1).rydberg.rabi.phase.uniform.apply(seq).mock(10)
 
     panel = json.loads(job.json())
@@ -387,7 +385,7 @@ def test_integration_phase_neg():
 
 
 def test_integration_phase_slice_no_start():
-    seq = Poly(checkpoints=[1], duration=1.0)[:0.5]
+    seq = Poly(coeffs=[1], duration=1.0)[:0.5]
     job = location.Square(1).rydberg.rabi.phase.uniform.apply(seq).mock(10)
 
     panel = json.loads(job.json())
@@ -408,7 +406,7 @@ def test_integration_phase_slice_no_start():
 
 def test_integration_phase_slice_no_stop():
     ##[Further investigate!]
-    seq = Poly(checkpoints=[1], duration=0.5)[0:]
+    seq = Poly(coeffs=[1], duration=0.5)[0:]
     job = location.Square(1).rydberg.rabi.phase.uniform.apply(seq).mock(10)
 
     panel = json.loads(job.json())
@@ -429,7 +427,7 @@ def test_integration_phase_slice_no_stop():
 
 def test_integration_phase_slice_same_start_stop():
     ##[Further investigate!]
-    seq = Poly(checkpoints=[1], duration=0.5)[0:0.5]
+    seq = Poly(coeffs=[1], duration=0.5)[0:0.5]
     job = location.Square(1).rydberg.rabi.phase.uniform.apply(seq).mock(10)
 
     panel = json.loads(job.json())
@@ -450,19 +448,19 @@ def test_integration_phase_slice_same_start_stop():
 
 def test_integration_phase_slice_error_neg_start():
     with pytest.raises(ValueError):
-        seq = Poly(checkpoints=[1], duration=1.0)[-0.1:0.5]
+        seq = Poly(coeffs=[1], duration=1.0)[-0.1:0.5]
         location.Square(1).rydberg.rabi.phase.uniform.apply(seq).mock(10)
 
 
 def test_integration_phase_slice_error_exceed_stop():
     with pytest.raises(ValueError):
-        seq = Poly(checkpoints=[1], duration=1.0)[0:2.0]
+        seq = Poly(coeffs=[1], duration=1.0)[0:2.0]
         location.Square(1).rydberg.rabi.phase.uniform.apply(seq).mock(10)
 
 
 def test_integration_phase_slice_error_reverse():
     with pytest.raises(ValueError):
-        seq = Poly(checkpoints=[1], duration=1.0)[2.0:0.0]
+        seq = Poly(coeffs=[1], duration=1.0)[2.0:0.0]
         location.Square(1).rydberg.rabi.phase.uniform.apply(seq).mock(10)
 
 

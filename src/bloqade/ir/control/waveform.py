@@ -351,11 +351,11 @@ class Poly(Instruction):
 
     """
 
-    checkpoints: List[Scalar]
+    coeffs: List[Scalar]
     duration: InitVar[Scalar]
 
-    def __init__(self, checkpoints, duration):
-        self.checkpoints = map(cast, checkpoints)
+    def __init__(self, coeffs, duration):
+        self.coeffs = map(cast, coeffs)
         self._duration = cast(duration)
 
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
@@ -366,13 +366,13 @@ class Poly(Instruction):
             # call clock_s on each element of the scalars,
             # then apply the proper powers
             value = Decimal(0)
-            for exponent, scalar_expr in enumerate(self.checkpoints):
+            for exponent, scalar_expr in enumerate(self.coeffs):
                 value += scalar_expr(**kwargs) * clock_s**exponent
 
             return value
 
     def __str__(self):
-        return f"Poly({str(self.checkpoints)}, {str(self.duration)})"
+        return f"Poly({str(self.coeffs)}, {str(self.duration)})"
 
     def print_node(self) -> str:
         return "Poly"
@@ -382,7 +382,7 @@ class Poly(Instruction):
         # then annotations for the polynomial terms and exponents
 
         annotated_checkpoints = {}
-        for i, checkpoint in enumerate(self.checkpoints):
+        for i, checkpoint in enumerate(self.coeffs):
             if i == 0:
                 annotated_checkpoints["b"] = checkpoint
             elif i == 1:
