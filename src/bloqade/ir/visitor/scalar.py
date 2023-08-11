@@ -9,6 +9,8 @@ from bloqade.ir.scalar import (
     Div,
     Max,
     Min,
+    Slice,
+    Interval,
 )
 from typing import Any
 
@@ -59,6 +61,16 @@ class ScalarVisitor:
             f"visit_min not implemented for {self.__class__.__name__}"
         )
 
+    def visit_slice(self, ast: Slice) -> Any:
+        raise NotImplementedError(
+            f"visit_slice not implemented for {self.__class__.__name__}"
+        )
+
+    def visit_interval(self, ast: Interval) -> Any:
+        raise NotImplementedError(
+            f"visit_interval not implemented for {self.__class__.__name__}"
+        )
+
     def visit(self, ast: Scalar) -> Any:
         if isinstance(ast, Literal):
             return self.visit_literal(ast)
@@ -78,5 +90,9 @@ class ScalarVisitor:
             return self.visit_max(ast)
         elif isinstance(ast, Min):
             return self.visit_min(ast)
+        elif isinstance(ast, Slice):
+            return self.visit_slice(ast)
+        elif isinstance(ast, Interval):
+            return self.visit_interval(ast)
         else:
             raise NotImplementedError(f"unknown ast type {ast.__class__.__name__}")
