@@ -51,8 +51,6 @@ class Waveform(WaveformRoute, WaveformAttachable):
 
 # mixin for slice and record
 class Slicible:
-    __match_args__ = ("_start", "_stop", "__parent__")
-
     def slice(
         self,
         start: Optional[ScalarType] = None,
@@ -62,8 +60,6 @@ class Slicible:
 
 
 class Recordable:
-    __mathc_args__ = ("_name", "__parent__")
-
     def record(self, name: str) -> "Record":
         return Record(name, self)
 
@@ -203,6 +199,9 @@ class Fn(WaveformPrimitive):
         self._fn = fn
         self._duration = ir.cast(duration)
 
+    def sample(self, dt: ScalarType, interpolation: Union[ir.Interpolation, str, None]):
+        return Sample(dt, interpolation, self)
+
     def __bloqade_ir__(self):
         return ir.PythonFn(self._fn, self._duration)
 
@@ -224,7 +223,7 @@ class Slice(Waveform, Recordable):
 
 
 class Record(Waveform, Slicible):  # record should not be sliceable
-    __mathc_args__ = ("_name", "__parent__")
+    __match_args__ = ("_name", "__parent__")
 
     def __init__(
         self,
@@ -233,3 +232,17 @@ class Record(Waveform, Slicible):  # record should not be sliceable
     ) -> None:
         super().__init__(parent)
         self._name = ir.var(name)
+
+
+class Sample(Slicible, Recordable, WaveformRoute):
+    __match_args__ = ("_dt", "_interpolation", "__parent__")
+
+    def __init__(
+        self,
+        dt: ScalarType,
+        interpolation: Union[ir.Interpolation, str],
+        parent: Builder,
+    ) -> None:
+        super().__init__(parent)
+        assert_scalar("dt", dt)
+        self._interpolation = ir.Interpolation(interpolation)
