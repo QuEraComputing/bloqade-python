@@ -85,45 +85,86 @@ class WaveformEncoder(WaveformVisitor):
         self.scalar_encoder = ScalarEncoder()
 
     def visit_constant(self, ast: waveform.Constant) -> Dict[str, Any]:
-        return super().visit_constant(ast)
+        return {"constant": {"value": self.scalar_encoder.visit(ast.value)}}
 
     def visit_linear(self, ast: waveform.Linear) -> Dict[str, Any]:
-        return super().visit_linear(ast)
+        return {
+            "linear": {
+                "start": self.scalar_encoder.visit(ast.start),
+                "stop": self.scalar_encoder.visit(ast.stop),
+                "duration": self.scalar_encoder.visit(ast.duration),
+            }
+        }
 
     def visit_poly(self, ast: waveform.Poly) -> Dict[str, Any]:
-        return super().visit_poly(ast)
+        return {
+            "poly": {
+                "coeffs": list(map(self.scalar_encoder.visit, ast.coeffs)),
+                "duration": self.scalar_encoder.visit(ast.duration),
+            }
+        }
 
     def visit_python_fn(self, ast: waveform.PythonFn) -> Dict[str, Any]:
-        raise NotImplementedError(
-            "Bloqade does not support serialization of Python code."
-        )
+        raise ValueError("Bloqade does not support serialization of Python code.")
 
     def visit_negative(self, ast: waveform.Negative) -> Dict[str, Any]:
-        return super().visit_negative(ast)
+        return {"negative": {"waveform": self.visit(ast.waveform)}}
 
     def visit_add(self, ast: waveform.Add) -> Dict[str, Any]:
-        return super().visit_add(ast)
+        return {"add": {"left": self.visit(ast.left), "right": self.visit(ast.right)}}
 
     def visit_scale(self, ast: waveform.Scale) -> Dict[str, Any]:
-        return super().visit_scale(ast)
+        return {
+            "scale": {
+                "waveform": self.visit(ast.waveform),
+                "scalar": self.scalar_encoder.visit(ast.scalar),
+            }
+        }
 
     def visit_slice(self, ast: waveform.Slice) -> Dict[str, Any]:
-        return super().visit_slice(ast)
+        return {
+            "slice": {
+                "waveform": self.visit(ast.waveform),
+                "interval": self.scalar_encoder.visit(ast.interval),
+            }
+        }
 
     def visit_sample(self, ast: waveform.Sample) -> Dict[str, Any]:
-        return super().visit_sample(ast)
+        return {
+            "sample": {
+                "waveform": self.visit(ast.waveform),
+                "dt": self.scalar_encoder.visit(ast.dt),
+                "interpolation": ast.interpolation.value,
+            }
+        }
 
     def visit_append(self, ast: waveform.Append) -> Dict[str, Any]:
-        return super().visit_append(ast)
+        return {"append": {"waveforms": list(map(self.visit, ast.waveforms))}}
 
     def visit_record(self, ast: waveform.Record) -> Dict[str, Any]:
-        return super().visit_record(ast)
+        return {"record": {"var": ast.var, "waveform": self.visit(ast.waveform)}}
 
     def visit_smooth(self, ast: waveform.Smooth) -> Dict[str, Any]:
-        return super().visit_smooth(ast)
+        return {
+            "smooth": {
+                "waveform": self.visit(ast.waveform),
+                "radius": self.scalar_encoder.visit(ast.radius),
+                "kernel": ast.kernel.value,
+            }
+        }
 
     def visit_alligned(self, ast: waveform.AlignedWaveform) -> Dict[str, Any]:
-        return super().visit_alligned(ast)
+        if isinstance(ast.value, scalar.Scalar):
+            value = self.scalar_encoder.visit(ast.value)
+        else:
+            value = ast.value.value
+        return {
+            "alligned": {
+                "waveform": self.visit(ast.waveform),
+                "allignment": self.scalar_encoder.visit(ast.allignment),
+                "value": value,
+            }
+        }
 
     def default(self, obj: Any) -> Dict[str, Any]:
         if isinstance(obj, waveform.Waveform):
@@ -145,13 +186,13 @@ class BloqadeIREncoder(json.JSONEncoder):
         self.scalar_encoder = ScalarEncoder()
 
     def default(self, o: Any) -> Any:
-        if isinstance(o, program.Program):
-            return self.program_encoder.visit(o)
+        if isinstance(o, scalar.Scalar):
+            return self.scalar_encoder.visit(o)
 
         if isinstance(o, waveform.Waveform):
             return self.waveform_encoder.visit(o)
 
-        if isinstance(o, scalar.Scalar):
-            return self.scalar_encoder.visit(o)
+        if isinstance(o, program.Program):
+            return self.program_encoder.visit(o)
 
         return super().default(o)
