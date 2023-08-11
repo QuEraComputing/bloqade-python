@@ -5,7 +5,7 @@ import numpy as np
 import itertools
 from numpy.typing import NDArray
 from bloqade.ir.location.base import AtomArrangement, LocationInfo
-from bloqade.ir import Literal, Variable, Scalar, cast
+from bloqade.ir import Literal, Scalar, cast
 
 import plotext as pltxt
 
@@ -44,7 +44,7 @@ class BoundedBravais(AtomArrangement):
 
     def __repr__(self):
         has_lattice_spacing_var = False
-        if isinstance(self.lattice_spacing, Variable):
+        if type(self.lattice_spacing) is not Literal:
             # add string denoting this to printer
             repr_lattice_spacing = 1.0
             has_lattice_spacing_var = True
