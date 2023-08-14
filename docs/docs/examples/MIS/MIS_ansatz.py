@@ -32,6 +32,9 @@ class MIS_ansatz(Ansatz):
 
         self.ansatz_type = ansatz_type
 
+        self.t1 = 0.5
+        self.t2 = 3
+        self.t3 = 0.5
 
     def ansatz(self, params)->Emit:
 
@@ -61,12 +64,15 @@ class MIS_ansatz(Ansatz):
     def _ansatz_spline(self, params):
        
         x, y = params[:len(params)//2], params[len(params)//2:]
-        
+    
         mis_udg_program = (
         start.add_positions(self.positions.astype(float)).scale(self.blockade_radius/self.unitdisk_radius)
         .rydberg.rabi
-        .amplitude.uniform.piecewise_linear([0.5, 3, 0.5], [0., self.amp_max, self.amp_max, 0.])
-        .detuning.uniform.fn(fn=lambda time: self._piecewise_spline(time, x, y), duration=4).sample(0.05)
+        .amplitude.uniform.piecewise_linear([self.t1, self.t2, self.t3], [0., self.amp_max, self.amp_max, 0.])
+
+        # FIXME: Only middle values should be variational!
+        .detuning.uniform.fn(fn=lambda time: self._piecewise_spline(time, [self.t1] + list(x) + [self.t1+self.t2], [-20.] + list(y) + [20.]), duration=self.total_time).sample(0.05)
+        # .detuning.uniform.fn(fn=lambda time: self._piecewise_spline(time, x, y), duration=self.total_time).sample(0.05)
         )
         return mis_udg_program
     
@@ -85,32 +91,89 @@ class MIS_ansatz(Ansatz):
     def get_solutions(self, x):
         bitstrings = self.get_bitstrings(x)
         return self.post_process_MIS(bitstrings)
-    
-    def parameter_transform(self, duration_values, detuning_values):
 
+    def parameter_transform(self, parameter_values):
+    # def parameter_transform(self, duration_values, detuning_values):
+
+        in_range = True
         penalty = 0
 
-        if np.any(duration_values < 0):
-            print("Negative time encountered, pentalty term added!")
-            penalty += np.sum(np.abs(duration_values))
-            duration_values = np.abs(duration_values)
+        if self.ansatz_type == "linear":
 
-        if np.sum(duration_values) > self.total_time:
-            print(f"Time penalty enforced with time {np.sum(duration_values)}!")
-            penalty += np.abs(np.sum(duration_values) - self.total_time)
-            duration_values = ((duration_values / np.sum(duration_values)) * self.total_time) - 1E-5 # To make sure we are within bounds given numerical errors
+            duration_values = parameter_values[:self.num_time_points]
+            detuning_values = parameter_values[self.num_time_points:]
 
-        if np.any(detuning_values < self.det_min):
-            print("Detuning out of bounds, penalty term added!")
-            penalty += np.sum(np.abs(detuning_values[detuning_values < self.det_min] - self.det_min))**2
-            detuning_values[detuning_values < self.det_min] = self.det_min
+            if np.any(duration_values < 0):
+                print("Negative time encountered, pentalty term added!")
+                # penalty += np.sum(np.abs(duration_values))
+                # duration_values = np.abs(duration_values)
 
-        if np.any(detuning_values > self.det_max):
-            print("Detuning out of bounds, penalty term added!")
-            penalty += np.sum(np.abs(detuning_values[detuning_values > self.det_max] - self.det_max))**2
-            detuning_values[detuning_values > self.det_max] = self.det_max
+                penalty += 1
+                in_range = False
 
-        return list(duration_values), list(detuning_values), penalty
+            elif np.sum(duration_values) > self.total_time:
+                print(f"Time penalty enforced with time {np.sum(duration_values)}!")
+                # penalty += np.abs(np.sum(duration_values) - self.total_time)
+                # duration_values = ((duration_values / np.sum(duration_values)) * self.total_time) - 1E-5 # To make sure we are within bounds given numerical errors
+                
+                penalty += 1
+                in_range = False
+
+            elif np.any(detuning_values < self.det_min):
+                print("Detuning out of bounds, penalty term added!")
+                # penalty += np.sum(np.abs(detuning_values[detuning_values < self.det_min] - self.det_min))**2
+                # detuning_values[detuning_values < self.det_min] = self.det_min
+                penalty += 1
+                in_range = False
+
+            elif np.any(detuning_values > self.det_max):
+                print("Detuning out of bounds, penalty term added!")
+                # penalty += np.sum(np.abs(detuning_values[detuning_values > self.det_max] - self.det_max))**2
+                #detuning_values[detuning_values > self.det_max] = self.det_max
+                penalty += 1
+                in_range = False
+            
+            transformed_parameter_values = list(duration_values) + list(detuning_values)
+            return in_range, transformed_parameter_values, penalty
+    
+        elif self.ansatz_type == "spline":
+
+            x = parameter_values[:len(parameter_values)//2]
+            y = parameter_values[len(parameter_values)//2:]
+
+            if np.all(np.diff(x) > 0) == False:
+                penalty += 1
+                in_range = False
+
+            elif x[0] <= self.t1:
+                penalty += 1
+                in_range = False
+
+            elif x[0] >= self.t1 + self.t2:
+                penalty += 1
+                in_range = False
+
+            elif x[1] >= self.t1 + self.t2:
+                penalty +=1
+                in_range = False
+
+            elif self._is_monotonic_increasing(x, y) == False: 
+                penalty += 1
+                in_range = False
+
+            transformed_parameter_values = list(x) + list(y)
+
+            return in_range, transformed_parameter_values, penalty
+        
+
+    def _is_monotonic_increasing(self, x, y):
+        t_dense = np.linspace(self.t1, self.t1 + self.t2, 1000)
+        spline = CubicSpline([self.t1] + list(x) + [self.t1+self.t2], [-20.] + list(y) + [20.])
+        # Evaluate the derivative
+        derivative_values = spline(t_dense, 1)  # 1 indicates first derivative
+        # Check if all values are non-negative
+        is_monotonic = np.all(derivative_values >= 0)
+        return is_monotonic
 
         
     def post_process_MIS(self, bitstrings):

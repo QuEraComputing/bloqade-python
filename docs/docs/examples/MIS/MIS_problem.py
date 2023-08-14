@@ -12,12 +12,19 @@ class MIS_problem(Problem):
 
     def cost_function(self, ansatz, x):
         
-        duration_values = x[:ansatz.num_time_points]
-        detuning_values = x[ansatz.num_time_points:]
+        # TODO: this needs to be adjusted for qubit spline
+        # Separate parameter transformation?
+        # Can the parameter transformation be unified?
+        # TODO: when out of bounds, do not run cost on machine to reduce number of calls to quantum hardware
+        # could put a true/false flag for when out of bounds
 
-        duration_values, detuning_values, penalty = ansatz.parameter_transform(duration_values, detuning_values)
+        in_range, transformed_x, penalty = ansatz.parameter_transform(x)
 
-        bitstrings = ansatz.get_bitstrings(list(duration_values)+list(detuning_values))
+        # The QPU is only called if the parameters are within bounds
+        if in_range:
+            bitstrings = ansatz.get_bitstrings(transformed_x)
+        else:
+            bitstrings = self.current_bitstring
 
         if self.post_process == True:
             post_processed_bitstrings = ansatz.post_process_MIS(bitstrings)
