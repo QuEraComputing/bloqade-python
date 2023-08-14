@@ -1,7 +1,7 @@
-# import bloqade.ir.location as location
-# import bloqade.ir.control.sequence as sequence
-# import bloqade.ir.control.pulse as pulse
-# import bloqade.ir.control.field as field
+import bloqade.ir.location as location
+import bloqade.ir.control.sequence as sequence
+import bloqade.ir.control.pulse as pulse
+import bloqade.ir.control.field as field
 import bloqade.ir.program as program
 import bloqade.ir.control.waveform as waveform
 import bloqade.ir.scalar as scalar
@@ -16,7 +16,7 @@ import json
 from typing import Any, Dict
 
 
-class ScalarEncoder(ScalarVisitor):
+class ScalarSerilaizer(ScalarVisitor):
     def visit_literal(self, ast: scalar.Literal) -> Dict[str, Dict[str, str]]:
         return {"literal": {"value": str(ast.value)}}
 
@@ -74,15 +74,16 @@ class ScalarEncoder(ScalarVisitor):
                 raise ValueError(f"Invalid Interval({ast.start}, {ast.stop})")
 
     def default(self, obj: Any) -> Dict[str, Any]:
+        print(obj, type(obj))
         if isinstance(obj, scalar.Scalar):
             return self.visit(obj)
 
         return super().default(obj)
 
 
-class WaveformEncoder(WaveformVisitor):
+class WaveformSerializer(WaveformVisitor):
     def __init__(self):
-        self.scalar_encoder = ScalarEncoder()
+        self.scalar_encoder = ScalarSerilaizer()
 
     def visit_constant(self, ast: waveform.Constant) -> Dict[str, Any]:
         return {"constant": {"value": self.scalar_encoder.visit(ast.value)}}
@@ -173,26 +174,182 @@ class WaveformEncoder(WaveformVisitor):
         return super().default(obj)
 
 
-class ProgramEncoder(ProgramVisitor):
+class ProgramSerializer(ProgramVisitor):
     def __init__(self) -> None:
-        self.waveform_encoder = WaveformEncoder()
+        self.waveform_serializer = WaveformSerializer()
+        self.scalar_serializer = ScalarSerilaizer()
+
+    def visit_register(self, ast: location.AtomArrangement) -> Any:
+        match ast:
+            case location.ListOfLocations(locations):
+                locations = [
+                    {
+                        "location_info": {
+                            "position": list(
+                                map(self.scalar_serializer.visit, info.position)
+                            ),
+                            "filling": info.filling.value,
+                        }
+                    }
+                    for info in locations
+                ]
+                return {"list_of_locations": locations}
+            case location.Chain(shape, lattice_spacing):
+                return {
+                    "chain": {
+                        "lattice_spacing": self.visit(lattice_spacing),
+                        "shape": shape,
+                    }
+                }
+            case location.Square(shape, lattice_spacing):
+                return {
+                    "square": {
+                        "lattice_spacing": self.visit(lattice_spacing),
+                        "shape": shape,
+                    }
+                }
+            case location.Honeycomb(shape, lattice_spacing):
+                return {
+                    "honeycomb": {
+                        "lattice_spacing": self.visit(lattice_spacing),
+                        "shape": shape,
+                    }
+                }
+            case location.Triangular(shape, lattice_spacing):
+                return {
+                    "triangular": {
+                        "lattice_spacing": self.visit(lattice_spacing),
+                        "shape": shape,
+                    }
+                }
+            case location.Lieb(shape, lattice_spacing):
+                return {
+                    "lieb": {
+                        "lattice_spacing": self.visit(lattice_spacing),
+                        "shape": shape,
+                    }
+                }
+            case location.Kagome(shape, lattice_spacing):
+                return {
+                    "kagome": {
+                        "lattice_spacing": self.visit(lattice_spacing),
+                        "shape": shape,
+                    }
+                }
+            case location.Rectangular(shape, lattice_spacing_x, lattice_spacing_y):
+                return {
+                    "rectangular": {
+                        "lattice_spacing_x": self.visit(lattice_spacing_x),
+                        "lattice_spacing_y": self.visit(lattice_spacing_y),
+                        "shape": shape,
+                    }
+                }
+
+    def visit_parallel_register(self, ast: location.ParallelRegister) -> Any:
+        register_locations = [
+            list(map(self.visit, loc)) for loc in ast.register_locations
+        ]
+        shift_vectors = [list(map(self.visit, loc)) for loc in ast.register_locations]
+        return {
+            "parallel_register": {
+                "register_locations": register_locations,
+                "register_filling": ast.register_filling,
+                "shift_vectors": shift_vectors,
+            }
+        }
+
+    def visit_sequence(self, ast: sequence.SequenceExpr) -> Any:
+        match ast:
+            case sequence.Sequence(pulses):
+                return {
+                    "sequence": {
+                        "pulses": {k.value: self.visit(v) for k, v in pulses.items()}
+                    }
+                }
+            case sequence.Append(sequences):
+                return {"append": {"sequences": [self.visit(s) for s in sequences]}}
+            case sequence.NamedSequence(sub_sequence, name):
+                return {
+                    "named_sequence": {
+                        "name": name,
+                        "sub_sequence": self.visit(sub_sequence),
+                    }
+                }
+            case sequence.Slice(sub_sequence, interval):
+                return {
+                    "slice": {
+                        "sequence": self.visit(sub_sequence),
+                        "interval": self.scalar_serializer.visit(interval),
+                    }
+                }
+
+    def visit_pulse(self, ast: pulse.PulseExpr) -> Any:
+        match ast:
+            case pulse.Pulse(fields):
+                return {
+                    "pulse": {
+                        "fields": {k.value: self.visit(v) for k, v in fields.items()}
+                    }
+                }
+            case pulse.Append(pulses):
+                return {"append": {"pulses": [self.visit(p) for p in pulses]}}
+            case pulse.NamedPulse(name, sub_pulse):
+                return {
+                    "named_pulse": {"name": name, "sub_pulse": self.visit(sub_pulse)}
+                }
+            case pulse.Slice(sub_pulse, interval):
+                return {
+                    "slice": {
+                        "pulse": self.visit(sub_pulse),
+                        "interval": self.scalar_serializer.visit(interval),
+                    }
+                }
+
+    def visit_spatial_modulation(self, ast: field.SpatialModulation) -> Any:
+        match ast:
+            case field.ScaledLocations(value):
+                return {
+                    "scaled_locations": [
+                        (self.visit(k), self.visit(v)) for k, v in value.items()
+                    ]
+                }
+            case field.Uniform:
+                return "uniform"
+            case field.RunTimeVector(name):
+                return {"run_time_vector": {"name": name}}
+
+    def visit_field(self, ast: field.Field) -> Any:
+        return {
+            "field": {
+                "value": [(self.visit(k), self.visit(v)) for k, v in ast.value.items()]
+            }
+        }
+
+    def visit_waveform(self, ast: waveform.Waveform) -> Any:
+        return self.waveform_serializer.visit(ast)
 
 
-class BloqadeIREncoder(json.JSONEncoder):
+class BloqadeIRSerializer(json.JSONEncoder):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.program_encoder = ProgramEncoder()
-        self.waveform_encoder = WaveformEncoder()
-        self.scalar_encoder = ScalarEncoder()
+        self.program_serializer = ProgramSerializer()
+        self.waveform_serializer = WaveformSerializer()
+        self.scalar_serializer = ScalarSerilaizer()
+        self.bloqade_seq_types = (
+            location.AtomArrangement,
+            location.ParallelRegister,
+            program.Program,
+            sequence.SequenceExpr,
+            pulse.PulseExpr,
+            field.FieldExpr,
+        )
 
     def default(self, o: Any) -> Any:
-        if isinstance(o, scalar.Scalar):
-            return self.scalar_encoder.visit(o)
-
-        if isinstance(o, waveform.Waveform):
-            return self.waveform_encoder.visit(o)
-
-        if isinstance(o, program.Program):
-            return self.program_encoder.visit(o)
-
-        return super().default(o)
+        if isinstance(o, self.bloqade_seq_types):
+            return self.program_serializer.visit(o)
+        elif isinstance(o, waveform.Waveform):
+            return self.waveform_serializer.visit(o)
+        elif isinstance(o, scalar.Scalar):
+            return self.scalar_serializer.visit(o)
+        else:
+            return super().default(o)

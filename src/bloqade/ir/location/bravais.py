@@ -16,6 +16,7 @@ class Cell:
 
 @dataclass
 class BoundedBravais(AtomArrangement):
+    __match_args__ = ("shape", "lattice_spacing")
     """Base classe for Bravais lattices
     [`AtomArrangement`][bloqade.ir.location.base.AtomArrangement].
 
@@ -39,6 +40,12 @@ class BoundedBravais(AtomArrangement):
         self.lattice_spacing = cast(lattice_spacing)
         self.__n_atoms = None
         self.__n_dims = None
+
+    def cell_vectors(self) -> Tuple[Tuple[Scalar, ...], ...]:
+        raise NotImplementedError
+
+    def cell_atoms(self) -> Tuple[Tuple[Scalar, ...], ...]:
+        raise NotImplementedError
 
     @property
     def n_atoms(self):
@@ -197,6 +204,7 @@ class Rectangular(BoundedBravais):
 
     """
 
+    __match_args__ = ("shape", "lattice_spacing_x", "lattice_spacing_y")
     ratio: Scalar = 1.0
     lattice_spacing_x: InitVar[Any]
     lattice_spacing_y: InitVar[Any]

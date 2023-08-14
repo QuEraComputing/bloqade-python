@@ -1,4 +1,6 @@
-from bloqade.codegen.common.json import BloqadeIREncoder
+from ...codegen.common.json import BloqadeIRSerializer
+from ..start import ProgramStart
+from ..sequence_builder import SequenceBuilder
 from ..base import Builder
 from ..spatial import Location, Scale, Var
 from ..waveform import (
@@ -15,7 +17,7 @@ from ..waveform import (
 )
 
 
-class BuilderEncoder(BloqadeIREncoder):
+class BuilderSerializer(BloqadeIRSerializer):
     def default(self, obj):
         match obj:
             case Constant(value, duration, parent):
@@ -107,22 +109,32 @@ class BuilderEncoder(BloqadeIREncoder):
             case Location(label, parent):
                 return {
                     "Location": {
-                        "label": self.default(label),
+                        "label": label,
                         "parent": self.default(parent),
                     }
                 }
             case Scale(value, parent):
                 return {
                     "Scale": {
-                        "value": self.default(value),
+                        "value": value,
                         "parent": self.default(parent),
                     }
                 }
             case Var(name, parent):
+                return {"Var": {"name": name, "parent": self.default(parent)}}
+            case ProgramStart():
+                return super().default(obj)
+            case SequenceBuilder(sequence, parent):
                 return {
-                    "Var": {"name": self.default(name), "parent": self.default(parent)}
+                    "sequence_builder": {
+                        "sequence": self.default(sequence),
+                        "parent": self.default(parent),
+                    }
                 }
             case Builder(parent):  # default serialization implementation
-                return {"Builder": {"parent": self.default(parent)}}
+                if parent is None:
+                    return {obj.__class__.__name__: {}}
+                else:
+                    return {obj.__class__.__name__: {"parent": self.default(parent)}}
             case _:
                 return super().default(obj)

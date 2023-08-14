@@ -1,3 +1,6 @@
+from ..tree_print import Printer
+from ..scalar import Scalar, Interval, Literal, Variable, DefaultVariable, cast, var
+
 from bisect import bisect_left
 from dataclasses import InitVar
 from decimal import Decimal
@@ -5,9 +8,6 @@ from pydantic.dataclasses import dataclass
 from typing import Any, Tuple, Union, List, Callable
 from enum import Enum
 
-
-from ..tree_print import Printer
-from ..scalar import Scalar, Interval, Literal, Variable, DefaultVariable, cast, var
 from bokeh.plotting import figure
 import numpy as np
 import inspect

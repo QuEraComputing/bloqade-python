@@ -1,8 +1,13 @@
-from pydantic.dataclasses import dataclass
 from ..scalar import Scalar, cast
-from .waveform import Waveform
-from typing import Dict
 from ..tree_print import Printer
+from .waveform import Waveform
+from pydantic.dataclasses import dataclass
+from typing import Dict
+
+
+class FieldExpr:
+    pass
+
 
 __all__ = [
     "Field",
@@ -15,7 +20,7 @@ __all__ = [
 
 
 @dataclass(frozen=True)
-class Location:
+class Location(FieldExpr):
     value: int
 
     def __repr__(self) -> str:
@@ -37,7 +42,7 @@ class Location:
 
 
 @dataclass
-class SpatialModulation:
+class SpatialModulation(FieldExpr):
     def __hash__(self) -> int:
         raise NotImplementedError
 
@@ -134,7 +139,7 @@ class ScaledLocations(SpatialModulation):
 
 
 @dataclass
-class Field:
+class Field(FieldExpr):
     """Field node in the IR. Which contains collection(s) of
     [`Waveform`][bloqade.ir.control.waveform.Waveform]
 
