@@ -1,4 +1,9 @@
 from .base import Builder
+from bloqade.ir.control.sequence import Sequence
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .sequence_builder import SequenceBuilder
 
 
 class ProgramStart(Builder):
@@ -13,3 +18,8 @@ class ProgramStart(Builder):
         from .coupling import Hyperfine
 
         return Hyperfine(self)
+
+    def apply(self, sequence: Sequence) -> "SequenceBuilder":
+        from .sequence_builder import SequenceBuilder
+
+        return SequenceBuilder(self, sequence)
