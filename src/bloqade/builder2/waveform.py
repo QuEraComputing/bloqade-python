@@ -134,6 +134,7 @@ class Apply(WaveformPrimitive):
 
     def __init__(self, wf: ir.Waveform, parent: Optional[Builder] = None):
         super().__init__(parent)
+        assert isinstance(wf, ir.Waveform), "input must be of type Waveform."
         self._wf = wf
 
     def __bloqade_ir__(self):
