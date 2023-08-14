@@ -283,10 +283,10 @@ class Batch:
 # organize and analysis data:
 @dataclass
 class Report:
-    _dataframe: pd.DataFrame
+    dataframe: pd.DataFrame
 
     def __init__(self, data) -> None:
-        self._dataframe = data  # df
+        self.dataframe = data  # df
         self._bitstrings = None  # bitstring cache
         self._counts = None  # counts cache
 
