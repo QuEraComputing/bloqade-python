@@ -1,8 +1,13 @@
 from collections import OrderedDict
 from itertools import product
 import json
-from typing import List, TextIO, Type, TypeVar, Union
-
+from typing import List, TextIO, Type, TypeVar, Union, Dict, Optional
+from numbers import Number
+from bloqade.task.base import Geometry
+import traceback
+import datetime
+import sys
+import os
 from pydantic import BaseModel
 from bloqade.submission.ir.task_results import (
     QuEraShotStatusCode,
@@ -12,7 +17,8 @@ from bloqade.submission.ir.task_results import (
 from numpy.typing import NDArray
 import pandas as pd
 import numpy as np
-
+from dataclasses import dataclass
+from bloqade.submission.base import ValidationError
 
 JSONSubType = TypeVar("JSONSubType", bound="JSONInterface")
 
@@ -45,13 +51,39 @@ class JSONInterface(BaseModel):
         return cls(**params)
 
 
+@dataclass
 class Task:
+    task_id: str
+
+    def _geometry(self) -> Geometry:
+        raise NotImplementedError(
+            f"{self.__class__.__name__}._geometry() not implemented"
+        )
+
+    # do we need>?
+    def _metadata(self) -> Dict[str, Number]:
+        return {}
+
+    # do we need>?
+    @property
+    def metadata(self) -> Dict[str, Number]:
+        return self._metadata()
+
+    @property
+    def geometry(self) -> Geometry:
+        return self._geometry()
+
+    def validate(self) -> None:
+        raise NotImplementedError
+
     def result(self) -> QuEraTaskResults:
         # this methods hangs until the task is completed
         raise NotImplementedError
 
+    def fetch(self) -> None:
+        raise NotImplementedError
+
     def status(self) -> QuEraTaskStatusCode:
-        # this method does not hang
         raise NotImplementedError
 
     def cancel(self) -> None:
@@ -59,51 +91,133 @@ class Task:
         raise NotImplementedError
 
 
+# this class get collection of tasks
+# basically behaves as a psudo queuing system
+# the user only need to store this objecet
 class Batch:
     tasks: OrderedDict[int, Task]
+    name: Optional[str] = None
+
+    class SubmissionException(Exception):
+        pass
 
     def cancel(self) -> None:
         for task in self.tasks.values():
             task.cancel()
 
+    def fetch(self) -> None:
+        # [TODO]
+        for task in self.tasks.values():
+            task.fetch()
+
+    def tasks_metric(self):
+        # [TODO] print more info on current status
+        pass
+
+    def remove_invalid_tasks(self):
+        new_tasks = OrderedDict()
+        for task_number, task in self.tasks.items():
+            try:
+                task.run_validation()
+                new_tasks[task_number] = task
+            except ValidationError:
+                continue
+
+        return Batch(new_tasks, name=self.name)
+
+    def submit(self, shuffle_submit_order: bool = True):
+        if shuffle_submit_order:
+            submission_order = np.random.permutation(list(self.tasks.keys()))
+        else:
+            submission_order = list(self.tasks.keys())
+
+        for task in self.tasks.values():
+            try:
+                task.run_validation()
+            except NotImplementedError:
+                break
+
+        # submit tasks in random order but store them
+        # in the original order of tasks.
+        # futures = OrderedDict()
+        errors = OrderedDict()
+        for task_index in submission_order:
+            task = self.tasks[task_index]
+            try:
+                task.submit()
+            except BaseException as error:
+                # record the error in the error dict
+                errors[int(task_index)] = {
+                    "exception_type": error.__class__.__name__,
+                    "stack trace": traceback.format_exc(),
+                }
+
+        if errors:
+            time_stamp = datetime.datetime.now()
+
+            if "win" in sys.platform:
+                time_stamp = str(time_stamp).replace(":", "~")
+
+            if self.name:
+                future_file = f"{self.name}-partial-batch-future-{time_stamp}.json"
+                error_file = f"{self.name}-partial-batch-errors-{time_stamp}.json"
+            else:
+                future_file = f"partial-batch-future-{time_stamp}.json"
+                error_file = f"partial-batch-errors-{time_stamp}.json"
+
+            cwd = os.get_cwd()
+            # cloud_batch_result.save_json(future_file, indent=2)
+            # saving ?
+
+            with open(error_file, "w") as f:
+                json.dump(errors, f, indent=2)
+
+            raise Batch.SubmissionException(
+                "One or more error(s) occured during submission, please see "
+                "the following files for more information:\n"
+                f"  - {os.path.join(cwd, future_file)}\n"
+                f"  - {os.path.join(cwd, error_file)}\n"
+            )
+
+        else:
+            # TODO: think about if we should automatically save successful submissions
+            #       as well.
+            pass
+
+    def get_failed_tasks(self) -> "Batch":
+        new_task_results = OrderedDict()
+        for task_number, task in self.tasks.items():
+            if task.task_id and task.status() in [
+                QuEraTaskStatusCode.Failed,
+                QuEraTaskStatusCode.Unaccepted,
+            ]:
+                new_task_results[task_number] = task
+
+        return Batch(new_task_results, name=self.name)
+
+    def remove_failed_tasks(self) -> "Batch":
+        new_results = OrderedDict()
+        for task_number, cloud_task_result in self.task_results.items():
+            if cloud_task_result.status() in [
+                QuEraTaskStatusCode.Failed,
+                QuEraTaskStatusCode.Unaccepted,
+            ]:
+                continue
+            new_results[task_number] = cloud_task_result
+
+        return Batch(new_results, self.name)
+
     def report(self) -> "Report":
-        return Report(self)
-
-
-class Report:
-    def __init__(self, batch: Batch) -> None:
-        self._batch = batch
-        self._dataframe = None  # df cache
-        self._bitstrings = None  # bitstring cache
-        self._counts = None  # counts cache
-
-    @property
-    def batch_result(self) -> Batch:
-        return self._batch
-
-    @property
-    def results(self) -> OrderedDict[int, QuEraTaskResults]:
-        return OrderedDict(
-            [
-                (task_number, task.result())
-                for task_number, task in self.batch_result.tasks.items()
-            ]
-        )
-
-    @property
-    def dataframe(self) -> pd.DataFrame:
-        if self._dataframe is not None:
-            return self._dataframe
-
-        self._dataframe = self._construct_dataframe()
-        return self._dataframe
-
-    def _construct_dataframe(self) -> pd.DataFrame:
+        ## this potentially can be specialize/disatch
         index = []
         data = []
 
-        for task_number, task_result in self.batch_result.results.items():
-            geometry = task_result.task.geometry
+        for task_number, task in self.tasks.items():
+            # this check on result to make sure we don't send request
+            if not task.status() == QuEraTaskStatusCode.Completed:
+                continue
+
+            geometry = task.geometry
             perfect_sorting = "".join(map(str, geometry.filling))
             parallel_decoder = geometry.parallel_decoder
 
@@ -114,7 +228,7 @@ class Report:
 
             shot_iter = filter(
                 lambda shot: shot.shot_status == QuEraShotStatusCode.Completed,
-                task_result.quera_task_result.shot_outputs,
+                task.result().shot_outputs,
             )
 
             for shot, (cluster_coordinate, cluster_index) in product(
@@ -153,7 +267,19 @@ class Report:
         df = pd.DataFrame(data, index=index)
         df.sort_index(axis="index")
 
-        return df
+        return Report(df)
+
+
+# Report is now just a helper class for
+# organize and analysis data:
+@dataclass
+class Report:
+    _dataframe: pd.DataFrame
+
+    def __init__(self, data) -> None:
+        self._dataframe = data  # df
+        self._bitstrings = None  # bitstring cache
+        self._counts = None  # counts cache
 
     @property
     def markdown(self) -> str:

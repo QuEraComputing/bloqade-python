@@ -33,6 +33,9 @@ class BraketBackend(SubmissionBackend):
     def task_status(self, task_id: str) -> QuEraTaskStatusCode:
         return from_braket_status_codes(AwsQuantumTask(task_id).state())
 
+    def validate_task(self, task_ir: QuEraTaskSpecification):
+        pass
+
     # def validate_task(self, task_ir: QuEraTaskSpecification):
     #     try:
     #         task_id = self.submit_task(task_ir)
