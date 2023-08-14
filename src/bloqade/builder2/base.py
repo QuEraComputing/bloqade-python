@@ -1,8 +1,7 @@
 from typing import Optional
-from .compile.trait import CompileJSON
 
 
-class Builder(CompileJSON):
+class Builder:
     __match_args__ = ("__parent__",)
 
     def __init__(

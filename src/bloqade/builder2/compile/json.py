@@ -1,24 +1,25 @@
 from ...codegen.common.json import BloqadeIRSerializer
-from ..start import ProgramStart
-from ..sequence_builder import SequenceBuilder
-from ..base import Builder
-from ..spatial import Location, Scale, Var
-from ..waveform import (
-    Linear,
-    Constant,
-    Poly,
-    Fn,
-    Apply,
-    Slice,
-    Record,
-    Sample,
-    PiecewiseLinear,
-    PiecewiseConstant,
-)
 
 
 class BuilderSerializer(BloqadeIRSerializer):
     def default(self, obj):
+        from ..start import ProgramStart
+        from ..sequence_builder import SequenceBuilder
+        from ..base import Builder
+        from ..spatial import Location, Scale, Var
+        from ..waveform import (
+            Linear,
+            Constant,
+            Poly,
+            Fn,
+            Apply,
+            Slice,
+            Record,
+            Sample,
+            PiecewiseLinear,
+            PiecewiseConstant,
+        )
+
         match obj:
             case Constant(value, duration, parent):
                 return {

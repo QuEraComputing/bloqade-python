@@ -1,13 +1,12 @@
 from ... import ir
-from .ir import SequenceCompiler, RegisterCompiler
-from .json import BuilderSerializer
-from ...codegen.common.static_assign import StaticAssignProgram
 from typing import Union
 import json
 
 
 class CompileJSON:
     def json(self, **json_options) -> str:
+        from .json import BuilderSerializer
+
         return json.dumps(self, cls=BuilderSerializer, **json_options)
 
     def __repr__(self):
@@ -16,11 +15,15 @@ class CompileJSON:
 
 class CompileRegister:
     def compile_register(self) -> Union[ir.AtomArrangement, ir.ParallelRegister]:
+        from .ir import RegisterCompiler
+
         return RegisterCompiler(self).compile()
 
 
 class CompileSequence:
     def compile_sequence(self):
+        from .ir import SequenceCompiler
+
         return SequenceCompiler(self).compile()
 
 
@@ -31,4 +34,6 @@ class CompileProgram(CompileRegister, CompileSequence):
 
 class Compile(CompileProgram):
     def compile_bloqade_ir(self, **mapping):
+        from ...codegen.common.static_assign import StaticAssignProgram
+
         return StaticAssignProgram(mapping).emit(self.compile_program())
