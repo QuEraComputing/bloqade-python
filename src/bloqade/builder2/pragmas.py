@@ -2,7 +2,7 @@ from .base import Builder
 from typing import Any, List, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from .parallelize import Parallelize
+    from .parallelize import Parallelize, ParallelizeFlatten
     from .assign import Assign
     from .flatten import Flatten
 
@@ -14,6 +14,13 @@ class Flattenable(Builder):
         return Flatten(orders, self)
 
 
+class Assignable(Builder):
+    def assign(self, **assignments) -> "Assign":
+        from .assign import Assign
+
+        return Assign(parent=self, **assignments)
+
+
 class Parallelizable(Builder):
     def parallelize(self, cluster_spacing: Any) -> "Parallelize":
         from .parallelize import Parallelize
@@ -21,8 +28,8 @@ class Parallelizable(Builder):
         return Parallelize(cluster_spacing, self)
 
 
-class Assignable(Builder):
-    def assign(self, **assignments) -> "Assign":
-        from .assign import Assign
+class FlattenParallelizable(Builder):
+    def parallelize(self, cluster_spacing: Any) -> "ParallelizeFlatten":
+        from .parallelize import Parallelize
 
-        return Assign(parent=self, **assignments)
+        return Parallelize(cluster_spacing, self)

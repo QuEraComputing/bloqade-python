@@ -1,10 +1,10 @@
 from typing import List
 from .base import Builder
-from .pragmas import Parallelizable
+from .pragmas import FlattenParallelizable
 from .backend import FlattenedBackendRoute
 
 
-class Flatten(Parallelizable, FlattenedBackendRoute):
+class Flatten(FlattenParallelizable, FlattenedBackendRoute):
     __match_args__ = ("_orders", "__parent__")
 
     def __init__(self, orders: List[str], parent: Builder | None = None) -> None:
