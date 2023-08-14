@@ -1,31 +1,32 @@
-from typing import Tuple
+from typing import Tuple, Union
 from .stream import BuilderNode, BuilderStream
 from ... import ir
 from ..base import Builder
+
+# from ..start import ProgramStart
 from ..coupling import LevelCoupling, Rydberg, Hyperfine
 from ..field import Field, Detuning, RabiAmplitude, RabiPhase
 from ..spatial import SpatialModulation, Location, Uniform, Var, Scale
 from ..waveform import (
     WaveformPrimitive,
-    Linear,
-    Constant,
-    Poly,
-    PiecewiseConstant,
-    PiecewiseLinear,
-    Fn,
+    # Linear,
+    # Constant,
+    # Poly,
+    # PiecewiseConstant,
+    # PiecewiseLinear,
+    # Fn,
     Slice,
     Record,
 )
+from ..parallelize import Parallelize, ParallelizeFlatten
 
 
-def piecewise(cons, start, stop, duration):
-    pass
-
-
-class PulseCompiler:
+class BuilderCompiler:
     def __init__(self, ast: Builder) -> None:
         self.stream = BuilderStream.create(ast)
 
+
+class SequenceCompiler(BuilderCompiler):
     def read_address(self) -> Tuple[LevelCoupling, Field, BuilderNode]:
         spatial = self.stream.eat([Location, Uniform, Var], [Scale])
         curr = spatial
@@ -100,63 +101,63 @@ class PulseCompiler:
         wf, curr = self._read_waveform(curr)
         return ir.Field({sm: wf}), curr
 
-    def read_spatial_modulation(self) -> ir.SpatialModulation:
-        head = self.stream.eat([Location, Uniform, Var], [Scale])
-        sm, *_ = self._read_spatial_modulation(head)
-        return sm
+    # def read_spatial_modulation(self) -> ir.SpatialModulation:
+    #     head = self.stream.eat([Location, Uniform, Var], [Scale])
+    #     sm, *_ = self._read_spatial_modulation(head)
+    #     return sm
 
-    def read_waveform(self) -> ir.Waveform:
-        wf_head = self.stream.eat(
-            types=[Linear, Constant, Poly, PiecewiseConstant, PiecewiseLinear, Fn],
-            skips=[Slice, Record],
-        )
-        wf, *_ = self._read_waveform(wf_head)
-        return wf
+    # def read_waveform(self) -> ir.Waveform:
+    #     wf_head = self.stream.eat(
+    #         types=[Linear, Constant, Poly, PiecewiseConstant, PiecewiseLinear, Fn],
+    #         skips=[Slice, Record],
+    #     )
+    #     wf, *_ = self._read_waveform(wf_head)
+    #     return wf
 
-    def read_field(self) -> ir.Field:
-        new_field = ir.Field({})
-        while True:
-            sm = self.read_spatial_modulation()
-            wf = self.read_waveform()
+    # def read_field(self) -> ir.Field:
+    #     new_field = ir.Field({})
+    #     while True:
+    #         sm = self.read_spatial_modulation()
+    #         wf = self.read_waveform()
 
-            new_field = new_field.add(ir.Field({sm: wf}))
+    #         new_field = new_field.add(ir.Field({sm: wf}))
 
-            match self.stream.curr:
-                case BuilderNode(node=SpatialModulation()):
-                    continue
-                case _:
-                    break
+    #         match self.stream.curr:
+    #             case BuilderNode(node=SpatialModulation()):
+    #                 continue
+    #             case _:
+    #                 break
 
-        return new_field
+    #     return new_field
+
+    # def compile(self) -> ir.Sequence:
+    #     sequence = ir.Sequence()
+    #     while True:
+    #         node = self.stream.read_next(
+    #             [Detuning, RabiAmplitude, RabiPhase, Hyperfine, Rydberg]
+    #         )
+    #         match node:
+    #             case BuilderNode(node=Field() as field_node) as field_name:
+    #                 field_name = field_node.__bloqade_ir__()
+    #             case BuilderNode(
+    #                 node=LevelCoupling() as coupling_node
+    #             ) as coupling_name:
+    #                 coupling_name = coupling_node.__bloqade_ir__()
+    #                 continue
+    #             case None:
+    #                 break
+
+    #         pulse = sequence.pulses.get(coupling_name, ir.Pulse({}))
+    #         field = pulse.fields.get(field_name, ir.Field({}))
+
+    #         field = field.add(self.read_field())
+
+    #         pulse.fields[field_name] = field
+    #         sequence.pulses[coupling_name] = pulse
+
+    #     return sequence
 
     def compile(self) -> ir.Sequence:
-        sequence = ir.Sequence()
-        while True:
-            node = self.stream.read_next(
-                [Detuning, RabiAmplitude, RabiPhase, Hyperfine, Rydberg]
-            )
-            match node:
-                case BuilderNode(node=Field() as field_node) as field_name:
-                    field_name = field_node.__bloqade_ir__()
-                case BuilderNode(
-                    node=LevelCoupling() as coupling_node
-                ) as coupling_name:
-                    coupling_name = coupling_node.__bloqade_ir__()
-                    continue
-                case None:
-                    break
-
-            pulse = sequence.pulses.get(coupling_name, ir.Pulse({}))
-            field = pulse.fields.get(field_name, ir.Field({}))
-
-            field = field.add(self.read_field())
-
-            pulse.fields[field_name] = field
-            sequence.pulses[coupling_name] = pulse
-
-        return sequence
-
-    def compile2(self) -> ir.Sequence:
         coupling_builder, field_builder, spatial_head = self.read_address()
 
         sequence = ir.Sequence({})
@@ -191,3 +192,19 @@ class PulseCompiler:
 
             new_field, _ = self._read_field(spatial_head)
             field = field.add(new_field)
+
+
+class RegisterCompiler(BuilderCompiler):
+    def compile(self) -> Union[ir.AtomArrangement, ir.ParallelRegister]:
+        # register is always head of the stream
+        register_block = self.stream.read()
+
+        register = register_block.node
+
+        parallel_options = self.stream.eat([Parallelize, ParallelizeFlatten])
+
+        if parallel_options is not None:
+            parallel_options = parallel_options.node
+            return ir.ParallelRegister(register, parallel_options._cluster_spacing)
+
+        return register
