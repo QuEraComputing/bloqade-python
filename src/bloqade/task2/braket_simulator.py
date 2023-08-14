@@ -5,7 +5,7 @@ from bloqade.submission.ir.braket import (
     BraketTaskSpecification,
     from_braket_task_results,
 )
-from bloqade.task.base import Geometry
+from bloqade.task2.base import Geometry
 from braket.devices import LocalSimulator
 
 

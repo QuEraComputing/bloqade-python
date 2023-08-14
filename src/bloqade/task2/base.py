@@ -1,9 +1,9 @@
 from collections import OrderedDict
 from itertools import product
 import json
-from typing import List, TextIO, Type, TypeVar, Union, Dict, Optional
+from typing import List, TextIO, Type, TypeVar, Union, Dict, Optional, Tuple
 from numbers import Number
-from bloqade.task.base import Geometry
+
 import traceback
 import datetime
 import sys
@@ -19,8 +19,17 @@ import pandas as pd
 import numpy as np
 from dataclasses import dataclass
 from bloqade.submission.base import ValidationError
+from bloqade.submission.ir.parallel import ParallelDecoder
+
 
 JSONSubType = TypeVar("JSONSubType", bound="JSONInterface")
+
+
+@dataclass(frozen=True)
+class Geometry:
+    sites: List[Tuple[float, float]]
+    filling: List[int]
+    parallel_decoder: Optional[ParallelDecoder] = None
 
 
 class JSONInterface(BaseModel):
