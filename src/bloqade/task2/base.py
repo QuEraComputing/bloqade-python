@@ -119,9 +119,23 @@ class Batch:
         for task in self.tasks.values():
             task.fetch()
 
+    def __repr__(self):
+        return str(self.tasks_metric())
+
     def tasks_metric(self):
-        # [TODO] print more info on current status
-        pass
+        # [TODO] more info on current status
+        tid = []
+        data = []
+        for int, task in self.tasks.items():
+            tid.append(int)
+
+            dat = [None, None]
+            dat[1] = task.task_id
+            if task.task_id is not None:
+                dat[2] = task.result().task_status.name
+            data.append(dat)
+
+        return pd.DataFrame(data, index=tid, columns=["status", "task ID"])
 
     def remove_invalid_tasks(self):
         new_tasks = OrderedDict()
