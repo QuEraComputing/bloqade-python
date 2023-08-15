@@ -127,7 +127,7 @@ class Batch:
         new_tasks = OrderedDict()
         for task_number, task in self.tasks.items():
             try:
-                task.run_validation()
+                task.validate()
                 new_tasks[task_number] = task
             except ValidationError:
                 continue
@@ -150,8 +150,10 @@ class Batch:
         # in the original order of tasks.
         # futures = OrderedDict()
         errors = OrderedDict()
+        shuffled_tasks = OrderedDict()
         for task_index in submission_order:
             task = self.tasks[task_index]
+            shuffled_tasks[task_index] = task
             try:
                 task.submit()
             except BaseException as error:
@@ -160,6 +162,7 @@ class Batch:
                     "exception_type": error.__class__.__name__,
                     "stack trace": traceback.format_exc(),
                 }
+        self.tasks = shuffled_tasks  # permute order using dump way
 
         if errors:
             time_stamp = datetime.datetime.now()
