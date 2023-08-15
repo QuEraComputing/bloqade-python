@@ -1,5 +1,5 @@
 from itertools import repeat
-from typing import Dict
+from typing import Dict, Tuple
 import numbers
 
 from ... import ir
@@ -10,14 +10,31 @@ from ...task2.base import Batch
 
 
 class Backend(Builder, Compile):
-    def __init__(self, cache: bool = False, parent: Builder | None = None) -> None:
+    def __init__(
+        self, cache_compiled_programs: bool = False, parent: Builder | None = None
+    ) -> None:
         super().__init__(parent)
-        self._ir_cache = None
+        self._static_ir_cache = None
+        self._batch_ir_cache = []
         self._cluster_spacing = None
         self._static_params = {}
         self._batch_params = {}
         self._orders = ()
-        self._cache = cache
+        self._cache = cache_compiled_programs
+
+    def _mappings(self, *args: numbers.Real):
+        input_mapping = self._parse_args(*args)
+
+        if self._batch_params:
+            batch_iterators = [
+                zip(repeat(name), values) for name, values in self._batch_params.items()
+            ]
+
+            return (
+                {**input_mapping, **dict(tuples)} for tuples in zip(*batch_iterators)
+            )
+        else:
+            return (input_mapping,)
 
     def _parse_args(self, *args: numbers.Real) -> Dict[str, float]:
         if len(args) != len(self._orders):
@@ -51,35 +68,40 @@ class Backend(Builder, Compile):
                 case BuilderNode(node=Flatten(orders)):
                     self._orders = orders
 
-    def _compile_cache(self) -> ir.Program:
-        if self._ir_cache:
-            return self._ir_cache
+    def _compile_static_cache(self) -> ir.Program:
+        if self._static_ir_cache:
+            return self._static_ir_cache
 
-        self._ir_cache = self.compile_bloqade_ir(**self._static_params)
+        self._static_ir_cache = self.compile_bloqade_ir(**self._static_params)
 
-        return self._ir_cache
+        return self._static_ir_cache
 
-    def _compile_ir(self, *args):
+    def _compile_batch_cache(self, *args):
         from ...codegen.common.static_assign import StaticAssignProgram
 
-        self._compile_builder()
-        ir_cache = self._compile_cache()
+        if self._cache and self._batch_ir_cache:
+            return self._batch_ir_cache
 
-        input_mapping = self._parse_args(*args)
-
-        if self._batch_params:
-            batch_iterators = [
-                zip(repeat(name), values) for name, values in self._batch_params.items()
-            ]
-
-            mappings = (
-                {**input_mapping, **dict(tuples)} for tuples in zip(*batch_iterators)
+        if self._cache:
+            for mapping in self._mappings(*args):
+                self._batch_ir_cache.append(
+                    (
+                        mapping,
+                        StaticAssignProgram(mapping).emit(self._static_ir_cache()),
+                    )
+                )
+        else:
+            self._static_ir_cache = (
+                (mapping, StaticAssignProgram(mapping).emit(self._static_ir_cache()))
+                for mapping in self._mappings(*args)
             )
 
-            for mapping in mappings:
-                yield mapping, StaticAssignProgram(mapping).emit(ir_cache)
-        else:
-            yield input_mapping, ir_cache
+        return self._batch_ir_cache
+
+    def _compile_ir(self, *args: Tuple[numbers.Real, ...]):
+        self._compile_builder()
+        self._compile_static_cache()
+        return self._compile_batch_cache(*args)
 
     def _compile_task(self, bloqade_ir: ir.Program, shots: int, **metadata):
         raise NotImplementedError(
