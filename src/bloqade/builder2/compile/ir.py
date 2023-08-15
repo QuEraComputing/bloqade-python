@@ -1,25 +1,14 @@
-from typing import Tuple, Union, TYPE_CHECKING
+from typing import Tuple, Union
+import bloqade.ir as ir
 
 from ..base import Builder
-
 from ..coupling import LevelCoupling, Rydberg, Hyperfine
 from ..field import Field, Detuning, RabiAmplitude, RabiPhase
 from ..spatial import SpatialModulation, Location, Uniform, Var, Scale
-from ..waveform import (
-    WaveformPrimitive,
-    Slice,
-    Record,
-)
+from ..waveform import WaveformPrimitive, Slice, Record
 from ..parallelize import Parallelize, ParallelizeFlatten
 
-if TYPE_CHECKING:
-    from bloqade.ir import Waveform as ir_Waveform
-    from bloqade.ir import SpatialModulation as ir_SpatialModulation
-    from bloqade.ir import Field as ir_Field
-    from bloqade.ir import Sequence as ir_Sequence
-    from bloqade.ir import ParallelRegister as ir_ParallelRegister
-    from bloqade.ir import AtomArrangement as ir_AtomArrangement
-    from .stream import BuilderNode
+from .stream import BuilderNode
 
 
 class BuilderCompiler:
@@ -30,7 +19,7 @@ class BuilderCompiler:
 
 
 class SequenceCompiler(BuilderCompiler):
-    def read_address(self) -> Tuple[LevelCoupling, Field, "BuilderNode"]:
+    def read_address(self) -> Tuple[LevelCoupling, Field, BuilderNode]:
         spatial = self.stream.eat([Location, Uniform, Var], [Scale])
         curr = spatial
 
@@ -56,7 +45,7 @@ class SequenceCompiler(BuilderCompiler):
         else:  # only spatial is updated
             return (None, None, spatial)
 
-    def read_waveform(self, head: "BuilderNode") -> Tuple["ir_Waveform", "BuilderNode"]:
+    def read_waveform(self, head: BuilderNode) -> Tuple[ir.Waveform, BuilderNode]:
         curr = head
         waveform = head.node.__bloqade_ir__()
         curr = curr.next
@@ -74,10 +63,8 @@ class SequenceCompiler(BuilderCompiler):
         return waveform, curr
 
     def read_spatial_modulation(
-        self, head: "BuilderNode"
-    ) -> Tuple["ir_SpatialModulation", "BuilderNode"]:
-        import bloqade.ir as ir
-
+        self, head: BuilderNode
+    ) -> Tuple[ir.SpatialModulation, BuilderNode]:
         curr = head
         spatial_modulation = None
         scaled_locations = ir.ScaledLocations({})
@@ -101,24 +88,20 @@ class SequenceCompiler(BuilderCompiler):
         else:
             return spatial_modulation, curr
 
-    def read_field(self, head) -> "ir_Field":
-        from bloqade.ir import Field
-
+    def read_field(self, head) -> ir.Field:
         sm, curr = self.read_spatial_modulation(head)
         wf, _ = self.read_waveform(curr)
-        return Field({sm: wf})
+        return ir.Field({sm: wf})
 
-    def compile(self) -> "ir_Sequence":
-        from bloqade.ir import Sequence, Pulse, Field
-
+    def compile(self) -> ir.Sequence:
         coupling_builder, field_builder, spatial_head = self.read_address()
 
-        sequence = Sequence({})
+        sequence = ir.Sequence({})
         coupling_name = coupling_builder.__bloqade_ir__()
         field_name = field_builder.__bloqade_ir__()
 
-        pulse = sequence.pulses.get(coupling_name, Pulse({}))
-        field = pulse.fields.get(field_name, Field({}))
+        pulse = sequence.pulses.get(coupling_name, ir.Pulse({}))
+        field = pulse.fields.get(field_name, ir.Field({}))
 
         new_field = self.read_field(spatial_head)
         field = field.add(new_field)
@@ -131,14 +114,14 @@ class SequenceCompiler(BuilderCompiler):
                 sequence.pulses[coupling_name] = pulse
                 # create/access new pulse
                 coupling_name = coupling_builder.__bloqade_ir__()
-                pulse = sequence.pulses.get(coupling_name, Pulse({}))
+                pulse = sequence.pulses.get(coupling_name, ir.Pulse({}))
 
             if field_builder is not None:
                 # update old field
                 pulse.fields[field_name] = field
                 # create/access new field
                 field_name = field_builder.__bloqade_ir__()
-                field = pulse.fields.get(field_name, Field({}))
+                field = pulse.fields.get(field_name, ir.Field({}))
 
             if spatial_head is None:
                 break
@@ -150,9 +133,7 @@ class SequenceCompiler(BuilderCompiler):
 
 
 class RegisterCompiler(BuilderCompiler):
-    def compile(self) -> Union["ir_AtomArrangement", "ir_ParallelRegister"]:
-        from bloqade.ir import ParallelRegister
-
+    def compile(self) -> Union[ir.AtomArrangement, ir.ParallelRegister]:
         # register is always head of the stream
         register_block = self.stream.read()
 
@@ -162,6 +143,6 @@ class RegisterCompiler(BuilderCompiler):
 
         if parallel_options is not None:
             parallel_options = parallel_options.node
-            return ParallelRegister(register, parallel_options._cluster_spacing)
+            return ir.ParallelRegister(register, parallel_options._cluster_spacing)
 
         return register
