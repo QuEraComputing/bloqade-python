@@ -99,6 +99,9 @@ class Task:
         # this method cancels the task
         raise NotImplementedError
 
+    def submit(self, force: bool):
+        raise NotImplementedError
+
 
 # this class get collection of tasks
 # basically behaves as a psudo queuing system
@@ -148,7 +151,7 @@ class Batch:
 
         return Batch(new_tasks, name=self.name)
 
-    def submit(self, shuffle_submit_order: bool = True):
+    def resubmit(self, shuffle_submit_order: bool = True):
         if shuffle_submit_order:
             submission_order = np.random.permutation(list(self.tasks.keys()))
         else:
@@ -156,7 +159,7 @@ class Batch:
 
         for task in self.tasks.values():
             try:
-                task.run_validation()
+                task.validate()
             except NotImplementedError:
                 break
 

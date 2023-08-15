@@ -1,3 +1,4 @@
+from bloqade.task2.base import Geometry
 from .base import Task, JSONInterface
 from bloqade.submission.ir.task_specification import QuEraTaskSpecification
 from bloqade.submission.quera import QuEraBackend
@@ -66,6 +67,13 @@ class QuEraTask(Task, JSONInterface):
             return
 
         self.backend.cancel_task(self.task_id)
+
+    def _geometry(self) -> Geometry:
+        return Geometry(
+            sites=self.task_ir.lattice.sites,
+            filling=self.task_ir.lattice.filling,
+            parallel_decoder=self.parallel_decoder,
+        )
 
     # def submit_no_task_id(self) -> "HardwareTaskShotResults":
     #    return HardwareTaskShotResults(hardware_task=self)
