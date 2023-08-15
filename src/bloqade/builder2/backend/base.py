@@ -1,36 +1,57 @@
+from typing import List
 from ..base import Builder
 
+# from ... import ir
 
-class Backend(Builder):
-    def run(self):
+from ..compile.trait import Compile
+from ..compile.stream import BuilderStream
+
+
+class Backend(Builder, Compile):
+    def __init__(self, parent: Builder | None = None) -> None:
+        super().__init__(parent)
+        self._ir_cache = None
+
+    def __compile_ir__(self):
+        from ..assign import Assign
+
+        if self._ir_cache:
+            return self._ir_cache
+
+        stream = BuilderStream(self)
+        assign_options = stream.eat([Assign])
+
+        if assign_options is not None:
+            assignments = assign_options.node._assignments
+        else:
+            assignments = {}
+
+        self._ir_cache = self.compile_bloqade_ir(**assignments)
+        return self._ir_cache
+
+    def compile(self):
         raise NotImplementedError(
-            f"Execution backend not implemented for "
+            "Compilation backend not implemented for "
             f"'{self.__service_name__}.{self.__device_name__}'."
         )
 
 
 class LocalBackend(Backend):
-    pass
+    def __call__(self):
+        raise NotImplementedError(
+            "__call__ backend not implemented for "
+            f"'{self.__service_name__}.{self.__device_name__}'."
+        )
 
 
 class RemoteBackend(Backend):
-    # def __init__(self):
-    #     self._compile_cache = None
+    def __init__(self, parent: Builder | None = None) -> None:
+        super().__init__(parent)
 
-    # NOTE: this is only a sketch, dont use this
-    # def __compile__(self):
-    #     if self._compile_cache:
-    #         return self._compile_cache
-    #     from ..compile import to_bloqade_ir, scan_pragma
-    #     seq = to_bloqade_ir(self) # -> sequence object
-    #     reg = scan_register(self)
-    #     self._compile_cache = (seq, reg)
-    #     return seq, reg
-
-    # def __compile_assign(self):
-    #     assign = self.scan_assign(self) # dict
-    #     [replace(self._compile_cache, assign) for each in assign]
-    #     return
+    def __call__(self):
+        batch = self.submit()
+        batch.fetch()
+        return batch
 
     def submit(self):
         raise NotImplementedError(
@@ -39,18 +60,13 @@ class RemoteBackend(Backend):
         )
 
 
-class FlattenedBackend(Builder):
+class FlattenedBackend(Backend):
+    def __init__(self, arg_list: List[str], parent: Builder | None = None) -> None:
+        super().__init__(parent)
+        self._arg_list = arg_list
+
     def __call__(self, *args, nshots=1):
         raise NotImplementedError(
-            "Flattened backend not implemented for "
+            "__call__ backend not implemented for "
             f"'{self.__service_name__}.{self.__device_name__}'."
         )
-
-
-# class QuEraAquilia(RemoteBackend):
-
-#     def submit(self):
-#         seq, reg = self.__compile__(self)
-#         target = codegen(seq)
-#         return run(target) # -> Futre
-#         # return super().submit()

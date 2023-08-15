@@ -1,7 +1,10 @@
-from typing import Union, Optional
+from typing import Union, Optional, TYPE_CHECKING
 from .waveform import WaveformAttachable
-from .base import Builder, DefaultBuilderEncoder
+from .base import Builder
 from ..ir import Scalar
+
+if TYPE_CHECKING:
+    from bloqade.ir.control.field import UniformModulation
 
 ScalarType = Union[float, str, Scalar]
 
@@ -11,7 +14,10 @@ class SpatialModulation(WaveformAttachable):
 
 
 class Uniform(SpatialModulation):
-    pass
+    def __bloqade_ir__(self) -> "UniformModulation":
+        from ..ir import Uniform
+
+        return Uniform
 
 
 class Location(SpatialModulation):
@@ -47,18 +53,3 @@ class Var(SpatialModulation):
         assert isinstance(name, str)
         super().__init__(parent)
         self._name = name
-
-
-class SpatialSerializer(DefaultBuilderEncoder):
-    def default(self, obj):
-        match obj:
-            case Uniform(parent):
-                return dict(type="Uniform", parent=self.default(parent))
-            case Var(name, parent):
-                return dict(type="Var", name=name, parent=self.default(parent))
-            case Scale(factor, parent):
-                return dict(type="Scale", factor=factor, parent=self.default(parent))
-            case Location(label, parent):
-                return dict(type="Location", label=label, parent=self.default(parent))
-            case _:
-                return super().default(obj)
