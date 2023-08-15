@@ -30,10 +30,3 @@ class CompileSequence:
 class CompileProgram(CompileRegister, CompileSequence):
     def compile_program(self) -> ir.Program:
         return ir.Program(self.compile_register(), self.compile_sequence())
-
-
-class Compile(CompileProgram):
-    def compile_bloqade_ir(self, **mapping):
-        from ...codegen.common.static_assign import StaticAssignProgram
-
-        return StaticAssignProgram(mapping).emit(self.compile_program())

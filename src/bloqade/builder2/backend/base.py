@@ -4,12 +4,12 @@ import numbers
 
 from ... import ir
 from ..base import Builder
-from ..compile.trait import Compile
+from ..compile.trait import CompileProgram
 from ..compile.stream import BuilderStream, BuilderNode
 from ...task2.base import Batch
 
 
-class Backend(Builder, Compile):
+class Backend(Builder, CompileProgram):
     def __init__(
         self, cache_compiled_programs: bool = False, parent: Builder | None = None
     ) -> None:
@@ -68,15 +68,23 @@ class Backend(Builder, Compile):
                 case BuilderNode(node=Flatten(orders)):
                     self._orders = orders
 
-    def _compile_static_cache(self) -> ir.Program:
-        if self._static_ir_cache:
+    def _compile_static(self) -> ir.Program:
+        from ...codegen.common.static_assign import StaticAssignProgram
+
+        if self._cache and self._static_ir_cache:
             return self._static_ir_cache
 
-        self._static_ir_cache = self.compile_bloqade_ir(**self._static_params)
+        if self._cache:
+            program = self.compile_program(**self._static_params)
+            self._static_ir_cache = StaticAssignProgram(self._static_params).emit(
+                program
+            )
+            return self._static_ir_cache
+        else:
+            program = self.compile_program(**self._static_params)
+            return StaticAssignProgram(self._static_params).emit(program)
 
-        return self._static_ir_cache
-
-    def _compile_batch_cache(self, *args):
+    def _compile_batch(self, *args):
         from ...codegen.common.static_assign import StaticAssignProgram
 
         if self._cache and self._batch_ir_cache:
@@ -100,8 +108,8 @@ class Backend(Builder, Compile):
 
     def _compile_ir(self, *args: Tuple[numbers.Real, ...]):
         self._compile_builder()
-        self._compile_static_cache()
-        return self._compile_batch_cache(*args)
+        self._compile_static()
+        return self._compile_batch(*args)
 
     def _compile_task(self, bloqade_ir: ir.Program, shots: int, **metadata):
         raise NotImplementedError(
