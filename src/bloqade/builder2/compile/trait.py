@@ -14,7 +14,7 @@ class CompileJSON:
 
 
 class CompileRegister:
-    def compile_register(self) -> Union[ir.AtomArrangement, ir.ParallelRegister]:
+    def compile_register(self) -> Union["ir.AtomArrangement", "ir.ParallelRegister"]:
         from .ir import RegisterCompiler
 
         return RegisterCompiler(self).compile()
