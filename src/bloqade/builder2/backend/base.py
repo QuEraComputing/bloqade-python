@@ -13,14 +13,28 @@ class Backend(Builder, CompileProgram):
     def __init__(
         self, cache_compiled_programs: bool = False, parent: Builder | None = None
     ) -> None:
+        from ..assign import Assign, BatchAssign
+        from ..flatten import Flatten
+
         super().__init__(parent)
+        self._static_params = None
+        self._batch_params = None
         self._static_ir_cache = None
         self._batch_ir_cache = []
-        self._cluster_spacing = None
-        self._static_params = {}
-        self._batch_params = {}
         self._orders = ()
-        self._cache = cache_compiled_programs
+        self._cache_compiled_programs = cache_compiled_programs
+
+        stream = BuilderStream(self)
+
+        while stream.curr is not None:
+            node = stream.read_next([Assign, BatchAssign, Flatten])
+            match node:
+                case BuilderNode(node=Assign(static_params)):
+                    self._static_params = static_params
+                case BuilderNode(node=BatchAssign(batch_params)):
+                    self._batch_params = batch_params
+                case BuilderNode(node=Flatten(orders)):
+                    self._orders = orders
 
     def _mappings(self, *args: numbers.Real):
         input_mapping = self._parse_args(*args)
@@ -45,52 +59,29 @@ class Backend(Builder, CompileProgram):
 
         return dict(zip(self._orders, map(float, args)))
 
-    def _compile_builder(self) -> None:
-        from ..assign import Assign, BatchAssign
-        from ..flatten import Flatten
-        from ..parallelize import Parallelize, ParallelizeFlatten
-
-        stream = BuilderStream(self)
-
-        while stream.curr is not None:
-            node = stream.read_next(
-                [Assign, BatchAssign, Flatten, ParallelizeFlatten, Parallelize]
-            )
-            match node:
-                case BuilderNode(node=Assign(static_params)):
-                    self._static_params = static_params
-                case BuilderNode(node=BatchAssign(batch_params)):
-                    self._batch_params = batch_params
-                case BuilderNode(node=Parallelize(cluster_spacing)) | BuilderNode(
-                    node=ParallelizeFlatten(cluster_spacing)
-                ):
-                    self._cluster_spacing = cluster_spacing
-                case BuilderNode(node=Flatten(orders)):
-                    self._orders = orders
-
     def _compile_static(self) -> ir.Program:
         from ...codegen.common.static_assign import StaticAssignProgram
 
-        if self._cache and self._static_ir_cache:
+        if self._cache_compiled_programs and self._static_ir_cache:
             return self._static_ir_cache
 
-        if self._cache:
-            program = self.compile_program(**self._static_params)
+        if self._cache_compiled_programs:
+            program = self.compile_program()
             self._static_ir_cache = StaticAssignProgram(self._static_params).emit(
                 program
             )
             return self._static_ir_cache
         else:
-            program = self.compile_program(**self._static_params)
+            program = self.compile_program()
             return StaticAssignProgram(self._static_params).emit(program)
 
     def _compile_batch(self, *args):
         from ...codegen.common.static_assign import StaticAssignProgram
 
-        if self._cache and self._batch_ir_cache:
+        if self._cache_compiled_programs and self._batch_ir_cache:
             return self._batch_ir_cache
 
-        if self._cache:
+        if self._cache_compiled_programs:
             for mapping in self._mappings(*args):
                 self._batch_ir_cache.append(
                     (
@@ -98,16 +89,14 @@ class Backend(Builder, CompileProgram):
                         StaticAssignProgram(mapping).emit(self._static_ir_cache()),
                     )
                 )
-        else:
-            self._static_ir_cache = (
-                (mapping, StaticAssignProgram(mapping).emit(self._static_ir_cache()))
-                for mapping in self._mappings(*args)
-            )
+            return self._batch_ir_cache
 
-        return self._batch_ir_cache
+        return (
+            (mapping, StaticAssignProgram(mapping).emit(self._static_ir_cache()))
+            for mapping in self._mappings(*args)
+        )
 
     def _compile_ir(self, *args: Tuple[numbers.Real, ...]):
-        self._compile_builder()
         self._compile_static()
         return self._compile_batch(*args)
 
