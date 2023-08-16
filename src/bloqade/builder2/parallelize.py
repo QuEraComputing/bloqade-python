@@ -1,6 +1,6 @@
 from typing import Optional, Any
 from .base import Builder
-from .backend import SubmitBackendRoute, FlattenedBackendRoute
+from .backend import BackendRoute
 from .compile.trait import CompileProgram
 
 
@@ -18,10 +18,10 @@ class ParallelizeBase(Builder):
 
 # If parallize before calling flatten restrict the API to only use the
 # SubmitBackendRoute
-class Parallelize(ParallelizeBase, SubmitBackendRoute, CompileProgram):
+class Parallelize(ParallelizeBase, BackendRoute, CompileProgram):
     pass
 
 
 # else use this after flatten restrict the API to only use the FlattenedBackendRoute
-class ParallelizeFlatten(ParallelizeBase, FlattenedBackendRoute, CompileProgram):
+class ParallelizeFlatten(ParallelizeBase, BackendRoute, CompileProgram):
     pass
