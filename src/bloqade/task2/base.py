@@ -1,16 +1,11 @@
 from collections import OrderedDict
-from itertools import product
+
 import json
 from typing import List, TextIO, Type, TypeVar, Union, Dict, Optional, Tuple
 from numbers import Number
 
-import traceback
-import datetime
-import sys
-import os
 from pydantic import BaseModel
 from bloqade.submission.ir.task_results import (
-    QuEraShotStatusCode,
     QuEraTaskResults,
     QuEraTaskStatusCode,
 )
@@ -18,7 +13,6 @@ from numpy.typing import NDArray
 import pandas as pd
 import numpy as np
 from dataclasses import dataclass
-from bloqade.submission.base import ValidationError
 from bloqade.submission.ir.parallel import ParallelDecoder
 
 
@@ -60,10 +54,7 @@ class JSONInterface(BaseModel):
         return cls(**params)
 
 
-@dataclass
 class Task:
-    task_id: str
-
     def _geometry(self) -> Geometry:
         raise NotImplementedError(
             f"{self.__class__.__name__}._geometry() not implemented"
@@ -82,6 +73,13 @@ class Task:
     def geometry(self) -> Geometry:
         return self._geometry()
 
+
+class RemoteTask(Task):
+    task_id: str
+
+    def __init__(self, task_id: str):
+        self.task_id = task_id
+
     def validate(self) -> None:
         raise NotImplementedError
 
@@ -95,6 +93,9 @@ class Task:
     def status(self) -> QuEraTaskStatusCode:
         raise NotImplementedError
 
+    def pull(self) -> None:
+        raise NotImplementedError
+
     def cancel(self) -> None:
         # this method cancels the task
         raise NotImplementedError
@@ -102,201 +103,18 @@ class Task:
     def submit(self, force: bool):
         raise NotImplementedError
 
+    def _result_exists(self) -> bool:
+        raise NotImplementedError
 
-# this class get collection of tasks
-# basically behaves as a psudo queuing system
-# the user only need to store this objecet
-class Batch:
-    tasks: OrderedDict[int, Task]
-    name: Optional[str] = None
 
-    class SubmissionException(Exception):
-        pass
+class LocalTask(Task):
+    def result(self):
+        # need a new results type
+        # for emulator jobs
+        raise NotImplementedError
 
-    def cancel(self) -> None:
-        for task in self.tasks.values():
-            task.cancel()
-
-    def fetch(self) -> None:
-        # [TODO]
-        for task in self.tasks.values():
-            task.fetch()
-
-    def __repr__(self):
-        return str(self.tasks_metric())
-
-    def tasks_metric(self):
-        # [TODO] more info on current status
-        tid = []
-        data = []
-        for int, task in self.tasks.items():
-            tid.append(int)
-
-            dat = [None, None]
-            dat[1] = task.task_id
-            if task.task_id is not None:
-                dat[2] = task.result().task_status.name
-            data.append(dat)
-
-        return pd.DataFrame(data, index=tid, columns=["status", "task ID"])
-
-    def remove_invalid_tasks(self):
-        new_tasks = OrderedDict()
-        for task_number, task in self.tasks.items():
-            try:
-                task.validate()
-                new_tasks[task_number] = task
-            except ValidationError:
-                continue
-
-        return Batch(new_tasks, name=self.name)
-
-    def resubmit(self, shuffle_submit_order: bool = True):
-        if shuffle_submit_order:
-            submission_order = np.random.permutation(list(self.tasks.keys()))
-        else:
-            submission_order = list(self.tasks.keys())
-
-        for task in self.tasks.values():
-            try:
-                task.validate()
-            except NotImplementedError:
-                break
-
-        # submit tasks in random order but store them
-        # in the original order of tasks.
-        # futures = OrderedDict()
-        errors = OrderedDict()
-        shuffled_tasks = OrderedDict()
-        for task_index in submission_order:
-            task = self.tasks[task_index]
-            shuffled_tasks[task_index] = task
-            try:
-                task.submit()
-            except BaseException as error:
-                # record the error in the error dict
-                errors[int(task_index)] = {
-                    "exception_type": error.__class__.__name__,
-                    "stack trace": traceback.format_exc(),
-                }
-        self.tasks = shuffled_tasks  # permute order using dump way
-
-        if errors:
-            time_stamp = datetime.datetime.now()
-
-            if "win" in sys.platform:
-                time_stamp = str(time_stamp).replace(":", "~")
-
-            if self.name:
-                future_file = f"{self.name}-partial-batch-future-{time_stamp}.json"
-                error_file = f"{self.name}-partial-batch-errors-{time_stamp}.json"
-            else:
-                future_file = f"partial-batch-future-{time_stamp}.json"
-                error_file = f"partial-batch-errors-{time_stamp}.json"
-
-            cwd = os.get_cwd()
-            # cloud_batch_result.save_json(future_file, indent=2)
-            # saving ?
-
-            with open(error_file, "w") as f:
-                json.dump(errors, f, indent=2)
-
-            raise Batch.SubmissionException(
-                "One or more error(s) occured during submission, please see "
-                "the following files for more information:\n"
-                f"  - {os.path.join(cwd, future_file)}\n"
-                f"  - {os.path.join(cwd, error_file)}\n"
-            )
-
-        else:
-            # TODO: think about if we should automatically save successful submissions
-            #       as well.
-            pass
-
-    def get_failed_tasks(self) -> "Batch":
-        new_task_results = OrderedDict()
-        for task_number, task in self.tasks.items():
-            if task.task_id and task.status() in [
-                QuEraTaskStatusCode.Failed,
-                QuEraTaskStatusCode.Unaccepted,
-            ]:
-                new_task_results[task_number] = task
-
-        return Batch(new_task_results, name=self.name)
-
-    def remove_failed_tasks(self) -> "Batch":
-        new_results = OrderedDict()
-        for task_number, cloud_task_result in self.task_results.items():
-            if cloud_task_result.status() in [
-                QuEraTaskStatusCode.Failed,
-                QuEraTaskStatusCode.Unaccepted,
-            ]:
-                continue
-            new_results[task_number] = cloud_task_result
-
-        return Batch(new_results, self.name)
-
-    def report(self) -> "Report":
-        ## this potentially can be specialize/disatch
-        index = []
-        data = []
-
-        for task_number, task in self.tasks.items():
-            # this check on result to make sure we don't send request
-            if not task.status() == QuEraTaskStatusCode.Completed:
-                continue
-
-            geometry = task.geometry
-            perfect_sorting = "".join(map(str, geometry.filling))
-            parallel_decoder = geometry.parallel_decoder
-
-            if parallel_decoder:
-                cluster_indices = parallel_decoder.get_cluster_indices()
-            else:
-                cluster_indices = {(0, 0): list(range(len(perfect_sorting)))}
-
-            shot_iter = filter(
-                lambda shot: shot.shot_status == QuEraShotStatusCode.Completed,
-                task.result().shot_outputs,
-            )
-
-            for shot, (cluster_coordinate, cluster_index) in product(
-                shot_iter, cluster_indices.items()
-            ):
-                pre_sequence = "".join(
-                    map(
-                        str,
-                        (shot.pre_sequence[index] for index in cluster_index),
-                    )
-                )
-
-                post_sequence = np.asarray(
-                    [shot.post_sequence[index] for index in cluster_index],
-                    dtype=np.int8,
-                )
-
-                pfc_sorting = "".join(
-                    [perfect_sorting[index] for index in cluster_index]
-                )
-
-                key = (
-                    task_number,
-                    cluster_coordinate,
-                    pfc_sorting,
-                    pre_sequence,
-                )
-
-                index.append(key)
-                data.append(post_sequence)
-
-        index = pd.MultiIndex.from_tuples(
-            index, names=["task_number", "cluster", "perfect_sorting", "pre_sequence"]
-        )
-
-        df = pd.DataFrame(data, index=index)
-        df.sort_index(axis="index")
-
-        return Report(df)
+    def rerun(self, **kwargs):
+        raise NotImplementedError
 
 
 # Report is now just a helper class for

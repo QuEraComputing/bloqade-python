@@ -1,4 +1,4 @@
-from .base import Task, JSONInterface
+from .base import LocalTask
 from bloqade.submission.braket import BraketBackend
 from bloqade.submission.ir.task_results import QuEraTaskResults
 from bloqade.submission.ir.braket import (
@@ -12,8 +12,10 @@ from braket.devices import LocalSimulator
 ## keep the old conversion for now,
 ## we will remove conversion btwn QuEraTask <-> BraketTask,
 ## and specialize/dispatching here.
-class BraketEmulatorTask(Task, JSONInterface):
-    task_ir: BraketTaskSpecification  # task_ir contain result/statevec
+
+
+class BraketEmulatorTask(LocalTask):
+    task_ir: BraketTaskSpecification
     task_result_ir: QuEraTaskResults
 
     def __init__(
@@ -22,9 +24,6 @@ class BraketEmulatorTask(Task, JSONInterface):
         backend: BraketBackend = None,
         **kwargs,
     ):
-        super().__init__(
-            task_id=None,
-        )
         self.task_ir = task_ir
         self.backend = backend
 
@@ -34,13 +33,16 @@ class BraketEmulatorTask(Task, JSONInterface):
             filling=self.task_ir.program.setup.ahs_register.filling,
         )
 
-    def submit(self, **kwargs) -> None:
+    def _run(self, **kwargs) -> None:
         aws_task = LocalSimulator("braket_ahs").run(
             self.task_ir.program, shots=self.task_ir.nshots, **kwargs
         )
         self.task_result_ir = from_braket_task_results(aws_task.result())
 
-    def result(self) -> QuEraTaskResults:
+    def rerun(self, **kwargs) -> None:
+        self._run(**kwargs)
+
+    def result(self):
         if self.task_result_ir is None:
             raise ValueError("Braket simulator job haven't submit yet.")
 

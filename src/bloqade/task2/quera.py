@@ -1,5 +1,5 @@
 from bloqade.task2.base import Geometry
-from .base import Task, JSONInterface
+from .base import RemoteTask
 from bloqade.submission.ir.task_specification import QuEraTaskSpecification
 from bloqade.submission.quera import QuEraBackend
 from typing import Optional
@@ -9,10 +9,10 @@ from bloqade.submission.ir.task_results import QuEraTaskResults, QuEraTaskStatus
 import warnings
 
 
-class QuEraTask(Task, JSONInterface):
+class QuEraTask(RemoteTask):
     task_ir: Optional[QuEraTaskSpecification]
     backend: QuEraBackend
-    task_result_ir: Optional[QuEraTaskResults]
+    task_result_ir: Optional[QuEraTaskResults] = None
     parallel_decoder: Optional[ParallelDecoder]
 
     def __init__(
@@ -23,9 +23,6 @@ class QuEraTask(Task, JSONInterface):
         parallel_decoder: Optional[ParallelDecoder] = None,
         **kwargs,
     ):
-        super().__init__(
-            task_id=task_id,
-        )
         self.task_ir = task_ir
         self.backend = backend
         self.task_id = task_id
@@ -47,19 +44,26 @@ class QuEraTask(Task, JSONInterface):
             return str(e)
 
     def fetch(self) -> None:
+        # non-blocking, pull only when its completed
+        if self.task_id is None:
+            raise ValueError("Task ID not found.")
+
+        if self.status() == QuEraTaskStatusCode.Completed:
+            self.task_result_ir = self.backend.task_results(self.task_id)
+
+    def pull(self) -> None:
+        # blocking, force pulling, even its completed
         if self.task_id is None:
             raise ValueError("Task ID not found.")
 
         self.task_result_ir = self.backend.task_results(self.task_id)
 
     def result(self) -> QuEraTaskResults:
+        # blocking, caching
         if self.task_result_ir is None:
-            self.fetch()
+            self.pull()
 
         return self.task_result_ir
-
-    def status(self) -> QuEraTaskStatusCode:
-        return self.backend.task_results(self.task_id)
 
     def cancel(self) -> None:
         if self.task_id is None:
@@ -74,6 +78,9 @@ class QuEraTask(Task, JSONInterface):
             filling=self.task_ir.lattice.filling,
             parallel_decoder=self.parallel_decoder,
         )
+
+    def _result_exists(self) -> bool:
+        return self.task_result_ir is not None
 
     # def submit_no_task_id(self) -> "HardwareTaskShotResults":
     #    return HardwareTaskShotResults(hardware_task=self)

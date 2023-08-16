@@ -1,5 +1,4 @@
-from bloqade.task2.base import Geometry
-from .base import Task, JSONInterface
+from bloqade.task2.base import Geometry, RemoteTask
 from bloqade.submission.ir.task_specification import QuEraTaskSpecification
 from bloqade.submission.braket import BraketBackend
 from typing import Optional
@@ -25,10 +24,10 @@ import warnings
 ## keep the old conversion for now,
 ## we will remove conversion btwn QuEraTask <-> BraketTask,
 ## and specialize/dispatching here.
-class BraketTask(Task, JSONInterface):
+class BraketTask(RemoteTask):
     task_ir: Optional[QuEraTaskSpecification]
     backend: BraketBackend
-    task_result_ir: Optional[QuEraTaskResults]
+    task_result_ir: Optional[QuEraTaskResults] = None
     parallel_decoder: Optional[ParallelDecoder]
 
     def __init__(
@@ -39,9 +38,6 @@ class BraketTask(Task, JSONInterface):
         parallel_decoder: Optional[ParallelDecoder] = None,
         **kwargs,
     ):
-        super().__init__(
-            task_id=task_id,
-        )
         self.task_ir = task_ir
         self.backend = backend
         self.task_id = task_id
@@ -62,14 +58,24 @@ class BraketTask(Task, JSONInterface):
             return str(e)
 
     def fetch(self) -> None:
+        # non-blocking, pull only when its completed
+        if self.task_id is None:
+            raise ValueError("Task ID not found.")
+
+        if self.status() == QuEraTaskStatusCode.Completed:
+            self.task_result_ir = self.backend.task_results(self.task_id)
+
+    def pull(self) -> None:
+        # blocking, force pulling, even its completed
         if self.task_id is None:
             raise ValueError("Task ID not found.")
 
         self.task_result_ir = self.backend.task_results(self.task_id)
 
     def result(self) -> QuEraTaskResults:
+        # blocking, caching
         if self.task_result_ir is None:
-            self.fetch()
+            self.pull()
 
         return self.task_result_ir
 
@@ -89,6 +95,9 @@ class BraketTask(Task, JSONInterface):
             filling=self.task_ir.lattice.filling,
             parallel_decoder=self.parallel_decoder,
         )
+
+    def _result_exists(self) -> bool:
+        return self.task_result_ir is not None
 
     # def submit_no_task_id(self) -> "HardwareTaskShotResults":
     #    return HardwareTaskShotResults(hardware_task=self)
