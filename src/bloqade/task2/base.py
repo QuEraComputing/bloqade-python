@@ -84,16 +84,24 @@ class RemoteTask(Task):
         raise NotImplementedError
 
     def result(self) -> QuEraTaskResults:
-        # this methods hangs until the task is completed
+        # online, Blocking
+        # waiting for remote results to finish
+        # return results
         raise NotImplementedError
 
     def fetch(self) -> None:
+        # online, non-blocking
+        # pull the result if they are complete
         raise NotImplementedError
 
     def status(self) -> QuEraTaskStatusCode:
+        # online, non-blocking
+        # probe current task status
         raise NotImplementedError
 
     def pull(self) -> None:
+        # online, blocking
+        # pull the current results
         raise NotImplementedError
 
     def cancel(self) -> None:
@@ -101,6 +109,8 @@ class RemoteTask(Task):
         raise NotImplementedError
 
     def submit(self, force: bool):
+        # online, non-blocking
+        # this method submit the task
         raise NotImplementedError
 
     def _result_exists(self) -> bool:

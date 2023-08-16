@@ -105,15 +105,19 @@ class RemoteBatch:
         pass
 
     def cancel(self) -> None:
+        # cancel all jobs
         for task in self.tasks.values():
             task.cancel()
 
     def fetch(self) -> None:
-        # online
+        # online, non-blocking
+        # pull the results only when its ready
         for task in self.tasks.values():
             task.fetch()
 
     def pull(self) -> None:
+        # online, blocking
+        # pull the results. if its not ready, hanging
         for task in self.tasks.values():
             task.pull()
 
@@ -122,6 +126,7 @@ class RemoteBatch:
 
     def tasks_metric(self):
         # [TODO] more info on current status
+        # offline, non-blocking
         tid = []
         data = []
         for int, task in self.tasks.items():
@@ -137,6 +142,7 @@ class RemoteBatch:
         return pd.DataFrame(data, index=tid, columns=["status", "task ID"])
 
     def remove_invalid_tasks(self):
+        # offline, non-blocking
         new_tasks = OrderedDict()
         for task_number, task in self.tasks.items():
             try:
@@ -148,11 +154,11 @@ class RemoteBatch:
         return RemoteBatch(new_tasks, name=self.name)
 
     def resubmit(self, shuffle_submit_order: bool = True):
-        # online
+        # online, non-blocking
         self._submit(shuffle_submit_order, force=True)
 
     def _submit(self, shuffle_submit_order: bool = True, **kwargs):
-        # online
+        # online, non-blocking
         if shuffle_submit_order:
             submission_order = np.random.permutation(list(self.tasks.keys()))
         else:

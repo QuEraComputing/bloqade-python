@@ -135,15 +135,13 @@ class RemoteBackend(Backend):
         batch.pull()  # blocking
         return batch
 
-    def submit(self, *args, shots: int = 1, name=None):
+    def submit(self, *args, shots: int = 1, name=None, shuffle=False):
         tasks = [
             self._compile_task(program, shots, **metadata)
             for metadata, program in self._compile_ir(*args)
         ]
-        ## submit each tasks
-        for t in tasks:
-            t.submit()
-
         batch = RemoteBatch(dict(zip(range(len(tasks)), tasks)), name)
+
+        batch._submit(self, shuffle_submit_order=shuffle)
 
         return batch
