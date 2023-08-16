@@ -1,6 +1,11 @@
 from bloqade.builder2.base import Builder
 from .base import LocalBackend, RemoteBackend
 from pydantic.dataclasses import dataclass
+import bloqade.ir as ir
+from bloqade.task2.braket import BraketTask
+from bloqade.task2.braket_simulator import BraketEmulatorTask
+from bloqade.submission.braket import BraketBackend
+from bloqade.submission.ir.braket import to_braket_task_ir
 from braket.analog_hamiltonian_simulator.rydberg.constants import (
     RYDBERG_INTERACTION_COEF,
 )
@@ -26,6 +31,20 @@ class Aquila(RemoteBackend):
 
     def __init__(self, parent: Builder | None = None) -> None:
         super().__init__(parent)
+
+    def _compile_task(self, bloqade_ir: ir.Program, shots: int, **metadata):
+        backend = BraketBackend()
+        from bloqade.codegen.hardware.quera import SchemaCodeGen
+
+        capabilities = backend.get_capabilities()
+        schema_compiler = SchemaCodeGen([], capabilities=capabilities)
+        task_ir = schema_compiler.emit(shots, self.program)
+        task_ir = task_ir.discretize(capabilities)
+        return BraketTask(
+            task_ir=task_ir,
+            backend=backend,
+            parallel_decoder=schema_compiler.parallel_decoder,
+        )
 
 
 @dataclass
@@ -79,3 +98,10 @@ class Simu(LocalBackend):
             max_step,
             min_step,
         )
+
+    def _compile_task(self, bloqade_ir: ir.Program, shots: int, **metadata):
+        from bloqade.codegen.hardware.quera import SchemaCodeGen
+
+        schema_compiler = SchemaCodeGen([])
+        task_ir = schema_compiler.emit(shots, self.program)
+        return BraketEmulatorTask(task_ir=to_braket_task_ir(task_ir))

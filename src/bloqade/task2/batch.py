@@ -109,9 +109,13 @@ class RemoteBatch:
             task.cancel()
 
     def fetch(self) -> None:
-        # [TODO]
+        # online
         for task in self.tasks.values():
             task.fetch()
+
+    def pull(self) -> None:
+        for task in self.tasks.values():
+            task.pull()
 
     def __repr__(self):
         return str(self.tasks_metric())

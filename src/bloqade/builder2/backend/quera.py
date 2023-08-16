@@ -1,6 +1,10 @@
 from typing import Optional
 from ..base import Builder
 from .base import RemoteBackend
+import bloqade.ir as ir
+import os
+import json
+from bloqade.task2.quera import QuEraTask
 
 
 class QuEraService(Builder):
@@ -34,8 +38,39 @@ class QuEraBackend(RemoteBackend):
         **api_configs,
     ) -> None:
         super().__init__(parent)
-        self._config_file = config_file
+        # self._config_file = config_file
+
+        if config_file is None:
+            path = os.path.dirname(__file__)
+
+            config_file = os.path.join(
+                path,
+                "..",
+                "submission",
+                "quera_api_client",
+                "config",
+                "integ_quera_api.json",
+            )
+
+        if len(api_configs) == 0:
+            with open(config_file, "r") as io:
+                api_configs.update(**json.load(io))
+
         self._api_configs = api_configs
+
+    def _compile_task(self, bloqade_ir: ir.Program, shots: int, **metadata):
+        backend = QuEraBackend(self._api_configs)
+        from bloqade.codegen.hardware.quera import SchemaCodeGen
+
+        capabilities = backend.get_capabilities()
+        schema_compiler = SchemaCodeGen([], capabilities=capabilities)
+        task_ir = schema_compiler.emit(shots, self.program)
+        task_ir = task_ir.discretize(capabilities)
+        return QuEraTask(
+            task_ir=task_ir,
+            backend=backend,
+            parallel_decoder=schema_compiler.parallel_decoder,
+        )
 
 
 class Aquila(QuEraBackend):
@@ -57,3 +92,4 @@ class Mock(RemoteBackend):
     ) -> None:
         super().__init__(parent)
         self._state_file = state_file
+        # [TODO]

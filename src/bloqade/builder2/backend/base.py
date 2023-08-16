@@ -6,7 +6,7 @@ from ... import ir
 from ..base import Builder
 from ..compile.trait import CompileProgram
 from ..compile.stream import BuilderStream, BuilderNode
-from ...task2.base import Batch
+from ...task2.batch import RemoteBatch, LocalBatch
 
 
 class Backend(Builder, CompileProgram):
@@ -124,7 +124,7 @@ class LocalBackend(Backend):
             self._compile_task(program, shots, **metadata)
             for metadata, program in self._compile_ir(*args)
         ]
-        batch = Batch(tasks)
+        batch = LocalBatch(tasks)
 
         return batch
 
@@ -132,11 +132,18 @@ class LocalBackend(Backend):
 class RemoteBackend(Backend):
     def __call__(self, *args, shots: int = 1):
         batch = self.submit()
-        batch.fetch()
+        batch.pull()  # blocking
         return batch
 
-    def submit(self, *args, shots: int = 1):
-        raise NotImplementedError(
-            "Submission backend not implemented for "
-            f"'{self.__service_name__}.{self.__device_name__}'."
-        )
+    def submit(self, *args, shots: int = 1, name=None):
+        tasks = [
+            self._compile_task(program, shots, **metadata)
+            for metadata, program in self._compile_ir(*args)
+        ]
+        ## submit each tasks
+        for t in tasks:
+            t.submit()
+
+        batch = RemoteBatch(dict(zip(range(len(tasks)), tasks)), name)
+
+        return batch
