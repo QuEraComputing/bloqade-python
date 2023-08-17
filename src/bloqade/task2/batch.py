@@ -104,22 +104,28 @@ class RemoteBatch:
     class SubmissionException(Exception):
         pass
 
-    def cancel(self) -> None:
+    def cancel(self):
         # cancel all jobs
         for task in self.tasks.values():
             task.cancel()
 
-    def fetch(self) -> None:
+        return self
+
+    def fetch(self):
         # online, non-blocking
         # pull the results only when its ready
         for task in self.tasks.values():
             task.fetch()
+
+        return self
 
     def pull(self) -> None:
         # online, blocking
         # pull the results. if its not ready, hanging
         for task in self.tasks.values():
             task.pull()
+
+        return self
 
     def __repr__(self):
         return str(self.tasks_metric())
@@ -156,6 +162,7 @@ class RemoteBatch:
     def resubmit(self, shuffle_submit_order: bool = True):
         # online, non-blocking
         self._submit(shuffle_submit_order, force=True)
+        return self
 
     def _submit(self, shuffle_submit_order: bool = True, **kwargs):
         # online, non-blocking
@@ -278,7 +285,7 @@ class RemoteBatch:
                 continue
 
             ## filter has result but is not correctly completed.
-            if not task.task_result_ir.status == QuEraTaskStatusCode.Completed:
+            if not task.task_result_ir.task_status == QuEraTaskStatusCode.Completed:
                 continue
 
             geometry = task.geometry
