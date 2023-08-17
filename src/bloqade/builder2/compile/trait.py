@@ -9,8 +9,8 @@ class CompileJSON:
 
         return json.dumps(self, cls=BuilderSerializer, **json_options)
 
-    def __repr__(self):
-        raise NotImplementedError
+    # def __repr__(self):
+    #     raise NotImplementedError
 
 
 class CompileRegister:

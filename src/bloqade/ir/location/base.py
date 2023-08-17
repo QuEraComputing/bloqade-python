@@ -280,11 +280,16 @@ class AtomArrangement(ProgramStart):
 class ParallelRegister(ProgramStart):
     """Parallel Register"""
 
+    __match_args__ = ("register", "cluster_spacing")
+
     register_locations: List[List[Scalar]]
     register_filling: List[int]
     shift_vectors: List[List[Scalar]]
 
     def __init__(self, register: AtomArrangement, cluster_spacing: Any):
+        self._register = register
+        self._cluster_spacing = cluster_spacing
+
         if register.n_atoms > 0:
             # calculate bounding box
             # of this register
