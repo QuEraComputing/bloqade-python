@@ -600,7 +600,7 @@ class SchemaCodeGen(ProgramVisitor):
                 if HyperfineLevelCoupling() in pulses:
                     raise ValueError("QuEra tasks does not support Hyperfine coupling.")
 
-                self.visit(pulses[RydbergLevelCoupling()])
+                self.visit(pulses.get(RydbergLevelCoupling(), Pulse({})))
 
             case NamedSequence(sequence, _):
                 self.visit(sequence)

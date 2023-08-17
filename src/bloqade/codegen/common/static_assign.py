@@ -209,7 +209,9 @@ class StaticAssignProgram(ProgramVisitor):
             case sequence.Append(sequences):
                 return sequence.Append(list(map(self.visit, sequences)))
             case sequence.Slice(sub_sequence, interval):
-                return sequence.Slice(self.visit(sub_sequence), interval)
+                return sequence.Slice(
+                    self.visit(sub_sequence), self.scalar_visitor.visit(interval)
+                )
             case sequence.NamedSequence(sub_sequence, name):
                 return sequence.NamedSequence(self.visit(sub_sequence), name)
 
@@ -225,7 +227,9 @@ class StaticAssignProgram(ProgramVisitor):
             case pulse.Append(pulses):
                 return pulse.Append(list(map(self.visit, pulses)))
             case pulse.Slice(sub_pulse, interval):
-                return pulse.Slice(self.visit(sub_pulse), interval)
+                return pulse.Slice(
+                    self.visit(sub_pulse), self.scalar_visitor.visit(interval)
+                )
             case pulse.NamedPulse(name, sub_pulse):
                 return pulse.NamedPulse(name, self.visit(sub_pulse))
 
