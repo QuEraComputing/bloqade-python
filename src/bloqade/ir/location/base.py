@@ -73,6 +73,7 @@ class AtomArrangement(ProgramStart):
             )  # default to standard print of internal contents
 
         pltxt.clear_figure()
+        pltxt.plot_size(80, 24)
         pltxt.canvas_color("default")
         pltxt.axes_color("default")
         pltxt.ticks_color("white")
@@ -80,9 +81,7 @@ class AtomArrangement(ProgramStart):
         pltxt.xlabel("x (um)")
         pltxt.ylabel("y (um)")
 
-        pltxt.scatter(
-            xs_filled, ys_filled, color=(100, 55, 255), label="filled", marker="dot"
-        )
+        pltxt.scatter(xs_filled, ys_filled, color=(100, 55, 255), marker="dot")
         if len(xs_vacant) > 0:
             pltxt.scatter(
                 xs_vacant, ys_vacant, color="white", label="vacant", marker="dot"

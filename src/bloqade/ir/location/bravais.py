@@ -60,6 +60,7 @@ class BoundedBravais(AtomArrangement):
                 ys.append(y)
 
         pltxt.clear_figure()
+        pltxt.plot_size(80, 24)
         pltxt.canvas_color("default")
         pltxt.axes_color("default")
         pltxt.ticks_color("white")
@@ -285,6 +286,7 @@ class Rectangular(BoundedBravais):
                     ys.append(y)
 
             pltxt.clear_figure()
+            pltxt.plot_size(80, 24)
             pltxt.canvas_color("default")
             pltxt.axes_color("default")
             pltxt.ticks_color("white")
