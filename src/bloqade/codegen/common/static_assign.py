@@ -1,3 +1,4 @@
+from bloqade.ir.location.base import AtomArrangement, ParallelRegister
 from bloqade.ir.visitor.program import ProgramVisitor
 from bloqade.ir.visitor.waveform import WaveformVisitor
 from bloqade.ir.visitor.scalar import ScalarVisitor
@@ -136,6 +137,13 @@ class StaticAssignWaveform(WaveformVisitor):
 class StaticAssignProgram(ProgramVisitor):
     def __init__(self, mapping: Dict[str, numbers.Real]):
         self.waveform_visitor = StaticAssignWaveform(mapping)
+        self.scalar_visitor = StaticAssignScalar(mapping)
+
+    def visit_parallel_register(self, ast: ParallelRegister) -> Any:
+        return super().visit_parallel_register(ast)
+
+    def visit_register(self, ast: AtomArrangement) -> Any:
+        return super().visit_register(ast)
 
     def visit_sequence(self, ast: sequence.SequenceExpr) -> sequence.SequenceExpr:
         match ast:
@@ -182,5 +190,5 @@ class StaticAssignProgram(ProgramVisitor):
     def visit_waveform(self, ast: waveform.Waveform) -> waveform.Waveform:
         return self.waveform_visitor.emit(ast)
 
-    def emit(self, ast: program.Program) -> program.Program:
+    def visit_program(self, ast: program.Program) -> program.Program:
         return program.Program(self.visit(ast.register), self.visit(ast.sequence))

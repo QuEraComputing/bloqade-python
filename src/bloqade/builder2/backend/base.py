@@ -17,8 +17,8 @@ class Backend(Builder, CompileProgram):
         from ..flatten import Flatten
 
         super().__init__(parent)
-        self._static_params = None
-        self._batch_params = None
+        self._static_params = {}
+        self._batch_params = {}
         self._static_ir_cache = None
         self._batch_ir_cache = []
         self._orders = ()
@@ -67,13 +67,13 @@ class Backend(Builder, CompileProgram):
 
         if self._cache_compiled_programs:
             program = self.compile_program()
-            self._static_ir_cache = StaticAssignProgram(self._static_params).emit(
+            self._static_ir_cache = StaticAssignProgram(self._static_params).visit(
                 program
             )
             return self._static_ir_cache
         else:
             program = self.compile_program()
-            return StaticAssignProgram(self._static_params).emit(program)
+            return StaticAssignProgram(self._static_params).visit(program)
 
     def _compile_batch(self, *args):
         from ...codegen.common.static_assign import StaticAssignProgram
@@ -86,13 +86,13 @@ class Backend(Builder, CompileProgram):
                 self._batch_ir_cache.append(
                     (
                         mapping,
-                        StaticAssignProgram(mapping).emit(self._static_ir_cache()),
+                        StaticAssignProgram(mapping).visit(self._static_ir_cache()),
                     )
                 )
             return self._batch_ir_cache
 
         return (
-            (mapping, StaticAssignProgram(mapping).emit(self._static_ir_cache()))
+            (mapping, StaticAssignProgram(mapping).visit(self._static_ir_cache()))
             for mapping in self._mappings(*args)
         )
 
