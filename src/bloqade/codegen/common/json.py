@@ -6,7 +6,6 @@ import bloqade.ir.program as program
 import bloqade.ir.control.waveform as waveform
 import bloqade.ir.scalar as scalar
 
-
 from bloqade.ir.visitor.program import ProgramVisitor
 from bloqade.ir.visitor.waveform import WaveformVisitor
 from bloqade.ir.visitor.scalar import ScalarVisitor
@@ -366,6 +365,14 @@ class ProgramSerializer(ProgramVisitor):
     def visit_waveform(self, ast: waveform.Waveform) -> Any:
         return self.waveform_serializer.visit(ast)
 
+    def visit_program(self, ast: program.Program) -> Any:
+        return {
+            "bloqade_program": {
+                "sequence": self.visit(ast.sequence),
+                "register": self.visit(ast.register),
+            }
+        }
+
 
 class BloqadeIRSerializer(json.JSONEncoder):
     def __init__(self, *args, **kwargs):
@@ -374,6 +381,7 @@ class BloqadeIRSerializer(json.JSONEncoder):
         self.waveform_serializer = WaveformSerializer()
         self.scalar_serializer = ScalarSerilaizer()
         self.bloqade_seq_types = (
+            program.Program,
             location.AtomArrangement,
             location.ParallelRegister,
             program.Program,
@@ -464,12 +472,13 @@ class BloqadeIRDeserializer:
 
     def is_bloqade_ir(self, obj: Dict[str, Any]) -> bool:
         return (
-            self.is_register_obj(obj)
-            or self.is_sequence_obj(obj)
-            or self.is_pulse_obj(obj)
-            or self.is_field_obj(obj)
+            self.is_scalar_obj(obj)
             or self.is_waveform_obj(obj)
-            or self.is_scalar_obj(obj)
+            or self.is_field_obj(obj)
+            or self.is_pulse_obj(obj)
+            or self.is_sequence_obj(obj)
+            or self.is_register_obj(obj)
+            or "bloqade_program" in obj
         )
 
     def scalar_hook(self, obj: Dict[str, Any]):
@@ -695,10 +704,10 @@ class BloqadeIRDeserializer:
             return self.sequence_hook(obj)
         elif self.is_register_obj(obj):
             return self.register_hook(obj)
-        elif "program" in obj:
+        elif "bloqade_program" in obj:
             return program.Program(
-                register=self.register_hook(obj["program"]["register"]),
-                sequence=self.sequence_hook(obj["program"]["sequence"]),
+                register=self.register_hook(obj["bloqade_program"]["register"]),
+                sequence=self.sequence_hook(obj["bloqade_program"]["sequence"]),
             )
         else:
             return obj
