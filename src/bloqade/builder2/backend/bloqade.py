@@ -19,8 +19,13 @@ class BloqadeDeviceRoute(Builder):
 class SubmitBloqadeBackend(LocalBackend):
     __service_name__ = "bloqade"
 
-    def __init__(self, solver: str, parent: Builder | None = None) -> None:
-        super().__init__(parent)
+    def __init__(
+        self,
+        solver: str,
+        cache_compiled_program: bool = False,
+        parent: Builder | None = None,
+    ) -> None:
+        super().__init__(cache_compiled_program, parent=parent)
         self._solver = solver
 
 
@@ -32,7 +37,11 @@ class BloqadeJulia(SubmitBloqadeBackend):
     __device_name__ = "julia"
 
     def __init__(
-        self, solver: str, nthreads: int = 1, parent: Builder | None = None
+        self,
+        solver: str,
+        nthreads: int = 1,
+        cache_compiled_program: bool = False,
+        parent: Builder | None = None,
     ) -> None:
-        super().__init__(solver, parent)
+        super().__init__(solver, cache_compiled_program, parent)
         self._nthreads = nthreads

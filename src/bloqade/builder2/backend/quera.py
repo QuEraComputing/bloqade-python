@@ -26,8 +26,11 @@ class QuEraDeviceRoute(Builder):
     ) -> "Gemini":
         return Gemini(nshots, config_file, self, **api_configs)
 
-    def mock(self, nshots: int, state_file: str = ".mock_state.txt") -> "Mock":
-        return Mock(nshots, state_file, self)
+    def mock(
+        self,
+        state_file: str = ".mock_state.txt",
+    ) -> "Mock":
+        return Mock(state_file, self)
 
 
 class QuEraBackend(RemoteBackend):
@@ -37,9 +40,10 @@ class QuEraBackend(RemoteBackend):
         self,
         config_file: Optional[str] = None,
         parent: Optional[Builder] = None,
+        cache_compiled_programs: bool = False,
         **api_configs,
     ) -> None:
-        super().__init__(parent)
+        super().__init__(cache_compiled_programs, parent=parent)
         # self._config_file = config_file
 
         if config_file is None:
@@ -90,9 +94,10 @@ class Mock(RemoteBackend):
     def __init__(
         self,
         state_file: str = ".mock_state.txt",
+        cache_compiled_programs: bool = False,
         parent: Builder | None = None,
     ) -> None:
-        super().__init__(parent)
+        super().__init__(cache_compiled_programs, parent=parent)
         self._state_file = state_file
 
     def _compile_task(self, bloqade_ir: ir.Program, shots: int, **metadata):
