@@ -19,10 +19,10 @@ prog = (
     .batch_assign(final_detuning=np.linspace(0, 10, 51))
 )
 
-print(repr(prog.compile_sequence()))
+# print(repr(prog.compile_sequence()))
 
 
-exit()
+# exit()
 
 # serial
 # prog.json() ## backend swichable
