@@ -16,15 +16,11 @@ class QuEraService(Builder):
 
 
 class QuEraDeviceRoute(Builder):
-    def aquila(
-        self, nshots: int, config_file: Optional[str] = None, **api_configs
-    ) -> "Aquila":
-        return Aquila(nshots, config_file, self, **api_configs)
+    def aquila(self, config_file: Optional[str] = None, **api_configs) -> "Aquila":
+        return Aquila(config_file, self, **api_configs)
 
-    def gemini(
-        self, nshots: int, config_file: Optional[str] = None, **api_configs
-    ) -> "Gemini":
-        return Gemini(nshots, config_file, self, **api_configs)
+    def gemini(self, config_file: Optional[str] = None, **api_configs) -> "Gemini":
+        return Gemini(config_file, self, **api_configs)
 
     def mock(
         self,
