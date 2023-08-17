@@ -5,6 +5,8 @@ import bloqade.ir as ir
 import os
 import json
 from bloqade.task2.quera import QuEraTask
+import bloqade.submission.quera as quera_submit
+import bloqade.submission.mock as mock_submit
 
 
 class QuEraService(Builder):
@@ -59,7 +61,7 @@ class QuEraBackend(RemoteBackend):
         self._api_configs = api_configs
 
     def _compile_task(self, bloqade_ir: ir.Program, shots: int, **metadata):
-        backend = QuEraBackend(self._api_configs)
+        backend = quera_submit.QuEraBackend(self._api_configs)
         from bloqade.codegen.hardware.quera import SchemaCodeGen
 
         capabilities = backend.get_capabilities()
@@ -87,9 +89,24 @@ class Mock(RemoteBackend):
 
     def __init__(
         self,
+        nshots: int,
         state_file: str = ".mock_state.txt",
         parent: Builder | None = None,
     ) -> None:
         super().__init__(parent)
         self._state_file = state_file
         # [TODO]
+
+    def _compile_task(self, bloqade_ir: ir.Program, shots: int, **metadata):
+        backend = mock_submit.DumbMockBackend(state_file=self._state_file)
+        from bloqade.codegen.hardware.quera import SchemaCodeGen
+
+        capabilities = backend.get_capabilities()
+        schema_compiler = SchemaCodeGen([], capabilities=capabilities)
+        task_ir = schema_compiler.emit(shots, self.program)
+        task_ir = task_ir.discretize(capabilities)
+        return QuEraTask(
+            task_ir=task_ir,
+            backend=backend,
+            parallel_decoder=schema_compiler.parallel_decoder,
+        )

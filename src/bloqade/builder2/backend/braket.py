@@ -4,7 +4,7 @@ from pydantic.dataclasses import dataclass
 import bloqade.ir as ir
 from bloqade.task2.braket import BraketTask
 from bloqade.task2.braket_simulator import BraketEmulatorTask
-from bloqade.submission.braket import BraketBackend
+import bloqade.submission.braket as braket_submit
 from bloqade.submission.ir.braket import to_braket_task_ir
 from braket.analog_hamiltonian_simulator.rydberg.constants import (
     RYDBERG_INTERACTION_COEF,
@@ -33,7 +33,7 @@ class Aquila(RemoteBackend):
         super().__init__(parent)
 
     def _compile_task(self, bloqade_ir: ir.Program, shots: int, **metadata):
-        backend = BraketBackend()
+        backend = braket_submit.BraketBackend()
         from bloqade.codegen.hardware.quera import SchemaCodeGen
 
         capabilities = backend.get_capabilities()
