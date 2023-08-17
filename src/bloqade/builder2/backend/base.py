@@ -37,8 +37,6 @@ class Backend(Builder, CompileProgram):
                 case BuilderNode(node=Flatten(orders)):
                     self._orders = orders
 
-        print(self._static_params)
-
     def _mappings(self, *args: numbers.Real):
         input_mapping = self._parse_args(*args)
 
