@@ -142,7 +142,7 @@ class StaticAssignProgram(ProgramVisitor):
 
     def visit_parallel_register(self, ast: ParallelRegister) -> Any:
         return ParallelRegister(
-            self.visit(ast._register), self.scalar_visitor.visit(ast._cluster_spacing)
+            self.visit(ast._register), self.scalar_visitor.emit(ast._cluster_spacing)
         )
 
     def visit_register(self, ast: AtomArrangement) -> Any:
@@ -153,46 +153,46 @@ class StaticAssignProgram(ProgramVisitor):
                 for loc in location_list:
                     new_loc_list.append(
                         (
-                            self.scalar_visitor.visit(loc[0]),
-                            self.scalar_visitor.visit(loc[1]),
+                            self.scalar_visitor.emit(loc[0]),
+                            self.scalar_visitor.emit(loc[1]),
                         )
                     )
 
                 return location.ListOfLocations(new_loc_list)
 
             case location.Rectangular(shape, lattice_spacing, ratio):
-                ls_x = self.scalar_visitor.visit(lattice_spacing)
-                ls_y = self.scalar_visitor.visit(ratio) * ls_x
+                ls_x = self.scalar_visitor.emit(lattice_spacing)
+                ls_y = self.scalar_visitor.emit(ratio) * ls_x
                 return location.Rectangular(shape[0], shape[1], ls_x, ls_y)
 
             case location.Square(shape, lattice_spacing):
                 return location.Square(
-                    shape[0], lattice_spacing=self.scalar_visitor.visit(lattice_spacing)
+                    shape[0], lattice_spacing=self.scalar_visitor.emit(lattice_spacing)
                 )
 
             case location.Kagome(shape, lattice_spacing):
                 return location.Kagome(
-                    shape[0], lattice_spacing=self.scalar_visitor.visit(lattice_spacing)
+                    shape[0], lattice_spacing=self.scalar_visitor.emit(lattice_spacing)
                 )
 
             case location.Chain(shape, lattice_spacing):
                 return location.Chain(
-                    shape[0], lattice_spacing=self.scalar_visitor.visit(lattice_spacing)
+                    shape[0], lattice_spacing=self.scalar_visitor.emit(lattice_spacing)
                 )
 
             case location.Triangular(shape, lattice_spacing):
                 return location.Triangular(
-                    shape[0], lattice_spacing=self.scalar_visitor.visit(lattice_spacing)
+                    shape[0], lattice_spacing=self.scalar_visitor.emit(lattice_spacing)
                 )
 
             case location.Honeycomb(shape, lattice_spacing):
                 return location.Honeycomb(
-                    shape[0], lattice_spacing=self.scalar_visitor.visit(lattice_spacing)
+                    shape[0], lattice_spacing=self.scalar_visitor.emit(lattice_spacing)
                 )
 
             case location.Lieb(shape, lattice_spacing):
                 return location.Lieb(
-                    shape[0], lattice_spacing=self.scalar_visitor.visit(lattice_spacing)
+                    shape[0], lattice_spacing=self.scalar_visitor.emit(lattice_spacing)
                 )
 
         raise NotImplementedError
@@ -210,7 +210,7 @@ class StaticAssignProgram(ProgramVisitor):
                 return sequence.Append(list(map(self.visit, sequences)))
             case sequence.Slice(sub_sequence, interval):
                 return sequence.Slice(
-                    self.visit(sub_sequence), self.scalar_visitor.visit(interval)
+                    self.visit(sub_sequence), self.scalar_visitor.emit(interval)
                 )
             case sequence.NamedSequence(sub_sequence, name):
                 return sequence.NamedSequence(self.visit(sub_sequence), name)
@@ -228,7 +228,7 @@ class StaticAssignProgram(ProgramVisitor):
                 return pulse.Append(list(map(self.visit, pulses)))
             case pulse.Slice(sub_pulse, interval):
                 return pulse.Slice(
-                    self.visit(sub_pulse), self.scalar_visitor.visit(interval)
+                    self.visit(sub_pulse), self.scalar_visitor.emit(interval)
                 )
             case pulse.NamedPulse(name, sub_pulse):
                 return pulse.NamedPulse(name, self.visit(sub_pulse))
@@ -241,7 +241,18 @@ class StaticAssignProgram(ProgramVisitor):
     def visit_spatial_modulation(
         self, ast: field.SpatialModulation
     ) -> field.SpatialModulation:
-        pass
+        match ast:
+            case field.Uniform:
+                return field.Uniform
+            case field.RunTimeVector(name):
+                return field.RunTimeVector(name)
+            case field.ScaledLocations(locations):
+                return field.ScaledLocations(
+                    {
+                        loc: self.scalar_visitor.emit(scale)
+                        for loc, scale in locations.items()
+                    }
+                )
 
     def visit_waveform(self, ast: waveform.Waveform) -> waveform.Waveform:
         return self.waveform_visitor.emit(ast)

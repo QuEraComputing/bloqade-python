@@ -24,10 +24,11 @@ class Backend(Builder, CompileProgram):
         self._orders = ()
         self._cache_compiled_programs = cache_compiled_programs
 
-        stream = BuilderStream(self)
+        stream = BuilderStream.create(self)
 
         while stream.curr is not None:
             node = stream.read_next([Assign, BatchAssign, Flatten])
+
             match node:
                 case BuilderNode(node=Assign(static_params)):
                     self._static_params = static_params
@@ -35,6 +36,8 @@ class Backend(Builder, CompileProgram):
                     self._batch_params = batch_params
                 case BuilderNode(node=Flatten(orders)):
                     self._orders = orders
+
+        print(self._static_params)
 
     def _mappings(self, *args: numbers.Real):
         input_mapping = self._parse_args(*args)
