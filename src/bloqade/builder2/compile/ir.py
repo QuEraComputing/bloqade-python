@@ -104,9 +104,12 @@ class SequenceCompiler(BuilderCompiler):
         field = pulse.fields.get(field_name, ir.Field({}))
 
         new_field = self.read_field(spatial_head)
+
         field = field.add(new_field)
+        print(sequence)
 
         while True:
+            print("transact")
             coupling_builder, field_builder, spatial_head = self.read_address()
 
             if coupling_builder is not None:
