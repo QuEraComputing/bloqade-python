@@ -155,12 +155,13 @@ class PiecewiseLinear(WaveformPrimitive):
         ), "durations and values must be the same length"
 
         super().__init__(parent)
-        self._durations = map(ir.cast, durations)
-        self._values = map(ir.cast, values)
+        self._durations = list(map(ir.cast, durations))
+        self._values = list(map(ir.cast, values))
 
     def __bloqade_ir__(self):
         iter = zip(self._values[:-1], self._values[1:], self._durations)
-        wfs = map(lambda v0, v1, t: ir.Linear(start=v0, stop=v1, duration=t), iter)
+        wfs = [ir.Linear(start=v0, stop=v1, duration=t) for v0, v1, t in iter]
+
         return reduce(lambda a, b: a.append(b), wfs)
 
 
@@ -177,12 +178,12 @@ class PiecewiseConstant(WaveformPrimitive):
             values
         ), "durations and values must be the same length"
         super().__init__(parent)
-        self._durations = map(ir.cast, durations)
-        self._values = map(ir.cast, values)
+        self._durations = list(map(ir.cast, durations))
+        self._values = list(map(ir.cast, values))
 
     def __bloqade_ir__(self):
         iter = zip(self._values, self._durations)
-        wfs = map(lambda v, t: ir.Constant(value=v, duration=t), iter)
+        wfs = [ir.Constant(value=v, duration=t) for v, t in iter]
         return reduce(lambda a, b: a.append(b), wfs)
 
 

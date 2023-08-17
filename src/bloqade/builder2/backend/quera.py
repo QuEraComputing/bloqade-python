@@ -47,7 +47,7 @@ class QuEraBackend(RemoteBackend):
 
             config_file = os.path.join(
                 path,
-                "..",
+                "../..",
                 "submission",
                 "quera_api_client",
                 "config",
