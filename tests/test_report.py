@@ -24,9 +24,10 @@ future = (
         final_detuning=10,
         rabi_amplitude_max=15,
     )
-    .mock(1000)
-    .submit()
+    .quera.mock()
+    .submit(100)
 )
+future.fetch()
 
 print(future.report().bitstrings)
 print(future.report().counts)

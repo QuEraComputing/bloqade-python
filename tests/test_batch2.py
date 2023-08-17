@@ -16,7 +16,7 @@ prog = (
         .append(Linear("rabi_amplitude_max", 0.0, "up_time"))
     )
     .assign(initial_detuning=-10, up_time=0.1, anneal_time=3.8, rabi_amplitude_max=15)
-    .batch_assign(final_detuning=np.linspace(0, 10, 51))
+    .batch_assign(final_detuning=np.linspace(0, 10, 5))
 )
 
 # print(repr(prog.compile_sequence()))

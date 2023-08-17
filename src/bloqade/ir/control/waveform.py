@@ -421,10 +421,12 @@ class PythonFn(Instruction):
             raise ValueError("Cannot have varkw")
 
         variables = list(map(var, signature.args[1:]))
-        default_variables = [
-            DefaultVariable(name, Decimal(str(value)))
-            for name, value in signature.kwonlydefaults.items()
-        ]
+        default_variables = []
+        if signature.kwonlydefaults is not None:
+            default_variables = [
+                DefaultVariable(name, Decimal(str(value)))
+                for name, value in signature.kwonlydefaults.items()
+            ]
         self.parameters = variables + default_variables
 
     def eval_decimal(self, clock_s: Decimal, **assignments) -> Decimal:
