@@ -1,5 +1,5 @@
 from pydantic.dataclasses import dataclass
-from dataclasses import InitVar, fields
+from dataclasses import fields
 from typing import List, Tuple, Generator, Optional, Any
 import numpy as np
 import itertools
@@ -204,10 +204,10 @@ class Rectangular(BoundedBravais):
 
     """
 
-    __match_args__ = ("shape", "ratio")
+    __match_args__ = ("shape", "lattice_spacing", "ratio")
     ratio: Scalar = 1.0
-    lattice_spacing_x: InitVar[Any]
-    lattice_spacing_y: InitVar[Any]
+    # lattice_spacing_x: InitVar[Any]
+    # lattice_spacing_y: InitVar[Any]
 
     def __init__(
         self,

@@ -66,7 +66,7 @@ class QuEraBackend(RemoteBackend):
 
         capabilities = backend.get_capabilities()
         schema_compiler = SchemaCodeGen([], capabilities=capabilities)
-        task_ir = schema_compiler.emit(shots, self.program)
+        task_ir = schema_compiler.emit(shots, bloqade_ir)
         task_ir = task_ir.discretize(capabilities)
         return QuEraTask(
             task_ir=task_ir,
@@ -102,7 +102,7 @@ class Mock(RemoteBackend):
 
         capabilities = backend.get_capabilities()
         schema_compiler = SchemaCodeGen([], capabilities=capabilities)
-        task_ir = schema_compiler.emit(shots, self.program)
+        task_ir = schema_compiler.emit(shots, bloqade_ir)
         task_ir = task_ir.discretize(capabilities)
         return QuEraTask(
             task_ir=task_ir,

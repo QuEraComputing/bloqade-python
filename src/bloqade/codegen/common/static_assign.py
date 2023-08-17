@@ -10,6 +10,7 @@ import bloqade.ir.control.pulse as pulse
 import bloqade.ir.control.field as field
 import bloqade.ir.control.waveform as waveform
 import bloqade.ir.scalar as scalar
+import bloqade.ir.location as location
 import numbers
 from typing import Any, Dict, Union
 from decimal import Decimal
@@ -145,15 +146,54 @@ class StaticAssignProgram(ProgramVisitor):
         )
 
     def visit_register(self, ast: AtomArrangement) -> Any:
-        # match ast:
-        #     case location.ListOfLocations(location_list):
-        #         # implement static assign on location_list
-        #         # return location.ListOfLocations(new_location_list
-        #         pass
-        #     case location.bravais.BoundedBravais(shape, lattice_spacing):
-        #         pass
-        #     case location.Rectangular(shape, ratio):
-        #         pass
+        match ast:
+            case location.ListOfLocations(location_list):
+                # implement static assign on location_list
+                new_loc_list = []
+                for loc in location_list:
+                    new_loc_list.append(
+                        (
+                            self.scalar_visitor.visit(loc[0]),
+                            self.scalar_visitor.visit(loc[1]),
+                        )
+                    )
+
+                return location.ListOfLocations(new_loc_list)
+
+            case location.Rectangular(shape, lattice_spacing, ratio):
+                ls_x = self.scalar_visitor.visit(lattice_spacing)
+                ls_y = self.scalar_visitor.visit(ratio) * ls_x
+                return location.Rectangular(shape[0], shape[1], ls_x, ls_y)
+
+            case location.Square(shape, lattice_spacing):
+                return location.Square(
+                    shape[0], lattice_spacing=self.scalar_visitor.visit(lattice_spacing)
+                )
+
+            case location.Kagome(shape, lattice_spacing):
+                return location.Kagome(
+                    shape[0], lattice_spacing=self.scalar_visitor.visit(lattice_spacing)
+                )
+
+            case location.Chain(shape, lattice_spacing):
+                return location.Chain(
+                    shape[0], lattice_spacing=self.scalar_visitor.visit(lattice_spacing)
+                )
+
+            case location.Triangular(shape, lattice_spacing):
+                return location.Triangular(
+                    shape[0], lattice_spacing=self.scalar_visitor.visit(lattice_spacing)
+                )
+
+            case location.Honeycomb(shape, lattice_spacing):
+                return location.Honeycomb(
+                    shape[0], lattice_spacing=self.scalar_visitor.visit(lattice_spacing)
+                )
+
+            case location.Lieb(shape, lattice_spacing):
+                return location.Lieb(
+                    shape[0], lattice_spacing=self.scalar_visitor.visit(lattice_spacing)
+                )
 
         raise NotImplementedError
 

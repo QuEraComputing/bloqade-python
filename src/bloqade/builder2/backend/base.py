@@ -86,18 +86,17 @@ class Backend(Builder, CompileProgram):
                 self._batch_ir_cache.append(
                     (
                         mapping,
-                        StaticAssignProgram(mapping).visit(self._static_ir_cache()),
+                        StaticAssignProgram(mapping).visit(self._compile_static()),
                     )
                 )
             return self._batch_ir_cache
 
         return (
-            (mapping, StaticAssignProgram(mapping).visit(self._static_ir_cache()))
+            (mapping, StaticAssignProgram(mapping).visit(self._compile_static()))
             for mapping in self._mappings(*args)
         )
 
     def _compile_ir(self, *args: Tuple[numbers.Real, ...]):
-        self._compile_static()
         return self._compile_batch(*args)
 
     def _compile_task(self, bloqade_ir: ir.Program, shots: int, **metadata):
