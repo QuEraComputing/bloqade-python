@@ -204,7 +204,7 @@ class Rectangular(BoundedBravais):
 
     """
 
-    __match_args__ = ("shape", "lattice_spacing_x", "lattice_spacing_y")
+    __match_args__ = ("shape", "ratio")
     ratio: Scalar = 1.0
     lattice_spacing_x: InitVar[Any]
     lattice_spacing_y: InitVar[Any]

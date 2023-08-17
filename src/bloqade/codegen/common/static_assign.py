@@ -140,10 +140,22 @@ class StaticAssignProgram(ProgramVisitor):
         self.scalar_visitor = StaticAssignScalar(mapping)
 
     def visit_parallel_register(self, ast: ParallelRegister) -> Any:
-        return super().visit_parallel_register(ast)
+        return ParallelRegister(
+            self.visit(ast._register), self.scalar_visitor.visit(ast._cluster_spacing)
+        )
 
     def visit_register(self, ast: AtomArrangement) -> Any:
-        return super().visit_register(ast)
+        # match ast:
+        #     case location.ListOfLocations(location_list):
+        #         # implement static assign on location_list
+        #         # return location.ListOfLocations(new_location_list
+        #         pass
+        #     case location.bravais.BoundedBravais(shape, lattice_spacing):
+        #         pass
+        #     case location.Rectangular(shape, ratio):
+        #         pass
+
+        raise NotImplementedError
 
     def visit_sequence(self, ast: sequence.SequenceExpr) -> sequence.SequenceExpr:
         match ast:
