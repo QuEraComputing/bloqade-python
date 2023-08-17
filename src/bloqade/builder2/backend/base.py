@@ -6,7 +6,7 @@ from ... import ir
 from ..base import Builder
 from ..compile.trait import CompileProgram
 from ..compile.stream import BuilderStream, BuilderNode
-from ...task2.base import Batch
+from ...task2.batch import RemoteBatch, LocalBatch
 
 
 class Backend(Builder, CompileProgram):
@@ -108,24 +108,29 @@ class Backend(Builder, CompileProgram):
 
 
 class LocalBackend(Backend):
-    def __call__(self, *args, shots: int = 1):
+    def __call__(self, *args, shots: int = 1, name: str = None):
         tasks = [
             self._compile_task(program, shots, **metadata)
             for metadata, program in self._compile_ir(*args)
         ]
-        batch = Batch(tasks)
+        batch = LocalBatch(tasks, name)
 
         return batch
 
 
 class RemoteBackend(Backend):
-    def __call__(self, *args, shots: int = 1):
-        batch = self.submit()
-        batch.fetch()
+    def __call__(self, *args, shots: int = 1, name: str = None, shuffle: str = False):
+        batch = self.submit(*args, shots, name, shuffle)
+        batch.pull()  # blocking
         return batch
 
-    def submit(self, *args, shots: int = 1):
-        raise NotImplementedError(
-            "Submission backend not implemented for "
-            f"'{self.__service_name__}.{self.__device_name__}'."
-        )
+    def submit(self, *args, shots: int = 1, name: str = None, shuffle: str = False):
+        tasks = [
+            self._compile_task(program, shots, **metadata)
+            for metadata, program in self._compile_ir(*args)
+        ]
+        batch = RemoteBatch(dict(zip(range(len(tasks)), tasks)), name)
+
+        batch._submit(self, shuffle_submit_order=shuffle)
+
+        return batch

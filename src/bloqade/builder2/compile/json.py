@@ -40,7 +40,7 @@ class BuilderSerializer(BloqadeIRSerializer):
         match obj:
             case braket.Aquila(parent):
                 return {"braket_aquila": {"parent": parent}}
-            case braket.Simu(parent):
+            case braket.BraketEmulator(parent):
                 return {"braket_simu": {"parent": parent}}
             case quera.Aquila(parent):
                 return {"quera_aquila": {"parent": parent}}
@@ -230,7 +230,7 @@ class BuilderDeserializer(BloqadeIRDeserializer):
         "braket_device_route": braket.BraketDeviceRoute,
         "braket_service": braket.BraketService,
         "braket_aquila": braket.Aquila,
-        "braket_simu": braket.Simu,
+        "braket_simu": braket.BraketEmulator,
         "quera_device_route": quera.QuEraDeviceRoute,
         "quera_service": quera.QuEraService,
         "quera_aquila": quera.Aquila,

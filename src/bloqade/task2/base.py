@@ -1,20 +1,29 @@
 from collections import OrderedDict
-from itertools import product
+
 import json
-from typing import List, TextIO, Type, TypeVar, Union
+from typing import List, TextIO, Type, TypeVar, Union, Dict, Optional, Tuple
+from numbers import Number
 
 from pydantic import BaseModel
 from bloqade.submission.ir.task_results import (
-    QuEraShotStatusCode,
     QuEraTaskResults,
     QuEraTaskStatusCode,
 )
 from numpy.typing import NDArray
 import pandas as pd
 import numpy as np
+from dataclasses import dataclass
+from bloqade.submission.ir.parallel import ParallelDecoder
 
 
 JSONSubType = TypeVar("JSONSubType", bound="JSONInterface")
+
+
+@dataclass(frozen=True)
+class Geometry:
+    sites: List[Tuple[float, float]]
+    filling: List[int]
+    parallel_decoder: Optional[ParallelDecoder] = None
 
 
 class JSONInterface(BaseModel):
@@ -46,114 +55,88 @@ class JSONInterface(BaseModel):
 
 
 class Task:
+    def _geometry(self) -> Geometry:
+        raise NotImplementedError(
+            f"{self.__class__.__name__}._geometry() not implemented"
+        )
+
+    # do we need>?
+    def _metadata(self) -> Dict[str, Number]:
+        return {}
+
+    # do we need>?
+    @property
+    def metadata(self) -> Dict[str, Number]:
+        return self._metadata()
+
+    @property
+    def geometry(self) -> Geometry:
+        return self._geometry()
+
+
+class RemoteTask(Task):
+    task_id: str
+
+    def __init__(self, task_id: str):
+        self.task_id = task_id
+
+    def validate(self) -> None:
+        raise NotImplementedError
+
     def result(self) -> QuEraTaskResults:
-        # this methods hangs until the task is completed
+        # online, Blocking
+        # waiting for remote results to finish
+        # return results
+        raise NotImplementedError
+
+    def fetch(self) -> None:
+        # online, non-blocking
+        # pull the result if they are complete
         raise NotImplementedError
 
     def status(self) -> QuEraTaskStatusCode:
-        # this method does not hang
+        # online, non-blocking
+        # probe current task status
+        raise NotImplementedError
+
+    def pull(self) -> None:
+        # online, blocking
+        # pull the current results
         raise NotImplementedError
 
     def cancel(self) -> None:
         # this method cancels the task
         raise NotImplementedError
 
+    def submit(self, force: bool):
+        # online, non-blocking
+        # this method submit the task
+        raise NotImplementedError
 
-class Batch:
-    tasks: OrderedDict[int, Task]
-
-    def cancel(self) -> None:
-        for task in self.tasks.values():
-            task.cancel()
-
-    def report(self) -> "Report":
-        return Report(self)
+    def _result_exists(self) -> bool:
+        raise NotImplementedError
 
 
+class LocalTask(Task):
+    def result(self):
+        # need a new results type
+        # for emulator jobs
+        raise NotImplementedError
+
+    def rerun(self, **kwargs):
+        raise NotImplementedError
+
+
+# Report is now just a helper class for
+# organize and analysis data:
+@dataclass
 class Report:
-    def __init__(self, batch: Batch) -> None:
-        self._batch = batch
-        self._dataframe = None  # df cache
+    dataframe: pd.DataFrame
+
+    def __init__(self, data) -> None:
+        self.dataframe = data  # df
         self._bitstrings = None  # bitstring cache
         self._counts = None  # counts cache
-
-    @property
-    def batch_result(self) -> Batch:
-        return self._batch
-
-    @property
-    def results(self) -> OrderedDict[int, QuEraTaskResults]:
-        return OrderedDict(
-            [
-                (task_number, task.result())
-                for task_number, task in self.batch_result.tasks.items()
-            ]
-        )
-
-    @property
-    def dataframe(self) -> pd.DataFrame:
-        if self._dataframe is not None:
-            return self._dataframe
-
-        self._dataframe = self._construct_dataframe()
-        return self._dataframe
-
-    def _construct_dataframe(self) -> pd.DataFrame:
-        index = []
-        data = []
-
-        for task_number, task_result in self.batch_result.results.items():
-            geometry = task_result.task.geometry
-            perfect_sorting = "".join(map(str, geometry.filling))
-            parallel_decoder = geometry.parallel_decoder
-
-            if parallel_decoder:
-                cluster_indices = parallel_decoder.get_cluster_indices()
-            else:
-                cluster_indices = {(0, 0): list(range(len(perfect_sorting)))}
-
-            shot_iter = filter(
-                lambda shot: shot.shot_status == QuEraShotStatusCode.Completed,
-                task_result.quera_task_result.shot_outputs,
-            )
-
-            for shot, (cluster_coordinate, cluster_index) in product(
-                shot_iter, cluster_indices.items()
-            ):
-                pre_sequence = "".join(
-                    map(
-                        str,
-                        (shot.pre_sequence[index] for index in cluster_index),
-                    )
-                )
-
-                post_sequence = np.asarray(
-                    [shot.post_sequence[index] for index in cluster_index],
-                    dtype=np.int8,
-                )
-
-                pfc_sorting = "".join(
-                    [perfect_sorting[index] for index in cluster_index]
-                )
-
-                key = (
-                    task_number,
-                    cluster_coordinate,
-                    pfc_sorting,
-                    pre_sequence,
-                )
-
-                index.append(key)
-                data.append(post_sequence)
-
-        index = pd.MultiIndex.from_tuples(
-            index, names=["task_number", "cluster", "perfect_sorting", "pre_sequence"]
-        )
-
-        df = pd.DataFrame(data, index=index)
-        df.sort_index(axis="index")
-
-        return df
 
     @property
     def markdown(self) -> str:

@@ -1,6 +1,12 @@
 from typing import Optional
 from ..base import Builder
 from .base import RemoteBackend
+import bloqade.ir as ir
+import os
+import json
+from bloqade.task2.quera import QuEraTask
+import bloqade.submission.quera as quera_submit
+import bloqade.submission.mock as mock_submit
 
 
 class QuEraService(Builder):
@@ -20,8 +26,11 @@ class QuEraDeviceRoute(Builder):
     ) -> "Gemini":
         return Gemini(nshots, config_file, self, **api_configs)
 
-    def mock(self, nshots: int, state_file: str = ".mock_state.txt") -> "Mock":
-        return Mock(nshots, state_file, self)
+    def mock(
+        self,
+        state_file: str = ".mock_state.txt",
+    ) -> "Mock":
+        return Mock(state_file, self)
 
 
 class QuEraBackend(RemoteBackend):
@@ -31,11 +40,43 @@ class QuEraBackend(RemoteBackend):
         self,
         config_file: Optional[str] = None,
         parent: Optional[Builder] = None,
+        cache_compiled_programs: bool = False,
         **api_configs,
     ) -> None:
-        super().__init__(parent)
-        self._config_file = config_file
+        super().__init__(cache_compiled_programs, parent=parent)
+        # self._config_file = config_file
+
+        if config_file is None:
+            path = os.path.dirname(__file__)
+
+            config_file = os.path.join(
+                path,
+                "..",
+                "submission",
+                "quera_api_client",
+                "config",
+                "integ_quera_api.json",
+            )
+
+        if len(api_configs) == 0:
+            with open(config_file, "r") as io:
+                api_configs.update(**json.load(io))
+
         self._api_configs = api_configs
+
+    def _compile_task(self, bloqade_ir: ir.Program, shots: int, **metadata):
+        backend = quera_submit.QuEraBackend(self._api_configs)
+        from bloqade.codegen.hardware.quera import SchemaCodeGen
+
+        capabilities = backend.get_capabilities()
+        schema_compiler = SchemaCodeGen([], capabilities=capabilities)
+        task_ir = schema_compiler.emit(shots, self.program)
+        task_ir = task_ir.discretize(capabilities)
+        return QuEraTask(
+            task_ir=task_ir,
+            backend=backend,
+            parallel_decoder=schema_compiler.parallel_decoder,
+        )
 
 
 class Aquila(QuEraBackend):
@@ -53,7 +94,22 @@ class Mock(RemoteBackend):
     def __init__(
         self,
         state_file: str = ".mock_state.txt",
+        cache_compiled_programs: bool = False,
         parent: Builder | None = None,
     ) -> None:
-        super().__init__(parent)
+        super().__init__(cache_compiled_programs, parent=parent)
         self._state_file = state_file
+
+    def _compile_task(self, bloqade_ir: ir.Program, shots: int, **metadata):
+        backend = mock_submit.DumbMockBackend(state_file=self._state_file)
+        from bloqade.codegen.hardware.quera import SchemaCodeGen
+
+        capabilities = backend.get_capabilities()
+        schema_compiler = SchemaCodeGen([], capabilities=capabilities)
+        task_ir = schema_compiler.emit(shots, self.program)
+        task_ir = task_ir.discretize(capabilities)
+        return QuEraTask(
+            task_ir=task_ir,
+            backend=backend,
+            parallel_decoder=schema_compiler.parallel_decoder,
+        )
