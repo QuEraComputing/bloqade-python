@@ -89,13 +89,11 @@ class Mock(RemoteBackend):
 
     def __init__(
         self,
-        nshots: int,
         state_file: str = ".mock_state.txt",
         parent: Builder | None = None,
     ) -> None:
         super().__init__(parent)
         self._state_file = state_file
-        # [TODO]
 
     def _compile_task(self, bloqade_ir: ir.Program, shots: int, **metadata):
         backend = mock_submit.DumbMockBackend(state_file=self._state_file)

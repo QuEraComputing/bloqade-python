@@ -119,23 +119,23 @@ class Backend(Builder, CompileProgram):
 
 
 class LocalBackend(Backend):
-    def __call__(self, *args, shots: int = 1):
+    def __call__(self, *args, shots: int = 1, name: str = None):
         tasks = [
             self._compile_task(program, shots, **metadata)
             for metadata, program in self._compile_ir(*args)
         ]
-        batch = LocalBatch(tasks)
+        batch = LocalBatch(tasks, name)
 
         return batch
 
 
 class RemoteBackend(Backend):
-    def __call__(self, *args, shots: int = 1):
-        batch = self.submit()
+    def __call__(self, *args, shots: int = 1, name: str = None, shuffle: str = False):
+        batch = self.submit(*args, shots, name, shuffle)
         batch.pull()  # blocking
         return batch
 
-    def submit(self, *args, shots: int = 1, name=None, shuffle=False):
+    def submit(self, *args, shots: int = 1, name: str = None, shuffle: str = False):
         tasks = [
             self._compile_task(program, shots, **metadata)
             for metadata, program in self._compile_ir(*args)
