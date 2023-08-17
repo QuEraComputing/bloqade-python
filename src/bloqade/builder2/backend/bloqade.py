@@ -10,10 +10,10 @@ class BloqadeService(Builder):
 
 class BloqadeDeviceRoute(Builder):
     def python(self, solver: str):
-        return BloqadePython(solver, self)
+        return BloqadePython(solver, parent=self)
 
     def julia(self, solver: str, nthreads: int = 1):
-        return BloqadeJulia(solver, nthreads, self)
+        return BloqadeJulia(solver, nthreads, parent=self)
 
 
 class SubmitBloqadeBackend(LocalBackend):

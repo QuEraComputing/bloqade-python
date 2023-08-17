@@ -17,16 +17,16 @@ class QuEraService(Builder):
 
 class QuEraDeviceRoute(Builder):
     def aquila(self, config_file: Optional[str] = None, **api_configs) -> "Aquila":
-        return Aquila(config_file, self, **api_configs)
+        return Aquila(config_file, parent=self, **api_configs)
 
     def gemini(self, config_file: Optional[str] = None, **api_configs) -> "Gemini":
-        return Gemini(config_file, self, **api_configs)
+        return Gemini(config_file, parent=self, **api_configs)
 
     def mock(
         self,
         state_file: str = ".mock_state.txt",
     ) -> "Mock":
-        return Mock(state_file, self)
+        return Mock(state_file, parent=self)
 
 
 class QuEraBackend(RemoteBackend):

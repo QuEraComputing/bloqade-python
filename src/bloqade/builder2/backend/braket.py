@@ -16,10 +16,10 @@ class BraketService(Builder):
 
 class BraketDeviceRoute(Builder):
     def aquila(self) -> "Aquila":
-        return Aquila(self)
+        return Aquila(parent=self)
 
     def local_emulator(self) -> "BraketEmulator":
-        return BraketEmulator(self)
+        return BraketEmulator(parent=self)
 
 
 class Aquila(RemoteBackend):
