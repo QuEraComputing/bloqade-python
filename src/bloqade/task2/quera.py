@@ -65,6 +65,9 @@ class QuEraTask(RemoteTask):
 
         return self.task_result_ir
 
+    def status(self) -> QuEraTaskStatusCode:
+        return self.backend.task_status(self.task_id)
+
     def cancel(self) -> None:
         if self.task_id is None:
             warnings.warn("Cannot cancel task, missing task id.")

@@ -34,4 +34,4 @@ task = prog.quera.mock()
 future = task.submit(shots=100)  ## non0-blk
 
 
-print(future.report())
+print(future.fetch().report())

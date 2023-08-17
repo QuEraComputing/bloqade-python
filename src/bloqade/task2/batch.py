@@ -133,13 +133,13 @@ class RemoteBatch:
             tid.append(int)
 
             dat = [None, None]
-            dat[1] = task.task_id
+            dat[0] = task.task_id
             if task.task_id is not None:
                 if task.task_result_ir is not None:
-                    dat[2] = task.result().task_status.name
+                    dat[1] = task.result().task_status.name
             data.append(dat)
 
-        return pd.DataFrame(data, index=tid, columns=["status", "task ID"])
+        return pd.DataFrame(data, index=tid, columns=["task ID", "status"])
 
     def remove_invalid_tasks(self):
         # offline, non-blocking
