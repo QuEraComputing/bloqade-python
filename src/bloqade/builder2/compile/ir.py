@@ -94,40 +94,29 @@ class SequenceCompiler(BuilderCompiler):
         return ir.Field({sm: wf})
 
     def compile(self) -> ir.Sequence:
-        coupling_builder, field_builder, spatial_head = self.read_address()
-
         sequence = ir.Sequence({})
-        coupling_name = coupling_builder.__bloqade_ir__()
-        field_name = field_builder.__bloqade_ir__()
-
-        pulse = sequence.pulses.get(coupling_name, ir.Pulse({}))
-        field = pulse.fields.get(field_name, ir.Field({}))
-
-        new_field = self.read_field(spatial_head)
-        field = field.add(new_field)
-
-        while True:
+        while self.stream.curr is not None:
             coupling_builder, field_builder, spatial_head = self.read_address()
 
             if coupling_builder is not None:
-                # update old pulse
-                sequence.pulses[coupling_name] = pulse
-                # create/access new pulse
+                # update to new pulse coupling
                 coupling_name = coupling_builder.__bloqade_ir__()
-                pulse = sequence.pulses.get(coupling_name, ir.Pulse({}))
 
             if field_builder is not None:
-                # update old field
-                pulse.fields[field_name] = field
-                # create/access new field
+                # update to new field coupling
                 field_name = field_builder.__bloqade_ir__()
-                field = pulse.fields.get(field_name, ir.Field({}))
 
             if spatial_head is None:
                 break
 
+            pulse = sequence.pulses.get(coupling_name, ir.Pulse({}))
+            field = pulse.fields.get(field_name, ir.Field({}))
+
             new_field = self.read_field(spatial_head)
             field = field.add(new_field)
+
+            pulse.fields[field_name] = field
+            sequence.pulses[coupling_name] = pulse
 
         return sequence
 
