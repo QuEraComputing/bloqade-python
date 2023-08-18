@@ -123,7 +123,7 @@ class LocalTask(Task):
         # for emulator jobs
         raise NotImplementedError
 
-    def rerun(self, **kwargs):
+    def run(self, **kwargs):
         raise NotImplementedError
 
 

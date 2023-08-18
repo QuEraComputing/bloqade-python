@@ -1,4 +1,4 @@
-from bloqade.ir.location.base import AtomArrangement, ParallelRegister
+from bloqade.ir.location.base import AtomArrangement, ParallelRegister, LocationInfo
 from bloqade.ir.visitor.program import ProgramVisitor
 from bloqade.ir.visitor.waveform import WaveformVisitor
 from bloqade.ir.visitor.scalar import ScalarVisitor
@@ -152,9 +152,12 @@ class StaticAssignProgram(ProgramVisitor):
                 new_loc_list = []
                 for loc in location_list:
                     new_loc_list.append(
-                        (
-                            self.scalar_visitor.emit(loc[0]),
-                            self.scalar_visitor.emit(loc[1]),
+                        LocationInfo(
+                            (
+                                self.scalar_visitor.emit(loc.position[0]),
+                                self.scalar_visitor.emit(loc.position[1]),
+                            ),
+                            loc.filling,
                         )
                     )
 

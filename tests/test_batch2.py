@@ -35,4 +35,6 @@ future = task.submit(shots=100)  ## non0-blk
 
 future.fetch()
 
+assert len(future.tasks) == 5
+
 print(future.report())

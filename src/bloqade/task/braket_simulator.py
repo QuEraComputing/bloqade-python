@@ -33,14 +33,11 @@ class BraketEmulatorTask(LocalTask):
             filling=self.task_ir.program.setup.ahs_register.filling,
         )
 
-    def _run(self, **kwargs) -> None:
+    def run(self, **kwargs) -> None:
         aws_task = LocalSimulator("braket_ahs").run(
             self.task_ir.program, shots=self.task_ir.nshots, **kwargs
         )
         self.task_result_ir = from_braket_task_results(aws_task.result())
-
-    def rerun(self, **kwargs) -> None:
-        self._run(**kwargs)
 
     def result(self):
         if self.task_result_ir is None:
