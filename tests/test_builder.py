@@ -45,7 +45,7 @@ def test_registers():
         .append(ir.Linear("final_detuning", "final_detuning", "up_time"))
     )
     prog1 = start.rydberg.detuning.uniform.apply(waveform)
-    reg = prog1.register
+    reg = prog1.compile_register()
 
     assert reg.n_atoms == 0
     assert reg.n_dims is None
@@ -60,7 +60,7 @@ def test_scale():
     )
 
     ## let Emit build ast
-    seq = prog.sequence
+    seq = prog.compile_sequence()
 
     print(type(list(seq.value.keys())[0]))
     Loc1 = list(seq.value[rydberg].value[detuning].value.keys())[0]
@@ -87,7 +87,7 @@ def test_build_ast_Scale():
     )
 
     # compile ast:
-    tmp = prog.sequence
+    tmp = prog.compile_sequence()
 
     locs = list(tmp.value[rydberg].value[detuning].value.keys())[0]
     wvfm = tmp.value[rydberg].value[detuning].value[locs]
@@ -131,7 +131,7 @@ def test_issue_107():
         ],
     )
 
-    assert prog1.sequence == prog2.sequence
+    assert prog1.compile_sequence() == prog2.compile_sequence()
 
 
 def test_issue_150():
@@ -139,7 +139,7 @@ def test_issue_150():
         0, 2, 1
     )
 
-    assert prog.sequence == ir.Sequence(
+    assert prog.compile_sequence() == ir.Sequence(
         {
             ir.rydberg: ir.Pulse(
                 {
@@ -158,7 +158,7 @@ def test_303_replicate_channel_should_add():
         .detuning.uniform.linear(0, 2, 3)
     )
 
-    assert prog.sequence == ir.Sequence(
+    assert prog.compile_sequence() == ir.Sequence(
         {
             ir.rydberg: ir.Pulse(
                 {
@@ -177,7 +177,7 @@ def test_303_replicate_channel_should_add():
         .rydberg.detuning.uniform.linear(0, 2, 3)
     )
 
-    assert prog1.sequence == prog.sequence
+    assert prog1.compile_sequence() == prog.compile_sequence()
 
 
 def test_record():
@@ -190,7 +190,7 @@ def test_record():
 
     assert type(prog) == waveform.Record
 
-    seq = prog.sequence
+    seq = prog.compile_sequence()
     assert seq.value[rydberg].value[detuning].value[
         ir.ScaledLocations({ir.Location(1): cast(1)})
     ] == ir.Record(waveform=ir.Constant(value=30, duration=0.1), var=cast("detuning"))
@@ -199,7 +199,7 @@ def test_record():
 def test_hyperfine_phase():
     prog = start.hyperfine.rabi.phase.location(1).piecewise_constant([0.1], [30])
 
-    seq = prog.sequence
+    seq = prog.compile_sequence()
 
     assert seq.value[hyperfine].value[rabi.phase].value[
         ir.ScaledLocations({ir.Location(1): cast(1)})
@@ -209,7 +209,7 @@ def test_hyperfine_phase():
 def test_hyperfine_amplitude():
     prog = start.hyperfine.rabi.amplitude.location(1).piecewise_constant([0.1], [30])
 
-    seq = prog.sequence
+    seq = prog.compile_sequence()
 
     assert seq.value[hyperfine].value[rabi.amplitude].value[
         ir.ScaledLocations({ir.Location(1): cast(1)})
@@ -220,7 +220,7 @@ def test_fatal_apply():
     prog = start.hyperfine.rabi.amplitude.location(1).piecewise_constant([0.1], [30])
 
     st = start
-    seq = prog.sequence
+    seq = prog.compile_sequence()
     st.__sequence__ = seq
 
     with pytest.raises(NotImplementedError):
