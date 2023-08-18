@@ -151,10 +151,11 @@ class StaticAssignProgram(ProgramVisitor):
                 # implement static assign on location_list
                 new_loc_list = []
                 for loc in location_list:
+                    new_pos = tuple(map(self.scalar_visitor.emit, loc.position))
                     new_loc_list.append(
-                        (
-                            self.scalar_visitor.emit(loc[0]),
-                            self.scalar_visitor.emit(loc[1]),
+                        location.base.LocationInfo(
+                            new_pos,
+                            bool(loc.filling.value),
                         )
                     )
 
