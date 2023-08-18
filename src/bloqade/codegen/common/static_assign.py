@@ -258,4 +258,23 @@ class StaticAssignProgram(ProgramVisitor):
         return self.waveform_visitor.emit(ast)
 
     def visit_program(self, ast: program.Program) -> program.Program:
-        return program.Program(self.visit(ast.register), self.visit(ast.sequence))
+        new_order = tuple([name for name in ast.order if name not in self.mapping])
+
+        new_static_params = {
+            name: value
+            for name, value in ast.static_params.items()
+            if name not in self.mapping
+        }
+
+        new_batch_params = [
+            {name: value for name, value in params.items() if name not in self.mapping}
+            for params in ast.batch_params
+        ]
+
+        return program.Program(
+            self.visit(ast.register),
+            self.visit(ast.sequence),
+            static_params=new_static_params,
+            batch_params=new_batch_params,
+            order=new_order,
+        )
