@@ -68,14 +68,8 @@ class Program:
         """
         return self._sequence
 
-    def parse_args(self, *args) -> List[Dict[str, Union[Real, List[Real]]]]:
+    def parse_args(self, *args) -> Dict[str, Union[Real, List[Real]]]:
         if len(args) != len(self.order):
             raise ValueError(f"Expected {len(self.order)} arguments, got {len(args)}.")
 
-        base_params = dict(zip(self.order, args))
-
-        params = []
-        for param in self.batch_params:
-            params.append(base_params | param)
-
-        return params
+        return dict(zip(self.order, args))
