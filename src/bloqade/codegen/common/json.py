@@ -370,6 +370,9 @@ class ProgramSerializer(ProgramVisitor):
             "bloqade_program": {
                 "sequence": self.visit(ast.sequence),
                 "register": self.visit(ast.register),
+                "static_params": ast.static_params,
+                "batch_params": ast.batch_params,
+                "order": ast.order,
             }
         }
 
@@ -708,6 +711,9 @@ class BloqadeIRDeserializer:
             return program.Program(
                 register=self.register_hook(obj["bloqade_program"]["register"]),
                 sequence=self.sequence_hook(obj["bloqade_program"]["sequence"]),
+                static_params=obj["bloqade_program"]["static_params"],
+                batch_params=obj["bloqade_program"]["batch_params"],
+                order=tuple(obj["bloqade_program"]["order"]),
             )
         else:
             return obj
