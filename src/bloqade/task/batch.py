@@ -1,7 +1,7 @@
 from collections import OrderedDict
 from itertools import product
 import json
-from typing import Union, Optional
+from typing import Union, Optional, List
 from .base import Report
 from .quera import QuEraTask
 from .braket import BraketTask
@@ -225,6 +225,27 @@ class RemoteBatch:
             # TODO: think about if we should automatically save successful submissions
             #       as well.
             pass
+
+    def get_tasks(self, status_codes: List[QuEraTaskStatusCode]) -> "RemoteBatch":
+        # offline:
+        new_task_results = OrderedDict()
+        for task_number, task in self.tasks.items():
+            if (task.task_id is not None) and (task._result_exists()):
+                if task.task_result_ir.task_status in status_codes:
+                    new_task_results[task_number] = task
+
+        return RemoteBatch(new_task_results, name=self.name)
+
+    def remove_tasks(self, status_codes: List[QuEraTaskStatusCode]) -> "RemoteBatch":
+        # offline:
+        new_results = OrderedDict()
+        for task_number, task in self.tasks.items():
+            if (task.task_id is not None) and (task._result_exists()):
+                if task.task_result_ir.task_status in status_codes:
+                    continue
+            new_results[task_number] = task
+
+        return RemoteBatch(new_results, self.name)
 
     def get_failed_tasks(self) -> "RemoteBatch":
         # offline:
