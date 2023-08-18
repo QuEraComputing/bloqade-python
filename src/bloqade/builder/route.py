@@ -1,13 +1,18 @@
-from .spatial import SpatialModulation
-from .coupling import LevelCoupling
-from .field import Rabi
 from .start import ProgramStart
-from .assign import Assign, BatchAssign
+from .coupling import LevelCoupling
+from .field import Field, Rabi
+from .pragmas import Assignable, Parallelizable, Flattenable
+from .backend import BackendRoute
+from .compile.trait import CompileSequence
 
 
-class PulseRoute(SpatialModulation, LevelCoupling, Rabi, ProgramStart):
+class PulseRoute(ProgramStart, LevelCoupling, Field, Rabi):
     pass
 
 
-class Route(PulseRoute, Assign, BatchAssign):
+class PragmaRoute(Assignable, Parallelizable, Flattenable, BackendRoute):
+    pass
+
+
+class WaveformRoute(PulseRoute, PragmaRoute, CompileSequence):
     pass

@@ -1,9 +1,9 @@
 from typing import Optional
-from bloqade.builder2.base import Builder
+from bloqade.builder.base import Builder
 from .base import LocalBackend, RemoteBackend
 import bloqade.ir as ir
-from bloqade.task2.braket import BraketTask
-from bloqade.task2.braket_simulator import BraketEmulatorTask
+from bloqade.task.braket import BraketTask
+from bloqade.task.braket_simulator import BraketEmulatorTask
 import bloqade.submission.braket as braket_submit
 from bloqade.submission.ir.braket import to_braket_task_ir
 

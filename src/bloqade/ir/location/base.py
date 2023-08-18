@@ -1,4 +1,4 @@
-from bloqade.builder2.start import ProgramStart
+from bloqade.builder.start import ProgramStart
 from bloqade.ir.scalar import Scalar, cast
 from pydantic.dataclasses import dataclass
 from typing import List, Generator, Tuple, Optional, Any, TYPE_CHECKING

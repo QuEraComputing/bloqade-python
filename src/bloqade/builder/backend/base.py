@@ -6,7 +6,7 @@ from ... import ir
 from ..base import Builder
 from ..compile.trait import CompileProgram
 from ..compile.stream import BuilderStream, BuilderNode
-from ...task2.batch import RemoteBatch, LocalBatch
+from ...task.batch import RemoteBatch, LocalBatch
 
 
 class Backend(Builder, CompileProgram):

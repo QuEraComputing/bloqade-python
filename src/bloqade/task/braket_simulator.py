@@ -1,20 +1,31 @@
-from braket.devices import LocalSimulator
-
+from .base import LocalTask
+from bloqade.submission.braket import BraketBackend
+from bloqade.submission.ir.task_results import QuEraTaskResults
 from bloqade.submission.ir.braket import (
     BraketTaskSpecification,
     from_braket_task_results,
 )
-from bloqade.submission.ir.task_results import QuEraTaskResults
-from bloqade.task.base import BatchResult, BatchTask, Geometry, Task, TaskShotResults
-from bloqade.task.cloud_base import JSONInterface
-from typing import Optional
-from concurrent.futures import ProcessPoolExecutor
-from collections import OrderedDict
-import tqdm
+from bloqade.task.base import Geometry
+from braket.devices import LocalSimulator
 
 
-class BraketEmulatorTask(JSONInterface, Task):
+## keep the old conversion for now,
+## we will remove conversion btwn QuEraTask <-> BraketTask,
+## and specialize/dispatching here.
+
+
+class BraketEmulatorTask(LocalTask):
     task_ir: BraketTaskSpecification
+    task_result_ir: QuEraTaskResults
+
+    def __init__(
+        self,
+        task_ir: BraketTaskSpecification,
+        backend: BraketBackend = None,
+        **kwargs,
+    ):
+        self.task_ir = task_ir
+        self.backend = backend
 
     def _geometry(self) -> Geometry:
         return Geometry(
@@ -22,90 +33,17 @@ class BraketEmulatorTask(JSONInterface, Task):
             filling=self.task_ir.program.setup.ahs_register.filling,
         )
 
-    def submit(self, **kwargs) -> "BraketEmulatorTaskResults":
+    def _run(self, **kwargs) -> None:
         aws_task = LocalSimulator("braket_ahs").run(
             self.task_ir.program, shots=self.task_ir.nshots, **kwargs
         )
+        self.task_result_ir = from_braket_task_results(aws_task.result())
 
-        return BraketEmulatorTaskResults(
-            braket_emulator_task=self,
-            task_results_ir=from_braket_task_results(aws_task.result()),
-        )
+    def rerun(self, **kwargs) -> None:
+        self._run(**kwargs)
 
+    def result(self):
+        if self.task_result_ir is None:
+            raise ValueError("Braket simulator job haven't submit yet.")
 
-class BraketEmulatorTaskResults(JSONInterface, TaskShotResults[BraketEmulatorTask]):
-    braket_emulator_task: BraketEmulatorTask
-    task_results_ir: QuEraTaskResults
-
-    def _task(self) -> BraketEmulatorTask:
-        return self.braket_emulator_task
-
-    def _quera_task_result(self) -> QuEraTaskResults:
-        return self.task_results_ir
-
-
-class BraketEmulatorBatchResult(JSONInterface, BatchResult[BraketEmulatorTaskResults]):
-    braket_emulator_task_results: OrderedDict[int, BraketEmulatorTaskResults]
-
-    def _task_results(self) -> OrderedDict[int, BraketEmulatorTaskResults]:
-        return self.braket_emulator_task_results
-
-
-class BraketEmulatorBatchTask(
-    JSONInterface, BatchTask[BraketEmulatorTask, BraketEmulatorBatchResult]
-):
-    """A compiled batch-tasks that can be submitted to run on
-    Amazon Braket's local simulator.
-    """
-
-    braket_emulator_tasks: OrderedDict[int, BraketEmulatorTask] = {}
-
-    def _tasks(self) -> OrderedDict[int, BraketEmulatorTask]:
-        return self.braket_emulator_tasks
-
-    def submit(
-        self,
-        multiprocessing: bool = False,
-        max_workers: Optional[int] = None,
-        progress_bar: bool = False,
-        **kwargs,
-    ) -> BraketEmulatorBatchResult:
-        """Submit the batch tasks to run on Amazon Braket's local simulator.
-
-        Args:
-            multiprocessing (bool, optional):
-                Running with multiprocess. Defaults to False.
-            max_workers (Optional[int], optional):
-                <TODO>. Defaults to None.
-            progress_bar (bool, optional):
-                Display progess bar. Defaults to False.
-
-        Returns:
-            BraketEmulatorBatchResult
-        """
-        if multiprocessing:
-            futures = OrderedDict()
-            with ProcessPoolExecutor(max_workers=max_workers) as executor:
-                for task_number, task in self.tasks.items():
-                    futures[task_number] = executor.submit(task.submit, **kwargs)
-
-            if progress_bar:
-                iterator = tqdm.tqdm(futures.items())
-            else:
-                iterator = futures.items()
-
-            task_results = OrderedDict()
-            for task_number, future in iterator:
-                task_results[task_number] = future.result()
-
-        else:
-            if progress_bar:
-                iterator = tqdm.tqdm(self.tasks.items())
-            else:
-                iterator = self.tasks.items()
-
-            task_results = OrderedDict()
-            for task_number, task in iterator:
-                task_results[task_number] = task.submit(**kwargs)
-
-        return BraketEmulatorBatchResult(braket_emulator_task_results=task_results)
+        return self.task_result_ir

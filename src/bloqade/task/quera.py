@@ -1,6 +1,7 @@
-from bloqade.task2.base import Geometry, RemoteTask
+from bloqade.task.base import Geometry
+from .base import RemoteTask
 from bloqade.submission.ir.task_specification import QuEraTaskSpecification
-from bloqade.submission.braket import BraketBackend
+from bloqade.submission.quera import QuEraBackend
 from typing import Optional
 from bloqade.submission.ir.parallel import ParallelDecoder
 from bloqade.submission.base import ValidationError
@@ -8,25 +9,9 @@ from bloqade.submission.ir.task_results import QuEraTaskResults, QuEraTaskStatus
 import warnings
 
 
-# class BraketTask(Task):
-#    def __init__(self, braket, task_specification):
-#        self.braket = braket
-#        self.task_specification = task_specification#
-#
-#    def fetch(self):
-#        raise NotImplementedError
-#
-#    @property
-#    def shots(self):
-#        return self.fetch().shots
-
-
-## keep the old conversion for now,
-## we will remove conversion btwn QuEraTask <-> BraketTask,
-## and specialize/dispatching here.
-class BraketTask(RemoteTask):
+class QuEraTask(RemoteTask):
     task_ir: Optional[QuEraTaskSpecification]
-    backend: BraketBackend
+    backend: QuEraBackend
     task_result_ir: Optional[QuEraTaskResults] = None
     parallel_decoder: Optional[ParallelDecoder]
 
@@ -34,7 +19,7 @@ class BraketTask(RemoteTask):
         self,
         task_ir: QuEraTaskSpecification,
         task_id: str = None,
-        backend: BraketBackend = None,
+        backend: QuEraBackend = None,
         parallel_decoder: Optional[ParallelDecoder] = None,
         **kwargs,
     ):
@@ -49,6 +34,7 @@ class BraketTask(RemoteTask):
                 raise ValueError(
                     "the task is already submitted with %s" % (self.task_id)
                 )
+
         self.task_id = self.backend.submit_task(self.task_ir)
 
     def validate(self) -> str:
@@ -101,3 +87,8 @@ class BraketTask(RemoteTask):
 
     # def submit_no_task_id(self) -> "HardwareTaskShotResults":
     #    return HardwareTaskShotResults(hardware_task=self)
+
+
+# class QuEraBatch(Batch, JSONInterface):
+#    #futures: List[QuEraTask]
+#    pass
