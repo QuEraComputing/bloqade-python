@@ -19,6 +19,7 @@ class Parser:
         from .stream import BuilderStream
 
         self.stream = BuilderStream.create(ast)
+        self.vector_node_names = []
 
     def read_address(self) -> Tuple[LevelCoupling, Field, BuilderNode]:
         spatial = self.stream.eat([Location, Uniform, Var], [Scale])
@@ -80,6 +81,7 @@ class Parser:
                     spatial_modulation = ir.Uniform
                 case Var(name, _):
                     spatial_modulation = ir.RunTimeVector(name)
+                    self.vector_node_names.append(name)
                 case _:
                     break
             curr = curr.next
@@ -168,7 +170,28 @@ class Parser:
         if flatten_pragma is None:
             return ()
         else:
-            return flatten_pragma.node._order
+            order = flatten_pragma.node._order
+
+            seen = set()
+            dup = []
+            for x in order:
+                if x not in seen:
+                    seen.add(x)
+                else:
+                    dup.append(x)
+
+            if dup:
+                raise ValueError(f"Cannot flatten duplicate names {dup}.")
+
+            order_names = set([*order])
+            flattened_vector_names = order_names.intersection(order_names)
+
+            if flattened_vector_names:
+                raise ValueError(
+                    f"Cannot flatten RunTimeVectors: {flattened_vector_names}."
+                )
+
+            return order
 
     def parse(self):
         register = self.read_register()
