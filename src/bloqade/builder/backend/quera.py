@@ -4,7 +4,7 @@ from .base import RemoteBackend
 import bloqade.ir as ir
 import os
 import json
-from bloqade.task2.quera import QuEraTask
+from bloqade.task.quera import QuEraTask
 import bloqade.submission.quera as quera_submit
 import bloqade.submission.mock as mock_submit
 
@@ -47,7 +47,7 @@ class QuEraBackend(RemoteBackend):
 
             config_file = os.path.join(
                 path,
-                "..",
+                "../..",
                 "submission",
                 "quera_api_client",
                 "config",

@@ -32,14 +32,6 @@ class LocalBatch:
         data = []
 
         for task_number, task in self.tasks.items():
-            ## fliter not existing results tasks:
-            if (task.task_id is None) or (not task._result_exists()):
-                continue
-
-            ## filter has result but is not correctly completed.
-            if not task.task_result_ir.status == QuEraTaskStatusCode.Completed:
-                continue
-
             geometry = task.geometry
             perfect_sorting = "".join(map(str, geometry.filling))
             parallel_decoder = geometry.parallel_decoder
@@ -91,6 +83,13 @@ class LocalBatch:
         df.sort_index(axis="index")
 
         return Report(df)
+
+    def rerun(self, **kwargs):
+        self._run(**kwargs)
+
+    def _run(self, **kwargs):
+        for _, task in self.tasks.items():
+            task.run(**kwargs)
 
 
 # this class get collection of tasks

@@ -11,10 +11,10 @@ import pytest
 wv_linear = Linear(start=0, stop=4, duration=0.1)
 reg = Square(3)
 prog = reg.rydberg.detuning.uniform.piecewise_constant([0.1], [0.1]).parallelize(10.0)
-para_reg = prog.register
-seq = prog.sequence
+para_reg = prog.compile_register()
+seq = prog.compile_sequence()
 prog2 = start.rydberg.detuning.location(1).scale(2).piecewise_constant([0.1], [0.1])
-seq2 = prog2.sequence
+seq2 = prog2.compile_sequence()
 
 
 def test_base_program_visitor():
@@ -37,16 +37,16 @@ def test_base_program_visitor():
         pvis.visit(seq)
 
     # pulse:
-    pulse = seq.value[rydberg]
+    pulse = seq.pulses[rydberg]
     with pytest.raises(NotImplementedError):
         pvis.visit(pulse)
 
     # field:
-    field = seq.value[rydberg].value[detuning]
+    field = seq.pulses[rydberg].fields[detuning]
     with pytest.raises(NotImplementedError):
         pvis.visit(field)
 
     # SpacialModu
-    scaled_loc = list(seq2.value[rydberg].value[Detuning()].value.keys())[0]
+    scaled_loc = list(seq2.pulses[rydberg].fields[Detuning()].value.keys())[0]
     with pytest.raises(NotImplementedError):
         pvis.visit(scaled_loc)

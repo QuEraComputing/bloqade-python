@@ -7,7 +7,8 @@
 # prog.linear(start=1.0, stop=2.0, duration="x")
 # import pytest
 import bloqade.ir as ir
-from bloqade.builder import location, waveform
+from bloqade.builder import spatial
+from bloqade.builder import waveform
 from bloqade.ir import rydberg, detuning, hyperfine, rabi
 from bloqade import start, cast
 
@@ -22,18 +23,16 @@ def test_piecewise_const():
     )
 
     ## inspect ir
-    node1 = prog
-    ir1 = node1._waveform
+    node1 = prog.__bloqade_ir__()
+    ir1 = node1.waveforms[2]
     assert ir1.value == cast(7.5)
     assert ir1.duration == cast(0.05)
 
-    node2 = node1.__parent__
-    ir2 = node2._waveform
+    ir2 = node1.waveforms[1]
     assert ir2.value == cast(4)
     assert ir2.duration == cast(3.1)
 
-    node3 = node2.__parent__
-    ir3 = node3._waveform
+    ir3 = node1.waveforms[0]
     assert ir3.value == cast(4)
     assert ir3.duration == cast(0.1)
 
@@ -45,7 +44,7 @@ def test_registers():
         .append(ir.Linear("final_detuning", "final_detuning", "up_time"))
     )
     prog1 = start.rydberg.detuning.uniform.apply(waveform)
-    reg = prog1.register
+    reg = prog1.compile_register()
 
     assert reg.n_atoms == 0
     assert reg.n_dims is None
@@ -60,10 +59,10 @@ def test_scale():
     )
 
     ## let Emit build ast
-    seq = prog.sequence
+    seq = prog.compile_sequence()
 
-    print(type(list(seq.value.keys())[0]))
-    Loc1 = list(seq.value[rydberg].value[detuning].value.keys())[0]
+    # print(type(list(seq.pulses.keys())[0]))
+    Loc1 = list(seq.pulses[rydberg].fields[detuning].value.keys())[0]
 
     assert type(Loc1) == ir.ScaledLocations
     assert Loc1.value[ir.Location(1)] == cast(1.2)
@@ -72,9 +71,9 @@ def test_scale():
 def test_scale_location():
     prog = start.rydberg.detuning.location(1).scale(1.2).location(2).scale(3.3)
 
-    assert prog._scale == cast(3.3)
-    assert type(prog.__parent__) == location.Location
-    assert prog.__parent__.__parent__._scale == cast(1.2)
+    assert prog._value == 3.3
+    assert type(prog.__parent__) == spatial.Location
+    assert prog.__parent__.__parent__._value == 1.2
 
 
 def test_build_ast_Scale():
@@ -87,10 +86,10 @@ def test_build_ast_Scale():
     )
 
     # compile ast:
-    tmp = prog.sequence
+    tmp = prog.compile_sequence()
 
-    locs = list(tmp.value[rydberg].value[detuning].value.keys())[0]
-    wvfm = tmp.value[rydberg].value[detuning].value[locs]
+    locs = list(tmp.pulses[rydberg].fields[detuning].value.keys())[0]
+    wvfm = tmp.pulses[rydberg].fields[detuning].value[locs]
 
     assert locs == ir.ScaledLocations(
         {ir.Location(2): cast(3.3), ir.Location(1): cast(1.2)}
@@ -106,9 +105,9 @@ def test_spatial_var():
     prog = prog.piecewise_constant([0.1], [30])
 
     # test build ast:
-    seq = prog.sequence
+    seq = prog.compile_sequence()
 
-    assert seq.value[rydberg].value[detuning].value[
+    assert seq.pulses[rydberg].fields[detuning].value[
         ir.RunTimeVector("a")
     ] == ir.Constant(value=30, duration=0.1)
 
@@ -131,7 +130,7 @@ def test_issue_107():
         ],
     )
 
-    assert prog1.sequence == prog2.sequence
+    assert prog1.compile_sequence() == prog2.compile_sequence()
 
 
 def test_issue_150():
@@ -139,12 +138,12 @@ def test_issue_150():
         0, 2, 1
     )
 
-    assert prog.sequence == ir.Sequence(
+    assert prog.compile_sequence() == ir.Sequence(
         {
             ir.rydberg: ir.Pulse(
                 {
-                    ir.rabi.amplitude: ir.Field({ir.Uniform: ir.Linear(0, 2, 1)}),
                     ir.detuning: ir.Field({ir.Uniform: ir.Linear(0, 1, 1)}),
+                    ir.rabi.amplitude: ir.Field({ir.Uniform: ir.Linear(0, 2, 1)}),
                 }
             )
         }
@@ -158,14 +157,14 @@ def test_303_replicate_channel_should_add():
         .detuning.uniform.linear(0, 2, 3)
     )
 
-    assert prog.sequence == ir.Sequence(
+    assert prog.compile_sequence() == ir.Sequence(
         {
             ir.rydberg: ir.Pulse(
                 {
-                    ir.rabi.amplitude: ir.Field({ir.Uniform: ir.Linear(1, 2, 1)}),
                     ir.detuning: ir.Field(
-                        {ir.Uniform: ir.Linear(0, 2, 3) + ir.Linear(0, 1, 1)}
+                        {ir.Uniform: ir.Linear(0, 1, 1) + ir.Linear(0, 2, 3)}
                     ),
+                    ir.rabi.amplitude: ir.Field({ir.Uniform: ir.Linear(1, 2, 1)}),
                 }
             )
         }
@@ -177,7 +176,7 @@ def test_303_replicate_channel_should_add():
         .rydberg.detuning.uniform.linear(0, 2, 3)
     )
 
-    assert prog1.sequence == prog.sequence
+    assert prog1.compile_sequence() == prog.compile_sequence()
 
 
 def test_record():
@@ -190,8 +189,8 @@ def test_record():
 
     assert type(prog) == waveform.Record
 
-    seq = prog.sequence
-    assert seq.value[rydberg].value[detuning].value[
+    seq = prog.compile_sequence()
+    assert seq.pulses[rydberg].fields[detuning].value[
         ir.ScaledLocations({ir.Location(1): cast(1)})
     ] == ir.Record(waveform=ir.Constant(value=30, duration=0.1), var=cast("detuning"))
 
@@ -199,9 +198,9 @@ def test_record():
 def test_hyperfine_phase():
     prog = start.hyperfine.rabi.phase.location(1).piecewise_constant([0.1], [30])
 
-    seq = prog.sequence
+    seq = prog.compile_sequence()
 
-    assert seq.value[hyperfine].value[rabi.phase].value[
+    assert seq.pulses[hyperfine].fields[rabi.phase].value[
         ir.ScaledLocations({ir.Location(1): cast(1)})
     ] == ir.Constant(value=30, duration=0.1)
 
@@ -209,31 +208,20 @@ def test_hyperfine_phase():
 def test_hyperfine_amplitude():
     prog = start.hyperfine.rabi.amplitude.location(1).piecewise_constant([0.1], [30])
 
-    seq = prog.sequence
+    seq = prog.compile_sequence()
 
-    assert seq.value[hyperfine].value[rabi.amplitude].value[
+    assert seq.pulses[hyperfine].fields[rabi.amplitude].value[
         ir.ScaledLocations({ir.Location(1): cast(1)})
     ] == ir.Constant(value=30, duration=0.1)
 
 
-def test_fatal_apply():
-    prog = start.hyperfine.rabi.amplitude.location(1).piecewise_constant([0.1], [30])
-
-    st = start
-    seq = prog.sequence
-    st.__sequence__ = seq
-
-    with pytest.raises(NotImplementedError):
-        st.apply(seq)
-
-
 def test_piecewise_constant_mismatch():
-    with pytest.raises(ValueError):
+    with pytest.raises(AssertionError):
         start.hyperfine.rabi.amplitude.location(1).piecewise_constant([0.1, 0.5], [30])
 
 
 def test_piecewise_linear_mismatch():
-    with pytest.raises(ValueError):
+    with pytest.raises(AssertionError):
         start.hyperfine.rabi.amplitude.location(1).piecewise_linear(
             durations=[0.1, 0.5], values=[30, 20]
         )

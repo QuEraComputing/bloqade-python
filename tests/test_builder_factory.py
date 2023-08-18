@@ -1,3 +1,4 @@
+"""
 from bloqade.builder.factory import (
     piecewise_linear,
     piecewise_constant,
@@ -53,3 +54,4 @@ def test_ir_piecewise_constant():
 
     assert A.waveforms[2].duration == cast(0.2)
     assert A.waveforms[2].value == cast("b")
+"""

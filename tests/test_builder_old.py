@@ -10,7 +10,7 @@ seq = (
     .linear(start=1.0, stop=2.0, duration="x")
     .constant(1.0, 3.0)
     .uniform.linear(start=1.0, stop=2.0, duration="x")
-    .sequence
+    .compile_sequence()
 )
 
 seq = (
@@ -19,7 +19,7 @@ seq = (
     )
     .location(1)
     .linear(start=1.0, stop=2.0, duration="x")
-    .sequence
+    .compile_sequence()
 )
 
 # print(seq.seq)

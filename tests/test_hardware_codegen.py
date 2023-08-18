@@ -44,7 +44,8 @@ def test_integration_jump_err():
                 final_detuning=15,
                 anneal_time=10,
             )
-            .mock(10)
+            .quera.mock()
+            ._compile_ir()
         )
 
 

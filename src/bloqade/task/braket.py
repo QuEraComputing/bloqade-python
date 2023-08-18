@@ -1,4 +1,4 @@
-from bloqade.task2.base import Geometry, RemoteTask
+from bloqade.task.base import Geometry, RemoteTask
 from bloqade.submission.ir.task_specification import QuEraTaskSpecification
 from bloqade.submission.braket import BraketBackend
 from typing import Optional
