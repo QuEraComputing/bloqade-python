@@ -2,6 +2,7 @@ from typing import Union, Optional, TYPE_CHECKING
 from .waveform import WaveformAttachable
 from .base import Builder
 from ..ir import Scalar
+from numbers import Real
 
 if TYPE_CHECKING:
     from bloqade.ir.control.field import UniformModulation
@@ -41,9 +42,12 @@ class Scale(WaveformAttachable):
     __match_args__ = ("_value", "__parent__")
 
     def __init__(self, value: ScalarType, parent: Optional[Builder] = None) -> None:
-        assert isinstance(value, (float, str, Scalar))
+        assert isinstance(value, (Real, str, Scalar))
         super().__init__(parent)
         self._value = value
+
+    def location(self, label: int) -> "Location":
+        return Location(label, self)
 
 
 class Var(SpatialModulation):

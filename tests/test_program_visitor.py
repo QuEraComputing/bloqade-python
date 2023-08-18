@@ -37,16 +37,16 @@ def test_base_program_visitor():
         pvis.visit(seq)
 
     # pulse:
-    pulse = seq.value[rydberg]
+    pulse = seq.pulses[rydberg]
     with pytest.raises(NotImplementedError):
         pvis.visit(pulse)
 
     # field:
-    field = seq.value[rydberg].value[detuning]
+    field = seq.pulses[rydberg].fields[detuning]
     with pytest.raises(NotImplementedError):
         pvis.visit(field)
 
     # SpacialModu
-    scaled_loc = list(seq2.value[rydberg].value[Detuning()].value.keys())[0]
+    scaled_loc = list(seq2.pulses[rydberg].fields[Detuning()].value.keys())[0]
     with pytest.raises(NotImplementedError):
         pvis.visit(scaled_loc)

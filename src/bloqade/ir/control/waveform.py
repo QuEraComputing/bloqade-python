@@ -127,8 +127,8 @@ class Waveform:
     def __getitem__(self, s: slice) -> "Waveform":
         return self.canonicalize(Slice(self, Interval.from_slice(s)))
 
-    def record(self, variable_name: str):
-        return Record(self, Variable(variable_name))
+    def record(self, variable_name: Union[str, Variable]):
+        return Record(self, cast(variable_name))
 
     @property
     def duration(self) -> Scalar:
