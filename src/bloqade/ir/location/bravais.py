@@ -6,6 +6,7 @@ import itertools
 from numpy.typing import NDArray
 from bloqade.ir.location.base import AtomArrangement, LocationInfo
 from bloqade.ir import Scalar, cast
+from dataclasses import InitVar
 
 
 class Cell:
@@ -206,8 +207,8 @@ class Rectangular(BoundedBravais):
 
     __match_args__ = ("shape", "lattice_spacing", "ratio")
     ratio: Scalar = 1.0
-    # lattice_spacing_x: InitVar[Any]
-    # lattice_spacing_y: InitVar[Any]
+    lattice_spacing_x: InitVar[Any]
+    lattice_spacing_y: InitVar[Any]
 
     def __init__(
         self,
@@ -216,12 +217,12 @@ class Rectangular(BoundedBravais):
         lattice_spacing_x: Any = 1.0,
         lattice_spacing_y: Optional[Any] = None,
     ):
+        super().__init__(width, height, lattice_spacing=lattice_spacing_x)
+
         if lattice_spacing_y is None:
             self.ratio = cast(1.0) / cast(lattice_spacing_x)
         else:
             self.ratio = cast(lattice_spacing_y) / cast(lattice_spacing_x)
-
-        super().__init__(width, height, lattice_spacing=lattice_spacing_x)
 
     def cell_vectors(self) -> List[List[float]]:
         return [[1, 0], [0, self.ratio]]

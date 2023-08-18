@@ -17,7 +17,7 @@ def test_location():
     loc = Location(3)
 
     assert str(loc) == "Location(3)"
-    assert loc.print_node() == "Location 3"
+    assert loc.print_node() == "Location(3)"
     assert loc.children() == []
 
 
@@ -65,7 +65,7 @@ def test_scal_loc():
         ScaledLocations({(2, 3): 2})
 
     assert x.print_node() == "ScaledLocations({'1': 1.0, '2': 2.0})"
-    assert x.children() == {"Location 1": cast(1.0), "Location 2": cast(2.0)}
+    assert x.children() == {"Location(1)": cast(1.0), "Location(2)": cast(2.0)}
 
     mystdout = StringIO()
     p = PP(mystdout)
@@ -75,10 +75,10 @@ def test_scal_loc():
     assert (
         mystdout.getvalue()
         == "ScaledLocations({'1': 1.0, '2': 2.0})\n"
-        + "├─ Location 1\n"
+        + "├─ Location(1)\n"
         + "│  ⇒ Literal: 1.0\n"
         + "⋮\n"
-        + "└─ Location 2\n"
+        + "└─ Location(2)\n"
         + "   ⇒ Literal: 2.0⋮\n"
     )
 
