@@ -13,20 +13,19 @@ class CompileJSON:
     #     raise NotImplementedError
 
 
-class CompileRegister:
+class ParseRegister:
     def compile_register(self) -> Union["ir.AtomArrangement", "ir.ParallelRegister"]:
-        from .ir import RegisterCompiler
+        from .ir import Parser
 
-        return RegisterCompiler(self).compile()
-
-
-class CompileSequence:
-    def compile_sequence(self):
-        from .ir import SequenceCompiler
-
-        return SequenceCompiler(self).compile()
+        return Parser(self).read_register()
 
 
-class CompileProgram(CompileRegister, CompileSequence):
-    def compile_program(self) -> ir.Program:
-        return ir.Program(self.compile_register(), self.compile_sequence())
+class ParseSequence:
+    def compile_sequence(self) -> ir.Sequence:
+        from .ir import Parser
+
+        return Parser(self).read_sequeence()
+
+
+class Parse(ParseRegister, ParseSequence):
+    pass

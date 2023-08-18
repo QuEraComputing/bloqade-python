@@ -3,7 +3,7 @@ from .coupling import LevelCoupling
 from .field import Field, Rabi
 from .pragmas import Assignable, Parallelizable, Flattenable
 from .backend import BackendRoute
-from .compile.trait import CompileSequence
+from .compile.trait import ParseSequence
 
 
 class PulseRoute(ProgramStart, LevelCoupling, Field, Rabi):
@@ -14,5 +14,5 @@ class PragmaRoute(Assignable, Parallelizable, Flattenable, BackendRoute):
     pass
 
 
-class WaveformRoute(PulseRoute, PragmaRoute, CompileSequence):
+class WaveformRoute(PulseRoute, PragmaRoute, ParseSequence):
     pass

@@ -1,4 +1,3 @@
-from typing import Tuple, Union
 import bloqade.ir as ir
 
 from ..base import Builder
@@ -10,15 +9,17 @@ from ..parallelize import Parallelize, ParallelizeFlatten
 
 from .stream import BuilderNode
 
+from itertools import repeat
+from typing import List, Tuple, Union, Dict
+import numbers
 
-class BuilderCompiler:
+
+class Parser:
     def __init__(self, ast: Builder) -> None:
         from .stream import BuilderStream
 
         self.stream = BuilderStream.create(ast)
 
-
-class SequenceCompiler(BuilderCompiler):
     def read_address(self) -> Tuple[LevelCoupling, Field, BuilderNode]:
         spatial = self.stream.eat([Location, Uniform, Var], [Scale])
         curr = spatial
@@ -93,7 +94,7 @@ class SequenceCompiler(BuilderCompiler):
         wf, _ = self.read_waveform(curr)
         return ir.Field({sm: wf})
 
-    def compile(self) -> ir.Sequence:
+    def read_sequeence(self) -> ir.Sequence:
         sequence = ir.Sequence({})
         while self.stream.curr is not None:
             coupling_builder, field_builder, spatial_head = self.read_address()
@@ -120,9 +121,7 @@ class SequenceCompiler(BuilderCompiler):
 
         return sequence
 
-
-class RegisterCompiler(BuilderCompiler):
-    def compile(self) -> Union[ir.AtomArrangement, ir.ParallelRegister]:
+    def read_register(self) -> Union[ir.AtomArrangement, ir.ParallelRegister]:
         # register is always head of the stream
         register_block = self.stream.read()
 
@@ -135,3 +134,47 @@ class RegisterCompiler(BuilderCompiler):
             return ir.ParallelRegister(register, parallel_options._cluster_spacing)
 
         return register
+
+    def read_assign(self) -> Dict[str, numbers.Real]:
+        from ..assign import Assign, BatchAssign
+        from ..flatten import Flatten
+
+        assign_pragma = self.stream.eat([Assign], [BatchAssign, Flatten])
+        if assign_pragma is None:
+            return {}
+
+        return assign_pragma.node._assignments
+
+    def read_batch_assign(self) -> List[Dict[str, numbers.Real]]:
+        from ..assign import BatchAssign
+        from ..flatten import Flatten
+
+        batch_assign_pragma = self.stream.eat([BatchAssign], [Flatten])
+
+        if batch_assign_pragma is None:
+            return [{}]
+
+        assignments = batch_assign_pragma.node._assignments
+
+        tuple_iterators = [
+            zip(repeat(name), values) for name, values in assignments.items()
+        ]
+        return list(map(dict, zip(*tuple_iterators)))
+
+    def read_flatten(self) -> Tuple[str, ...]:
+        from ..flatten import Flatten
+
+        flatten_pragma = self.stream.eat([Flatten])
+        if flatten_pragma is None:
+            return ()
+        else:
+            return flatten_pragma.node._order
+
+    def parse(self):
+        register = self.read_register()
+        sequence = self.read_sequeence()
+        static_params = self.read_assign()
+        batch_params = self.read_batch_assign()
+        order = self.read_flatten()
+
+        return ir.Program(register, sequence, static_params, batch_params, order)

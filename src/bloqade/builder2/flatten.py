@@ -5,8 +5,8 @@ from .backend import BackendRoute
 
 
 class Flatten(FlattenParallelizable, BackendRoute):
-    __match_args__ = ("_orders", "__parent__")
+    __match_args__ = ("_order", "__parent__")
 
-    def __init__(self, orders: List[str], parent: Builder | None = None) -> None:
+    def __init__(self, order: List[str], parent: Builder | None = None) -> None:
         super().__init__(parent)
-        self._orders = orders
+        self._order = tuple(order)
