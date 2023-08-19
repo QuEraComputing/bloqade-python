@@ -4,6 +4,8 @@ from ..tree_print import Printer
 
 from pydantic.dataclasses import dataclass
 from typing import List, Dict
+from bloqade.visualization.ir_visualize import get_sequence_figure
+from bokeh.io import show
 
 
 __all__ = [
@@ -76,6 +78,15 @@ class SequenceExpr:
     def _repr_pretty_(self, p, cycle):
         Printer(p).print(self, cycle)
 
+    def _get_data(self, **assignment):
+        raise NotImplementedError
+
+    def figure(self, **assignment):
+        raise NotImplementedError
+
+    def show(self, **assignment):
+        raise NotImplementedError
+
 
 @dataclass
 class Append(SequenceExpr):
@@ -131,6 +142,15 @@ class Sequence(SequenceExpr):
     def print_node(self):
         return "Sequence"
 
+    def _get_data(self, **assignments):
+        return None, self.value
+
+    def figure(self, **assignments):
+        return get_sequence_figure(self, **assignments)
+
+    def show(self, **assignments):
+        show(self.figure(**assignments))
+
 
 @dataclass
 class NamedSequence(SequenceExpr):
@@ -145,6 +165,15 @@ class NamedSequence(SequenceExpr):
 
     def print_node(self):
         return "NamedSequence"
+
+    def _get_data(self, **assignment):
+        return self.name, self.sequence.value
+
+    def figure(self, **assignments):
+        return get_sequence_figure(self, **assignments)
+
+    def show(self, **assignments):
+        show(self.figure(**assignments))
 
 
 @dataclass(repr=False)
