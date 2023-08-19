@@ -1,5 +1,7 @@
 from bloqade.ir import Sequence
 from typing import TYPE_CHECKING, Union
+from bokeh.io import show
+from bokeh.layouts import row
 
 if TYPE_CHECKING:
     from bloqade.ir.location.base import AtomArrangement, ParallelRegister
@@ -46,3 +48,11 @@ class Program:
 
         """
         return self._sequence
+
+    def figure(self, **assignments):
+        fig_reg = self._register.figure(**assignments)
+        fig_seq = self._sequence.figure(**assignments)
+        return row(fig_seq, fig_reg)
+
+    def show(self, **assignments):
+        show(self.figure(**assignments))
