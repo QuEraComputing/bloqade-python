@@ -74,10 +74,10 @@ class Printer:
 
     def should_print_annotation(self, children):
         if (
-            type(children) == list or type(children) == tuple
+            isinstance(children, (list, tuple))
         ):  # or generator, not sure of equivalence in Python
             return False
-        elif type(children) == dict:
+        elif isinstance(children, dict):
             return True
 
     def get_value(self):
