@@ -61,7 +61,7 @@ class Program:
 
         return out
 
-     def figure(self, **assignments):
+    def figure(self, **assignments):
         fig_reg = self._register.figure(**assignments)
         fig_seq = self._sequence.figure(**assignments)
         return row(fig_seq, fig_reg)
