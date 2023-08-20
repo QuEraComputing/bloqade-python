@@ -6,7 +6,7 @@ groups = ["default", "dev", "doc", "testing"]
 cross_platform = true
 static_urls = false
 lock_version = "4.3"
-content_hash = "sha256:47836c984d1a361419ba4127edd3fd85dc6d0927ca0bbdc0f89475c6266cd7df"
+content_hash = "sha256:63a2dd30c4441e4ea6b82b05c2eb01db05d5ea0387146726cfb6380e6f2c8cef"
 
 [[package]]
 name = "amazon-braket-default-simulator"
@@ -2062,6 +2062,16 @@ summary = "A small Python package for determining appropriate platform-specific 
 files = [
     {file = "platformdirs-3.5.0-py3-none-any.whl", hash = "sha256:47692bc24c1958e8b0f13dd727307cff1db103fca36399f457da8e05f222fdc4"},
     {file = "platformdirs-3.5.0.tar.gz", hash = "sha256:7954a68d0ba23558d753f73437c55f89027cf8f5108c19844d4b82e5af396335"},
+]
+
+[[package]]
+name = "plotext"
+version = "5.2.8"
+requires_python = ">=3.5"
+summary = "plotext plots directly on terminal"
+files = [
+    {file = "plotext-5.2.8-py3-none-any.whl", hash = "sha256:7364cf72e6c9bffaf96158340fd2e0058faf404edbbc1e7a2aed421c8638d475"},
+    {file = "plotext-5.2.8.tar.gz", hash = "sha256:319a287baabeb8576a711995f973a2eba631c887aa6b0f33ab016f12c50ffebe"},
 ]
 
 [[package]]
