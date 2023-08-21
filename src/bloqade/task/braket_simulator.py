@@ -1,5 +1,4 @@
 from .base import LocalTask
-from bloqade.submission.braket import BraketBackend
 from bloqade.submission.ir.task_results import QuEraTaskResults
 from bloqade.submission.ir.braket import (
     from_braket_task_results,
@@ -18,14 +17,14 @@ class BraketEmulatorTask(LocalTask):
     task_data: BraketEmulatorTaskData
     task_result_ir: Optional[QuEraTaskResults] = None
 
+    __match_args__ = ("task_data", "task_result_ir")
+
     def __init__(
         self,
         task_data: BraketEmulatorTaskData,
-        backend: BraketBackend = None,
         **kwargs,
     ):
         self.task_data = task_data
-        self.backend = backend
 
     def _geometry(self) -> Geometry:
         return Geometry(

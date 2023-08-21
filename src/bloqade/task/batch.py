@@ -20,8 +20,15 @@ from dataclasses import dataclass
 from bloqade.submission.base import ValidationError
 
 
+class Serializable:
+    def json(self, **options) -> str:
+        from .json import BatchSerializer
+
+        return json.dumps(self, cls=BatchSerializer, **options)
+
+
 @dataclass
-class LocalBatch:
+class LocalBatch(Serializable):
     tasks: OrderedDict[int, BraketEmulatorTask]
     name: Optional[str] = None
 
@@ -96,7 +103,7 @@ class LocalBatch:
 # basically behaves as a psudo queuing system
 # the user only need to store this objecet
 @dataclass
-class RemoteBatch:
+class RemoteBatch(Serializable):
     tasks: OrderedDict[int, Union[QuEraTask, BraketTask]]
     name: Optional[str] = None
 
