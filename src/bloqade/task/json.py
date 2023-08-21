@@ -1,5 +1,6 @@
 from collections import OrderedDict
 from decimal import Decimal
+from bloqade.builder.compile.braket_simulator import BraketEmulatorTaskData
 from bloqade.submission.braket import BraketBackend
 from bloqade.submission.ir.parallel import ParallelDecoder
 
@@ -121,6 +122,13 @@ class BatchSerializer(json.JSONEncoder):
                         "parallel_decoder": parallel_decoder.dict(
                             by_alias=True, exclude_none=True
                         ),
+                    }
+                }
+            case BraketEmulatorTaskData(task_ir, metadata):
+                return {
+                    "braket_emulator_task_data": {
+                        "task_ir": task_ir.dict(by_alias=True, exclude_none=True),
+                        "metadata": metadata,
                     }
                 }
             case Decimal():  # needed for dumping BaseModel's with json module
@@ -247,5 +255,13 @@ class BatchDeserializer:
                 task_ir = QuEraTaskSpecification(**task_ir_dict)
                 parallel_decoder = ParallelDecoder(**parallel_decoder_dict)
                 return QuEraTaskData(task_ir, metadata, parallel_decoder)
+            case {
+                "braket_emulator_task_data": {
+                    "task_ir": task_ir_dict,
+                    "metadata": metadata,
+                }
+            }:
+                task_ir = QuEraTaskSpecification(**task_ir_dict)
+                return BraketEmulatorTaskData(task_ir, metadata)
             case _:
                 return obj
