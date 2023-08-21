@@ -65,6 +65,7 @@ class StaticAssignScalar(ScalarVisitor):
 class StaticAssignWaveform(WaveformVisitor):
     def __init__(self, mapping: Dict[str, numbers.Real]):
         self.scalar_visitor = StaticAssignScalar(mapping)
+        self.mapping = dict(mapping)
 
     def visit_constant(self, ast: waveform.Constant) -> Any:
         value = self.scalar_visitor.emit(ast.value)
@@ -139,6 +140,7 @@ class StaticAssignProgram(ProgramVisitor):
     def __init__(self, mapping: Dict[str, numbers.Real]):
         self.waveform_visitor = StaticAssignWaveform(mapping)
         self.scalar_visitor = StaticAssignScalar(mapping)
+        self.mapping = dict(mapping)
 
     def visit_parallel_register(self, ast: ParallelRegister) -> Any:
         return ParallelRegister(

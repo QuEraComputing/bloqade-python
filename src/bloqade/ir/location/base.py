@@ -280,7 +280,7 @@ class AtomArrangement(ProgramStart):
 class ParallelRegister(ProgramStart):
     """Parallel Register"""
 
-    __match_args__ = ("register", "cluster_spacing")
+    __match_args__ = ("_register", "_cluster_spacing")
 
     register_locations: List[List[Scalar]]
     register_filling: List[int]
