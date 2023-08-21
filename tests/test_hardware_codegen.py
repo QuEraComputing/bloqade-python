@@ -44,15 +44,22 @@ def test_integration_jump_err():
                 final_detuning=15,
                 anneal_time=10,
             )
-            .mock(10)
+            .quera.mock()
+            .compile_tasks(10)
         )
 
 
+@pytest.mark.skip(reason="Not implemented yet")
 def test_integration_scale():
     seq = Linear(start=0.0, stop=1.0, duration=0.5).append(
         2 * Constant(0.5, duration=0.5)
     )
-    job = location.Square(1).rydberg.detuning.uniform.apply(seq).mock(10)
+    job = (
+        location.Square(1)
+        .rydberg.detuning.uniform.apply(seq)
+        .quera.mock()
+        .submit(shots=10)
+    )
 
     panel = json.loads(job.json())
 

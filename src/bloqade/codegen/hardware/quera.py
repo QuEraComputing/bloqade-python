@@ -297,8 +297,6 @@ class PiecewiseConstantCodeGen(WaveformVisitor):
         start_index = bisect_left(times, start_time)
         stop_index = bisect_left(times, stop_time)
 
-        # print(start_index,stop_index)
-
         match (start_index, stop_index):
             case (0, int()) if stop_time == duration:
                 absolute_times = times

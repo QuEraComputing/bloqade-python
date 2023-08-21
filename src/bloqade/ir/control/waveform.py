@@ -127,8 +127,8 @@ class Waveform:
     def __getitem__(self, s: slice) -> "Waveform":
         return self.canonicalize(Slice(self, Interval.from_slice(s)))
 
-    def record(self, variable_name: str):
-        return Record(self, Variable(variable_name))
+    def record(self, variable_name: Union[str, Variable]):
+        return Record(self, cast(variable_name))
 
     @property
     def duration(self) -> Scalar:
@@ -355,7 +355,7 @@ class Poly(Instruction):
     duration: InitVar[Scalar]
 
     def __init__(self, coeffs, duration):
-        self.coeffs = map(cast, coeffs)
+        self.coeffs = list(map(cast, coeffs))
         self._duration = cast(duration)
 
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:

@@ -1,7 +1,7 @@
 from collections import OrderedDict
 from itertools import product
 import json
-from typing import Union, Optional
+from typing import Union, Optional, List
 from .base import Report
 from .quera import QuEraTask
 from .braket import BraketTask
@@ -32,14 +32,6 @@ class LocalBatch:
         data = []
 
         for task_number, task in self.tasks.items():
-            ## fliter not existing results tasks:
-            if (task.task_id is None) or (not task._result_exists()):
-                continue
-
-            ## filter has result but is not correctly completed.
-            if not task.task_result_ir.status == QuEraTaskStatusCode.Completed:
-                continue
-
             geometry = task.geometry
             perfect_sorting = "".join(map(str, geometry.filling))
             parallel_decoder = geometry.parallel_decoder
@@ -91,6 +83,13 @@ class LocalBatch:
         df.sort_index(axis="index")
 
         return Report(df)
+
+    def rerun(self, **kwargs):
+        self._run(**kwargs)
+
+    def _run(self, **kwargs):
+        for _, task in self.tasks.items():
+            task.run(**kwargs)
 
 
 # this class get collection of tasks
@@ -226,6 +225,27 @@ class RemoteBatch:
             # TODO: think about if we should automatically save successful submissions
             #       as well.
             pass
+
+    def get_tasks(self, status_codes: List[QuEraTaskStatusCode]) -> "RemoteBatch":
+        # offline:
+        new_task_results = OrderedDict()
+        for task_number, task in self.tasks.items():
+            if (task.task_id is not None) and (task._result_exists()):
+                if task.task_result_ir.task_status in status_codes:
+                    new_task_results[task_number] = task
+
+        return RemoteBatch(new_task_results, name=self.name)
+
+    def remove_tasks(self, status_codes: List[QuEraTaskStatusCode]) -> "RemoteBatch":
+        # offline:
+        new_results = OrderedDict()
+        for task_number, task in self.tasks.items():
+            if (task.task_id is not None) and (task._result_exists()):
+                if task.task_result_ir.task_status in status_codes:
+                    continue
+            new_results[task_number] = task
+
+        return RemoteBatch(new_results, self.name)
 
     def get_failed_tasks(self) -> "RemoteBatch":
         # offline:

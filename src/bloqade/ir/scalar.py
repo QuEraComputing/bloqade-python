@@ -261,6 +261,8 @@ def cast(py) -> "Scalar":
 # TODO: RL: remove support on List and Tuple just use map?
 #       this is making type inference much harder to parse
 #       in human brain
+# [KHW] it need to be there. For recursive replace for nested
+#       list/tuple
 def trycast(py) -> "Scalar | None":
     match py:
         case int(x) | float(x) | bool(x):
@@ -270,10 +272,10 @@ def trycast(py) -> "Scalar | None":
         case str(x):
             check_variable_name(x)
             return Variable(x)
-        # case list() as xs:
-        #     return list(map(cast, xs))
-        # case tuple() as xs:
-        #     return tuple(map(cast, xs))
+        case list() as xs:
+            return list(map(cast, xs))
+        case tuple() as xs:
+            return tuple(map(cast, xs))
         case Scalar():
             return py
         case numbers.Real():

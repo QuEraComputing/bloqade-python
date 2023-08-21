@@ -1,4 +1,4 @@
-from bloqade.ir.location.base import AtomArrangement, ParallelRegister
+from bloqade.ir.location.base import AtomArrangement, ParallelRegister, LocationInfo
 from bloqade.ir.visitor.program import ProgramVisitor
 from bloqade.ir.visitor.waveform import WaveformVisitor
 from bloqade.ir.visitor.scalar import ScalarVisitor
@@ -65,6 +65,7 @@ class StaticAssignScalar(ScalarVisitor):
 class StaticAssignWaveform(WaveformVisitor):
     def __init__(self, mapping: Dict[str, numbers.Real]):
         self.scalar_visitor = StaticAssignScalar(mapping)
+        self.mapping = dict(mapping)
 
     def visit_constant(self, ast: waveform.Constant) -> Any:
         value = self.scalar_visitor.emit(ast.value)
@@ -83,7 +84,7 @@ class StaticAssignWaveform(WaveformVisitor):
         return waveform.Poly(checkpoints, duration)
 
     def visit_python_fn(self, ast: waveform.PythonFn) -> Any:
-        new_ast = waveform.PythonFn(ast.fn, ast.duration.static_assign(self.mapping))
+        new_ast = waveform.PythonFn(ast.fn, self.scalar_visitor.visit(ast.duration))
         new_ast.parameters = list(map(self.scalar_visitor.emit, ast.parameters))
         return new_ast
 
@@ -116,8 +117,8 @@ class StaticAssignWaveform(WaveformVisitor):
         return waveform.Sample(self.visit(ast.waveform), ast.interpolation, dt)
 
     def visit_scale(self, ast: waveform.Scale) -> Any:
-        scale = ast.scalar.static_assign(**self.mapping)
-        return waveform.Scale(self.visit(ast.waveform), scale)
+        scalar = self.scalar_visitor.visit(ast.scalar)
+        return waveform.Scale(scalar, self.visit(ast.waveform))
 
     def visit_slice(self, ast: waveform.Slice) -> Any:
         start = ast.interval.start
@@ -139,6 +140,7 @@ class StaticAssignProgram(ProgramVisitor):
     def __init__(self, mapping: Dict[str, numbers.Real]):
         self.waveform_visitor = StaticAssignWaveform(mapping)
         self.scalar_visitor = StaticAssignScalar(mapping)
+        self.mapping = dict(mapping)
 
     def visit_parallel_register(self, ast: ParallelRegister) -> Any:
         return ParallelRegister(
@@ -152,9 +154,12 @@ class StaticAssignProgram(ProgramVisitor):
                 new_loc_list = []
                 for loc in location_list:
                     new_loc_list.append(
-                        (
-                            self.scalar_visitor.emit(loc[0]),
-                            self.scalar_visitor.emit(loc[1]),
+                        LocationInfo(
+                            (
+                                self.scalar_visitor.emit(loc.position[0]),
+                                self.scalar_visitor.emit(loc.position[1]),
+                            ),
+                            loc.filling,
                         )
                     )
 
@@ -258,4 +263,23 @@ class StaticAssignProgram(ProgramVisitor):
         return self.waveform_visitor.emit(ast)
 
     def visit_program(self, ast: program.Program) -> program.Program:
-        return program.Program(self.visit(ast.register), self.visit(ast.sequence))
+        new_order = tuple([name for name in ast.order if name not in self.mapping])
+
+        new_static_params = {
+            name: value
+            for name, value in ast.static_params.items()
+            if name not in self.mapping
+        }
+
+        new_batch_params = [
+            {name: value for name, value in params.items() if name not in self.mapping}
+            for params in ast.batch_params
+        ]
+
+        return program.Program(
+            self.visit(ast.register),
+            self.visit(ast.sequence),
+            static_params=new_static_params,
+            batch_params=new_batch_params,
+            order=new_order,
+        )

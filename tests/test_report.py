@@ -25,7 +25,7 @@ future = (
         rabi_amplitude_max=15,
     )
     .quera.mock()
-    .submit(100)
+    .submit(shots=100)
 )
 future.fetch()
 

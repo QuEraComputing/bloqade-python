@@ -1,26 +1,43 @@
-from typing import Tuple, Union
 import bloqade.ir as ir
 
 from ..base import Builder
 from ..coupling import LevelCoupling, Rydberg, Hyperfine
+from ..sequence_builder import SequenceBuilder
 from ..field import Field, Detuning, RabiAmplitude, RabiPhase
 from ..spatial import SpatialModulation, Location, Uniform, Var, Scale
 from ..waveform import WaveformPrimitive, Slice, Record
+from ..assign import Assign, BatchAssign
+from ..flatten import Flatten
 from ..parallelize import Parallelize, ParallelizeFlatten
 
 from .stream import BuilderNode
 
+from itertools import repeat
+from typing import Tuple
 
-class BuilderCompiler:
+
+class Parser:
+    pragma_types = (
+        Assign,
+        BatchAssign,
+        Flatten,
+        Parallelize,
+        ParallelizeFlatten,
+    )
+
     def __init__(self, ast: Builder) -> None:
         from .stream import BuilderStream
 
         self.stream = BuilderStream.create(ast)
+        self.vector_node_names = []
+        self.sequence = ir.Sequence({})
+        self.register = None
+        self.batch_params = [{}]
+        self.static_params = {}
+        self.order = ()
 
-
-class SequenceCompiler(BuilderCompiler):
-    def read_address(self) -> Tuple[LevelCoupling, Field, BuilderNode]:
-        spatial = self.stream.eat([Location, Uniform, Var], [Scale])
+    def read_address(self, stream) -> Tuple[LevelCoupling, Field, BuilderNode]:
+        spatial = stream.eat([Location, Uniform, Var], [Scale])
         curr = spatial
 
         if curr is None:
@@ -79,6 +96,7 @@ class SequenceCompiler(BuilderCompiler):
                     spatial_modulation = ir.Uniform
                 case Var(name, _):
                     spatial_modulation = ir.RunTimeVector(name)
+                    self.vector_node_names.append(name)
                 case _:
                     break
             curr = curr.next
@@ -93,11 +111,15 @@ class SequenceCompiler(BuilderCompiler):
         wf, _ = self.read_waveform(curr)
         return ir.Field({sm: wf})
 
-    def compile(self) -> ir.Sequence:
-        sequence = ir.Sequence({})
-        while self.stream.curr is not None:
-            coupling_builder, field_builder, spatial_head = self.read_address()
+    def read_sequeence(self) -> ir.Sequence:
+        if isinstance(self.stream.curr.node, SequenceBuilder):
+            # case with sequence builder object.
+            self.sequence = self.stream.read().node.sequence
+            return self.sequence
 
+        stream = self.stream.copy()
+        while stream.curr is not None:
+            coupling_builder, field_builder, spatial_head = self.read_address(stream)
             if coupling_builder is not None:
                 # update to new pulse coupling
                 coupling_name = coupling_builder.__bloqade_ir__()
@@ -109,29 +131,75 @@ class SequenceCompiler(BuilderCompiler):
             if spatial_head is None:
                 break
 
-            pulse = sequence.pulses.get(coupling_name, ir.Pulse({}))
+            pulse = self.sequence.pulses.get(coupling_name, ir.Pulse({}))
             field = pulse.fields.get(field_name, ir.Field({}))
 
             new_field = self.read_field(spatial_head)
             field = field.add(new_field)
 
             pulse.fields[field_name] = field
-            sequence.pulses[coupling_name] = pulse
+            self.sequence.pulses[coupling_name] = pulse
 
-        return sequence
+        return self.sequence
 
-
-class RegisterCompiler(BuilderCompiler):
-    def compile(self) -> Union[ir.AtomArrangement, ir.ParallelRegister]:
+    def read_register(self) -> ir.AtomArrangement:
         # register is always head of the stream
-        register_block = self.stream.read()
+        register_node = self.stream.read()
+        self.register = register_node.node
 
-        register = register_block.node
+        return self.register
 
-        parallel_options = self.stream.eat([Parallelize, ParallelizeFlatten])
+    def read_pragmas(self) -> None:
+        stream = self.stream.copy()
+        curr = stream.read_next(Parser.pragma_types)
 
-        if parallel_options is not None:
-            parallel_options = parallel_options.node
-            return ir.ParallelRegister(register, parallel_options._cluster_spacing)
+        while curr is not None:
+            match curr.node:
+                case Assign(static_params):
+                    self.static_params = static_params
+                case BatchAssign(batch_param):
+                    tuple_iterators = [
+                        zip(repeat(name), values)
+                        for name, values in batch_param.items()
+                    ]
+                    self.batch_params = list(map(dict, zip(*tuple_iterators)))
+                case Flatten(order):
+                    self.order = order
 
-        return register
+                    seen = set()
+                    dup = []
+                    for x in order:
+                        if x not in seen:
+                            seen.add(x)
+                        else:
+                            dup.append(x)
+
+                    if dup:
+                        raise ValueError(f"Cannot flatten duplicate names {dup}.")
+
+                    order_names = set([*order])
+                    flattened_vector_names = order_names.intersection(order_names)
+
+                    if flattened_vector_names:
+                        raise ValueError(
+                            f"Cannot flatten RunTimeVectors: {flattened_vector_names}."
+                        )
+
+                case Parallelize(cluster_spacing) | ParallelizeFlatten(cluster_spacing):
+                    self.register = ir.ParallelRegister(self.register, cluster_spacing)
+                case _:
+                    break
+
+            curr = curr.next
+
+    def parse(self):
+        self.read_register()
+        self.read_sequeence()
+        self.read_pragmas()
+        return ir.Program(
+            self.register,
+            self.sequence,
+            self.static_params,
+            self.batch_params,
+            self.order,
+        )

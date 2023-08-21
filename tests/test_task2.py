@@ -1,5 +1,5 @@
-from bloqade.task2.quera import QuEraTask
-from bloqade.task2.braket import BraketTask
+from bloqade.task.quera import QuEraTask
+from bloqade.task.braket import BraketTask
 from bloqade.submission.quera import QuEraBackend
 from bloqade.submission.braket import BraketBackend
 import pytest

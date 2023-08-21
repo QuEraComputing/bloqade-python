@@ -1,12 +1,13 @@
-from bloqade.task2.base import Geometry, RemoteTask
+from bloqade.task.base import Geometry, RemoteTask
 from bloqade.submission.ir.task_specification import QuEraTaskSpecification
 from bloqade.submission.braket import BraketBackend
 from typing import Optional
-from bloqade.submission.ir.parallel import ParallelDecoder
+
+# from bloqade.submission.ir.parallel import ParallelDecoder
 from bloqade.submission.base import ValidationError
 from bloqade.submission.ir.task_results import QuEraTaskResults, QuEraTaskStatusCode
 import warnings
-
+from bloqade.builder.compile.quera import QuEraTaskData
 
 # class BraketTask(Task):
 #    def __init__(self, braket, task_specification):
@@ -25,23 +26,20 @@ import warnings
 ## we will remove conversion btwn QuEraTask <-> BraketTask,
 ## and specialize/dispatching here.
 class BraketTask(RemoteTask):
-    task_ir: Optional[QuEraTaskSpecification]
+    task_data: QuEraTaskData
     backend: BraketBackend
     task_result_ir: Optional[QuEraTaskResults] = None
-    parallel_decoder: Optional[ParallelDecoder]
 
     def __init__(
         self,
-        task_ir: QuEraTaskSpecification,
+        task_data: QuEraTaskSpecification,
         task_id: str = None,
         backend: BraketBackend = None,
-        parallel_decoder: Optional[ParallelDecoder] = None,
         **kwargs,
     ):
-        self.task_ir = task_ir
+        self.task_data = task_data
         self.backend = backend
         self.task_id = task_id
-        self.parallel_decoder = parallel_decoder
 
     def submit(self, force: bool = False) -> None:
         if not force:
@@ -49,11 +47,11 @@ class BraketTask(RemoteTask):
                 raise ValueError(
                     "the task is already submitted with %s" % (self.task_id)
                 )
-        self.task_id = self.backend.submit_task(self.task_ir)
+        self.task_id = self.backend.submit_task(self.task_data.task_ir)
 
     def validate(self) -> str:
         try:
-            self.backend.validate_task(self.task_ir)
+            self.backend.validate_task(self.task_data.task_ir)
         except ValidationError as e:
             return str(e)
 
@@ -91,9 +89,9 @@ class BraketTask(RemoteTask):
 
     def _geometry(self) -> Geometry:
         return Geometry(
-            sites=self.task_ir.lattice.sites,
-            filling=self.task_ir.lattice.filling,
-            parallel_decoder=self.parallel_decoder,
+            sites=self.task_data.task_ir.lattice.sites,
+            filling=self.task_data.task_ir.lattice.filling,
+            parallel_decoder=self.task_data.parallel_decoder,
         )
 
     def _result_exists(self) -> bool:

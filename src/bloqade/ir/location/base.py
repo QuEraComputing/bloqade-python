@@ -1,4 +1,4 @@
-from bloqade.builder2.start import ProgramStart
+from bloqade.builder.start import ProgramStart
 from bloqade.ir.scalar import Scalar, cast
 from pydantic.dataclasses import dataclass
 from typing import List, Generator, Tuple, Optional, Any, TYPE_CHECKING
@@ -280,7 +280,7 @@ class AtomArrangement(ProgramStart):
 class ParallelRegister(ProgramStart):
     """Parallel Register"""
 
-    __match_args__ = ("register", "cluster_spacing")
+    __match_args__ = ("_register", "_cluster_spacing")
 
     register_locations: List[List[Scalar]]
     register_filling: List[int]

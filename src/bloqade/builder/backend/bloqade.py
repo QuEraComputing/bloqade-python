@@ -25,7 +25,8 @@ class SubmitBloqadeBackend(LocalBackend):
         cache_compiled_program: bool = False,
         parent: Builder | None = None,
     ) -> None:
-        super().__init__(cache_compiled_program, parent=parent)
+        # super().__init__(cache_compiled_program, parent=parent)
+        super().__init__(parent=parent)
         self._solver = solver
 
 
@@ -43,5 +44,6 @@ class BloqadeJulia(SubmitBloqadeBackend):
         cache_compiled_program: bool = False,
         parent: Builder | None = None,
     ) -> None:
-        super().__init__(solver, cache_compiled_program, parent)
+        # super().__init__(solver, cache_compiled_program, parent)
+        super().__init__(solver, parent)
         self._nthreads = nthreads
