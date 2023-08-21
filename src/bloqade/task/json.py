@@ -1,178 +1,105 @@
-# from .braket import BraketTask
-# from .quera import QuEraTask
-# from .batch import RemoteBatch, LocalBatch
-# import json
+from .braket import BraketTask
+from .quera import QuEraTask
+from .batch import RemoteBatch, LocalBatch
+from typing import Type, Dict, Any
+from .braket_simulator import BraketEmulatorTask
+from bloqade.submission.ir.task_results import QuEraTaskResults
+import json
 
-"""
+
 class BatchSerializer(json.JSONEncoder):
     def default(self, obj):
-        #def camel_to_snake(name: str) -> str:
-        #    return "".join("_" + c.lower() if c.isupper() else c for c in name).lstrip(
-        #        "_"
-        #    )
-
-        if isinstance(obj, ProgramStart) and type(obj) is ProgramStart:
-            return "program_start"
-
         match obj:
-            case braket.Aquila(parent):
-                return {"braket_aquila": {"parent": parent}}
-            case braket.BraketEmulator(parent):
-                return {"braket_simu": {"parent": parent}}
-            case quera.Aquila(parent):
-                return {"quera_aquila": {"parent": parent}}
-            case quera.Gemini(parent):
-                return {"quera_gemini": {"parent": parent}}
-            case bloqade.BloqadePython(parent):
-                return {"bloqade_python": {"parent": parent}}
-            case bloqade.BloqadeJulia(parent):
-                return {"bloqade_julia": {"parent": parent}}
-            case braket.BraketDeviceRoute(parent) | quera.QuEraDeviceRoute(
-                parent
-            ) | bloqade.BloqadeDeviceRoute(parent) | braket.BraketService(
-                parent
-            ) | quera.QuEraService(
-                parent
-            ) | bloqade.BloqadeService(
-                parent
-            ):
-                return {camel_to_snake(obj.__class__.__name__): {"parent": parent}}
-            case Parallelize(cluster_spacing, parent):
+            case RemoteBatch(tasks, name):
+                return {"remote": {"name": name, "tasks": tasks}}
+
+            case LocalBatch(tasks, name):
+                return {"local": {"name": name, "tasks": tasks}}
+
+            case QuEraTask(task_id, _, _, task_result_ir):
+                # skip saving data for now
                 return {
-                    "parallelize": {"cluster_spacing": cluster_spacing},
-                    "parent": parent,
+                    "task_id": task_id,
+                    "task_data": "TASK_DATA",
+                    "backend": "QuEra",
+                    "task_result_ir": task_result_ir.json(
+                        exclude_none=True, by_alias=True
+                    ),
                 }
-            case ParallelizeFlatten(cluster_spacing, parent):
+
+            case BraketTask(task_id, _, _, task_result_ir):
+                # skip saving data for now
                 return {
-                    "parallelize_flatten": {"cluster_spacing": cluster_spacing},
-                    "parent": parent,
+                    "task_id": task_id,
+                    "task_data": "TASK_DATA",
+                    "backend": "Braket",
+                    "task_result_ir": task_result_ir.json(
+                        exclude_none=True, by_alias=True
+                    ),
                 }
-            case SequenceBuilder(sequence, parent):
+
+            case BraketEmulatorTask(_, task_result_ir):
                 return {
-                    "sequence_builder": {
-                        "sequence": self.default(sequence),
-                        "parent": self.default(parent),
-                    }
+                    "task_data": "TASK_DATA",
+                    "backend": "BraketEmulator",
+                    "task_result_ir": task_result_ir.json(
+                        exclude_none=True, by_alias=True
+                    ),
                 }
-            case Assign(assignments, parent) | BatchAssign(assignments, parent):
-                return {
-                    camel_to_snake(obj.__class__.__name__): {
-                        "assignments": assignments,
-                        "parent": parent,
-                    }
-                }
-            case Flatten(order, parent):
-                return {"flatten": {"order": order, "parent": parent}}
-            case Constant(value, duration, parent):
-                return {
-                    "constant": {
-                        "value": value,
-                        "duration": duration,
-                        "parent": parent,
-                    }
-                }
-            case Linear(start, stop, duration, parent):
-                return {
-                    "linear": {
-                        "start": start,
-                        "stop": stop,
-                        "duration": duration,
-                        "parent": parent,
-                    }
-                }
-            case Poly(coeffs, duration, parent):
-                return {
-                    "poly": {
-                        "coeffs": coeffs,
-                        "duration": duration,
-                        "parent": parent,
-                    }
-                }
-            case Fn():
-                raise ValueError(
-                    "Bloqade does not support serialization of Python code."
-                )
-            case Apply(wf, parent):
-                return {"apply": {"wf": wf, "parent": parent}}
-            case Slice(None, stop, parent):
-                return {
-                    "slice": {
-                        "stop": stop,
-                        "parent": parent,
-                    }
-                }
-            case Slice(start, None, parent):
-                return {
-                    "slice": {
-                        "start": start,
-                        "parent": parent,
-                    }
-                }
-            case Slice(start, stop, parent):
-                return {
-                    "slice": {
-                        "start": start,
-                        "stop": stop,
-                        "parent": parent,
-                    }
-                }
-            case Record(name, parent):
-                return {
-                    "record": {
-                        "name": name,
-                        "parent": parent,
-                    }
-                }
-            case Sample(dt, interpolation, parent):
-                return {
-                    "sample": {
-                        "dt": dt,
-                        "interpolation": interpolation,
-                        "parent": parent,
-                    }
-                }
-            case PiecewiseLinear(durations, values, parent):
-                return {
-                    "piecewise_linear": {
-                        "durations": durations,
-                        "values": values,
-                        "parent": parent,
-                    }
-                }
-            case PiecewiseConstant(durations, values, parent):
-                return {
-                    "piecewise_constant": {
-                        "durations": durations,
-                        "values": values,
-                        "parent": parent,
-                    }
-                }
-            case Location(label, parent):
-                return {
-                    "location": {
-                        "label": label,
-                        "parent": parent,
-                    }
-                }
-            case Scale(value, parent):
-                return {
-                    "scale": {
-                        "value": value,
-                        "parent": parent,
-                    }
-                }
-            case Var(name, parent):
-                return {"Var": {"name": name, "parent": parent}}
-            case Uniform(parent):
-                return {"uniform": {"parent": parent}}
-            case Detuning(parent) | RabiAmplitude(parent) | RabiPhase(parent) | Rabi(
-                parent
-            ) | Hyperfine(parent) | Rydberg(parent):
-                return {camel_to_snake(obj.__class__.__name__): {"parent": parent}}
+
             case _:
                 return super().default(obj)
 
 
+class BatchDeserializer:
+    methods_batch: Dict[str, Type] = {
+        "remote": RemoteBatch,
+        "local": LocalBatch,
+    }
+
+    def object_hook(self, obj: Dict[str, Any]):
+        match obj:
+            case dict([(str(head), dict(options))]):
+                if head in self.methods_batch:
+                    return self.methods[head](
+                        name=options["name"], tasks=options["tasks"]
+                    )
+
+                else:
+                    super().object_hook(obj)
+
+            case {
+                "task_data": _,
+                "backend": backend,
+                "task_result_ir": task_ir_string,
+            }:
+                tmp = BraketEmulatorTask(None)
+                tmp.task_result_ir = QuEraTaskResults(**json.loads(task_ir_string))
+
+                return tmp
+
+            case {
+                "task_id": task_id,
+                "task_data": _,
+                "backend": backend,
+                "task_result_ir": task_ir_string,
+            }:
+                if backend == "QuEra":
+                    tmp = QuEraTask(None, task_id=task_id)
+                    tmp.task_result_ir = QuEraTaskResults(**json.loads(task_ir_string))
+                    return tmp
+                elif backend == "Braket":
+                    tmp = BraketTask(None, task_id=task_id)
+                    tmp.task_result_ir = QuEraTaskResults(**json.loads(task_ir_string))
+                    return tmp
+                else:
+                    raise ValueError(f"backend {backend} is not recognized.")
+
+            case _:
+                raise NotImplementedError(f"Missing implementation for {obj}")
+
+
+"""
 class BuilderDeserializer(BloqadeIRDeserializer):
     methods: Dict[str, Type] = {
         "rydberg": Rydberg,
