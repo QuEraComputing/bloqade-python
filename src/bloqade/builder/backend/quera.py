@@ -39,7 +39,8 @@ class QuEraBackend(RemoteBackend):
         cache_compiled_programs: bool = False,
         **api_configs,
     ) -> None:
-        super().__init__(cache_compiled_programs, parent=parent)
+        # super().__init__(cache_compiled_programs, parent=parent)
+        super().__init__(parent=parent)
         # self._config_file = config_file
 
         if config_file is None:
@@ -106,7 +107,8 @@ class Mock(RemoteBackend):
         cache_compiled_programs: bool = False,
         parent: Builder | None = None,
     ) -> None:
-        super().__init__(cache_compiled_programs, parent=parent)
+        # super().__init__(cache_compiled_programs, parent=parent)
+        super().__init__(parent=parent)
         self._state_file = state_file
 
     def _compile_task(self, bloqade_ir: ir.Program, shots: int, **metadata):

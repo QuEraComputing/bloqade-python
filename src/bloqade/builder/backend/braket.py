@@ -29,7 +29,8 @@ class Aquila(RemoteBackend):
     def __init__(
         self, cache_compiled_programs: bool = False, parent: Builder | None = None
     ) -> None:
-        super().__init__(cache_compiled_programs, parent=parent)
+        # super().__init__(cache_compiled_programs, parent=parent)
+        super().__init__(parent=parent)
 
     def _compile_task(self, bloqade_ir: ir.Program, shots: int, **metadata):
         from bloqade.codegen.hardware.quera import SchemaCodeGen
@@ -56,7 +57,8 @@ class BraketEmulator(LocalBackend):
         cache_compiled_programs: bool = False,
         parent: Optional[Builder] = None,
     ) -> None:
-        super().__init__(cache_compiled_programs, parent=parent)
+        # super().__init__(cache_compiled_programs, parent=parent)
+        super().__init__(parent=parent)
 
     def _compile_task(self, bloqade_ir: ir.Program, shots: int, **metadata):
         from bloqade.codegen.hardware.quera import SchemaCodeGen
