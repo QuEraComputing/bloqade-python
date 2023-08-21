@@ -14,18 +14,25 @@ class CompileJSON:
 
 
 class ParseRegister:
-    def compile_register(self) -> Union["ir.AtomArrangement", "ir.ParallelRegister"]:
+    def parse_register(self) -> Union["ir.AtomArrangement", "ir.ParallelRegister"]:
         from .ir import Parser
 
         return Parser(self).read_register()
 
 
 class ParseSequence:
-    def compile_sequence(self) -> ir.Sequence:
+    def parse_sequence(self) -> ir.Sequence:
         from .ir import Parser
 
         return Parser(self).read_sequeence()
 
 
-class Parse(ParseRegister, ParseSequence):
+class ParseProgram:
+    def parse_program(self) -> ir.Program:
+        from .ir import Parser
+
+        return Parser(self).parse()
+
+
+class Parse(ParseRegister, ParseSequence, ParseProgram):
     pass

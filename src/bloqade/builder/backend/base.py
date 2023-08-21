@@ -4,6 +4,8 @@ from ..base import Builder, ParamType
 # from ...task2.batch import RemoteBatch, LocalBatch
 from typing import Tuple
 
+# from ..compile.quera import QuEraSchemaCompiler
+
 
 class Backend(Builder):
     pass
@@ -25,7 +27,7 @@ class RemoteBackend(Backend):
     def submit(self, *args, shots: int = 1, name: str = None, shuffle: bool = False):
         raise NotImplementedError
         # tasks = [
-        #     self._compile_task(program, shots, **metadata)
+        #     QuEraTaskData(self._compile_task(program, shots, **metadata),metadata)
         #     for metadata, program in self.compile_ir(*args)
         # ]
         # batch = RemoteBatch(dict(zip(range(len(tasks)), tasks)), name)

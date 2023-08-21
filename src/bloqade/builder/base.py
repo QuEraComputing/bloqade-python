@@ -1,12 +1,12 @@
 from typing import Optional, Union, List
 from numbers import Real
 
-from .compile.trait import CompileJSON, ParseRegister
+from .compile.trait import CompileJSON, Parse
 
 ParamType = Union[Real, List[Real]]
 
 
-class Builder(CompileJSON, ParseRegister):
+class Builder(CompileJSON, Parse):
     __match_args__ = ("__parent__",)
 
     def __init__(

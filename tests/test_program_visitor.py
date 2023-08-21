@@ -11,10 +11,10 @@ import pytest
 wv_linear = Linear(start=0, stop=4, duration=0.1)
 reg = Square(3)
 prog = reg.rydberg.detuning.uniform.piecewise_constant([0.1], [0.1]).parallelize(10.0)
-para_reg = prog.compile_register()
+para_reg = prog.parse_register()
 seq = prog.compile_sequence()
 prog2 = start.rydberg.detuning.location(1).scale(2).piecewise_constant([0.1], [0.1])
-seq2 = prog2.compile_sequence()
+seq2 = prog2.parse_sequence()
 
 
 def test_base_program_visitor():

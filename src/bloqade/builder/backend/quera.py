@@ -60,6 +60,18 @@ class QuEraBackend(RemoteBackend):
 
         self._api_configs = api_configs
 
+    def compile_tasks(self, shots, args):
+        from ..compile.quera import QuEraSchemaCompiler
+
+        backend = quera_submit.QuEraBackend(self._api_configs)
+        capabilities = backend.get_capabilities()
+
+        quera_task_data_list = QuEraSchemaCompiler(self, capabilities).compile(
+            shots, args
+        )
+        return quera_task_data_list
+
+    """"
     def _compile_task(self, bloqade_ir: ir.Program, shots: int, **metadata):
         backend = quera_submit.QuEraBackend(self._api_configs)
         from bloqade.codegen.hardware.quera import SchemaCodeGen
@@ -73,6 +85,7 @@ class QuEraBackend(RemoteBackend):
             backend=backend,
             parallel_decoder=schema_compiler.parallel_decoder,
         )
+    """
 
 
 class Aquila(QuEraBackend):
