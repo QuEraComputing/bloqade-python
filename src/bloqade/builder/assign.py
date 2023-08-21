@@ -10,6 +10,7 @@ class AssignBase(Builder):
 
     def __init__(self, parent: Optional[Builder] = None, **assignments) -> None:
         super().__init__(parent)
+        # TODO: implement checks for assignments
         self._assignments = assignments
 
 
@@ -19,4 +20,6 @@ class Assign(AssignBase, Flattenable, Parallelizable, BackendRoute, Parse):
 
 
 class BatchAssign(AssignBase, Parallelizable, BackendRoute, Parse):
-    pass
+    def __init__(self, parent: Optional[Builder] = None, **assignments) -> None:
+        super().__init__(parent, **assignments)
+        # TODO: implement checks for assignments
