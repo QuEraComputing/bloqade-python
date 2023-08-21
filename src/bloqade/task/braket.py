@@ -30,6 +30,8 @@ class BraketTask(RemoteTask):
     backend: BraketBackend
     task_result_ir: Optional[QuEraTaskResults] = None
 
+    __match_args__ = ("task_id", "task_data", "task_result_ir")
+
     def __init__(
         self,
         task_data: QuEraTaskSpecification,

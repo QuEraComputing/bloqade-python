@@ -45,7 +45,7 @@ def simulate_task_results(task: QuEraTaskSpecification, p_full=0.99, p_empty=0.0
 
 
 class DumbMockBackend(SubmissionBackend):
-    state_file: str
+    state_file: str = ".mock_state.txt"
 
     def submit_task(self, task: QuEraTaskSpecification) -> str:
         task_id = str(uuid.uuid4())

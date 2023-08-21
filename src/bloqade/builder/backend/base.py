@@ -16,7 +16,7 @@ class LocalBackend(Backend):
     def run(
         self,
         shots: int,
-        args: Tuple[Real, ...],
+        args: Tuple[Real, ...] = (),
         name: str | None = None,
         **kwargs,
     ):
@@ -46,7 +46,7 @@ class RemoteBackend(Backend):
     def run(
         self,
         shots: int,
-        args: Tuple[Real, ...],
+        args: Tuple[Real, ...] = (),
         name: str | None = None,
         shuffle: bool = False,
     ):
@@ -69,7 +69,7 @@ class RemoteBackend(Backend):
     def submit(
         self,
         shots: int,
-        args: Tuple[Real, ...],
+        args: Tuple[Real, ...] = (),
         name: str = None,
         shuffle: bool = False,
     ):

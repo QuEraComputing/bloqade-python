@@ -17,6 +17,8 @@ class QuEraTask(RemoteTask):
     backend: QuEraBackend
     task_result_ir: Optional[QuEraTaskResults] = None
 
+    __match_args__ = ("task_id", "backend", "task_data", "task_result_ir")
+
     def __init__(
         self,
         task_data: QuEraTaskData,

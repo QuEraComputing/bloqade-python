@@ -1,11 +1,11 @@
 from bloqade.ir import var, cast, Variable, Literal, start
 
-# from bloqade.builder.factory import (
-#    piecewise_linear,
-#    piecewise_constant,
-#    linear,
-#    constant,
-# )
+from bloqade.builder.factory import (
+    piecewise_linear,
+    piecewise_constant,
+    linear,
+    constant,
+)
 import bloqade.ir as _ir
 
 
