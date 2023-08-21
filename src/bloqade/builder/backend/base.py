@@ -1,7 +1,7 @@
 # from ... import ir
 from ..base import Builder, ParamType
 
-# from ...task2.batch import RemoteBatch, LocalBatch
+from bloqade.task.batch import RemoteBatch, LocalBatch
 from typing import Tuple
 
 # from ..compile.quera import QuEraSchemaCompiler
@@ -13,8 +13,22 @@ class Backend(Builder):
 
 class LocalBackend(Backend):
     def __call__(
-        self, shots: int = 1, args: Tuple[ParamType, ...] = (), name: str = None
+        self,
+        shots: int = 1,
+        args: Tuple[ParamType, ...] = (),
+        name: str = None,
+        **kwargs,
     ):
+        tasks = self.compile_tasks(shots, *args)
+
+        batch = LocalBatch(dict(zip(range(len(tasks)), tasks)), name)
+
+        # kwargs is the tuning params for integrators
+        batch._run(**kwargs)
+
+        return batch
+
+    def compile_tasks(self, shots, *args):
         raise NotImplementedError
 
 
@@ -24,14 +38,14 @@ class RemoteBackend(Backend):
         batch.pull()  # blocking
         return batch
 
-    def submit(self, *args, shots: int = 1, name: str = None, shuffle: bool = False):
+    def compile_tasks(self, shots, *args):
         raise NotImplementedError
-        # tasks = [
-        #     QuEraTaskData(self._compile_task(program, shots, **metadata),metadata)
-        #     for metadata, program in self.compile_ir(*args)
-        # ]
-        # batch = RemoteBatch(dict(zip(range(len(tasks)), tasks)), name)
 
-        # batch._submit(shuffle)
+    def submit(self, *args, shots: int = 1, name: str = None, shuffle: bool = False):
+        tasks = self.compile_tasks(shots, *args)
 
-        # return batch
+        batch = RemoteBatch(dict(zip(range(len(tasks)), tasks)), name)
+
+        batch._submit(shuffle)
+
+        return batch

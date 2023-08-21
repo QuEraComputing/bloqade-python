@@ -20,7 +20,7 @@ class QuEraSchemaCompiler:
         self.capabilities = capabilities
         self.ir_compiler = BuilderCompiler(builder)
 
-    def compile(self, shots, args) -> List[QuEraTaskData]:
+    def compile(self, shots, *args) -> List[QuEraTaskData]:
         quera_task_data_list = []
         for data in self.ir_compiler.compile_ir(*args):
             schema_compiler = SchemaCodeGen(data.metadata, self.capabilities)

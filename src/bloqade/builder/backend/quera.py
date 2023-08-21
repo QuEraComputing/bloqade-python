@@ -1,7 +1,6 @@
 from typing import Optional
 from ..base import Builder
 from .base import RemoteBackend
-import bloqade.ir as ir
 import os
 import json
 from bloqade.task.quera import QuEraTask
@@ -61,16 +60,25 @@ class QuEraBackend(RemoteBackend):
 
         self._api_configs = api_configs
 
-    def compile_tasks(self, shots, args):
+    def compile_taskdata(self, shots, *args):
+        backend = quera_submit.QuEraBackend(self._api_configs)
+        return self._compile_tasks(shots, backend, *args)
+
+    def _compile_taskdata(self, shots, backend, *args):
         from ..compile.quera import QuEraSchemaCompiler
 
-        backend = quera_submit.QuEraBackend(self._api_configs)
         capabilities = backend.get_capabilities()
 
         quera_task_data_list = QuEraSchemaCompiler(self, capabilities).compile(
-            shots, args
+            shots, *args
         )
         return quera_task_data_list
+
+    def compile_tasks(self, shots, *args):
+        backend = quera_submit.QuEraBackend(self._api_configs)
+        task_data = self._compile_taskdata(shots, backend, *args)
+
+        return [QuEraTask(task_data=dat, backend=backend) for dat in task_data]
 
     """"
     def _compile_task(self, bloqade_ir: ir.Program, shots: int, **metadata):
@@ -111,7 +119,8 @@ class Mock(RemoteBackend):
         super().__init__(parent=parent)
         self._state_file = state_file
 
-    def _compile_task(self, bloqade_ir: ir.Program, shots: int, **metadata):
+    """
+    def compile_task(self, bloqade_ir: ir.Program, shots: int, **metadata):
         backend = mock_submit.DumbMockBackend(state_file=self._state_file)
         from bloqade.codegen.hardware.quera import SchemaCodeGen
 
@@ -124,3 +133,24 @@ class Mock(RemoteBackend):
             backend=backend,
             parallel_decoder=schema_compiler.parallel_decoder,
         )
+    """
+
+    def compile_taskdata(self, shots, *args):
+        backend = mock_submit.DumbMockBackend(state_file=self._state_file)
+        return self._compile_tasks(shots, backend, *args)
+
+    def _compile_taskdata(self, shots, backend, *args):
+        from ..compile.quera import QuEraSchemaCompiler
+
+        capabilities = backend.get_capabilities()
+
+        quera_task_data_list = QuEraSchemaCompiler(self, capabilities).compile(
+            shots, *args
+        )
+        return quera_task_data_list
+
+    def compile_tasks(self, shots, *args):
+        backend = mock_submit.DumbMockBackend(state_file=self._state_file)
+        task_data = self._compile_taskdata(shots, backend, *args)
+
+        return [QuEraTask(task_data=dat, backend=backend) for dat in task_data]
