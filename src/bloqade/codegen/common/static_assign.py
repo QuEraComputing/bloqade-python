@@ -84,7 +84,7 @@ class StaticAssignWaveform(WaveformVisitor):
         return waveform.Poly(checkpoints, duration)
 
     def visit_python_fn(self, ast: waveform.PythonFn) -> Any:
-        new_ast = waveform.PythonFn(ast.fn, ast.duration.static_assign(self.mapping))
+        new_ast = waveform.PythonFn(ast.fn, self.scalar_visitor.visit(ast.duration))
         new_ast.parameters = list(map(self.scalar_visitor.emit, ast.parameters))
         return new_ast
 
@@ -117,8 +117,8 @@ class StaticAssignWaveform(WaveformVisitor):
         return waveform.Sample(self.visit(ast.waveform), ast.interpolation, dt)
 
     def visit_scale(self, ast: waveform.Scale) -> Any:
-        scale = ast.scalar.static_assign(**self.mapping)
-        return waveform.Scale(self.visit(ast.waveform), scale)
+        scalar = self.scalar_visitor.visit(ast.scalar)
+        return waveform.Scale(scalar, self.visit(ast.waveform))
 
     def visit_slice(self, ast: waveform.Slice) -> Any:
         start = ast.interval.start
