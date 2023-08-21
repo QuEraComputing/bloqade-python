@@ -12,7 +12,7 @@ class Backend(Builder):
 
 
 class LocalBackend(Backend):
-    def __call__(
+    def run(
         self,
         shots: int = 1,
         args: Tuple[ParamType, ...] = (),

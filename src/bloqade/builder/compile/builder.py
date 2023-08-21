@@ -196,7 +196,6 @@ class Parser:
         self.read_register()
         self.read_sequeence()
         self.read_pragmas()
-        print(self.static_params)
         return ir.Program(
             self.register,
             self.sequence,

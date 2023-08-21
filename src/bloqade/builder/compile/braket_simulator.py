@@ -1,3 +1,4 @@
+from ...ir import ParallelRegister
 from .ir import BuilderCompiler
 from ..base import Builder, ParamType
 from ...codegen.hardware.quera import SchemaCodeGen
@@ -20,6 +21,11 @@ class BraketEimulatorCompiler:
     def compile(self, shots, *args) -> List[BraketEmulatorTaskData]:
         quera_task_data_list = []
         for data in self.ir_compiler.compile_ir(*args):
+            if isinstance(data.program.register, ParallelRegister):
+                raise TypeError(
+                    "Cannot compile a program with a parallel register to a Braket"
+                    "emulator task."
+                )
             schema_compiler = SchemaCodeGen({})
             task_ir = schema_compiler.emit(shots, data.program)
             quera_task_data_list.append(

@@ -100,6 +100,6 @@ class BraketEmulator(LocalBackend):
         return braketemu_task_data_list
 
     def compile_tasks(self, shots, *args):
-        task_data = self._compile_taskdata(shots, *args)
+        task_data = self.compile_taskdata(shots, *args)
 
         return [BraketEmulatorTask(task_data=dat) for dat in task_data]
