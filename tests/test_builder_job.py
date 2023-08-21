@@ -10,6 +10,3 @@ def test_braket_unsupport_parallel():
 
     with pytest.raises(TypeError):
         prog.braket.local_emulator().run()
-
-
-test_braket_unsupport_parallel()
