@@ -201,7 +201,9 @@ class Fn(WaveformPrimitive):
         self._fn = fn
         self._duration = ir.cast(duration)
 
-    def sample(self, dt: ScalarType, interpolation: Union[ir.Interpolation, str, None]):
+    def sample(
+        self, dt: ScalarType, interpolation: Union[ir.Interpolation, str, None] = None
+    ):
         return Sample(dt, interpolation, self)
 
     def __bloqade_ir__(self):
@@ -242,9 +244,13 @@ class Sample(Slicible, Recordable, WaveformRoute):
     def __init__(
         self,
         dt: ScalarType,
-        interpolation: Union[ir.Interpolation, str],
+        interpolation: Union[ir.Interpolation, str, None],
         parent: Builder,
     ) -> None:
         super().__init__(parent)
         assert_scalar("dt", dt)
-        self._interpolation = ir.Interpolation(interpolation)
+        self._dt = ir.cast(dt)
+        if interpolation is None:
+            self._interpolation = None
+        else:
+            self._interpolation = ir.Interpolation(interpolation)

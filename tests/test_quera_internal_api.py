@@ -25,17 +25,14 @@ def test_quera_submit():
         .submit(shots=10)
     )
 
-    batch.json()
-    # assert False
+    bloqade.save_batch("quera_submit.json", batch)
 
 
 @pytest.mark.vcr
 def test_quera_retrieve():
-    job_future = RemoteBatch()
-    job_future.load_json("quera_submit.json")
-    for number, future in job_future.hardware_task_shot_results.items():
-        print(f"{number}: {future.status()}")
-    print(job_future.report().markdown)
+    with open("tests/data/config/submit_quera_api.json", "r") as f:
+        job_future = bloqade.load_batch("quera_submit.json", **json.load(f))
+        assert type(job_future) == RemoteBatch
 
 
 def create_response(

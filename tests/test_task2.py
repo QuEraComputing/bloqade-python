@@ -7,7 +7,7 @@ import pytest
 
 def test_quera_task():
     backend = QuEraBackend(api_hostname="a", qpu_id="b")
-    task = QuEraTask(task_ir=None, backend=backend)
+    task = QuEraTask(task_data=None, backend=backend)
 
     assert task._result_exists() is False
 
@@ -20,7 +20,7 @@ def test_quera_task():
 
 def test_braket_task():
     backend = BraketBackend()
-    task = BraketTask(task_ir=None, backend=backend)
+    task = BraketTask(task_data=None, backend=backend)
 
     assert task._result_exists() is False
 
