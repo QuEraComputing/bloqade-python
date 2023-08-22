@@ -656,7 +656,8 @@ def test_integration_fn_detune():
         location.Square(1)
         .rydberg.detuning.uniform.fn(my_cos, duration=1.0)
         .sample(dt=0.5)
-        .mock(10)
+        .quera.mock()
+        .submit(10)
     )
 
     panel = json.loads(job.json())
@@ -673,5 +674,7 @@ def test_integration_fn_detune():
     assert ir["lattice"]["filling"] == [1]
 
     detune_ir = ir["effective_hamiltonian"]["rydberg"]["detuning"]
-    assert all(detune_ir["global"]["times"] == np.array([0, 0.5, 1.0]) * 1e-6)
-    assert all(detune_ir["global"]["values"] == np.array([1000000, 877582.6, 540302.4]))
+    assert all(fvec(detune_ir["global"]["times"]) == np.array([0, 0.5, 1.0]) * 1e-6)
+    assert all(
+        fvec(detune_ir["global"]["values"]) == np.array([1000000, 877582.6, 540302.4])
+    )

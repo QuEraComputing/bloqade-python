@@ -25,6 +25,7 @@ class QuEraSchemaCompiler:
         for data in self.ir_compiler.compile_ir(*args):
             schema_compiler = SchemaCodeGen(data.metadata, self.capabilities)
             task_ir = schema_compiler.emit(shots, data.program)
+            task_ir = task_ir.discretize(self.capabilities)
             quera_task_data_list.append(
                 QuEraTaskData(task_ir, data.metadata, schema_compiler.parallel_decoder)
             )

@@ -64,8 +64,7 @@ class Parser:
 
     def read_waveform(self, head: BuilderNode) -> Tuple[ir.Waveform, BuilderNode]:
         curr = head
-        waveform = head.node.__bloqade_ir__()
-        curr = curr.next
+        waveform = None
         while curr is not None:
             match curr.node:
                 case Slice(start, stop, _):
@@ -74,7 +73,7 @@ class Parser:
                     waveform = waveform.record(name)
                 case Sample(dt, interpolation, Fn() as fn_node):
                     if interpolation is None:
-                        if self.field_name == RabiPhase:
+                        if self.field_name == ir.rabi.phase:
                             interpolation = ir.Interpolation.Constant
                         else:
                             interpolation = ir.Interpolation.Linear
@@ -82,17 +81,24 @@ class Parser:
                     sample_waveform = ir.Sample(
                         fn_node.__bloqade_ir__(), interpolation, dt
                     )
-                    waveform = waveform.append(sample_waveform)
+                    if waveform is None:
+                        waveform = sample_waveform
+                    else:
+                        waveform = waveform.append(sample_waveform)
 
                 case Fn() if curr.next is not None and isinstance(
                     curr.next.node, Sample
                 ):  # skip this for the sample node above
-                    continue
+                    pass
                 case WaveformPrimitive() as wf:
-                    waveform = waveform.append(wf.__bloqade_ir__())
+                    if waveform is None:
+                        waveform = wf.__bloqade_ir__()
+                    else:
+                        waveform = waveform.append(wf.__bloqade_ir__())
                 case _:
                     break
             curr = curr.next
+
         return waveform, curr
 
     def read_spatial_modulation(
