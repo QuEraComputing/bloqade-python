@@ -142,6 +142,10 @@ class BatchDeserializer:
         self._args = args
         self._kwargs = kwargs
 
+    def __init__(self, *args, **kwargs):
+        self._args = args
+        self._kwargs = kwargs
+
     def object_hook(self, obj: Dict[str, Any]):
         match obj:
             case {"remote_batch": {"name": name, "tasks": tasks}}:
