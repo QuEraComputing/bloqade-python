@@ -3,7 +3,7 @@ from typing import Any, List, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .parallelize import Parallelize, ParallelizeFlatten
-    from .assign import Assign
+    from .assign import Assign, BatchAssign
     from .flatten import Flatten
 
 
@@ -19,6 +19,13 @@ class Assignable(Builder):
         from .assign import Assign
 
         return Assign(parent=self, **assignments)
+
+
+class BatchAssignable(Builder):
+    def batch_assign(self, **assignments) -> "BatchAssign":
+        from .assign import BatchAssign
+
+        return BatchAssign(parent=self, **assignments)
 
 
 class Parallelizable(Builder):

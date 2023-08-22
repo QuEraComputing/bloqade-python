@@ -1,8 +1,9 @@
 from typing import Optional
 from .base import Builder
-from .pragmas import Parallelizable, Flattenable
+from .pragmas import Parallelizable, Flattenable, BatchAssignable
 from .backend import BackendRoute
 from .compile.trait import Parse
+import numpy as np
 
 
 class AssignBase(Builder):
@@ -14,12 +15,16 @@ class AssignBase(Builder):
         self._assignments = assignments
 
 
-class Assign(AssignBase, Flattenable, Parallelizable, BackendRoute, Parse):
-    def batch_assign(self, **assignments) -> "BatchAssign":
-        return BatchAssign(parent=self, **assignments)
+class Assign(
+    AssignBase, BatchAssignable, Flattenable, Parallelizable, BackendRoute, Parse
+):
+    pass
 
 
 class BatchAssign(AssignBase, Parallelizable, BackendRoute, Parse):
     def __init__(self, parent: Optional[Builder] = None, **assignments) -> None:
         super().__init__(parent, **assignments)
-        # TODO: implement checks for assignments
+        if not len(np.unique(list(map(len, assignments.values())))) == 1:
+            raise ValueError(
+                "all the assignment variables need to have same number of elements."
+            )

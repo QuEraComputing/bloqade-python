@@ -300,6 +300,6 @@ def load_batch(
     deserializer = BatchDeserializer(*backend_args, **backend_kwargs)
     if isinstance(filename_or_io, str):
         with open(filename_or_io, "r") as f:
-            return json.load(f, deserializer.object_hook.object_hook)
+            return json.load(f, object_hook=deserializer.object_hook)
     else:
         return json.load(filename_or_io, object_hook=deserializer.object_hook)
