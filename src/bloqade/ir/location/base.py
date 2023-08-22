@@ -44,9 +44,6 @@ class LocationInfo:
 
 
 class AtomArrangement(ProgramStart):
-    def __init__(self) -> None:
-        super().__init__(register=self)
-
     def __repr__(self) -> str:
         xs_filled, xs_vacant = [], []
         ys_filled, ys_vacant = [], []
@@ -326,11 +323,16 @@ class AtomArrangement(ProgramStart):
 class ParallelRegister(ProgramStart):
     """Parallel Register"""
 
+    __match_args__ = ("_register", "_cluster_spacing")
+
     register_locations: List[List[Scalar]]
     register_filling: List[int]
     shift_vectors: List[List[Scalar]]
 
     def __init__(self, register: AtomArrangement, cluster_spacing: Any):
+        self._register = register
+        self._cluster_spacing = cluster_spacing
+
         if register.n_atoms > 0:
             # calculate bounding box
             # of this register
@@ -364,4 +366,4 @@ class ParallelRegister(ProgramStart):
         self.register_locations = register_locations
         self.register_filling = register_filling
         self.shift_vectors = shift_vectors
-        super().__init__(register=self)
+        super().__init__(self)

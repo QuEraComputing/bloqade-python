@@ -1,29 +1,16 @@
-from typing import TYPE_CHECKING, Optional, Union
-from bloqade.ir.control.pulse import FieldName
-from pydantic import BaseModel
+from typing import Optional, Union, List
+from numbers import Real
+
+from .compile.trait import CompileJSON, Parse
+
+ParamType = Union[Real, List[Real]]
 
 
-if TYPE_CHECKING:
-    from bloqade.ir.location.base import AtomArrangement, ParallelRegister
+class Builder(CompileJSON, Parse):
+    __match_args__ = ("__parent__",)
 
-
-class BuildCache(BaseModel):
-    field_name: Optional[FieldName] = None
-
-
-class Builder:
-    # [internal] Base class for all builder nodes.
-    #
     def __init__(
         self,
         parent: Optional["Builder"] = None,
-        register: Optional[Union["ParallelRegister", "AtomArrangement"]] = None,
     ) -> None:
         self.__parent__ = parent
-
-        if self.__parent__ is not None:
-            self.__build_cache__ = BuildCache(**self.__parent__.__build_cache__.dict())
-            self.__register__ = self.__parent__.__register__
-        else:
-            self.__register__ = register
-            self.__build_cache__ = BuildCache()

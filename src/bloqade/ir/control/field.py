@@ -1,13 +1,18 @@
-from pydantic.dataclasses import dataclass
 from ..scalar import Scalar, cast
-from .waveform import Waveform
-from typing import Dict
 from ..tree_print import Printer
+from .waveform import Waveform
 from bokeh.plotting import figure, show
 from bokeh.layouts import gridplot, row, layout
 from bokeh.models.widgets import PreText
 from bokeh.models import ColumnDataSource
 from bloqade.visualization.ir_visualize import get_field_figure
+from pydantic.dataclasses import dataclass
+from typing import Dict
+
+
+class FieldExpr:
+    pass
+
 
 __all__ = [
     "Field",
@@ -20,7 +25,7 @@ __all__ = [
 
 
 @dataclass(frozen=True)
-class Location:
+class Location(FieldExpr):
     value: int
 
     def __repr__(self) -> str:
@@ -38,11 +43,11 @@ class Location:
         return []
 
     def print_node(self):
-        return f"Location {self.value}"
+        return f"Location({str(self.value)})"
 
 
 @dataclass
-class SpatialModulation:
+class SpatialModulation(FieldExpr):
     def __hash__(self) -> int:
         raise NotImplementedError
 
@@ -132,7 +137,7 @@ class RunTimeVector(SpatialModulation):
 
 @dataclass(init=False, repr=False)
 class ScaledLocations(SpatialModulation):
-    value: dict[Location, Scalar]
+    value: Dict[Location, Scalar]
 
     def __init__(self, pairs):
         value = dict()
@@ -152,7 +157,7 @@ class ScaledLocations(SpatialModulation):
 
     def __str__(self):
         ## formatting location: scale pair:
-        tmp = {f"{key.value}": val for key, val in self.value.items()}
+        tmp = {f"{str(key.value)}": val for key, val in self.value.items()}
         return f"ScaledLocations({str(tmp)})"
 
     def _get_data(self, **assignments):
@@ -177,6 +182,16 @@ class ScaledLocations(SpatialModulation):
 
         return annotated_children
 
+    def __getitem__(self, key):
+        return self.value[key]
+
+    def __setitem__(self, key, value):
+        assert isinstance(key, Location)
+        self.value[key] = cast(value)
+
+    def __bool__(self):
+        return bool(self.value)
+
     def figure(self, **assignments):
         locs = []
         literal_val = []
@@ -195,11 +210,10 @@ class ScaledLocations(SpatialModulation):
 
     def show(self, **assignment):
         show(self.figure(**assignment))
-        pass
 
 
 @dataclass
-class Field:
+class Field(FieldExpr):
     """Field node in the IR. Which contains collection(s) of
     [`Waveform`][bloqade.ir.control.waveform.Waveform]
 

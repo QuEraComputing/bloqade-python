@@ -274,13 +274,13 @@ def test_wvfn_rec():
 
 
 def test_wvfn_poly():
-    wf = Poly(checkpoints=[cast(1), cast(2), cast(3)], duration=10)
+    wf = Poly(coeffs=[cast(1), cast(2), cast(3)], duration=10)
 
     assert wf.print_node() == "Poly"
     assert wf.children() == {
-        "b": wf.checkpoints[0],
-        "t": wf.checkpoints[1],
-        "t^2": wf.checkpoints[2],
+        "b": wf.coeffs[0],
+        "t": wf.coeffs[1],
+        "t^2": wf.coeffs[2],
         "duration": cast(10),
     }
     assert wf.eval_decimal(Decimal("0.5")) == (1) + (2) * 0.5 + (3) * 0.5**2
