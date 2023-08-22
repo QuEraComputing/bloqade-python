@@ -294,7 +294,7 @@ class Rectangular(BoundedBravais):
             pltxt.xlabel("x (um)")
             pltxt.ylabel("y (um)")
 
-            pltxt.scatter(xs, ys, color="magenta")
+            pltxt.scatter(xs, ys, color=(100, 55, 255), marker="dot")
 
             return pltxt.build()
 
