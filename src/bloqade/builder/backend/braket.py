@@ -29,7 +29,9 @@ class Aquila(RemoteBackend):
     __device_name__ = "aquila"
 
     def __init__(
-        self, cache_compiled_programs: bool = False, parent: Builder | None = None
+        self,
+        # cache_compiled_programs: bool = False,
+        parent: Builder | None = None,
     ) -> None:
         # super().__init__(cache_compiled_programs, parent=parent)
         super().__init__(parent=parent)
@@ -78,7 +80,7 @@ class BraketEmulator(LocalBackend):
 
     def __init__(
         self,
-        cache_compiled_programs: bool = False,
+        # cache_compiled_programs: bool = False,
         parent: Optional[Builder] = None,
     ) -> None:
         # super().__init__(cache_compiled_programs, parent=parent)

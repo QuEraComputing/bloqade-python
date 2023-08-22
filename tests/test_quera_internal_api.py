@@ -14,7 +14,7 @@ import pytest
 # Integraiton tests
 @pytest.mark.vcr
 def test_quera_submit():
-    job_future = (
+    batch = (
         start.add_position((0, 0))
         .rydberg.rabi.amplitude.uniform.piecewise_linear(
             [0.1, "run_time", 0.1], [0, 15, 15, 0]
@@ -25,8 +25,8 @@ def test_quera_submit():
         .submit(shots=10)
     )
 
-    job_future.save_json("quera_submit.json")
-    assert False
+    batch.json()
+    # assert False
 
 
 @pytest.mark.vcr

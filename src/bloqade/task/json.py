@@ -267,7 +267,11 @@ class BatchDeserializer:
                 return obj
 
 
-def load_batch(json_str: str, *args, **kwargs):
+def load_batch(filename: str, *args, **kwargs):
+    json_str = None
+    with open(filename, "r") as f:
+        json_str = f.readlines()
+
     return json.loads(
         json_str, object_hook=BatchDeserializer(*args, **kwargs).object_hook
     )

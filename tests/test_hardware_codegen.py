@@ -65,7 +65,9 @@ def test_integration_scale():
 
     print(panel)
 
-    ir = panel["hardware_tasks"]["0"]["task_ir"]
+    task_data = panel["remote_batch"]["tasks"][0][1]
+
+    ir = task_data["quera_task"]["task_data"]["quera_task_data"]["task_ir"]
 
     assert ir["nshots"] == 10
     assert ir["lattice"]["sites"][0] == [0.0, 0.0]

@@ -35,7 +35,7 @@ class QuEraBackend(RemoteBackend):
         self,
         config_file: Optional[str] = None,
         parent: Optional[Builder] = None,
-        cache_compiled_programs: bool = False,
+        # cache_compiled_programs: bool = False,
         **api_configs,
     ) -> None:
         # super().__init__(cache_compiled_programs, parent=parent)
@@ -75,7 +75,7 @@ class QuEraBackend(RemoteBackend):
         return quera_task_data_list
 
     def compile_tasks(self, shots, *args):
-        backend = quera_submit.QuEraBackend(self._api_configs)
+        backend = quera_submit.QuEraBackend(**self._api_configs)
         task_data = self._compile_taskdata(shots, backend, *args)
 
         return [QuEraTask(task_data=dat, backend=backend) for dat in task_data]
@@ -112,7 +112,7 @@ class Mock(RemoteBackend):
     def __init__(
         self,
         state_file: str = ".mock_state.txt",
-        cache_compiled_programs: bool = False,
+        # cache_compiled_programs: bool = False,
         parent: Builder | None = None,
     ) -> None:
         # super().__init__(cache_compiled_programs, parent=parent)
