@@ -579,7 +579,7 @@ def test_integration_batchassign_assign():
         .submit(10)
     )
 
-    assert len(batch.hardware_tasks) == 4
+    assert len(batch.tasks) == 4
 
 
 def test_integration_record():
@@ -590,7 +590,8 @@ def test_integration_record():
         )
         .record("a")
         .piecewise_constant(durations=[0.3], values=["a"])
-        .mock(10)
+        .quera.mock()
+        .submit(10)
     )
 
     panel = json.loads(job.json())
@@ -621,7 +622,8 @@ def test_integration_fn_phase():
         location.Square(1)
         .rydberg.rabi.phase.uniform.fn(my_cos, duration=1.0)
         .sample(dt=0.5)
-        .mock(10)
+        .quera.mock()
+        .submit(10)
     )
 
     panel = json.loads(job.json())
