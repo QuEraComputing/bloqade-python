@@ -74,32 +74,28 @@ class PiecewiseLinearCodeGen(WaveformVisitor):
 
     def visit_poly(self, ast: waveform.Poly) -> Tuple[List[Decimal], List[Decimal]]:
         match ast:
-            case waveform.Poly(
-                checkpoints=checkpoint_exprs, duration=duration_expr
-            ) if len(checkpoint_exprs) == 1:
+            case waveform.Poly(coeffs=coeff_exprs, duration=duration_expr) if len(
+                coeff_exprs
+            ) == 1:
                 duration = duration_expr(**self.assignments)
                 (value,) = [
-                    checkpoint_expr(**self.assignments)
-                    for checkpoint_expr in checkpoint_exprs
+                    coeff_expr(**self.assignments) for coeff_expr in coeff_exprs
                 ]
                 return [Decimal(0), duration], [value, value]
 
-            case waveform.Poly(
-                checkpoints=checkpoint_exprs, duration=duration_expr
-            ) if len(checkpoint_exprs) == 2:
+            case waveform.Poly(coeffs=coeff_exprs, duration=duration_expr) if len(
+                coeff_exprs
+            ) == 2:
                 duration = duration_expr(**self.assignments)
-                values = [
-                    checkpoint_expr(**self.assignments)
-                    for checkpoint_expr in checkpoint_exprs
-                ]
+                values = [coeff_expr(**self.assignments) for coeff_expr in coeff_exprs]
 
                 start = values[0]
                 stop = values[0] + values[1] * duration
 
                 return [Decimal(0), duration], [start, stop]
 
-            case waveform.Poly(checkpoints=checkpoints):
-                order = len(checkpoints) - 1
+            case waveform.Poly(coeffs=coeffs):
+                order = len(coeffs) - 1
                 raise ValueError(
                     "Failed to compile Waveform to piecewise linear,"
                     f"found Polynomial of order {order}."
@@ -173,6 +169,7 @@ class PiecewiseLinearCodeGen(WaveformVisitor):
         return times, values
 
     def visit_append(self, ast: waveform.Append) -> Tuple[List[Decimal], List[Decimal]]:
+        print(ast.waveforms)
         times, values = self.visit(ast.waveforms[0])
 
         for sub_expr in ast.waveforms[1:]:
@@ -244,20 +241,19 @@ class PiecewiseConstantCodeGen(WaveformVisitor):
 
     def visit_poly(self, ast: waveform.Poly) -> Tuple[List[Decimal], List[Decimal]]:
         match ast:
-            case waveform.Poly(
-                checkpoints=checkpoint_exprs, duration=duration_expr
-            ) if len(checkpoint_exprs) == 1:
+            case waveform.Poly(coeffs=coeff_exprs, duration=duration_expr) if len(
+                coeff_exprs
+            ) == 1:
                 duration = duration_expr(**self.assignments)
                 (value,) = [
-                    checkpoint_expr(**self.assignments)
-                    for checkpoint_expr in checkpoint_exprs
+                    coeff_expr(**self.assignments) for coeff_expr in coeff_exprs
                 ]
                 return [Decimal(0), duration], [value, value]
 
-            case waveform.Poly(checkpoints=checkpoints):
-                order = len(checkpoints) - 1
+            case waveform.Poly(coeffs=coeffs):
+                order = len(coeffs) - 1
                 raise ValueError(
-                    "Failed to compile Waveform to piecewise constant, "
+                    "Failed to compile Waveform to piecewise constant,"
                     f"found Polynomial of order {order}."
                 )
 
