@@ -265,3 +265,9 @@ class BatchDeserializer:
                 return BraketEmulatorTaskData(task_ir, metadata)
             case _:
                 return obj
+
+
+def load_batch(json_str: str, *args, **kwargs):
+    return json.loads(
+        json_str, object_hook=BatchDeserializer(*args, **kwargs).object_hook
+    )
