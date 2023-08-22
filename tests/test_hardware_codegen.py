@@ -129,7 +129,7 @@ def test_integration_poly_order_err():
 def test_integration_poly_const():
     ## constant
     seq = Poly(coeffs=[1], duration=0.5).append(Constant(1, duration=0.5))
-    job = location.Square(1).rydberg.detuning.uniform.apply(seq).mock(12)
+    job = location.Square(1).rydberg.detuning.uniform.apply(seq).quera.mock().submit(12)
 
     panel = json.loads(job.json())
     print(panel)
@@ -180,49 +180,58 @@ def test_integration_linear_sampl_const_err():
     wf = Sample(wv, Interpolation.Constant, dt)
     ## phase can only have piecewise constant.
     with pytest.raises(ValueError):
-        location.Square(1).rydberg.detuning.uniform.apply(wf).mock(10)
+        location.Square(1).rydberg.detuning.uniform.apply(wf).quera.mock().submit(10)
 
 
 def test_integration_slice_linear_const():
     seq = Linear(start=0.0, stop=1.0, duration=1.0)[0:0.5].append(
         Constant(0.5, duration=0.5)
     )
-    job = location.Square(1).rydberg.detuning.uniform.apply(seq).mock(10)
+    job = (
+        location.Square(1)
+        .rydberg.detuning.uniform.apply(seq)
+        .quera.mock()
+        .submit(shots=10)
+    )
 
     panel = json.loads(job.json())
 
     print(panel)
 
-    ir = panel["hardware_tasks"]["0"]["task_ir"]
+    task_data = panel["remote_batch"]["tasks"][0][1]
+
+    ir = task_data["quera_task"]["task_data"]["quera_task_data"]["task_ir"]
 
     assert ir["nshots"] == 10
-    assert ir["lattice"]["sites"][0] == [0.0, 0.0]
+    assert fvec(ir["lattice"]["sites"][0]) == [0.0, 0.0]
     assert ir["lattice"]["filling"] == [1]
     assert ir["lattice"]["filling"] == [1]
 
     detune_ir = ir["effective_hamiltonian"]["rydberg"]["detuning"]
-    assert all(detune_ir["global"]["times"] == np.array([0, 0.5, 1.0]) * 1e-6)
-    assert all(detune_ir["global"]["values"] == np.array([0, 0.5, 0.5]) * 1e6)
+    assert all(fvec(detune_ir["global"]["times"]) == np.array([0, 0.5, 1.0]) * 1e-6)
+    assert all(fvec(detune_ir["global"]["values"]) == np.array([0, 0.5, 0.5]) * 1e6)
 
 
 def test_integration_slice_linear_no_stop():
     seq = Linear(start=0.0, stop=1.0, duration=1.0)[0:]
-    job = location.Square(1).rydberg.detuning.uniform.apply(seq).mock(10)
+    job = location.Square(1).rydberg.detuning.uniform.apply(seq).quera.mock().submit(10)
 
     panel = json.loads(job.json())
 
     print(panel)
 
-    ir = panel["hardware_tasks"]["0"]["task_ir"]
+    task_data = panel["remote_batch"]["tasks"][0][1]
+
+    ir = task_data["quera_task"]["task_data"]["quera_task_data"]["task_ir"]
 
     assert ir["nshots"] == 10
-    assert ir["lattice"]["sites"][0] == [0.0, 0.0]
+    assert fvec(ir["lattice"]["sites"][0]) == [0.0, 0.0]
     assert ir["lattice"]["filling"] == [1]
     assert ir["lattice"]["filling"] == [1]
 
     detune_ir = ir["effective_hamiltonian"]["rydberg"]["detuning"]
-    assert all(detune_ir["global"]["times"] == np.array([0, 1.0]) * 1e-6)
-    assert all(detune_ir["global"]["values"] == np.array([0, 1.0]) * 1e6)
+    assert all(fvec(detune_ir["global"]["times"]) == np.array([0, 1.0]) * 1e-6)
+    assert all(fvec(detune_ir["global"]["values"]) == np.array([0, 1.0]) * 1e6)
 
 
 def test_integration_slice_linear_no_start():
