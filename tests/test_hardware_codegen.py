@@ -90,28 +90,40 @@ def test_integration_neg():
     seq = Linear(start=0.0, stop=-0.5, duration=0.5).append(
         -Constant(0.5, duration=0.5)
     )
-    job = location.Square(1).rydberg.detuning.uniform.apply(seq).quera.mock().submit(10)
+    job = (
+        location.Square(1)
+        .rydberg.detuning.uniform.apply(seq)
+        .quera.mock()
+        .submit(shots=10)
+    )
 
     panel = json.loads(job.json())
     print(panel)
 
-    ir = panel["hardware_tasks"]["0"]["task_ir"]
+    task_data = panel["remote_batch"]["tasks"][0][1]
+
+    ir = task_data["quera_task"]["task_data"]["quera_task_data"]["task_ir"]
 
     assert ir["nshots"] == 10
-    assert ir["lattice"]["sites"][0] == [0.0, 0.0]
+    assert fvec(ir["lattice"]["sites"][0]) == [0.0, 0.0]
     assert ir["lattice"]["filling"] == [1]
     assert ir["lattice"]["filling"] == [1]
 
     detune_ir = ir["effective_hamiltonian"]["rydberg"]["detuning"]
-    assert all(detune_ir["global"]["times"] == np.array([0, 0.5, 1.0]) * 1e-6)
-    assert all(detune_ir["global"]["values"] == np.array([0, -0.5, -0.5]) * 1e6)
+    assert all(fvec(detune_ir["global"]["times"]) == np.array([0, 0.5, 1.0]) * 1e-6)
+    assert all(fvec(detune_ir["global"]["values"]) == np.array([0, -0.5, -0.5]) * 1e6)
 
 
 def test_integration_poly_order_err():
     ## poly
     with pytest.raises(ValueError):
         seq = Poly(coeffs=[1, 2, 3], duration=0.5).append(-Constant(0.5, duration=0.5))
-        (location.Square(1).rydberg.detuning.uniform.apply(seq).mock(10))
+        (
+            location.Square(1)
+            .rydberg.detuning.uniform.apply(seq)
+            .quera.mock()
+            .compile_taskdata(shots=10)
+        )
 
 
 def test_integration_poly_const():
@@ -122,10 +134,12 @@ def test_integration_poly_const():
     panel = json.loads(job.json())
     print(panel)
 
-    ir = panel["hardware_tasks"]["0"]["task_ir"]
+    task_data = panel["remote_batch"]["tasks"][0][1]
+
+    ir = task_data["quera_task"]["task_data"]["quera_task_data"]["task_ir"]
 
     assert ir["nshots"] == 12
-    assert ir["lattice"]["sites"][0] == [0.0, 0.0]
+    assert fvec(ir["lattice"]["sites"][0]) == [0.0, 0.0]
     assert ir["lattice"]["filling"] == [1]
     assert ir["lattice"]["filling"] == [1]
 
