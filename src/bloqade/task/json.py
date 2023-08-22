@@ -11,7 +11,7 @@ from bloqade.submission.quera import QuEraBackend
 from .braket import BraketTask
 from .quera import QuEraTask
 from .batch import RemoteBatch, LocalBatch
-from typing import TextIO, Type, Dict, Any, Union
+from typing import TextIO, Dict, Any, Union
 from .braket_simulator import BraketEmulatorTask
 from bloqade.builder.compile.quera import QuEraTaskData
 import json
@@ -138,11 +138,6 @@ class BatchSerializer(json.JSONEncoder):
 
 
 class BatchDeserializer:
-    methods_batch: Dict[str, Type] = {
-        "remote": RemoteBatch,
-        "local": LocalBatch,
-    }
-
     def __init__(self, *args, **kwargs):
         self._args = args
         self._kwargs = kwargs
