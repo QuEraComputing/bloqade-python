@@ -59,3 +59,13 @@ class QuEraBackend(SubmissionBackend):
             )
         except QueueApi.ValidationError as e:
             raise ValidationError(str(e))
+
+    def update_credential(
+        self, access_key: str = None, secret_key: str = None, session_token: str = None
+    ):
+        if secret_key is not None:
+            self.secret_key = secret_key
+        if access_key is not None:
+            self.access_key = access_key
+        if session_token is not None:
+            self.session_token = session_token

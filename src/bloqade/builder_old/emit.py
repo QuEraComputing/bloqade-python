@@ -81,77 +81,6 @@ class Emit(Builder):
         self.__sequence__ = sequence
         self.__register__ = register
 
-    def assign(self, **assignments):
-        """
-        Assign values to variables declared previously in the program.
-
-        Args:
-            assignments (Dict[str, Union[Number]]):
-            The assignments, which should be a kwargs
-            where the key is the variable name and the
-            value is the value to assign to the variable.
-
-        Examples:
-            - Assign the value 0.0 to the variable "ival"
-            and 0.5 to the variable "span_time".
-
-            >>> reg = bloqade.start
-            ...       .add_positions([(0,0),(1,1),(2,2),(3,3)])
-            >>> seq = reg.rydberg.detuning.uniform
-            ...       .linear(start="ival",stop=1,duration="span_time")
-            >>> seq = seq.assign(span_time = 0.5, ival = 0.0)
-
-        """
-
-        # these methods terminate no build steps can
-        # happens after this other than updating parameters
-        new_assignments = dict(self.__assignments__)
-        new_assignments.update(**assignments)
-        return Emit(
-            self,
-            assignments=new_assignments,
-            batch=self.__batch__,
-            register=self.__register__,
-            sequence=self.__sequence__,
-        )
-
-    def batch_assign(self, **batch):
-        """
-        Assign values to variables declared previously in the program
-        for launching batch jobs.
-
-
-        Args:
-            batch (Dict[str, Union[Number]]): The batch assignments of variables,
-            which should be a kwargs where the key is the variable name
-            and the value is the list of value assign to the variable.
-
-        Examples:
-            - Assign the value [0.0,0.5] to the variable "ival" and [0.6,0.8]
-            to the variable "span_time".
-            This will create a job with two tasks
-            of (value,ival) = (0.0,0.6) and (0.5,0.8) with each has 10 shots.
-
-            >>> reg = bloqade.start.add_positions([(0,0),(1,1),(2,2),(3,3)])
-            >>> seq = reg.rydberg.detuning.uniform
-            ...       .linear(start="ival",stop=1,duration="span_time")
-            >>> job = seq.batch_assign(span_time = [0.6,0.8], ival = [0.0,0.5]).mock(10)
-
-        Note:
-            the length of the lists of values should be the same for each variable.
-
-        """
-
-        new_batch = dict(self.__batch__)
-        new_batch.update(**batch)
-        return Emit(
-            self,
-            assignments=self.__assignments__,
-            batch=new_batch,
-            register=self.__register__,
-            sequence=self.__sequence__,
-        )
-
     def parallelize(self, cluster_spacing: Any) -> "Emit":
         """
         Parallelize the current problem (register & sequnece) to fill entire FOV
@@ -374,25 +303,25 @@ class Emit(Builder):
 
             case coupling.Rydberg():
                 if build_state.amplitude.value:
-                    current_field = build_state.rydberg.value.get(
+                    current_field = build_state.rydberg.fields.get(
                         ir.rabi.amplitude, ir.Field({})
                     )
                     result_field = current_field.add(build_state.amplitude)
-                    build_state.rydberg.value[ir.rabi.amplitude] = result_field
+                    build_state.rydberg.fields[ir.rabi.amplitude] = result_field
 
                 if build_state.phase.value:
-                    current_field = build_state.rydberg.value.get(
+                    current_field = build_state.rydberg.fields.get(
                         ir.rabi.phase, ir.Field({})
                     )
                     result_field = current_field.add(build_state.phase)
-                    build_state.rydberg.value[ir.rabi.phase] = result_field
+                    build_state.rydberg.fields[ir.rabi.phase] = result_field
 
                 if build_state.detuning.value:
-                    current_field = build_state.rydberg.value.get(
+                    current_field = build_state.rydberg.fields.get(
                         ir.detuning, ir.Field({})
                     )
                     result_field = current_field.add(build_state.detuning)
-                    build_state.rydberg.value[ir.detuning] = result_field
+                    build_state.rydberg.fields[ir.detuning] = result_field
 
                 # reset fields
                 build_state.amplitude = ir.Field({})
@@ -402,34 +331,34 @@ class Emit(Builder):
 
             case coupling.Hyperfine():
                 if build_state.amplitude.value:
-                    current_field = build_state.hyperfine.value.get(
+                    current_field = build_state.hyperfine.fields.get(
                         ir.rabi.amplitude, ir.Field({})
                     )
                     result_field = current_field.add(build_state.amplitude)
-                    build_state.hyperfine.value[ir.rabi.amplitude] = result_field
+                    build_state.hyperfine.fields[ir.rabi.amplitude] = result_field
 
                 if build_state.phase.value:
-                    current_field = build_state.hyperfine.value.get(
+                    current_field = build_state.hyperfine.fields.get(
                         ir.rabi.phase, ir.Field({})
                     )
                     result_field = current_field.add(build_state.phase)
-                    build_state.hyperfine.value[ir.rabi.phase] = result_field
+                    build_state.hyperfine.fields[ir.rabi.phase] = result_field
 
                 if build_state.detuning.value:
-                    current_field = build_state.hyperfine.value.get(
+                    current_field = build_state.hyperfine.fields.get(
                         ir.detuning, ir.Field({})
                     )
                     result_field = current_field.add(build_state.detuning)
-                    build_state.hyperfine.value[ir.detuning] = result_field
+                    build_state.hyperfine.fields[ir.detuning] = result_field
 
                 Emit.__build_ast(builder.__parent__, build_state)
 
             case start.ProgramStart():
-                if build_state.rydberg.value:
-                    build_state.sequence.value[ir.rydberg] = build_state.rydberg
+                if build_state.rydberg.fields:
+                    build_state.sequence.pulses[ir.rydberg] = build_state.rydberg
 
-                if build_state.hyperfine.value:
-                    build_state.sequence.value[ir.hyperfine] = build_state.hyperfine
+                if build_state.hyperfine.fields:
+                    build_state.sequence.pulses[ir.hyperfine] = build_state.hyperfine
 
                 build_state.rydberg = ir.Pulse({})
                 build_state.hyperfine = ir.Pulse({})

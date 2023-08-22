@@ -1,10 +1,11 @@
 from pydantic.dataclasses import dataclass
-from dataclasses import InitVar, fields
+from dataclasses import fields
 from typing import List, Tuple, Generator, Optional, Any
 import numpy as np
 import itertools
 from numpy.typing import NDArray
 from bloqade.ir.location.base import AtomArrangement, LocationInfo
+from dataclasses import InitVar
 from bloqade.ir import Literal, Scalar, cast
 
 import plotext as pltxt
@@ -18,6 +19,7 @@ class Cell:
 
 @dataclass
 class BoundedBravais(AtomArrangement):
+    __match_args__ = ("shape", "lattice_spacing")
     """Base classe for Bravais lattices
     [`AtomArrangement`][bloqade.ir.location.base.AtomArrangement].
 
@@ -41,6 +43,12 @@ class BoundedBravais(AtomArrangement):
         self.lattice_spacing = cast(lattice_spacing)
         self.__n_atoms = None
         self.__n_dims = None
+
+    def cell_vectors(self) -> Tuple[Tuple[Scalar, ...], ...]:
+        raise NotImplementedError
+
+    def cell_atoms(self) -> Tuple[Tuple[Scalar, ...], ...]:
+        raise NotImplementedError
 
     def __repr__(self):
         has_lattice_spacing_var = False
@@ -239,6 +247,7 @@ class Rectangular(BoundedBravais):
 
     """
 
+    __match_args__ = ("shape", "lattice_spacing", "ratio")
     ratio: Scalar = 1.0
     lattice_spacing_x: InitVar[Any]
     lattice_spacing_y: InitVar[Any]
@@ -250,6 +259,8 @@ class Rectangular(BoundedBravais):
         lattice_spacing_x: Any = 1.0,
         lattice_spacing_y: Optional[Any] = None,
     ):
+        super().__init__(width, height, lattice_spacing=lattice_spacing_x)
+
         if lattice_spacing_y is None:
             self.ratio = cast(1.0) / cast(lattice_spacing_x)
         else:

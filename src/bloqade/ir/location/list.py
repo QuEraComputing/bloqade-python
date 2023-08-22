@@ -3,6 +3,8 @@ from typing import List, Tuple, Any, Union
 
 
 class ListOfLocations(AtomArrangement):
+    __match_args__ = ("location_list",)
+
     def __init__(self, location_list: List[Union[LocationInfo, Tuple[Any, Any]]] = []):
         self.location_list = []
         for ele in location_list:

@@ -1,4 +1,11 @@
-from bloqade.ir.location import Lieb, Square, Rectangular, Honeycomb, Kagome, Triangular
+from bloqade.ir.location.bravais import (
+    Lieb,
+    Square,
+    Rectangular,
+    Honeycomb,
+    Kagome,
+    Triangular,
+)
 from bloqade.ir.location.bravais import Cell
 from bloqade import cast
 from math import sqrt

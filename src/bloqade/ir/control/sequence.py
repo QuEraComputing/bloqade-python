@@ -106,37 +106,37 @@ class Append(SequenceExpr):
 class Sequence(SequenceExpr):
     """Sequence of a program, which includes pulses informations."""
 
-    value: dict[LevelCoupling, PulseExpr]
+    pulses: dict[LevelCoupling, PulseExpr]
 
     def __init__(self, seq_pairs: Dict | None = None):
         if seq_pairs is None:
-            self.value = {}
+            self.pulses = {}
             return
 
-        value = {}
+        pulses = {}
         for level_coupling, pulse in seq_pairs.items():
             if not isinstance(level_coupling, LevelCoupling):
                 raise TypeError(f"Unexpected type {type(level_coupling)}")
 
             if isinstance(pulse, PulseExpr):
-                value[level_coupling] = pulse
+                pulses[level_coupling] = pulse
             elif isinstance(pulse, dict):
-                value[level_coupling] = Pulse(pulse)
+                pulses[level_coupling] = Pulse(pulse)
             else:
                 raise TypeError(f"Unexpected type {type(pulse)}")
-        self.value = value
+        self.pulses = pulses
 
     def __call__(self, clock_s: float, level_coupling: LevelCoupling, *args, **kwargs):
-        return self.value[level_coupling](clock_s, *args, **kwargs)
+        return self.pulses[level_coupling](clock_s, *args, **kwargs)
 
     def __str__(self):
-        return f"Sequence({str(self.value)})"
+        return f"Sequence({str(self.pulses)})"
 
     # return annotated version
     def children(self):
         return {
             level_coupling.print_node(): pulse_expr
-            for level_coupling, pulse_expr in self.value.items()
+            for level_coupling, pulse_expr in self.pulses.items()
         }
 
     def print_node(self):

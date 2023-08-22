@@ -3,7 +3,7 @@ from bloqade.ir import rabi
 from bloqade.ir import cast
 from bloqade.ir import Interpolation
 from bloqade.ir import Interval
-from bloqade.ir.visitor.waveform_visitor import WaveformVisitor
+from bloqade.ir.visitor.waveform import WaveformVisitor
 from bloqade.ir.control.waveform import (
     GaussianKernel,
     Alignment,
@@ -34,7 +34,7 @@ wv_add = Add(wv_linear, wv_constant)
 wv_record = Record(wv_linear, cast("tst"))
 wv_python = PythonFn(lambda x: x**2, duration=0.5)
 wv_sample = Sample(wv_linear, Interpolation("linear"), dt=cast(0.5))
-wv_poly = Poly(checkpoints=[0.1, 0.2], duration=0.5)
+wv_poly = Poly(coeffs=[0.1, 0.2], duration=0.5)
 wv_smooth = Smooth(radius=cast(0.5), kernel=GaussianKernel, waveform=wv_linear)
 wv_align = AlignedWaveform(wv_linear, Alignment("left_aligned"), cast(0.5))
 
