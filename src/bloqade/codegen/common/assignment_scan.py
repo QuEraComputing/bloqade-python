@@ -1,4 +1,4 @@
-from bloqade.ir.visitor.program_visitor import ProgramVisitor
+from bloqade.ir.visitor.program import ProgramVisitor
 import bloqade.ir.control.sequence as sequence
 import bloqade.ir.control.pulse as pulse
 import bloqade.ir.control.field as field

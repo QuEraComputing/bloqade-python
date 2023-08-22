@@ -1,6 +1,6 @@
 from pydantic.dataclasses import dataclass
 from pydantic import validator
-from typing import Any, Union, List
+from typing import Union, List
 from .tree_print import Printer
 import re
 from decimal import Decimal
@@ -16,7 +16,7 @@ __all__ = [
 ]
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, repr=False)
 class Scalar:
     """Base class for all scalar expressions.
 
@@ -51,6 +51,11 @@ class Scalar:
                     return Decimal(str(kwargs[name]))
                 else:
                     raise Exception(f"Unknown variable: {name}")
+            case DefaultVariable(name, default_value):
+                if name in kwargs:
+                    return Decimal(str(kwargs[name]))
+                else:
+                    return default_value.value
             case Negative(expr):
                 return -expr(**kwargs)
             case Add(lhs, rhs):
@@ -236,7 +241,7 @@ def check_variable_name(name: str) -> None:
         raise ValueError(f"string '{name}' is not a valid python identifier")
 
 
-def cast(py) -> Any:
+def cast(py) -> "Scalar":
     """cast Real number (or list/tuple of Real numbers)
     to [`Scalar Literal`][bloqade.ir.scalar.Literal].
 
@@ -253,7 +258,12 @@ def cast(py) -> Any:
     return ret
 
 
-def trycast(py) -> Any:
+# TODO: RL: remove support on List and Tuple just use map?
+#       this is making type inference much harder to parse
+#       in human brain
+# [KHW] it need to be there. For recursive replace for nested
+#       list/tuple
+def trycast(py) -> "Scalar | None":
     match py:
         case int(x) | float(x) | bool(x):
             return Literal(Decimal(str(x)))
@@ -275,7 +285,7 @@ def trycast(py) -> Any:
             return
 
 
-def var(py: Union[str, List[str]]) -> Any:
+def var(py: Union[str, List[str]]) -> "Variable":
     """cast string (or list/tuple of strings)
     to [`Variable`][bloqade.ir.scalar.Variable].
 
@@ -292,15 +302,15 @@ def var(py: Union[str, List[str]]) -> Any:
     return ret
 
 
-def tryvar(py) -> Any:
+def tryvar(py) -> "Variable | None":
     match py:
         case str(x):
             check_variable_name(x)
             return Variable(x)
-        case list() as xs:
-            return list(map(var, xs))
-        case tuple() as xs:
-            return tuple(map(var, xs))
+        # case list() as xs:
+        #     return list(map(var, xs))
+        # case tuple() as xs:
+        #     return tuple(map(var, xs))
         case Variable():
             return py
         case _:
@@ -312,7 +322,7 @@ class Real(Scalar):
     pass
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, repr=False)
 class Literal(Real):
     value: Decimal
     """Scalar Literal, which stores a decimaal value instance.
@@ -338,7 +348,7 @@ class Literal(Real):
         Printer(p).print(self, cycle)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, repr=False)
 class Variable(Real):
     """Variable, which stores a variable name.
 
@@ -379,7 +389,36 @@ class Variable(Real):
         return v
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, repr=False)
+class DefaultVariable(Scalar):
+    name: str
+    default_value: Literal
+
+    def __str__(self):
+        return f"{self.name}"
+
+    def children(self):
+        return [self.default_value]
+
+    def print_node(self):
+        return f"DefaultVariable: {self.name}"
+
+    @validator("name")
+    def name_validator(cls, v):
+        match v:
+            case "config_file":
+                raise ValueError(
+                    f'"{v}" is a reserved token, cannot create variable with that name'
+                )
+            case "clock_s":
+                raise ValueError(
+                    f'"{v}" is a reserved token, cannot create variable with that name'
+                )
+
+        return v
+
+
+@dataclass(frozen=True, repr=False)
 class Negative(Scalar):
     expr: Scalar
 
@@ -393,7 +432,7 @@ class Negative(Scalar):
         return "-"
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, repr=False)
 class Interval:
     start: Scalar | None
     stop: Scalar | None
@@ -452,7 +491,7 @@ class Interval:
                 return {"start": start, "stop": stop}
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, repr=False)
 class Slice(Scalar):
     expr: Scalar  # duration
     interval: Interval
@@ -467,7 +506,7 @@ class Slice(Scalar):
         return "Slice"
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, repr=False)
 class Add(Scalar):
     lhs: Scalar
     rhs: Scalar
@@ -482,7 +521,7 @@ class Add(Scalar):
         return "+"
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, repr=False)
 class Mul(Scalar):
     lhs: Scalar
     rhs: Scalar
@@ -497,7 +536,7 @@ class Mul(Scalar):
         return "*"
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, repr=False)
 class Div(Scalar):
     lhs: Scalar
     rhs: Scalar
@@ -512,7 +551,7 @@ class Div(Scalar):
         return "/"
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, repr=False)
 class Min(Scalar):
     exprs: frozenset[Scalar]
 
@@ -526,7 +565,7 @@ class Min(Scalar):
         return f"scalar.Min({str(self.exprs)})"
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, repr=False)
 class Max(Scalar):
     exprs: frozenset[Scalar]
 
