@@ -420,20 +420,25 @@ class PythonFn(Instruction):
         if signature.varkw is not None:
             raise ValueError("Cannot have varkw")
 
-        variables = list(map(var, signature.args[1:]))
+        # get default kwonly first:
         default_variables = []
         if signature.kwonlydefaults is not None:
             default_variables = [
-                DefaultVariable(name, Decimal(str(value)))
+                DefaultVariable(name, cast(Decimal(str(value))))
                 for name, value in signature.kwonlydefaults.items()
             ]
-        self.parameters = variables + default_variables
+
+        variables = signature.args[1:] + [
+            v for v in signature.kwonlyargs if v not in signature.kwonlydefaults.keys()
+        ]
+        self.parameters = list(map(var, variables)) + default_variables
 
     def eval_decimal(self, clock_s: Decimal, **assignments) -> Decimal:
         if clock_s > self.duration(**assignments):
             return Decimal(0)
 
         kwargs = {param.name: float(param(**assignments)) for param in self.parameters}
+
         return Decimal(
             str(
                 self.fn(

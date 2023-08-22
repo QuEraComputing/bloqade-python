@@ -58,7 +58,6 @@ def test_local_no_global():
     assert ir["nshots"] == 10
     assert fvec(ir["lattice"]["sites"][0]) == [0.0, 0.0]
     assert ir["lattice"]["filling"] == [1]
-    assert ir["lattice"]["filling"] == [1]
 
     detune_ir = ir["effective_hamiltonian"]["rydberg"]["detuning"]
 
@@ -83,24 +82,26 @@ def test_local_global():
         .location(0)
         .scale(0.5)
         .apply(seq)
-        .mock(10)
+        .quera.mock()
+        .submit(shots=10)
     )
 
     panel = json.loads(job.json())
+    panel = panel["remote_batch"]
 
     print(panel)
-
-    ir = panel["hardware_tasks"]["0"]["task_ir"]
+    task = panel["tasks"][0][1]["quera_task"]
+    ir = task["task_data"]["quera_task_data"]["task_ir"]
 
     assert ir["nshots"] == 10
-    assert ir["lattice"]["sites"][0] == [0.0, 0.0]
+    assert fvec(ir["lattice"]["sites"][0]) == [0.0, 0.0]
     assert ir["lattice"]["filling"] == [1]
 
     detune_ir = ir["effective_hamiltonian"]["rydberg"]["detuning"]
-    assert all(detune_ir["local"]["times"] == np.array([0, 0.5, 1.0]) * 1e-6)
-    assert all(detune_ir["local"]["values"] == np.array([0, 1, 1]) * 1e6)
-    assert detune_ir["local"]["lattice_site_coefficients"] == [0.5]
+    assert all(fvec(detune_ir["local"]["times"]) == np.array([0, 0.5, 1.0]) * 1e-6)
+    assert all(fvec(detune_ir["local"]["values"]) == np.array([0, 1, 1]) * 1e6)
+    assert fvec(detune_ir["local"]["lattice_site_coefficients"]) == [0.5]
 
     # global :
-    assert all(detune_ir["global"]["times"] == np.array([0, 1.0]) * 1e-6)
-    assert all(detune_ir["global"]["values"] == np.array([0.55, 0.55]) * 1e6)
+    assert all(fvec(detune_ir["global"]["times"]) == np.array([0, 1.0]) * 1e-6)
+    assert all(fvec(detune_ir["global"]["values"]) == np.array([0.55, 0.55]) * 1e6)

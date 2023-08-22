@@ -55,7 +55,7 @@ class Scalar:
                 if name in kwargs:
                     return Decimal(str(kwargs[name]))
                 else:
-                    return default_value
+                    return default_value.value
             case Negative(expr):
                 return -expr(**kwargs)
             case Add(lhs, rhs):
@@ -390,9 +390,9 @@ class Variable(Real):
 
 
 @dataclass(frozen=True, repr=False)
-class DefaultVariable(Real):
+class DefaultVariable(Scalar):
     name: str
-    default_value: Decimal
+    default_value: Literal
 
     def __str__(self):
         return f"{self.name}"
