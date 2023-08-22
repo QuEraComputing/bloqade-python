@@ -1,9 +1,5 @@
 [run]
-omit = */tests/*
-omit = */src/bloqade/task_old/*
-omit = */src/bloqade/builder_old/*
+omit = */tests/*, */src/bloqade/task_old/*, */src/bloqade/builder_old/*
 
 [report]
-omit = */tests/*
-omit = */src/bloqade/task_old/*
-omit = */src/bloqade/builder_old/*
+omit = */tests/*, */src/bloqade/task_old/*, */src/bloqade/builder_old/*
