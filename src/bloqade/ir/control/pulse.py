@@ -3,7 +3,8 @@ from ..tree_print import Printer
 from .field import Field
 from typing import List
 from pydantic.dataclasses import dataclass
-
+from bokeh.io import show
+from bloqade.visualization.ir_visualize import get_pulse_figure
 
 __all__ = [
     "Pulse",
@@ -102,6 +103,15 @@ class PulseExpr:
     @staticmethod
     def canonicalize(expr: "PulseExpr") -> "PulseExpr":
         # TODO: update canonicalization rules for appending pulses
+        match expr:
+            case Append([Append(lhs), Append(rhs)]):
+                return Append(list(map(PulseExpr.canonicalize, lhs + rhs)))
+            case Append([Append(pulses), pulse]):
+                return PulseExpr.canonicalize(Append(pulses + [pulse]))
+            case Append([pulse, Append(pulses)]):
+                return PulseExpr.canonicalize(Append([pulse] + pulses))
+            case _:
+                return expr
         return expr
 
     def __repr__(self) -> str:
@@ -111,6 +121,15 @@ class PulseExpr:
 
     def _repr_pretty_(self, p, cycle):
         Printer(p).print(self, cycle)
+
+    def _get_data(self, **assigments):
+        return NotImplementedError
+
+    def figure(self, **assignments):
+        return NotImplementedError
+
+    def show(self, **assignments):
+        return NotImplementedError
 
 
 @dataclass
@@ -167,6 +186,15 @@ class Pulse(PulseExpr):
         }
         return annotated_children
 
+    def _get_data(self, **assigments):
+        return None, self.value
+
+    def figure(self, **assignments):
+        return get_pulse_figure(self, **assignments)
+
+    def show(self, **assignments):
+        show(self.figure(**assignments))
+
 
 @dataclass
 class NamedPulse(PulseExpr):
@@ -181,6 +209,15 @@ class NamedPulse(PulseExpr):
 
     def children(self):
         return {"Name": self.name, "Pulse": self.pulse}
+
+    def _get_data(self, **assigments):
+        return self.name, self.pulse.value
+
+    def figure(self, **assignments):
+        return get_pulse_figure(self, **assignments)
+
+    def show(self, **assignments):
+        show(self.figure(**assignments))
 
 
 @dataclass

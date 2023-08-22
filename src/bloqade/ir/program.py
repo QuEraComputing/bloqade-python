@@ -1,6 +1,8 @@
 from numbers import Real
 from bloqade.ir import Sequence
 from typing import TYPE_CHECKING, List, Union, Dict, Tuple
+from bokeh.io import show
+from bokeh.layouts import row
 
 if TYPE_CHECKING:
     from bloqade.ir.location.base import AtomArrangement, ParallelRegister
@@ -73,3 +75,23 @@ class Program:
             raise ValueError(f"Expected {len(self.order)} arguments, got {len(args)}.")
 
         return dict(zip(self.order, args))
+
+    def __repr__(self):
+        out = ""
+        if self._register is not None:
+            out += self._register.__repr__()
+
+        out += "\n"
+
+        if self._sequence is not None:
+            out += self._sequence.__repr__()
+
+        return out
+
+    def figure(self, **assignments):
+        fig_reg = self._register.figure(**assignments)
+        fig_seq = self._sequence.figure(**assignments)
+        return row(fig_seq, fig_reg)
+
+    def show(self, **assignments):
+        show(self.figure(**assignments))

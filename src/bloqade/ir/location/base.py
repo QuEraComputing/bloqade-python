@@ -1,5 +1,5 @@
 from bloqade.builder.start import ProgramStart
-from bloqade.ir.scalar import Scalar, cast
+from bloqade.ir.scalar import Scalar, Literal, cast
 from pydantic.dataclasses import dataclass
 from typing import List, Generator, Tuple, Optional, Any, TYPE_CHECKING
 from bokeh.plotting import show
@@ -15,6 +15,7 @@ from bokeh.models import (
 )
 from bokeh.plotting import figure
 from bokeh.layouts import column, row
+import plotext as pltxt
 
 # from bokeh import events
 
@@ -43,6 +44,48 @@ class LocationInfo:
 
 
 class AtomArrangement(ProgramStart):
+    def __repr__(self) -> str:
+        xs_filled, xs_vacant = [], []
+        ys_filled, ys_vacant = [], []
+
+        counter = 0
+        for _, location_info in enumerate(self.enumerate()):
+            counter += 1
+            (x, y) = location_info.position
+            if type(x) is not Literal or type(y) is not Literal:
+                return repr(
+                    list(self.enumerate())
+                )  # default to standard print of internal contents
+            else:
+                if location_info.filling is SiteFilling.filled:
+                    xs_filled.append(float(x.value))
+                    ys_filled.append(float(y.value))
+                else:
+                    xs_vacant.append(float(x.value))
+                    ys_vacant.append(float(y.value))
+
+        if counter == 0:
+            return repr(
+                list(self.enumerate())
+            )  # default to standard print of internal contents
+
+        pltxt.clear_figure()
+        pltxt.plot_size(80, 24)
+        pltxt.canvas_color("default")
+        pltxt.axes_color("default")
+        pltxt.ticks_color("white")
+        pltxt.title("Atom Positions")
+        pltxt.xlabel("x (um)")
+        pltxt.ylabel("y (um)")
+
+        pltxt.scatter(xs_filled, ys_filled, color=(100, 55, 255), marker="dot")
+        if len(xs_vacant) > 0:
+            pltxt.scatter(
+                xs_vacant, ys_vacant, color="white", label="vacant", marker="dot"
+            )
+
+        return pltxt.build()
+
     def enumerate(self) -> Generator[LocationInfo, None, None]:
         """enumerate all locations in the register."""
         raise NotImplementedError

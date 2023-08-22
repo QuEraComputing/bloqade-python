@@ -8,7 +8,7 @@ from pydantic.dataclasses import dataclass
 from typing import Any, Tuple, Union, List, Callable
 from enum import Enum
 
-from bokeh.plotting import figure
+from bokeh.plotting import figure, show
 import numpy as np
 import inspect
 import scipy.integrate as integrate
@@ -85,18 +85,34 @@ class Waveform:
     def append(self, other: "Waveform") -> "Waveform":
         return self.canonicalize(Append([self, other]))
 
-    def plot(self, **assignments):
-        """Plot the waveform.
+    def figure(self, **assignments):
+        """get figure of the plotting the waveform.
 
         Returns:
             figure: a bokeh figure
         """
-        duration = self.duration(**assignments)
+        # Varlist = []
+        duration = float(self.duration(**assignments))
         times = np.linspace(0, duration, 1001)
         values = [self.__call__(time, **assignments) for time in times]
-        fig = figure(width=250, height=250)
+        fig = figure(
+            sizing_mode="stretch_both",
+            x_axis_label="Time (s)",
+            y_axis_label="Waveform(t)",
+            tools="hover",
+        )
         fig.line(times, values)
+
         return fig
+
+    def _get_data(self, npoints, **assignments):
+        duration = float(self.duration(**assignments))
+        times = np.linspace(0, duration, npoints + 1)
+        values = [self.__call__(time, **assignments) for time in times]
+        return times, values
+
+    def show(self, **assignments):
+        show(self.figure(**assignments))
 
     def align(
         self, alignment: Alignment, value: Union[None, AlignedValue, Scalar] = None
@@ -185,6 +201,9 @@ class Waveform:
 
     def _repr_pretty_(self, p, cycle):
         Printer(p).print(self, cycle)
+
+    def print_node(self):
+        raise NotImplementedError
 
 
 @dataclass(repr=False)
