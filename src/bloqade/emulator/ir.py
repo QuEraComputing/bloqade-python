@@ -3,12 +3,6 @@ from typing import Dict, List, Optional, Callable
 
 from bloqade.ir.control.sequence import LevelCoupling
 from bloqade.emulator.space import Space
-from enum import Enum
-
-
-class RabiOperatorType(str, Enum):
-    floatValued = "float_valued"
-    ComplexValued = "complex_valued"
 
 
 @dataclass
@@ -34,5 +28,5 @@ class LaserCoupling:
 @dataclass
 class EmulatorProgram:
     space: Space
-    rydberg: Optional[LaserCoupling]
-    hyperfine: Optional[LaserCoupling]
+    rydberg: Optional[LaserCoupling] = None
+    hyperfine: Optional[LaserCoupling] = None
