@@ -5,7 +5,7 @@ from ..coupling import LevelCoupling, Rydberg, Hyperfine
 from ..sequence_builder import SequenceBuilder
 from ..field import Field, Detuning, RabiAmplitude, RabiPhase
 from ..spatial import SpatialModulation, Location, Uniform, Var, Scale
-from ..waveform import WaveformPrimitive, Slice, Record
+from ..waveform import WaveformPrimitive, Slice, Record, Sample, Fn
 from ..assign import Assign, BatchAssign
 from ..flatten import Flatten
 from ..parallelize import Parallelize, ParallelizeFlatten
@@ -68,12 +68,28 @@ class Parser:
         curr = curr.next
         while curr is not None:
             match curr.node:
-                case WaveformPrimitive() as wf:
-                    waveform = waveform.append(wf.__bloqade_ir__())
                 case Slice(start, stop, _):
                     waveform = waveform[start:stop]
                 case Record(name, _):
                     waveform = waveform.record(name)
+                case Sample(dt, interpolation, Fn() as fn_node):
+                    if interpolation is None:
+                        if self.field_name == RabiPhase:
+                            interpolation = ir.Interpolation.Constant
+                        else:
+                            interpolation = ir.Interpolation.Linear
+
+                    sample_waveform = ir.Sample(
+                        fn_node.__bloqade_ir__(), interpolation, dt
+                    )
+                    waveform = waveform.append(sample_waveform)
+
+                case Fn() if curr.next is not None and isinstance(
+                    curr.next.node, Sample
+                ):  # skip this for the sample node above
+                    continue
+                case WaveformPrimitive() as wf:
+                    waveform = waveform.append(wf.__bloqade_ir__())
                 case _:
                     break
             curr = curr.next
@@ -122,23 +138,23 @@ class Parser:
             coupling_builder, field_builder, spatial_head = self.read_address(stream)
             if coupling_builder is not None:
                 # update to new pulse coupling
-                coupling_name = coupling_builder.__bloqade_ir__()
+                self.coupling_name = coupling_builder.__bloqade_ir__()
 
             if field_builder is not None:
                 # update to new field coupling
-                field_name = field_builder.__bloqade_ir__()
+                self.field_name = field_builder.__bloqade_ir__()
 
             if spatial_head is None:
                 break
 
-            pulse = self.sequence.pulses.get(coupling_name, ir.Pulse({}))
-            field = pulse.fields.get(field_name, ir.Field({}))
+            pulse = self.sequence.pulses.get(self.coupling_name, ir.Pulse({}))
+            field = pulse.fields.get(self.field_name, ir.Field({}))
 
             new_field = self.read_field(spatial_head)
             field = field.add(new_field)
 
-            pulse.fields[field_name] = field
-            self.sequence.pulses[coupling_name] = pulse
+            pulse.fields[self.field_name] = field
+            self.sequence.pulses[self.coupling_name] = pulse
 
         return self.sequence
 

@@ -242,9 +242,12 @@ class Sample(Slicible, Recordable, WaveformRoute):
     def __init__(
         self,
         dt: ScalarType,
-        interpolation: Union[ir.Interpolation, str],
+        interpolation: Union[ir.Interpolation, str, None],
         parent: Builder,
     ) -> None:
         super().__init__(parent)
         assert_scalar("dt", dt)
-        self._interpolation = ir.Interpolation(interpolation)
+        if interpolation is None:
+            self._interpolation = None
+        else:
+            self._interpolation = ir.Interpolation(interpolation)
