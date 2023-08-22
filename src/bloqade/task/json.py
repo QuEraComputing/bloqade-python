@@ -11,7 +11,7 @@ from bloqade.submission.quera import QuEraBackend
 from .braket import BraketTask
 from .quera import QuEraTask
 from .batch import RemoteBatch, LocalBatch
-from typing import Type, Dict, Any
+from typing import TextIO, Dict, Any, Union
 from .braket_simulator import BraketEmulatorTask
 from bloqade.builder.compile.quera import QuEraTaskData
 import json
@@ -138,11 +138,6 @@ class BatchSerializer(json.JSONEncoder):
 
 
 class BatchDeserializer:
-    methods_batch: Dict[str, Type] = {
-        "remote": RemoteBatch,
-        "local": LocalBatch,
-    }
-
     def __init__(self, *args, **kwargs):
         self._args = args
         self._kwargs = kwargs
@@ -267,11 +262,44 @@ class BatchDeserializer:
                 return obj
 
 
-def load_batch(filename: str, *args, **kwargs):
-    json_str = None
-    with open(filename, "r") as f:
-        json_str = f.readlines()
+def save_batch(
+    filename_or_io: Union[str, TextIO], batch: Union[RemoteBatch, LocalBatch]
+) -> None:
+    """save batch to json file or string io
 
-    return json.loads(
-        json_str, object_hook=BatchDeserializer(*args, **kwargs).object_hook
-    )
+    Args:
+        filename_or_io (Union[str, TextIO]): filename or file object pointing to
+        json file.
+        batch (Union[RemoteBatch, LocalBatch]): batch object to save.
+    """
+    if isinstance(filename_or_io, str):
+        with open(filename_or_io, "w") as f:
+            json.dump(batch, f, cls=BatchSerializer)
+    else:
+        json.dump(batch, filename_or_io, cls=BatchSerializer)
+
+
+def load_batch(
+    filename_or_io: Union[str, TextIO], *backend_args, **backend_kwargs
+) -> Union[RemoteBatch, LocalBatch]:
+    """load batch from json file or string io to batch object
+
+    Args:
+        filename_or_io (Union[str, TextIO]): filename or file object pointing to
+        json file.
+        *backend_args: args to pass to backend construction.
+        **backend_kwargs: kwargs to pass to backend construction.
+
+    Returns:
+        Union[RemoteBatch, LocalBatch]: the resulting batch object
+
+    Note:
+        The backend args are not always required for `LocalBatch` objects, but
+        for `RemoteBatch` objects they are required.
+    """
+    deserializer = BatchDeserializer(*backend_args, **backend_kwargs)
+    if isinstance(filename_or_io, str):
+        with open(filename_or_io, "r") as f:
+            return json.load(f, deserializer.object_hook.object_hook)
+    else:
+        return json.load(filename_or_io, object_hook=deserializer.object_hook)
