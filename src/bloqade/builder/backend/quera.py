@@ -62,7 +62,7 @@ class QuEraBackend(RemoteBackend):
 
     def compile_taskdata(self, shots, *args):
         backend = quera_submit.QuEraBackend(self._api_configs)
-        return self._compile_tasks(shots, backend, *args)
+        return self._compile_taskdata(shots, backend, *args)
 
     def _compile_taskdata(self, shots, backend, *args):
         from ..compile.quera import QuEraSchemaCompiler
@@ -137,7 +137,7 @@ class Mock(RemoteBackend):
 
     def compile_taskdata(self, shots, *args):
         backend = mock_submit.DumbMockBackend(state_file=self._state_file)
-        return self._compile_tasks(shots, backend, *args)
+        return self._compile_taskdata(shots, backend, *args)
 
     def _compile_taskdata(self, shots, backend, *args):
         from ..compile.quera import QuEraSchemaCompiler
