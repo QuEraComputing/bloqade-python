@@ -612,7 +612,9 @@ def test_integration_record():
     assert all(fvec(phase_ir["global"]["values"]) == np.array([0, 1.0, 1.0, 1.0]))
 
 
-@pytest.mark.skip(reason="fixing now")
+pytest.mark.skip(reason="fixing now")
+
+
 def test_integration_fn_phase():
     def my_cos(time):
         return np.cos(time)
@@ -647,7 +649,9 @@ def test_integration_fn_phase():
     )
 
 
-@pytest.mark.skip(reason="fixing now")
+pytest.mark.skip(reason="fixing now")
+
+
 def test_integration_fn_detune():
     def my_cos(time):
         return np.cos(time)
