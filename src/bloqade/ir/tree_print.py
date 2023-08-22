@@ -73,11 +73,11 @@ class Printer:
         self.max_tree_depth = max_tree_depth
 
     def should_print_annotation(self, children):
-        if (
-            type(children) == list or type(children) == tuple
+        if isinstance(children, list) or isinstance(
+            children, tuple
         ):  # or generator, not sure of equivalence in Python
             return False
-        elif type(children) == dict:
+        elif isinstance(children, dict):
             return True
 
     def get_value(self):

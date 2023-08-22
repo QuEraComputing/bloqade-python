@@ -95,7 +95,7 @@ class ApiRequest:
     def post(self, *path_list: str, content: Dict[str, str] = {}) -> requests.Response:
         url, headers = self._prepare_request(*path_list)
 
-        if type(content) == dict:
+        if isinstance(content, dict):
             content = json.dumps(content)
 
         self.logger.info(f'POSTing to "{url}".')
