@@ -7,34 +7,32 @@ import json
 from typing import Dict
 
 from bloqade import start
-from bloqade.task import HardwareBatchResult
+from bloqade.task.batch import RemoteBatch
 import pytest
 
 
 # Integraiton tests
 @pytest.mark.vcr
 def test_quera_submit():
-    job_future = (
+    batch = (
         start.add_position((0, 0))
         .rydberg.rabi.amplitude.uniform.piecewise_linear(
             [0.1, "run_time", 0.1], [0, 15, 15, 0]
         )
         .assign(run_time=2.0)
         .parallelize(20)
-        .quera(10, config_file="tests/data/config/submit_quera_api.json")
-        .submit()
+        .quera.aquila(config_file="tests/data/config/submit_quera_api.json")
+        .submit(shots=10)
     )
 
-    job_future.save_json("quera_submit.json")
+    bloqade.save_batch("quera_submit.json", batch)
 
 
 @pytest.mark.vcr
 def test_quera_retrieve():
-    job_future = HardwareBatchResult()
-    job_future.load_json("quera_submit.json")
-    for number, future in job_future.hardware_task_shot_results.items():
-        print(f"{number}: {future.status()}")
-    print(job_future.report().markdown)
+    with open("tests/data/config/submit_quera_api.json", "r") as f:
+        job_future = bloqade.load_batch("quera_submit.json", **json.load(f))
+        assert type(job_future) == RemoteBatch
 
 
 def create_response(

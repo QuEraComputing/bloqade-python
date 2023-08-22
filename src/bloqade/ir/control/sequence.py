@@ -4,6 +4,8 @@ from ..tree_print import Printer
 
 from pydantic.dataclasses import dataclass
 from typing import List, Dict
+from bloqade.visualization.ir_visualize import get_sequence_figure
+from bokeh.io import show
 
 
 __all__ = [
@@ -76,6 +78,15 @@ class SequenceExpr:
     def _repr_pretty_(self, p, cycle):
         Printer(p).print(self, cycle)
 
+    def _get_data(self, **assignment):
+        raise NotImplementedError
+
+    def figure(self, **assignment):
+        raise NotImplementedError
+
+    def show(self, **assignment):
+        raise NotImplementedError
+
 
 @dataclass
 class Append(SequenceExpr):
@@ -95,41 +106,50 @@ class Append(SequenceExpr):
 class Sequence(SequenceExpr):
     """Sequence of a program, which includes pulses informations."""
 
-    value: dict[LevelCoupling, PulseExpr]
+    pulses: dict[LevelCoupling, PulseExpr]
 
     def __init__(self, seq_pairs: Dict | None = None):
         if seq_pairs is None:
-            self.value = {}
+            self.pulses = {}
             return
 
-        value = {}
+        pulses = {}
         for level_coupling, pulse in seq_pairs.items():
             if not isinstance(level_coupling, LevelCoupling):
                 raise TypeError(f"Unexpected type {type(level_coupling)}")
 
             if isinstance(pulse, PulseExpr):
-                value[level_coupling] = pulse
+                pulses[level_coupling] = pulse
             elif isinstance(pulse, dict):
-                value[level_coupling] = Pulse(pulse)
+                pulses[level_coupling] = Pulse(pulse)
             else:
                 raise TypeError(f"Unexpected type {type(pulse)}")
-        self.value = value
+        self.pulses = pulses
 
     def __call__(self, clock_s: float, level_coupling: LevelCoupling, *args, **kwargs):
-        return self.value[level_coupling](clock_s, *args, **kwargs)
+        return self.pulses[level_coupling](clock_s, *args, **kwargs)
 
     def __str__(self):
-        return f"Sequence({str(self.value)})"
+        return f"Sequence({str(self.pulses)})"
 
     # return annotated version
     def children(self):
         return {
             level_coupling.print_node(): pulse_expr
-            for level_coupling, pulse_expr in self.value.items()
+            for level_coupling, pulse_expr in self.pulses.items()
         }
 
     def print_node(self):
         return "Sequence"
+
+    def _get_data(self, **assignments):
+        return None, self.value
+
+    def figure(self, **assignments):
+        return get_sequence_figure(self, **assignments)
+
+    def show(self, **assignments):
+        show(self.figure(**assignments))
 
 
 @dataclass
@@ -145,6 +165,15 @@ class NamedSequence(SequenceExpr):
 
     def print_node(self):
         return "NamedSequence"
+
+    def _get_data(self, **assignment):
+        return self.name, self.sequence.value
+
+    def figure(self, **assignments):
+        return get_sequence_figure(self, **assignments)
+
+    def show(self, **assignments):
+        show(self.figure(**assignments))
 
 
 @dataclass(repr=False)

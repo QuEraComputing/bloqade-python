@@ -1,3 +1,6 @@
+from ..tree_print import Printer
+from ..scalar import Scalar, Interval, Literal, Variable, DefaultVariable, cast, var
+
 from bisect import bisect_left
 from dataclasses import InitVar
 from decimal import Decimal
@@ -5,17 +8,14 @@ from pydantic.dataclasses import dataclass
 from typing import Any, Tuple, Union, List, Callable
 from enum import Enum
 
-
-from ..tree_print import Printer
-from ..scalar import Scalar, Interval, Variable, cast
-from bokeh.plotting import figure
+from bokeh.plotting import figure, show
 import numpy as np
 import inspect
 import scipy.integrate as integrate
 
 
 def instruction(duration: Any) -> "PythonFn":
-    # urn python function into a waveform instruction."""
+    # turn python function into a waveform instruction."""
 
     def waveform_wrapper(fn: Callable) -> "PythonFn":
         return PythonFn(fn, duration)
@@ -85,18 +85,34 @@ class Waveform:
     def append(self, other: "Waveform") -> "Waveform":
         return self.canonicalize(Append([self, other]))
 
-    def plot(self, **assignments):
-        """Plot the waveform.
+    def figure(self, **assignments):
+        """get figure of the plotting the waveform.
 
         Returns:
             figure: a bokeh figure
         """
-        duration = self.duration(**assignments)
+        # Varlist = []
+        duration = float(self.duration(**assignments))
         times = np.linspace(0, duration, 1001)
         values = [self.__call__(time, **assignments) for time in times]
-        fig = figure(width=250, height=250)
+        fig = figure(
+            sizing_mode="stretch_both",
+            x_axis_label="Time (s)",
+            y_axis_label="Waveform(t)",
+            tools="hover",
+        )
         fig.line(times, values)
+
         return fig
+
+    def _get_data(self, npoints, **assignments):
+        duration = float(self.duration(**assignments))
+        times = np.linspace(0, duration, npoints + 1)
+        values = [self.__call__(time, **assignments) for time in times]
+        return times, values
+
+    def show(self, **assignments):
+        show(self.figure(**assignments))
 
     def align(
         self, alignment: Alignment, value: Union[None, AlignedValue, Scalar] = None
@@ -127,8 +143,8 @@ class Waveform:
     def __getitem__(self, s: slice) -> "Waveform":
         return self.canonicalize(Slice(self, Interval.from_slice(s)))
 
-    def record(self, variable_name: str):
-        return Record(self, Variable(variable_name))
+    def record(self, variable_name: Union[str, Variable]):
+        return Record(self, cast(variable_name))
 
     @property
     def duration(self) -> Scalar:
@@ -186,8 +202,11 @@ class Waveform:
     def _repr_pretty_(self, p, cycle):
         Printer(p).print(self, cycle)
 
+    def print_node(self):
+        raise NotImplementedError
 
-@dataclass
+
+@dataclass(repr=False)
 class AlignedWaveform(Waveform):
     """
 
@@ -227,7 +246,7 @@ class AlignedWaveform(Waveform):
         return annotated_children
 
 
-@dataclass
+@dataclass(repr=False)
 class Instruction(Waveform):
     """Instruction node in the IR.
 
@@ -248,7 +267,7 @@ class Instruction(Waveform):
     pass
 
 
-@dataclass(init=False)
+@dataclass(init=False, repr=False)
 class Linear(Instruction):
     """
     ```bnf
@@ -297,7 +316,7 @@ class Linear(Instruction):
         return {"start": self.start, "stop": self.stop, "duration": self.duration}
 
 
-@dataclass(init=False)
+@dataclass(init=False, repr=False)
 class Constant(Instruction):
     """
     ```bnf
@@ -336,7 +355,7 @@ class Constant(Instruction):
         return {"value": self.value, "duration": self.duration}
 
 
-@dataclass(init=False)
+@dataclass(init=False, repr=False)
 class Poly(Instruction):
     """
     ```bnf
@@ -351,11 +370,11 @@ class Poly(Instruction):
 
     """
 
-    checkpoints: List[Scalar]
+    coeffs: List[Scalar]
     duration: InitVar[Scalar]
 
-    def __init__(self, checkpoints, duration):
-        self.checkpoints = cast(checkpoints)
+    def __init__(self, coeffs, duration):
+        self.coeffs = list(map(cast, coeffs))
         self._duration = cast(duration)
 
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
@@ -366,13 +385,13 @@ class Poly(Instruction):
             # call clock_s on each element of the scalars,
             # then apply the proper powers
             value = Decimal(0)
-            for exponent, scalar_expr in enumerate(self.checkpoints):
+            for exponent, scalar_expr in enumerate(self.coeffs):
                 value += scalar_expr(**kwargs) * clock_s**exponent
 
             return value
 
     def __str__(self):
-        return f"Poly({str(self.checkpoints)}, {str(self.duration)})"
+        return f"Poly({str(self.coeffs)}, {str(self.duration)})"
 
     def print_node(self) -> str:
         return "Poly"
@@ -382,7 +401,7 @@ class Poly(Instruction):
         # then annotations for the polynomial terms and exponents
 
         annotated_checkpoints = {}
-        for i, checkpoint in enumerate(self.checkpoints):
+        for i, checkpoint in enumerate(self.coeffs):
             if i == 0:
                 annotated_checkpoints["b"] = checkpoint
             elif i == 1:
@@ -395,7 +414,7 @@ class Poly(Instruction):
         return annotated_checkpoints
 
 
-@dataclass(init=False)
+@dataclass(init=False, repr=False)
 class PythonFn(Instruction):
     """
 
@@ -405,7 +424,7 @@ class PythonFn(Instruction):
     """
 
     fn: Callable  # [[float, ...], float] # f(t) -> value
-    parameters: List[str]  # come from ast inspect
+    parameters: List[Union[Variable, DefaultVariable, Literal]]  # come from ast inspect
     duration: InitVar[Scalar]
 
     def __init__(self, fn: Callable, duration: Any):
@@ -420,17 +439,30 @@ class PythonFn(Instruction):
         if signature.varkw is not None:
             raise ValueError("Cannot have varkw")
 
-        self.parameters = list(signature.args[1:]) + list(signature.kwonlyargs)
+        # get default kwonly first:
+        default_variables = []
+        if signature.kwonlydefaults is not None:
+            default_variables = [
+                DefaultVariable(name, cast(Decimal(str(value))))
+                for name, value in signature.kwonlydefaults.items()
+            ]
 
-    def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
-        if clock_s > self.duration(**kwargs):
+        variables = signature.args[1:] + [
+            v for v in signature.kwonlyargs if v not in signature.kwonlydefaults.keys()
+        ]
+        self.parameters = list(map(var, variables)) + default_variables
+
+    def eval_decimal(self, clock_s: Decimal, **assignments) -> Decimal:
+        if clock_s > self.duration(**assignments):
             return Decimal(0)
+
+        kwargs = {param.name: float(param(**assignments)) for param in self.parameters}
 
         return Decimal(
             str(
                 self.fn(
                     float(clock_s),
-                    **{k: float(kwargs[k]) for k in self.parameters if k in kwargs},
+                    **kwargs,
                 )
             )
         )
@@ -520,7 +552,7 @@ TricubeKernel = Tricube()
 CosineKernel = Cosine()
 
 
-@dataclass
+@dataclass(repr=False)
 class Smooth(Waveform):
     """
     ```bnf
@@ -563,7 +595,7 @@ class Smooth(Waveform):
         return f"Smooth(kernel={str(self.kernel)}, waveform={str(self.waveform)})"
 
 
-@dataclass
+@dataclass(repr=False)
 class Slice(Waveform):
     """
     ```
@@ -593,7 +625,7 @@ class Slice(Waveform):
         return [self.waveform, self.interval]
 
 
-@dataclass
+@dataclass(repr=False)
 class Append(Waveform):
     """
     ```bnf
@@ -625,7 +657,7 @@ class Append(Waveform):
         return self.waveforms
 
 
-@dataclass
+@dataclass(repr=False)
 class Negative(Waveform):
     """
     ```bnf
@@ -648,7 +680,7 @@ class Negative(Waveform):
         return [self.waveform]
 
 
-@dataclass(init=False)
+@dataclass(init=False, repr=False)
 class Scale(Waveform):
     """
     ```bnf
@@ -676,7 +708,7 @@ class Scale(Waveform):
         return [self.scalar, self.waveform]
 
 
-@dataclass
+@dataclass(repr=False)
 class Add(Waveform):
     """
     ```bnf
@@ -700,7 +732,7 @@ class Add(Waveform):
         return [self.left, self.right]
 
 
-@dataclass
+@dataclass(repr=False)
 class Record(Waveform):
     """
     ```bnf
@@ -729,7 +761,7 @@ class Interpolation(str, Enum):
     Constant = "constant"
 
 
-@dataclass
+@dataclass(repr=False)
 class Sample(Waveform):
     """
     ```bnf

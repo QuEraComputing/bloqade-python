@@ -1,23 +1,22 @@
+from collections import OrderedDict
+
+import json
+from typing import List, TextIO, Type, TypeVar, Union, Dict, Optional, Tuple
 from numbers import Number
 
-from bloqade.submission.ir.task_results import QuEraTaskResults
+from pydantic import BaseModel
+from bloqade.submission.ir.task_results import (
+    QuEraTaskResults,
+    QuEraTaskStatusCode,
+)
+from numpy.typing import NDArray
+import pandas as pd
+import numpy as np
+from dataclasses import dataclass
 from bloqade.submission.ir.parallel import ParallelDecoder
 
-from typing import (
-    TYPE_CHECKING,
-    Dict,
-    List,
-    Tuple,
-    Optional,
-    TypeVar,
-    Generic,
-)
-from collections import OrderedDict
-from pydantic.dataclasses import dataclass
 
-
-if TYPE_CHECKING:
-    from bloqade.task.report import Report
+JSONSubType = TypeVar("JSONSubType", bound="JSONInterface")
 
 
 @dataclass(frozen=True)
@@ -27,34 +26,32 @@ class Geometry:
     parallel_decoder: Optional[ParallelDecoder] = None
 
 
-TaskSubType = TypeVar("TaskSubType", bound="Task")
-TaskResultsSubType = TypeVar("TaskResultsSubType", bound="TaskResults")
-BatchTaskSubType = TypeVar("BatchTaskSubType", bound="BatchTask")
-BatchResultSubType = TypeVar("BatchResultSubType", bound="BatchResult")
-
-
-# The reason why we do not simply pass objects up to the parent class is because
-# I would like to preserve the ability to serialize the objects to JSON.
-
-
-class TaskResults(Generic[TaskSubType]):
-    def _task(self) -> TaskSubType:
-        raise NotImplementedError(f"{self.__class__.__name__}._task() not implemented")
-
-    @property
-    def task(self) -> TaskSubType:
-        return self._task()
-
-
-class TaskShotResults(TaskResults[TaskSubType]):
-    def _quera_task_result(self) -> QuEraTaskResults:
-        raise NotImplementedError(
-            f"{self.__class__.__name__}._quera_task_result() not implemented"
+class JSONInterface(BaseModel):
+    def json(self, exclude_none=True, by_alias=True, **json_options) -> str:
+        return super().json(
+            exclude_none=exclude_none, by_alias=by_alias, **json_options
         )
 
-    @property
-    def quera_task_result(self) -> QuEraTaskResults:
-        return self._quera_task_result()
+    def save_json(
+        self, filename_or_io: Union[str, TextIO], mode="w", **json_options
+    ) -> None:
+        if isinstance(filename_or_io, str):
+            with open(filename_or_io, mode) as f:
+                f.write(self.json(**json_options))
+        else:
+            filename_or_io.write(self.json(**json_options))
+
+    @classmethod
+    def load_json(
+        cls: Type[JSONSubType], filename_or_io: Union[str, TextIO]
+    ) -> JSONSubType:
+        if isinstance(filename_or_io, str):
+            with open(filename_or_io, "r") as f:
+                params = json.load(f)
+        else:
+            params = json.load(filename_or_io)
+
+        return cls(**params)
 
 
 class Task:
@@ -63,9 +60,11 @@ class Task:
             f"{self.__class__.__name__}._geometry() not implemented"
         )
 
+    # do we need>?
     def _metadata(self) -> Dict[str, Number]:
         return {}
 
+    # do we need>?
     @property
     def metadata(self) -> Dict[str, Number]:
         return self._metadata()
@@ -74,44 +73,123 @@ class Task:
     def geometry(self) -> Geometry:
         return self._geometry()
 
-    def submit(self: TaskSubType) -> TaskResults[TaskSubType]:
-        raise NotImplementedError(f"{self.__class__.__name__}.submit() not implemented")
+
+class RemoteTask(Task):
+    task_id: str
+
+    def __init__(self, task_id: str):
+        self.task_id = task_id
+
+    def validate(self) -> None:
+        raise NotImplementedError
+
+    def result(self) -> QuEraTaskResults:
+        # online, Blocking
+        # waiting for remote results to finish
+        # return results
+        raise NotImplementedError
+
+    def fetch(self) -> None:
+        # online, non-blocking
+        # pull the result if they are complete
+        raise NotImplementedError
+
+    def status(self) -> QuEraTaskStatusCode:
+        # online, non-blocking
+        # probe current task status
+        raise NotImplementedError
+
+    def pull(self) -> None:
+        # online, blocking
+        # pull the current results
+        raise NotImplementedError
+
+    def cancel(self) -> None:
+        # this method cancels the task
+        raise NotImplementedError
+
+    def submit(self, force: bool):
+        # online, non-blocking
+        # this method submit the task
+        raise NotImplementedError
+
+    def _result_exists(self) -> bool:
+        raise NotImplementedError
 
 
-class BatchResult(Generic[TaskResultsSubType]):
-    # fundamental interface, list of task results
-    # each subclass implements a different way of getting the results
-    # e.g. cloud, local, etc. this is the basic interface required by
-    # he report object to construct the dataframe, etc.
-    # Any Batch Result should at the very least implement this interface
-    # Other subclasses will have additional methods for different use cases.
+class LocalTask(Task):
+    def result(self):
+        # need a new results type
+        # for emulator jobs
+        raise NotImplementedError
 
-    def _task_results(
-        self,
-    ) -> OrderedDict[int, TaskResultsSubType]:
-        raise NotImplementedError(
-            f"{self.__class__.__name__}._task_results() not implemented"
+    def run(self, **kwargs):
+        raise NotImplementedError
+
+
+# Report is now just a helper class for
+# organize and analysis data:
+@dataclass
+class Report:
+    dataframe: pd.DataFrame
+
+    def __init__(self, data) -> None:
+        self.dataframe = data  # df
+        self._bitstrings = None  # bitstring cache
+        self._counts = None  # counts cache
+
+    @property
+    def markdown(self) -> str:
+        return self.dataframe.to_markdown()
+
+    @property
+    def bitstrings(self) -> List[NDArray]:
+        if self._bitstrings is not None:
+            return self._bitstrings
+        self._bitstrings = self._construct_bitstrings()
+        return self._bitstrings
+
+    def _construct_bitstrings(self) -> List[NDArray]:
+        perfect_sorting = self.dataframe.index.get_level_values("perfect_sorting")
+        pre_sequence = self.dataframe.index.get_level_values("pre_sequence")
+        filtered_df = self.dataframe[perfect_sorting == pre_sequence]
+        task_numbers = filtered_df.index.get_level_values("task_number")
+
+        n_atoms = len(perfect_sorting[0])
+        bitstrings = [np.zeros((0, n_atoms)) for _ in range(task_numbers.max() + 1)]
+
+        for task_number in task_numbers.unique():
+            bitstrings[task_number] = filtered_df.loc[task_number, ...].to_numpy()
+
+        return bitstrings
+
+    @property
+    def counts(self) -> List[OrderedDict[str, int]]:
+        if self._counts is not None:
+            return self._counts
+        self._counts = self._construct_counts()
+        return self._counts
+
+    def _construct_counts(self) -> List[OrderedDict[str, int]]:
+        counts = []
+        for bitstring in self.bitstrings:
+            output = np.unique(bitstring, axis=0, return_counts=True)
+            counts.append(
+                {
+                    "".join(map(str, unique_bitstring)): bitstring_count
+                    for unique_bitstring, bitstring_count in zip(*output)
+                }
+            )
+
+        return counts
+
+    def rydberg_densities(self) -> pd.Series:
+        # TODO: implement nan for missing task numbers
+        perfect_sorting = self.dataframe.index.get_level_values("perfect_sorting")
+        pre_sequence = self.dataframe.index.get_level_values("pre_sequence")
+
+        return 1 - (
+            self.dataframe.loc[perfect_sorting == pre_sequence]
+            .groupby("task_number")
+            .mean()
         )
-
-    @property
-    def task_results(
-        self,
-    ) -> OrderedDict[int, TaskResultsSubType]:
-        return self._task_results()
-
-    def report(self) -> "Report":
-        from bloqade.task.report import Report
-
-        return Report(self)
-
-
-class BatchTask(Generic[TaskSubType, BatchResultSubType]):
-    def _tasks(self: BatchTaskSubType) -> OrderedDict[int, TaskSubType]:
-        raise NotImplementedError(f"{self.__class__.__name__}._tasks() not implemented")
-
-    @property
-    def tasks(self) -> OrderedDict[int, TaskSubType]:
-        return self._tasks()
-
-    def submit(self) -> BatchResultSubType:
-        raise NotImplementedError(f"{self.__class__.__name__}.submit() not implemented")

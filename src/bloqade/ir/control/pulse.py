@@ -1,9 +1,10 @@
 from ..scalar import Interval
+from ..tree_print import Printer
 from .field import Field
 from typing import List
 from pydantic.dataclasses import dataclass
-from ..tree_print import Printer
-
+from bokeh.io import show
+from bloqade.visualization.ir_visualize import get_pulse_figure
 
 __all__ = [
     "Pulse",
@@ -102,6 +103,15 @@ class PulseExpr:
     @staticmethod
     def canonicalize(expr: "PulseExpr") -> "PulseExpr":
         # TODO: update canonicalization rules for appending pulses
+        match expr:
+            case Append([Append(lhs), Append(rhs)]):
+                return Append(list(map(PulseExpr.canonicalize, lhs + rhs)))
+            case Append([Append(pulses), pulse]):
+                return PulseExpr.canonicalize(Append(pulses + [pulse]))
+            case Append([pulse, Append(pulses)]):
+                return PulseExpr.canonicalize(Append([pulse] + pulses))
+            case _:
+                return expr
         return expr
 
     def __repr__(self) -> str:
@@ -111,6 +121,15 @@ class PulseExpr:
 
     def _repr_pretty_(self, p, cycle):
         Printer(p).print(self, cycle)
+
+    def _get_data(self, **assigments):
+        return NotImplementedError
+
+    def figure(self, **assignments):
+        return NotImplementedError
+
+    def show(self, **assignments):
+        return NotImplementedError
 
 
 @dataclass
@@ -141,21 +160,21 @@ class Pulse(PulseExpr):
     ```
     """
 
-    value: dict[FieldName, Field]
+    fields: dict[FieldName, Field]
 
     def __init__(self, field_pairs):
-        value = dict()
+        fields = dict()
         for k, v in field_pairs.items():
             if isinstance(v, Field):
-                value[k] = v
+                fields[k] = v
             elif isinstance(v, dict):
-                value[k] = Field(v)
+                fields[k] = Field(v)
             else:
                 raise TypeError(f"Expected Field or dict, got {type(v)}")
-        self.value = value
+        self.fields = fields
 
     def __str__(self):
-        return f"Pulse(value={str(self.value)})"
+        return f"Pulse(value={str(self.fields)})"
 
     def print_node(self):
         return "Pulse"
@@ -163,9 +182,18 @@ class Pulse(PulseExpr):
     def children(self):
         # annotated children
         annotated_children = {
-            field_name.print_node(): field for field_name, field in self.value.items()
+            field_name.print_node(): field for field_name, field in self.fields.items()
         }
         return annotated_children
+
+    def _get_data(self, **assigments):
+        return None, self.value
+
+    def figure(self, **assignments):
+        return get_pulse_figure(self, **assignments)
+
+    def show(self, **assignments):
+        show(self.figure(**assignments))
 
 
 @dataclass
@@ -181,6 +209,15 @@ class NamedPulse(PulseExpr):
 
     def children(self):
         return {"Name": self.name, "Pulse": self.pulse}
+
+    def _get_data(self, **assigments):
+        return self.name, self.pulse.value
+
+    def figure(self, **assignments):
+        return get_pulse_figure(self, **assignments)
+
+    def show(self, **assignments):
+        show(self.figure(**assignments))
 
 
 @dataclass

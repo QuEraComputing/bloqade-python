@@ -1,11 +1,14 @@
 from pydantic.dataclasses import dataclass
-from dataclasses import InitVar, fields
+from dataclasses import fields
 from typing import List, Tuple, Generator, Optional, Any
 import numpy as np
 import itertools
 from numpy.typing import NDArray
 from bloqade.ir.location.base import AtomArrangement, LocationInfo
-from bloqade.ir import Scalar, cast
+from dataclasses import InitVar
+from bloqade.ir import Literal, Scalar, cast
+
+import plotext as pltxt
 
 
 class Cell:
@@ -16,6 +19,7 @@ class Cell:
 
 @dataclass
 class BoundedBravais(AtomArrangement):
+    __match_args__ = ("shape", "lattice_spacing")
     """Base classe for Bravais lattices
     [`AtomArrangement`][bloqade.ir.location.base.AtomArrangement].
 
@@ -39,6 +43,46 @@ class BoundedBravais(AtomArrangement):
         self.lattice_spacing = cast(lattice_spacing)
         self.__n_atoms = None
         self.__n_dims = None
+
+    def cell_vectors(self) -> Tuple[Tuple[Scalar, ...], ...]:
+        raise NotImplementedError
+
+    def cell_atoms(self) -> Tuple[Tuple[Scalar, ...], ...]:
+        raise NotImplementedError
+
+    def __repr__(self):
+        has_lattice_spacing_var = False
+        if type(self.lattice_spacing) is not Literal:
+            # add string denoting this to printer
+            repr_lattice_spacing = 1.0
+            has_lattice_spacing_var = True
+        else:
+            repr_lattice_spacing = float(self.lattice_spacing.value)
+
+        xs, ys = [], []
+
+        for index in itertools.product(*[range(n) for n in self.shape]):
+            for pos in self.coordinates(index):
+                (x, y) = tuple(repr_lattice_spacing * pos)
+                xs.append(x)
+                ys.append(y)
+
+        pltxt.clear_figure()
+        pltxt.plot_size(80, 24)
+        pltxt.canvas_color("default")
+        pltxt.axes_color("default")
+        pltxt.ticks_color("white")
+        pltxt.title("Atom Positions")
+        pltxt.xlabel("x (um)")
+        pltxt.ylabel("y (um)")
+        if has_lattice_spacing_var:
+            pltxt.ylabel(
+                "Lattice Spacing is a variable, defaulting to 1.0 for display", "right"
+            )
+
+        pltxt.scatter(xs, ys, color=(100, 55, 255), marker="dot")
+
+        return pltxt.build()
 
     @property
     def n_atoms(self):
@@ -131,6 +175,9 @@ class Chain(BoundedBravais):
     def __init__(self, L: int, lattice_spacing: Any = 1.0):
         super().__init__(L, lattice_spacing=lattice_spacing)
 
+    def __repr__(self):
+        return super().__repr__()
+
     def cell_vectors(self) -> List[List[float]]:
         return [[1, 0]]
 
@@ -162,6 +209,9 @@ class Square(BoundedBravais):
 
     def __init__(self, L: int, lattice_spacing: Any = 1.0):
         super().__init__(L, L, lattice_spacing=lattice_spacing)
+
+    def __repr__(self):
+        return super().__repr__()
 
     def cell_vectors(self) -> List[List[float]]:
         return [[1, 0], [0, 1]]
@@ -197,6 +247,7 @@ class Rectangular(BoundedBravais):
 
     """
 
+    __match_args__ = ("shape", "lattice_spacing", "ratio")
     ratio: Scalar = 1.0
     lattice_spacing_x: InitVar[Any]
     lattice_spacing_y: InitVar[Any]
@@ -208,12 +259,60 @@ class Rectangular(BoundedBravais):
         lattice_spacing_x: Any = 1.0,
         lattice_spacing_y: Optional[Any] = None,
     ):
+        super().__init__(width, height, lattice_spacing=lattice_spacing_x)
+
         if lattice_spacing_y is None:
             self.ratio = cast(1.0) / cast(lattice_spacing_x)
         else:
             self.ratio = cast(lattice_spacing_y) / cast(lattice_spacing_x)
 
         super().__init__(width, height, lattice_spacing=lattice_spacing_x)
+
+    def __repr__(self):
+        # modified version of the standard coordinates method,
+        # intercept cell.vectors, then continue with standard
+        # operation
+        def repr_compatible_coordinates(self, index: List[int]) -> NDArray:
+            cell_vectors = self.cell_vectors()
+            cell_vectors[1][1] = float(cell_vectors[1][1].value)
+
+            vectors = np.array(cell_vectors)
+            index = np.array(index)
+            pos = np.sum(vectors.T * index, axis=1)
+            return pos + np.array(self.cell_atoms())
+
+        # if ratio is a Literal, then
+        # by extension the lattice_spacing must also be a Literal
+        if isinstance(self.ratio, Literal):
+            repr_lattice_spacing = float(self.lattice_spacing.value)
+
+            xs, ys = [], []
+
+            for index in itertools.product(*[range(n) for n in self.shape]):
+                for pos in repr_compatible_coordinates(
+                    self, index
+                ):  # need to replace this
+                    (x, y) = tuple(repr_lattice_spacing * pos)
+                    xs.append(x)
+                    ys.append(y)
+
+            pltxt.clear_figure()
+            pltxt.plot_size(80, 24)
+            pltxt.canvas_color("default")
+            pltxt.axes_color("default")
+            pltxt.ticks_color("white")
+            pltxt.title("Atom Positions")
+            pltxt.xlabel("x (um)")
+            pltxt.ylabel("y (um)")
+
+            pltxt.scatter(xs, ys, color=(100, 55, 255), marker="dot")
+
+            return pltxt.build()
+
+        else:
+            return "Rectangular(shape={}, lattice_spacing={}, ratio={})".format(
+                self.shape, self.lattice_spacing, self.ratio
+            )
 
     def cell_vectors(self) -> List[List[float]]:
         return [[1, 0], [0, self.ratio]]
@@ -250,6 +349,9 @@ class Honeycomb(BoundedBravais):
     def __init__(self, L: int, lattice_spacing: Any = 1.0):
         super().__init__(L, L, lattice_spacing=lattice_spacing)
 
+    def __repr__(self):
+        return super().__repr__()
+
     def cell_vectors(self) -> List[List[float]]:
         return [[1.0, 0.0], [1 / 2, np.sqrt(3) / 2]]
 
@@ -283,6 +385,9 @@ class Triangular(BoundedBravais):
 
     def __init__(self, L: int, lattice_spacing: Any = 1.0):
         super().__init__(L, L, lattice_spacing=lattice_spacing)
+
+    def __repr__(self):
+        return super().__repr__()
 
     def cell_vectors(self) -> List[List[float]]:
         return [[1.0, 0.0], [1 / 2, np.sqrt(3) / 2]]
@@ -319,6 +424,9 @@ class Lieb(BoundedBravais):
     def __init__(self, L: int, lattice_spacing: Any = 1.0):
         super().__init__(L, L, lattice_spacing=lattice_spacing)
 
+    def __repr__(self):
+        return super().__repr__()
+
     def cell_vectors(self) -> List[List[float]]:
         return [[1.0, 0.0], [0.0, 1.0]]
 
@@ -353,6 +461,9 @@ class Kagome(BoundedBravais):
 
     def __init__(self, L: int, lattice_spacing: Any = 1.0):
         super().__init__(L, L, lattice_spacing=lattice_spacing)
+
+    def __repr__(self):
+        return super().__repr__()
 
     def cell_vectors(self) -> List[List[float]]:
         return [[1.0, 0.0], [1 / 2, np.sqrt(3) / 2]]

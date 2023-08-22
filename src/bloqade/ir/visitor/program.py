@@ -5,6 +5,8 @@ from bloqade.ir.control.sequence import SequenceExpr
 from bloqade.ir.location.base import AtomArrangement, ParallelRegister
 from typing import Union, Any
 
+from bloqade.ir.program import Program
+
 AstType = Union[
     Waveform,
     Field,
@@ -52,6 +54,11 @@ class ProgramVisitor:
             f"No visitor method implemented in {self.__class__} for MultuplexRegister"
         )
 
+    def visit_program(self, ast: AstType) -> Any:
+        raise NotImplementedError(
+            f"No visitor method implemented in {self.__class__} for Program"
+        )
+
     def visit(self, ast: AstType) -> Any:
         if isinstance(ast, Waveform):
             return self.visit_waveform(ast)
@@ -67,5 +74,7 @@ class ProgramVisitor:
             return self.visit_register(ast)
         elif isinstance(ast, ParallelRegister):
             return self.visit_parallel_register(ast)
+        elif isinstance(ast, Program):
+            return self.visit_program(ast)
         else:
             raise NotImplementedError(f"{ast.__class__} is not a bloqade AST type")

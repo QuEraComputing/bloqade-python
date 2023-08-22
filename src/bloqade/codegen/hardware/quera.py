@@ -27,8 +27,8 @@ from bloqade.ir.location.base import AtomArrangement, ParallelRegister
 from bloqade.ir.control.waveform import Record
 from bloqade.ir import Program
 
-from bloqade.ir.visitor.program_visitor import ProgramVisitor
-from bloqade.ir.visitor.waveform_visitor import WaveformVisitor
+from bloqade.ir.visitor.program import ProgramVisitor
+from bloqade.ir.visitor.waveform import WaveformVisitor
 from bloqade.codegen.common.assignment_scan import AssignmentScan
 
 import bloqade.submission.ir.task_specification as task_spec
@@ -74,32 +74,28 @@ class PiecewiseLinearCodeGen(WaveformVisitor):
 
     def visit_poly(self, ast: waveform.Poly) -> Tuple[List[Decimal], List[Decimal]]:
         match ast:
-            case waveform.Poly(
-                checkpoints=checkpoint_exprs, duration=duration_expr
-            ) if len(checkpoint_exprs) == 1:
+            case waveform.Poly(coeffs=coeff_exprs, duration=duration_expr) if len(
+                coeff_exprs
+            ) == 1:
                 duration = duration_expr(**self.assignments)
                 (value,) = [
-                    checkpoint_expr(**self.assignments)
-                    for checkpoint_expr in checkpoint_exprs
+                    coeff_expr(**self.assignments) for coeff_expr in coeff_exprs
                 ]
                 return [Decimal(0), duration], [value, value]
 
-            case waveform.Poly(
-                checkpoints=checkpoint_exprs, duration=duration_expr
-            ) if len(checkpoint_exprs) == 2:
+            case waveform.Poly(coeffs=coeff_exprs, duration=duration_expr) if len(
+                coeff_exprs
+            ) == 2:
                 duration = duration_expr(**self.assignments)
-                values = [
-                    checkpoint_expr(**self.assignments)
-                    for checkpoint_expr in checkpoint_exprs
-                ]
+                values = [coeff_expr(**self.assignments) for coeff_expr in coeff_exprs]
 
                 start = values[0]
                 stop = values[0] + values[1] * duration
 
                 return [Decimal(0), duration], [start, stop]
 
-            case waveform.Poly(checkpoints=checkpoints):
-                order = len(checkpoints) - 1
+            case waveform.Poly(coeffs=coeffs):
+                order = len(coeffs) - 1
                 raise ValueError(
                     "Failed to compile Waveform to piecewise linear,"
                     f"found Polynomial of order {order}."
@@ -173,6 +169,7 @@ class PiecewiseLinearCodeGen(WaveformVisitor):
         return times, values
 
     def visit_append(self, ast: waveform.Append) -> Tuple[List[Decimal], List[Decimal]]:
+        print(ast.waveforms)
         times, values = self.visit(ast.waveforms[0])
 
         for sub_expr in ast.waveforms[1:]:
@@ -244,20 +241,19 @@ class PiecewiseConstantCodeGen(WaveformVisitor):
 
     def visit_poly(self, ast: waveform.Poly) -> Tuple[List[Decimal], List[Decimal]]:
         match ast:
-            case waveform.Poly(
-                checkpoints=checkpoint_exprs, duration=duration_expr
-            ) if len(checkpoint_exprs) == 1:
+            case waveform.Poly(coeffs=coeff_exprs, duration=duration_expr) if len(
+                coeff_exprs
+            ) == 1:
                 duration = duration_expr(**self.assignments)
                 (value,) = [
-                    checkpoint_expr(**self.assignments)
-                    for checkpoint_expr in checkpoint_exprs
+                    coeff_expr(**self.assignments) for coeff_expr in coeff_exprs
                 ]
                 return [Decimal(0), duration], [value, value]
 
-            case waveform.Poly(checkpoints=checkpoints):
-                order = len(checkpoints) - 1
+            case waveform.Poly(coeffs=coeffs):
+                order = len(coeffs) - 1
                 raise ValueError(
-                    "Failed to compile Waveform to piecewise constant, "
+                    "Failed to compile Waveform to piecewise constant,"
                     f"found Polynomial of order {order}."
                 )
 
@@ -296,8 +292,6 @@ class PiecewiseConstantCodeGen(WaveformVisitor):
 
         start_index = bisect_left(times, start_time)
         stop_index = bisect_left(times, stop_time)
-
-        # print(start_index,stop_index)
 
         match (start_index, stop_index):
             case (0, int()) if stop_time == duration:
@@ -350,7 +344,7 @@ class PiecewiseConstantCodeGen(WaveformVisitor):
     def visit_sample(self, ast: waveform.Sample) -> Tuple[List[Decimal], List[Decimal]]:
         if ast.interpolation != waveform.Interpolation.Constant:
             raise ValueError(
-                "Failed to compile waveform to piecewise linear, "
+                "Failed to compile waveform to piecewise constant, "
                 f"found piecewise {ast.interpolation.value} interpolation."
             )
         times, values = ast.samples(**self.assignments)
@@ -600,7 +594,7 @@ class SchemaCodeGen(ProgramVisitor):
                 if HyperfineLevelCoupling() in pulses:
                     raise ValueError("QuEra tasks does not support Hyperfine coupling.")
 
-                self.visit(pulses[RydbergLevelCoupling()])
+                self.visit(pulses.get(RydbergLevelCoupling(), Pulse({})))
 
             case NamedSequence(sequence, _):
                 self.visit(sequence)
