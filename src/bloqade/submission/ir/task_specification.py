@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional, List, Tuple, Union
+from typing import Optional, List, Tuple
 from decimal import Decimal
 
 from bokeh.plotting import figure, show
@@ -14,7 +14,7 @@ __all__ = ["QuEraTaskSpecification"]
 
 # TODO: add version to these models.
 
-FloatType = Union[Decimal, float]
+FloatType = Decimal
 
 
 def discretize_list(list_of_values: list, resolution: FloatType):
