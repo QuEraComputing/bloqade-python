@@ -1,6 +1,6 @@
 from typing import Optional
 from .base import Builder
-from .pragmas import Parallelizable, Flattenable
+from .pragmas import Parallelizable, Flattenable, BatchAssignable
 from .backend import BackendRoute
 from .compile.trait import Parse
 
@@ -14,9 +14,10 @@ class AssignBase(Builder):
         self._assignments = assignments
 
 
-class Assign(AssignBase, Flattenable, Parallelizable, BackendRoute, Parse):
-    def batch_assign(self, **assignments) -> "BatchAssign":
-        return BatchAssign(parent=self, **assignments)
+class Assign(
+    AssignBase, BatchAssignable, Flattenable, Parallelizable, BackendRoute, Parse
+):
+    pass
 
 
 class BatchAssign(AssignBase, Parallelizable, BackendRoute, Parse):
