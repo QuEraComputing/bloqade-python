@@ -28,6 +28,14 @@ print(schema.effective_hamiltonian.rydberg.rabi_frequency_phase.global_.times)
 """
 
 
+def fc(x):
+    return float(x)
+
+
+def fvec(v):
+    return list(map(fc, v))
+
+
 def test_integration_jump_err():
     ## jump at the end of linear -- constant
     with pytest.raises(ValueError):
@@ -49,7 +57,6 @@ def test_integration_jump_err():
         )
 
 
-@pytest.mark.skip(reason="Not implemented yet")
 def test_integration_scale():
     seq = Linear(start=0.0, stop=1.0, duration=0.5).append(
         2 * Constant(0.5, duration=0.5)
@@ -70,20 +77,20 @@ def test_integration_scale():
     ir = task_data["quera_task"]["task_data"]["quera_task_data"]["task_ir"]
 
     assert ir["nshots"] == 10
-    assert ir["lattice"]["sites"][0] == [0.0, 0.0]
+    assert fvec(ir["lattice"]["sites"][0]) == [0.0, 0.0]
     assert ir["lattice"]["filling"] == [1]
     assert ir["lattice"]["filling"] == [1]
 
     detune_ir = ir["effective_hamiltonian"]["rydberg"]["detuning"]
-    assert all(detune_ir["global"]["times"] == np.array([0, 0.5, 1.0]) * 1e-6)
-    assert all(detune_ir["global"]["values"] == np.array([0, 1, 1]) * 1e6)
+    assert all(fvec(detune_ir["global"]["times"]) == np.array([0, 0.5, 1.0]) * 1e-6)
+    assert all(fvec(detune_ir["global"]["values"]) == np.array([0, 1, 1]) * 1e6)
 
 
 def test_integration_neg():
     seq = Linear(start=0.0, stop=-0.5, duration=0.5).append(
         -Constant(0.5, duration=0.5)
     )
-    job = location.Square(1).rydberg.detuning.uniform.apply(seq).mock(10)
+    job = location.Square(1).rydberg.detuning.uniform.apply(seq).quera.mock().submit(10)
 
     panel = json.loads(job.json())
     print(panel)

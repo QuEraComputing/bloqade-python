@@ -107,7 +107,7 @@ class StaticAssignWaveform(WaveformVisitor):
         return waveform.Smooth(static_radius, ast.kernel, self.visit(ast.waveform))
 
     def visit_negative(self, ast: waveform.Negative) -> Any:
-        return waveform.Negative(self.visit(ast))
+        return waveform.Negative(self.visit(ast.waveform))
 
     def visit_record(self, ast: waveform.Record) -> Any:
         return waveform.Record(self.visit(ast.waveform), ast.var)
