@@ -9,6 +9,9 @@
 import bloqade.ir as ir
 from bloqade.builder import spatial
 from bloqade.builder import waveform
+import bloqade.builder.backend as builder_backend
+
+
 from bloqade.ir import rydberg, detuning, hyperfine, rabi
 from bloqade import start, cast
 
@@ -225,6 +228,17 @@ def test_piecewise_linear_mismatch():
         start.hyperfine.rabi.amplitude.location(1).piecewise_linear(
             durations=[0.1, 0.5], values=[30, 20]
         )
+
+
+def test_backend_route():
+    prog = start.rydberg.detuning.uniform.constant(4, 4)
+
+    assert isinstance(prog.device("quera.aquila"), builder_backend.quera.Aquila)
+    assert isinstance(prog.device("quera.gemini"), builder_backend.quera.Gemini)
+    assert isinstance(prog.device("braket.aquila"), builder_backend.braket.Aquila)
+    assert isinstance(prog.device("braket.simu"), builder_backend.braket.LocalBackend)
+    with pytest.raises(ValueError):
+        prog.device("foo")
 
 
 """
