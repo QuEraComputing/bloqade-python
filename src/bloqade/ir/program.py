@@ -30,11 +30,21 @@ class Program:
         self._order = order
 
     @property
-    def static_params(self):
+    def static_params(self) -> Dict[str, Union[Real, List[Real]]]:
+        """Get the instances of variables specified by .assign()
+
+        Returns:
+            variable and their instances
+        """
         return self._static_params
 
     @property
-    def batch_params(self):
+    def batch_params(self) -> List[Dict[str, Union[Real, List[Real]]]]:
+        """Get the instances of variables specified by .batch_assign()
+
+        Returns:
+            batch of variable and their instances
+        """
         return self._batch_params
 
     @property
@@ -94,4 +104,15 @@ class Program:
         return row(fig_seq, fig_reg)
 
     def show(self, **assignments):
+        """Interactive visualization of the program
+
+        Args:
+            **assignments: assigning the instance value (literal) to the
+                existing variables in the program
+
+        Returns:
+            Sequence: the sequence of the program.
+                See also [`Sequence`][bloqade.ir.control.sequence.Sequence].
+
+        """
         show(self.figure(**assignments))
