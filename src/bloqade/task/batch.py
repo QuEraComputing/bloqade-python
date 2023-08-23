@@ -151,14 +151,15 @@ class RemoteBatch(Serializable):
         for int, task in self.tasks.items():
             tid.append(int)
 
-            dat = [None, None]
+            dat = [None, None, None]
             dat[0] = task.task_id
             if task.task_id is not None:
                 if task.task_result_ir is not None:
                     dat[1] = task.result().task_status.name
+                    dat[2] = task.task_data.task_ir.nshots
             data.append(dat)
 
-        return pd.DataFrame(data, index=tid, columns=["task ID", "status"])
+        return pd.DataFrame(data, index=tid, columns=["task ID", "status", "shots"])
 
     def remove_invalid_tasks(self):
         # offline, non-blocking
