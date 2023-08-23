@@ -2,7 +2,7 @@ from .base import Builder
 from typing import Any, List, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from .parallelize import Parallelize, ParallelizeFlatten
+    from .parallelize import Parallelize
     from .assign import Assign, BatchAssign
     from .flatten import Flatten
 
@@ -50,32 +50,6 @@ class BatchAssignable(Builder):
 
 class Parallelizable(Builder):
     def parallelize(self, cluster_spacing: Any) -> "Parallelize":
-        """
-        Parallelize the current problem (register & sequnece) to fill entire FOV
-        with the given cluster spacing.
-
-        Args:
-            cluster_spacing (Any, should be Real):
-            the spacing between parallel clusters.
-
-        Examples:
-            - Parallelize the current problem with cluster spacing 7.2 um.
-
-            >>> prob = (
-                    bloqade.start.add_positions([(0,0),(1,1),(2,2),(3,3)])
-                    .rydberg.detuning.uniform
-                    .linear(start=0,stop=1,duration=1)
-                    )
-            >>> prob = prob.parallelize(7.2)
-
-        """
-        from .parallelize import Parallelize
-
-        return Parallelize(cluster_spacing, self)
-
-
-class FlattenParallelizable(Builder):
-    def parallelize(self, cluster_spacing: Any) -> "ParallelizeFlatten":
         """
         Parallelize the current problem (register & sequnece) to fill entire FOV
         with the given cluster spacing.
