@@ -252,6 +252,7 @@ def test_assign_error():
             c=[1, 2, np], t=[10]
         )
 
+
 def test_flatten_dupicate_error():
     with pytest.raises(ValueError):
         (
@@ -264,6 +265,7 @@ def test_flatten_dupicate_error():
             .braket.local_emulator()
             .run(1)
         )
+
 
 def test_flatten_vector_error():
     with pytest.raises(ValueError):
