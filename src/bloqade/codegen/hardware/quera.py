@@ -169,7 +169,7 @@ class PiecewiseLinearCodeGen(WaveformVisitor):
         return times, values
 
     def visit_append(self, ast: waveform.Append) -> Tuple[List[Decimal], List[Decimal]]:
-        print(ast.waveforms)
+        # print(ast.waveforms)
         times, values = self.visit(ast.waveforms[0])
 
         for sub_expr in ast.waveforms[1:]:
