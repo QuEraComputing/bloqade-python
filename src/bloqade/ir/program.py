@@ -110,9 +110,5 @@ class Program:
             **assignments: assigning the instance value (literal) to the
                 existing variables in the program
 
-        Returns:
-            Sequence: the sequence of the program.
-                See also [`Sequence`][bloqade.ir.control.sequence.Sequence].
-
         """
         show(self.figure(**assignments))
