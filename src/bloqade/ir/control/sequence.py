@@ -149,6 +149,14 @@ class Sequence(SequenceExpr):
         return get_sequence_figure(self, **assignments)
 
     def show(self, **assignments):
+        """
+        Interactive visualization of the Sequence
+
+        Args:
+            **assignments: assigning the instance value (literal) to the
+                existing variables in the Sequence
+
+        """
         show(self.figure(**assignments))
 
 
