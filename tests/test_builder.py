@@ -252,6 +252,18 @@ def test_assign_error():
             c=[1, 2, np], t=[10]
         )
 
+def test_flatten_dupicate_error():
+    with pytest.raises(ValueError):
+        (
+            start.add_position((0, 0))
+            .rydberg.rabi.amplitude.uniform.constant("a", 1)
+            .detuning.var("vec")
+            .constant(1, 1)
+            .assign(vec=[1])
+            .flatten(["a", "a"])
+            .braket.local_emulator()
+            .run(1)
+        )
 
 def test_flatten_vector_error():
     with pytest.raises(ValueError):
