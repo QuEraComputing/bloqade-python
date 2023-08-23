@@ -15,6 +15,11 @@ skip_keywords = [
     "ir/visitor",  ## hiding from user
     "codegen/",  ## hiding from user
     "builder/factory",  ## hiding from user
+    "builder_old",  ## deprecated from user
+    "task_old",  ## deprecated from user
+    "visualization",  ## hiding from user
+    "submission/capabilities",  ## hiding from user
+    "submission/quera_api_client",
 ]
 
 nav = mkdocs_gen_files.Nav()
