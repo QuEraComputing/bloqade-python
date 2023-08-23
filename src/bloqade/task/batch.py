@@ -108,7 +108,17 @@ class LocalBatch(Serializable):
                 num_workers = os.cpu_count()
 
             with Pool(num_workers) as pool:
-                pool.map(lambda task: task.run(**kwargs), self.tasks.values())
+                async_results = []
+                for taks_number, task in self.tasks.items():
+                    async_results.append(
+                        (taks_number, pool.apply_async(task.run, kwds=kwargs))
+                    )
+
+                for taks_number, async_result in async_results:
+                    async_result.wait()
+                    if async_result.successful():
+                        self.tasks[taks_number] = async_result.get()
+
         else:
             if num_workers is not None:
                 raise ValueError(
