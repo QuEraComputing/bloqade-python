@@ -200,7 +200,9 @@ class Parser:
                         raise ValueError(f"Cannot flatten duplicate names {dup}.")
 
                     order_names = set([*order])
-                    flattened_vector_names = order_names.intersection(self.vector_node_names)
+                    flattened_vector_names = order_names.intersection(
+                        self.vector_node_names
+                    )
 
                     if flattened_vector_names:
                         raise ValueError(

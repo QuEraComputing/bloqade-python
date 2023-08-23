@@ -252,15 +252,17 @@ def test_assign_error():
             c=[1, 2, np], t=[10]
         )
 
+
 def test_flatten_vector_error():
     with pytest.raises(ValueError):
-
         result = (
-            start.add_position((0,0))
-            .rydberg.rabi.amplitude.uniform.constant(1,1)
-            .detuning.var("a").constant(1,1)
+            start.add_position((0, 0))
+            .rydberg.rabi.amplitude.uniform.constant(1, 1)
+            .detuning.var("a")
+            .constant(1, 1)
             .flatten(["a"])
-            .braket.local_emulator().run(1)
+            .braket.local_emulator()
+            .run(1)
         )
 
 
