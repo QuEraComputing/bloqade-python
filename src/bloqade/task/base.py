@@ -196,3 +196,5 @@ class Report:
             .groupby("task_number")
             .mean()
         )
+
+    # def show(self):

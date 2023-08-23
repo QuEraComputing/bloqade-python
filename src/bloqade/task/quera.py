@@ -77,6 +77,10 @@ class QuEraTask(RemoteTask):
 
         self.backend.cancel_task(self.task_id)
 
+    @property
+    def nshots(self):
+        return self.task_data.task_ir.nshots
+
     def _geometry(self) -> Geometry:
         return Geometry(
             sites=self.task_data.task_ir.lattice.sites,

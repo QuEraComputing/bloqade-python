@@ -9,9 +9,8 @@ ScalarType = Union[float, str, ir.Scalar]
 
 
 def assert_scalar(name, value) -> None:
-    assert isinstance(
-        value, (Real, str, ir.Scalar)
-    ), f"{name} must be a float, str, or Scalar"
+    if not isinstance(value, (Real, str, ir.Scalar)):
+        raise ValueError(f"{name} must be a float, str, or Scalar")
 
 
 class WaveformAttachable(Builder):
@@ -79,10 +78,6 @@ class Linear(WaveformPrimitive):
         duration: ScalarType,
         parent: Optional[Builder] = None,
     ) -> None:
-        assert_scalar("start", start)
-        assert_scalar("stop", stop)
-        assert_scalar("duration", duration)
-
         super().__init__(parent)
         self._start = ir.cast(start)
         self._stop = ir.cast(stop)
@@ -98,9 +93,6 @@ class Constant(WaveformPrimitive):
     def __init__(
         self, value: ScalarType, duration: ScalarType, parent: Optional[Builder] = None
     ) -> None:
-        assert_scalar("value", value)
-        assert_scalar("duration", duration)
-
         super().__init__(parent)
         self._value = ir.cast(value)
         self._duration = ir.cast(duration)
@@ -118,9 +110,6 @@ class Poly(WaveformPrimitive):
         duration: ScalarType,
         parent: Optional[Builder] = None,
     ) -> None:
-        assert_scalar("coeffs", coeffs)
-        assert_scalar("duration", duration)
-
         super().__init__(parent)
         self._coeffs = map(ir.cast, coeffs)
         self._duration = ir.cast(duration)
@@ -196,7 +185,6 @@ class Fn(WaveformPrimitive):
         duration: ScalarType,
         parent: Optional[Builder] = None,
     ) -> None:
-        assert_scalar("duration", duration)
         super().__init__(parent)
         self._fn = fn
         self._duration = ir.cast(duration)
@@ -248,7 +236,6 @@ class Sample(Slicible, Recordable, WaveformRoute):
         parent: Builder,
     ) -> None:
         super().__init__(parent)
-        assert_scalar("dt", dt)
         self._dt = ir.cast(dt)
         if interpolation is None:
             self._interpolation = None
