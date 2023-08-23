@@ -28,70 +28,183 @@ class LowerRabiTerm:
         self.level_coupling = None
         self.target_atoms = {}
 
-    def emit_two_level_full_space_single_atom(self):
+    def emit_two_level_full_space_single_atom_real(self):
         ((atom_index, value),) = self.target_atoms.items()
 
-        if self.phase is None:  # Real valued
-            input_indices = self.space.configurations ^ (1 << atom_index)
-            return [(lambda t: value * self.amplitude(t), IndexMapping(input_indices))]
-        else:  # Complex valued
-            output_indices = (self.space.configurations >> atom_index) & 1 == 1
-            input_indices = self.space.configurations[output_indices] ^ (
-                1 << atom_index
+        input_indices = self.space.configurations ^ (1 << atom_index)
+        return [(lambda t: value * self.amplitude(t), IndexMapping(input_indices))]
+    
+    def emit_two_level_full_space_single_atom_complex(self):
+        ((atom_index, value),) = self.target_atoms.items()
+        
+        output_indices = (self.space.configurations >> atom_index) & 1 == 1
+        input_indices = self.space.configurations[output_indices] ^ (
+            1 << atom_index
+        )
+        
+        op = IndexMapping(input_indices, output_indices)
+
+        return [
+            (lambda t: value * self.amplitude(t) * np.exp(1j * self.phase(t)), op),
+            (
+                lambda t: value * self.amplitude(t) * np.exp(-1j * self.phase(t)),
+                op.ajoint(),
+            ),
+        ]
+
+    def emit_two_level_subspace_single_atom_real(self):
+        ((atom_index, value),) = self.target_atoms.items()
+
+        new_configurations = self.space.configurations ^ (1 << atom_index)
+        input_indices = np.searchsorted(
+            self.space.configurations, new_configurations
+        )
+
+        output_indices = input_indices < self.space.configurations.size
+        input_indices = input_indices[output_indices]
+        return [
+            (
+                lambda t: value * self.amplitude(t),
+                IndexMapping(input_indices, output_indices),
             )
-            op = IndexMapping(input_indices, output_indices)
-            return [
-                (lambda t: value * self.amplitude(t) * np.exp(1j * self.phase(t)), op),
-                (
-                    lambda t: value * self.amplitude(t) * np.exp(-1j * self.phase(t)),
-                    op.ajoint(),
-                ),
-            ]
+        ]
+    
+    def emit_two_level_subspace_single_atom_complex(self):
+        ((atom_index, value),) = self.target_atoms.items()
+
+        rydberg_states = (self.space.configurations >> atom_index) & 1 == 1
+        new_configurations = self.space.configurations[rydberg_states] ^ (
+            1 << atom_index
+        )
+        input_indices = np.searchsorted(
+            self.space.configurations, new_configurations
+        )
+
+        nonzero_indices = input_indices < self.space.size
+        output_indices = np.logical_and(rydberg_states, nonzero_indices)
+        input_indices = input_indices[nonzero_indices]
+        op = IndexMapping(input_indices, output_indices)
+        return [
+            (lambda t: value * self.amplitude(t) * np.exp(1j * self.phase(t)), op),
+            (
+                lambda t: value * self.amplitude(t) * np.exp(-1j * self.phase(t)),
+                op.ajoint(),
+            ),
+        ]
+
+    def emit_two_level_full_space_multi_atom_real(self):
+        shape = (self.space.size, self.space.size)
+        indptr = np.zeros(self.space.size + 1, dtype=self.space.index_type)
+        indptr[1:] = len(self.target_atoms)
+
+        np.cumsum(indptr, out=indptr)
+
+        indices = np.zeros(
+            (self.space.size, len(self.target_atoms)), dtype=self.space.index_type
+        )
+        data = np.zeros((self.space.size, len(self.target_atoms)), dtype=np.float64)
+
+        for atom_index, value in self.target_atoms.items():
+            input_indices = self.configurations ^ (1 << atom_index)
+            indices[:, atom_index] = input_indices
+            data[:, atom_index] = value
+
+        op = csr_matrix((data.ravel(), indices.ravel(), indptr), shape=shape)
+
+        return (self.amplitude, op)
+    
+    def emit_two_level_full_space_multi_atom_complex(self):
+        shape = (self.space.size, self.space.size)
+        indptr = np.zeros(self.space.size + 1, dtype=self.space.index_type)
+
+        nnz_values = indptr[1:]
+        for atom_index in self.target_atoms.keys():
+            rydberg_states = (self.space.configurations >> atom_index) & 1 == 1
+            input_indices = self.space.configurations[rydberg_states] ^ (1 << atom_index)
+            nnz_values[input_indices] += 1
+
+        np.cumsum(indptr, out=indptr)
+
+        indices = np.zeros((indptr[-1],), dtype=self.space.index_type)
+        data = np.zeros((indptr[-1],), dtype=np.complex128)
+
+        index = indptr[0:-1]
+        for atom_index, value in self.target_atoms.items():
+            rydberg_states = (self.space.configurations >> atom_index) & 1 == 1
+            input_indices = self.space.configurations[rydberg_states] ^ (1 << atom_index)
+
+            nonzero_index = index[rydberg_states]
+            indices[nonzero_index] = input_indices
+            data[nonzero_index] = value
+            index[input_indices] += 1
+
+        op = csr_matrix((data, indices, indptr), shape=shape)
+        op_H = csc_matrix((data.conj(), indices, indptr), shape=shape)
+        return [
+            (lambda t: self.amplitude(t) * np.exp(1j * self.phase(t)), op),
+            (lambda t: self.amplitude(t) * np.exp(-1j * self.phase(t)), op_H),
+        ]
+    
+    def emit_two_level_subspace_multi_atom_real(self):
+        shape = (self.space.size, self.space.size)
+        indptr = np.zeros(self.space.size + 1, dtype=self.space.index_type)
+
+        nnz_values = indptr[1:]
+        for atom_index, value in self.target_atoms.items():
+            new_configurations = self.configurations ^ (1 << atom_index)
+            input_indices = np.searchsorted(self.configurations, new_configurations)
+            input_indices = input_indices[input_indices < self.configurations.size]
+
+            indptr[input_indices] += 1
+
+        np.cumsum(indptr, out=indptr)
+
+        indices = np.zeros((indptr[-1],), dtype=self.space.index_type)
+        data = np.zeros((indptr[-1],), dtype=np.float64)
+
+        index = indptr[0:-1]
+        for atom_index, value in self.target_atoms.items():
+            new_configurations = self.configurations ^ (1 << atom_index)
+            input_indices = np.searchsorted(self.configurations, new_configurations)
+
+            input_indices = input_indices[input_indices < self.configurations.size]
+            nonzero_index = index[input_indices]
+
+            indices[nonzero_index] = input_indices
+            data[nonzero_index] = value
+            index[input_indices] += 1
+
+        indptr[1:] = index
+        indptr[0] = 0
+        return csr_matrix((data, indices, indptr), shape=shape)
+
+    def emit_two_level_subspace_multi_atom_complex(self):
+        raise NotImplementedError("Complex valued multi-atom subspace not implemented.")
+
+    def emit_two_level_full_space_single_atom(self):
+        if self.phase is None:  # Real valued
+            return self.emit_two_level_full_space_single_atom_real()
+        else:  # Complex valued
+            return self.emit_two_level_full_space_single_atom_complex()
 
     def emit_two_level_subspace_single_atom(self):
-        ((atom_index, value),) = self.target_atoms.items()
-
         if self.phase is None:
-            new_configurations = self.space.configurations ^ (1 << atom_index)
-            input_indices = np.searchsorted(
-                self.space.configurations, new_configurations
-            )
-
-            output_indices = input_indices < self.space.configurations.size
-            input_indices = input_indices[output_indices]
-            return [
-                (
-                    lambda t: value * self.amplitude(t),
-                    IndexMapping(input_indices, output_indices),
-                )
-            ]
+            return self.emit_two_level_subspace_single_atom_real()
         else:
-            rydberg_states = (self.space.configurations >> atom_index) & 1 == 1
-            new_configurations = self.space.configurations[rydberg_states] ^ (
-                1 << atom_index
-            )
-            input_indices = np.searchsorted(
-                self.space.configurations, new_configurations
-            )
-
-            nonzero_indices = input_indices < self.space.size
-            output_indices = np.logical_and(rydberg_states, nonzero_indices)
-            input_indices = input_indices[nonzero_indices]
-            op = IndexMapping(input_indices, output_indices)
-            return [
-                (lambda t: value * self.amplitude(t) * np.exp(1j * self.phase(t)), op),
-                (
-                    lambda t: value * self.amplitude(t) * np.exp(-1j * self.phase(t)),
-                    op.ajoint(),
-                ),
-            ]
+            return self.emit_two_level_subspace_single_atom_complex()
 
     def emit_two_level_full_space_multi_atom(self):
-        raise NotImplementedError
-
+        if self.phase is None:
+            return self.emit_two_level_full_space_multi_atom_real()
+        else:
+            return self.emit_two_level_full_space_multi_atom_complex()
+        
     def emit_two_level_subspace_multi_atom(self):
-        raise NotImplementedError
-
+        if self.phase is None:
+            return self.emit_two_level_subspace_multi_atom_real()
+        else:
+            return self.emit_two_level_subspace_multi_atom_complex()
+        
     def emit_two_level_full_space(self):
         if len(self.target_atoms) == 1:
             return self.emit_two_level_full_space_single_atom()
