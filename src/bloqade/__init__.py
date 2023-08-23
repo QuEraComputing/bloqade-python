@@ -9,6 +9,7 @@ from bloqade.builder.factory import (
 )
 import bloqade.ir as _ir
 from bloqade.task.json import save_batch, load_batch
+from bloqade.constants import RB_C6
 
 
 def tree_depth(depth: int = None):
@@ -29,6 +30,7 @@ def tree_depth(depth: int = None):
 
 
 __all__ = [
+    "RB_C6",
     "start",
     "var",
     "cast",
