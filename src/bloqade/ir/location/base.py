@@ -70,6 +70,7 @@ class AtomArrangement(ProgramStart):
             )  # default to standard print of internal contents
 
         pltxt.clear_figure()
+        pltxt.limit_size(False, False)
         pltxt.plot_size(80, 24)
         pltxt.canvas_color("default")
         pltxt.axes_color("default")
