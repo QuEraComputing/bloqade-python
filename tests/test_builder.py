@@ -255,7 +255,7 @@ def test_assign_error():
 
 def test_flatten_vector_error():
     with pytest.raises(ValueError):
-        result = (
+        (
             start.add_position((0, 0))
             .rydberg.rabi.amplitude.uniform.constant(1, 1)
             .detuning.var("a")
