@@ -241,6 +241,18 @@ def test_backend_route():
         prog.device("foo")
 
 
+def test_assign_error():
+    import numpy as np
+
+    with pytest.raises(ValueError):
+        start.rydberg.detuning.uniform.constant("c", "t").assign(c=np, t=10)
+
+    with pytest.raises(ValueError):
+        start.rydberg.detuning.uniform.constant("c", "t").batch_assign(
+            c=[1, 2, np], t=[10]
+        )
+
+
 """
 prog = start
 prog = (
