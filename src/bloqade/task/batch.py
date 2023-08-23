@@ -110,6 +110,13 @@ class RemoteBatch(Serializable):
     class SubmissionException(Exception):
         pass
 
+    @property
+    def total_nshots(self):
+        nshots = 0
+        for task in self.tasks.values():
+            nshots += task.task_data.task_ir.nshots
+        return nshots
+
     def cancel(self):
         # cancel all jobs
         for task in self.tasks.values():
