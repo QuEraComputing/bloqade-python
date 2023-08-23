@@ -174,12 +174,15 @@ class Report:
         counts = []
         for bitstring in self.bitstrings:
             output = np.unique(bitstring, axis=0, return_counts=True)
-            counts.append(
-                {
-                    "".join(map(str, unique_bitstring)): bitstring_count
-                    for unique_bitstring, bitstring_count in zip(*output)
-                }
-            )
+
+            count_list = [
+                ("".join(map(str, bitstring)), count)
+                for bitstring, count in zip(*output)
+            ]
+            count_list.sort(key=lambda x: x[1], reverse=True)
+            count = OrderedDict(count_list)
+
+            counts.append(count)
 
         return counts
 
