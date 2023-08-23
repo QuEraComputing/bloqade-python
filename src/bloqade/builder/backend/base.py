@@ -2,7 +2,7 @@
 from ..base import Builder
 
 from bloqade.task.batch import RemoteBatch, LocalBatch
-from typing import Any, Tuple
+from typing import Any, Optional, Tuple
 from numbers import Real
 
 # from ..compile.quera import QuEraSchemaCompiler
@@ -18,6 +18,8 @@ class LocalBackend(Backend):
         shots: int,
         args: Tuple[Real, ...] = (),
         name: str | None = None,
+        multiprocessing: bool = False,
+        num_workers: Optional[int] = None,
         **kwargs,
     ):
         tasks = self.compile_tasks(shots, *args)
@@ -25,7 +27,7 @@ class LocalBackend(Backend):
         batch = LocalBatch(dict(zip(range(len(tasks)), tasks)), name)
 
         # kwargs is the tuning params for integrators
-        batch._run(**kwargs)
+        batch._run(multiprocessing=multiprocessing, num_workers=num_workers, **kwargs)
 
         return batch
 

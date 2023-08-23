@@ -91,12 +91,33 @@ class LocalBatch(Serializable):
 
         return Report(df)
 
-    def rerun(self, **kwargs):
-        self._run(**kwargs)
+    def rerun(
+        self, multiprocessing: bool = False, num_workers: Optional[int] = None, **kwargs
+    ):
+        return self._run(
+            multiprocessing=multiprocessing, num_workers=num_workers, **kwargs
+        )
 
-    def _run(self, **kwargs):
-        for _, task in self.tasks.items():
-            task.run(**kwargs)
+    def _run(
+        self, multiprocessing: bool = False, num_workers: Optional[int] = None, **kwargs
+    ):
+        if multiprocessing:
+            from multiprocessing import Pool
+
+            if num_workers is None:
+                num_workers = os.cpu_count()
+
+            with Pool(num_workers) as pool:
+                pool.map(lambda task: task.run(**kwargs), self.tasks.values())
+        else:
+            if num_workers is not None:
+                raise ValueError(
+                    "num_workers is only used when multiprocessing is enabled."
+                )
+            for task in self.tasks.values():
+                task.run(**kwargs)
+
+        return self
 
 
 # this class get collection of tasks
