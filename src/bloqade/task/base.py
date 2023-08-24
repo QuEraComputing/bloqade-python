@@ -133,7 +133,7 @@ class LocalTask(Task):
 @dataclass
 class Report:
     dataframe: pd.DataFrame
-    metas: Dict
+    metas: List[Dict]
 
     def __init__(self, data, metas) -> None:
         self.dataframe = data  # df

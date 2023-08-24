@@ -1,11 +1,11 @@
 from bokeh.plotting import figure, show
 from bokeh.layouts import column, row
-from bokeh.models import CustomJS, MultiChoice, Div
+from bokeh.models import CustomJS, MultiChoice, Div, HoverTool
 from bokeh.models import (
     ColumnDataSource,
 )
 
-# from bokeh.models import Tabs, TabPanel, HoverTool, Div, CrosshairTool, Span
+# from bokeh.models import Tabs, TabPanel,, Div, CrosshairTool, Span
 from bokeh.palettes import Dark2_5
 
 # import itertools
@@ -136,21 +136,29 @@ def report_visual(cnt_sources, ryd_sources, metas):
                 x_range=tsrc.data["bitstrings"],
                 height=400,
                 title=f"{taskname}",
-                toolbar_location=None,
-                tools="",
+                # toolbar_location=None,
+                tools="wheel_zoom,reset",
             )
             p.vbar(x="bitstrings", top="cnts", source=tsrc, width=0.9, color=color1)
 
             p.xgrid.grid_line_color = None
+            p.xaxis.major_label_orientation = "vertical"
             p.y_range.start = 0
             p.yaxis.axis_label = "Counts"
+
+            hov_tool = HoverTool()
+            hov_tool.tooltips = [
+                ("counts: ", "@cnts"),
+                ("bitstrings:\n", "@bitstrings"),
+            ]
+            p.add_tools(hov_tool)
 
             pryd = figure(
                 x_range=["0", "1"],
                 height=400,
                 width=200,
-                toolbar_location=None,
-                tools="",
+                # toolbar_location=None,
+                tools="wheel_zoom,reset",
             )
 
             pryd.vbar(x="bits", top="ryds", source=trydsrc, width=0.5, color=color2)
@@ -158,6 +166,10 @@ def report_visual(cnt_sources, ryd_sources, metas):
             pryd.xgrid.grid_line_color = None
             pryd.y_range.start = 0
             pryd.yaxis.axis_label = "Rydberg density"
+
+            hov_tool = HoverTool()
+            hov_tool.tooltips = [("density: ", "@ryds")]
+            pryd.add_tools(hov_tool)
 
             figs.append(row(div, p, pryd, name=taskname))
             figs[-1].visible = False
