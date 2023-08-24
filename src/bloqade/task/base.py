@@ -141,6 +141,9 @@ class Report:
         self._counts = None  # counts cache
         self.metas = metas
 
+    def list_param(self, field_name: str) -> List[Number]:
+        return [meta.get(field_name) for meta in self.metas]
+
     @property
     def markdown(self) -> str:
         return self.dataframe.to_markdown()
