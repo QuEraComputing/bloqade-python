@@ -91,7 +91,13 @@ class LocalBatch(Serializable):
         df = pd.DataFrame(data, index=index)
         df.sort_index(axis="index")
 
-        return Report(df, metas)
+        rept = None
+        if self.name is None:
+            rept = Report(df, metas, "Local")
+        else:
+            rept = Report(df, metas, self.name)
+
+        return rept
 
     def rerun(self, **kwargs):
         self._run(**kwargs)
@@ -377,4 +383,10 @@ class RemoteBatch(Serializable):
         df = pd.DataFrame(data, index=index)
         df.sort_index(axis="index")
 
-        return Report(df, metas)
+        rept = None
+        if self.name is None:
+            rept = Report(df, metas, "Remote")
+        else:
+            rept = Report(df, metas, self.name)
+
+        return rept

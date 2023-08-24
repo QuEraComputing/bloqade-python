@@ -16,6 +16,7 @@ from dataclasses import dataclass
 from bloqade.submission.ir.parallel import ParallelDecoder
 from bloqade.visualization import report_visualize
 from bokeh.io import show
+import datetime
 
 JSONSubType = TypeVar("JSONSubType", bound="JSONInterface")
 
@@ -141,7 +142,7 @@ class Report:
         self._bitstrings = None  # bitstring cache
         self._counts = None  # counts cache
         self.metas = metas
-        self.name = name
+        self.name = name + " " + str(datetime.datetime.now())
 
     def list_param(self, field_name: str) -> List[Union[Number, None]]:
         return [meta.get(field_name) for meta in self.metas]
