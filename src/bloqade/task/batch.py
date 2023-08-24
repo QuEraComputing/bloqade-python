@@ -82,7 +82,7 @@ class LocalBatch(Serializable):
 
                 index.append(key)
                 data.append(post_sequence)
-                metas.append(task.task_data.metadata)
+            metas.append(task.task_data.metadata)
 
         index = pd.MultiIndex.from_tuples(
             index, names=["task_number", "cluster", "perfect_sorting", "pre_sequence"]

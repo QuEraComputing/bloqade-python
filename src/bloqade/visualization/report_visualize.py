@@ -138,7 +138,7 @@ def report_visual(cnt_sources, ryd_sources, metas):
                 height=400,
                 title=f"{taskname}",
                 # toolbar_location=None,
-                tools="wheel_zoom,reset, box_zoom",
+                tools="xwheel_zoom,reset, box_zoom, xpan",
             )
             p.vbar(x="bitstrings", top="cnts", source=tsrc, width=0.9, color=color1)
 
@@ -159,7 +159,7 @@ def report_visual(cnt_sources, ryd_sources, metas):
                 height=400,
                 width=300,
                 # toolbar_location=None,
-                tools="wheel_zoom,reset,box_zoom",
+                tools="xwheel_zoom,reset,box_zoom,xpan",
             )
 
             pryd.vbar(x="sites", top="ryds", source=trydsrc, width=0.5, color=color2)
