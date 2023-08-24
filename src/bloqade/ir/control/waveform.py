@@ -674,7 +674,7 @@ class Negative(Waveform):
         return f"-({str(self.waveform)})"
 
     def print_node(self):
-        return "-"
+        return "Negative"
 
     def children(self):
         return [self.waveform]
