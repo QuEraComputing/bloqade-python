@@ -33,15 +33,13 @@ class LowerRabiTerm:
 
         input_indices = self.space.configurations ^ (1 << atom_index)
         return [(lambda t: value * self.amplitude(t), IndexMapping(input_indices))]
-    
+
     def emit_two_level_full_space_single_atom_complex(self):
         ((atom_index, value),) = self.target_atoms.items()
-        
+
         output_indices = (self.space.configurations >> atom_index) & 1 == 1
-        input_indices = self.space.configurations[output_indices] ^ (
-            1 << atom_index
-        )
-        
+        input_indices = self.space.configurations[output_indices] ^ (1 << atom_index)
+
         op = IndexMapping(input_indices, output_indices)
 
         return [
@@ -56,9 +54,7 @@ class LowerRabiTerm:
         ((atom_index, value),) = self.target_atoms.items()
 
         new_configurations = self.space.configurations ^ (1 << atom_index)
-        input_indices = np.searchsorted(
-            self.space.configurations, new_configurations
-        )
+        input_indices = np.searchsorted(self.space.configurations, new_configurations)
 
         output_indices = input_indices < self.space.configurations.size
         input_indices = input_indices[output_indices]
@@ -68,7 +64,7 @@ class LowerRabiTerm:
                 IndexMapping(input_indices, output_indices),
             )
         ]
-    
+
     def emit_two_level_subspace_single_atom_complex(self):
         ((atom_index, value),) = self.target_atoms.items()
 
@@ -76,9 +72,7 @@ class LowerRabiTerm:
         new_configurations = self.space.configurations[rydberg_states] ^ (
             1 << atom_index
         )
-        input_indices = np.searchsorted(
-            self.space.configurations, new_configurations
-        )
+        input_indices = np.searchsorted(self.space.configurations, new_configurations)
 
         nonzero_indices = input_indices < self.space.size
         output_indices = np.logical_and(rydberg_states, nonzero_indices)
@@ -112,7 +106,7 @@ class LowerRabiTerm:
         op = csr_matrix((data.ravel(), indices.ravel(), indptr), shape=shape)
 
         return (self.amplitude, op)
-    
+
     def emit_two_level_full_space_multi_atom_complex(self):
         shape = (self.space.size, self.space.size)
         indptr = np.zeros(self.space.size + 1, dtype=self.space.index_type)
@@ -120,7 +114,9 @@ class LowerRabiTerm:
         nnz_values = indptr[1:]
         for atom_index in self.target_atoms.keys():
             rydberg_states = (self.space.configurations >> atom_index) & 1 == 1
-            input_indices = self.space.configurations[rydberg_states] ^ (1 << atom_index)
+            input_indices = self.space.configurations[rydberg_states] ^ (
+                1 << atom_index
+            )
             nnz_values[input_indices] += 1
 
         np.cumsum(indptr, out=indptr)
@@ -131,7 +127,9 @@ class LowerRabiTerm:
         index = indptr[0:-1]
         for atom_index, value in self.target_atoms.items():
             rydberg_states = (self.space.configurations >> atom_index) & 1 == 1
-            input_indices = self.space.configurations[rydberg_states] ^ (1 << atom_index)
+            input_indices = self.space.configurations[rydberg_states] ^ (
+                1 << atom_index
+            )
 
             nonzero_index = index[rydberg_states]
             indices[nonzero_index] = input_indices
@@ -144,7 +142,7 @@ class LowerRabiTerm:
             (lambda t: self.amplitude(t) * np.exp(1j * self.phase(t)), op),
             (lambda t: self.amplitude(t) * np.exp(-1j * self.phase(t)), op_H),
         ]
-    
+
     def emit_two_level_subspace_multi_atom_real(self):
         shape = (self.space.size, self.space.size)
         indptr = np.zeros(self.space.size + 1, dtype=self.space.index_type)
@@ -155,7 +153,7 @@ class LowerRabiTerm:
             input_indices = np.searchsorted(self.configurations, new_configurations)
             input_indices = input_indices[input_indices < self.configurations.size]
 
-            indptr[input_indices] += 1
+            nnz_values[input_indices] += 1
 
         np.cumsum(indptr, out=indptr)
 
@@ -179,7 +177,47 @@ class LowerRabiTerm:
         return csr_matrix((data, indices, indptr), shape=shape)
 
     def emit_two_level_subspace_multi_atom_complex(self):
-        raise NotImplementedError("Complex valued multi-atom subspace not implemented.")
+        shape = (self.space.size, self.space.size)
+        indptr = np.zeros(self.space.size + 1, dtype=self.space.index_type)
+
+        nnz_values = indptr[1:]
+        for atom_index, value in self.target_atoms.items():
+            rydberg_states = (self.configurations >> atom_index) & 1 == 1
+
+            new_configurations = self.configurations[rydberg_states] ^ (1 << atom_index)
+            input_indices = np.searchsorted(self.configurations, new_configurations)
+            input_indices = input_indices[input_indices < self.configurations.size]
+
+            nnz_values[input_indices] += 1
+
+        np.cumsum(indptr, out=indptr)
+
+        indices = np.zeros((indptr[-1],), dtype=self.space.index_type)
+        data = np.zeros((indptr[-1],), dtype=np.float64)
+
+        index = indptr[0:-1]
+        for atom_index, value in self.target_atoms.items():
+            rydberg_states = (self.configurations >> atom_index) & 1 == 1
+
+            new_configurations = self.configurations[rydberg_states] ^ (1 << atom_index)
+            input_indices = np.searchsorted(self.configurations, new_configurations)
+
+            input_indices = input_indices[input_indices < self.configurations.size]
+            nonzero_index = index[input_indices]
+
+            indices[nonzero_index] = input_indices
+            data[nonzero_index] = value
+            index[input_indices] += 1
+
+        indptr[1:] = index
+        indptr[0] = 0
+
+        op = csr_matrix((data, indices, indptr), shape=shape)
+        op_H = csc_matrix((data.conj(), indices, indptr), shape=shape)
+        return [
+            (lambda t: self.amplitude(t) * np.exp(1j * self.phase(t)), op),
+            (lambda t: self.amplitude(t) * np.exp(-1j * self.phase(t)), op_H),
+        ]
 
     def emit_two_level_full_space_single_atom(self):
         if self.phase is None:  # Real valued
@@ -198,13 +236,13 @@ class LowerRabiTerm:
             return self.emit_two_level_full_space_multi_atom_real()
         else:
             return self.emit_two_level_full_space_multi_atom_complex()
-        
+
     def emit_two_level_subspace_multi_atom(self):
         if self.phase is None:
             return self.emit_two_level_subspace_multi_atom_real()
         else:
             return self.emit_two_level_subspace_multi_atom_complex()
-        
+
     def emit_two_level_full_space(self):
         if len(self.target_atoms) == 1:
             return self.emit_two_level_full_space_single_atom()
@@ -234,282 +272,6 @@ class LowerRabiTerm:
                 raise ValueError("No hyperfine coupling for two-level space.")
             case _:
                 raise NotImplementedError("Three-level space not implemented.")
-
-
-def emit_rabi_terms(space: Space, term: RabiTerm) -> IndexMapping:
-    configurations = space.configurations
-    shape = (configurations.size, configurations.size)
-
-    if space.space_type == SpaceType.FullSpace:
-        match term:
-            case RabiTerm(None, amplitude, dict([(int(atom_index), Real(value))])):
-                (atom_index,) = target_atoms.keys()
-                input_indices = configurations ^ (1 << atom_index)
-                return [(lambda t: value * amplitude(t), IndexMapping(input_indices))]
-
-            case RabiTerm(phase, amplitude, dict([(int(atom_index), Real(value))])):
-                output_indices = (configurations >> atom_index) & 1 == 1
-                input_indices = configurations[output_indices] ^ (1 << atom_index)
-                op = IndexMapping(input_indices, output_indices)
-                return [
-                    (lambda t: value * amplitude(t) * np.exp(1j * phase(t)), op),
-                    (
-                        lambda t: value * amplitude(t) * np.exp(-1j * phase(t)),
-                        op.ajoint(),
-                    ),
-                ]
-
-            case RabiTerm(None, amplitude, dict(target_atoms)):
-                indptr = np.zeros(space.size + 1, dtype=space.index_type)
-                indptr[1:] = len(target_atoms)
-
-                np.cumsum(indptr, out=indptr)
-
-                indices = np.zeros(
-                    (space.size, len(target_atoms)), dtype=space.index_type
-                )
-                data = np.zeros((space.size, len(target_atoms)), dtype=np.float64)
-
-                for atom_index, value in target_atoms.items():
-                    input_indices = configurations ^ (1 << atom_index)
-                    indices[:, atom_index] = input_indices
-                    data[:, atom_index] = value
-
-                op = csr_matrix((data.ravel(), indices.ravel(), indptr), shape=shape)
-
-                return (amplitude, op)
-
-            case RabiTerm(phase, amplitude, dict(target_atoms)):
-                indptr = np.zeros(space.size + 1, dtype=space.index_type)
-
-                nnz_values = indptr[1:]
-                for atom_index in target_atoms.keys():
-                    rydberg_states = (configurations >> atom_index) & 1 == 1
-                    input_indices = configurations[rydberg_states] ^ (1 << atom_index)
-                    nnz_values[input_indices] += 1
-
-                np.cumsum(indptr, out=indptr)
-
-                indices = np.zeros((indptr[-1],), dtype=space.index_type)
-                data = np.zeros((indptr[-1],), dtype=np.complex128)
-
-                index = indptr[0:-1]
-                for atom_index, value in target_atoms.items():
-                    rydberg_states = (configurations >> atom_index) & 1 == 1
-                    input_indices = configurations[rydberg_states] ^ (1 << atom_index)
-
-                    nonzero_index = index[rydberg_states]
-                    indices[nonzero_index] = input_indices
-                    data[nonzero_index] = value
-                    index[input_indices] += 1
-
-                op = csr_matrix((data, indices, indptr), shape=shape)
-                op_H = csc_matrix((data.conj(), indices, indptr), shape=shape)
-                return [
-                    (lambda t: amplitude(t) * np.exp(1j * phase(t)), op),
-                    (lambda t: amplitude(t) * np.exp(-1j * phase(t)), op_H),
-                ]
-
-    else:
-        match term:
-            case RabiTerm(None, amplitude, dict([(int(atom_index), Real(value))])):
-                new_configurations = configurations ^ (1 << atom_index)
-                input_indices = np.searchsorted(configurations, new_configurations)
-
-                output_indices = input_indices < configurations.size
-                input_indices = input_indices[output_indices]
-                return [
-                    (
-                        lambda t: value * amplitude(t),
-                        IndexMapping(input_indices, output_indices),
-                    )
-                ]
-
-            case RabiTerm(phase, amplitude, dict([(int(atom_index), Real(value))])):
-                rydberg_states = (configurations >> atom_index) & 1 == 1
-                new_configurations = configurations[rydberg_states] ^ (1 << atom_index)
-                input_indices = np.searchsorted(configurations, new_configurations)
-
-                nonzero_indices = input_indices < configurations.size
-                output_indices = np.logical_and(rydberg_states, nonzero_indices)
-                input_indices = input_indices[nonzero_indices]
-                op = IndexMapping(input_indices, output_indices)
-                return [
-                    (lambda t: value * amplitude(t) * np.exp(1j * phase(t)), op),
-                    (
-                        lambda t: value * amplitude(t) * np.exp(-1j * phase(t)),
-                        op.ajoint(),
-                    ),
-                ]
-
-            case RabiTerm(None, amplitude, dict(target_atoms)):
-                indptr = np.zeros(configurations.size, dtype=space.index_type)
-
-                nnz_values = indptr[1:]
-                for atom_index, value in target_atoms.items():
-                    new_configurations = configurations ^ (1 << atom_index)
-                    input_indices = np.searchsorted(configurations, new_configurations)
-                    nnz_values[input_indices < configurations.size] += 1
-
-                np.cumsum(indptr, out=indptr)
-
-                indices = np.zeros((indptr[-1],), dtype=space.index_type)
-                data = np.zeros((indptr[-1],), dtype=np.float64)
-
-                index = indptr[0:-1]
-                for atom_index, value in target_atoms.items():
-                    new_configurations = configurations ^ (1 << atom_index)
-                    input_indices = np.searchsorted(configurations, new_configurations)
-
-                    input_indices = input_indices[input_indices < configurations.size]
-                    nonzero_index = index[input_indices]
-
-                    indices[nonzero_index] = input_indices
-                    data[nonzero_index] = value
-                    index[input_indices] += 1
-
-                indptr[1:] = index
-                indptr[0] = 0
-                op = csr_matrix((data, indices, indptr), shape=shape)
-
-                return (amplitude, op)
-
-            case RabiTerm(phase, amplitude, dict(target_atoms)):
-                indptr = np.zeros(space.size + 1, dtype=space.index_type)
-
-                nnz_values = indptr[1:]
-                for atom_index in target_atoms.keys():
-                    rydberg_states = (configurations >> atom_index) & 1 == 1
-                    input_indices = configurations[rydberg_states] ^ (1 << atom_index)
-                    nnz_values[input_indices] += 1
-
-                np.cumsum(indptr, out=indptr)
-
-                indices = np.zeros((indptr[-1],), dtype=space.index_type)
-                data = np.zeros((indptr[-1],), dtype=np.complex128)
-
-                index = indptr[0:-1]
-                for atom_index, value in target_atoms.items():
-                    rydberg_states = (configurations >> atom_index) & 1 == 1
-                    input_indices = configurations[rydberg_states] ^ (1 << atom_index)
-
-                    nonzero_index = index[rydberg_states]
-                    indices[nonzero_index] = input_indices
-                    data[nonzero_index] = value
-                    index[input_indices] += 1
-
-                op = csr_matrix((data, indices, indptr), shape=shape)
-                op_H = csc_matrix((data.conj(), indices, indptr), shape=shape)
-                return [
-                    (lambda t: amplitude(t) * np.exp(1j * phase(t)), op),
-                    (lambda t: amplitude(t) * np.exp(-1j * phase(t)), op_H),
-                ]
-
-
-# def emit_two_level_rabi_csr_matrix(info: RabiTerm) -> csr_matrix:
-#     shape = (info.space.size, info.space.size)
-#     dtype = get_dtype(info.target_atoms)
-#     match info:
-#         case RabiTerm(
-#             op_type=RabiOperatorType.ComplexValued,
-#             target_atoms=target_atoms,
-#             space=Space(
-#                 space_type=SpaceType.FullSpace,
-#                 configurations=configurations,
-#             ) as space,
-#         ):
-#             indptr = np.zeros(space.size + 1, dtype=space.index_type)
-
-#             nnz_values = indptr[1:]
-#             for atom_index in target_atoms.keys():
-#                 rydberg_states = (configurations >> atom_index) & 1 == 1
-#                 input_indices = configurations[rydberg_states] ^ (1 << atom_index)
-#                 nnz_values[input_indices] += 1
-
-#             np.cumsum(indptr, out=indptr)
-
-#             indices = np.zeros((indptr[-1],), dtype=space.index_type)
-#             data = np.zeros((indptr[-1],), dtype=dtype)
-
-#             index = indptr[0:-1]
-#             for atom_index, value in target_atoms.items():
-#                 rydberg_states = (configurations >> atom_index) & 1 == 1
-#                 input_indices = configurations[rydberg_states] ^ (1 << atom_index)
-
-#                 nonzero_index = index[rydberg_states]
-#                 indices[nonzero_index] = input_indices
-#                 data[nonzero_index] = value
-#                 index[input_indices] += 1
-
-#             return csr_matrix((data, indices, indptr), shape=shape, dtype=dtype)
-
-#         case RabiTerm(
-#             op_type=RabiOperatorType.ComplexValued,
-#             target_atoms=target_atoms,
-#             space=Space(
-#                 space_type=SpaceType.SubSpace,
-#                 configurations=configurations,
-#             ) as space,
-#         ):
-#             indptr = np.zeros(space.size + 1, dtype=space.index_type)
-
-#             nnz_values = indptr[1:]
-#             for atom_index, value in target_atoms.items():
-#                 rydberg_states = (configurations >> atom_index) & 1 == 1
-
-#                 new_configurations = configurations[rydberg_states] ^ (1 << atom_index)
-#                 input_indices = np.searchsorted(configurations, new_configurations)
-#                 input_indices = input_indices[input_indices < configurations.size]
-
-#                 nnz_values[input_indices] += 1
-
-#             np.cumsum(indptr, out=indptr)
-
-#             indices = np.zeros((indptr[-1],), dtype=space.index_type)
-#             data = np.zeros((indptr[-1],), dtype=dtype)
-
-#             index = indptr[0:-1]
-#             for atom_index, value in target_atoms.items():
-#                 rydberg_states = (configurations >> atom_index) & 1 == 1
-
-#                 new_configurations = configurations[rydberg_states] ^ (1 << atom_index)
-#                 input_indices = np.searchsorted(configurations, new_configurations)
-
-#                 input_indices = input_indices[input_indices < configurations.size]
-#                 nonzero_index = index[input_indices]
-
-#                 indices[nonzero_index] = input_indices
-#                 data[nonzero_index] = value
-#                 index[input_indices] += 1
-
-#             indptr[1:] = index
-#             indptr[0] = 0
-#             return csr_matrix((data, indices, indptr), shape=shape, dtype=dtype)
-
-#         case _:
-#             raise RuntimeError(
-#                 "Fatal compilation error when lowering Rabi term to python."
-#             )
-
-
-# def emit_rabi_matrix(info: RabiTerm) -> Union[csr_matrix, IndexMapping]:
-#     match info:
-#         case RabiTerm(
-#             target_atoms=target_atoms,
-#             space=Space(n_level=LocalHilbertSpace.TwoLevel),
-#         ) if len(target_atoms) == 1:
-#             return emit_two_level_rabi_index_map(info)
-#         case RabiTerm(space=Space(n_level=LocalHilbertSpace.TwoLevel)):
-#             return emit_two_level_rabi_csr_matrix(info)
-#         case RabiTerm(
-#             space=Space(n_level=LocalHilbertSpace.ThreeLevel),
-#         ):
-#             raise NotImplementedError
-#         case _:
-#             raise RuntimeError(
-#                 "Fatal compilation error when lowering Rabi term to python."
-#             )
-
 
 def emit_detuning_matrix(info: DetuningTerm):
     match info:
