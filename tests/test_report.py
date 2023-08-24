@@ -4,6 +4,7 @@ future = (
     ListOfLocations()
     .add_position((0, 0))
     .add_position((0, 6))
+    .add_position((0, 3))
     .rydberg.detuning.uniform.piecewise_linear(
         durations=["up_time", "anneal_time", "up_time"],
         values=[
