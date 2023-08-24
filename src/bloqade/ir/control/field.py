@@ -312,4 +312,12 @@ class Field(FieldExpr):
         return get_field_figure(self, "Field", None, **assignments)
 
     def show(self, **assignments):
+        """
+        Interactive visualization of the Field
+
+        Args:
+            **assignments: assigning the instance value (literal) to the
+                existing variables in the Field
+
+        """
         show(self.figure(**assignments))

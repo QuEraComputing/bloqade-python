@@ -9,37 +9,585 @@ ScalarType = Union[float, str, ir.Scalar]
 
 
 def assert_scalar(name, value) -> None:
-    assert isinstance(
-        value, (Real, str, ir.Scalar)
-    ), f"{name} must be a float, str, or Scalar"
+    if not isinstance(value, (Real, str, ir.Scalar)):
+        raise ValueError(f"{name} must be a float, str, or Scalar")
 
 
 class WaveformAttachable(Builder):
     def linear(
         self, start: ScalarType, stop: ScalarType, duration: ScalarType
     ) -> "Linear":
+        """
+        Append/assign a linear waveform to the current location.
+
+        Args:
+            start (ScalarType Union[float, str]): The start value of the waveform
+            stop (ScalarType Union[float, str]): The stop value of the waveform
+            duration (ScalarType Union[float, str]): The duration of the waveform
+
+        Examples:
+            - specify a linear waveform for (spatial) uniform rydberg detuning
+            from 0 to 1 in 0.5 us.
+
+            >>> node = bloqade.start.rydberg.detuning.uniform
+            >>> node = node.linear(start=0,stop=1,duration=0.5)
+
+        Possible Next:
+
+        - Possible Next <Location>:
+
+            -> `.location(int)`
+                :: creating new channel to address another location(s)
+
+        - Possible Next <WaveForm:: current>:
+
+            -> `.slice()`
+                :: slice current waveform
+
+            -> `.record(str)`
+                :: record the value of waveform at current time
+
+        - Possible Next <WaveForm:: append>:
+
+            :: Append waveform into current channel
+
+            -> `.linear()`
+
+            -> `.constant()`
+
+            -> `.ploy()`
+
+            -> `.apply()`
+
+            -> `.piecewise_linear()`
+
+            -> `.piecewise_constant()`
+
+            -> `.fn()`
+
+        - Possible Next <LevelCoupling>:
+
+            -> `.rydberg`
+                :: Create/Switch to new rydberg level coupling channel
+
+            -> `.hyperfine`
+                :: Create/Switch to new hyperfine level coupling channel
+
+        - Possible Next <Emit:: Linking Vars>:
+
+            -> `.assign()`
+                :: assign varialbe an actual value/number
+
+            -> `.batch_assign()`
+                :: create batch job with different
+                sets of values assign to each variable.
+
+        - Possible Next <Backend>:
+
+            -> `.quera`
+                :: specify QuEra backend
+
+            -> `.braket`
+                :: specify QuEra backend
+
+        """
         return Linear(start, stop, duration, self)
 
     def constant(self, value: ScalarType, duration: ScalarType) -> "Constant":
+        """
+        Append/assign a constant waveform to the current location.
+
+        Args:
+            value (ScalarType Union[float, str]): The value of the waveform
+            duration (ScalarType Union[float, str]): The duration of the waveform
+
+        Examples:
+            - specify a constant waveform of value 1 with duration 0.5
+            for (spatial) uniform rydberg detuning
+
+            >>> node = bloqade.start.rydberg.detuning.uniform
+            >>> node = node.constant(value=1,duration=0.5)
+
+        Possible Next:
+
+        - Possible Next <Location>:
+
+            -> `.location(int)`
+                :: creating new channel to address another location(s)
+
+        - Possible Next <WaveForm:: current>:
+
+            -> `.slice()`
+                :: slice current waveform
+
+            -> `.record(str)`
+                :: record the value of waveform at current time
+
+        - Possible Next <WaveForm:: append>:
+
+            :: Append waveform into current channel
+
+            -> `.linear()`
+
+            -> `.constant()`
+
+            -> `.ploy()`
+
+            -> `.apply()`
+
+            -> `.piecewise_linear()`
+
+            -> `.piecewise_constant()`
+
+            -> `.fn()`
+
+        - Possible Next <LevelCoupling>:
+
+            -> `.rydberg`
+                :: Create/Switch to new rydberg level coupling channel
+
+            -> `.hyperfine`
+                :: Create/Switch to new hyperfine level coupling channel
+
+        - Possible Next <Emit:: Linking Vars>:
+
+            -> `.assign()`
+                :: assign varialbe an actual value/number
+
+            -> `.batch_assign()`
+                :: create batch job with different sets
+                of values assign to each variable.
+
+        - Possible Next <Backend>:
+
+            -> `.quera`
+                :: specify QuEra backend
+
+            -> `.braket`
+                :: specify QuEra backend
+
+        """
         return Constant(value, duration, self)
 
     def poly(self, coeffs: ScalarType, duration: ScalarType) -> "Poly":
+        """
+        Append/assign a waveform with polynomial profile to the current location.
+        with form:
+
+            wv(t) = coeffs[0] + coeffs[1]*t + coeffs[2]*t^2 + ... + coeffs[n]*t^n
+
+        Args:
+            coeffs (ScalarType Union[float, str]): The coefficients of the polynomial
+            duration (ScalarType Union[float, str]): The duration of the waveform
+
+        Examples:
+            - specify a second order polynomial with duration 0.5
+            for (spatial) uniform rydberg detuning
+
+            >>> node = bloqade.start.rydberg.detuning.uniform
+            >>> node = node.poly(coeffs=[1,2,3],duration=0.5)
+
+        Possible Next:
+
+        - Possible Next <Location>:
+
+            -> `.location(int)`
+                :: creating new channel to address another location(s)
+
+        - Possible Next <WaveForm:: current>:
+
+            -> `.slice()`
+                :: slice current waveform
+
+            -> `.record(str)`
+                :: record the value of waveform at current time
+
+        - Possible Next <WaveForm:: append>:
+
+            :: Append waveform into current channel
+
+            -> `.linear()`
+
+            -> `.constant()`
+
+            -> `.ploy()`
+
+            -> `.apply()`
+
+            -> `.piecewise_linear()`
+
+            -> `.piecewise_constant()`
+
+            -> `.fn()`
+
+        - Possible Next <LevelCoupling>:
+
+            -> `.rydberg`
+                :: Create/Switch to new rydberg level coupling channel
+
+            -> `.hyperfine`
+                :: Create/Switch to new hyperfine level coupling channel
+
+
+        - Possible Next <Emit:: Linking Vars>:
+
+            -> `.assign()`
+                :: assign varialbe an actual value/number
+
+            -> `.batch_assign()`
+                :: create batch job with different sets
+                of values assign to each variable.
+
+        - Possible Next <Backend>:
+
+            -> `.quera`
+                :: specify QuEra backend
+
+            -> `.braket`
+                :: specify QuEra backend
+
+        """
         return Poly(coeffs, duration, self)
 
     def apply(self, wf: ir.Waveform) -> "Apply":
+        """
+        Apply a pre-defined waveform to the current location.
+
+        Args:
+            wf (ir.Waveform): the waveform
+
+        Examples:
+            - apply a pre-defined waveform object to current sequence.
+
+            >>> node = bloqade.start.rydberg.detuning.uniform
+            >>> wv = bloqade.ir.Linear(0,10,0.5)
+            >>> node = node.apply(wv)
+
+        Possible Next:
+
+        - Possible Next <Location>:
+
+            -> `.location(int)`
+                :: creating new channel to address another location(s)
+
+        - Possible Next <WaveForm:: current>:
+
+            -> `.slice()`
+                :: slice current waveform
+
+            -> `.record(str)`
+                :: record the value of waveform at current time
+
+        - Possible Next <WaveForm:: append>:
+
+            :: Append waveform into current channel
+
+            -> `.linear()`
+
+            -> `.constant()`
+
+            -> `.ploy()`
+
+            -> `.apply()`
+
+            -> `.piecewise_linear()`
+
+            -> `.piecewise_constant()`
+
+            -> `.fn()`
+
+        - Possible Next <LevelCoupling>:
+
+            -> `.rydberg`
+                :: Create/Switch to new rydberg level coupling channel
+
+            -> `.hyperfine`
+                :: Create/Switch to new hyperfine level coupling channel
+
+
+        - Possible Next <Emit:: Linking Vars>:
+
+            -> `.assign()`
+                :: assign varialbe an actual value/number
+
+            -> `.batch_assign()`
+                :: create batch job with different sets
+                of values assign to each variable.
+
+        - Possible Next <Backend>:
+
+            -> `.quera`
+                :: specify QuEra backend
+
+            -> `.braket`
+                :: specify QuEra backend
+
+        """
         return Apply(wf, self)
 
     def piecewise_linear(
         self, durations: List[ScalarType], values: List[ScalarType]
     ) -> "PiecewiseLinear":
+        """
+        Append/assign a piecewise linear waveform to the current location.
+        The durations should have number of elements = len(values) - 1.
+
+        This function create a waveform by connecting `values[i], values[i+1]`
+        with linear segments.
+
+        Args:
+            durations (List[ScalarType]): The durations of each linear segment
+            values (List[ScalarType]): The values of each linear segment
+
+        Examples:
+            - specify a piecewise linear of [0,1,1,0] with duration [0.1,3.8,0.1]
+            for (spatial) uniform rydberg detuning.
+
+            >>> node = bloqade.start.rydberg.detuning.uniform
+            >>> node = node.piecewise_linear(values=[0,1,1,0],durations=[0.1,3.8,0.1])
+
+        Note:
+            ScalarType can be either float or str.
+
+        Possible Next:
+
+        - Possible Next <Location>:
+
+            -> `.location(int)`
+                :: creating new channel to address another location(s)
+
+        - Possible Next <WaveForm:: current>:
+
+            -> `.slice()`
+                :: slice current waveform
+
+            -> `.record(str)`
+                :: record the value of waveform at current time
+
+        - Possible Next <WaveForm:: append>:
+
+            :: Append waveform into current channel
+
+            -> `.linear()`
+
+            -> `.constant()`
+
+            -> `.ploy()`
+
+            -> `.apply()`
+
+            -> `.piecewise_linear()`
+
+            -> `.piecewise_constant()`
+
+            -> `.fn()`
+
+        - Possible Next <LevelCoupling>:
+
+            -> `.rydberg`
+                :: Create/Switch to new rydberg level coupling channel
+
+            -> `.hyperfine`
+                :: Create/Switch to new hyperfine level coupling channel
+
+
+        - Possible Next <Emit:: Linking Vars>:
+
+            -> `.assign()`
+                :: assign varialbe an actual value/number
+
+            -> `.batch_assign()`
+                :: create batch job with different sets
+                of values assign to each variable.
+
+        - Possible Next <Backend>:
+
+            -> `.quera`
+                :: specify QuEra backend
+
+            -> `.braket`
+                :: specify QuEra backend
+
+        """
         return PiecewiseLinear(durations, values, self)
 
     def piecewise_constant(
         self, durations: List[ScalarType], values: List[ScalarType]
     ) -> "PiecewiseConstant":
+        """
+        Append/assign a piecewise constant waveform to the current location.
+        The durations should have number of elements = len(values).
+
+        This function create a waveform of piecewise_constant of
+        `values[i]` with duration `durations[i]`.
+
+        Args:
+            durations (List[ScalarType]): The durations of each constant segment
+            values (List[ScalarType]): The values of each constant segment
+
+        Note:
+            ScalarType can be either float or str.
+
+        Examples:
+            - specify a piecewise constant of [0.5,1.5] with duration [0.1,3.8]
+            for (spatial) uniform rydberg detuning.
+
+            >>> node = bloqade.start.rydberg.detuning.uniform
+            >>> node = node.piecewise_constant(values=[0.5,1.5],durations=[0.1,3.8])
+
+        Possible Next:
+
+        - Possible Next <Location>:
+
+            -> `.location(int)`
+                :: creating new channel to address another location(s)
+
+        - Possible Next <WaveForm:: current>:
+
+            -> `.slice()`
+                :: slice current waveform
+
+            -> `.record(str)`
+                :: record the value of waveform at current time
+
+        - Possible Next <WaveForm:: append>:
+
+            :: Append waveform into current channel
+
+            -> `.linear()`
+
+            -> `.constant()`
+
+            -> `.ploy()`
+
+            -> `.apply()`
+
+            -> `.piecewise_linear()`
+
+            -> `.piecewise_constant()`
+
+            -> `.fn()`
+
+        - Possible Next <LevelCoupling>:
+
+            -> `.rydberg`
+                :: Create/Switch to new rydberg level coupling channel
+
+            -> `.hyperfine`
+                :: Create/Switch to new hyperfine level coupling channel
+
+
+        - Possible Next <Emit:: Linking Vars>:
+
+            -> `.assign()`
+                :: assign varialbe an actual value/number
+
+            -> `.batch_assign()`
+                :: create batch job with different sets
+                of values assign to each variable.
+
+
+        - Possible Next <Backend>:
+
+            -> `.quera`
+                :: specify QuEra backend
+
+            -> `.braket`
+                :: specify QuEra backend
+
+        """
         return PiecewiseConstant(durations, values, self)
 
     def fn(self, fn: Callable, duration: ScalarType) -> "Fn":
+        """
+        Append/assign a waveform defined by a python function to the current location.
+
+        This function create a waveform with user-defined
+        python function `fn(t)` with duration `duration`.
+
+        Args:
+            fn (Callable): The python function defining the waveform
+            duration (ScalarType): The durations of each constant segment
+
+        Note:
+            - ScalarType can be either float or str.
+            - The python function should take a single argument `t` and return a float.
+
+
+        Examples:
+            - create a cosine waveform with duration 0.5
+            for (spatial) uniform rydberg detuning.
+
+            >>> import numpy as np
+            >>> def my_fn(t):
+            >>>     return np.cos(2*np.pi*t)
+            >>> node = bloqade.start.rydberg.detuning.uniform
+            >>> node = node.fn(my_fn,duration=0.5)
+
+        Possible Next:
+
+        - Possible Next <Location>:
+
+            -> `.location(int)`
+                :: creating new channel to address another location(s)
+
+        - Possible Next <WaveForm:: current>:
+
+            -> `.slice()`
+                :: slice current waveform
+
+            -> `.record(str)`
+                :: record the value of waveform at current time
+
+            -> `.sample()`
+                :: sample current callable at given time points
+
+        - Possible Next <WaveForm:: append>:
+
+            :: Append waveform into current channel
+
+            -> `.linear()`
+
+            -> `.constant()`
+
+            -> `.ploy()`
+
+            -> `.apply()`
+
+            -> `.piecewise_linear()`
+
+            -> `.piecewise_constant()`
+
+            -> `.fn()`
+
+        - Possible Next <LevelCoupling>:
+
+            -> `.rydberg`
+                :: Create/Switch to new rydberg level coupling channel
+
+            -> `.hyperfine`
+                :: Create/Switch to new hyperfine level coupling channel
+
+
+        - Possible Next <Emit:: Linking Vars>:
+
+            -> `.assign()`
+                :: assign varialbe an actual value/number
+
+            -> `.batch_assign()`
+                :: create batch job with different sets
+                of values assign to each variable.
+
+
+        - Possible Next <Backend>:
+
+            -> `.quera`
+                :: specify QuEra backend
+
+            -> `.braket`
+                :: specify QuEra backend
+
+        """
         return Fn(fn, duration, self)
 
 
@@ -56,11 +604,135 @@ class Slicible:
         start: Optional[ScalarType] = None,
         stop: Optional[ScalarType] = None,
     ) -> "Slice":
+        """
+        Slice current waveform
+
+        Possible Next:
+
+        - Possible Next <Location>:
+
+            -> `.location(int)`
+                :: creating new channel to address
+                another location(s)
+
+        - Possible Next <WaveForm:: current>:
+
+            -> `.record(str)`
+                :: record the value of waveform at current time
+
+        - Possible Next <WaveForm:: append>:
+
+            :: Append waveform into current channel
+
+            -> `.linear()`
+
+            -> `.constant()`
+
+            -> `.ploy()`
+
+            -> `.apply()`
+
+            -> `.piecewise_linear()`
+
+            -> `.piecewise_constant()`
+
+            -> `.fn()`
+
+        - Possible Next <LevelCoupling>:
+
+            -> `.rydberg`
+                :: Create/Switch to new rydberg level coupling channel
+
+            -> `.hyperfine`
+                :: Create/Switch to new hyperfine level coupling channel
+
+
+        - Possible Next <Emit:: Linking Vars>:
+
+            -> `.assign()`
+                :: assign varialbe an actual value/number
+
+            -> `.batch_assign()`
+                :: create batch job with different sets
+                of values assign to each variable.
+
+
+        - Possible Next <Backend>:
+
+            -> `.quera`
+                :: specify QuEra backend
+
+            -> `.braket`
+                :: specify QuEra backend
+        """
         return Slice(start, stop, self)
 
 
 class Recordable:
     def record(self, name: str) -> "Record":
+        """
+        Record the value of the current waveform to a variable.
+
+        Possible Next:
+
+        - Possible Next <Location>:
+
+            -> `.location(int)`
+                :: creating new channel to address
+                another location(s)
+
+        - Possible Next <WaveForm:: current>:
+
+            -> `.slice()`
+                :: slice the current waveform
+
+            -> `.record(str)`
+                :: record the value of waveform at current time
+
+        - Possible Next <WaveForm:: append>:
+
+            :: Append waveform into current channel
+
+            -> `.linear()`
+
+            -> `.constant()`
+
+            -> `.ploy()`
+
+            -> `.apply()`
+
+            -> `.piecewise_linear()`
+
+            -> `.piecewise_constant()`
+
+            -> `.fn()`
+
+        - Possible Next <LevelCoupling>:
+
+            -> `.rydberg`
+                :: Create/Switch to new rydberg level coupling channel
+
+            -> `.hyperfine`
+                :: Create/Switch to new hyperfine level coupling channel
+
+        - Possible Next <Emit:: Linking Vars>:
+
+            -> `.assign()`
+                :: assign varialbe an actual value/number
+
+            -> `.batch_assign()`
+                :: create batch job with different sets
+                of values assign to each variable.
+
+        - Possible Next <Backend>:
+
+            -> `.quera`
+                :: specify QuEra backend
+
+            -> `.braket`
+                :: specify QuEra backend
+
+        """
         return Record(name, self)
 
 
@@ -79,10 +751,6 @@ class Linear(WaveformPrimitive):
         duration: ScalarType,
         parent: Optional[Builder] = None,
     ) -> None:
-        assert_scalar("start", start)
-        assert_scalar("stop", stop)
-        assert_scalar("duration", duration)
-
         super().__init__(parent)
         self._start = ir.cast(start)
         self._stop = ir.cast(stop)
@@ -98,9 +766,6 @@ class Constant(WaveformPrimitive):
     def __init__(
         self, value: ScalarType, duration: ScalarType, parent: Optional[Builder] = None
     ) -> None:
-        assert_scalar("value", value)
-        assert_scalar("duration", duration)
-
         super().__init__(parent)
         self._value = ir.cast(value)
         self._duration = ir.cast(duration)
@@ -118,9 +783,6 @@ class Poly(WaveformPrimitive):
         duration: ScalarType,
         parent: Optional[Builder] = None,
     ) -> None:
-        assert_scalar("coeffs", coeffs)
-        assert_scalar("duration", duration)
-
         super().__init__(parent)
         self._coeffs = map(ir.cast, coeffs)
         self._duration = ir.cast(duration)
@@ -196,7 +858,6 @@ class Fn(WaveformPrimitive):
         duration: ScalarType,
         parent: Optional[Builder] = None,
     ) -> None:
-        assert_scalar("duration", duration)
         super().__init__(parent)
         self._fn = fn
         self._duration = ir.cast(duration)
@@ -248,7 +909,6 @@ class Sample(Slicible, Recordable, WaveformRoute):
         parent: Builder,
     ) -> None:
         super().__init__(parent)
-        assert_scalar("dt", dt)
         self._dt = ir.cast(dt)
         if interpolation is None:
             self._interpolation = None

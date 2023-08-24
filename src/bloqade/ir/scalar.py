@@ -1,6 +1,5 @@
 from pydantic.dataclasses import dataclass
 from pydantic import validator
-from typing import Union, List
 from .tree_print import Printer
 import re
 from decimal import Decimal
@@ -242,14 +241,18 @@ def check_variable_name(name: str) -> None:
 
 
 def cast(py) -> "Scalar":
-    """cast Real number (or list/tuple of Real numbers)
+    """
+    1. cast Real number (or list/tuple of Real numbers)
     to [`Scalar Literal`][bloqade.ir.scalar.Literal].
 
+    2. cast str (or list/tuple of Real numbers)
+    to [`Scalar Variable`][bloqade.ir.scalar.Variable].
+
     Args:
-        py (Union[Real,Tuple[Real],List[Real]]): python object to cast
+        py (Union[str,Real,Tuple[Real],List[Real]]): python object to cast
 
     Returns:
-        Union[Literal,Tuple[Literal],List[Literal]]
+        Scalar
     """
     ret = trycast(py)
     if ret is None:
@@ -285,15 +288,15 @@ def trycast(py) -> "Scalar | None":
             return
 
 
-def var(py: Union[str, List[str]]) -> "Variable":
+def var(py: str) -> "Variable":
     """cast string (or list/tuple of strings)
     to [`Variable`][bloqade.ir.scalar.Variable].
 
     Args:
-        py (Union[str, List[str], Tuple[str]]): a string or list/tuple of strings
+        py (Union[str, List[str]]): a string or list/tuple of strings
 
     Returns:
-       Union[Variable, List[Variable], Tuple[Variable]]
+       Union[Variable]
     """
     ret = tryvar(py)
     if ret is None:

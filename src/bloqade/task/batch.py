@@ -110,6 +110,13 @@ class RemoteBatch(Serializable):
     class SubmissionException(Exception):
         pass
 
+    @property
+    def total_nshots(self):
+        nshots = 0
+        for task in self.tasks.values():
+            nshots += task.task_data.task_ir.nshots
+        return nshots
+
     def cancel(self):
         # cancel all jobs
         for task in self.tasks.values():
@@ -144,14 +151,15 @@ class RemoteBatch(Serializable):
         for int, task in self.tasks.items():
             tid.append(int)
 
-            dat = [None, None]
+            dat = [None, None, None]
             dat[0] = task.task_id
             if task.task_id is not None:
                 if task.task_result_ir is not None:
                     dat[1] = task.result().task_status.name
+                    dat[2] = task.task_data.task_ir.nshots
             data.append(dat)
 
-        return pd.DataFrame(data, index=tid, columns=["task ID", "status"])
+        return pd.DataFrame(data, index=tid, columns=["task ID", "status", "shots"])
 
     def remove_invalid_tasks(self):
         # offline, non-blocking
