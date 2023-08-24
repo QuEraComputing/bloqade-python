@@ -7,6 +7,7 @@ from bokeh.models import (
 
 # from bokeh.models import Tabs, TabPanel,, Div, CrosshairTool, Span
 from bokeh.palettes import Dark2_5
+import math
 
 # import itertools
 # import numpy as np
@@ -125,7 +126,7 @@ def report_visual(cnt_sources, ryd_sources, metas):
         for taskname, tsrc, trydsrc, meta in zip(
             options, cnt_sources, ryd_sources, metas
         ):
-            content = "<p> Assignments meta: </p>"
+            content = "<p> Assignments: </p>"
             for var, num in meta.items():
                 content += f"<p>{var} = {num}</p>"
 
@@ -143,7 +144,7 @@ def report_visual(cnt_sources, ryd_sources, metas):
             p.vbar(x="bitstrings", top="cnts", source=tsrc, width=0.9, color=color1)
 
             p.xgrid.grid_line_color = None
-            p.xaxis.major_label_orientation = "vertical"
+            p.xaxis.major_label_orientation = math.pi / 4
             p.y_range.start = 0
             p.yaxis.axis_label = "Counts"
 
@@ -167,7 +168,7 @@ def report_visual(cnt_sources, ryd_sources, metas):
             pryd.xgrid.grid_line_color = None
             pryd.y_range.start = 0
             pryd.yaxis.axis_label = "Rydberg density"
-            pryd.xaxis.major_label_orientation = "vertical"
+            pryd.xaxis.major_label_orientation = math.pi / 4
             pryd.xaxis.axis_label = "site"
 
             hov_tool = HoverTool()
