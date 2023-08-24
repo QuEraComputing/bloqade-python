@@ -187,7 +187,7 @@ class Pulse(PulseExpr):
         return annotated_children
 
     def _get_data(self, **assigments):
-        return None, self.value
+        return None, self.fields
 
     def figure(self, **assignments):
         return get_pulse_figure(self, **assignments)
