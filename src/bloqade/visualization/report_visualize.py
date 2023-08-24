@@ -46,10 +46,11 @@ def format_report_data(report):
 
         rydens = list(ryds.iloc[i])
         tid = [i] * len(rydens)
+
         rsrc = ColumnDataSource(
             data=dict(
                 tid=tid,
-                bits=["0", "1"],
+                sites=[f"{ds}" for ds in range(len(rydens))],
                 ryds=rydens,
             )
         )
@@ -78,9 +79,9 @@ def mock_data():
     cnt_sources.append(src)
     rsrc = ColumnDataSource(
         data=dict(
-            tid=[0, 0],
-            bits=["0", "1"],
-            ryds=[0.55, 0.45],
+            tid=[0, 0, 0, 0],
+            sites=["0", "1", "2", "3"],
+            ryds=[0.55, 0.45, 0.2, 0.11],
         )
     )
     ryd_sources.append(rsrc)
@@ -100,9 +101,9 @@ def mock_data():
     cnt_sources.append(src)
     rsrc = ColumnDataSource(
         data=dict(
-            tid=[1, 1],
-            bits=["0", "1"],
-            ryds=[0.33, 0.67],
+            tid=[1, 1, 1, 1],
+            sites=["0", "1", "2", "3"],
+            ryds=[0.33, 0.67, 0.25, 0.34],
         )
     )
     ryd_sources.append(rsrc)
@@ -129,7 +130,7 @@ def report_visual(cnt_sources, ryd_sources, metas):
                 content += f"<p>{var} = {num}</p>"
 
             div = Div(
-                text=content, width=200, height=400, styles={"overflow-y": "scroll"}
+                text=content, width=100, height=400, styles={"overflow-y": "scroll"}
             )
 
             p = figure(
@@ -154,18 +155,20 @@ def report_visual(cnt_sources, ryd_sources, metas):
             p.add_tools(hov_tool)
 
             pryd = figure(
-                x_range=["0", "1"],
+                x_range=trydsrc.data["sites"],
                 height=400,
-                width=200,
+                width=300,
                 # toolbar_location=None,
                 tools="wheel_zoom,reset,box_zoom",
             )
 
-            pryd.vbar(x="bits", top="ryds", source=trydsrc, width=0.5, color=color2)
+            pryd.vbar(x="sites", top="ryds", source=trydsrc, width=0.5, color=color2)
 
             pryd.xgrid.grid_line_color = None
             pryd.y_range.start = 0
             pryd.yaxis.axis_label = "Rydberg density"
+            pryd.xaxis.major_label_orientation = "vertical"
+            pryd.xaxis.axis_label = "site"
 
             hov_tool = HoverTool()
             hov_tool.tooltips = [("density: ", "@ryds")]
