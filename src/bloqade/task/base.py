@@ -133,11 +133,13 @@ class LocalTask(Task):
 @dataclass
 class Report:
     dataframe: pd.DataFrame
+    metas: Dict
 
-    def __init__(self, data) -> None:
+    def __init__(self, data, metas) -> None:
         self.dataframe = data  # df
         self._bitstrings = None  # bitstring cache
         self._counts = None  # counts cache
+        self.metas = metas
 
     @property
     def markdown(self) -> str:

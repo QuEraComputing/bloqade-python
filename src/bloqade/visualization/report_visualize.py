@@ -1,6 +1,6 @@
 from bokeh.plotting import figure, show
 from bokeh.layouts import column, row
-from bokeh.models import Select, CustomJS
+from bokeh.models import CustomJS, MultiChoice, Div
 from bokeh.models import (
     ColumnDataSource,
 )
@@ -28,7 +28,6 @@ def format_report_data(report):
 
     counts = report.counts
     ryds = report.rydberg_densities()
-
     assert len(task_tid) == len(counts)
 
     cnt_sources = []
@@ -57,13 +56,15 @@ def format_report_data(report):
         cnt_sources.append(src)
         ryd_sources.append(rsrc)
 
-    return cnt_sources, ryd_sources
+    return cnt_sources, ryd_sources, report.metas
 
 
 def mock_data():
     cnt_sources = []
     ryd_sources = []
+    metas = []
 
+    # ===============================
     bitstrings = ["0010", "1101", "1111"]
     cnts = [4, 7, 5]
     tid = [0] * len(cnts)
@@ -83,7 +84,9 @@ def mock_data():
         )
     )
     ryd_sources.append(rsrc)
+    metas.append(dict(a=4, b=9, c=10))
 
+    # ===============================
     bitstrings = ["0101", "1101", "1110", "1111"]
     cnts = [4, 7, 5, 10]
     tid = [1] * len(cnts)
@@ -103,20 +106,32 @@ def mock_data():
         )
     )
     ryd_sources.append(rsrc)
+    metas.append(dict(a=10, b=9.44, c=10.3))
 
-    return cnt_sources, ryd_sources
+    return cnt_sources, ryd_sources, metas
 
 
-def report_visual(cnt_sources, ryd_sources):
+def report_visual(cnt_sources, ryd_sources, metas):
     options = [f"task {cnt}" for cnt in range(len(cnt_sources))]
 
     figs = []
-    select = Select(title="Select Task", options=[])
+    # select = Select(title="Select Task", options=[])
+    multi_choice = MultiChoice(options=[])
 
     if len(options):
         color1 = Dark2_5[0]
         color2 = Dark2_5[1]
-        for taskname, tsrc, trydsrc in zip(options, cnt_sources, ryd_sources):
+        for taskname, tsrc, trydsrc, meta in zip(
+            options, cnt_sources, ryd_sources, metas
+        ):
+            content = "<p> Assignments meta: </p>"
+            for var, num in meta.items():
+                content += f"<p>{var} = {num}</p>"
+
+            div = Div(
+                text=content, width=200, height=400, styles={"overflow-y": "scroll"}
+            )
+
             p = figure(
                 x_range=tsrc.data["bitstrings"],
                 height=400,
@@ -144,35 +159,33 @@ def report_visual(cnt_sources, ryd_sources):
             pryd.y_range.start = 0
             pryd.yaxis.axis_label = "Rydberg density"
 
-            figs.append(row(p, pryd, name=taskname))
+            figs.append(row(div, p, pryd, name=taskname))
+            figs[-1].visible = False
 
         # Create a dropdown menu to select between the two graphs
-        select = Select(title="Select Task", options=["all"] + options, value="all")
+        figs[0].visible = True
+        multi_choice = MultiChoice(value=[options[0]], options=options)
 
-        # Define a JavaScript callback
-        callback = CustomJS(
-            args=dict(figs=figs, nelem=len(options)),
-            code="""
-            var selected_value = cb_obj.value;
-            if(selected_value==="all"){
-                for(let i=0;i<nelem;i++){
-                    figs[i].visible = true;
-                }
-            }else{
-                for(let i=0;i<nelem;i++){
-                    if(figs[i].name === selected_value){
-                        figs[i].visible = true;
-                    }else{
-                        figs[i].visible = false;
-                    }
-                }
-            }
-        """,
+        multi_choice.js_on_change(
+            "value",
+            CustomJS(
+                args=dict(figs=figs, options=options, nelem=len(options)),
+                code="""
+                        const vals = this.value
+                        for(let i=0;i<nelem;i++){
+                            figs[i].visible=false;
+                            for(let j=0;j<vals.length;j++){
+                                if(vals[j]==options[i]){
+                                    figs[i].visible=true;
+                                    break;
+                                }
+                            }
+                        }
+                    """,
+            ),
         )
 
-        select.js_on_change("value", callback)
-
-    return column(select, column(*figs))
+    return column(multi_choice, column(*figs))
 
 
 if __name__ == "__main__":
