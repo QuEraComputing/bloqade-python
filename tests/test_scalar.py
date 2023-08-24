@@ -138,7 +138,7 @@ def test_negative_node():
     nsa = scalar.Negative(sa)
 
     assert nsa.children() == [sa]
-    assert nsa.print_node() == "-"
+    assert nsa.print_node() == "Negative"
 
     assert str(nsa) == "-(1.0)"
 

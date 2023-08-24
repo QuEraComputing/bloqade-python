@@ -148,7 +148,7 @@ def test_wvfm_neg():
     wf = Constant(value=1.0, duration=3.0)
     wf2 = -wf
 
-    assert wf2.print_node() == "-"
+    assert wf2.print_node() == "Negative"
     assert wf2.children() == [wf]
     assert str(wf2) == "-(" + str(wf2.children()[0]) + ")"
 
@@ -161,7 +161,7 @@ def test_wvfm_neg():
 
     assert (
         mystdout.getvalue()
-        == "-\n"
+        == "Negative\n"
         + "└─ Constant\n"
         + "   ├─ value\n"
         + "   │  ⇒ Literal: 1.0\n"

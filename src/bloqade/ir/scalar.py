@@ -432,7 +432,7 @@ class Negative(Scalar):
         return [self.expr]
 
     def print_node(self):
-        return "-"
+        return "Negative"
 
 
 @dataclass(frozen=True, repr=False)
