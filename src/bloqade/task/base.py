@@ -14,7 +14,8 @@ import pandas as pd
 import numpy as np
 from dataclasses import dataclass
 from bloqade.submission.ir.parallel import ParallelDecoder
-
+from bloqade.visualization import report_visualize
+from bokeh.io import show
 
 JSONSubType = TypeVar("JSONSubType", bound="JSONInterface")
 
@@ -196,3 +197,8 @@ class Report:
             .groupby("task_number")
             .mean()
         )
+
+    def show(self):
+        dat = report_visualize.format_report_data(self)
+        p = report_visualize.report_visual(*dat)
+        show(p)

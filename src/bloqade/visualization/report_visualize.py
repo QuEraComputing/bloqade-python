@@ -1,12 +1,12 @@
 from bokeh.plotting import figure, show
-from bokeh.layouts import column
-from bokeh.models import Dropdown  # , CustomJS
+from bokeh.layouts import column, row
+from bokeh.models import Select, CustomJS
 from bokeh.models import (
     ColumnDataSource,
 )
 
 # from bokeh.models import Tabs, TabPanel, HoverTool, Div, CrosshairTool, Span
-# from bokeh.palettes import Dark2_5
+from bokeh.palettes import Dark2_5
 
 # import itertools
 # import numpy as np
@@ -17,7 +17,7 @@ from bokeh.models import (
 # below are formatting IR data, and called by IR.
 
 
-def format_report_data(report, **assignments):
+def format_report_data(report):
     # return should be
     # data: List[ColumnDataSources],
     # List[str]:ch_names,
@@ -27,13 +27,15 @@ def format_report_data(report, **assignments):
     task_tid = list(task_tid)
 
     counts = report.counts
+    ryds = report.rydberg_densities()
 
     assert len(task_tid) == len(counts)
 
     cnt_sources = []
+    ryd_sources = []
     for i, cnt_data in enumerate(counts):
-        bitstrings = cnt_data.keys()
-        cnts = cnt_data.values()
+        bitstrings = list(cnt_data.keys())
+        cnts = list(cnt_data.values())
         tid = [i] * len(cnts)
         src = ColumnDataSource(
             data=dict(
@@ -42,13 +44,25 @@ def format_report_data(report, **assignments):
                 cnts=cnts,
             )
         )
-        cnt_sources.append(src)
 
-    return cnt_sources
+        rydens = list(ryds.iloc[i])
+        tid = [i] * len(rydens)
+        rsrc = ColumnDataSource(
+            data=dict(
+                tid=tid,
+                bits=["0", "1"],
+                ryds=rydens,
+            )
+        )
+        cnt_sources.append(src)
+        ryd_sources.append(rsrc)
+
+    return cnt_sources, ryd_sources
 
 
 def mock_data():
     cnt_sources = []
+    ryd_sources = []
 
     bitstrings = ["0010", "1101", "1111"]
     cnts = [4, 7, 5]
@@ -61,6 +75,14 @@ def mock_data():
         )
     )
     cnt_sources.append(src)
+    rsrc = ColumnDataSource(
+        data=dict(
+            tid=[0, 0],
+            bits=["0", "1"],
+            ryds=[0.55, 0.45],
+        )
+    )
+    ryd_sources.append(rsrc)
 
     bitstrings = ["0101", "1101", "1110", "1111"]
     cnts = [4, 7, 5, 10]
@@ -73,37 +95,89 @@ def mock_data():
         )
     )
     cnt_sources.append(src)
-    return cnt_sources
+    rsrc = ColumnDataSource(
+        data=dict(
+            tid=[1, 1],
+            bits=["0", "1"],
+            ryds=[0.33, 0.67],
+        )
+    )
+    ryd_sources.append(rsrc)
+
+    return cnt_sources, ryd_sources
 
 
-def counts_histogram(cnt_sources):
-    menu = [(f"task {cnt}", f"{cnt}") for cnt in range(len(cnt_sources))]
-    dropdown = Dropdown(label="Tasks", button_type="warning", menu=menu)
+def report_visual(cnt_sources, ryd_sources):
+    options = [f"task {cnt}" for cnt in range(len(cnt_sources))]
 
-    p = figure(height=350, title="Counts", toolbar_location=None, tools="")
+    figs = []
+    select = Select(title="Select Task", options=[])
 
-    for tsrc in cnt_sources:
-        p.vbar(x="bitstrings", top="cnts", source=tsrc, width=0.9)
+    if len(options):
+        color1 = Dark2_5[0]
+        color2 = Dark2_5[1]
+        for taskname, tsrc, trydsrc in zip(options, cnt_sources, ryd_sources):
+            p = figure(
+                x_range=tsrc.data["bitstrings"],
+                height=400,
+                title=f"{taskname}",
+                toolbar_location=None,
+                tools="",
+            )
+            p.vbar(x="bitstrings", top="cnts", source=tsrc, width=0.9, color=color1)
 
-    p.xgrid.grid_line_color = None
-    p.y_range.start = 0
+            p.xgrid.grid_line_color = None
+            p.y_range.start = 0
+            p.yaxis.axis_label = "Counts"
 
-    """
-    dropdown.js_on_event("menu_item_click",
-                         args=dict(glyphobj=glyph_obj, ),
-                         code=CustomJS(code=
-                                  "
-                                    this.item, this.toString()
-                                  "
-                                 )
-                        )
-    """
-    return column(dropdown, p)
+            pryd = figure(
+                x_range=["0", "1"],
+                height=400,
+                width=200,
+                toolbar_location=None,
+                tools="",
+            )
+
+            pryd.vbar(x="bits", top="ryds", source=trydsrc, width=0.5, color=color2)
+
+            pryd.xgrid.grid_line_color = None
+            pryd.y_range.start = 0
+            pryd.yaxis.axis_label = "Rydberg density"
+
+            figs.append(row(p, pryd, name=taskname))
+
+        # Create a dropdown menu to select between the two graphs
+        select = Select(title="Select Task", options=["all"] + options, value="all")
+
+        # Define a JavaScript callback
+        callback = CustomJS(
+            args=dict(figs=figs, nelem=len(options)),
+            code="""
+            var selected_value = cb_obj.value;
+            if(selected_value==="all"){
+                for(let i=0;i<nelem;i++){
+                    figs[i].visible = true;
+                }
+            }else{
+                for(let i=0;i<nelem;i++){
+                    if(figs[i].name === selected_value){
+                        figs[i].visible = true;
+                    }else{
+                        figs[i].visible = false;
+                    }
+                }
+            }
+        """,
+        )
+
+        select.js_on_change("value", callback)
+
+    return column(select, column(*figs))
 
 
 if __name__ == "__main__":
     dat = mock_data()
 
-    fig = counts_histogram(dat)
+    fig = report_visual(*dat)
 
     show(fig)
