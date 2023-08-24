@@ -143,7 +143,7 @@ class Sequence(SequenceExpr):
         return "Sequence"
 
     def _get_data(self, **assignments):
-        return None, self.value
+        return None, self.pulses
 
     def figure(self, **assignments):
         return get_sequence_figure(self, **assignments)
