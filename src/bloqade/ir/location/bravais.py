@@ -9,6 +9,7 @@ from dataclasses import InitVar
 from bloqade.ir import Literal, Scalar, cast
 
 import plotext as pltxt
+import sys
 
 
 class Cell:
@@ -81,7 +82,11 @@ class BoundedBravais(AtomArrangement):
                 "Lattice Spacing is a variable, defaulting to 1.0 for display", "right"
             )
 
-        pltxt.scatter(xs, ys, color=(100, 55, 255), marker="dot")
+        marker = "."
+        if sys.stdout.encoding.lower().startswith("utf"):
+            marker = "dot"
+
+        pltxt.scatter(xs, ys, color=(100, 55, 255), marker=marker)
 
         return pltxt.build()
 
@@ -307,7 +312,11 @@ class Rectangular(BoundedBravais):
             pltxt.xlabel("x (um)")
             pltxt.ylabel("y (um)")
 
-            pltxt.scatter(xs, ys, color=(100, 55, 255), marker="dot")
+            marker = "."
+            if sys.stdout.encoding.lower().startswith("utf"):
+                marker = "dot"
+
+            pltxt.scatter(xs, ys, color=(100, 55, 255), marker=marker)
 
             return pltxt.build()
 
