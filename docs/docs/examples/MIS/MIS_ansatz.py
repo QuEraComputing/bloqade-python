@@ -9,10 +9,9 @@ from bloqade.builder.emit import Emit
 
 class MIS_ansatz(Ansatz):
 
-    def __init__(self, problem, backend, num_shots, blockade_radius, unitdisk_radius, num_time_points, ansatz_type, config_path=None,) -> None:
+    def __init__(self, problem, backend, num_shots, blockade_radius, unitdisk_radius, ansatz_type, config_path=None,) -> None:
         
         super().__init__(backend_info={"backend": backend, "num_shots": num_shots, "config_path": config_path})
-        self.num_time_points = num_time_points
 
         self.graph = problem.graph
         self.positions = problem.positions
@@ -32,6 +31,8 @@ class MIS_ansatz(Ansatz):
 
         self.ansatz_type = ansatz_type
 
+        # TODO: pass this in as parameters
+
         self.t1 = 0.5
         self.t2 = 3
         self.t3 = 0.5
@@ -47,19 +48,17 @@ class MIS_ansatz(Ansatz):
 
     def _ansatz_linear(self, params):
 
-        durations = params[:self.num_time_points]
-        detunings = params[self.num_time_points:]
+        durations = params[:3]
+        detunings = params[3:]
    
         # Initialize MIS program 
         mis_udg_program = (
             start.add_positions(self.positions.astype(float)).scale(self.blockade_radius/self.unitdisk_radius)
             .rydberg.rabi 
-            .amplitude.uniform.piecewise_linear(durations, [0.] + [self.amp_max] * (self.num_time_points-1)  + [0.])
+            .amplitude.uniform.piecewise_linear(durations, [0., self.amp_max, self.amp_max, 0.])
             .detuning.uniform.piecewise_linear(durations, detunings)
         )
         return mis_udg_program
-    
-    # TODO: generalize code to work with params list, regardless of param names
     
     def _ansatz_spline(self, params):
        
@@ -69,10 +68,7 @@ class MIS_ansatz(Ansatz):
         start.add_positions(self.positions.astype(float)).scale(self.blockade_radius/self.unitdisk_radius)
         .rydberg.rabi
         .amplitude.uniform.piecewise_linear([self.t1, self.t2, self.t3], [0., self.amp_max, self.amp_max, 0.])
-
-        # FIXME: Only middle values should be variational!
         .detuning.uniform.fn(fn=lambda time: self._piecewise_spline(time, [self.t1] + list(x) + [self.t1+self.t2], [-20.] + list(y) + [20.]), duration=self.total_time).sample(0.05)
-        # .detuning.uniform.fn(fn=lambda time: self._piecewise_spline(time, x, y), duration=self.total_time).sample(0.05)
         )
         return mis_udg_program
     
@@ -86,22 +82,20 @@ class MIS_ansatz(Ansatz):
                                     time > x[-1]], 
                                     [y[0], cs, y[-1]])
         return piecewise_func
-    
 
     def get_solutions(self, x):
         bitstrings = self.get_bitstrings(x)
         return self.post_process_MIS(bitstrings)
 
     def parameter_transform(self, parameter_values):
-    # def parameter_transform(self, duration_values, detuning_values):
 
         in_range = True
         penalty = 0
 
         if self.ansatz_type == "linear":
 
-            duration_values = parameter_values[:self.num_time_points]
-            detuning_values = parameter_values[self.num_time_points:]
+            duration_values = np.array(parameter_values[:3])
+            detuning_values = np.array(parameter_values[3:])
 
             if np.any(duration_values < 0):
                 print("Negative time encountered, pentalty term added!")
@@ -170,7 +164,7 @@ class MIS_ansatz(Ansatz):
         t_dense = np.linspace(self.t1, self.t1 + self.t2, 1000)
         spline = CubicSpline([self.t1] + list(x) + [self.t1+self.t2], [-20.] + list(y) + [20.])
         # Evaluate the derivative
-        derivative_values = spline(t_dense, 1)  # 1 indicates first derivative
+        derivative_values = spline(t_dense, 1)  
         # Check if all values are non-negative
         is_monotonic = np.all(derivative_values >= 0)
         return is_monotonic

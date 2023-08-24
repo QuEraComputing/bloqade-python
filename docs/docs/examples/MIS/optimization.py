@@ -1,4 +1,5 @@
 from scipy.optimize import minimize
+from skopt import gp_minimize
 import time
 import json 
 import os
@@ -36,8 +37,7 @@ class Optimizer:
         
         cost = self.problem.cost_function(self.ansatz, x)
         print(f"Cost value is {cost}")
-
-        self.parameter_history.append(x.tolist())
+        self.parameter_history.append(x.tolist() if isinstance(x, np.ndarray) else x)
         self.cost_history.append(self.problem.current_cost)
         self.bitstring_history.append(self.problem.current_bitstring.tolist())
 
@@ -95,13 +95,25 @@ class Optimizer:
 
         # Generate the same output as scipy.optimize.minimize
         return {'fun': self._tracking_cost_function(x), 'x': x, 'success': True, 'message': '', 'nit': self.max_iter}
+    
+    def _bayesian(self, bounds):
 
+        result = gp_minimize(self._array_cache(self._tracking_cost_function),
+                            bounds,             
+                            x0=list(self.x_init),
+                            n_calls=self.max_iter) 
+        
+        return result 
+        
 
-    def optimize(self, delta=0.01, learning_rate=0.005):
+    def optimize(self, delta=0.01, learning_rate=0.005, bounds=None):
+        
         if self.method == 'SPSA':
             result = self._spsa(delta, learning_rate)
+        elif self.method == 'Bayesian':
+            result = self._bayesian(bounds)
         else:
-            result = minimize(self._array_cache(self._tracking_cost_function), self.x_init, method=self.method, options={"maxiter": self.max_iter})
+            result = minimize(self._array_cache(self._tracking_cost_function), self.x_init, method=self.method, options={"maxiter": self.max_iter, "tol": 1e-10})
         self.result = result
         return result
 

@@ -12,12 +12,6 @@ class MIS_problem(Problem):
 
     def cost_function(self, ansatz, x):
         
-        # TODO: this needs to be adjusted for qubit spline
-        # Separate parameter transformation?
-        # Can the parameter transformation be unified?
-        # TODO: when out of bounds, do not run cost on machine to reduce number of calls to quantum hardware
-        # could put a true/false flag for when out of bounds
-
         in_range, transformed_x, penalty = ansatz.parameter_transform(x)
 
         # The QPU is only called if the parameters are within bounds
