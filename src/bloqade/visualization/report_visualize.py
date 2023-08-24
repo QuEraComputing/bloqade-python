@@ -58,7 +58,7 @@ def format_report_data(report):
         cnt_sources.append(src)
         ryd_sources.append(rsrc)
 
-    return cnt_sources, ryd_sources, report.metas
+    return cnt_sources, ryd_sources, report.metas, report.name
 
 
 def mock_data():
@@ -110,10 +110,10 @@ def mock_data():
     ryd_sources.append(rsrc)
     metas.append(dict(a=10, b=9.44, c=10.3))
 
-    return cnt_sources, ryd_sources, metas
+    return cnt_sources, ryd_sources, metas, "Mock"
 
 
-def report_visual(cnt_sources, ryd_sources, metas):
+def report_visual(cnt_sources, ryd_sources, metas, name):
     options = [f"task {cnt}" for cnt in range(len(cnt_sources))]
 
     figs = []
@@ -201,7 +201,7 @@ def report_visual(cnt_sources, ryd_sources, metas):
             ),
         )
 
-    return column(multi_choice, column(*figs))
+    return column(Div(text="Report: " + name), column(multi_choice, column(*figs)))
 
 
 if __name__ == "__main__":
