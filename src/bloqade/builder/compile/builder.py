@@ -29,7 +29,7 @@ class Parser:
         from .stream import BuilderStream
 
         self.stream = BuilderStream.create(ast)
-        self.vector_node_names = []
+        self.vector_node_names = set([])
         self.sequence = ir.Sequence({})
         self.register = None
         self.batch_params = [{}]
@@ -118,7 +118,7 @@ class Parser:
                     spatial_modulation = ir.Uniform
                 case Var(name, _):
                     spatial_modulation = ir.RunTimeVector(name)
-                    self.vector_node_names.append(name)
+                    self.vector_node_names.add(name)
                 case _:
                     break
             curr = curr.next
@@ -200,7 +200,9 @@ class Parser:
                         raise ValueError(f"Cannot flatten duplicate names {dup}.")
 
                     order_names = set([*order])
-                    flattened_vector_names = order_names.intersection(order_names)
+                    flattened_vector_names = order_names.intersection(
+                        self.vector_node_names
+                    )
 
                     if flattened_vector_names:
                         raise ValueError(
