@@ -1,6 +1,6 @@
 from bokeh.plotting import figure, show
 from bokeh.layouts import column, row
-from bokeh.models import CustomJS, MultiChoice, Div, HoverTool
+from bokeh.models import CustomJS, MultiChoice, Div, HoverTool, Button
 from bokeh.models import (
     ColumnDataSource,
 )
@@ -134,6 +134,8 @@ def report_visual(cnt_sources, ryd_sources, metas, name):
                 text=content, width=100, height=400, styles={"overflow-y": "scroll"}
             )
 
+            bt = Button(icon="./logo.png")
+
             p = figure(
                 x_range=tsrc.data["bitstrings"],
                 height=400,
@@ -201,7 +203,15 @@ def report_visual(cnt_sources, ryd_sources, metas, name):
             ),
         )
 
-    return column(Div(text="Report: " + name), column(multi_choice, column(*figs)))
+    headline = row(Div(text="Report: " + name), bt)
+    return column(headline, column(multi_choice, column(*figs)))
+
+
+def bloqadeICON():
+    with open("./logl.svg", "r") as f:
+        lines = f.readlines()
+
+    return lines
 
 
 if __name__ == "__main__":
@@ -210,3 +220,9 @@ if __name__ == "__main__":
     fig = report_visual(*dat)
 
     show(fig)
+    from bokeh.models import SVGIcon
+
+    p = figure(width=200, height=100, toolbar_location=None)
+    # p.image_url(url="file:///./logo.png")
+    button = Button(label="", icon=SVGIcon(svg=bloqadeICON(), size=50))
+    show(button)
