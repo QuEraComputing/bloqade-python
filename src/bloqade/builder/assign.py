@@ -2,7 +2,7 @@ from typing import Optional
 from bloqade.builder.base import Builder
 from bloqade.builder.pragmas import Parallelizable, Flattenable, BatchAssignable
 from bloqade.builder.backend import BackendRoute
-from bloqade.builder.compile.trait import Parse
+from bloqade.builder.parse.trait import Parse
 import numpy as np
 from numbers import Real
 

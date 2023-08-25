@@ -1,7 +1,7 @@
 from typing import Optional, Any
 from bloqade.builder.base import Builder
 from bloqade.builder.backend import BackendRoute
-from bloqade.builder.compile.trait import Parse
+from bloqade.builder.parse.trait import Parse
 from bloqade.ir import cast
 
 
