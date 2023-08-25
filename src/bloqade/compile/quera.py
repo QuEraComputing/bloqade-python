@@ -1,33 +1,44 @@
-from bloqade.ir import BuilderCompiler
-from bloqade.builder.base import Builder, ParamType
-from bloqade.submission.ir.capabilities import QuEraCapabilities
-from bloqade.submission.ir.task_specification import QuEraTaskSpecification
-from bloqade.submission.ir.parallel import ParallelDecoder
+from bloqade.codegen.common.static_assign import StaticAssignProgram
 from bloqade.codegen.hardware.quera import SchemaCodeGen
-from typing import Dict, List, Optional
-from dataclasses import dataclass
+from bloqade.ir.program import Program
+from bloqade.submission.quera import QuEraBackend
+from pydantic.dataclasses import dataclass
+from typing import TYPE_CHECKING, Optional
+
+if TYPE_CHECKING:
+    from bloqade.task.batch import RemoteBatch
 
 
 @dataclass
-class QuEraTaskData:
-    task_ir: QuEraTaskSpecification
-    metadata: Dict[str, ParamType]
-    parallel_decoder: Optional[ParallelDecoder] = None
+class QuEraBatchCompiler:
+    program: Program
+    backend: QuEraBackend
 
+    def compile(self, shots, args, name: Optional[str]) -> "RemoteBatch":
+        from bloqade.task.quera import QuEraTask
 
-class QuEraSchemaCompiler:
-    def __init__(self, builder: Builder, capabilities: QuEraCapabilities):
-        self.capabilities = capabilities
-        self.ir_compiler = BuilderCompiler(builder)
+        params = self.program.parse_args(*args)
+        static_params = {**params, **self.program.static_params}
 
-    def compile(self, shots, *args) -> List[QuEraTaskData]:
-        quera_task_data_list = []
-        for data in self.ir_compiler.compile_ir(*args):
-            schema_compiler = SchemaCodeGen(data.metadata, self.capabilities)
-            task_ir = schema_compiler.emit(shots, data.program)
-            task_ir = task_ir.discretize(self.capabilities)
-            quera_task_data_list.append(
-                QuEraTaskData(task_ir, data.metadata, schema_compiler.parallel_decoder)
+        precompiled_program = StaticAssignProgram(static_params).visit(self.program)
+        capabilities = self.backend.get_capabilities()
+
+        tasks = []
+        for batch_parmas in self.program.batch_params:
+            metadata = {**batch_parmas, **params}
+            task_ir, parallel_decoder = SchemaCodeGen(batch_parmas, capabilities).emit(
+                shots, precompiled_program
             )
 
-        return quera_task_data_list
+            task = QuEraTask(
+                task_id=None,
+                task_ir=task_ir,
+                parallel_decoder=parallel_decoder,
+                metadata=metadata,
+                backend=self.backend,
+                task_result_ir=None,
+            )
+
+            tasks.append(task)
+
+        return RemoteBatch(tasks, shots)
