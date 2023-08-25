@@ -7,6 +7,7 @@ import bloqade.submission.mock as mock_submit
 import os
 import json
 
+
 class QuEraService(Builder):
     @property
     def quera(self):

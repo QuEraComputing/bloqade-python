@@ -4,6 +4,7 @@ from bloqade.task.batch import RemoteBatch, LocalBatch
 from typing import Any, Tuple
 from numbers import Real
 
+
 class Backend(Builder):
     pass
 
