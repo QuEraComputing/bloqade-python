@@ -135,8 +135,8 @@ class LocalTask(Task):
 class Report:
     dataframe: pd.DataFrame
     metas: List[Dict]
-    name: str = ""
     geos: List[Geometry]
+    name: str = ""
 
     def __init__(self, data, metas, geos, name="") -> None:
         self.dataframe = data  # df
