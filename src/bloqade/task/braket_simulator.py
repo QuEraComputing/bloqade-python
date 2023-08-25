@@ -1,30 +1,25 @@
+from bloqade.builder.base import ParamType
 from .base import LocalTask
 from bloqade.submission.ir.task_results import QuEraTaskResults
 from bloqade.submission.ir.braket import (
     from_braket_task_results,
+    BraketTaskSpecification,
 )
 from bloqade.task.base import Geometry
 from braket.devices import LocalSimulator
-from bloqade.builder.compile.braket_simulator import BraketEmulatorTaskData
-from typing import Optional
+from typing import Dict, Optional
+from pydantic.dataclasses import dataclass
 
 ## keep the old conversion for now,
 ## we will remove conversion btwn QuEraTask <-> BraketTask,
 ## and specialize/dispatching here.
 
 
+@dataclass
 class BraketEmulatorTask(LocalTask):
-    task_data: BraketEmulatorTaskData
+    task_ir: BraketTaskSpecification
+    metadata: Dict[str, ParamType]
     task_result_ir: Optional[QuEraTaskResults] = None
-
-    __match_args__ = ("task_data", "task_result_ir")
-
-    def __init__(
-        self,
-        task_data: BraketEmulatorTaskData,
-        **kwargs,
-    ):
-        self.task_data = task_data
 
     def _geometry(self) -> Geometry:
         return Geometry(

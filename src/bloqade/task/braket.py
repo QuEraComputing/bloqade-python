@@ -1,13 +1,15 @@
+from bloqade.builder.base import ParamType
+from bloqade.submission.ir.parallel import ParallelDecoder
 from bloqade.task.base import Geometry, RemoteTask
 from bloqade.submission.ir.task_specification import QuEraTaskSpecification
 from bloqade.submission.braket import BraketBackend
-from typing import Optional
+from typing import Dict, Optional
 
 # from bloqade.submission.ir.parallel import ParallelDecoder
 from bloqade.submission.base import ValidationError
 from bloqade.submission.ir.task_results import QuEraTaskResults, QuEraTaskStatusCode
 import warnings
-from bloqade.builder.compile.quera import QuEraTaskData
+from pydantic.dataclasses import dataclass
 
 # class BraketTask(Task):
 #    def __init__(self, braket, task_specification):
@@ -25,23 +27,13 @@ from bloqade.builder.compile.quera import QuEraTaskData
 ## keep the old conversion for now,
 ## we will remove conversion btwn QuEraTask <-> BraketTask,
 ## and specialize/dispatching here.
+@dataclass
 class BraketTask(RemoteTask):
-    task_data: QuEraTaskData
     backend: BraketBackend
+    task_ir: QuEraTaskSpecification
+    metadata: Dict[str, ParamType]
+    parallel_decoder: Optional[ParallelDecoder]
     task_result_ir: Optional[QuEraTaskResults] = None
-
-    __match_args__ = ("task_id", "task_data", "task_result_ir")
-
-    def __init__(
-        self,
-        task_data: QuEraTaskSpecification,
-        task_id: str = None,
-        backend: BraketBackend = None,
-        **kwargs,
-    ):
-        self.task_data = task_data
-        self.backend = backend
-        self.task_id = task_id
 
     def submit(self, force: bool = False) -> None:
         if not force:

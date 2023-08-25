@@ -1,23 +1,27 @@
-from collections import OrderedDict
-from itertools import product
-import json
-from typing import Union, Optional, List
-from .base import Report
-from .quera import QuEraTask
-from .braket import BraketTask
-from .braket_simulator import BraketEmulatorTask
-import traceback
-import datetime
-import sys
-import os
+from bloqade.task.base import Report
+from bloqade.task.quera import QuEraTask
+from bloqade.task.braket import BraketTask
+from bloqade.task.braket_simulator import BraketEmulatorTask
+
+from bloqade.ir import Program
+
 from bloqade.submission.ir.task_results import (
     QuEraShotStatusCode,
     QuEraTaskStatusCode,
 )
+from bloqade.submission.base import ValidationError
+
+from typing import Union, Optional, List
+from collections import OrderedDict
+from itertools import product
+import json
+import traceback
+import datetime
+import sys
+import os
 import pandas as pd
 import numpy as np
 from dataclasses import dataclass
-from bloqade.submission.base import ValidationError
 
 
 class Serializable:
@@ -29,6 +33,7 @@ class Serializable:
 
 @dataclass
 class LocalBatch(Serializable):
+    program: Program
     tasks: OrderedDict[int, BraketEmulatorTask]
     name: Optional[str] = None
 
@@ -112,6 +117,7 @@ class LocalBatch(Serializable):
 # the user only need to store this objecet
 @dataclass
 class RemoteBatch(Serializable):
+    program: Program
     tasks: OrderedDict[int, Union[QuEraTask, BraketTask]]
     name: Optional[str] = None
 

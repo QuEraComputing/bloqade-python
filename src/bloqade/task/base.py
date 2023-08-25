@@ -12,7 +12,7 @@ from bloqade.submission.ir.task_results import (
 from numpy.typing import NDArray
 import pandas as pd
 import numpy as np
-from dataclasses import dataclass
+from pydantic.dataclasses import dataclass
 from bloqade.submission.ir.parallel import ParallelDecoder
 from bloqade.visualization import report_visualize
 from bokeh.io import show
@@ -76,8 +76,9 @@ class Task:
         return self._geometry()
 
 
+@dataclass
 class RemoteTask(Task):
-    task_id: str
+    task_id: Optional[str]
 
     def __init__(self, task_id: str):
         self.task_id = task_id

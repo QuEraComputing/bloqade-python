@@ -1,34 +1,25 @@
 from bloqade.task.base import Geometry
-from .base import RemoteTask
+from bloqade.task.base import RemoteTask
 
-# from bloqade.submission.ir.task_specification import QuEraTaskSpecification
-from bloqade.submission.quera import QuEraBackend
-from typing import Optional
-
-# from bloqade.submission.ir.parallel import ParallelDecoder
 from bloqade.submission.base import ValidationError
 from bloqade.submission.ir.task_results import QuEraTaskResults, QuEraTaskStatusCode
+from bloqade.submission.ir.task_specification import QuEraTaskSpecification
+from bloqade.submission.ir.parallel import ParallelDecoder
+from bloqade.submission.quera import QuEraBackend
+
+from pydantic.dataclasses import dataclass
+from typing import Dict, Optional
+from bloqade.builder.base import ParamType
 import warnings
-from bloqade.builder.compile.quera import QuEraTaskData
 
 
+@dataclass
 class QuEraTask(RemoteTask):
-    task_data: QuEraTaskData
     backend: QuEraBackend
+    task_ir: QuEraTaskSpecification
+    metadata: Dict[str, ParamType]
+    parallel_decoder: ParallelDecoder
     task_result_ir: Optional[QuEraTaskResults] = None
-
-    __match_args__ = ("task_id", "backend", "task_data", "task_result_ir")
-
-    def __init__(
-        self,
-        task_data: QuEraTaskData,
-        task_id: str = None,
-        backend: QuEraBackend = None,
-        **kwargs,
-    ):
-        self.task_data = task_data
-        self.backend = backend
-        self.task_id = task_id
 
     def submit(self, force: bool = False) -> None:
         if not force:
