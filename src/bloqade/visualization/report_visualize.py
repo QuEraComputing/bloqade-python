@@ -202,6 +202,7 @@ def plot_register_ryd_dense(geo, ryds):
         height=400,
         tools="wheel_zoom,reset, undo, redo, pan",
         toolbar_location="above",
+        title="rydberg density",
     )
     p.x_range = Range1d(x_min - 1, x_min + length_scale + 1)
     p.y_range = Range1d(y_min - 1, y_min + length_scale + 1)
@@ -326,8 +327,8 @@ def report_visual(cnt_sources, ryd_sources, metas, geos, name):
     multi_choice = MultiChoice(options=[])
 
     if len(options):
-        color1 = Dark2_5[0]
-        color2 = Dark2_5[1]
+        color1 = Dark2_5[1]
+        # color2 = Dark2_5[1]
         for taskname, tsrc, trydsrc, meta, geo in zip(
             options, cnt_sources, ryd_sources, metas, geos
         ):
@@ -360,31 +361,31 @@ def report_visual(cnt_sources, ryd_sources, metas, geos, name):
             ]
             p.add_tools(hov_tool)
 
-            pryd = figure(
-                x_range=trydsrc.data["sites"],
-                height=400,
-                width=300,
-                # toolbar_location=None,
-                tools="xwheel_zoom,reset,box_zoom,xpan",
-            )
+            # pryd = figure(
+            #    x_range=trydsrc.data["sites"],
+            #    height=400,
+            #    width=300,
+            #    # toolbar_location=None,
+            #    tools="xwheel_zoom,reset,box_zoom,xpan",
+            # )
 
-            pryd.vbar(x="sites", top="ryds", source=trydsrc, width=0.5, color=color2)
+            # pryd.vbar(x="sites", top="ryds", source=trydsrc, width=0.5, color=color2)
 
-            pryd.xgrid.grid_line_color = None
-            pryd.y_range.start = 0
-            pryd.yaxis.axis_label = "Rydberg density"
-            pryd.xaxis.major_label_orientation = math.pi / 4
-            pryd.xaxis.axis_label = "site"
+            # pryd.xgrid.grid_line_color = None
+            # pryd.y_range.start = 0
+            # pryd.yaxis.axis_label = "Rydberg density"
+            # pryd.xaxis.major_label_orientation = math.pi / 4
+            # pryd.xaxis.axis_label = "site"
 
-            hov_tool = HoverTool()
-            hov_tool.tooltips = [("density: ", "@ryds")]
-            pryd.add_tools(hov_tool)
+            # hov_tool = HoverTool()
+            # hov_tool.tooltips = [("density: ", "@ryds")]
+            # pryd.add_tools(hov_tool)
 
             # pgeo = plot_register(geo)
             # print(geo,  trydsrc.data["ryds"])
             pgeo = plot_register_ryd_dense(geo, trydsrc.data["ryds"])
 
-            figs.append(row(div, p, pryd, pgeo, name=taskname))
+            figs.append(row(div, p, pgeo, name=taskname))
             figs[-1].visible = False
 
         # Create a dropdown menu to select between the two graphs
