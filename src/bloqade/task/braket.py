@@ -3,25 +3,12 @@ from bloqade.submission.ir.parallel import ParallelDecoder
 from bloqade.task.base import Geometry, RemoteTask
 from bloqade.submission.ir.task_specification import QuEraTaskSpecification
 from bloqade.submission.braket import BraketBackend
-from typing import Dict, Optional
 
-# from bloqade.submission.ir.parallel import ParallelDecoder
 from bloqade.submission.base import ValidationError
 from bloqade.submission.ir.task_results import QuEraTaskResults, QuEraTaskStatusCode
 import warnings
-from pydantic.dataclasses import dataclass
-
-# class BraketTask(Task):
-#    def __init__(self, braket, task_specification):
-#        self.braket = braket
-#        self.task_specification = task_specification#
-#
-#    def fetch(self):
-#        raise NotImplementedError
-#
-#    @property
-#    def shots(self):
-#        return self.fetch().shots
+from dataclasses import dataclass
+from typing import Dict, Optional
 
 
 ## keep the old conversion for now,
@@ -29,6 +16,7 @@ from pydantic.dataclasses import dataclass
 ## and specialize/dispatching here.
 @dataclass
 class BraketTask(RemoteTask):
+    task_id: Optional[str]
     backend: BraketBackend
     task_ir: QuEraTaskSpecification
     metadata: Dict[str, ParamType]
@@ -41,11 +29,11 @@ class BraketTask(RemoteTask):
                 raise ValueError(
                     "the task is already submitted with %s" % (self.task_id)
                 )
-        self.task_id = self.backend.submit_task(self.task_data.task_ir)
+        self.task_id = self.backend.submit_task(self.task_ir)
 
     def validate(self) -> str:
         try:
-            self.backend.validate_task(self.task_data.task_ir)
+            self.backend.validate_task(self.task_ir)
         except ValidationError as e:
             return str(e)
 
@@ -83,13 +71,13 @@ class BraketTask(RemoteTask):
 
     @property
     def nshots(self):
-        return self.task_data.task_ir.nshots
+        return self.task_ir.nshots
 
     def _geometry(self) -> Geometry:
         return Geometry(
-            sites=self.task_data.task_ir.lattice.sites,
-            filling=self.task_data.task_ir.lattice.filling,
-            parallel_decoder=self.task_data.parallel_decoder,
+            sites=self.task_ir.lattice.sites,
+            filling=self.task_ir.lattice.filling,
+            parallel_decoder=self.parallel_decoder,
         )
 
     def _result_exists(self) -> bool:

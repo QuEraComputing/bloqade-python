@@ -33,7 +33,7 @@ class Serializable:
 
 @dataclass
 class LocalBatch(Serializable):
-    program: Program
+    program: Optional[Program]
     tasks: OrderedDict[int, BraketEmulatorTask]
     name: Optional[str] = None
 
@@ -87,7 +87,7 @@ class LocalBatch(Serializable):
 
                 index.append(key)
                 data.append(post_sequence)
-            metas.append(task.task_data.metadata)
+            metas.append(task.metadata)
 
         index = pd.MultiIndex.from_tuples(
             index, names=["task_number", "cluster", "perfect_sorting", "pre_sequence"]
@@ -117,8 +117,8 @@ class LocalBatch(Serializable):
 # the user only need to store this objecet
 @dataclass
 class RemoteBatch(Serializable):
-    program: Program
-    tasks: OrderedDict[int, Union[QuEraTask, BraketTask]]
+    program: Optional[Program]
+    tasks: Union[OrderedDict[int, QuEraTask], OrderedDict[int, BraketTask]]
     name: Optional[str] = None
 
     class SubmissionException(Exception):
@@ -128,7 +128,7 @@ class RemoteBatch(Serializable):
     def total_nshots(self):
         nshots = 0
         for task in self.tasks.values():
-            nshots += task.task_data.task_ir.nshots
+            nshots += task.task_ir.nshots
         return nshots
 
     def cancel(self):
@@ -170,7 +170,7 @@ class RemoteBatch(Serializable):
             if task.task_id is not None:
                 if task.task_result_ir is not None:
                     dat[1] = task.result().task_status.name
-                    dat[2] = task.task_data.task_ir.nshots
+                    dat[2] = task.task_ir.nshots
             data.append(dat)
 
         return pd.DataFrame(data, index=tid, columns=["task ID", "status", "shots"])
@@ -380,7 +380,7 @@ class RemoteBatch(Serializable):
 
                 index.append(key)
                 data.append(post_sequence)
-                metas.append(task.task_data.metadata)
+                metas.append(task.metadata)
 
         index = pd.MultiIndex.from_tuples(
             index, names=["task_number", "cluster", "perfect_sorting", "pre_sequence"]

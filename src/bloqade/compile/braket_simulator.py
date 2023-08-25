@@ -1,9 +1,10 @@
+from collections import OrderedDict
 from bloqade.codegen.common.static_assign import StaticAssignProgram
 from bloqade.codegen.hardware.quera import SchemaCodeGen
 from bloqade.ir.program import Program
 from bloqade.submission.ir.braket import to_braket_task_ir
 
-from pydantic.dataclasses import dataclass
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
@@ -20,7 +21,7 @@ class BraketLocalEmulatorBatchCompiler:
         from bloqade.ir import ParallelRegister
 
         if isinstance(self.program.register, ParallelRegister):
-            raise ValueError(
+            raise TypeError(
                 "Braket local emulator does not support parallel registers."
             )
 
@@ -29,8 +30,8 @@ class BraketLocalEmulatorBatchCompiler:
 
         precompiled_program = StaticAssignProgram(static_params).visit(self.program)
 
-        tasks = []
-        for batch_parmas in self.program.batch_params:
+        tasks = OrderedDict()
+        for task_number, batch_parmas in enumerate(self.program.batch_params):
             metadata = {**batch_parmas, **params}
 
             quera_task_ir, parallel_decoder = SchemaCodeGen(batch_parmas).emit(
@@ -38,12 +39,11 @@ class BraketLocalEmulatorBatchCompiler:
             )
 
             task = BraketEmulatorTask(
-                task_id=None,
                 task_ir=to_braket_task_ir(quera_task_ir),
                 metadata=metadata,
                 task_result_ir=None,
             )
 
-            tasks.append(task)
+            tasks[task_number] = task
 
-        return LocalBatch(tasks, name)
+        return LocalBatch(self.program, tasks, name)

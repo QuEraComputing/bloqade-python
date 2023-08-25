@@ -87,11 +87,11 @@ class Mock(RemoteBackend):
         super().__init__(parent=parent)
         self._state_file = state_file
 
-    def compile(self, shots, args, name: Optional[str] = None):
+    def compile(self, shots, args=(), name: Optional[str] = None):
         from bloqade.builder.parse.builder import Parser
         from bloqade.compile.quera import QuEraBatchCompiler
         from bloqade.submission.mock import DumbMockBackend
 
-        backend = DumbMockBackend(self._state_file)
+        backend = DumbMockBackend(state_file=self._state_file)
         program = Parser(self).parse()
         return QuEraBatchCompiler(program, backend).compile(shots, args, name)

@@ -1,3 +1,4 @@
+from bloqade.submission.mock import DumbMockBackend
 from bloqade.task.base import Geometry
 from bloqade.task.base import RemoteTask
 
@@ -7,15 +8,16 @@ from bloqade.submission.ir.task_specification import QuEraTaskSpecification
 from bloqade.submission.ir.parallel import ParallelDecoder
 from bloqade.submission.quera import QuEraBackend
 
-from pydantic.dataclasses import dataclass
-from typing import Dict, Optional
+from typing import Dict, Optional, Union
 from bloqade.builder.base import ParamType
+from dataclasses import dataclass
 import warnings
 
 
 @dataclass
 class QuEraTask(RemoteTask):
-    backend: QuEraBackend
+    task_id: Optional[str]
+    backend: Union[QuEraBackend, DumbMockBackend]
     task_ir: QuEraTaskSpecification
     metadata: Dict[str, ParamType]
     parallel_decoder: ParallelDecoder
@@ -28,11 +30,11 @@ class QuEraTask(RemoteTask):
                     "the task is already submitted with %s" % (self.task_id)
                 )
 
-        self.task_id = self.backend.submit_task(self.task_data.task_ir)
+        self.task_id = self.backend.submit_task(self.task_ir)
 
     def validate(self) -> str:
         try:
-            self.backend.validate_task(self.task_data.task_ir)
+            self.backend.validate_task(self.task_ir)
         except ValidationError as e:
             return str(e)
 
@@ -70,13 +72,13 @@ class QuEraTask(RemoteTask):
 
     @property
     def nshots(self):
-        return self.task_data.task_ir.nshots
+        return self.task_ir.nshots
 
     def _geometry(self) -> Geometry:
         return Geometry(
-            sites=self.task_data.task_ir.lattice.sites,
-            filling=self.task_data.task_ir.lattice.filling,
-            parallel_decoder=self.task_data.parallel_decoder,
+            sites=self.task_ir.lattice.sites,
+            filling=self.task_ir.lattice.filling,
+            parallel_decoder=self.parallel_decoder,
         )
 
     def _result_exists(self) -> bool:

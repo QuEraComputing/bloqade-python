@@ -62,27 +62,12 @@ class Task:
             f"{self.__class__.__name__}._geometry() not implemented"
         )
 
-    # do we need>?
-    def _metadata(self) -> Dict[str, Number]:
-        return {}
-
-    # do we need>?
-    @property
-    def metadata(self) -> Dict[str, Number]:
-        return self._metadata()
-
     @property
     def geometry(self) -> Geometry:
         return self._geometry()
 
 
-@dataclass
 class RemoteTask(Task):
-    task_id: Optional[str]
-
-    def __init__(self, task_id: str):
-        self.task_id = task_id
-
     def validate(self) -> None:
         raise NotImplementedError
 
@@ -132,7 +117,6 @@ class LocalTask(Task):
 
 # Report is now just a helper class for
 # organize and analysis data:
-@dataclass
 class Report:
     dataframe: pd.DataFrame
     metas: List[Dict]

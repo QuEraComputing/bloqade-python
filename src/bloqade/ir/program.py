@@ -7,6 +7,7 @@ if TYPE_CHECKING:
     from bloqade.ir.location.base import AtomArrangement, ParallelRegister
     from bloqade.builder.base import Builder, ParamType
     from bloqade.ir import Sequence
+    from numbers import Real
 
     # from bloqade.task.batch import RemoteBatch
 
@@ -21,10 +22,10 @@ class Program:
         self,
         register: Union["AtomArrangement", "ParallelRegister"],
         sequence: "Sequence",
-        static_params: Dict[str, ParamType] = {},
-        batch_params: List[Dict[str, ParamType]] = [{}],
+        static_params: Dict[str, "ParamType"] = {},
+        batch_params: List[Dict[str, "ParamType"]] = [{}],
         order: Tuple[str, ...] = (),
-        builder: Optional[Builder] = None,
+        builder: Optional["Builder"] = None,
     ):
         self._sequence = sequence
         self._register = register
@@ -35,7 +36,7 @@ class Program:
         self._builder = builder
 
     @property
-    def static_params(self) -> Dict[str, ParamType]:
+    def static_params(self) -> Dict[str, "ParamType"]:
         """Get the instances of variables specified by .assign()
 
         Returns:
@@ -44,7 +45,7 @@ class Program:
         return self._static_params
 
     @property
-    def batch_params(self) -> List[Dict[str, ParamType]]:
+    def batch_params(self) -> List[Dict[str, "ParamType"]]:
         """Get the instances of variables specified by .batch_assign()
 
         Returns:
@@ -95,7 +96,7 @@ class Program:
         """
         return self._builder
 
-    def parse_args(self, *args) -> Dict[str, ParamType]:
+    def parse_args(self, *args) -> Dict[str, "Real"]:
         if len(args) != len(self.order):
             raise ValueError(f"Expected {len(self.order)} arguments, got {len(args)}.")
 
