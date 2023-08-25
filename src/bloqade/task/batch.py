@@ -43,6 +43,7 @@ class LocalBatch(Serializable):
         index = []
         data = []
         metas = []
+        geos = []
 
         for task_number, task in self.tasks.items():
             geometry = task.geometry
@@ -87,7 +88,9 @@ class LocalBatch(Serializable):
 
                 index.append(key)
                 data.append(post_sequence)
+
             metas.append(task.metadata)
+            geos.append(task.geometry)
 
         index = pd.MultiIndex.from_tuples(
             index, names=["task_number", "cluster", "perfect_sorting", "pre_sequence"]
@@ -98,9 +101,9 @@ class LocalBatch(Serializable):
 
         rept = None
         if self.name is None:
-            rept = Report(df, metas, "Local")
+            rept = Report(df, metas, geos, "Local")
         else:
-            rept = Report(df, metas, self.name)
+            rept = Report(df, metas, geos, self.name)
 
         return rept
 
@@ -328,6 +331,7 @@ class RemoteBatch(Serializable):
         index = []
         data = []
         metas = []
+        geos = []
 
         for task_number, task in self.tasks.items():
             ## fliter not existing results tasks:
@@ -380,7 +384,8 @@ class RemoteBatch(Serializable):
 
                 index.append(key)
                 data.append(post_sequence)
-                metas.append(task.metadata)
+            metas.append(task.metadata)
+            geos.append(task.geometry)
 
         index = pd.MultiIndex.from_tuples(
             index, names=["task_number", "cluster", "perfect_sorting", "pre_sequence"]
@@ -391,8 +396,8 @@ class RemoteBatch(Serializable):
 
         rept = None
         if self.name is None:
-            rept = Report(df, metas, "Remote")
+            rept = Report(df, metas, geos, "Remote")
         else:
-            rept = Report(df, metas, self.name)
+            rept = Report(df, metas, geos, self.name)
 
         return rept

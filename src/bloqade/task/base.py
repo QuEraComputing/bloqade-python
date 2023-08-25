@@ -120,13 +120,15 @@ class LocalTask(Task):
 class Report:
     dataframe: pd.DataFrame
     metas: List[Dict]
+    geos: List[Geometry]
     name: str = ""
 
-    def __init__(self, data, metas, name="") -> None:
+    def __init__(self, data, metas, geos, name="") -> None:
         self.dataframe = data  # df
         self._bitstrings = None  # bitstring cache
         self._counts = None  # counts cache
         self.metas = metas
+        self.geos = geos
         self.name = name + " " + str(datetime.datetime.now())
 
     def list_param(self, field_name: str) -> List[Union[Number, None]]:
