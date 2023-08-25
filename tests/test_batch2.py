@@ -1,4 +1,5 @@
 import bloqade.ir.location as location
+from bloqade import start, save_batch, load_batch
 from bloqade.ir import Linear, Constant
 import numpy as np
 
@@ -38,3 +39,18 @@ future.fetch()
 assert len(future.tasks) == 5
 
 print(future.report())
+
+
+def test_serializer():
+    batch = (
+        start.add_position((0, 0))
+        .rydberg.detuning.uniform.piecewise_linear(
+            [0.1, 0.5, 0.1], [1.0, 2.0, 3.0, 4.0]
+        )
+        .braket.local_emulator()
+        .run(1)
+    )
+
+    save_batch("test.json", batch)
+    new_batch = load_batch("test.json")
+    assert batch.tasks == new_batch.tasks
