@@ -2,8 +2,9 @@ from bloqade.codegen.common.static_assign import StaticAssignProgram
 from bloqade.codegen.hardware.quera import SchemaCodeGen
 from bloqade.ir.program import Program
 from bloqade.submission.quera import QuEraBackend
+from bloqade.submission.mock import DumbMockBackend
 from pydantic.dataclasses import dataclass
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, Union
 
 if TYPE_CHECKING:
     from bloqade.task.batch import RemoteBatch
@@ -12,7 +13,7 @@ if TYPE_CHECKING:
 @dataclass
 class QuEraBatchCompiler:
     program: Program
-    backend: QuEraBackend
+    backend: Union[QuEraBackend, DumbMockBackend]
 
     def compile(self, shots, args, name: Optional[str]) -> "RemoteBatch":
         from bloqade.task.quera import QuEraTask

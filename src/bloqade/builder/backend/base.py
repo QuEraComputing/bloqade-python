@@ -1,7 +1,7 @@
 from bloqade.builder.base import Builder
 
 from bloqade.task.batch import RemoteBatch, LocalBatch
-from typing import Any, Tuple
+from typing import Any, Optional, Tuple
 from numbers import Real
 
 
@@ -17,9 +17,7 @@ class LocalBackend(Backend):
         name: str | None = None,
         **kwargs,
     ):
-        tasks = self.compile_tasks(shots, *args)
-
-        batch = LocalBatch(dict(zip(range(len(tasks)), tasks)), name)
+        batch = self.compile(shots, args, name)
 
         # kwargs is the tuning params for integrators
         batch._run(**kwargs)
@@ -35,7 +33,9 @@ class LocalBackend(Backend):
     ) -> Any:
         return self.run(shots, args, **kwargs)
 
-    def compile_tasks(self, shots, *args):
+    def compile(
+        self, shots: int, args: Tuple[Real, ...], name: Optional[str] = None
+    ) -> LocalBatch:
         raise NotImplementedError
 
 
@@ -60,7 +60,9 @@ class RemoteBackend(Backend):
     ) -> Any:
         return self.run(shots, args, name, shuffle)
 
-    def compile_tasks(self, shots, *args):
+    def compile(
+        self, shots: int, args: Tuple[Real, ...], name: Optional[str] = None
+    ) -> RemoteBatch:
         raise NotImplementedError
 
     def submit(
@@ -68,12 +70,10 @@ class RemoteBackend(Backend):
         shots: int,
         args: Tuple[Real, ...] = (),
         name: str = None,
-        shuffle: bool = False,
+        shuffle_submit_order: bool = False,
     ):
-        tasks = self.compile_tasks(shots, *args)
+        batch = self.compile(shots, args, name)
 
-        batch = RemoteBatch(dict(zip(range(len(tasks)), tasks)), name)
-
-        batch._submit(shuffle)
+        batch._submit(shuffle_submit_order=shuffle_submit_order)
 
         return batch

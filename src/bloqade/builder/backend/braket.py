@@ -1,6 +1,8 @@
-from typing import Optional
+from numbers import Real
+from typing import Optional, Tuple
 from bloqade.builder.base import Builder
 from bloqade.builder.backend.base import LocalBackend, RemoteBackend
+from bloqade.task.batch import LocalBatch, RemoteBatch
 
 # import bloqade.ir as ir
 # from bloqade.task.braket import BraketTask
@@ -36,42 +38,19 @@ class Aquila(RemoteBackend):
         # super().__init__(cache_compiled_programs, parent=parent)
         super().__init__(parent=parent)
 
-    """
-    def _compile_task(self, bloqade_ir: ir.Program, shots: int, **metadata):
-        from bloqade.codegen.hardware.quera import SchemaCodeGen
+    def compile(
+        self, shots: int, args: Tuple[Real, ...], name: str | None = None
+    ) -> RemoteBatch:
+        from bloqade.builder.parse.builder import Parser
+        from bloqade.compile.braket import BraketBatchCompiler
+        from bloqade.submission.braket import BraketBackend
 
-        backend = braket_submit.BraketBackend()
-
-        capabilities = backend.get_capabilities()
-        schema_compiler = SchemaCodeGen({}, capabilities=capabilities)
-        task_ir = schema_compiler.emit(shots, bloqade_ir)
-        task_ir = task_ir.discretize(capabilities)
-        return BraketTask(
-            task_ir=task_ir,
-            backend=backend,
-            parallel_decoder=schema_compiler.parallel_decoder,
+        backend = BraketBackend(
+            device_arn="arn:aws:braket:us-east-1::device/qpu/quera/Aquila"
         )
-    """
 
-    # def compile_taskdata(self, shots, *args):
-    #     backend = braket_submit.BraketBackend()
-    #     return self._compile_tasks(shots, backend, *args)
-
-    # def _compile_taskdata(self, shots, backend, *args):
-    #     from ..compile.quera import QuEraSchemaCompiler
-
-    #     capabilities = backend.get_capabilities()
-
-    #     quera_task_data_list = QuEraSchemaCompiler(self, capabilities).compile(
-    #         shots, *args
-    #     )
-    #     return quera_task_data_list
-
-    # def compile_tasks(self, shots, *args):
-    #     backend = braket_submit.BraketBackend()
-    #     task_data = self._compile_taskdata(shots, backend, *args)
-
-    #     return [BraketTask(task_data=dat, backend=backend) for dat in task_data]
+        program = Parser(self).parse()
+        return BraketBatchCompiler(program, backend).compile(shots, args, name)
 
 
 class BraketEmulator(LocalBackend):
@@ -80,28 +59,15 @@ class BraketEmulator(LocalBackend):
 
     def __init__(
         self,
-        # cache_compiled_programs: bool = False,
         parent: Optional[Builder] = None,
     ) -> None:
-        # super().__init__(cache_compiled_programs, parent=parent)
         super().__init__(parent=parent)
 
-    """
-    def _compile_task(self, bloqade_ir: ir.Program, shots: int, **metadata):
-        from bloqade.codegen.hardware.quera import SchemaCodeGen
+    def compile(
+        self, shots: int, args: Tuple[Real, ...], name: str | None = None
+    ) -> LocalBatch:
+        from bloqade.builder.parse.builder import Parser
+        from bloqade.compile.braket_simulator import BraketLocalEmulatorBatchCompiler
 
-        schema_compiler = SchemaCodeGen({})
-        task_ir = schema_compiler.emit(shots, bloqade_ir)
-        return BraketEmulatorTask(task_ir=to_braket_task_ir(task_ir))
-    """
-
-    # def compile_taskdata(self, shots, *args):
-    #     from ..compile.braket_simulator import BraketEimulatorCompiler
-
-    #     braketemu_task_data_list = BraketEimulatorCompiler(self).compile(shots, *args)
-    #     return braketemu_task_data_list
-
-    # def compile_tasks(self, shots, *args):
-    #     task_data = self.compile_taskdata(shots, *args)
-
-    #     return [BraketEmulatorTask(task_data=dat) for dat in task_data]
+        program = Parser(self).parse()
+        return BraketLocalEmulatorBatchCompiler(program).compile(shots, args, name)
