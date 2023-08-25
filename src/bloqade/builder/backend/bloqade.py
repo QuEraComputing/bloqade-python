@@ -1,5 +1,5 @@
-from ..base import Builder
-from .base import LocalBackend
+from bloqade.builder.base import Builder
+from bloqade.builder.base import LocalBackend
 
 
 class BloqadeService(Builder):

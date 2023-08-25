@@ -1,6 +1,6 @@
 from typing import Optional
 from bloqade.builder.base import Builder
-from .base import LocalBackend, RemoteBackend
+from bloqade.builder.backend.base import LocalBackend, RemoteBackend
 
 # import bloqade.ir as ir
 from bloqade.task.braket import BraketTask
@@ -53,25 +53,25 @@ class Aquila(RemoteBackend):
         )
     """
 
-    def compile_taskdata(self, shots, *args):
-        backend = braket_submit.BraketBackend()
-        return self._compile_tasks(shots, backend, *args)
+    # def compile_taskdata(self, shots, *args):
+    #     backend = braket_submit.BraketBackend()
+    #     return self._compile_tasks(shots, backend, *args)
 
-    def _compile_taskdata(self, shots, backend, *args):
-        from ..compile.quera import QuEraSchemaCompiler
+    # def _compile_taskdata(self, shots, backend, *args):
+    #     from ..compile.quera import QuEraSchemaCompiler
 
-        capabilities = backend.get_capabilities()
+    #     capabilities = backend.get_capabilities()
 
-        quera_task_data_list = QuEraSchemaCompiler(self, capabilities).compile(
-            shots, *args
-        )
-        return quera_task_data_list
+    #     quera_task_data_list = QuEraSchemaCompiler(self, capabilities).compile(
+    #         shots, *args
+    #     )
+    #     return quera_task_data_list
 
-    def compile_tasks(self, shots, *args):
-        backend = braket_submit.BraketBackend()
-        task_data = self._compile_taskdata(shots, backend, *args)
+    # def compile_tasks(self, shots, *args):
+    #     backend = braket_submit.BraketBackend()
+    #     task_data = self._compile_taskdata(shots, backend, *args)
 
-        return [BraketTask(task_data=dat, backend=backend) for dat in task_data]
+    #     return [BraketTask(task_data=dat, backend=backend) for dat in task_data]
 
 
 class BraketEmulator(LocalBackend):
@@ -95,13 +95,13 @@ class BraketEmulator(LocalBackend):
         return BraketEmulatorTask(task_ir=to_braket_task_ir(task_ir))
     """
 
-    def compile_taskdata(self, shots, *args):
-        from ..compile.braket_simulator import BraketEimulatorCompiler
+    # def compile_taskdata(self, shots, *args):
+    #     from ..compile.braket_simulator import BraketEimulatorCompiler
 
-        braketemu_task_data_list = BraketEimulatorCompiler(self).compile(shots, *args)
-        return braketemu_task_data_list
+    #     braketemu_task_data_list = BraketEimulatorCompiler(self).compile(shots, *args)
+    #     return braketemu_task_data_list
 
-    def compile_tasks(self, shots, *args):
-        task_data = self.compile_taskdata(shots, *args)
+    # def compile_tasks(self, shots, *args):
+    #     task_data = self.compile_taskdata(shots, *args)
 
-        return [BraketEmulatorTask(task_data=dat) for dat in task_data]
+    #     return [BraketEmulatorTask(task_data=dat) for dat in task_data]

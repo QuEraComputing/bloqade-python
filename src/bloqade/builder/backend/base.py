@@ -1,12 +1,8 @@
-# from ... import ir
-from ..base import Builder
+from bloqade.builder.base import Builder
 
 from bloqade.task.batch import RemoteBatch, LocalBatch
 from typing import Any, Tuple
 from numbers import Real
-
-# from ..compile.quera import QuEraSchemaCompiler
-
 
 class Backend(Builder):
     pass

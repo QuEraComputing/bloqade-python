@@ -1,16 +1,16 @@
 import bloqade.ir as ir
 
-from ..base import Builder
-from ..coupling import LevelCoupling, Rydberg, Hyperfine
-from ..sequence_builder import SequenceBuilder
-from ..field import Field, Detuning, RabiAmplitude, RabiPhase
-from ..spatial import SpatialModulation, Location, Uniform, Var, Scale
-from ..waveform import WaveformPrimitive, Slice, Record, Sample, Fn
-from ..assign import Assign, BatchAssign
-from ..flatten import Flatten
-from ..parallelize import Parallelize, ParallelizeFlatten
+from bloqade.builder.base import Builder
+from bloqade.builder.coupling import LevelCoupling, Rydberg, Hyperfine
+from bloqade.builder.sequence_builder import SequenceBuilder
+from bloqade.builder.field import Field, Detuning, RabiAmplitude, RabiPhase
+from bloqade.builder.spatial import SpatialModulation, Location, Uniform, Var, Scale
+from bloqade.builder.waveform import WaveformPrimitive, Slice, Record, Sample, Fn
+from bloqade.builder.assign import Assign, BatchAssign
+from bloqade.builder.flatten import Flatten
+from bloqade.builder.parallelize import Parallelize, ParallelizeFlatten
 
-from .stream import BuilderNode
+from bloqade.builder.compile.stream import BuilderNode
 
 from itertools import repeat
 from typing import Tuple
@@ -26,7 +26,7 @@ class Parser:
     )
 
     def __init__(self, ast: Builder) -> None:
-        from .stream import BuilderStream
+        from bloqade.builder.compile.stream import BuilderStream
 
         self.stream = BuilderStream.create(ast)
         self.vector_node_names = set([])

@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 import bloqade.ir as ir
 
-from ..base import Builder, ParamType
+from bloqade.builder.base import Builder, ParamType
 from typing import List, Dict
 
 
@@ -13,7 +13,7 @@ class ProgramData:
 
 class BuilderCompiler:
     def __init__(self, builder: Builder) -> None:
-        from .builder import Parser
+        from bloqade.builder.compile.builder import Parser
 
         self.program = Parser(builder).parse()
 

@@ -1,9 +1,9 @@
-from .base import Builder
+from bloqade.builder.base import Builder
 from bloqade.ir.control.sequence import Sequence
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from .sequence_builder import SequenceBuilder
+    from bloqade.builder.sequence_builder import SequenceBuilder
 
 
 class ProgramStart(Builder):
@@ -38,7 +38,7 @@ class ProgramStart(Builder):
 
         See [`Rydberg`][bloqade.builder.coupling.Rydberg] for more details.
         """
-        from .coupling import Rydberg
+        from bloqade.builder.coupling import Rydberg
 
         return Rydberg(self)
 
@@ -71,12 +71,12 @@ class ProgramStart(Builder):
 
         See [Hyperfine][bloqade.builder.coupling.Hyperfine] for more details.
         """
-        from .coupling import Hyperfine
+        from bloqade.builder.coupling import Hyperfine
 
         return Hyperfine(self)
 
     def apply(self, sequence: Sequence) -> "SequenceBuilder":
         """apply an existing pulse sequence to the program."""
-        from .sequence_builder import SequenceBuilder
+        from bloqade.builder.sequence_builder import SequenceBuilder
 
         return SequenceBuilder(self, sequence)

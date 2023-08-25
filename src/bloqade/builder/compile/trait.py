@@ -1,11 +1,11 @@
-from ... import ir
+import bloqade.ir as ir
 from typing import Union
 import json
 
 
 class CompileJSON:
     def json(self, **json_options) -> str:
-        from .json import BuilderSerializer
+        from bloqade.builder.compile.json import BuilderSerializer
 
         return json.dumps(self, cls=BuilderSerializer, **json_options)
 
@@ -15,21 +15,21 @@ class CompileJSON:
 
 class ParseRegister:
     def parse_register(self) -> Union["ir.AtomArrangement", "ir.ParallelRegister"]:
-        from .builder import Parser
+        from bloqade.builder.compile.builder import Parser
 
         return Parser(self).read_register()
 
 
 class ParseSequence:
     def parse_sequence(self) -> ir.Sequence:
-        from .builder import Parser
+        from bloqade.builder.compile.builder import Parser
 
         return Parser(self).read_sequeence()
 
 
 class ParseProgram:
     def parse_program(self) -> ir.Program:
-        from .builder import Parser
+        from bloqade.builder.compile.builder import Parser
 
         return Parser(self).parse()
 

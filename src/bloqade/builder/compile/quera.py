@@ -1,9 +1,9 @@
-from .ir import BuilderCompiler
-from ..base import Builder, ParamType
-from ...submission.ir.capabilities import QuEraCapabilities
-from ...submission.ir.task_specification import QuEraTaskSpecification
-from ...submission.ir.parallel import ParallelDecoder
-from ...codegen.hardware.quera import SchemaCodeGen
+from bloqade.ir import BuilderCompiler
+from bloqade.builder.base import Builder, ParamType
+from bloqade.submission.ir.capabilities import QuEraCapabilities
+from bloqade.submission.ir.task_specification import QuEraTaskSpecification
+from bloqade.submission.ir.parallel import ParallelDecoder
+from bloqade.codegen.hardware.quera import SchemaCodeGen
 from typing import Dict, List, Optional
 from dataclasses import dataclass
 

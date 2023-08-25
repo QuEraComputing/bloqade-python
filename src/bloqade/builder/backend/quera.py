@@ -1,12 +1,11 @@
 from typing import Optional
-from ..base import Builder
-from .base import RemoteBackend
-import os
-import json
+from bloqade.builder.base import Builder
+from bloqade.builder.backend.base import RemoteBackend
 from bloqade.task.quera import QuEraTask
 import bloqade.submission.quera as quera_submit
 import bloqade.submission.mock as mock_submit
-
+import os
+import json
 
 class QuEraService(Builder):
     @property
@@ -65,7 +64,7 @@ class QuEraBackend(RemoteBackend):
         return self._compile_taskdata(shots, backend, *args)
 
     def _compile_taskdata(self, shots, backend, *args):
-        from ..compile.quera import QuEraSchemaCompiler
+        from bloqade.builder.compile.quera import QuEraSchemaCompiler
 
         capabilities = backend.get_capabilities()
 
@@ -140,7 +139,7 @@ class Mock(RemoteBackend):
         return self._compile_taskdata(shots, backend, *args)
 
     def _compile_taskdata(self, shots, backend, *args):
-        from ..compile.quera import QuEraSchemaCompiler
+        from bloqade.builder.compile.quera import QuEraSchemaCompiler
 
         capabilities = backend.get_capabilities()
 

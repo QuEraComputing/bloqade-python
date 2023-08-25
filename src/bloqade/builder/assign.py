@@ -1,8 +1,8 @@
 from typing import Optional
-from .base import Builder
-from .pragmas import Parallelizable, Flattenable, BatchAssignable
-from .backend import BackendRoute
-from .compile.trait import Parse
+from bloqade.builder.base import Builder
+from bloqade.builder.pragmas import Parallelizable, Flattenable, BatchAssignable
+from bloqade.builder.backend import BackendRoute
+from bloqade.builder.compile.trait import Parse
 import numpy as np
 from numbers import Real
 

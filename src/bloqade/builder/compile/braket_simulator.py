@@ -1,7 +1,7 @@
-from ...ir import ParallelRegister
-from .ir import BuilderCompiler
-from ..base import Builder, ParamType
-from ...codegen.hardware.quera import SchemaCodeGen
+from bloqade.ir import ParallelRegister, Program
+from bloqade.builder.compile.ir import BuilderCompiler
+from bloqade.builder.base import Builder, ParamType
+from bloqade.codegen.hardware.quera import SchemaCodeGen
 from typing import Dict, List
 from dataclasses import dataclass
 from bloqade.submission.ir.braket import BraketTaskSpecification, to_braket_task_ir
@@ -9,6 +9,7 @@ from bloqade.submission.ir.braket import BraketTaskSpecification, to_braket_task
 
 @dataclass
 class BraketEmulatorTaskData:
+    program: Program
     task_ir: BraketTaskSpecification
     metadata: Dict[str, ParamType]
     # parallel_decoder: Optional[ParallelDecoder] = None

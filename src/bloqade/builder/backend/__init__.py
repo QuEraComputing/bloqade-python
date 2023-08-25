@@ -1,6 +1,6 @@
-from .quera import QuEraService
-from .braket import BraketService
-from .bloqade import BloqadeService
+from bloqade.builder.backend.quera import QuEraService
+from bloqade.builder.backend.braket import BraketService
+from bloqade.builder.backend.bloqade import BloqadeService
 
 
 class BackendRoute(QuEraService, BraketService, BloqadeService):
