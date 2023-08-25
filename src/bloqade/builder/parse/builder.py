@@ -10,7 +10,7 @@ from bloqade.builder.assign import Assign, BatchAssign
 from bloqade.builder.flatten import Flatten
 from bloqade.builder.parallelize import Parallelize, ParallelizeFlatten
 
-from bloqade.builder.compile.stream import BuilderNode
+from bloqade.builder.parse.stream import BuilderNode
 
 from itertools import repeat
 from typing import Tuple
@@ -26,7 +26,7 @@ class Parser:
     )
 
     def __init__(self, ast: Builder) -> None:
-        from bloqade.builder.compile.stream import BuilderStream
+        from bloqade.builder.parse.stream import BuilderStream
 
         self.stream = BuilderStream.create(ast)
         self.vector_node_names = set([])

@@ -13,7 +13,7 @@ class ProgramData:
 
 class BuilderCompiler:
     def __init__(self, builder: Builder) -> None:
-        from bloqade.builder.compile.builder import Parser
+        from bloqade.builder.parse.builder import Parser
 
         self.program = Parser(builder).parse()
 
