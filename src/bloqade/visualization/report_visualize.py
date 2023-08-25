@@ -10,6 +10,7 @@ import math
 
 # import itertools
 import numpy as np
+from decimal import Decimal
 
 # from typing import List
 
@@ -58,7 +59,7 @@ def format_report_data(report):
         cnt_sources.append(src)
         ryd_sources.append(rsrc)
 
-    return cnt_sources, ryd_sources, report.metas, report.name
+    return cnt_sources, ryd_sources, report.metas, report.geos, report.name
 
 
 def mock_data():
@@ -92,7 +93,13 @@ def mock_data():
     metas.append(dict(a=4, b=9, c=10))
     geos.append(
         tks.base.Geometry(
-            sites=[(0.0, 0.0), (0.0, 0.5), (0.5, 0.3), (0.6, 0.7)], filling=[1, 1, 1, 0]
+            sites=[
+                (0.0e-6, 0.0e-6),
+                (0.0e-6, 0.5e-6),
+                (0.5e-6, 0.3e-6),
+                (0.6e-6, 0.7e-6),
+            ],
+            filling=[1, 1, 1, 0],
         )
     )
 
@@ -119,7 +126,12 @@ def mock_data():
     metas.append(dict(a=10, b=9.44, c=10.3))
     geos.append(
         tks.base.Geometry(
-            sites=[(0.0, 0.1), (0.66, 0.5), (0.3, 0.3), (0.5, 0.7)],
+            sites=[
+                (0.0e-6, 0.1e-6),
+                (0.66e-6, 0.5e-6),
+                (0.3e-6, 0.3e-6),
+                (0.5e-6, 0.7e-6),
+            ],
             filling=[1, 0, 1, 0],
         )
     )
@@ -137,6 +149,8 @@ def plot_register_ryd_dense(geo, ryds):
     y_max = -np.inf
     for idx, location_info in enumerate(zip(geo.sites, geo.filling, ryds)):
         (x, y), filling, density = location_info
+        x = float(Decimal(str(x)) * Decimal("1e6"))  # convert to um
+        y = float(Decimal(str(y)) * Decimal("1e6"))  # convert to um
         x_min = min(x, x_min)
         y_min = min(y, y_min)
         x_max = max(x, x_max)
@@ -220,6 +234,7 @@ def plot_register_ryd_dense(geo, ryds):
         location=(0, 0),
     )
 
+    p.xaxis.axis_label = "(um)"
     p.add_layout(color_bar, "right")
     p.add_tools(hover)
 
@@ -236,6 +251,8 @@ def plot_register(geo):
     y_max = -np.inf
     for idx, location_info in enumerate(zip(geo.sites, geo.filling)):
         (x, y), filling = location_info
+        x = float(Decimal(str(x)) * Decimal("1e6"))  # convert to um
+        y = float(Decimal(str(y)) * Decimal("1e6"))  # convert to um
         x_min = min(x, x_min)
         y_min = min(y, y_min)
         x_max = max(x, x_max)
@@ -364,6 +381,7 @@ def report_visual(cnt_sources, ryd_sources, metas, geos, name):
             pryd.add_tools(hov_tool)
 
             # pgeo = plot_register(geo)
+            # print(geo,  trydsrc.data["ryds"])
             pgeo = plot_register_ryd_dense(geo, trydsrc.data["ryds"])
 
             figs.append(row(div, p, pryd, pgeo, name=taskname))
