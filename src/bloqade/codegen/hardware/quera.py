@@ -713,13 +713,17 @@ class SchemaCodeGen(ProgramVisitor):
         self.n_atoms = len(ast.register_locations)
         self.parallel_decoder = ParallelDecoder(mapping=mapping)
 
-    def emit(self, nshots: int, program: "Program") -> task_spec.QuEraTaskSpecification:
+    def emit(
+        self, nshots: int, program: "Program"
+    ) -> Tuple[task_spec.QuEraTaskSpecification, Optional[ParallelDecoder]]:
         self.assignments = AssignmentScan(self.assignments).emit(program.sequence)
         self.visit(program.register)
         self.visit(program.sequence)
 
-        return task_spec.QuEraTaskSpecification(
+        task_ir = task_spec.QuEraTaskSpecification(
             nshots=nshots,
             lattice=self.lattice,
             effective_hamiltonian=self.effective_hamiltonian,
         )
+
+        return task_ir, self.parallel_decoder
