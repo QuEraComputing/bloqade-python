@@ -28,6 +28,7 @@ class Parser:
     def __init__(self, ast: Builder) -> None:
         from bloqade.builder.parse.stream import BuilderStream
 
+        self.builder = ast
         self.stream = BuilderStream.create(ast)
         self.vector_node_names = set([])
         self.sequence = ir.Sequence({})
@@ -226,4 +227,5 @@ class Parser:
             self.static_params,
             self.batch_params,
             self.order,
+            self.builder,
         )
