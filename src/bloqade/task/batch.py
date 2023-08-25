@@ -384,6 +384,7 @@ class RemoteBatch(Serializable):
 
                 index.append(key)
                 data.append(post_sequence)
+
             metas.append(task.metadata)
             geos.append(task.geometry)
 
