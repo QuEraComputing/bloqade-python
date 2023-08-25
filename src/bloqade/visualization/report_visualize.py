@@ -1,12 +1,11 @@
 from bokeh.plotting import figure, show
 from bokeh.layouts import column, row
-from bokeh.models import CustomJS, MultiChoice, Div, HoverTool, Range1d
-from bokeh.models import (
-    ColumnDataSource,
-)
+from bokeh.models import CustomJS, MultiChoice, Div, HoverTool, Range1d, ColorBar
+from bokeh.models import ColumnDataSource, LinearColorMapper
 
 # from bokeh.models import Tabs, TabPanel,, Div, CrosshairTool, Span
 from bokeh.palettes import Dark2_5
+
 import math
 
 # import itertools
@@ -63,7 +62,7 @@ def format_report_data(report):
 
 
 def mock_data():
-    from bloqade.task.base import Geometry
+    import bloqade.task as tks
 
     cnt_sources = []
     ryd_sources = []
@@ -92,7 +91,7 @@ def mock_data():
     ryd_sources.append(rsrc)
     metas.append(dict(a=4, b=9, c=10))
     geos.append(
-        Geometry(
+        tks.base.Geometry(
             sites=[(0.0, 0.0), (0.0, 0.5), (0.5, 0.3), (0.6, 0.7)], filling=[1, 1, 1, 0]
         )
     )
@@ -119,13 +118,112 @@ def mock_data():
     ryd_sources.append(rsrc)
     metas.append(dict(a=10, b=9.44, c=10.3))
     geos.append(
-        Geometry(
+        tks.base.Geometry(
             sites=[(0.0, 0.1), (0.66, 0.5), (0.3, 0.3), (0.5, 0.7)],
             filling=[1, 0, 1, 0],
         )
     )
 
     return cnt_sources, ryd_sources, metas, geos, "Mock"
+
+
+def plot_register_ryd_dense(geo, ryds):
+    """obtain a figure object from the atom arrangement."""
+    xs_filled, ys_filled, labels_filled, density_filled = [], [], [], []
+    xs_vacant, ys_vacant, labels_vacant, density_vacant = [], [], [], []
+    x_min = np.inf
+    x_max = -np.inf
+    y_min = np.inf
+    y_max = -np.inf
+    for idx, location_info in enumerate(zip(geo.sites, geo.filling, ryds)):
+        (x, y), filling, density = location_info
+        x_min = min(x, x_min)
+        y_min = min(y, y_min)
+        x_max = max(x, x_max)
+        y_max = max(y, y_max)
+        if filling:
+            xs_filled.append(x)
+            ys_filled.append(y)
+            labels_filled.append(idx)
+            density_filled.append(density)
+        else:
+            xs_vacant.append(x)
+            ys_vacant.append(y)
+            labels_vacant.append(idx)
+            density_vacant.append(density)
+
+    if len(geo.sites) > 0:
+        length_scale = max(y_max - y_min, x_max - x_min, 1)
+    else:
+        length_scale = 1
+
+    source_filled = ColumnDataSource(
+        data=dict(
+            _x=xs_filled, _y=ys_filled, _labels=labels_filled, _ryd=density_filled
+        )
+    )
+    source_vacant = ColumnDataSource(
+        data=dict(
+            _x=xs_vacant, _y=ys_vacant, _labels=labels_vacant, _ryd=density_vacant
+        )
+    )
+
+    hover = HoverTool()
+    hover.tooltips = [
+        ("(x,y)", "(@_x, @_y)"),
+        ("index: ", "@_labels"),
+        ("ryd density: ", "@_ryd"),
+    ]
+
+    color_mapper = LinearColorMapper(palette="Magma256", low=min(ryds), high=max(ryds))
+
+    # specify that we want to map the colors to the y values,
+    # this could be replaced with a list of colors
+    ##p.scatter(x,y,color={'field': 'y', 'transform': color_mapper})
+
+    ## remove box_zoom since we don't want to change the scale
+
+    p = figure(
+        width=400,
+        height=400,
+        tools="wheel_zoom,reset, undo, redo, pan",
+        toolbar_location="above",
+    )
+    p.x_range = Range1d(x_min - 1, x_min + length_scale + 1)
+    p.y_range = Range1d(y_min - 1, y_min + length_scale + 1)
+
+    p.circle(
+        "_x",
+        "_y",
+        source=source_filled,
+        radius=0.035 * length_scale,
+        fill_alpha=1,
+        line_color="black",
+        color={"field": "_ryd", "transform": color_mapper},
+    )
+    p.circle(
+        "_x",
+        "_y",
+        source=source_vacant,
+        radius=0.035 * length_scale,
+        fill_alpha=1,
+        # color="grey",
+        line_color="black",
+        color={"field": "_ryd", "transform": color_mapper},
+        line_width=0.2 * length_scale,
+    )
+
+    color_bar = ColorBar(
+        color_mapper=color_mapper,
+        label_standoff=12,
+        border_line_color=None,
+        location=(0, 0),
+    )
+
+    p.add_layout(color_bar, "right")
+    p.add_tools(hover)
+
+    return p
 
 
 def plot_register(geo):
@@ -151,10 +249,6 @@ def plot_register(geo):
             ys_vacant.append(y)
             labels_vacant.append(idx)
 
-    # Ly = y_max - y_min
-    # Lx = x_max - x_min
-    # scale_x = (Lx+2)/(Ly+2)
-
     if len(geo.sites) > 0:
         length_scale = max(y_max - y_min, x_max - x_min, 1)
     else:
@@ -171,6 +265,12 @@ def plot_register(geo):
         ("(x,y)", "(@_x, @_y)"),
         ("index: ", "@_labels"),
     ]
+
+    # color_mapper = LinearColorMapper(palette='Magma256', low=min(y), high=max(y))
+
+    # specify that we want to map the colors to the y values,
+    # this could be replaced with a list of colors
+    ##p.scatter(x,y,color={'field': 'y', 'transform': color_mapper})
 
     ## remove box_zoom since we don't want to change the scale
 
@@ -263,7 +363,8 @@ def report_visual(cnt_sources, ryd_sources, metas, geos, name):
             hov_tool.tooltips = [("density: ", "@ryds")]
             pryd.add_tools(hov_tool)
 
-            pgeo = plot_register(geo)
+            # pgeo = plot_register(geo)
+            pgeo = plot_register_ryd_dense(geo, trydsrc.data["ryds"])
 
             figs.append(row(div, p, pryd, pgeo, name=taskname))
             figs[-1].visible = False
