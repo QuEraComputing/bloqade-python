@@ -395,13 +395,13 @@ class Variable(Real):
 @dataclass(frozen=True, repr=False)
 class AssignedVariable(Scalar):
     name: str
-    default_value: Literal
+    value: Literal
 
     def __str__(self):
         return f"{self.name}"
 
     def children(self):
-        return [self.default_value]
+        return [self.value]
 
     def print_node(self):
         return f"DefaultVariable: {self.name}"

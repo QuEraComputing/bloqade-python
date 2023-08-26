@@ -1,3 +1,4 @@
+from bloqade.ir.analog_circuit import AnalogCircuit
 from bloqade.ir.scalar import Literal
 import bloqade.ir.control.waveform as waveform
 from bloqade.ir.control.field import (
@@ -25,7 +26,6 @@ from bloqade.ir.control.sequence import (
 )
 from bloqade.ir.location.base import AtomArrangement, ParallelRegister
 from bloqade.ir.control.waveform import Record
-from bloqade.ir import Program
 
 from bloqade.ir.visitor.program import ProgramVisitor
 from bloqade.ir.visitor.waveform import WaveformVisitor
@@ -713,12 +713,17 @@ class SchemaCodeGen(ProgramVisitor):
         self.n_atoms = len(ast.register_locations)
         self.parallel_decoder = ParallelDecoder(mapping=mapping)
 
+    def visit_analog_circuit(self, ast: AnalogCircuit) -> Any:
+        self.visit(ast.register)
+        self.visit(ast.sequence)
+
     def emit(
-        self, nshots: int, program: "Program"
+        self, nshots: int, analog_circuit: AnalogCircuit
     ) -> Tuple[task_spec.QuEraTaskSpecification, Optional[ParallelDecoder]]:
-        self.assignments = AssignmentScan(self.assignments).emit(program.sequence)
-        self.visit(program.register)
-        self.visit(program.sequence)
+        self.assignments = AssignmentScan(self.assignments).emit(
+            analog_circuit.sequence
+        )
+        self.visit(analog_circuit)
 
         task_ir = task_spec.QuEraTaskSpecification(
             nshots=nshots,

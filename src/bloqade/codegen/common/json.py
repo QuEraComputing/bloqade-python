@@ -2,7 +2,7 @@ import bloqade.ir.location as location
 import bloqade.ir.control.sequence as sequence
 import bloqade.ir.control.pulse as pulse
 import bloqade.ir.control.field as field
-import bloqade.ir.program as program
+import bloqade.ir.analog_circuit as analog_circuit
 import bloqade.ir.control.waveform as waveform
 import bloqade.ir.scalar as scalar
 
@@ -22,11 +22,11 @@ class ScalarSerilaizer(ScalarVisitor):
     def visit_variable(self, ast: scalar.Variable) -> Dict[str, Dict[str, str]]:
         return {"variable": {"name": ast.name}}
 
-    def visit_default_variable(self, ast: scalar.DefaultVariable) -> Dict[str, Any]:
+    def visit_assigned_variable(self, ast: scalar.AssignedVariable) -> Dict[str, Any]:
         return {
             "default_variable": {
                 "name": ast.name,
-                "default_value": str(ast.default_value),
+                "default_value": str(ast.value),
             }
         }
 
@@ -365,7 +365,7 @@ class ProgramSerializer(ProgramVisitor):
     def visit_waveform(self, ast: waveform.Waveform) -> Any:
         return self.waveform_serializer.visit(ast)
 
-    def visit_program(self, ast: program.Program) -> Any:
+    def visit_analog_circuit(self, ast: analog_circuit.AnalogCircuit) -> Any:
         return {
             "bloqade_program": {
                 "sequence": self.visit(ast.sequence),
@@ -384,10 +384,10 @@ class BloqadeIRSerializer(json.JSONEncoder):
         self.waveform_serializer = WaveformSerializer()
         self.scalar_serializer = ScalarSerilaizer()
         self.bloqade_seq_types = (
-            program.Program,
+            analog_circuit.AnalogCircuit,
             location.AtomArrangement,
             location.ParallelRegister,
-            program.Program,
+            analog_circuit.AnalogCircuit,
             sequence.SequenceExpr,
             pulse.PulseExpr,
             field.FieldExpr,
@@ -493,7 +493,7 @@ class BloqadeIRDeserializer:
             case {"variable": {"name": str(name)}}:
                 return scalar.Variable(name)
             case {"default_variable": {"name": str(name), "default_value": str(value)}}:
-                return scalar.DefaultVariable(name, Decimal(value))
+                return scalar.AssignedVariable(name, Decimal(value))
             case {"negative": {"expr": expr}}:
                 return scalar.Negative(expr)
             case {"add": {"lhs": lhs, "rhs": rhs}}:
@@ -708,7 +708,7 @@ class BloqadeIRDeserializer:
         elif self.is_register_obj(obj):
             return self.register_hook(obj)
         elif "bloqade_program" in obj:
-            return program.Program(
+            return analog_circuit.AnalogCircuit(
                 register=self.register_hook(obj["bloqade_program"]["register"]),
                 sequence=self.sequence_hook(obj["bloqade_program"]["sequence"]),
                 static_params=obj["bloqade_program"]["static_params"],
