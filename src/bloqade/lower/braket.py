@@ -20,15 +20,15 @@ class BraketCompiler:
     def compile(self, shots, name: Optional[str]) -> "RemoteBatch":
         from bloqade.task.braket import BraketTask
 
-        capabilities = self.backend.get_capabilities()
         tasks = OrderedDict()
-
+        capabilities = self.backend.get_capabilities()
         for task_number, bloqade_task in self.batch.tasks.items():
             metadata = {**bloqade_task.assingments, **self.batch.program.assignments}
-            task_ir, parallel_decoder = SchemaCodeGen(
-                bloqade_task.assingments, capabilities
-            ).emit(shots, bloqade_task.ast)
+            task_ir, parallel_decoder = SchemaCodeGen(capabilities=capabilities).emit(
+                shots, bloqade_task.ast
+            )
 
+            task_ir = task_ir.discretize(capabilities)
             task = BraketTask(
                 task_id=None,
                 task_ir=task_ir,

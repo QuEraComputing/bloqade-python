@@ -22,12 +22,14 @@ class QuEraCompiler:
         from bloqade.task.batch import RemoteBatch
 
         tasks = OrderedDict()
+        capabilities = self.backend.get_capabilities()
         for task_number, bloqade_task in self.batch.tasks.items():
             metadata = {**bloqade_task.assingments, **self.batch.program.assignments}
-            task_ir, parallel_decoder = SchemaCodeGen(bloqade_task.assingments).emit(
+            task_ir, parallel_decoder = SchemaCodeGen(capabilities=capabilities).emit(
                 shots, bloqade_task.ast
             )
 
+            task_ir = task_ir.discretize(capabilities)
             task = QuEraTask(
                 task_id=None,
                 task_ir=task_ir,

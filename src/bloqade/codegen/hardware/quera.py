@@ -359,7 +359,7 @@ class PiecewiseConstantCodeGen(WaveformVisitor):
 class SchemaCodeGen(AnalogCircuitVisitor):
     def __init__(
         self,
-        assignments: Dict[str, Union[numbers.Real, List[numbers.Real]]],
+        assignments: Dict[str, Union[numbers.Real, List[numbers.Real]]] = {},
         capabilities: Optional[QuEraCapabilities] = None,
     ):
         self.capabilities = capabilities

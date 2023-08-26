@@ -25,7 +25,7 @@ class CompileBraketEmulator:
         for task_number, task in self.batch.tasks.items():
             metadata = {**task.assingments, **self.batch.program.assignments}
 
-            quera_task_ir, _ = SchemaCodeGen(task.assingments).emit(shots, task.ast)
+            quera_task_ir, _ = SchemaCodeGen().emit(shots, task.ast)
 
             task = BraketEmulatorTask(
                 task_ir=to_braket_task_ir(quera_task_ir),

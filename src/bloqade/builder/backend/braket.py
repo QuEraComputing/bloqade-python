@@ -51,7 +51,6 @@ class Aquila(RemoteBackend):
         )
 
         program = Parser(self).parse()
-
         batch = LowerBloqadeProgram(program).compile(args)
         return BraketCompiler(batch, backend).compile(shots, name)
 
@@ -70,7 +69,9 @@ class BraketEmulator(LocalBackend):
         self, shots: int, args: Tuple[Real, ...], name: str | None = None
     ) -> LocalBatch:
         from bloqade.builder.parse.builder import Parser
-        from bloqade.lower.braket_simulator import BraketLocalEmulatorBatchCompiler
+        from bloqade.lower.batch import LowerBloqadeProgram
+        from bloqade.lower.braket_simulator import CompileBraketEmulator
 
         program = Parser(self).parse()
-        return BraketLocalEmulatorBatchCompiler(program).compile(shots, args, name)
+        batch = LowerBloqadeProgram(program).compile(args)
+        return CompileBraketEmulator(batch).compile(shots, name)

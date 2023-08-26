@@ -399,12 +399,12 @@ def test_Slice():
     )
 
 
-def test_default_variable_methods():
-    default_var = scalar.AssignedVariable("a", cast(1.0))
+def test_assigned_variable_methods():
+    assigned_var = scalar.AssignedVariable("a", Decimal("1.0"))
 
-    assert default_var.children() == [cast(1.0)]
-    assert default_var.print_node() == "DefaultVariable: a"
-    assert str(default_var) == "a"
+    assert assigned_var.children() == [Decimal("1.0")]
+    assert assigned_var.print_node() == "DefaultVariable: a"
+    assert str(assigned_var) == "a"
 
 
 @pytest.mark.skip(reason="Changed implementation of static_assign")
