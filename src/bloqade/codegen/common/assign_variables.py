@@ -4,7 +4,7 @@ import bloqade.ir.control.pulse as pulse
 import bloqade.ir.control.field as field
 import bloqade.ir.control.waveform as waveform
 import bloqade.ir.scalar as scalar
-import bloqade.ir.program as program
+import bloqade.ir.analog_circuit as analog_circuit
 
 from bloqade.ir.visitor.program import ProgramVisitor
 from bloqade.ir.visitor.waveform import WaveformVisitor
@@ -30,9 +30,9 @@ class AssignScalar(ScalarVisitor):
 
         return ast
 
-    def visit_default_variable(
+    def visit_assigned_variable(
         self, ast: scalar.Variable
-    ) -> Union[scalar.Literal, scalar.DefaultVariable]:
+    ) -> Union[scalar.Literal, scalar.AssignedVariable]:
         if ast.name in self.mapping:
             return scalar.Literal(self.mapping[ast.name])
 
@@ -187,5 +187,7 @@ class AssignProgram(ProgramVisitor):
     def visit_waveform(self, ast: waveform.Waveform) -> waveform.Waveform:
         return self.waveform_visitor.emit(ast)
 
-    def emit(self, ast: program.Program) -> program.Program:
-        return program.Program(self.visit(ast.register), self.visit(ast.sequence))
+    def emit(self, ast: analog_circuit.AnalogCircuit) -> analog_circuit.AnalogCircuit:
+        return analog_circuit.AnalogCircuit(
+            self.visit(ast.register), self.visit(ast.sequence)
+        )
