@@ -50,7 +50,7 @@ class Scalar:
                     return Decimal(str(kwargs[name]))
                 else:
                     raise Exception(f"Unknown variable: {name}")
-            case DefaultVariable(name, default_value):
+            case AssignedVariable(name, default_value):
                 if name in kwargs:
                     return Decimal(str(kwargs[name]))
                 else:
@@ -393,7 +393,7 @@ class Variable(Real):
 
 
 @dataclass(frozen=True, repr=False)
-class DefaultVariable(Scalar):
+class AssignedVariable(Scalar):
     name: str
     default_value: Literal
 

@@ -400,7 +400,7 @@ def test_Slice():
 
 
 def test_default_variable_methods():
-    default_var = scalar.DefaultVariable("a", cast(1.0))
+    default_var = scalar.AssignedVariable("a", cast(1.0))
 
     assert default_var.children() == [cast(1.0)]
     assert default_var.print_node() == "DefaultVariable: a"
@@ -418,7 +418,7 @@ def test_static_assign():
     assert variable == variable.static_assign(b=2)
     assert cast(float_value) == variable.static_assign(A=float_value)
 
-    default_var = scalar.DefaultVariable("A", Decimal("1.0"))
+    default_var = scalar.AssignedVariable("A", Decimal("1.0"))
     assert default_var == default_var.static_assign(b=2)
     assert cast(float_value) == default_var.static_assign(A=float_value)
 
