@@ -1,5 +1,3 @@
-import bloqade.ir as ir
-
 from bloqade.builder.base import Builder
 from bloqade.builder.coupling import LevelCoupling, Rydberg, Hyperfine
 from bloqade.builder.sequence_builder import SequenceBuilder
@@ -9,8 +7,10 @@ from bloqade.builder.waveform import WaveformPrimitive, Slice, Record, Sample, F
 from bloqade.builder.assign import Assign, BatchAssign
 from bloqade.builder.flatten import Flatten
 from bloqade.builder.parallelize import Parallelize, ParallelizeFlatten
-
 from bloqade.builder.parse.stream import BuilderNode
+
+import bloqade.ir as ir
+from bloqade.ir.program import BloqadeProgram
 
 from itertools import repeat
 from typing import Tuple
@@ -217,15 +217,18 @@ class Parser:
 
             curr = curr.next
 
-    def parse(self):
+    def parse(self) -> "BloqadeProgram":
+        from bloqade.codegen.common.static_assign import StaticAssignProgram
+        from bloqade.ir.program import BloqadeProgram, Params
+        from bloqade.ir.analog_circuit import AnalogCircuit
+
         self.read_register()
         self.read_sequeence()
         self.read_pragmas()
-        return ir.Program(
-            self.register,
-            self.sequence,
-            self.static_params,
-            self.batch_params,
-            self.order,
-            self.builder,
+
+        ast = StaticAssignProgram(self.static_params).visit(
+            AnalogCircuit(self.register, self.sequence)
+        )
+        return BloqadeProgram(
+            self.builder, ast, self.static_params, Params(self.batch_params, self.order)
         )

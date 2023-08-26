@@ -22,7 +22,7 @@ pbin = ordered_state_2D_job.quera.aquila()
 
 pbin = pbin.parse_program()
 
-pbin.sequence
+pbin.circuit.sequence
 
 
 # dict interface

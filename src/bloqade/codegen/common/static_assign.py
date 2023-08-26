@@ -1,5 +1,5 @@
 from bloqade.ir.location.base import AtomArrangement, ParallelRegister, LocationInfo
-from bloqade.ir.visitor.program import ProgramVisitor
+from bloqade.ir.visitor.analog_circuit import AnalogCircuitVisitor
 from bloqade.ir.visitor.waveform import WaveformVisitor
 from bloqade.ir.visitor.scalar import ScalarVisitor
 import bloqade.ir.analog_circuit as analog_circuit
@@ -12,7 +12,7 @@ import bloqade.ir.control.waveform as waveform
 import bloqade.ir.scalar as scalar
 import bloqade.ir.location as location
 import numbers
-from typing import Any, Dict, Union
+from typing import Any, Dict
 from decimal import Decimal
 
 
@@ -23,17 +23,13 @@ class StaticAssignScalar(ScalarVisitor):
     def visit_literal(self, ast: scalar.Literal) -> scalar.Scalar:
         return ast
 
-    def visit_variable(
-        self, ast: scalar.Variable
-    ) -> Union[scalar.Literal, scalar.Variable]:
+    def visit_variable(self, ast: scalar.Variable) -> scalar.AssignedVariable:
         if ast.name in self.mapping:
             return scalar.AssignedVariable(ast.name, self.mapping[ast.name])
 
         return ast
 
-    def visit_assigned_variable(
-        self, ast: scalar.Variable
-    ) -> Union[scalar.Literal, scalar.AssignedVariable]:
+    def visit_assigned_variable(self, ast: scalar.Variable) -> scalar.AssignedVariable:
         if ast.name in self.mapping:
             raise ValueError(f"Variable {ast.name} is already assigned.")
 
@@ -136,7 +132,7 @@ class StaticAssignWaveform(WaveformVisitor):
         return self.visit(ast)
 
 
-class StaticAssignProgram(ProgramVisitor):
+class StaticAssignProgram(AnalogCircuitVisitor):
     def __init__(self, mapping: Dict[str, numbers.Real]):
         self.waveform_visitor = StaticAssignWaveform(mapping)
         self.scalar_visitor = StaticAssignScalar(mapping)

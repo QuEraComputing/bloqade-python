@@ -27,7 +27,7 @@ from bloqade.ir.control.sequence import (
 from bloqade.ir.location.base import AtomArrangement, ParallelRegister
 from bloqade.ir.control.waveform import Record
 
-from bloqade.ir.visitor.program import ProgramVisitor
+from bloqade.ir.visitor.analog_circuit import AnalogCircuitVisitor
 from bloqade.ir.visitor.waveform import WaveformVisitor
 from bloqade.codegen.common.assignment_scan import AssignmentScan
 
@@ -356,7 +356,7 @@ class PiecewiseConstantCodeGen(WaveformVisitor):
         return self.visit(ast.waveform)
 
 
-class SchemaCodeGen(ProgramVisitor):
+class SchemaCodeGen(AnalogCircuitVisitor):
     def __init__(
         self,
         assignments: Dict[str, Union[numbers.Real, List[numbers.Real]]],

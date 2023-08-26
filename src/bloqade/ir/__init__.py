@@ -33,7 +33,7 @@ from .control.field import (
 )
 from .control.pulse import Pulse, NamedPulse, FieldName, rabi, detuning
 from .control.sequence import rydberg, hyperfine, Sequence, LevelCoupling
-from .program import Program
+from .analog_circuit import AnalogCircuit
 from .location import (
     AtomArrangement,
     Chain,
@@ -93,7 +93,7 @@ __all__ = [
     "rydberg",
     "hyperfine",
     "Sequence",
-    "Program",
+    "AnalogCircuit",
     ### location ir ###
     "start",
     "AtomArrangement",

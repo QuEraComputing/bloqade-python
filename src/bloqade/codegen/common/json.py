@@ -6,7 +6,7 @@ import bloqade.ir.analog_circuit as analog_circuit
 import bloqade.ir.control.waveform as waveform
 import bloqade.ir.scalar as scalar
 
-from bloqade.ir.visitor.program import ProgramVisitor
+from bloqade.ir.visitor.analog_circuit import AnalogCircuitVisitor
 from bloqade.ir.visitor.waveform import WaveformVisitor
 from bloqade.ir.visitor.scalar import ScalarVisitor
 
@@ -200,7 +200,7 @@ class WaveformSerializer(WaveformVisitor):
         return super().default(obj)
 
 
-class ProgramSerializer(ProgramVisitor):
+class ProgramSerializer(AnalogCircuitVisitor):
     def __init__(self) -> None:
         self.waveform_serializer = WaveformSerializer()
         self.scalar_serializer = ScalarSerilaizer()

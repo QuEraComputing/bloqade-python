@@ -59,12 +59,15 @@ class QuEraBackend(RemoteBackend):
 
     def compile(self, shots, args, name: Optional[str] = None):
         from bloqade.builder.parse.builder import Parser
+        from bloqade.lower.batch import LowerBloqadeProgram
+        from bloqade.lower.quera import QuEraCompiler
         from bloqade.submission.quera import QuEraBackend
-        from bloqade.compile.quera import QuEraBatchCompiler
 
         backend = QuEraBackend(**self._api_configs)
+
         program = Parser(self).parse()
-        return QuEraBatchCompiler(program, backend).compile(shots, args, name)
+        batch = LowerBloqadeProgram(program).compile(args)
+        return QuEraCompiler(batch, backend).compile(shots, name)
 
 
 class Aquila(QuEraBackend):
@@ -89,9 +92,11 @@ class Mock(RemoteBackend):
 
     def compile(self, shots, args=(), name: Optional[str] = None):
         from bloqade.builder.parse.builder import Parser
-        from bloqade.compile.quera import QuEraBatchCompiler
+        from bloqade.lower.batch import LowerBloqadeProgram
+        from bloqade.lower.quera import QuEraCompiler
         from bloqade.submission.mock import DumbMockBackend
 
         backend = DumbMockBackend(state_file=self._state_file)
         program = Parser(self).parse()
-        return QuEraBatchCompiler(program, backend).compile(shots, args, name)
+        batch = LowerBloqadeProgram(program).compile(args)
+        return QuEraCompiler(batch, backend).compile(shots, name)

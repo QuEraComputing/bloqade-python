@@ -6,7 +6,7 @@ import bloqade.ir.control.waveform as waveform
 import bloqade.ir.scalar as scalar
 import bloqade.ir.analog_circuit as analog_circuit
 
-from bloqade.ir.visitor.program import ProgramVisitor
+from bloqade.ir.visitor.analog_circuit import AnalogCircuitVisitor
 from bloqade.ir.visitor.waveform import WaveformVisitor
 from bloqade.ir.visitor.scalar import ScalarVisitor
 
@@ -138,7 +138,7 @@ class AssignWaveform(WaveformVisitor):
         return self.visit(ast)
 
 
-class AssignProgram(ProgramVisitor):
+class AssignProgram(AnalogCircuitVisitor):
     def __init__(self, mapping: Dict[str, numbers.Real]):
         self.waveform_visitor = AssignWaveform(mapping)
 

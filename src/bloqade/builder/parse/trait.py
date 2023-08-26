@@ -1,6 +1,9 @@
-import bloqade.ir as ir
-from typing import Union
+from typing import Union, TYPE_CHECKING
 import json
+
+if TYPE_CHECKING:
+    from bloqade.ir.program import BloqadeProgram
+    from bloqade.ir import AtomArrangement, ParallelRegister, Sequence
 
 
 class CompileJSON:
@@ -14,21 +17,21 @@ class CompileJSON:
 
 
 class ParseRegister:
-    def parse_register(self) -> Union["ir.AtomArrangement", "ir.ParallelRegister"]:
+    def parse_register(self) -> Union["AtomArrangement", "ParallelRegister"]:
         from bloqade.builder.parse.builder import Parser
 
         return Parser(self).read_register()
 
 
 class ParseSequence:
-    def parse_sequence(self) -> ir.Sequence:
+    def parse_sequence(self) -> "Sequence":
         from bloqade.builder.parse.builder import Parser
 
         return Parser(self).read_sequeence()
 
 
 class ParseProgram:
-    def parse_program(self) -> ir.Program:
+    def parse_program(self) -> "BloqadeProgram":
         from bloqade.builder.parse.builder import Parser
 
         return Parser(self).parse()
