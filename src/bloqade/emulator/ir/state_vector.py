@@ -1,6 +1,8 @@
+from ast import Tuple
+from bloqade.emulator.sparse_operator import IndexMapping, Diagonal
+
 from pydantic import BaseModel
 from scipy.sparse import csr_matrix
-from bloqade.codegen.emulator.sparse_operator import IndexMapping, Diagonal
 from numpy.typing import NDArray
 from typing import List, Callable, Union
 import numpy as np
@@ -10,8 +12,7 @@ from scipy.integrate import ode
 class AnalogGate(BaseModel):
     SUPPORTED_SOLVERS = ["lsoda", "dop853", "dopri5"]
 
-    functions: List[Callable]
-    operators: List[Union[Diagonal, IndexMapping, csr_matrix]]
+    terms: List[Tuple[Callable, Union[Diagonal, IndexMapping, csr_matrix]]]
     initial_time: float
     final_time: float
     atol: float = 1e-7
@@ -20,10 +21,13 @@ class AnalogGate(BaseModel):
 
     def _ode_complex_kernel(self, time: float, register: NDArray):
         result_register = np.zeros_like(register)
-        for function, operator in zip(self.functions, self.operators):
-            result_register += function(time + self.initial_time) * operator.dot(
-                register
-            )
+        for function, operator in self.terms:
+            if function is None:
+                result_register += operator.dot(register)
+            else:
+                result_register += function(time + self.initial_time) * operator.dot(
+                    register
+                )
 
         return result_register
 

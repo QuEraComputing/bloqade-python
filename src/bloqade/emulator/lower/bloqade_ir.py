@@ -14,8 +14,13 @@ import bloqade.ir.control.waveform as waveform
 import bloqade.ir.control.field as field
 import bloqade.ir as ir
 
-from bloqade.emulator.space import LocalHilbertSpace, Space
-from bloqade.emulator.ir import DetuningTerm, EmulatorProgram, LaserCoupling, RabiTerm
+from bloqade.emulator.ir.space import LocalHilbertSpace, Space
+from bloqade.emulator.ir.emulator_program import (
+    DetuningTerm,
+    EmulatorProgram,
+    LaserCoupling,
+    RabiTerm,
+)
 
 from typing import Any, Dict, Optional
 

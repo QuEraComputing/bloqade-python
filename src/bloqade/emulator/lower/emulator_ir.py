@@ -1,23 +1,29 @@
+from bloqade.constants import RB_C6
 from bloqade.ir.control.sequence import (
     LevelCoupling,
-    rydberg,
+    RydbergLevelCoupling,
+    HyperfineLevelCoupling,
     hyperfine,
+    rydberg,
 )
-from bloqade.emulator.sparse_operator import IndexMapping, Diagonal
-from bloqade.emulator.space import (
+from bloqade.emulator.ir.emulator_program import (
+    EmulatorProgram,
+    LaserCoupling,
+    DetuningTerm,
+    RabiTerm,
+    Visitor,
+)
+from bloqade.emulator.ir.space import (
     Space,
     SpaceType,
     LocalHilbertSpace,
-    is_rydberg_state,
-    is_hyperfine_state,
+    TwoLevelState,
+    ThreeLevelState,
+    is_state,
 )
-from bloqade.emulator.ir import EmulatorProgram, LaserCoupling, DetuningTerm, RabiTerm
+from bloqade.emulator.sparse_operator import IndexMapping, Diagonal
 from scipy.sparse import csr_matrix, csc_matrix
 import numpy as np
-from typing import Dict, Union
-from numbers import Number, Real
-
-from bloqade.emulator.ir import RabiTerm, DetuningTerm, RabiOperatorType
 
 
 class LowerRabiTerm:
@@ -42,42 +48,6 @@ class LowerRabiTerm:
 
         op = IndexMapping(input_indices, output_indices)
 
-        return [
-            (lambda t: value * self.amplitude(t) * np.exp(1j * self.phase(t)), op),
-            (
-                lambda t: value * self.amplitude(t) * np.exp(-1j * self.phase(t)),
-                op.ajoint(),
-            ),
-        ]
-
-    def emit_two_level_subspace_single_atom_real(self):
-        ((atom_index, value),) = self.target_atoms.items()
-
-        new_configurations = self.space.configurations ^ (1 << atom_index)
-        input_indices = np.searchsorted(self.space.configurations, new_configurations)
-
-        output_indices = input_indices < self.space.configurations.size
-        input_indices = input_indices[output_indices]
-        return [
-            (
-                lambda t: value * self.amplitude(t),
-                IndexMapping(input_indices, output_indices),
-            )
-        ]
-
-    def emit_two_level_subspace_single_atom_complex(self):
-        ((atom_index, value),) = self.target_atoms.items()
-
-        rydberg_states = (self.space.configurations >> atom_index) & 1 == 1
-        new_configurations = self.space.configurations[rydberg_states] ^ (
-            1 << atom_index
-        )
-        input_indices = np.searchsorted(self.space.configurations, new_configurations)
-
-        nonzero_indices = input_indices < self.space.size
-        output_indices = np.logical_and(rydberg_states, nonzero_indices)
-        input_indices = input_indices[nonzero_indices]
-        op = IndexMapping(input_indices, output_indices)
         return [
             (lambda t: value * self.amplitude(t) * np.exp(1j * self.phase(t)), op),
             (
@@ -141,6 +111,42 @@ class LowerRabiTerm:
         return [
             (lambda t: self.amplitude(t) * np.exp(1j * self.phase(t)), op),
             (lambda t: self.amplitude(t) * np.exp(-1j * self.phase(t)), op_H),
+        ]
+
+    def emit_two_level_subspace_single_atom_real(self):
+        ((atom_index, value),) = self.target_atoms.items()
+
+        new_configurations = self.space.configurations ^ (1 << atom_index)
+        input_indices = np.searchsorted(self.space.configurations, new_configurations)
+
+        output_indices = input_indices < self.space.configurations.size
+        input_indices = input_indices[output_indices]
+        return [
+            (
+                lambda t: value * self.amplitude(t),
+                IndexMapping(input_indices, output_indices),
+            )
+        ]
+
+    def emit_two_level_subspace_single_atom_complex(self):
+        ((atom_index, value),) = self.target_atoms.items()
+
+        rydberg_states = (self.space.configurations >> atom_index) & 1 == 1
+        new_configurations = self.space.configurations[rydberg_states] ^ (
+            1 << atom_index
+        )
+        input_indices = np.searchsorted(self.space.configurations, new_configurations)
+
+        nonzero_indices = input_indices < self.space.size
+        output_indices = np.logical_and(rydberg_states, nonzero_indices)
+        input_indices = input_indices[nonzero_indices]
+        op = IndexMapping(input_indices, output_indices)
+        return [
+            (lambda t: value * self.amplitude(t) * np.exp(1j * self.phase(t)), op),
+            (
+                lambda t: value * self.amplitude(t) * np.exp(-1j * self.phase(t)),
+                op.ajoint(),
+            ),
         ]
 
     def emit_two_level_subspace_multi_atom_real(self):
@@ -219,41 +225,27 @@ class LowerRabiTerm:
             (lambda t: self.amplitude(t) * np.exp(-1j * self.phase(t)), op_H),
         ]
 
-    def emit_two_level_full_space_single_atom(self):
-        if self.phase is None:  # Real valued
-            return self.emit_two_level_full_space_single_atom_real()
-        else:  # Complex valued
-            return self.emit_two_level_full_space_single_atom_complex()
-
-    def emit_two_level_subspace_single_atom(self):
-        if self.phase is None:
-            return self.emit_two_level_subspace_single_atom_real()
-        else:
-            return self.emit_two_level_subspace_single_atom_complex()
-
-    def emit_two_level_full_space_multi_atom(self):
-        if self.phase is None:
-            return self.emit_two_level_full_space_multi_atom_real()
-        else:
-            return self.emit_two_level_full_space_multi_atom_complex()
-
-    def emit_two_level_subspace_multi_atom(self):
-        if self.phase is None:
-            return self.emit_two_level_subspace_multi_atom_real()
-        else:
-            return self.emit_two_level_subspace_multi_atom_complex()
+    def emit_two_level_subspace(self):
+        match (self.target_atoms, self.phase):
+            case (dict([(_, _)]), None):
+                self.emit_two_level_subspace_single_atom_real()
+            case (dict([(_, _)]), _):
+                self.emit_two_level_subspace_single_atom_complex()
+            case (_, None):
+                self.emit_two_level_subspace_multi_atom_real()
+            case (_, _):
+                self.emit_two_level_subspace_multi_atom_complex()
 
     def emit_two_level_full_space(self):
-        if len(self.target_atoms) == 1:
-            return self.emit_two_level_full_space_single_atom()
-        else:
-            return self.emit_two_level_full_space_multi_atom()
-
-    def emit_two_level_subspace(self):
-        if len(self.target_atoms) == 1:
-            return self.emit_two_level_subspace_single_atom()
-        else:
-            return self.emit_two_level_subspace_multi_atom()
+        match (self.target_atoms, self.phase):
+            case (dict([(_, _)]), None):
+                self.emit_two_level_full_space_single_atom_real()
+            case (dict([(_, _)]), _):
+                self.emit_two_level_full_space_single_atom_complex()
+            case (_, None):
+                self.emit_two_level_full_space_multi_atom_real()
+            case (_, _):
+                self.emit_two_level_full_space_multi_atom_complex()
 
     def emit(self, rabi_term: RabiTerm, level_coupling: LevelCoupling):
         self.target_atoms = rabi_term.target_atoms
@@ -263,106 +255,110 @@ class LowerRabiTerm:
         match (self.space):
             case (
                 Space(SpaceType.FullSpace, LocalHilbertSpace.TwoLevel, _, _),
-                rydberg,
+                RydbergLevelCoupling(),
             ):
                 return self.emit_two_level_full_space()
-            case (Space(SpaceType.SubSpace, LocalHilbertSpace.TwoLevel, _, _), rydberg):
+            case (
+                Space(SpaceType.SubSpace, LocalHilbertSpace.TwoLevel, _, _),
+                HyperfineLevelCoupling(),
+            ):
                 return self.emit_two_level_subspace()
-            case (Space(_, LocalHilbertSpace.TwoLevel, _, _), hyperfine):
+            case (Space(_, LocalHilbertSpace.TwoLevel, _, _), HyperfineLevelCoupling()):
                 raise ValueError("No hyperfine coupling for two-level space.")
             case _:
                 raise NotImplementedError("Three-level space not implemented.")
 
-def emit_detuning_matrix(info: DetuningTerm):
-    match info:
-        case DetuningTerm(
-            target_atoms=target_atoms,
-            level_coupling=hyperfine,
-            space=Space(n_level=n_level, configurations=configurations),
-        ):
-            diagonal = np.zeros(configurations.size, dtype=np.float64)
-            for atom_index, detuning_value in target_atoms.items():
-                mask = is_hyperfine_state(configurations, atom_index, n_level)
-                diagonal[mask] += detuning_value
 
-            return Diagonal(diagonal)
+class LowerToAnalogGate(Visitor):
+    def __init__(self):
+        self.terms = []
+        self.space = None
+        self.n_level = None
+        self.level_coupling = None
 
-        case DetuningTerm(
-            target_atoms=target_atoms,
-            level_coupling=rydberg,
-            space=Space(n_level=n_level, configurations=configurations),
-        ):
-            diagonal = np.zeros(configurations.size, dtype=np.float64)
-            for atom_index, detuning_value in target_atoms.items():
-                mask = is_rydberg_state(configurations, atom_index, n_level)
-                diagonal[mask] += detuning_value
+    def visit_emulator_program(self, emulator_program: EmulatorProgram):
+        self.visit(emulator_program.space)
 
-            return Diagonal(diagonal)
+        if emulator_program.rydberg is not None:
+            self.visit(emulator_program.rydberg)
 
-        case _:
-            raise RuntimeError(
-                "Fatal compilation error when lowering Rabi term to python."
-            )
+        if emulator_program.hyperfine is not None:
+            self.visit(emulator_program.hyperfine)
 
+    def visit_space(self, space: Space):
+        self.space = space
+        self.n_level = space.n_level
 
-def emit_rydberg_matrix(info: Union[RabiTerm, DetuningTerm], c6=5420441.13265):
-    match info:
-        case RabiTerm(
-            space=Space(
-                atom_coordinates=atom_coordinates,
-                n_level=n_level,
-                configurations=configurations,
-            )
-        ):
-            diagonal = np.zeros(configurations.size, dtype=np.float64)
+        configurations = space.configurations
+        atom_coordinates = space.atom_coordinates
+        n_level = space.n_level
 
-            for index_1, coordinate_1 in enumerate(atom_coordinates):
-                coordinate_1 = np.asarray(coordinate_1)
-                is_rydberg_1 = is_rydberg_state(configurations, index_1, n_level)
-                for index_2, coordinate_2 in enumerate(
-                    atom_coordinates[index_1 + 1 :], index_1 + 1
-                ):
-                    coordinate_2 = np.asarray(coordinate_2)
-                    distance = np.linalg.norm(coordinate_1 - coordinate_2)
+        if n_level == LocalHilbertSpace.TwoLevel:
+            state = TwoLevelState.rydberg
+        elif n_level == LocalHilbertSpace.ThreeLevel:
+            state = ThreeLevelState.rydberg
 
-                    rydberg_interaction = c6 / (distance**6)
+        # generate rydberg interaction matrix
+        diagonal = np.zeros(configurations.size, dtype=np.float64)
 
-                    if rydberg_interaction <= np.finfo(np.float64).eps:
-                        continue
+        for index_1, coordinate_1 in enumerate(atom_coordinates):
+            coordinate_1 = np.asarray(coordinate_1)
+            is_rydberg_1 = is_state(configurations, index_1, state)
+            for index_2, coordinate_2 in enumerate(
+                atom_coordinates[index_1 + 1 :], index_1 + 1
+            ):
+                coordinate_2 = np.asarray(coordinate_2)
+                distance = np.linalg.norm(coordinate_1 - coordinate_2)
 
-                    mask = np.logical_and(
-                        is_rydberg_1, is_rydberg_state(configurations, index_2, n_level)
-                    )
-                    diagonal[mask] += rydberg_interaction
+                rydberg_interaction = RB_C6 / (distance**6)
 
-            return Diagonal(diagonal)
+                if rydberg_interaction <= np.finfo(np.float64).eps:
+                    continue
 
-        case DetuningTerm(
-            space=Space(
-                atom_coordinates=atom_coordinates,
-                n_level=LocalHilbertSpace.TwoLevel,
-                configurations=configurations,
-            )
-        ):
-            diagonal = np.zeros(configurations.size, dtype=np.float64)
+                mask = np.logical_and(
+                    is_rydberg_1,
+                    is_state(configurations, index_2, state),
+                )
+                diagonal[mask] += rydberg_interaction
 
-            for index_1, coordinate_1 in enumerate(atom_coordinates):
-                coordinate_1 = np.asarray(coordinate_1)
-                is_rydberg_1 = is_rydberg_state(configurations, index_1, n_level)
-                for index_2, coordinate_2 in enumerate(
-                    atom_coordinates[index_1 + 1 :], index_1 + 1
-                ):
-                    coordinate_2 = np.asarray(coordinate_2)
-                    distance = np.linalg.norm(coordinate_1 - coordinate_2)
+        self.terms.append((None, Diagonal(diagonal)))
 
-                    rydberg_interaction = c6 / (distance**6)
+    def visit_laser_coupling(self, laser_coupling: LaserCoupling):
+        self.level_coupling = laser_coupling.level_coupling
+        terms = laser_coupling.detuning + laser_coupling.rabi
+        for term in terms:
+            self.visit(term)
 
-                    if rydberg_interaction <= np.finfo(np.float64).eps:
-                        continue
+    def visit_detuning_term(self, detuning_term: DetuningTerm):
+        if self.level_coupling == rydberg:
+            state = TwoLevelState.rydberg
+        elif self.level_coupling == hyperfine:
+            state = TwoLevelState.rydberg
 
-                    mask = np.logical_and(
-                        is_rydberg_1, is_rydberg_state(configurations, index_2, n_level)
-                    )
-                    diagonal[mask] += rydberg_interaction
+        target_atoms = detuning_term.target_atoms
+        configurations = self.space.configurations
 
-            return Diagonal(diagonal)
+        diagonal = np.zeros(configurations.size, dtype=np.float64)
+        for atom_index, detuning_value in target_atoms.items():
+            mask = is_state(configurations, atom_index, state)
+            diagonal[mask] += detuning_value
+
+        detuning_op = Diagonal(diagonal)
+
+        self.terms.append((detuning_term.amplitude, detuning_op))
+
+    def visit_rabi_term(self, rabi_term: RabiTerm):
+        self.terms += self.lower_rabi_term.emit(rabi_term, self.level_coupling)
+
+    def emit(self, emulator_program: EmulatorProgram):
+        from bloqade.emulator.ir.state_vector import AnalogGate
+
+        self.lower_rabi_term = LowerRabiTerm(emulator_program.space)
+
+        self.visit(emulator_program)
+
+        return AnalogGate(
+            terms=self.terms,
+            initial_time=self.initial_time,
+            final_time=self.final_time,
+        )

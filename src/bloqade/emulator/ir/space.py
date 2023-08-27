@@ -1,6 +1,6 @@
-from pydantic import BaseModel
+from dataclasses import dataclass
 from numpy.typing import NDArray
-from typing import List, Tuple, Dict
+from typing import List, Tuple, Dict, Union
 import numpy as np
 from enum import Enum
 
@@ -15,23 +15,35 @@ class SpaceType(str, Enum):
     SubSpace = "sub_space"
 
 
-def is_rydberg_state(configurations: NDArray, index: int, n_level: LocalHilbertSpace):
-    match n_level:
-        case LocalHilbertSpace.TwoLevel:
-            return (configurations >> index) & 1 == 1
-        case LocalHilbertSpace.ThreeLevel:
-            return (configurations // 3**index) % 2 == 2
+class ThreeLevelState(tuple, Enum):
+    ground: 0
+    hyperfine: 1
+    rydberg: 2
 
 
-def is_hyperfine_state(configurations: NDArray, index: int, n_level: LocalHilbertSpace):
-    match n_level:
-        case LocalHilbertSpace.TwoLevel:
-            raise ValueError("No Hyerfine state for two-level setup.")
-        case LocalHilbertSpace.ThreeLevel:
-            return (configurations // 3**index) % 2 == 1
+class TwoLevelState(int, Enum):
+    ground: 0
+    rydberg: 1
 
 
-class FockStateConverter(BaseModel):
+def is_state(
+    configurations: NDArray, index: int, state: Union[ThreeLevelState, TwoLevelState]
+):
+    match state:
+        case TwoLevelState.ground:
+            return ((configurations >> index) & 1) ^ 1
+        case TwoLevelState.rydberg:
+            return (configurations >> index) & 1
+        case ThreeLevelState.ground:
+            return (configurations // 3**index) % 3 == 0
+        case ThreeLevelState.hyperfine:
+            return (configurations // 3**index) % 3 == 1
+        case ThreeLevelState.rydberg:
+            return (configurations // 3**index) % 3 == 2
+
+
+@dataclass(init=False)
+class FockStateConverter:
     n_level: LocalHilbertSpace
     str_to_int: Dict[str, int]
     int_to_str: List[str]
@@ -69,33 +81,15 @@ class FockStateConverter(BaseModel):
         return f"|{state_string}>"
 
 
-class Space(BaseModel):
+@dataclass(frozen=True)
+class Space:
     space_type: SpaceType
     n_level: LocalHilbertSpace
     atom_coordinates: List[Tuple[float, float]]
     configurations: NDArray
 
-    @property
-    def index_type(self) -> np.dtype:
-        if self.size < np.iinfo(np.int32).max:
-            return np.int32
-        else:
-            return np.int64
-
-    @property
-    def size(self) -> int:
-        return self.configurations.size
-
-    @property
-    def n_atoms(self) -> int:
-        return len(self.atom_coordinates)
-
-    @property
-    def state_type(self) -> np.dtype:
-        return np.result_type(np.uint32, np.min_scalar_type(self.configurations[-1]))
-
-    def __init__(
-        self,
+    @staticmethod
+    def create(
         atom_coordinates: List[Tuple[float, float]],
         n_level: LocalHilbertSpace = LocalHilbertSpace.TwoLevel,
         blockade_radius=0.0,
@@ -123,23 +117,22 @@ class Space(BaseModel):
         match n_level:
             case LocalHilbertSpace.TwoLevel:
                 Ns = 2 << n_atom
+                state = TwoLevelState.rydberg
             case LocalHilbertSpace.ThreeLevel:
                 Ns = 3**n_atom
+                state = ThreeLevelState.rydberg
 
         configurations = np.arange(Ns, dtype=np.min_scalar_type(Ns - 1))
 
         if all(len(sub_list) == 0 for sub_list in check_atoms):
-            super().__init__(
-                SpaceType.FullSpace, n_level, atom_coordinates, configurations
-            )
-            return
+            return Space(SpaceType.FullSpace, n_level, atom_coordinates, configurations)
 
         for index_1, indices in enumerate(check_atoms):
             # get which configurations are in rydberg state for the current index.
-            rydberg_configs_1 = is_rydberg_state(configurations, index_1, n_level)
+            rydberg_configs_1 = is_state(configurations, index_1, state)
             for index_2 in indices:  # loop over neighbors within blockade radius
                 # get which configus have the neighbor with a rydberg excitation
-                rydberg_configs_2 = is_rydberg_state(configurations, index_2, n_level)
+                rydberg_configs_2 = is_state(configurations, index_2, state)
                 # get which states do not violate constraint
                 mask = np.logical_not(
                     np.logical_and(rydberg_configs_1, rydberg_configs_2)
@@ -148,7 +141,26 @@ class Space(BaseModel):
                 configurations = configurations[mask]
                 rydberg_configs_1 = rydberg_configs_1[mask]
 
-        super().__init__(SpaceType.SubSpace, n_level, atom_coordinates, configurations)
+        return Space(SpaceType.SubSpace, n_level, atom_coordinates, configurations)
+
+    @property
+    def index_type(self) -> np.dtype:
+        if self.size < np.iinfo(np.int32).max:
+            return np.int32
+        else:
+            return np.int64
+
+    @property
+    def size(self) -> int:
+        return self.configurations.size
+
+    @property
+    def n_atoms(self) -> int:
+        return len(self.atom_coordinates)
+
+    @property
+    def state_type(self) -> np.dtype:
+        return np.result_type(np.uint32, np.min_scalar_type(self.configurations[-1]))
 
     def fock_state_to_index(self, fock_state: str) -> int:
         converter = FockStateConverter(self.n_level)
@@ -175,8 +187,6 @@ class Space(BaseModel):
                 return converter.integer_to_string(index)
             case SpaceType.SubSpace:
                 return converter.integer_to_string(self.configurations[index])
-            case _:  # TODO: fix error message
-                raise NotImplementedError
 
     def __str__(self):
         # TODO: update this to use unicode
