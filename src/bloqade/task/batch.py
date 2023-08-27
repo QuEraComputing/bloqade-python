@@ -37,6 +37,8 @@ class LocalBatch(Serializable):
         ## offline
         index = []
         data = []
+        metas = []
+        geos = []
 
         for task_number, task in self.tasks.items():
             geometry = task.geometry
@@ -81,6 +83,8 @@ class LocalBatch(Serializable):
 
                 index.append(key)
                 data.append(post_sequence)
+            metas.append(task.task_data.metadata)
+            geos.append(task.geometry)
 
         index = pd.MultiIndex.from_tuples(
             index, names=["task_number", "cluster", "perfect_sorting", "pre_sequence"]
@@ -89,7 +93,13 @@ class LocalBatch(Serializable):
         df = pd.DataFrame(data, index=index)
         df.sort_index(axis="index")
 
-        return Report(df)
+        rept = None
+        if self.name is None:
+            rept = Report(df, metas, geos, "Local")
+        else:
+            rept = Report(df, metas, geos, self.name)
+
+        return rept
 
     def rerun(self, **kwargs):
         self._run(**kwargs)
@@ -313,6 +323,8 @@ class RemoteBatch(Serializable):
         ## offline
         index = []
         data = []
+        metas = []
+        geos = []
 
         for task_number, task in self.tasks.items():
             ## fliter not existing results tasks:
@@ -365,6 +377,8 @@ class RemoteBatch(Serializable):
 
                 index.append(key)
                 data.append(post_sequence)
+            metas.append(task.task_data.metadata)
+            geos.append(task.geometry)
 
         index = pd.MultiIndex.from_tuples(
             index, names=["task_number", "cluster", "perfect_sorting", "pre_sequence"]
@@ -373,4 +387,10 @@ class RemoteBatch(Serializable):
         df = pd.DataFrame(data, index=index)
         df.sort_index(axis="index")
 
-        return Report(df)
+        rept = None
+        if self.name is None:
+            rept = Report(df, metas, geos, "Remote")
+        else:
+            rept = Report(df, metas, geos, self.name)
+
+        return rept
