@@ -28,6 +28,7 @@ class LaserCoupling:
 @dataclass
 class EmulatorProgram:
     space: Space
+    duration: float
     rydberg: Optional[LaserCoupling] = None
     hyperfine: Optional[LaserCoupling] = None
 

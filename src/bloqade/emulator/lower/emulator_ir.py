@@ -3,8 +3,6 @@ from bloqade.ir.control.sequence import (
     LevelCoupling,
     RydbergLevelCoupling,
     HyperfineLevelCoupling,
-    hyperfine,
-    rydberg,
 )
 from bloqade.emulator.ir.emulator_program import (
     EmulatorProgram,
@@ -275,6 +273,7 @@ class LowerToAnalogGate(Visitor):
         self.space = None
         self.n_level = None
         self.level_coupling = None
+        self.rydberg_state = None
 
     def visit_emulator_program(self, emulator_program: EmulatorProgram):
         self.visit(emulator_program.space)
@@ -289,21 +288,20 @@ class LowerToAnalogGate(Visitor):
         self.space = space
         self.n_level = space.n_level
 
+        if space.n_level == LocalHilbertSpace.TwoLevel:
+            self.rydberg_state = TwoLevelState.rydberg
+        elif space.n_level == LocalHilbertSpace.ThreeLevel:
+            self.rydberg_state = ThreeLevelState.rydberg
+
         configurations = space.configurations
         atom_coordinates = space.atom_coordinates
-        n_level = space.n_level
-
-        if n_level == LocalHilbertSpace.TwoLevel:
-            state = TwoLevelState.rydberg
-        elif n_level == LocalHilbertSpace.ThreeLevel:
-            state = ThreeLevelState.rydberg
 
         # generate rydberg interaction matrix
         diagonal = np.zeros(configurations.size, dtype=np.float64)
 
         for index_1, coordinate_1 in enumerate(atom_coordinates):
             coordinate_1 = np.asarray(coordinate_1)
-            is_rydberg_1 = is_state(configurations, index_1, state)
+            is_rydberg_1 = is_state(configurations, index_1, self.rydberg_state)
             for index_2, coordinate_2 in enumerate(
                 atom_coordinates[index_1 + 1 :], index_1 + 1
             ):
@@ -317,7 +315,7 @@ class LowerToAnalogGate(Visitor):
 
                 mask = np.logical_and(
                     is_rydberg_1,
-                    is_state(configurations, index_2, state),
+                    is_state(configurations, index_2, self.rydberg_state),
                 )
                 diagonal[mask] += rydberg_interaction
 
@@ -330,17 +328,12 @@ class LowerToAnalogGate(Visitor):
             self.visit(term)
 
     def visit_detuning_term(self, detuning_term: DetuningTerm):
-        if self.level_coupling == rydberg:
-            state = TwoLevelState.rydberg
-        elif self.level_coupling == hyperfine:
-            state = TwoLevelState.rydberg
-
         target_atoms = detuning_term.target_atoms
         configurations = self.space.configurations
 
         diagonal = np.zeros(configurations.size, dtype=np.float64)
         for atom_index, detuning_value in target_atoms.items():
-            mask = is_state(configurations, atom_index, state)
+            mask = is_state(configurations, atom_index, self.rydberg_state)
             diagonal[mask] += detuning_value
 
         detuning_op = Diagonal(diagonal)
@@ -359,6 +352,6 @@ class LowerToAnalogGate(Visitor):
 
         return AnalogGate(
             terms=self.terms,
-            initial_time=self.initial_time,
-            final_time=self.final_time,
+            final_time=emulator_program.duration,
+            initial_time=0.0,
         )

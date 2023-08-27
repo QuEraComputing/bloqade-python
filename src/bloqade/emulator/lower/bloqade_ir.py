@@ -44,7 +44,7 @@ class LowerToEmulatorProgram(ProgramVisitor):
         self.blockade_radius = blockade_radius
         self.space = None
         self.register = None
-
+        self.duration = None
         self.rydberg = None
         self.hyperfine = None
 
@@ -114,57 +114,77 @@ class LowerToEmulatorProgram(ProgramVisitor):
         if ast is None:
             return []
 
+        terms = []
+
         match ast:
             case Field(value) if len(value) < self.space.n_atoms:
-                return [
-                    DetuningTerm(
-                        target_atoms=self.visit(sm),
-                        amplitude=WaveformCompiler(self.assignments).emit(wf),
+                for sm, wf in value.items():
+                    self.duration = max(
+                        float(wf.duration(**self.assignments)), self.duration
                     )
-                    for sm, wf in value.items()
-                ]
+                    terms.append(
+                        DetuningTerm(
+                            target_atoms=self.visit_spatial_modulation(sm),
+                            amplitude=WaveformCompiler(self.assignments).emit(wf),
+                        )
+                    )
+
             case Field(value):
                 target_atom_dict = {
                     sm: self.visit_spatial_modulation(sm) for sm in value.keys()
                 }
-                detuning_terms = []
+
                 for atom in range(self.space.n_atoms):
                     wf = sum(
                         target_atom_dict[sm].get(atom, 0.0) * wf
                         for sm, wf in value.items()
                     )
 
-                    detuning_terms.append(
-                        DetuningTerm(target_atoms={atom: 1}, amplitude=wf)
+                    self.duration = max(
+                        float(wf.duration(**self.assignments)), self.duration
                     )
 
+                    terms.append(DetuningTerm(target_atoms={atom: 1}, amplitude=wf))
+
+        return terms
+
     def visit_rabi(self, amplitude: Optional[Field], phase: Optional[Field]):
+        terms = []
         match (amplitude, phase):
             case (None, _):
                 return []
 
             case (Field(value), None) if len(value) < self.space.n_atoms:
-                return [
-                    RabiTerm(
-                        target_atoms=self.visit(sm),
-                        amplitude=WaveformCompiler(self.assignments).emit(wf),
+                for sm, wf in value.items():
+                    self.duration = max(
+                        float(wf.duration(**self.assignments)), self.duration
                     )
-                    for sm, wf in value.items()
-                ]
+                    terms.append(
+                        RabiTerm(
+                            target_atoms=self.visit_spatial_modulation(sm),
+                            amplitude=WaveformCompiler(self.assignments).emit(wf),
+                        )
+                    )
 
             case (
                 Field(value),
                 Field(value={field.Uniform: phase_waveform}),
             ) if len(value) < self.space.n_atoms:
                 rabi_phase = WaveformCompiler(self.assignments).emit(phase_waveform)
-                return [
-                    RabiTerm(
-                        target_atoms=self.visit(sm),
-                        amplitude=WaveformCompiler(self.assignments).emit(wf),
-                        phase=rabi_phase,
+                self.duration = max(
+                    float(phase_waveform.duration(**self.assignments)), self.duration
+                )
+                for sm, wf in value.items():
+                    self.duration = max(
+                        float(wf.duration(**self.assignments)), self.duration
                     )
-                    for sm, wf in value.items()
-                ]
+                    terms.append(
+                        RabiTerm(
+                            target_atoms=self.visit_spatial_modulation(sm),
+                            amplitude=WaveformCompiler(self.assignments).emit(wf),
+                            phase=rabi_phase,
+                        )
+                    )
 
             case _:  # fully local fields
                 phase_target_atoms_dict = {
@@ -185,6 +205,14 @@ class LowerToEmulatorProgram(ProgramVisitor):
                         phase_target_atoms_dict[sm].get(atom, 0.0) * wf
                         for sm, wf in amplitude.value.items()
                     )
+
+                    self.duration = max(
+                        float(phase_wf.duration(**self.assignments)), self.duration
+                    )
+                    self.duration = max(
+                        float(amplitude_wf.duration(**self.assignments)), self.duration
+                    )
+
                     terms.append(
                         RabiTerm(
                             target_atoms={atom: 1},
@@ -215,5 +243,8 @@ class LowerToEmulatorProgram(ProgramVisitor):
         self.visit(program)
 
         return EmulatorProgram(
-            register=self.space, rydberg=self.rydberg, hyperfine=self.hyperfine
+            register=self.space,
+            duration=self.duration,
+            rydberg=self.rydberg,
+            hyperfine=self.hyperfine,
         )
