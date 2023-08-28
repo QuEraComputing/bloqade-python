@@ -82,7 +82,11 @@ class BatchSerializer(json.JSONEncoder):
                     }
                 }
             case QuEraBackend() as quera_backend:
-                return {"quera_backend": quera_backend.dict()}
+                return {
+                    "quera_backend": quera_backend.dict(
+                        exclude=set(["access_key", "secret_key", "session_token"])
+                    )
+                }
             case DumbMockBackend() as dumb_mock_backend:
                 return {"mock_backend": dumb_mock_backend.dict()}
             case BraketBackend() as backend:

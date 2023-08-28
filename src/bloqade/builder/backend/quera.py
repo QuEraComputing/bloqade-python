@@ -51,11 +51,8 @@ class QuEraBackend(RemoteBackend):
                 "integ_quera_api.json",
             )
 
-        if len(api_configs) == 0:
-            with open(config_file, "r") as io:
-                api_configs.update(**json.load(io))
-
-        self._api_configs = api_configs
+        with open(config_file, "r") as io:
+            self._api_configs = {**json.load(io), **api_configs}
 
     def compile(self, shots, args, name: Optional[str] = None):
         from bloqade.builder.parse.builder import Parser
