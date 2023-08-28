@@ -1,15 +1,15 @@
-from ast import Tuple
 from bloqade.emulator.sparse_operator import IndexMapping, Diagonal
 
-from pydantic import BaseModel
+from dataclasses import dataclass
 from scipy.sparse import csr_matrix
 from numpy.typing import NDArray
-from typing import List, Callable, Union
+from typing import List, Callable, Union, Tuple
 import numpy as np
 from scipy.integrate import ode
 
 
-class AnalogGate(BaseModel):
+@dataclass
+class AnalogGate:
     SUPPORTED_SOLVERS = ["lsoda", "dop853", "dopri5"]
 
     terms: List[Tuple[Callable, Union[Diagonal, IndexMapping, csr_matrix]]]
