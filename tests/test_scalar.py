@@ -4,6 +4,9 @@ import pytest
 from decimal import Decimal
 from io import StringIO
 from IPython.lib.pretty import PrettyPrinter as PP
+import bloqade.ir.tree_print as trp
+
+trp.color_enabled = False
 
 
 def test_var():
