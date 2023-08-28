@@ -125,6 +125,7 @@ def test_scalar_var():
         var(va)
 
 
+@pytest.mark.skip(reason="no longer supported")
 def test_invalid_keyword():
     with pytest.raises(ValueError):
         var("config_file")
