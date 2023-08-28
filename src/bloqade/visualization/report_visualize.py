@@ -1,7 +1,7 @@
 from bokeh.plotting import figure
 from bokeh.layouts import column, row
 from bokeh.models import CustomJS, MultiChoice, Div, HoverTool, Range1d, ColorBar
-from bokeh.models import ColumnDataSource, LinearColorMapper
+from bokeh.models import ColumnDataSource, LinearColorMapper, Button, SVGIcon
 
 # from bokeh.models import Tabs, TabPanel,, Div, CrosshairTool, Span
 from bokeh.palettes import Dark2_5
@@ -413,11 +413,291 @@ def report_visual(cnt_sources, ryd_sources, metas, geos, name):
 
     # headline = row(Div(text="Report: " + name), bt)
     headline = Div(text="Report: " + name)
-    return column(headline, column(multi_choice, column(*figs)))
+
+    bt = Button(label="Bloqade", icon=SVGIcon(svg=bloqadeICON()))
+    bt.js_on_click(CustomJS(args=dict(url="about:blank"), code="window.open(url)"))
+
+    bt2 = Button(label="QuEra", icon=SVGIcon(svg=queraICON()))
+    bt2.js_on_click(
+        CustomJS(args=dict(url="https://www.quera.com/"), code="window.open(url)")
+    )
+
+    return column(column(headline, row(bt, bt2)), column(multi_choice, column(*figs)))
+
+
+def queraICON():
+    return """
+        <svg
+    id="Layer_2"
+    viewBox="0 0 154.96999 188.87825"
+    version="1.1"
+    sodipodi:docname="logo black.svg"
+    width="154.96999"
+    height="188.87825"
+    inkscape:export-filename="QElogo.svg"
+    inkscape:export-xdpi="96"
+    inkscape:export-ydpi="96"
+    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+    xmlns="http://www.w3.org/2000/svg"
+    xmlns:svg="http://www.w3.org/2000/svg">
+    <defs
+        id="defs98" />
+    <sodipodi:namedview
+        id="namedview98"
+        pagecolor="#ffffff"
+        bordercolor="#000000"
+        borderopacity="0.25"
+        inkscape:showpageshadow="2"
+        inkscape:pageopacity="0.0"
+        inkscape:pagecheckerboard="0"
+        inkscape:deskcolor="#d1d1d1" />
+    <g
+        id="g98"
+        transform="translate(-90.150002,-1.4817416)">
+        <circle
+        cx="154.87"
+        cy="178.75"
+        r="11.61"
+        id="circle7" />
+        <circle
+        cx="-177.98538"
+        cy="126.21368"
+        r="11.61"
+        transform="rotate(-89.82)"
+        id="circle8" />
+        <circle
+        cx="184.17"
+        cy="178.75"
+        r="11.61"
+        id="circle9" />
+        <circle
+        cx="154.87"
+        cy="13.46"
+        r="11.61"
+        id="circle10" />
+        <circle
+        cx="-12.696921"
+        cy="125.69522"
+        r="11.61"
+        transform="rotate(-89.82)"
+        id="circle11" />
+        <circle
+        cx="184.17"
+        cy="13.46"
+        r="11.61"
+        id="circle12" />
+        <circle
+        cx="101.76"
+        cy="159.53"
+        r="11.61"
+        id="circle13" />
+        <circle
+        cx="101.76"
+        cy="126.13"
+        r="11.61"
+        id="circle14" />
+        <circle
+        cx="101.76"
+        cy="95.919998"
+        r="11.61"
+        id="circle15" />
+        <circle
+        cx="101.76"
+        cy="65.699997"
+        r="11.61"
+        id="circle16" />
+        <circle
+        cx="101.76"
+        cy="35.490002"
+        r="11.61"
+        id="circle17" />
+        <circle
+        cx="154.87"
+        cy="121.1"
+        r="11.61"
+        id="circle86" />
+        <circle
+        cx="181.08"
+        cy="140.32001"
+        r="11.61"
+        id="circle87" />
+        <circle
+        cx="233.50999"
+        cy="178.75"
+        r="11.61"
+        id="circle88" />
+        <circle
+        cx="207.42"
+        cy="126.13"
+        r="11.61"
+        id="circle89" />
+        <circle
+        cx="207.42"
+        cy="95.919998"
+        r="11.61"
+        id="circle90" />
+        <circle
+        cx="207.42"
+        cy="65.699997"
+        r="11.61"
+        id="circle91" />
+        <circle
+        cx="207.42"
+        cy="35.490002"
+        r="11.61"
+        id="circle92" />
+        <circle
+        cx="207.42"
+        cy="159.53"
+        r="11.61"
+        id="circle93" />
+        <circle
+        cx="102.38"
+        cy="126.13"
+        r="11.61"
+        id="circle94" />
+        <circle
+        cx="102.38"
+        cy="95.919998"
+        r="11.61"
+        id="circle95" />
+        <circle
+        cx="102.38"
+        cy="65.699997"
+        r="11.61"
+        id="circle96" />
+        <circle
+        cx="102.38"
+        cy="35.490002"
+        r="11.61"
+        id="circle97" />
+        <circle
+        cx="102.38"
+        cy="159.53"
+        r="11.61"
+        id="circle98" />
+    </g>
+    </svg>
+    """
 
 
 def bloqadeICON():
-    with open("./logl.svg", "r") as f:
-        lines = f.readlines()
+    return """
+    <!-- Generator: Adobe Illustrator 27.0.0, SVG Export Plug-In .
+        SVG Version: 6.00 Build 0)  -->
 
-    return lines
+    <svg
+    version="1.1"
+    id="Layer_1"
+    x="0px"
+    y="0px"
+    viewBox="0 0 120 125"
+    xml:space="preserve"
+    sodipodi:docname="logo.svg"
+    width="120"
+    height="125"
+    inkscape:version="1.3 (0e150ed, 2023-07-21)"
+    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+    xmlns="http://www.w3.org/2000/svg"
+    xmlns:svg="http://www.w3.org/2000/svg"><defs
+    id="defs16"><radialGradient
+        id="SVGID_1_"
+        cx="284.23792"
+        cy="40.978001"
+        r="70.431198"
+        gradientUnits="userSpaceOnUse">&#10;				<stop
+    offset="0"
+    style="stop-color:#FFFFFF"
+    id="stop7" />&#10;				<stop
+    offset="0.1264"
+    style="stop-color:#FBFAFF"
+    id="stop8" />&#10;				<stop
+    offset="0.2679"
+    style="stop-color:#F1EDFF"
+    id="stop9" />&#10;				<stop
+    offset="0.4168"
+    style="stop-color:#E0D6FF"
+    id="stop10" />&#10;				<stop
+    offset="0.5707"
+    style="stop-color:#C7B7FF"
+    id="stop11" />&#10;				<stop
+    offset="0.7287"
+    style="stop-color:#A88FFF"
+    id="stop12" />&#10;				<stop
+    offset="0.8875"
+    style="stop-color:#825EFF"
+    id="stop13" />&#10;				<stop
+    offset="1"
+    style="stop-color:#6437FF"
+    id="stop14" />&#10;			</radialGradient></defs><sodipodi:namedview
+    id="namedview16"
+    pagecolor="#ffffff"
+    bordercolor="#000000"
+    borderopacity="0.25"
+    inkscape:showpageshadow="2"
+    inkscape:pageopacity="0.0"
+    inkscape:pagecheckerboard="0"
+    inkscape:deskcolor="#d1d1d1"
+    inkscape:zoom="1.3545752"
+    inkscape:cx="308.95296"
+    inkscape:cy="72.347407"
+    inkscape:window-width="1456"
+    inkscape:window-height="803"
+    inkscape:window-x="260"
+    inkscape:window-y="138"
+    inkscape:window-maximized="0"
+    inkscape:current-layer="Layer_1" />&#10;<style
+    type="text/css"
+    id="style1">&#10;	.st0{fill:url(#SVGID_1_);}&#10;</style>&#10;&#10;<g
+    id="g14"
+    transform="matrix(0.97296819,0,0,1,-234.63028,-11.63275)">&#10;
+    <path
+    d="m 356,136.42 -15.67,-13.98 c -9.94,7.75 -22.57,12.47 -37.06,
+    12.47 -35.88,0 -59.97,-28.13 -59.97,
+    -60.64 v -0.34 c 0,-32.51 24.42,-60.98 60.3,
+    -60.98 35.88,0 59.97,28.13 59.97,60.64 v 0.34 c 0,
+    14.66 -5.22,28.64 -13.98,39.42 l 15.5,13.14 z m -25.1,
+    -22.57 -22.07,-18.87 8.93,-9.94 22.07,20.04 c 6.4,
+    -8.42 9.94,-19.03 9.94,-30.82 v -0.34 c 0,-26.78 -19.54,
+    -48.68 -46.49,-48.68 -26.95,0 -46.15,
+    21.56 -46.15,48.34 v 0.34 c 0,26.79 19.54,48.68 46.49,
+    48.68 10.44,0 19.87,-3.19 27.28,-8.75 z"
+    id="path7" />&#10;			<radialGradient
+    id="radialGradient16"
+    cx="284.23792"
+    cy="40.978001"
+    r="70.431198"
+    gradientUnits="userSpaceOnUse">&#10;				<stop
+    offset="0"
+    style="stop-color:#FFFFFF"
+    id="stop1" />&#10;				<stop
+    offset="0.1264"
+    style="stop-color:#FBFAFF"
+    id="stop2" />&#10;				<stop
+    offset="0.2679"
+    style="stop-color:#F1EDFF"
+    id="stop3" />&#10;				<stop
+    offset="0.4168"
+    style="stop-color:#E0D6FF"
+    id="stop4" />&#10;				<stop
+    offset="0.5707"
+    style="stop-color:#C7B7FF"
+    id="stop5" />&#10;				<stop
+    offset="0.7287"
+    style="stop-color:#A88FFF"
+    id="stop6" />&#10;				<stop
+    offset="0.8875"
+    style="stop-color:#825EFF"
+    id="stop15" />&#10;				<stop
+    offset="1"
+    style="stop-color:#6437FF"
+    id="stop16" />&#10;			</radialGradient>&#10;			<circle
+    class="st0"
+    cx="303.78"
+    cy="74.68"
+    r="49.439999"
+    id="circle14"
+    style="fill:url(#SVGID_1_)" />&#10;		</g></svg>
+    """
