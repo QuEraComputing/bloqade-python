@@ -10,7 +10,7 @@ from bloqade.visualization.ir_visualize import (
 import itertools
 from bokeh.palettes import Dark2_5
 from bokeh.models import Span
-from bokeh.io import show
+from bokeh.io import save
 from bokeh.layouts import row
 
 
@@ -87,4 +87,4 @@ def test_mock_data():
 
     Seq = assemble_sequences([Panel_Pulse1, Panel_Pulse2])
 
-    show(row(Seq, mock_register()))
+    save(row(Seq, mock_register()))

@@ -1,5 +1,5 @@
 from bloqade.visualization.report_visualize import mock_data, report_visual
-from bokeh.io import show
+from bokeh.io import save
 
 
 def test_report_vis_mock():
@@ -7,7 +7,7 @@ def test_report_vis_mock():
 
     fig = report_visual(*dat)
 
-    show(fig)
+    save(fig)
     # from bokeh.models import SVGIcon
 
     # p = figure(width=200, height=100, toolbar_location=None)
