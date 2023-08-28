@@ -28,6 +28,9 @@ import pytest
 import numpy as np
 from io import StringIO
 from IPython.lib.pretty import PrettyPrinter as PP
+import bloqade.ir.tree_print as trp
+
+trp.color_enabled = False
 
 
 def test_wvfm_base():
