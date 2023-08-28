@@ -1,5 +1,5 @@
 from bloqade.visualization.report_visualize import mock_data, report_visual
-from bokeh import show
+from bokeh.io import show
 
 
 def test_report_vis_mock():

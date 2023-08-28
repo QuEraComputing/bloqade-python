@@ -8,8 +8,8 @@ from bloqade.visualization.ir_visualize import (
     mock_register,
 )
 import itertools
-from bokeh import Dark2_5
-from bokeh.model import Span
+from bokeh.palettes import Dark2_5
+from bokeh.models import Span
 from bokeh.io import show
 from bokeh.layouts import row
 
