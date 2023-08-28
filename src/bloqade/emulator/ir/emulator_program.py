@@ -8,8 +8,8 @@ from bloqade.emulator.ir.space import Space
 @dataclass
 class RabiTerm:
     target_atoms: Dict[int, float]
-    phase: Optional[Callable[[float], float]] = None
     amplitude: Callable[[float], float]
+    phase: Optional[Callable[[float], float]] = None
 
 
 @dataclass
