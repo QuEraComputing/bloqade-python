@@ -9,6 +9,9 @@ from bloqade.ir.control.pulse import (
     RabiFrequencyAmplitude,
     RabiFrequencyPhase,
 )
+import bloqade.ir.tree_print as trp
+
+trp.color_enabled = False
 
 
 def test_fieldname_base():
