@@ -1,4 +1,4 @@
-from bokeh.plotting import figure, show
+from bokeh.plotting import figure
 from bokeh.layouts import column, row
 from bokeh.models import CustomJS, MultiChoice, Div, HoverTool, Range1d, ColorBar
 from bokeh.models import ColumnDataSource, LinearColorMapper
@@ -421,17 +421,3 @@ def bloqadeICON():
         lines = f.readlines()
 
     return lines
-
-
-if __name__ == "__main__":
-    dat = mock_data()
-
-    fig = report_visual(*dat)
-
-    show(fig)
-    # from bokeh.models import SVGIcon
-
-    # p = figure(width=200, height=100, toolbar_location=None)
-    # p.image_url(url="file:///./logo.png")
-    # button = Button(label="", icon=SVGIcon(svg=bloqadeICON(), size=50))
-    # show(button)
