@@ -50,3 +50,29 @@ def test_base_program_visitor():
     scaled_loc = list(seq2.pulses[rydberg].fields[Detuning()].value.keys())[0]
     with pytest.raises(NotImplementedError):
         pvis.visit(scaled_loc)
+
+
+def test_get_natoms():
+    prog = (
+        Square(5)
+        .rydberg.detuning.uniform.piecewise_linear(
+            [0.1, 0.9, 0.1],
+            [
+                -10,
+                -10,
+                10,
+                10,
+            ],
+        )
+        .hyperfine.detuning.uniform.piecewise_linear(
+            [0.1, 0.9, 0.1],
+            [
+                -10,
+                -10,
+                10,
+                10,
+            ],
+        )
+    )
+
+    prog.natoms
