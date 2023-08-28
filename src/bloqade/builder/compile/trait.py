@@ -36,7 +36,7 @@ class ParseProgram:
 
 class Parse(ParseRegister, ParseSequence, ParseProgram):
     @property
-    def natoms(self):
+    def n_atoms(self):
         from .builder import Parser
 
         ps = Parser(self)

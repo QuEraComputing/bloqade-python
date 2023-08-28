@@ -75,4 +75,4 @@ def test_get_natoms():
         )
     )
 
-    prog.natoms
+    assert prog.n_atoms == 25
