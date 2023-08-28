@@ -1,11 +1,11 @@
-from pydantic.dataclasses import dataclass
+from dataclasses import dataclass
 from scipy.sparse import csr_matrix
 import numpy as np
 from numpy.typing import NDArray
 from typing import Union
 
 
-@dataclass
+@dataclass(frozen=True)
 class Diagonal:  # used to represent detuning + Rydberg
     diagonal: NDArray
 
@@ -23,11 +23,11 @@ class Diagonal:  # used to represent detuning + Rydberg
 
 # use csr_matrix for rabi-terms that span multiple sites.
 # use PermMatrix for local rabi-terms
-@dataclass
+@dataclass(frozen=True)
 class IndexMapping:
-    input_indices: Union[slice, NDArray]
-    output_indices: Union[slice, NDArray] = slice(-1)
     n_row: int
+    input_indices: Union[slice, NDArray]
+    output_indices: Union[slice, NDArray]
 
     def ajoint(self):
         return IndexMapping(self.output_indices, self.input_indices)
