@@ -128,9 +128,12 @@ class BatchDeserializer:
     def object_hook(self, obj: Dict[str, Any]):
         if len(obj) == 1:
             ((head, body),) = obj.items()
+
             if head in self.constructor_mapping:
                 if "tasks" in body:
                     body["tasks"] = OrderedDict(body["tasks"])
+                elif head in ["quera_backend", "braket_backend", "mock_backend"]:
+                    body = {**body, **self._kwargs}
 
                 return self.constructor_mapping[head](**body)
 

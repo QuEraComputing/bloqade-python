@@ -21,6 +21,7 @@ def test_quera_submit():
         "session_token": 900 * "X",
     }
     config_file = os.path.join("tests", "data", "config", "submit_quera_api.json")
+
     batch = (
         start.add_position((0, 0))
         .rydberg.rabi.amplitude.uniform.piecewise_linear(
