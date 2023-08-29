@@ -12,6 +12,10 @@ from bloqade import cast
 from io import StringIO
 from IPython.lib.pretty import PrettyPrinter as PP
 
+import bloqade.ir.tree_print as trp
+
+trp.color_enabled = False
+
 
 def test_location():
     loc = Location(3)

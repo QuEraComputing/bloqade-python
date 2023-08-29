@@ -42,7 +42,7 @@ files = [
 
 [[package]]
 name = "amazon-braket-sdk"
-version = "1.54.1"
+version = "1.54.2"
 requires_python = ">= 3.8.2"
 summary = "An open source library for interacting with quantum computing devices on Amazon Braket"
 dependencies = [
@@ -61,8 +61,8 @@ dependencies = [
     "sympy",
 ]
 files = [
-    {file = "amazon-braket-sdk-1.54.1.tar.gz", hash = "sha256:7f9b7f13729eebc8a74b52bf9c4ae99c451d8884c09f3b0bc83985c54c462c47"},
-    {file = "amazon_braket_sdk-1.54.1-py3-none-any.whl", hash = "sha256:087780f24778819c2b7d54cc1a9446764cc629d2181e2f6fa2cf02dfd83ef890"},
+    {file = "amazon-braket-sdk-1.54.2.tar.gz", hash = "sha256:0a8c5dee511ac5dd1943fe406b995d0f2f2e266e43691de94bc8bd244df6234a"},
+    {file = "amazon_braket_sdk-1.54.2-py3-none-any.whl", hash = "sha256:df0c66b298cce683fe29dd16383d479acb485851f2dd5a4f727e4e0a9058e1f3"},
 ]
 
 [[package]]
@@ -1157,7 +1157,7 @@ files = [
 
 [[package]]
 name = "jupytext"
-version = "1.15.0"
+version = "1.15.1"
 requires_python = "~=3.6"
 summary = "Jupyter notebooks as Markdown documents, Julia, Python or R scripts"
 dependencies = [
@@ -1168,8 +1168,8 @@ dependencies = [
     "toml",
 ]
 files = [
-    {file = "jupytext-1.15.0-py3-none-any.whl", hash = "sha256:7bb7cf4c0a91f5b1591f7558fa3a6494ac6ccf9810d1aa58565d4d9a2675a4a1"},
-    {file = "jupytext-1.15.0.tar.gz", hash = "sha256:290c0a04b0a0a341d7ca87a2992cf407eb83898873baddf0bc48039a5e301ff8"},
+    {file = "jupytext-1.15.1-py3-none-any.whl", hash = "sha256:1df0724f97e5c0db9bb5b71ff9ecf4225e2bccbfb49131834424b043edbe8af8"},
+    {file = "jupytext-1.15.1.tar.gz", hash = "sha256:39c2112a1a007f2e9e2783695054205562466fd44f68acb371ebd52feac7ff58"},
 ]
 
 [[package]]
@@ -1545,7 +1545,7 @@ files = [
 
 [[package]]
 name = "mkdocs-material"
-version = "9.2.3"
+version = "9.2.5"
 requires_python = ">=3.7"
 summary = "Documentation that simply works"
 dependencies = [
@@ -1564,8 +1564,8 @@ dependencies = [
     "requests>=2.26",
 ]
 files = [
-    {file = "mkdocs_material-9.2.3-py3-none-any.whl", hash = "sha256:1cbac871826bbe0b5a42d7a86cfe729e03cef60cbd4d7425c640115bf1936360"},
-    {file = "mkdocs_material-9.2.3.tar.gz", hash = "sha256:7a8c5638e28cb1c0a0c7596dd85835c461a73637ce8640ea9302dbc674c2aa29"},
+    {file = "mkdocs_material-9.2.5-py3-none-any.whl", hash = "sha256:315a59725f0565bccfec7f9d1313beae7658bf874a176264b98f804a0cbc1298"},
+    {file = "mkdocs_material-9.2.5.tar.gz", hash = "sha256:02b4d1f662bc022e9497411e679323c30185e031a08a7004c763aa8d47ae9a29"},
 ]
 
 [[package]]

@@ -79,4 +79,4 @@ class ProgramStart(Builder):
         """apply an existing pulse sequence to the program."""
         from bloqade.builder.sequence_builder import SequenceBuilder
 
-        return SequenceBuilder(self, sequence)
+        return SequenceBuilder(sequence, self)

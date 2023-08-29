@@ -379,16 +379,18 @@ class Variable(Real):
 
     @validator("name")
     def name_validator(cls, v):
-        match v:
-            case "config_file":
-                raise ValueError(
-                    f'"{v}" is a reserved token, cannot create variable with that name'
-                )
-            case "clock_s":
-                raise ValueError(
-                    f'"{v}" is a reserved token, cannot create variable with that name'
-                )
-
+        # removing reserved toekn check for now.
+        # match v:
+        #     case "config_file":
+        #         raise ValueError(
+        #             f'"{v}" is a reserved token, cannot create variable '
+        #               'with that name'
+        #         )
+        #     case "clock_s":
+        #         raise ValueError(
+        #             f'"{v}" is a reserved token, cannot create variable '
+        #               'with that name'
+        #         )
         return v
 
 
