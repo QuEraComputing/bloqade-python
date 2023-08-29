@@ -1,13 +1,8 @@
 from dataclasses import dataclass
 from numpy.typing import NDArray
-from typing import List, Tuple, Dict, Union
+from typing import List, Tuple, Union
 import numpy as np
 from enum import Enum
-
-
-class LocalHilbertSpace(int, Enum):
-    TwoLevel = 2
-    ThreeLevel = 3
 
 
 class SpaceType(str, Enum):
@@ -15,129 +10,13 @@ class SpaceType(str, Enum):
     SubSpace = "sub_space"
 
 
-class ThreeLevelState(int, Enum):
-    Ground = 0
-    Hyperfine = 1
-    Rydberg = 2
-
-
-class TwoLevelState(int, Enum):
-    Ground = 0
-    Rydberg = 1
-
-
-StateType = Union[ThreeLevelState, TwoLevelState]
-
-
-def is_state(configurations: NDArray, index: int, state: StateType):
-    if isinstance(state, TwoLevelState):
-        match state:
-            case TwoLevelState.Ground:
-                return np.logical_not(configurations & (1 << index))
-            case TwoLevelState.Rydberg:
-                return configurations & (1 << index)
-    elif isinstance(state, ThreeLevelState):
-        return (configurations // 3**index) % 3 == state.value
-
-
-def swap_state(configurations: NDArray, index: int, state_1: StateType, state_2):
-    """Find configurations where the state at index is swapped such that state_1
-    goes to state_2 and vice-versa.
-
-    The
-
-    Args:
-        configurations (NDArray): The configurations to swap the states.
-        index (int): The index of the site to swap the states at.
-        state_1 (StateType): A state to swap.
-        state_2 (_type_): The other state to swap.
-
-    Raises:
-        ValueError: Mixing of TwoLevelState and ThreeLevelState is not defined.
-
-    Returns:
-        NDArray: The configurations where state_1 and state_2 are swapped at the
-        given index.
-    """
-    if isinstance(state_1, TwoLevelState) and isinstance(state_2, TwoLevelState):
-        return configurations ^ (1 << index)
-    elif isinstance(state_1, ThreeLevelState) and isinstance(state_2, ThreeLevelState):
-        output = configurations.copy()
-
-        mask_1 = is_state(configurations, index, state_1)
-        mask_2 = is_state(configurations, index, state_2)
-        print(mask_1)
-        print(mask_2)
-        delta = state_2.value - state_1.value
-
-        output[mask_1] += delta * 3**index
-        output[mask_2] -= delta * 3**index
-
-        return output
-    else:
-        raise ValueError("cannot swap states that are not the same type.")
-
-
-def transition_state(
-    configurations: NDArray, index: int, fro: StateType, to: StateType
-) -> Tuple[NDArray, NDArray]:
-    """Returns the configurations with the state at index switched from fro to to.
-
-    States that do not match fro are are removed from the configurations.
-
-    Args:
-        configurations (NDArray): The configurations to switch the state in.
-        index (int): The index of the site to switch the state at.
-        fro (StateType): The state to switch from.
-        to (StateType): The state to switch to.
-
-    Raises:
-        ValueError: Mixing of TwoLevelState and ThreeLevelState is not defined.
-
-    Returns:
-        Tuple[NDArray, NDArray]:
-            The configurations with the state at index switched from fro to to.
-    """
-    input_configs = is_state(configurations, index, fro)
-    output_configs = configurations[input_configs]
-
-    if isinstance(fro, TwoLevelState) and isinstance(to, TwoLevelState):
-        return (input_configs, output_configs ^ (1 << index))
-    elif isinstance(fro, ThreeLevelState) and isinstance(to, ThreeLevelState):
-        delta = to.value - fro.value
-        return (input_configs, output_configs + (delta * 3**index))
-    else:
-        raise ValueError("cannot switch between states that are not the same type.")
-
-
-@dataclass(init=False)
-class FockStateConverter:
-    n_atoms: int
-    n_level: LocalHilbertSpace
-    str_to_int: Dict[str, int]
-    int_to_str: List[str]
-
-    def __init__(self, n_level: LocalHilbertSpace, n_atoms: int):
-        match n_level:
-            case LocalHilbertSpace.TwoLevel:
-                int_to_str = ["g", "r"]
-
-            case LocalHilbertSpace.ThreeLevel:
-                int_to_str = ["g", "h", "r"]
-
-        str_to_int = {s: i for i, s in enumerate(int_to_str)}
-
-        self.n_atoms = n_atoms
-        self.n_level = n_level
-        self.str_to_int = str_to_int
-        self.int_to_str = int_to_str
-
+class AtomType:
     def string_to_integer(self, fock_state: str) -> int:
         state_string = fock_state.replace("|", "").replace(">", "")
 
         state_int = 0
         shift = 1
-        for site, local_state in enumerate(state_string):
+        for local_state in state_string:
             state_int += shift * self.str_to_int[local_state]
             shift *= self.n_level.value
 
@@ -161,18 +40,117 @@ class FockStateConverter:
 
         return f"|{state_string}>"
 
+    def is_rydberg(self, configurations: NDArray, index: int) -> NDArray:
+        return self.is_state(configurations, index, self.States.Rydberg)
+
+    def swap_state(
+        self, configurations: NDArray, index: int, state_1: int, state_2: int
+    ) -> NDArray:
+        raise NotImplementedError
+
+    def transition_state(
+        self, configurations: NDArray, index: int, fro: int, to: int
+    ) -> NDArray:
+        raise NotImplementedError
+
+
+class ThreeLevelAtomType(AtomType):
+    class States(int, Enum):
+        Ground = 0
+        Hyperfine = 1
+        Rydberg = 2
+
+    str_to_int = {"g": 0, "h": 1, "r": 2}
+    int_to_str = ["g", "h", "r"]
+
+    def is_state(self, configurations: NDArray, index: int, state: Union[States, int]):
+        state = self.States(state)
+        mask = (configurations // 3**index) % 3
+        return mask == state.value
+
+    def swap_state(
+        self, configurations: NDArray, index: int, state_1: States, state_2: States
+    ) -> NDArray:
+        state_1 = self.States(state_1)
+        state_2 = self.States(state_2)
+
+        output = configurations.copy()
+
+        mask_1 = self.is_state(configurations, index, state_1)
+        mask_2 = self.is_state(configurations, index, state_2)
+        delta = state_2.value - state_1.value
+
+        output[mask_1] += delta * 3**index
+        output[mask_2] -= delta * 3**index
+
+        return output
+
+    def transition_state(
+        self, configurations: NDArray, index: int, fro: States, to: States
+    ) -> NDArray:
+        fro = self.States(fro)
+        to = self.States(to)
+
+        input_configs = self.is_state(configurations, index, fro)
+        output_configs = configurations[input_configs]
+
+        delta = to.value - fro.value
+        return (input_configs, output_configs + (delta * 3**index))
+
+
+class TwoLevelAtomType(AtomType):
+    class States(int, Enum):
+        Ground = 0
+        Rydberg = 1
+
+    str_to_int = {"g": 0, "r": 1}
+    int_to_str = ["g", "r"]
+
+    def is_state(self, configurations: NDArray, index: int, state: States):
+        state = self.States(state)
+
+        mask = configurations & (1 << index)
+
+        if state == self.States.Ground:
+            return np.logical_not(mask)
+
+        return mask
+
+    def swap_state(
+        self, configurations: NDArray, index: int, state_1: States, state_2: States
+    ) -> NDArray:
+        state_1 = self.States(state_1)
+        state_2 = self.States(state_2)
+        return configurations ^ (1 << index)
+
+    def transition_state(
+        self, configurations: NDArray, index: int, fro: States, to: States
+    ) -> NDArray:
+        fro = self.States(fro)
+        to = self.States(to)
+
+        input_configs = self.is_state(configurations, index, fro)
+        output_configs = configurations[input_configs]
+
+        return (input_configs, output_configs ^ (1 << index))
+
+
+ThreeLevelAtom = ThreeLevelAtomType()
+TwoLevelAtom = TwoLevelAtomType()
+AtomStateType = Union[ThreeLevelAtom.States, TwoLevelAtom.States]
+
 
 @dataclass(frozen=True)
 class Space:
     space_type: SpaceType
-    n_level: LocalHilbertSpace
+    atom_type: AtomType
     atom_coordinates: List[Tuple[float, float]]
     configurations: NDArray
 
     @staticmethod
     def create(
         atom_coordinates: List[Tuple[float, float]],
-        n_level: Union[int, LocalHilbertSpace] = LocalHilbertSpace.TwoLevel,
+        n_level: Union[int, AtomType] = TwoLevelAtom,
         blockade_radius=0.0,
     ):
         atom_coordinates = [
@@ -180,9 +158,14 @@ class Space:
             for coordinate in atom_coordinates
         ]
 
-        n_level = LocalHilbertSpace(n_level)
-
         n_atom = len(atom_coordinates)
+
+        if n_level == 2:
+            atom_type = TwoLevelAtom
+            Ns = 1 << n_atom
+        elif n_level == 3:
+            atom_type = ThreeLevelAtom
+            Ns = 3**n_atom
 
         check_atoms = []
 
@@ -198,25 +181,19 @@ class Space:
 
             check_atoms.append(atoms)
 
-        match n_level:
-            case LocalHilbertSpace.TwoLevel:
-                Ns = 1 << n_atom
-                state = TwoLevelState.Rydberg
-            case LocalHilbertSpace.ThreeLevel:
-                Ns = 3**n_atom
-                state = ThreeLevelState.Rydberg
-
         configurations = np.arange(Ns, dtype=np.min_scalar_type(Ns - 1))
 
         if all(len(sub_list) == 0 for sub_list in check_atoms):
-            return Space(SpaceType.FullSpace, n_level, atom_coordinates, configurations)
+            return Space(
+                SpaceType.FullSpace, atom_type, atom_coordinates, configurations
+            )
 
         for index_1, indices in enumerate(check_atoms):
             # get which configurations are in rydberg state for the current index.
-            rydberg_configs_1 = is_state(configurations, index_1, state)
+            rydberg_configs_1 = atom_type.is_rydberg(configurations, index_1)
             for index_2 in indices:  # loop over neighbors within blockade radius
                 # get which configus have the neighbor with a rydberg excitation
-                rydberg_configs_2 = is_state(configurations, index_2, state)
+                rydberg_configs_2 = atom_type.is_rydberg(configurations, index_2)
                 # get which states do not violate constraint
                 mask = np.logical_not(
                     np.logical_and(rydberg_configs_1, rydberg_configs_2)
@@ -225,7 +202,7 @@ class Space:
                 configurations = configurations[mask]
                 rydberg_configs_1 = rydberg_configs_1[mask]
 
-        return Space(SpaceType.SubSpace, n_level, atom_coordinates, configurations)
+        return Space(SpaceType.SubSpace, atom_type, atom_coordinates, configurations)
 
     @property
     def index_type(self) -> np.dtype:
@@ -246,9 +223,45 @@ class Space:
     def state_type(self) -> np.dtype:
         return np.result_type(np.uint32, np.min_scalar_type(self.configurations[-1]))
 
+    def swap_state(
+        self, index: int, state_1: AtomStateType, state_2: AtomStateType
+    ) -> NDArray:
+        col_config = self.atom_type.swap_state(
+            self.configurations, index, state_1, state_2
+        )
+        if self.space_type == SpaceType.FullSpace:
+            return (slice(-1), col_config)
+        else:
+            col_indices = np.searchsorted(self.configurations, col_config)
+            mask = col_indices < self.size
+            col_indices = col_indices[mask]
+
+            if not np.all(mask):
+                row_indices = np.argwhere(mask).flatten()
+            else:
+                row_indices = slice(-1)
+
+            return (row_indices, col_indices)
+
+    def transition_state(
+        self, index: int, fro: AtomStateType, to: AtomStateType
+    ) -> NDArray:
+        row_indices, col_config = self.atom_type.transition_state(
+            self.configurations, index, fro, to
+        )
+        if self.space_type == SpaceType.FullSpace:
+            return (row_indices, col_config)
+        else:
+            col_indices = np.searchsorted(self.configurations, col_config)
+            mask = col_indices < self.size
+
+            col_indices = col_indices[mask]
+            row_indices = np.logical_and(row_indices, mask)
+
+            return (row_indices, col_indices)
+
     def fock_state_to_index(self, fock_state: str) -> int:
-        converter = FockStateConverter(self.n_level)
-        state_int = converter.string_to_integer(fock_state)
+        state_int = self.atom_type.string_to_integer(fock_state)
         match self.space_type:
             case SpaceType.FullSpace:
                 return state_int
@@ -265,28 +278,31 @@ class Space:
                 raise NotImplementedError
 
     def index_to_fock_state(self, index: int) -> str:
-        converter = FockStateConverter(self.n_level, self.n_atoms)
         match self.space_type:
             case SpaceType.FullSpace:
-                return converter.integer_to_string(index)
+                return self.atom_type.integer_to_string(index)
             case SpaceType.SubSpace:
-                return converter.integer_to_string(self.configurations[index])
+                return self.atom_type.integer_to_string(self.configurations[index])
+
+    def zero_state(self, dtype=np.float64) -> NDArray:
+        state = np.zeros(self.size, dtype=dtype)
+        state[0] = 1.0
+        return state
 
     def __str__(self):
         # TODO: update this to use unicode
         output = ""
-        converter = FockStateConverter(self.n_level, self.n_atoms)
 
         n_digits = len(str(self.size - 1))
         fmt = "{{index: >{}d}}. {{fock_state:s}}\n".format(n_digits)
         if self.size < 50:
             for index, state_int in enumerate(self.configurations):
-                fock_state = converter.integer_to_string(state_int)
+                fock_state = self.atom_type.integer_to_string(state_int)
                 output = output + fmt.format(index=index, fock_state=fock_state)
 
         else:
             for index, state_int in enumerate(self.configurations[:25]):
-                fock_state = converter.integer_to_string(state_int)
+                fock_state = self.atom_type.integer_to_string(state_int)
                 output = output + fmt.format(index=index, fock_state=fock_state)
 
             output += (n_digits * "  ") + "...\n"
@@ -294,11 +310,7 @@ class Space:
             for index, state_int in enumerate(
                 self.configurations[-25:], start=self.size - 25
             ):
-                fock_state = converter.integer_to_string(state_int)
+                fock_state = self.atom_type.integer_to_string(state_int)
                 output = output + fmt.format(index=index, fock_state=fock_state)
 
         return output
-
-    def zero_state(self) -> NDArray:
-        state = np.zeros(self.size)
-        state[0] = 1.0
