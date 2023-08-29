@@ -2,6 +2,7 @@
 # from bloqade.ir.analog_circuit import AnalogCircuit
 from bloqade.builder.base import Builder
 from bloqade.ir.routine.braket import BraketServiceOptions
+from bloqade.ir.routine.quera import QuEraServiceOptions
 from dataclasses import dataclass
 
 
@@ -16,3 +17,7 @@ class Routine:
     @property
     def braket(self) -> BraketServiceOptions:
         return BraketServiceOptions(parent=self)
+
+    @property
+    def quera(self):
+        return QuEraServiceOptions(parent=self)
