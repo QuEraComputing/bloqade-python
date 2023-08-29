@@ -53,9 +53,17 @@ class AtomType:
     ) -> NDArray:
         raise NotImplementedError
 
+    @classmethod
+    def is_state(cls, configurations: NDArray, index: int, state):
+        if not isinstance(state, cls.State):
+            raise ValueError(f"state: {state} is not a valid state for {cls.__name__}.")
+
+        mask = (configurations // 3**index) % 3
+        return mask == state.value
+
 
 class ThreeLevelAtomType(AtomType):
-    class States(int, Enum):
+    class State(int, Enum):
         Ground = 0
         Hyperfine = 1
         Rydberg = 2
@@ -63,16 +71,11 @@ class ThreeLevelAtomType(AtomType):
     str_to_int = {"g": 0, "h": 1, "r": 2}
     int_to_str = ["g", "h", "r"]
 
-    def is_state(self, configurations: NDArray, index: int, state: Union[States, int]):
-        state = self.States(state)
-        mask = (configurations // 3**index) % 3
-        return mask == state.value
-
     def swap_state(
-        self, configurations: NDArray, index: int, state_1: States, state_2: States
+        self, configurations: NDArray, index: int, state_1: State, state_2: State
     ) -> NDArray:
-        state_1 = self.States(state_1)
-        state_2 = self.States(state_2)
+        state_1 = self.State(state_1)
+        state_2 = self.State(state_2)
 
         output = configurations.copy()
 
@@ -86,10 +89,10 @@ class ThreeLevelAtomType(AtomType):
         return output
 
     def transition_state(
-        self, configurations: NDArray, index: int, fro: States, to: States
+        self, configurations: NDArray, index: int, fro: State, to: State
     ) -> NDArray:
-        fro = self.States(fro)
-        to = self.States(to)
+        fro = self.State(fro)
+        to = self.State(to)
 
         input_configs = self.is_state(configurations, index, fro)
         output_configs = configurations[input_configs]
@@ -99,35 +102,35 @@ class ThreeLevelAtomType(AtomType):
 
 
 class TwoLevelAtomType(AtomType):
-    class States(int, Enum):
+    class State(int, Enum):
         Ground = 0
         Rydberg = 1
 
     str_to_int = {"g": 0, "r": 1}
     int_to_str = ["g", "r"]
 
-    def is_state(self, configurations: NDArray, index: int, state: States):
-        state = self.States(state)
+    def is_state(self, configurations: NDArray, index: int, state: State):
+        state = self.State(state)
 
         mask = configurations & (1 << index)
 
-        if state == self.States.Ground:
+        if state == self.State.Ground:
             return np.logical_not(mask)
 
         return mask
 
     def swap_state(
-        self, configurations: NDArray, index: int, state_1: States, state_2: States
+        self, configurations: NDArray, index: int, state_1: State, state_2: State
     ) -> NDArray:
-        state_1 = self.States(state_1)
-        state_2 = self.States(state_2)
+        state_1 = self.State(state_1)
+        state_2 = self.State(state_2)
         return configurations ^ (1 << index)
 
     def transition_state(
-        self, configurations: NDArray, index: int, fro: States, to: States
+        self, configurations: NDArray, index: int, fro: State, to: State
     ) -> NDArray:
-        fro = self.States(fro)
-        to = self.States(to)
+        fro = self.State(fro)
+        to = self.State(to)
 
         input_configs = self.is_state(configurations, index, fro)
         output_configs = configurations[input_configs]
@@ -137,7 +140,6 @@ class TwoLevelAtomType(AtomType):
 
 ThreeLevelAtom = ThreeLevelAtomType()
 TwoLevelAtom = TwoLevelAtomType()
-AtomStateType = Union[ThreeLevelAtom.States, TwoLevelAtom.States]
 
 
 @dataclass(frozen=True)
@@ -223,9 +225,7 @@ class Space:
     def state_type(self) -> np.dtype:
         return np.result_type(np.uint32, np.min_scalar_type(self.configurations[-1]))
 
-    def swap_state(
-        self, index: int, state_1: AtomStateType, state_2: AtomStateType
-    ) -> NDArray:
+    def swap_state(self, index: int, state_1: int, state_2: int) -> NDArray:
         col_config = self.atom_type.swap_state(
             self.configurations, index, state_1, state_2
         )
@@ -243,9 +243,7 @@ class Space:
 
             return (row_indices, col_indices)
 
-    def transition_state(
-        self, index: int, fro: AtomStateType, to: AtomStateType
-    ) -> NDArray:
+    def transition_state(self, index: int, fro: int, to: int) -> NDArray:
         row_indices, col_config = self.atom_type.transition_state(
             self.configurations, index, fro, to
         )
