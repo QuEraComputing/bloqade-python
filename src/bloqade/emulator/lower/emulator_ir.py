@@ -12,12 +12,11 @@ from bloqade.emulator.ir.emulator_program import (
     Visitor,
 )
 from bloqade.emulator.ir.space import (
+    AtomStateType,
     Space,
     SpaceType,
-    LocalHilbertSpace,
-    TwoLevelState,
-    ThreeLevelState,
-    is_state,
+    TwoLevelAtom,
+    ThreeLevelAtom,
 )
 from bloqade.emulator.sparse_operator import IndexMapping, Diagonal
 from scipy.sparse import csr_matrix, csc_matrix
@@ -32,10 +31,16 @@ class LowerRabiTerm:
         self.level_coupling = None
         self.target_atoms = {}
 
+
+    def emit_single_atom_real(self, state_1: AtomStateType, state_2: AtomStateType):
+        ((atom_index, value),) = self.target_atoms.items()
+        
+        self.space.swap_state(atom_index, TwoLevelAtom.Ground, state_1, state_2)
+    
     def emit_two_level_full_space_single_atom_real(self):
         ((atom_index, value),) = self.target_atoms.items()
 
-        input_indices = self.space.configurations ^ (1 << atom_index)
+        row_indices = swap_state(self.space.configurations, atom_index, TwoLevelAtom.Ground, 1)
         return [(lambda t: value * self.amplitude(t), IndexMapping(input_indices))]
 
     def emit_two_level_full_space_single_atom_complex(self):
@@ -267,7 +272,7 @@ class LowerRabiTerm:
                 raise NotImplementedError("Three-level space not implemented.")
 
 
-class LowerToAnalogGate(Visitor):
+class ToAnalogGate(Visitor):
     def __init__(self):
         self.terms = []
         self.space = None
@@ -286,12 +291,12 @@ class LowerToAnalogGate(Visitor):
 
     def visit_space(self, space: Space):
         self.space = space
-        self.n_level = space.n_level
+        self.n_level = space.atom_type
 
-        if space.n_level == LocalHilbertSpace.TwoLevel:
-            self.rydberg_state = TwoLevelState.rydberg
-        elif space.n_level == LocalHilbertSpace.ThreeLevel:
-            self.rydberg_state = ThreeLevelState.rydberg
+        if space.atom_type == LocalHilbertSpace.TwoLevel:
+            self.rydberg_state = TwoLevelAtom.rydberg
+        elif space.atom_type == LocalHilbertSpace.ThreeLevel:
+            self.rydberg_state = ThreeLevelAtom.rydberg
 
         configurations = space.configurations
         atom_coordinates = space.atom_coordinates
