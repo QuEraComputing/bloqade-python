@@ -114,22 +114,15 @@ class LocalBatch(Serializable):
         self, multiprocessing: bool = False, num_workers: Optional[int] = None, **kwargs
     ):
         if multiprocessing:
-            from multiprocessing import Pool
+            from concurrent.futures import ProcessPoolExecutor as Pool
 
-            if num_workers is None:
-                num_workers = os.cpu_count()
+            with Pool(max_workers=num_workers) as pool:
+                futures = OrderedDict()
+                for task in self.tasks.values():
+                    futures[task.task_id] = pool.submit(task.run, **kwargs)
 
-            with Pool(num_workers) as pool:
-                async_results = []
-                for taks_number, task in self.tasks.items():
-                    async_results.append(
-                        (taks_number, pool.apply_async(task.run, kwds=kwargs))
-                    )
-
-                for taks_number, async_result in async_results:
-                    async_result.wait()
-                    if async_result.successful():
-                        self.tasks[taks_number] = async_result.get()
+                for task_id, future in futures.items():
+                    self.tasks[task_id] = future.result()
 
         else:
             if num_workers is not None:
