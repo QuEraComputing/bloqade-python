@@ -11,9 +11,8 @@ from bloqade.builder.parallelize import Parallelize, ParallelizeFlatten
 from bloqade.builder.parse.stream import BuilderNode
 
 import bloqade.ir as ir
-from dataclasses import dataclass
 from itertools import repeat
-from typing import TYPE_CHECKING, Tuple, Set, Union, Dict, List, Optional
+from typing import TYPE_CHECKING, Tuple, Union, Dict, List, Optional
 
 if TYPE_CHECKING:
     from bloqade.ir.routine.params import Params, ParamType
@@ -21,11 +20,10 @@ if TYPE_CHECKING:
     from bloqade.builder.parse.stream import BuilderStream
 
 
-@dataclass
 class Parser:
     stream: Optional["BuilderStream"] = None
-    vector_node_names: Set[str] = set([])
-    sequence: ir.Sequence = ir.Sequence({})
+    vector_node_names: Tuple[str, ...] = ()
+    sequence: ir.Sequence = ir.Sequence()
     register: Union[ir.AtomArrangement, ir.ParallelRegister, None] = None
     batch_params: List[Dict[str, "ParamType"]] = [{}]
     static_params: Dict[str, "ParamType"] = {}
@@ -222,6 +220,18 @@ class Parser:
                     break
 
             curr = curr.next
+
+    def parse_register(
+        self, builder: Builder
+    ) -> Union[ir.AtomArrangement, ir.ParallelRegister]:
+        self.stream = BuilderStream.create(builder)
+        self.read_register()
+        return self.register
+
+    def parse_sequence(self, builder: Builder) -> ir.Sequence:
+        self.stream = BuilderStream.create(builder)
+        self.read_sequeence()
+        return self.sequence
 
     def parse(self, builder: Builder) -> Tuple["AnalogCircuit", "Params"]:
         from bloqade.builder.parse.stream import BuilderStream
