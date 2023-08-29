@@ -1,3 +1,4 @@
+from decimal import Decimal
 from bloqade.builder.base import Builder
 from bloqade.builder.coupling import LevelCoupling, Rydberg, Hyperfine
 from bloqade.builder.sequence_builder import SequenceBuilder
@@ -10,32 +11,25 @@ from bloqade.builder.parallelize import Parallelize, ParallelizeFlatten
 from bloqade.builder.parse.stream import BuilderNode
 
 import bloqade.ir as ir
-from bloqade.ir.program import BloqadeProgram
-
+from dataclasses import dataclass
 from itertools import repeat
-from typing import Tuple
+from typing import TYPE_CHECKING, Tuple, Set, Union, Dict, List, Optional
+
+if TYPE_CHECKING:
+    from bloqade.ir.routine.params import Params, ParamType
+    from bloqade.ir.analog_circuit import AnalogCircuit
+    from bloqade.builder.parse.stream import BuilderStream
 
 
+@dataclass
 class Parser:
-    pragma_types = (
-        Assign,
-        BatchAssign,
-        Flatten,
-        Parallelize,
-        ParallelizeFlatten,
-    )
-
-    def __init__(self, ast: Builder) -> None:
-        from bloqade.builder.parse.stream import BuilderStream
-
-        self.builder = ast
-        self.stream = BuilderStream.create(ast)
-        self.vector_node_names = set([])
-        self.sequence = ir.Sequence({})
-        self.register = None
-        self.batch_params = [{}]
-        self.static_params = {}
-        self.order = ()
+    stream: Optional["BuilderStream"] = None
+    vector_node_names: Set[str] = set([])
+    sequence: ir.Sequence = ir.Sequence({})
+    register: Union[ir.AtomArrangement, ir.ParallelRegister, None] = None
+    batch_params: List[Dict[str, "ParamType"]] = [{}]
+    static_params: Dict[str, "ParamType"] = {}
+    order: Tuple[str, ...] = ()
 
     def read_address(self, stream) -> Tuple[LevelCoupling, Field, BuilderNode]:
         spatial = stream.eat([Location, Uniform, Var], [Scale])
@@ -173,16 +167,28 @@ class Parser:
         return self.register
 
     def read_pragmas(self) -> None:
+        pragma_types = (
+            Assign,
+            BatchAssign,
+            Flatten,
+            Parallelize,
+            ParallelizeFlatten,
+        )
+
         stream = self.stream.copy()
-        curr = stream.read_next(Parser.pragma_types)
+        curr = stream.read_next(pragma_types)
 
         while curr is not None:
             match curr.node:
                 case Assign(static_params):
-                    self.static_params = static_params
+                    self.static_params = {
+                        name: Decimal(str(value))
+                        for name, value in static_params.items()
+                    }
+
                 case BatchAssign(batch_param):
                     tuple_iterators = [
-                        zip(repeat(name), values)
+                        zip(repeat(name), map(Decimal, map(str, values)))
                         for name, values in batch_param.items()
                     ]
                     self.batch_params = list(map(dict, zip(*tuple_iterators)))
@@ -217,18 +223,22 @@ class Parser:
 
             curr = curr.next
 
-    def parse(self) -> "BloqadeProgram":
-        from bloqade.codegen.common.static_assign import StaticAssignProgram
-        from bloqade.ir.program import BloqadeProgram, Params
+    def parse(self, builder: Builder) -> Tuple["AnalogCircuit", "Params"]:
+        from bloqade.builder.parse.stream import BuilderStream
+        from bloqade.ir.routine.params import Params
         from bloqade.ir.analog_circuit import AnalogCircuit
+
+        self.stream = BuilderStream.create(builder)
 
         self.read_register()
         self.read_sequeence()
         self.read_pragmas()
 
-        ast = StaticAssignProgram(self.static_params).visit(
-            AnalogCircuit(self.register, self.sequence)
+        params = Params(
+            static_params=self.static_params,
+            batch_params=self.batch_params,
+            flatten_params=self.order,
         )
-        return BloqadeProgram(
-            self.builder, ast, self.static_params, Params(self.batch_params, self.order)
-        )
+        circuit = AnalogCircuit(self.register, self.sequence)
+
+        return circuit, params
