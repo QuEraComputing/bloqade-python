@@ -3,7 +3,7 @@ from bloqade.task.quera import QuEraTask
 from bloqade.task.braket import BraketTask
 from bloqade.task.braket_simulator import BraketEmulatorTask
 
-from bloqade.ir.batch import BloqadeBatch
+from bloqade.builder.base import Builder
 
 from bloqade.submission.ir.task_results import (
     QuEraShotStatusCode,
@@ -33,7 +33,7 @@ class Serializable:
 
 @dataclass
 class LocalBatch(Serializable):
-    batch: Optional[BloqadeBatch]
+    source: Optional[Builder]
     tasks: OrderedDict[int, BraketEmulatorTask]
     name: Optional[str] = None
 
@@ -120,7 +120,7 @@ class LocalBatch(Serializable):
 # the user only need to store this objecet
 @dataclass
 class RemoteBatch(Serializable):
-    batch: Optional[BloqadeBatch]
+    source: Builder
     tasks: Union[OrderedDict[int, QuEraTask], OrderedDict[int, BraketTask]]
     name: Optional[str] = None
 

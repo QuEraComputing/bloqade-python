@@ -1,5 +1,5 @@
-from bloqade.codegen.hardware.quera import SchemaCodeGen
-from bloqade.ir.batch import BloqadeBatch
+from bloqade.codegen.hardware.quera import QuEraCodeGen
+from bloqade.ir.batch import TaskBatch
 from bloqade.submission.braket import BraketBackend
 
 from collections import OrderedDict
@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 class BraketCompiler:
     """Lower from BloqadeBatch to RemoteBatch of BraketTask."""
 
-    batch: BloqadeBatch
+    batch: TaskBatch
     backend: BraketBackend  # backend is determined by device_arn
 
     def compile(self, shots, name: Optional[str]) -> "RemoteBatch":
@@ -24,7 +24,7 @@ class BraketCompiler:
         capabilities = self.backend.get_capabilities()
         for task_number, bloqade_task in self.batch.tasks.items():
             metadata = {**bloqade_task.assingments, **self.batch.program.assignments}
-            task_ir, parallel_decoder = SchemaCodeGen(capabilities=capabilities).emit(
+            task_ir, parallel_decoder = QuEraCodeGen(capabilities=capabilities).emit(
                 shots, bloqade_task.ast
             )
 

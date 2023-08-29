@@ -1,6 +1,6 @@
 from collections import OrderedDict
-from bloqade.codegen.hardware.quera import SchemaCodeGen
-from bloqade.ir.batch import BloqadeBatch
+from bloqade.codegen.hardware.quera import QuEraCodeGen
+from bloqade.ir.batch import TaskBatch
 from bloqade.submission.quera import QuEraBackend
 from bloqade.submission.mock import DumbMockBackend
 from typing import TYPE_CHECKING, Optional, Union
@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 class QuEraCompiler:
     """Lower from BloqadeBatch to RemoteBatch of QuEraTask."""
 
-    batch: BloqadeBatch
+    batch: TaskBatch
     backend: Union[QuEraBackend, DumbMockBackend]
 
     def compile(self, shots, name: Optional[str]) -> "RemoteBatch":
@@ -25,7 +25,7 @@ class QuEraCompiler:
         capabilities = self.backend.get_capabilities()
         for task_number, bloqade_task in self.batch.tasks.items():
             metadata = {**bloqade_task.assingments, **self.batch.program.assignments}
-            task_ir, parallel_decoder = SchemaCodeGen(capabilities=capabilities).emit(
+            task_ir, parallel_decoder = QuEraCodeGen(capabilities=capabilities).emit(
                 shots, bloqade_task.ast
             )
 

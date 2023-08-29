@@ -2,7 +2,7 @@ from typing import Union, TYPE_CHECKING
 import json
 
 if TYPE_CHECKING:
-    from bloqade.ir.program import BloqadeProgram
+    from bloqade.ir.program import Routine
     from bloqade.ir import AtomArrangement, ParallelRegister, Sequence
 
 
@@ -31,7 +31,7 @@ class ParseSequence:
 
 
 class ParseProgram:
-    def parse_program(self) -> "BloqadeProgram":
+    def parse_program(self) -> "Routine":
         from bloqade.builder.parse.builder import Parser
 
         return Parser(self).parse()
