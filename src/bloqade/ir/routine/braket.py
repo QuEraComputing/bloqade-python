@@ -7,27 +7,28 @@ from bloqade.submission.braket import BraketBackend
 
 
 if TYPE_CHECKING:
-    from bloqade.ir.routine.base import Routine
+    from bloqade.builder.base import Builder
     from bloqade.task.batch import RemoteBatch
 
 
 @dataclass(frozen=True)
 class BraketServiceOptions:
-    parent_routine: "Routine"
+    source: "Builder"
 
-    def Aquila(self) -> "AquilaRoutine":
+    def aquila(self) -> "BraketHardwareRoutine":
         backend = BraketBackend(
             device_arn="arn:aws:braket:us-east-1::device/qpu/quera/Aquila"
         )
-        return BraketRoutine(parent_routine=self.parent_routine, backend=backend)
+        return BraketHardwareRoutine(source=self.source, backend=backend)
 
     def local_emulator(self):
         pass
 
 
 @dataclass(frozen=True)
-class BraketRoutine:
-    parent_routine: "Routine"
+class BraketHardwareRoutine:
+    source: "Builder"
+    backend: BraketBackend
 
     def submit(
         self,
@@ -45,9 +46,7 @@ class BraketRoutine:
 
         capabilities = self.backend.get_capabilities()
 
-        source = self.parent_routine.source
-
-        circuit, params = Parser().parse(source)
+        circuit, params = Parser().parse(self.source)
         circuit = StaticAssignProgram(params.static_params).visit(circuit)
 
         tasks = OrderedDict()
@@ -65,7 +64,7 @@ class BraketRoutine:
                 None,
             )
 
-        batch = RemoteBatch(source=source, tasks=tasks, name=name)
+        batch = RemoteBatch(source=self.source, tasks=tasks, name=name)
 
         batch._submit(shuffle, **kwargs)
 
@@ -95,13 +94,12 @@ class BraketRoutine:
 
 
 @dataclass(frozen=True)
-class AquilaRoutine(BraketRoutine):
-    backend: BraketBackend
-    
-    
-@dataclass(frozen=True)
 class BraketLocalEmulatorRoutine:
-    def run(self, shots: int, args: Tuple[Real, ...]=(), **kwargs):
+    source: "Builder"
+
+    def run(
+        self, shots: int, args: Tuple[Real, ...] = (), name: str | None = None, **kwargs
+    ):
         ## fall passes here ###
         from bloqade.builder.parse.builder import Parser
         from bloqade.codegen.common.static_assign import StaticAssignProgram
@@ -112,9 +110,7 @@ class BraketLocalEmulatorRoutine:
 
         capabilities = self.backend.get_capabilities()
 
-        source = self.parent_routine.source
-
-        circuit, params = Parser().parse(source)
+        circuit, params = Parser().parse(self.source)
         circuit = StaticAssignProgram(params.static_params).visit(circuit)
 
         tasks = OrderedDict()
@@ -123,17 +119,16 @@ class BraketLocalEmulatorRoutine:
             quera_task_ir, parallel_decoder = QuEraCodeGen(params, capabilities).emit(
                 shots, circuit
             )
-            
+
             task_ir = to_braket_task_ir(quera_task_ir)
-            
+
             tasks[task_number] = BraketEmulatorTask(
                 task_ir,
                 params,
                 None,
             )
 
-        batch = LocalBatch(source=source, tasks=tasks, name=name)
-
-        batch._submit(shuffle, **kwargs)
+        batch = LocalBatch(source=self.source, tasks=tasks, name=name)
+        batch._run(**kwargs)
 
         return batch
