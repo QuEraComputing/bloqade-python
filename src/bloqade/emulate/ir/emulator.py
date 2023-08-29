@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Dict, List, Optional, Callable
 
 from bloqade.ir.control.sequence import LevelCoupling
-from bloqade.emulator.ir.space import Space
+from bloqade.emulate.ir.space import Space
 
 
 @dataclass
