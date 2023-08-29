@@ -5,7 +5,7 @@ from bloqade.submission.ir.braket import BraketTaskSpecification
 from bloqade.submission.ir.parallel import ParallelDecoder
 from bloqade.submission.ir.task_results import QuEraTaskResults
 from bloqade.submission.ir.task_specification import QuEraTaskSpecification
-from bloqade.submission.mock import DumbMockBackend
+from bloqade.submission.mock import MockBackend
 from bloqade.submission.quera import QuEraBackend
 from .braket import BraketTask
 from .quera import QuEraTask
@@ -87,7 +87,7 @@ class BatchSerializer(json.JSONEncoder):
                         exclude=set(["access_key", "secret_key", "session_token"])
                     )
                 }
-            case DumbMockBackend() as dumb_mock_backend:
+            case MockBackend() as dumb_mock_backend:
                 return {"mock_backend": dumb_mock_backend.dict()}
             case BraketBackend() as backend:
                 return {"braket_backend": backend.dict()}
@@ -117,7 +117,7 @@ class BatchDeserializer:
         "parallel_decoder": ParallelDecoder,
         "task_result_ir": QuEraTaskResults,
         "quera_backend": QuEraBackend,
-        "mock_backend": DumbMockBackend,
+        "mock_backend": MockBackend,
         "braket_backend": BraketBackend,
     }
 

@@ -3,7 +3,7 @@ from dataclasses import dataclass
 import json
 from numbers import Real
 from bloqade.submission.quera import QuEraBackend
-from bloqade.submission.mock import DumbMockBackend
+from bloqade.submission.mock import MockBackend
 from bloqade.submission.quera_api_client.load_config import load_config
 from bloqade.task.batch import RemoteBatch
 
@@ -34,14 +34,14 @@ class QuEraServiceOptions:
         return QuEraHardwareRoutine(source=self.source, backend=backend)
 
     def mock(self, state_file: str = ".mock_state.txt"):
-        backend = DumbMockBackend(state_file=state_file)
+        backend = MockBackend(state_file=state_file)
         return QuEraHardwareRoutine(source=self.source, backend=backend)
 
 
 @dataclass(frozen=True)
 class QuEraHardwareRoutine:
     source: "Builder"
-    backend: Union[QuEraBackend, DumbMockBackend]
+    backend: Union[QuEraBackend, MockBackend]
 
     def submit(
         self,

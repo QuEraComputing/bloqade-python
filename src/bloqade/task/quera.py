@@ -1,4 +1,4 @@
-from bloqade.submission.mock import DumbMockBackend
+from bloqade.submission.mock import MockBackend
 from bloqade.task.base import Geometry
 from bloqade.task.base import RemoteTask
 
@@ -17,7 +17,7 @@ import warnings
 @dataclass
 class QuEraTask(RemoteTask):
     task_id: Optional[str]
-    backend: Union[QuEraBackend, DumbMockBackend]
+    backend: Union[QuEraBackend, MockBackend]
     task_ir: QuEraTaskSpecification
     metadata: Dict[str, ParamType]
     parallel_decoder: ParallelDecoder

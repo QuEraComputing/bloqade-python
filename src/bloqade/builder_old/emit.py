@@ -3,7 +3,7 @@ import bloqade.ir as ir
 
 from bloqade.submission.base import SubmissionBackend
 from bloqade.submission.braket import BraketBackend
-from bloqade.submission.mock import DumbMockBackend
+from bloqade.submission.mock import MockBackend
 from bloqade.submission.quera import QuEraBackend
 from bloqade.submission.ir.braket import to_braket_task_ir
 
@@ -565,6 +565,6 @@ class Emit(Builder):
             HardwareBatchTask
 
         """
-        backend = DumbMockBackend(state_file=state_file)
+        backend = MockBackend(state_file=state_file)
 
         return self.__compile_hardware(nshots, backend)
