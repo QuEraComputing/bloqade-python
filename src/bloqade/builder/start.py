@@ -79,4 +79,4 @@ class ProgramStart(Builder):
         """apply an existing pulse sequence to the program."""
         from .sequence_builder import SequenceBuilder
 
-        return SequenceBuilder(self, sequence)
+        return SequenceBuilder(sequence, self)
