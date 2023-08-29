@@ -143,12 +143,20 @@ class Sequence(SequenceExpr):
         return "Sequence"
 
     def _get_data(self, **assignments):
-        return None, self.value
+        return None, self.pulses
 
     def figure(self, **assignments):
         return get_sequence_figure(self, **assignments)
 
     def show(self, **assignments):
+        """
+        Interactive visualization of the Sequence
+
+        Args:
+            **assignments: assigning the instance value (literal) to the
+                existing variables in the Sequence
+
+        """
         show(self.figure(**assignments))
 
 

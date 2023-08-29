@@ -35,4 +35,14 @@ class ParseProgram:
 
 
 class Parse(ParseRegister, ParseSequence, ParseProgram):
-    pass
+    @property
+    def n_atoms(self):
+        from .builder import Parser
+
+        ps = Parser(self)
+        ps.read_register()
+
+        if isinstance(ps.register, ir.location.ParallelRegister):
+            return ps.register._register.n_atoms
+        else:
+            return ps.register.n_atoms

@@ -10,9 +10,11 @@ import traceback
 import datetime
 import sys
 import os
+import warnings
 from bloqade.submission.ir.task_results import (
     QuEraShotStatusCode,
     QuEraTaskStatusCode,
+    QuEraTaskResults,
 )
 import pandas as pd
 import numpy as np
@@ -37,6 +39,8 @@ class LocalBatch(Serializable):
         ## offline
         index = []
         data = []
+        metas = []
+        geos = []
 
         for task_number, task in self.tasks.items():
             geometry = task.geometry
@@ -81,6 +85,8 @@ class LocalBatch(Serializable):
 
                 index.append(key)
                 data.append(post_sequence)
+            metas.append(task.task_data.metadata)
+            geos.append(task.geometry)
 
         index = pd.MultiIndex.from_tuples(
             index, names=["task_number", "cluster", "perfect_sorting", "pre_sequence"]
@@ -89,7 +95,13 @@ class LocalBatch(Serializable):
         df = pd.DataFrame(data, index=index)
         df.sort_index(axis="index")
 
-        return Report(df)
+        rept = None
+        if self.name is None:
+            rept = Report(df, metas, geos, "Local")
+        else:
+            rept = Report(df, metas, geos, self.name)
+
+        return rept
 
     def rerun(
         self, multiprocessing: bool = False, num_workers: Optional[int] = None, **kwargs
@@ -193,11 +205,18 @@ class RemoteBatch(Serializable):
         return pd.DataFrame(data, index=tid, columns=["task ID", "status", "shots"])
 
     def remove_invalid_tasks(self):
+        warnings.warn("Deprecating", DeprecationWarning)
+
         # offline, non-blocking
         new_tasks = OrderedDict()
         for task_number, task in self.tasks.items():
             try:
                 task.validate()
+                # if task.task_result_ir is not None:
+                #    if task.task_result_ir.task_status
+                #       == QuEraTaskStatusCode.Unaccepted:
+                #        raise ValidationError
+
                 new_tasks[task_number] = task
             except ValidationError:
                 continue
@@ -209,7 +228,9 @@ class RemoteBatch(Serializable):
         self._submit(shuffle_submit_order, force=True)
         return self
 
-    def _submit(self, shuffle_submit_order: bool = True, **kwargs):
+    def _submit(
+        self, shuffle_submit_order: bool = True, ignore_submission_error=False, **kwargs
+    ):
         # online, non-blocking
         if shuffle_submit_order:
             submission_order = np.random.permutation(list(self.tasks.keys()))
@@ -238,6 +259,10 @@ class RemoteBatch(Serializable):
                     "exception_type": error.__class__.__name__,
                     "stack trace": traceback.format_exc(),
                 }
+                task.task_result_ir = QuEraTaskResults(
+                    task_status=QuEraTaskStatusCode.Unaccepted
+                )
+
         self.tasks = shuffled_tasks  # permute order using dump way
 
         if errors:
@@ -260,12 +285,21 @@ class RemoteBatch(Serializable):
             with open(error_file, "w") as f:
                 json.dump(errors, f, indent=2)
 
-            raise RemoteBatch.SubmissionException(
-                "One or more error(s) occured during submission, please see "
-                "the following files for more information:\n"
-                f"  - {os.path.join(cwd, future_file)}\n"
-                f"  - {os.path.join(cwd, error_file)}\n"
-            )
+            if ignore_submission_error:
+                warnings.warn(
+                    "One or more error(s) occured during submission, please see "
+                    "the following files for more information:\n"
+                    f"  - {os.path.join(cwd, future_file)}\n"
+                    f"  - {os.path.join(cwd, error_file)}\n",
+                    RuntimeWarning,
+                )
+            else:
+                raise RemoteBatch.SubmissionException(
+                    "One or more error(s) occured during submission, please see "
+                    "the following files for more information:\n"
+                    f"  - {os.path.join(cwd, future_file)}\n"
+                    f"  - {os.path.join(cwd, error_file)}\n"
+                )
 
         else:
             # TODO: think about if we should automatically save successful submissions
@@ -344,6 +378,8 @@ class RemoteBatch(Serializable):
         ## offline
         index = []
         data = []
+        metas = []
+        geos = []
 
         for task_number, task in self.tasks.items():
             ## fliter not existing results tasks:
@@ -396,6 +432,8 @@ class RemoteBatch(Serializable):
 
                 index.append(key)
                 data.append(post_sequence)
+            metas.append(task.task_data.metadata)
+            geos.append(task.geometry)
 
         index = pd.MultiIndex.from_tuples(
             index, names=["task_number", "cluster", "perfect_sorting", "pre_sequence"]
@@ -404,4 +442,10 @@ class RemoteBatch(Serializable):
         df = pd.DataFrame(data, index=index)
         df.sort_index(axis="index")
 
-        return Report(df)
+        rept = None
+        if self.name is None:
+            rept = Report(df, metas, geos, "Remote")
+        else:
+            rept = Report(df, metas, geos, self.name)
+
+        return rept

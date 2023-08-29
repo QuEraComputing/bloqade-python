@@ -14,7 +14,9 @@ import pandas as pd
 import numpy as np
 from dataclasses import dataclass
 from bloqade.submission.ir.parallel import ParallelDecoder
-
+from bloqade.visualization import report_visualize
+from bokeh.io import show
+import datetime
 
 JSONSubType = TypeVar("JSONSubType", bound="JSONInterface")
 
@@ -132,11 +134,20 @@ class LocalTask(Task):
 @dataclass
 class Report:
     dataframe: pd.DataFrame
+    metas: List[Dict]
+    geos: List[Geometry]
+    name: str = ""
 
-    def __init__(self, data) -> None:
+    def __init__(self, data, metas, geos, name="") -> None:
         self.dataframe = data  # df
         self._bitstrings = None  # bitstring cache
         self._counts = None  # counts cache
+        self.metas = metas
+        self.geos = geos
+        self.name = name + " " + str(datetime.datetime.now())
+
+    def list_param(self, field_name: str) -> List[Union[Number, None]]:
+        return [meta.get(field_name) for meta in self.metas]
 
     @property
     def markdown(self) -> str:
@@ -174,12 +185,15 @@ class Report:
         counts = []
         for bitstring in self.bitstrings:
             output = np.unique(bitstring, axis=0, return_counts=True)
-            counts.append(
-                {
-                    "".join(map(str, unique_bitstring)): bitstring_count
-                    for unique_bitstring, bitstring_count in zip(*output)
-                }
-            )
+
+            count_list = [
+                ("".join(map(str, bitstring)), count)
+                for bitstring, count in zip(*output)
+            ]
+            count_list.sort(key=lambda x: x[1], reverse=True)
+            count = OrderedDict(count_list)
+
+            counts.append(count)
 
         return counts
 
@@ -194,4 +208,7 @@ class Report:
             .mean()
         )
 
-    # def show(self):
+    def show(self):
+        dat = report_visualize.format_report_data(self)
+        p = report_visualize.report_visual(*dat)
+        show(p)

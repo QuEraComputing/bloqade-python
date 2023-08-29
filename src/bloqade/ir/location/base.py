@@ -16,6 +16,7 @@ from bokeh.models import (
 from bokeh.plotting import figure
 from bokeh.layouts import column, row
 import plotext as pltxt
+import sys
 
 # from bokeh import events
 
@@ -79,10 +80,14 @@ class AtomArrangement(ProgramStart):
         pltxt.xlabel("x (um)")
         pltxt.ylabel("y (um)")
 
-        pltxt.scatter(xs_filled, ys_filled, color=(100, 55, 255), marker="dot")
+        marker = "."
+        if sys.stdout.encoding.lower().startswith("utf"):
+            marker = "dot"
+
+        pltxt.scatter(xs_filled, ys_filled, color=(100, 55, 255), marker=marker)
         if len(xs_vacant) > 0:
             pltxt.scatter(
-                xs_vacant, ys_vacant, color="white", label="vacant", marker="dot"
+                xs_vacant, ys_vacant, color="white", label="vacant", marker=marker
             )
 
         return pltxt.build()

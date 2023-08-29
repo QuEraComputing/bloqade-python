@@ -1,9 +1,10 @@
 from bloqade.ir.location import ListOfLocations
 
-future = (
+prog = (
     ListOfLocations()
     .add_position((0, 0))
     .add_position((0, 6))
+    .add_position((0, 3))
     .rydberg.detuning.uniform.piecewise_linear(
         durations=["up_time", "anneal_time", "up_time"],
         values=[
@@ -24,9 +25,8 @@ future = (
         final_detuning=10,
         rabi_amplitude_max=15,
     )
-    .quera.mock()
-    .submit(shots=100)
 )
+future = prog.quera.mock().submit(shots=100)
 future.fetch()
 
 print(future.report().bitstrings)

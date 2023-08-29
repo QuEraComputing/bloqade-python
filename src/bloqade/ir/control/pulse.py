@@ -187,12 +187,20 @@ class Pulse(PulseExpr):
         return annotated_children
 
     def _get_data(self, **assigments):
-        return None, self.value
+        return None, self.fields
 
     def figure(self, **assignments):
         return get_pulse_figure(self, **assignments)
 
     def show(self, **assignments):
+        """
+        Interactive visualization of the Pulse
+
+        Args:
+            **assignments: assigning the instance value (literal) to the
+                existing variables in the Pulse
+
+        """
         show(self.figure(**assignments))
 
 
