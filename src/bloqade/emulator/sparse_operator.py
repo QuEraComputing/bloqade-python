@@ -26,25 +26,25 @@ class Diagonal:  # used to represent detuning + Rydberg
 @dataclass(frozen=True)
 class IndexMapping:
     n_row: int
-    input_indices: Union[slice, NDArray]
-    output_indices: Union[slice, NDArray]
+    col_indices: Union[slice, NDArray]
+    row_indices: Union[slice, NDArray]
 
     def ajoint(self):
-        return IndexMapping(self.output_indices, self.input_indices)
+        return IndexMapping(self.row_indices, self.col_indices)
 
     def dot(self, other, out=None):
         result = np.zeros_like(other)
-        result[self.output_indices] = other[self.input_indices]
+        result[self.row_indices] = other[self.col_indices]
 
     def to_csr(self):
         indptr = np.zeros(self.n_row + 1)
-        indptr[1:][self.output_indices] = 1
+        indptr[1:][self.row_indices] = 1
         np.cumsum(indptr, out=indptr)
 
-        if isinstance(self.input_indices, slice):
+        if isinstance(self.col_indices, slice):
             indices = np.arange(self.n_row)
         else:
-            indices = self.input_indices
+            indices = self.col_indices
 
         data = np.ones_like(indices)
 
