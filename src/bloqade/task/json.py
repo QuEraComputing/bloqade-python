@@ -21,7 +21,7 @@ class BatchSerializer(json.JSONEncoder):
             case RemoteBatch(_, tasks, name):
                 return {
                     "remote_batch": {
-                        "batch": None,
+                        "source": None,
                         "name": name,
                         "tasks": [(k, v) for k, v in tasks.items()],
                     }
@@ -30,7 +30,7 @@ class BatchSerializer(json.JSONEncoder):
             case LocalBatch(_, tasks, name):  # skip program for now
                 return {
                     "local_batch": {
-                        "batch": None,
+                        "source": None,
                         "name": name,
                         "tasks": [(k, v) for k, v in tasks.items()],
                     }

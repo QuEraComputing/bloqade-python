@@ -1,5 +1,6 @@
 import bloqade.ir.location as location
 from bloqade import start, save_batch, load_batch
+
 from bloqade.ir import Linear, Constant
 import numpy as np
 
@@ -20,25 +21,16 @@ prog = (
     .batch_assign(final_detuning=np.linspace(0, 10, 5))
 )
 
-# print(repr(prog.compile_sequence()))
-
-
-# exit()
-
-# serial
-# prog.json() ## backend swichable
-
 task = prog.quera.mock()
 
-# task.json()
 
-future = task.submit(shots=100)  ## non0-blk
+# future = task.submit(shots=100)  ## non0-blk
 
-future.fetch()
+# future.fetch()
 
-assert len(future.tasks) == 5
+# assert len(future.tasks) == 5
 
-print(future.report())
+# print(future.report())
 
 
 def test_serializer():

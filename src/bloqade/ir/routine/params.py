@@ -8,9 +8,9 @@ ParamType = Union[Decimal, List[Decimal]]
 
 @dataclass(frozen=True)
 class Params:
-    static_params: Dict[str, ParamType] = {}
-    batch_params: List[Dict[str, ParamType]] = [{}]
-    flatten_params: Tuple[str, ...] = ()
+    static_params: Dict[str, ParamType]
+    batch_params: List[Dict[str, ParamType]]
+    flatten_params: Tuple[str, ...]
 
     def parse_args(self, *args) -> Dict[str, Decimal]:
         if len(args) != len(self.flatten_params):
@@ -22,4 +22,5 @@ class Params:
         return dict(zip(self.flatten_params, args))
 
     def batch_assignments(self, *args) -> List[Dict[str, ParamType]]:
-        return [{**self.parse_args(*args), **batch} for batch in self.batch_params]
+        flattened_args = self.parse_args(*args)
+        return [{**flattened_args, **batch} for batch in self.batch_params]

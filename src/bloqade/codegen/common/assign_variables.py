@@ -26,7 +26,7 @@ class AssignScalar(ScalarVisitor):
         self, ast: scalar.Variable
     ) -> Union[scalar.Literal, scalar.Variable]:
         if ast.name in self.mapping:
-            return scalar.Literal(self.mapping[ast.name])
+            return scalar.AssignedVariable(ast.name, self.mapping[ast.name])
 
         return ast
 
@@ -34,7 +34,7 @@ class AssignScalar(ScalarVisitor):
         self, ast: scalar.Variable
     ) -> Union[scalar.Literal, scalar.AssignedVariable]:
         if ast.name in self.mapping:
-            return scalar.Literal(self.mapping[ast.name])
+            raise ValueError(f"Variable {ast.name} already assigned to {ast.value}.")
 
         return ast
 
@@ -68,6 +68,7 @@ class AssignScalar(ScalarVisitor):
 class AssignWaveform(WaveformVisitor):
     def __init__(self, mapping: Dict[str, numbers.Real]):
         self.scalar_visitor = AssignScalar(mapping)
+        self.mapping = dict(mapping)
 
     def visit_constant(self, ast: waveform.Constant) -> Any:
         value = self.scalar_visitor.emit(ast.value)
@@ -91,7 +92,7 @@ class AssignWaveform(WaveformVisitor):
         return new_ast
 
     def visit_add(self, ast: waveform.Add) -> Any:
-        return waveform.Add(self.visit(ast.lhs), self.visit(ast.rhs))
+        return waveform.Add(self.visit(ast.left), self.visit(ast.right))
 
     def visit_alligned(self, ast: waveform.AlignedWaveform) -> Any:
         if isinstance(ast.value, scalar.Scalar):
@@ -141,6 +142,7 @@ class AssignWaveform(WaveformVisitor):
 class AssignProgram(AnalogCircuitVisitor):
     def __init__(self, mapping: Dict[str, numbers.Real]):
         self.waveform_visitor = AssignWaveform(mapping)
+        self.scalar_visitor = AssignScalar(mapping)
 
     def visit_sequence(self, ast: sequence.SequenceExpr) -> sequence.SequenceExpr:
         match ast:

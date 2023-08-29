@@ -85,7 +85,7 @@ class StaticAssignWaveform(WaveformVisitor):
         return new_ast
 
     def visit_add(self, ast: waveform.Add) -> Any:
-        return waveform.Add(self.visit(ast.lhs), self.visit(ast.rhs))
+        return waveform.Add(self.visit(ast.left), self.visit(ast.right))
 
     def visit_alligned(self, ast: waveform.AlignedWaveform) -> Any:
         if isinstance(ast.value, scalar.Scalar):

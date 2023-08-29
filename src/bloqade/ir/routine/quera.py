@@ -6,6 +6,7 @@ from bloqade.submission.quera import QuEraBackend
 from bloqade.submission.mock import MockBackend
 from bloqade.submission.quera_api_client.load_config import load_config
 from bloqade.task.batch import RemoteBatch
+from bloqade.task.quera import QuEraTask
 
 from typing import TYPE_CHECKING, Tuple, Union
 
@@ -54,7 +55,6 @@ class QuEraHardwareRoutine:
         from bloqade.builder.parse.builder import Parser
         from bloqade.codegen.common.static_assign import StaticAssignProgram
         from bloqade.codegen.hardware.quera import QuEraCodeGen
-        from bloqade.task.quera import QuEraTask
 
         circuit, params = Parser().parse(self.source)
         capabilities = self.backend.get_capabilities()
@@ -62,12 +62,19 @@ class QuEraHardwareRoutine:
 
         tasks = OrderedDict()
 
-        for task_number, params in enumerate(params.batch_assignments(*args)):
-            task_ir, parallel_decoder = QuEraCodeGen(params, capabilities).emit(
-                shots, circuit
-            )
-            tasks[task_number] = QuEraTask(
-                None, self.backend, task_ir, params, parallel_decoder
+        for task_number, batch_params in enumerate(params.batch_assignments(*args)):
+            final_circuit = StaticAssignProgram(batch_params).visit(circuit)
+            task_ir, parallel_decoder = QuEraCodeGen(capabilities=capabilities).emit(
+                shots, final_circuit
             )
 
-        return RemoteBatch(tasks, shuffle=shuffle, name=name)
+            task_ir = task_ir.discretize(capabilities)
+            tasks[task_number] = QuEraTask(
+                None, self.backend, task_ir, batch_params, parallel_decoder
+            )
+
+        batch = RemoteBatch(source=self.source, tasks=tasks, name=name)
+
+        batch._submit(shuffle, **kwargs)
+
+        return batch

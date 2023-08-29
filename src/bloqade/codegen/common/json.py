@@ -34,7 +34,7 @@ class ScalarSerilaizer(ScalarVisitor):
         return {"negative": {"expr": self.visit(ast.expr)}}
 
     def visit_add(self, ast: scalar.Add) -> Dict[str, Any]:
-        return {"add": {"lhs": self.visit(ast.lhs), "rhs": self.visit(ast.rhs)}}
+        return {"add": {"lhs": self.visit(ast.left), "rhs": self.visit(ast.right)}}
 
     def visit_mul(self, ast: scalar.Mul) -> Dict[str, Any]:
         return {"mul": {"lhs": self.visit(ast.lhs), "rhs": self.visit(ast.rhs)}}

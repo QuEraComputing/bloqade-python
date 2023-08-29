@@ -16,8 +16,8 @@ class Routine:
 
     @property
     def braket(self) -> BraketServiceOptions:
-        return BraketServiceOptions(parent=self)
+        return BraketServiceOptions(source=self.source)
 
     @property
     def quera(self):
-        return QuEraServiceOptions(parent=self)
+        return QuEraServiceOptions(source=self.source)
