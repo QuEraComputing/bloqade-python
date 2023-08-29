@@ -7,8 +7,6 @@ class BackendRoute(QuEraService, BraketService, BloqadeService):
     def device(self, name: str, *args, **kwargs):
         if name == "quera.aquila":
             dev = self.quera.aquila
-        elif name == "quera.gemini":
-            dev = self.quera.gemini
         elif name == "braket.aquila":
             dev = self.braket.aquila
         elif name == "braket.simu":
