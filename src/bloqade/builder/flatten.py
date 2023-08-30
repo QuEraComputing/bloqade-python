@@ -1,6 +1,6 @@
 from typing import List
-from .base import Builder
-from .backend import BackendRoute
+from bloqade.builder.base import Builder
+from bloqade.builder.backend import BackendRoute
 
 
 class Flatten(BackendRoute):

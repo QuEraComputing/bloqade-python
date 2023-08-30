@@ -1,15 +1,15 @@
-from .base import Builder
+from bloqade.builder.base import Builder
 from typing import Any, List, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from .parallelize import Parallelize
-    from .assign import Assign, BatchAssign
-    from .flatten import Flatten
+    from bloqade.builder.parallelize import Parallelize
+    from bloqade.builder.assign import Assign, BatchAssign
+    from bloqade.builder.flatten import Flatten
 
 
 class Flattenable(Builder):
     def flatten(self, orders: List[str]) -> "Flatten":
-        from .flatten import Flatten
+        from bloqade.builder.flatten import Flatten
 
         return Flatten(orders, self)
 
@@ -36,14 +36,14 @@ class Assignable(Builder):
             >>> seq = seq.assign(span_time = 0.5, ival = 0.0)
 
         """
-        from .assign import Assign
+        from bloqade.builder.assign import Assign
 
         return Assign(parent=self, **assignments)
 
 
 class BatchAssignable(Builder):
     def batch_assign(self, **assignments) -> "BatchAssign":
-        from .assign import BatchAssign
+        from bloqade.builder.assign import BatchAssign
 
         return BatchAssign(parent=self, **assignments)
 
@@ -69,6 +69,6 @@ class Parallelizable(Builder):
             >>> prob = prob.parallelize(7.2)
 
         """
-        from .parallelize import Parallelize
+        from bloqade.builder.parallelize import Parallelize
 
         return Parallelize(cluster_spacing, self)

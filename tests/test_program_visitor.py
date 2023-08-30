@@ -2,7 +2,7 @@
 from bloqade import start
 from bloqade.ir import rydberg, detuning
 from bloqade.ir.location import Square
-from bloqade.ir.visitor.program import ProgramVisitor
+from bloqade.ir.visitor.analog_circuit import AnalogCircuitVisitor
 from bloqade.ir.control.waveform import Linear
 from bloqade.ir.control.pulse import Detuning
 import pytest
@@ -18,7 +18,7 @@ seq2 = prog2.parse_sequence()
 
 
 def test_base_program_visitor():
-    pvis = ProgramVisitor()
+    pvis = AnalogCircuitVisitor()
 
     # waveform
     with pytest.raises(NotImplementedError):
