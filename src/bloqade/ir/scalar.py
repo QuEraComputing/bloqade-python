@@ -50,11 +50,11 @@ class Scalar:
                     return Decimal(str(kwargs[name]))
                 else:
                     raise Exception(f"Unknown variable: {name}")
-            case DefaultVariable(name, default_value):
+            case AssignedVariable(name, value):
                 if name in kwargs:
-                    return Decimal(str(kwargs[name]))
+                    raise ValueError(f"Variable {name} already assigned")
                 else:
-                    return default_value.value
+                    return value
             case Negative(expr):
                 return -expr(**kwargs)
             case Add(lhs, rhs):
@@ -395,18 +395,18 @@ class Variable(Real):
 
 
 @dataclass(frozen=True, repr=False)
-class DefaultVariable(Scalar):
+class AssignedVariable(Scalar):
     name: str
-    default_value: Literal
+    value: Decimal
 
     def __str__(self):
         return f"{self.name}"
 
     def children(self):
-        return [self.default_value]
+        return []
 
     def print_node(self):
-        return f"DefaultVariable: {self.name}"
+        return f"DefaultVariable: {self.name} = {self.value}"
 
     @validator("name")
     def name_validator(cls, v):

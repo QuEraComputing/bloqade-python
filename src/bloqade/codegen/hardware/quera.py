@@ -1,3 +1,4 @@
+from bloqade.ir.analog_circuit import AnalogCircuit
 from bloqade.ir.scalar import Literal
 import bloqade.ir.control.waveform as waveform
 from bloqade.ir.control.field import (
@@ -25,9 +26,8 @@ from bloqade.ir.control.sequence import (
 )
 from bloqade.ir.location.base import AtomArrangement, ParallelRegister
 from bloqade.ir.control.waveform import Record
-from bloqade.ir import Program
 
-from bloqade.ir.visitor.program import ProgramVisitor
+from bloqade.ir.visitor.analog_circuit import AnalogCircuitVisitor
 from bloqade.ir.visitor.waveform import WaveformVisitor
 from bloqade.codegen.common.assignment_scan import AssignmentScan
 
@@ -356,10 +356,10 @@ class PiecewiseConstantCodeGen(WaveformVisitor):
         return self.visit(ast.waveform)
 
 
-class SchemaCodeGen(ProgramVisitor):
+class QuEraCodeGen(AnalogCircuitVisitor):
     def __init__(
         self,
-        assignments: Dict[str, Union[numbers.Real, List[numbers.Real]]],
+        assignments: Dict[str, Union[numbers.Real, List[numbers.Real]]] = {},
         capabilities: Optional[QuEraCapabilities] = None,
     ):
         self.capabilities = capabilities
@@ -424,6 +424,10 @@ class SchemaCodeGen(ProgramVisitor):
             self.lattice_site_coefficients = lattice_site_coefficients
 
     def visit_field(self, ast: Field):
+        for k, v in ast.value.items():
+            print(repr(k))
+            print(repr(v))
+
         match (self.field_name, ast):  # Pulse: Dict of FieldName/Field
             # Can only have a global RabiFrequencyAmplitude
             case (RabiFrequencyAmplitude(), Field(terms)) if len(
@@ -433,8 +437,8 @@ class SchemaCodeGen(ProgramVisitor):
                     terms[Uniform]
                 )
 
-                times = SchemaCodeGen.convert_time_to_SI_units(times)
-                values = SchemaCodeGen.convert_energy_to_SI_units(values)
+                times = QuEraCodeGen.convert_time_to_SI_units(times)
+                values = QuEraCodeGen.convert_energy_to_SI_units(values)
 
                 self.rabi_frequency_amplitude = task_spec.RabiFrequencyAmplitude(
                     global_=task_spec.GlobalField(times=times, values=values)
@@ -447,7 +451,7 @@ class SchemaCodeGen(ProgramVisitor):
                     terms[Uniform]
                 )
 
-                times = SchemaCodeGen.convert_time_to_SI_units(times)
+                times = QuEraCodeGen.convert_time_to_SI_units(times)
 
                 self.rabi_frequency_phase = task_spec.RabiFrequencyAmplitude(
                     global_=task_spec.GlobalField(times=times, values=values)
@@ -464,8 +468,8 @@ class SchemaCodeGen(ProgramVisitor):
                     terms[Uniform]
                 )
 
-                times = SchemaCodeGen.convert_time_to_SI_units(times)
-                values = SchemaCodeGen.convert_energy_to_SI_units(values)
+                times = QuEraCodeGen.convert_time_to_SI_units(times)
+                values = QuEraCodeGen.convert_energy_to_SI_units(values)
 
                 self.detuning = task_spec.Detuning(
                     global_=task_spec.GlobalField(times=times, values=values)
@@ -477,8 +481,8 @@ class SchemaCodeGen(ProgramVisitor):
 
                 times, values = PiecewiseLinearCodeGen(self.assignments).visit(waveform)
 
-                times = SchemaCodeGen.convert_time_to_SI_units(times)
-                values = SchemaCodeGen.convert_energy_to_SI_units(values)
+                times = QuEraCodeGen.convert_time_to_SI_units(times)
+                values = QuEraCodeGen.convert_energy_to_SI_units(values)
 
                 self.visit(spatial_modulation)
                 self.detuning = task_spec.Detuning(
@@ -508,11 +512,11 @@ class SchemaCodeGen(ProgramVisitor):
 
                 self.visit(spatial_modulation)  # just visit the non-uniform locations
 
-                global_times = SchemaCodeGen.convert_time_to_SI_units(global_times)
-                local_times = SchemaCodeGen.convert_time_to_SI_units(local_times)
+                global_times = QuEraCodeGen.convert_time_to_SI_units(global_times)
+                local_times = QuEraCodeGen.convert_time_to_SI_units(local_times)
 
-                global_values = SchemaCodeGen.convert_energy_to_SI_units(global_values)
-                local_values = SchemaCodeGen.convert_energy_to_SI_units(local_values)
+                global_values = QuEraCodeGen.convert_energy_to_SI_units(global_values)
+                local_values = QuEraCodeGen.convert_energy_to_SI_units(local_values)
 
                 self.detuning = task_spec.Detuning(
                     local=task_spec.LocalField(
@@ -615,7 +619,7 @@ class SchemaCodeGen(ProgramVisitor):
 
         for location_info in ast.enumerate():
             site = tuple(ele(**self.assignments) for ele in location_info.position)
-            sites.append(SchemaCodeGen.convert_position_to_SI_units(site))
+            sites.append(QuEraCodeGen.convert_position_to_SI_units(site))
             filling.append(location_info.filling.value)
 
         self.n_atoms = len(sites)
@@ -695,7 +699,7 @@ class SchemaCodeGen(ProgramVisitor):
             for cluster_location_index, (location, filled) in enumerate(
                 zip(new_register_locations[:], register_filling)
             ):
-                site = SchemaCodeGen.convert_position_to_SI_units(tuple(location))
+                site = QuEraCodeGen.convert_position_to_SI_units(tuple(location))
                 sites.append(site)
                 filling.append(filled)
 
@@ -713,13 +717,22 @@ class SchemaCodeGen(ProgramVisitor):
         self.n_atoms = len(ast.register_locations)
         self.parallel_decoder = ParallelDecoder(mapping=mapping)
 
-    def emit(self, nshots: int, program: "Program") -> task_spec.QuEraTaskSpecification:
-        self.assignments = AssignmentScan(self.assignments).emit(program.sequence)
-        self.visit(program.register)
-        self.visit(program.sequence)
+    def visit_analog_circuit(self, ast: AnalogCircuit) -> Any:
+        self.visit(ast.register)
+        self.visit(ast.sequence)
 
-        return task_spec.QuEraTaskSpecification(
+    def emit(
+        self, nshots: int, analog_circuit: AnalogCircuit
+    ) -> Tuple[task_spec.QuEraTaskSpecification, Optional[ParallelDecoder]]:
+        self.assignments = AssignmentScan(self.assignments).emit(
+            analog_circuit.sequence
+        )
+        self.visit(analog_circuit)
+
+        task_ir = task_spec.QuEraTaskSpecification(
             nshots=nshots,
             lattice=self.lattice,
             effective_hamiltonian=self.effective_hamiltonian,
         )
+
+        return task_ir, self.parallel_decoder

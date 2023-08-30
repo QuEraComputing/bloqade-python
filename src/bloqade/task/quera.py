@@ -1,34 +1,27 @@
+from bloqade.submission.mock import MockBackend
 from bloqade.task.base import Geometry
-from .base import RemoteTask
+from bloqade.task.base import RemoteTask
 
-# from bloqade.submission.ir.task_specification import QuEraTaskSpecification
-from bloqade.submission.quera import QuEraBackend
-from typing import Optional
-
-# from bloqade.submission.ir.parallel import ParallelDecoder
 from bloqade.submission.base import ValidationError
 from bloqade.submission.ir.task_results import QuEraTaskResults, QuEraTaskStatusCode
+from bloqade.submission.ir.task_specification import QuEraTaskSpecification
+from bloqade.submission.ir.parallel import ParallelDecoder
+from bloqade.submission.quera import QuEraBackend
+
+from typing import Dict, Optional, Union
+from bloqade.builder.base import ParamType
+from dataclasses import dataclass
 import warnings
-from bloqade.builder.compile.quera import QuEraTaskData
 
 
+@dataclass
 class QuEraTask(RemoteTask):
-    task_data: QuEraTaskData
-    backend: QuEraBackend
+    task_id: Optional[str]
+    backend: Union[QuEraBackend, MockBackend]
+    task_ir: QuEraTaskSpecification
+    metadata: Dict[str, ParamType]
+    parallel_decoder: ParallelDecoder
     task_result_ir: Optional[QuEraTaskResults] = None
-
-    __match_args__ = ("task_id", "backend", "task_data", "task_result_ir")
-
-    def __init__(
-        self,
-        task_data: QuEraTaskData,
-        task_id: str = None,
-        backend: QuEraBackend = None,
-        **kwargs,
-    ):
-        self.task_data = task_data
-        self.backend = backend
-        self.task_id = task_id
 
     def submit(self, force: bool = False) -> None:
         if not force:
@@ -37,11 +30,11 @@ class QuEraTask(RemoteTask):
                     "the task is already submitted with %s" % (self.task_id)
                 )
 
-        self.task_id = self.backend.submit_task(self.task_data.task_ir)
+        self.task_id = self.backend.submit_task(self.task_ir)
 
     def validate(self) -> str:
         try:
-            self.backend.validate_task(self.task_data.task_ir)
+            self.backend.validate_task(self.task_ir)
         except ValidationError as e:
             return str(e)
 
@@ -92,13 +85,13 @@ class QuEraTask(RemoteTask):
 
     @property
     def nshots(self):
-        return self.task_data.task_ir.nshots
+        return self.task_ir.nshots
 
     def _geometry(self) -> Geometry:
         return Geometry(
-            sites=self.task_data.task_ir.lattice.sites,
-            filling=self.task_data.task_ir.lattice.filling,
-            parallel_decoder=self.task_data.parallel_decoder,
+            sites=self.task_ir.lattice.sites,
+            filling=self.task_ir.lattice.filling,
+            parallel_decoder=self.parallel_decoder,
         )
 
     def _result_exists(self) -> bool:
