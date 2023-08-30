@@ -153,22 +153,19 @@ class Report:
     def markdown(self) -> str:
         return self.dataframe.to_markdown()
 
-    @property
-    def bitstrings(self) -> List[NDArray]:
-        if self._bitstrings is not None:
-            return self._bitstrings
-        self._bitstrings = self._construct_bitstrings()
-        return self._bitstrings
-
-    def _construct_bitstrings(self) -> List[NDArray]:
+    def bitstrings(self, filter_perfect_filling: bool = True) -> List[NDArray]:
         perfect_sorting = self.dataframe.index.get_level_values("perfect_sorting")
         pre_sequence = self.dataframe.index.get_level_values("pre_sequence")
-        filtered_df = self.dataframe[perfect_sorting == pre_sequence]
-        task_numbers = filtered_df.index.get_level_values("task_number")
+        if filter_perfect_filling:
+            df = self.dataframe[perfect_sorting == pre_sequence]
+        else:
+            df = self.dataframe
+
+        task_numbers = df.index.get_level_values("task_number")
 
         bitstrings = []
         for task_number in task_numbers:
-            bitstrings.append(filtered_df.loc[task_number, ...].to_numpy())
+            bitstrings.append(df.loc[task_number, ...].to_numpy())
 
         return bitstrings
 
@@ -181,7 +178,7 @@ class Report:
 
     def _construct_counts(self) -> List[OrderedDict[str, int]]:
         counts = []
-        for bitstring in self.bitstrings:
+        for bitstring in self.bitstrings():
             output = np.unique(bitstring, axis=0, return_counts=True)
 
             count_list = [
@@ -195,16 +192,17 @@ class Report:
 
         return counts
 
-    def rydberg_densities(self) -> pd.Series:
+    def rydberg_densities(self, filter_perfect_filling: bool = True) -> pd.Series:
         # TODO: implement nan for missing task numbers
         perfect_sorting = self.dataframe.index.get_level_values("perfect_sorting")
         pre_sequence = self.dataframe.index.get_level_values("pre_sequence")
 
-        return 1 - (
-            self.dataframe.loc[perfect_sorting == pre_sequence]
-            .groupby("task_number")
-            .mean()
-        )
+        if filter_perfect_filling:
+            df = self.dataframe[perfect_sorting == pre_sequence]
+        else:
+            df = self.dataframe
+
+        return 1 - (df.groupby("task_number").mean())
 
     def show(self):
         dat = report_visualize.format_report_data(self)
