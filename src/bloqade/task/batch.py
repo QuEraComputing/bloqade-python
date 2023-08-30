@@ -109,12 +109,36 @@ class LocalBatch(Serializable):
 
         return rept
 
-    def rerun(self, **kwargs):
-        self._run(**kwargs)
+    def rerun(
+        self, multiprocessing: bool = False, num_workers: Optional[int] = None, **kwargs
+    ):
+        return self._run(
+            multiprocessing=multiprocessing, num_workers=num_workers, **kwargs
+        )
 
-    def _run(self, **kwargs):
-        for _, task in self.tasks.items():
-            task.run(**kwargs)
+    def _run(
+        self, multiprocessing: bool = False, num_workers: Optional[int] = None, **kwargs
+    ):
+        if multiprocessing:
+            from concurrent.futures import ProcessPoolExecutor as Pool
+
+            with Pool(max_workers=num_workers) as pool:
+                futures = OrderedDict()
+                for task in self.tasks.values():
+                    futures[task.task_id] = pool.submit(task.run, **kwargs)
+
+                for task_id, future in futures.items():
+                    self.tasks[task_id] = future.result()
+
+        else:
+            if num_workers is not None:
+                raise ValueError(
+                    "num_workers is only used when multiprocessing is enabled."
+                )
+            for task in self.tasks.values():
+                task.run(**kwargs)
+
+        return self
 
 
 # this class get collection of tasks
