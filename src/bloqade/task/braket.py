@@ -77,15 +77,22 @@ class BraketTask(RemoteTask):
 
     def result(self) -> QuEraTaskResults:
         # blocking, caching
-        if (
-            self.task_result_ir is None
-            or self.task_result_ir.task_status != QuEraTaskStatusCode.Completed
-        ):
-            self.pull()
+
+        if self.task_result_ir is None:
+            pass
+        else:
+            if (
+                self.task_id is not None
+                and self.task_result_ir.task_status != QuEraTaskStatusCode.Completed
+            ):
+                self.pull()
 
         return self.task_result_ir
 
     def status(self) -> QuEraTaskStatusCode:
+        if self.task_id is None:
+            return QuEraTaskStatusCode.Unaccepted
+
         return self.backend.task_status(self.task_id)
 
     def cancel(self) -> None:
@@ -107,10 +114,16 @@ class BraketTask(RemoteTask):
         )
 
     def _result_exists(self) -> bool:
-        return (
-            self.task_result_ir is not None
-            and self.task_result_ir.task_status == QuEraTaskStatusCode.Completed
-        )
+        if self.task_id is None:
+            raise ValueError("Task ID not found.")
+
+        if self.task_result_ir is None:
+            return False
+        else:
+            if self.task_result_ir.task_status == QuEraTaskStatusCode.Completed:
+                return True
+            else:
+                return False
 
     # def submit_no_task_id(self) -> "HardwareTaskShotResults":
     #    return HardwareTaskShotResults(hardware_task=self)
