@@ -2,11 +2,11 @@ import bloqade.ir.location as location
 import bloqade.ir.control.sequence as sequence
 import bloqade.ir.control.pulse as pulse
 import bloqade.ir.control.field as field
-import bloqade.ir.program as program
+import bloqade.ir.analog_circuit as analog_circuit
 import bloqade.ir.control.waveform as waveform
 import bloqade.ir.scalar as scalar
 
-from bloqade.ir.visitor.program import ProgramVisitor
+from bloqade.ir.visitor.analog_circuit import AnalogCircuitVisitor
 from bloqade.ir.visitor.waveform import WaveformVisitor
 from bloqade.ir.visitor.scalar import ScalarVisitor
 
@@ -22,11 +22,11 @@ class ScalarSerilaizer(ScalarVisitor):
     def visit_variable(self, ast: scalar.Variable) -> Dict[str, Dict[str, str]]:
         return {"variable": {"name": ast.name}}
 
-    def visit_default_variable(self, ast: scalar.DefaultVariable) -> Dict[str, Any]:
+    def visit_assigned_variable(self, ast: scalar.AssignedVariable) -> Dict[str, Any]:
         return {
             "default_variable": {
                 "name": ast.name,
-                "default_value": str(ast.default_value),
+                "default_value": str(ast.value),
             }
         }
 
@@ -34,7 +34,7 @@ class ScalarSerilaizer(ScalarVisitor):
         return {"negative": {"expr": self.visit(ast.expr)}}
 
     def visit_add(self, ast: scalar.Add) -> Dict[str, Any]:
-        return {"add": {"lhs": self.visit(ast.lhs), "rhs": self.visit(ast.rhs)}}
+        return {"add": {"lhs": self.visit(ast.left), "rhs": self.visit(ast.right)}}
 
     def visit_mul(self, ast: scalar.Mul) -> Dict[str, Any]:
         return {"mul": {"lhs": self.visit(ast.lhs), "rhs": self.visit(ast.rhs)}}
@@ -73,7 +73,6 @@ class ScalarSerilaizer(ScalarVisitor):
                 raise ValueError(f"Invalid Interval({ast.start}, {ast.stop})")
 
     def default(self, obj: Any) -> Dict[str, Any]:
-        print(obj, type(obj))
         if isinstance(obj, scalar.Scalar):
             return self.visit(obj)
 
@@ -200,7 +199,7 @@ class WaveformSerializer(WaveformVisitor):
         return super().default(obj)
 
 
-class ProgramSerializer(ProgramVisitor):
+class ProgramSerializer(AnalogCircuitVisitor):
     def __init__(self) -> None:
         self.waveform_serializer = WaveformSerializer()
         self.scalar_serializer = ScalarSerilaizer()
@@ -365,7 +364,7 @@ class ProgramSerializer(ProgramVisitor):
     def visit_waveform(self, ast: waveform.Waveform) -> Any:
         return self.waveform_serializer.visit(ast)
 
-    def visit_program(self, ast: program.Program) -> Any:
+    def visit_analog_circuit(self, ast: analog_circuit.AnalogCircuit) -> Any:
         return {
             "bloqade_program": {
                 "sequence": self.visit(ast.sequence),
@@ -384,10 +383,10 @@ class BloqadeIRSerializer(json.JSONEncoder):
         self.waveform_serializer = WaveformSerializer()
         self.scalar_serializer = ScalarSerilaizer()
         self.bloqade_seq_types = (
-            program.Program,
+            analog_circuit.AnalogCircuit,
             location.AtomArrangement,
             location.ParallelRegister,
-            program.Program,
+            analog_circuit.AnalogCircuit,
             sequence.SequenceExpr,
             pulse.PulseExpr,
             field.FieldExpr,
@@ -493,7 +492,7 @@ class BloqadeIRDeserializer:
             case {"variable": {"name": str(name)}}:
                 return scalar.Variable(name)
             case {"default_variable": {"name": str(name), "default_value": str(value)}}:
-                return scalar.DefaultVariable(name, Decimal(value))
+                return scalar.AssignedVariable(name, Decimal(value))
             case {"negative": {"expr": expr}}:
                 return scalar.Negative(expr)
             case {"add": {"lhs": lhs, "rhs": rhs}}:
@@ -708,7 +707,7 @@ class BloqadeIRDeserializer:
         elif self.is_register_obj(obj):
             return self.register_hook(obj)
         elif "bloqade_program" in obj:
-            return program.Program(
+            return analog_circuit.AnalogCircuit(
                 register=self.register_hook(obj["bloqade_program"]["register"]),
                 sequence=self.sequence_hook(obj["bloqade_program"]["sequence"]),
                 static_params=obj["bloqade_program"]["static_params"],

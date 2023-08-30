@@ -1,25 +1,29 @@
-from collections import OrderedDict
-from itertools import product
-import json
-from typing import Union, Optional, List
-from .base import Report
-from .quera import QuEraTask
-from .braket import BraketTask
-from .braket_simulator import BraketEmulatorTask
-import traceback
-import datetime
-import sys
-import os
-import warnings
+from bloqade.task.base import Report
+from bloqade.task.quera import QuEraTask
+from bloqade.task.braket import BraketTask
+from bloqade.task.braket_simulator import BraketEmulatorTask
+
+from bloqade.builder.base import Builder
+
 from bloqade.submission.ir.task_results import (
     QuEraShotStatusCode,
     QuEraTaskStatusCode,
     QuEraTaskResults,
 )
+from bloqade.submission.base import ValidationError
+
+from typing import Union, Optional, List
+from collections import OrderedDict
+from itertools import product
+import json
+import traceback
+import datetime
+import sys
+import os
+import warnings
 import pandas as pd
 import numpy as np
 from dataclasses import dataclass
-from bloqade.submission.base import ValidationError
 
 
 class Serializable:
@@ -31,6 +35,7 @@ class Serializable:
 
 @dataclass
 class LocalBatch(Serializable):
+    source: Optional[Builder]
     tasks: OrderedDict[int, BraketEmulatorTask]
     name: Optional[str] = None
 
@@ -85,7 +90,8 @@ class LocalBatch(Serializable):
 
                 index.append(key)
                 data.append(post_sequence)
-            metas.append(task.task_data.metadata)
+
+            metas.append(task.metadata)
             geos.append(task.geometry)
 
         index = pd.MultiIndex.from_tuples(
@@ -103,12 +109,36 @@ class LocalBatch(Serializable):
 
         return rept
 
-    def rerun(self, **kwargs):
-        self._run(**kwargs)
+    def rerun(
+        self, multiprocessing: bool = False, num_workers: Optional[int] = None, **kwargs
+    ):
+        return self._run(
+            multiprocessing=multiprocessing, num_workers=num_workers, **kwargs
+        )
 
-    def _run(self, **kwargs):
-        for _, task in self.tasks.items():
-            task.run(**kwargs)
+    def _run(
+        self, multiprocessing: bool = False, num_workers: Optional[int] = None, **kwargs
+    ):
+        if multiprocessing:
+            from concurrent.futures import ProcessPoolExecutor as Pool
+
+            with Pool(max_workers=num_workers) as pool:
+                futures = OrderedDict()
+                for task in self.tasks.values():
+                    futures[task.task_id] = pool.submit(task.run, **kwargs)
+
+                for task_id, future in futures.items():
+                    self.tasks[task_id] = future.result()
+
+        else:
+            if num_workers is not None:
+                raise ValueError(
+                    "num_workers is only used when multiprocessing is enabled."
+                )
+            for task in self.tasks.values():
+                task.run(**kwargs)
+
+        return self
 
 
 # this class get collection of tasks
@@ -116,7 +146,8 @@ class LocalBatch(Serializable):
 # the user only need to store this objecet
 @dataclass
 class RemoteBatch(Serializable):
-    tasks: OrderedDict[int, Union[QuEraTask, BraketTask]]
+    source: Builder
+    tasks: Union[OrderedDict[int, QuEraTask], OrderedDict[int, BraketTask]]
     name: Optional[str] = None
 
     class SubmissionException(Exception):
@@ -126,7 +157,7 @@ class RemoteBatch(Serializable):
     def total_nshots(self):
         nshots = 0
         for task in self.tasks.values():
-            nshots += task.task_data.task_ir.nshots
+            nshots += task.task_ir.nshots
         return nshots
 
     def cancel(self):
@@ -168,7 +199,7 @@ class RemoteBatch(Serializable):
             if task.task_id is not None:
                 if task.task_result_ir is not None:
                     dat[1] = task.result().task_status.name
-                    dat[2] = task.task_data.task_ir.nshots
+                    dat[2] = task.task_ir.nshots
             data.append(dat)
 
         return pd.DataFrame(data, index=tid, columns=["task ID", "status", "shots"])
@@ -247,7 +278,7 @@ class RemoteBatch(Serializable):
                 future_file = f"partial-batch-future-{time_stamp}.json"
                 error_file = f"partial-batch-errors-{time_stamp}.json"
 
-            cwd = os.get_cwd()
+            cwd = os.getcwd()
             # cloud_batch_result.save_json(future_file, indent=2)
             # saving ?
 
@@ -401,7 +432,8 @@ class RemoteBatch(Serializable):
 
                 index.append(key)
                 data.append(post_sequence)
-            metas.append(task.task_data.metadata)
+
+            metas.append(task.metadata)
             geos.append(task.geometry)
 
         index = pd.MultiIndex.from_tuples(
