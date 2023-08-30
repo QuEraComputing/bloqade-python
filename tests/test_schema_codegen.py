@@ -42,7 +42,7 @@ def test_local_no_global():
         .scale(0.5)
         .apply(seq)
         .quera.mock()
-        .submit(shots=10)
+        .compile(shots=10)
     )
 
     panel = json.loads(batch.json())
@@ -81,7 +81,7 @@ def test_local_global():
         .scale(0.5)
         .apply(seq)
         .quera.mock()
-        .submit(shots=10)
+        .compile(shots=10)
     )
 
     panel = json.loads(job.json())

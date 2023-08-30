@@ -169,7 +169,6 @@ class PiecewiseLinearCodeGen(WaveformVisitor):
         return times, values
 
     def visit_append(self, ast: waveform.Append) -> Tuple[List[Decimal], List[Decimal]]:
-        # print(ast.waveforms)
         times, values = self.visit(ast.waveforms[0])
 
         for sub_expr in ast.waveforms[1:]:
@@ -424,10 +423,6 @@ class QuEraCodeGen(AnalogCircuitVisitor):
             self.lattice_site_coefficients = lattice_site_coefficients
 
     def visit_field(self, ast: Field):
-        for k, v in ast.value.items():
-            print(repr(k))
-            print(repr(v))
-
         match (self.field_name, ast):  # Pulse: Dict of FieldName/Field
             # Can only have a global RabiFrequencyAmplitude
             case (RabiFrequencyAmplitude(), Field(terms)) if len(
