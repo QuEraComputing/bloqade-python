@@ -8,7 +8,7 @@ from bloqade.builder.waveform import WaveformPrimitive, Slice, Record, Sample, F
 from bloqade.builder.assign import Assign, BatchAssign
 from bloqade.builder.flatten import Flatten
 from bloqade.builder.parallelize import Parallelize, ParallelizeFlatten
-from bloqade.builder.parse.stream import BuilderNode
+from bloqade.builder.parse.stream import BuilderNode, BuilderStream
 
 import bloqade.ir as ir
 from itertools import repeat
@@ -17,7 +17,6 @@ from typing import TYPE_CHECKING, Tuple, Union, Dict, List, Optional
 if TYPE_CHECKING:
     from bloqade.ir.routine.params import Params, ParamType
     from bloqade.ir.analog_circuit import AnalogCircuit
-    from bloqade.builder.parse.stream import BuilderStream
 
 
 class Parser:

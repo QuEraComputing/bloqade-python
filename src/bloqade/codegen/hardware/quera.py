@@ -424,6 +424,10 @@ class QuEraCodeGen(AnalogCircuitVisitor):
             self.lattice_site_coefficients = lattice_site_coefficients
 
     def visit_field(self, ast: Field):
+        for k, v in ast.value.items():
+            print(repr(k))
+            print(repr(v))
+
         match (self.field_name, ast):  # Pulse: Dict of FieldName/Field
             # Can only have a global RabiFrequencyAmplitude
             case (RabiFrequencyAmplitude(), Field(terms)) if len(

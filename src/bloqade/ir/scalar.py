@@ -403,10 +403,10 @@ class AssignedVariable(Scalar):
         return f"{self.name}"
 
     def children(self):
-        return [self.value]
+        return []
 
     def print_node(self):
-        return f"DefaultVariable: {self.name}"
+        return f"DefaultVariable: {self.name} = {self.value}"
 
     @validator("name")
     def name_validator(cls, v):
