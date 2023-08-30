@@ -12,7 +12,7 @@ from bloqade.builder.parse.stream import BuilderNode, BuilderStream
 
 import bloqade.ir as ir
 from itertools import repeat
-from typing import TYPE_CHECKING, Tuple, Union, Dict, List, Optional
+from typing import TYPE_CHECKING, Tuple, Union, Dict, List, Optional, Set
 
 if TYPE_CHECKING:
     from bloqade.ir.routine.params import Params, ParamType
@@ -21,12 +21,21 @@ if TYPE_CHECKING:
 
 class Parser:
     stream: Optional["BuilderStream"] = None
-    vector_node_names: Tuple[str, ...] = ()
+    vector_node_names: Set[str] = set()
     sequence: ir.Sequence = ir.Sequence()
     register: Union[ir.AtomArrangement, ir.ParallelRegister, None] = None
     batch_params: List[Dict[str, "ParamType"]] = [{}]
     static_params: Dict[str, "ParamType"] = {}
     order: Tuple[str, ...] = ()
+
+    def reset(self, builder: Builder):
+        self.stream = BuilderStream.create(builder)
+        self.vector_node_names = set()
+        self.sequence = ir.Sequence()
+        self.register = None
+        self.batch_params = [{}]
+        self.static_params = {}
+        self.order = ()
 
     def read_address(self, stream) -> Tuple[LevelCoupling, Field, BuilderNode]:
         spatial = stream.eat([Location, Uniform, Var], [Scale])
@@ -223,20 +232,20 @@ class Parser:
     def parse_register(
         self, builder: Builder
     ) -> Union[ir.AtomArrangement, ir.ParallelRegister]:
-        self.stream = BuilderStream.create(builder)
+        self.reset(builder)
         self.read_register()
         self.read_pragmas()
         return self.register
 
     def parse_sequence(self, builder: Builder) -> ir.Sequence:
-        self.stream = BuilderStream.create(builder)
+        self.reset(builder)
         self.read_sequeence()
         return self.sequence
 
     def parse_circuit(self, builder: Builder) -> "AnalogCircuit":
         from bloqade.ir.analog_circuit import AnalogCircuit
 
-        self.stream = BuilderStream.create(builder)
+        self.reset(builder)
         self.read_register()
         self.read_sequeence()
         self.read_pragmas()
@@ -246,12 +255,10 @@ class Parser:
         return circuit
 
     def parse_source(self, builder: Builder) -> Tuple["AnalogCircuit", "Params"]:
-        from bloqade.builder.parse.stream import BuilderStream
         from bloqade.ir.routine.params import Params
         from bloqade.ir.analog_circuit import AnalogCircuit
 
-        self.stream = BuilderStream.create(builder)
-
+        self.reset(builder)
         self.read_register()
         self.read_sequeence()
         self.read_pragmas()

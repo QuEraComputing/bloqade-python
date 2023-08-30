@@ -9,7 +9,7 @@ class BackendRoute(QuEraService, BraketService, BloqadeService):
             dev = self.quera.aquila
         elif name == "braket.aquila":
             dev = self.braket.aquila
-        elif name == "braket.simu":
+        elif name == "braket.local_emulator":
             dev = self.braket.local_emulator
         elif name == "bloqade.python":
             dev = self.bloqade.python
