@@ -132,6 +132,10 @@ class Parser:
     def read_field(self, head) -> ir.Field:
         sm, curr = self.read_spatial_modulation(head)
         wf, _ = self.read_waveform(curr)
+
+        if wf is None or sm is None:
+            return ir.Field({})
+
         return ir.Field({sm: wf})
 
     def read_sequeence(self) -> ir.Sequence:
