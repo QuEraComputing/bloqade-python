@@ -31,9 +31,7 @@ class BraketHardwareRoutine(RoutineBase):
         shots: int,
         args: Tuple[Real, ...] = (),
         name: str | None = None,
-        shuffle: bool = False,
-        **kwargs,
-    ) -> "RemoteBatch":
+    ) -> RemoteBatch:
         ## fall passes here ###
         from bloqade.codegen.common.static_assign import StaticAssignProgram
         from bloqade.codegen.hardware.quera import QuEraCodeGen
@@ -72,7 +70,7 @@ class BraketHardwareRoutine(RoutineBase):
         name: str | None = None,
         shuffle: bool = False,
         **kwargs,
-    ) -> "RemoteBatch":
+    ) -> RemoteBatch:
         batch = self.compile(shots, args, name)
         batch._submit(shuffle, **kwargs)
         return batch
@@ -103,8 +101,8 @@ class BraketHardwareRoutine(RoutineBase):
 @dataclass(frozen=True)
 class BraketLocalEmulatorRoutine(RoutineBase):
     def compile(
-        self, shots: int, args: Tuple[Real, ...] = (), name: str | None = None, **kwargs
-    ) -> "LocalBatch":
+        self, shots: int, args: Tuple[Real, ...] = (), name: str | None = None
+    ) -> LocalBatch:
         ## fall passes here ###
         from bloqade.ir import ParallelRegister
         from bloqade.codegen.common.static_assign import StaticAssignProgram
@@ -139,8 +137,14 @@ class BraketLocalEmulatorRoutine(RoutineBase):
         return batch
 
     def run(
-        self, shots: int, args: Tuple[Real, ...] = (), name: str | None = None, **kwargs
-    ) -> "LocalBatch":
+        self,
+        shots: int,
+        args: Tuple[Real, ...] = (),
+        name: str | None = None,
+        multiprocessing: bool = False,
+        num_workers: int | None = None,
+        **kwargs,
+    ) -> LocalBatch:
         batch = self.compile(shots, args, name)
-        batch._run(**kwargs)
+        batch._run(multiprocessing=multiprocessing, num_workers=num_workers, **kwargs)
         return batch
