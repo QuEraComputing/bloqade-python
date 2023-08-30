@@ -1,6 +1,6 @@
 {
-    "api_hostname": "sqi0gyx8pc.execute-api.us-east-1.amazonaws.com",
-    "proxy": "vpce-04dde304af887b529-oa3tcw6o.execute-api.us-east-1.vpce.amazonaws.com",
+    "api_hostname": "lx19aus155.execute-api.us-east-1.amazonaws.com",
+    "proxy": "vpce-0652fdbfb14d7cdea-zbyiucji.execute-api.us-east-1.vpce.amazonaws.com",
     "api_stage": "v0",
     "qpu_id": "qpu1",
     "region": "us-east-1"
