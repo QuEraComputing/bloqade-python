@@ -65,7 +65,7 @@ def test_integration_scale():
         location.Square(1)
         .rydberg.detuning.uniform.apply(seq)
         .quera.mock()
-        .submit(shots=10)
+        .compile(shots=10)
     )
 
     panel = json.loads(job.json())
@@ -94,7 +94,7 @@ def test_integration_neg():
         location.Square(1)
         .rydberg.detuning.uniform.apply(seq)
         .quera.mock()
-        .submit(shots=10)
+        .compile(shots=10)
     )
 
     panel = json.loads(job.json())
@@ -129,7 +129,9 @@ def test_integration_poly_order_err():
 def test_integration_poly_const():
     ## constant
     seq = Poly(coeffs=[1], duration=0.5).append(Constant(1, duration=0.5))
-    job = location.Square(1).rydberg.detuning.uniform.apply(seq).quera.mock().submit(12)
+    job = (
+        location.Square(1).rydberg.detuning.uniform.apply(seq).quera.mock().compile(12)
+    )
 
     panel = json.loads(job.json())
     print(panel)
@@ -151,7 +153,9 @@ def test_integration_poly_const():
 def test_integration_poly_linear():
     ## linear
     seq = Poly(coeffs=[1, 2], duration=0.5).append(Constant(2, duration=0.5))
-    job = location.Square(1).rydberg.detuning.uniform.apply(seq).quera.mock().submit(10)
+    job = (
+        location.Square(1).rydberg.detuning.uniform.apply(seq).quera.mock().compile(10)
+    )
 
     panel = json.loads(job.json())
     print(panel)
@@ -182,7 +186,7 @@ def test_integration_linear_sampl_const_err():
     wf = Sample(wv, Interpolation.Constant, dt)
     ## phase can only have piecewise constant.
     with pytest.raises(ValueError):
-        location.Square(1).rydberg.detuning.uniform.apply(wf).quera.mock().submit(10)
+        location.Square(1).rydberg.detuning.uniform.apply(wf).quera.mock().compile(10)
 
 
 def test_integration_slice_linear_const():
@@ -193,7 +197,7 @@ def test_integration_slice_linear_const():
         location.Square(1)
         .rydberg.detuning.uniform.apply(seq)
         .quera.mock()
-        .submit(shots=10)
+        .compile(shots=10)
     )
 
     panel = json.loads(job.json())
@@ -216,7 +220,9 @@ def test_integration_slice_linear_const():
 
 def test_integration_slice_linear_no_stop():
     seq = Linear(start=0.0, stop=1.0, duration=1.0)[0:]
-    job = location.Square(1).rydberg.detuning.uniform.apply(seq).quera.mock().submit(10)
+    job = (
+        location.Square(1).rydberg.detuning.uniform.apply(seq).quera.mock().compile(10)
+    )
 
     panel = json.loads(job.json())
 
@@ -238,7 +244,9 @@ def test_integration_slice_linear_no_stop():
 
 def test_integration_slice_linear_no_start():
     seq = Linear(start=0.0, stop=1.0, duration=1.0)[:1.0]
-    job = location.Square(1).rydberg.detuning.uniform.apply(seq).quera.mock().submit(10)
+    job = (
+        location.Square(1).rydberg.detuning.uniform.apply(seq).quera.mock().compile(10)
+    )
 
     panel = json.loads(job.json())
 
@@ -260,25 +268,25 @@ def test_integration_slice_linear_no_start():
 def test_integration_slice_linear_error_neg_start():
     with pytest.raises(ValueError):
         seq = Linear(start=0.0, stop=1.0, duration=1.0)[-0.1:1.0]
-        location.Square(1).rydberg.detuning.uniform.apply(seq).quera.mock().submit(10)
+        location.Square(1).rydberg.detuning.uniform.apply(seq).quera.mock().compile(10)
 
 
 def test_integration_slice_linear_error_exceed_stop():
     with pytest.raises(ValueError):
         seq = Linear(start=0.0, stop=1.0, duration=1.0)[:4.0]
-        location.Square(1).rydberg.detuning.uniform.apply(seq).quera.mock().submit(10)
+        location.Square(1).rydberg.detuning.uniform.apply(seq).quera.mock().compile(10)
 
 
 def test_integration_slice_linear_error_revese():
     with pytest.raises(ValueError):
         seq = Linear(start=0.0, stop=1.0, duration=1.0)[0.5:0.0]
-        location.Square(1).rydberg.detuning.uniform.apply(seq).quera.mock().submit(10)
+        location.Square(1).rydberg.detuning.uniform.apply(seq).quera.mock().compile(10)
 
 
 def test_integration_slice_linear_error_same_vals_nofield():
     with pytest.raises(ValueError):
         seq = Linear(start=0.0, stop=1.0, duration=1.0)[0.0:0.0]
-        location.Square(1).rydberg.detuning.uniform.apply(seq).quera.mock().submit(10)
+        location.Square(1).rydberg.detuning.uniform.apply(seq).quera.mock().compile(10)
 
 
 def test_integration_phase():
@@ -289,7 +297,7 @@ def test_integration_phase():
         )
         .record("a")
         .quera.mock()
-        .submit(10)
+        .compile(10)
     )
 
     panel = json.loads(batch.json())
@@ -323,7 +331,9 @@ def test_intergration_phase_nonconst_err():
 
     seq = Poly(coeffs=[1, 2], duration=0.5)
     with pytest.raises(ValueError):
-        location.Square(1).rydberg.rabi.phase.uniform.apply(seq).quera.mock().submit(10)
+        location.Square(1).rydberg.rabi.phase.uniform.apply(seq).quera.mock().compile(
+            10
+        )
 
 
 def test_integration_phase_linear():
@@ -331,7 +341,7 @@ def test_integration_phase_linear():
         location.Square(1)
         .rydberg.rabi.phase.uniform.linear(start=1, stop=1, duration=1)
         .quera.mock()
-        .submit(10)
+        .compile(10)
     )
 
     panel = json.loads(job.json())
@@ -355,7 +365,10 @@ def test_integration_phase_linear():
 def test_integration_phase_polyconst():
     seq = Poly(coeffs=[1], duration=0.5)
     job = (
-        location.Square(1).rydberg.rabi.phase.uniform.apply(seq).quera.mock().submit(10)
+        location.Square(1)
+        .rydberg.rabi.phase.uniform.apply(seq)
+        .quera.mock()
+        .compile(10)
     )
 
     panel = json.loads(job.json())
@@ -380,7 +393,10 @@ def test_integration_phase_slice():
     ##[Further investigate!]
     seq = Poly(coeffs=[1], duration=1.0)[0:0.5]
     job = (
-        location.Square(1).rydberg.rabi.phase.uniform.apply(seq).quera.mock().submit(10)
+        location.Square(1)
+        .rydberg.rabi.phase.uniform.apply(seq)
+        .quera.mock()
+        .compile(10)
     )
 
     panel = json.loads(job.json())
@@ -404,7 +420,10 @@ def test_integration_phase_slice():
 def test_integration_phase_scale():
     seq = 3.0 * Constant(value=1.0, duration=1.0)
     job = (
-        location.Square(1).rydberg.rabi.phase.uniform.apply(seq).quera.mock().submit(10)
+        location.Square(1)
+        .rydberg.rabi.phase.uniform.apply(seq)
+        .quera.mock()
+        .compile(10)
     )
 
     panel = json.loads(job.json())
@@ -428,7 +447,10 @@ def test_integration_phase_scale():
 def test_integration_phase_neg():
     seq = -Constant(value=1.0, duration=1.0)
     job = (
-        location.Square(1).rydberg.rabi.phase.uniform.apply(seq).quera.mock().submit(10)
+        location.Square(1)
+        .rydberg.rabi.phase.uniform.apply(seq)
+        .quera.mock()
+        .compile(10)
     )
 
     panel = json.loads(job.json())
@@ -452,7 +474,10 @@ def test_integration_phase_neg():
 def test_integration_phase_slice_no_start():
     seq = Poly(coeffs=[1], duration=1.0)[:0.5]
     job = (
-        location.Square(1).rydberg.rabi.phase.uniform.apply(seq).quera.mock().submit(10)
+        location.Square(1)
+        .rydberg.rabi.phase.uniform.apply(seq)
+        .quera.mock()
+        .compile(10)
     )
 
     panel = json.loads(job.json())
@@ -477,7 +502,10 @@ def test_integration_phase_slice_no_stop():
     ##[Further investigate!]
     seq = Poly(coeffs=[1], duration=0.5)[0:]
     job = (
-        location.Square(1).rydberg.rabi.phase.uniform.apply(seq).quera.mock().submit(10)
+        location.Square(1)
+        .rydberg.rabi.phase.uniform.apply(seq)
+        .quera.mock()
+        .compile(10)
     )
 
     panel = json.loads(job.json())
@@ -502,7 +530,10 @@ def test_integration_phase_slice_same_start_stop():
     ##[Further investigate!]
     seq = Poly(coeffs=[1], duration=0.5)[0:0.5]
     job = (
-        location.Square(1).rydberg.rabi.phase.uniform.apply(seq).quera.mock().submit(10)
+        location.Square(1)
+        .rydberg.rabi.phase.uniform.apply(seq)
+        .quera.mock()
+        .compile(10)
     )
 
     panel = json.loads(job.json())
@@ -526,19 +557,25 @@ def test_integration_phase_slice_same_start_stop():
 def test_integration_phase_slice_error_neg_start():
     with pytest.raises(ValueError):
         seq = Poly(coeffs=[1], duration=1.0)[-0.1:0.5]
-        location.Square(1).rydberg.rabi.phase.uniform.apply(seq).quera.mock().submit(10)
+        location.Square(1).rydberg.rabi.phase.uniform.apply(seq).quera.mock().compile(
+            10
+        )
 
 
 def test_integration_phase_slice_error_exceed_stop():
     with pytest.raises(ValueError):
         seq = Poly(coeffs=[1], duration=1.0)[0:2.0]
-        location.Square(1).rydberg.rabi.phase.uniform.apply(seq).quera.mock().submit(10)
+        location.Square(1).rydberg.rabi.phase.uniform.apply(seq).quera.mock().compile(
+            10
+        )
 
 
 def test_integration_phase_slice_error_reverse():
     with pytest.raises(ValueError):
         seq = Poly(coeffs=[1], duration=1.0)[2.0:0.0]
-        location.Square(1).rydberg.rabi.phase.uniform.apply(seq).quera.mock().submit(10)
+        location.Square(1).rydberg.rabi.phase.uniform.apply(seq).quera.mock().compile(
+            10
+        )
 
 
 def test_integration_phase_sampl_linear_err():
@@ -574,7 +611,7 @@ def test_integration_batchassign_assign():
         .rydberg.detuning.uniform.apply(Constant("initial_detuning", "time"))
         .batch_assign(initial_detuning=[1, 2, 3, 4], time=[2, 4, 5, 0.6])
         .quera.mock()
-        .submit(10)
+        .compile(10)
     )
 
     assert len(batch.tasks) == 4
@@ -589,7 +626,7 @@ def test_integration_record():
         .record("a")
         .piecewise_constant(durations=[0.3], values=["a"])
         .quera.mock()
-        .submit(10)
+        .compile(10)
     )
 
     panel = json.loads(job.json())
@@ -624,7 +661,7 @@ def test_integration_fn_phase():
         .rydberg.rabi.phase.uniform.fn(my_cos, duration=1.0)
         .sample(dt=0.5)
         .quera.mock()
-        .submit(10)
+        .compile(10)
     )
 
     panel = json.loads(job.json())
@@ -661,7 +698,7 @@ def test_integration_fn_detune():
         .rydberg.detuning.uniform.fn(my_cos, duration=1.0)
         .sample(dt=0.5)
         .quera.mock()
-        .submit(10)
+        .compile(10)
     )
 
     panel = json.loads(job.json())
