@@ -33,7 +33,7 @@ def test_parallel_task():
         .submit(shots=10)
     )
 
-    assert quantum_batch.tasks[0].task_data.parallel_decoder
+    assert quantum_batch.tasks[0].parallel_decoder
 
 
 def test_error_parallel_noatom():

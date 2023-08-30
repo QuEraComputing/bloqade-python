@@ -1,6 +1,6 @@
 import warnings
 from bloqade.submission.base import ValidationError
-from bloqade.submission.mock import DumbMockBackend
+from bloqade.submission.mock import MockBackend
 from bloqade.submission.quera import QuEraBackend
 from bloqade.submission.braket import BraketBackend
 from bloqade.submission.ir.task_specification import (
@@ -22,7 +22,7 @@ from typing import Optional, Type, Union
 
 class MockTask(CloudTask):
     task_ir: Optional[QuEraTaskSpecification]
-    mock_backend: Optional[DumbMockBackend]
+    mock_backend: Optional[MockBackend]
     parallel_decoder: Optional[ParallelDecoder]
 
     def _geometry(self) -> Geometry:
@@ -63,7 +63,7 @@ class HardwareTask(QuEraTask):
     def __init__(
         self,
         task_ir: QuEraTaskSpecification,
-        backend: Optional[Union[QuEraBackend, BraketBackend, DumbMockBackend]] = None,
+        backend: Optional[Union[QuEraBackend, BraketBackend, MockBackend]] = None,
         parallel_decoder: Optional[ParallelDecoder] = None,
         **kwargs,
     ):
@@ -80,7 +80,7 @@ class HardwareTask(QuEraTask):
                     quera_backend=backend,
                     parallel_decoder=parallel_decoder,
                 )
-            case DumbMockBackend():
+            case MockBackend():
                 super().__init__(
                     task_ir=task_ir,
                     mock_backend=backend,

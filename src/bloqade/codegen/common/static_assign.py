@@ -1,8 +1,8 @@
 from bloqade.ir.location.base import AtomArrangement, ParallelRegister, LocationInfo
-from bloqade.ir.visitor.program import ProgramVisitor
+from bloqade.ir.visitor.analog_circuit import AnalogCircuitVisitor
 from bloqade.ir.visitor.waveform import WaveformVisitor
 from bloqade.ir.visitor.scalar import ScalarVisitor
-import bloqade.ir.program as program
+import bloqade.ir.analog_circuit as analog_circuit
 
 # import bloqade.ir.location as location
 import bloqade.ir.control.sequence as sequence
@@ -12,7 +12,7 @@ import bloqade.ir.control.waveform as waveform
 import bloqade.ir.scalar as scalar
 import bloqade.ir.location as location
 import numbers
-from typing import Any, Dict, Union
+from typing import Any, Dict
 from decimal import Decimal
 
 
@@ -23,19 +23,15 @@ class StaticAssignScalar(ScalarVisitor):
     def visit_literal(self, ast: scalar.Literal) -> scalar.Scalar:
         return ast
 
-    def visit_variable(
-        self, ast: scalar.Variable
-    ) -> Union[scalar.Literal, scalar.Variable]:
+    def visit_variable(self, ast: scalar.Variable) -> scalar.AssignedVariable:
         if ast.name in self.mapping:
-            return scalar.Literal(self.mapping[ast.name])
+            return scalar.AssignedVariable(ast.name, self.mapping[ast.name])
 
         return ast
 
-    def visit_default_variable(
-        self, ast: scalar.Variable
-    ) -> Union[scalar.Literal, scalar.DefaultVariable]:
+    def visit_assigned_variable(self, ast: scalar.Variable) -> scalar.AssignedVariable:
         if ast.name in self.mapping:
-            return scalar.Literal(self.mapping[ast.name])
+            raise ValueError(f"Variable {ast.name} is already assigned.")
 
         return ast
 
@@ -89,7 +85,7 @@ class StaticAssignWaveform(WaveformVisitor):
         return new_ast
 
     def visit_add(self, ast: waveform.Add) -> Any:
-        return waveform.Add(self.visit(ast.lhs), self.visit(ast.rhs))
+        return waveform.Add(self.visit(ast.left), self.visit(ast.right))
 
     def visit_alligned(self, ast: waveform.AlignedWaveform) -> Any:
         if isinstance(ast.value, scalar.Scalar):
@@ -136,7 +132,7 @@ class StaticAssignWaveform(WaveformVisitor):
         return self.visit(ast)
 
 
-class StaticAssignProgram(ProgramVisitor):
+class StaticAssignProgram(AnalogCircuitVisitor):
     def __init__(self, mapping: Dict[str, numbers.Real]):
         self.waveform_visitor = StaticAssignWaveform(mapping)
         self.scalar_visitor = StaticAssignScalar(mapping)
@@ -262,24 +258,10 @@ class StaticAssignProgram(ProgramVisitor):
     def visit_waveform(self, ast: waveform.Waveform) -> waveform.Waveform:
         return self.waveform_visitor.emit(ast)
 
-    def visit_program(self, ast: program.Program) -> program.Program:
-        new_order = tuple([name for name in ast.order if name not in self.mapping])
-
-        new_static_params = {
-            name: value
-            for name, value in ast.static_params.items()
-            if name not in self.mapping
-        }
-
-        new_batch_params = [
-            {name: value for name, value in params.items() if name not in self.mapping}
-            for params in ast.batch_params
-        ]
-
-        return program.Program(
+    def visit_analog_circuit(
+        self, ast: analog_circuit.AnalogCircuit
+    ) -> analog_circuit.AnalogCircuit:
+        return analog_circuit.AnalogCircuit(
             self.visit(ast.register),
             self.visit(ast.sequence),
-            static_params=new_static_params,
-            batch_params=new_batch_params,
-            order=new_order,
         )

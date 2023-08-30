@@ -1,17 +1,15 @@
-from .quera import QuEraService
-from .braket import BraketService
-from .bloqade import BloqadeService
+from bloqade.builder.backend.quera import QuEraService
+from bloqade.builder.backend.braket import BraketService
+from bloqade.builder.backend.bloqade import BloqadeService
 
 
 class BackendRoute(QuEraService, BraketService, BloqadeService):
     def device(self, name: str, *args, **kwargs):
         if name == "quera.aquila":
             dev = self.quera.aquila
-        elif name == "quera.gemini":
-            dev = self.quera.gemini
         elif name == "braket.aquila":
             dev = self.braket.aquila
-        elif name == "braket.simu":
+        elif name == "braket.local_emulator":
             dev = self.braket.local_emulator
         elif name == "bloqade.python":
             dev = self.bloqade.python

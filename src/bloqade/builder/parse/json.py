@@ -1,11 +1,11 @@
 from typing import Any, Dict, Type
-from ...codegen.common.json import BloqadeIRSerializer, BloqadeIRDeserializer
-from ..start import ProgramStart
-from ..sequence_builder import SequenceBuilder
+from bloqade.codegen.common.json import BloqadeIRSerializer, BloqadeIRDeserializer
+from bloqade.builder.start import ProgramStart
+from bloqade.builder.sequence_builder import SequenceBuilder
 
-# from ..base import Builder
-from ..spatial import Location, Scale, Var, Uniform
-from ..waveform import (
+# from bloqade.builder.base import Builder
+from bloqade.builder.spatial import Location, Scale, Var, Uniform
+from bloqade.builder.waveform import (
     Linear,
     Constant,
     Poly,
@@ -17,14 +17,14 @@ from ..waveform import (
     PiecewiseLinear,
     PiecewiseConstant,
 )
-from ..field import Detuning, Rabi, RabiAmplitude, RabiPhase
-from ..coupling import Rydberg, Hyperfine
-from ..parallelize import Parallelize, ParallelizeFlatten
-from ..assign import Assign, BatchAssign
-from ..flatten import Flatten
-from ..backend import bloqade
-from ..backend import braket
-from ..backend import quera
+from bloqade.builder.field import Detuning, Rabi, RabiAmplitude, RabiPhase
+from bloqade.builder.coupling import Rydberg, Hyperfine
+from bloqade.builder.parallelize import Parallelize, ParallelizeFlatten
+from bloqade.builder.assign import Assign, BatchAssign
+from bloqade.builder.flatten import Flatten
+from bloqade.builder.backend import bloqade
+from bloqade.builder.backend import braket
+from bloqade.builder.backend import quera
 
 
 class BuilderSerializer(BloqadeIRSerializer):
