@@ -20,9 +20,9 @@ ordered_state_2D_job = ordered_state_2D_prog.assign(delta_end=42.66, sweep_time=
 
 pbin = ordered_state_2D_job.quera.aquila()
 
-pbin = pbin.parse_program()
+pbin = pbin.parse_circuit()
 
-pbin.sequence
+# pbin.circuit.sequence
 
 
 # dict interface

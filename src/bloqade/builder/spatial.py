@@ -1,7 +1,7 @@
 from typing import Union, Optional, TYPE_CHECKING
-from .waveform import WaveformAttachable
-from .base import Builder
-from ..ir import Scalar
+from bloqade.builder.waveform import WaveformAttachable
+from bloqade.builder.base import Builder
+from bloqade.ir import Scalar
 from numbers import Real
 
 if TYPE_CHECKING:
@@ -35,7 +35,7 @@ class Uniform(SpatialModulation):
     """
 
     def __bloqade_ir__(self) -> "UniformModulation":
-        from ..ir import Uniform
+        from bloqade.ir import Uniform
 
         return Uniform
 

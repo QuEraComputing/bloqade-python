@@ -1,4 +1,4 @@
-from .base import Builder
+from bloqade.builder.base import Builder
 
 
 class Field(Builder):
@@ -40,7 +40,7 @@ class Field(Builder):
             >>> loc = reg.rydberg.detuning.uniform
 
         """
-        from .spatial import Uniform
+        from bloqade.builder.spatial import Uniform
 
         return Uniform(self)
 
@@ -103,7 +103,7 @@ class Field(Builder):
 
 
         """
-        from .spatial import Location
+        from bloqade.builder.spatial import Location
 
         return Location(label, self)
 
@@ -143,7 +143,7 @@ class Field(Builder):
             >>> loc = reg.rydberg.detuning.var('myatom')
 
         """
-        from .spatial import Var
+        from bloqade.builder.spatial import Var
 
         return Var(name, self)
 

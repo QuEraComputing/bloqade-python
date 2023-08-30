@@ -1,4 +1,4 @@
-from .base import Builder
+from bloqade.builder.base import Builder
 
 
 class LevelCoupling(Builder):
@@ -19,7 +19,7 @@ class LevelCoupling(Builder):
                 :: Address atom at location labeled by variable
 
         """
-        from .field import Detuning
+        from bloqade.builder.field import Detuning
 
         return Detuning(self)
 
@@ -37,7 +37,7 @@ class LevelCoupling(Builder):
 
 
         """
-        from .field import Rabi
+        from bloqade.builder.field import Rabi
 
         return Rabi(self)
 

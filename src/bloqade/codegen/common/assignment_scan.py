@@ -1,4 +1,4 @@
-from bloqade.ir.visitor.program import ProgramVisitor
+from bloqade.ir.visitor.analog_circuit import AnalogCircuitVisitor
 import bloqade.ir.control.sequence as sequence
 import bloqade.ir.control.pulse as pulse
 import bloqade.ir.control.field as field
@@ -8,7 +8,7 @@ import numbers
 from typing import Dict
 
 
-class AssignmentScan(ProgramVisitor):
+class AssignmentScan(AnalogCircuitVisitor):
     def __init__(self, assignments: Dict[str, numbers.Real]):
         self.assignments = dict(assignments)
 

@@ -1,5 +1,5 @@
 from ..tree_print import Printer
-from ..scalar import Scalar, Interval, Literal, Variable, DefaultVariable, cast, var
+from ..scalar import Scalar, Interval, Literal, Variable, AssignedVariable, cast, var
 
 from bisect import bisect_left
 from dataclasses import InitVar
@@ -458,7 +458,9 @@ class PythonFn(Instruction):
     """
 
     fn: Callable  # [[float, ...], float] # f(t) -> value
-    parameters: List[Union[Variable, DefaultVariable, Literal]]  # come from ast inspect
+    parameters: List[
+        Union[Variable, AssignedVariable, Literal]
+    ]  # come from ast inspect
     duration: InitVar[Scalar]
 
     def __init__(self, fn: Callable, duration: Any):
@@ -477,7 +479,7 @@ class PythonFn(Instruction):
         default_variables = []
         if signature.kwonlydefaults is not None:
             default_variables = [
-                DefaultVariable(name, cast(Decimal(str(value))))
+                AssignedVariable(name, cast(Decimal(str(value))))
                 for name, value in signature.kwonlydefaults.items()
             ]
 

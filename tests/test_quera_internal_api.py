@@ -9,11 +9,19 @@ from typing import Dict
 from bloqade import start
 from bloqade.task.batch import RemoteBatch
 import pytest
+import os
 
 
 # Integraiton tests
 @pytest.mark.vcr
 def test_quera_submit():
+    credentials = {
+        "access_key": "XXXXXXXXXXXXXXXXXXXX",
+        "secret_key": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+        "session_token": 900 * "X",
+    }
+    config_file = os.path.join("tests", "data", "config", "submit_quera_api.json")
+
     batch = (
         start.add_position((0, 0))
         .rydberg.rabi.amplitude.uniform.piecewise_linear(
@@ -21,7 +29,7 @@ def test_quera_submit():
         )
         .assign(run_time=2.0)
         .parallelize(20)
-        .quera.aquila(config_file="tests/data/config/submit_quera_api.json")
+        .quera.device(config_file=config_file, **credentials)
         .submit(shots=10)
     )
 
@@ -30,9 +38,15 @@ def test_quera_submit():
 
 @pytest.mark.vcr
 def test_quera_retrieve():
-    with open("tests/data/config/submit_quera_api.json", "r") as f:
-        job_future = bloqade.load_batch("quera_submit.json", **json.load(f))
-        assert type(job_future) == RemoteBatch
+    credentials = {
+        "access_key": "XXXXXXXXXXXXXXXXXXXX",
+        "secret_key": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+        "session_token": 900 * "X",
+    }
+
+    job_future = bloqade.load_batch("quera_submit.json", **credentials)
+    assert type(job_future) == RemoteBatch
+    job_future.pull()
 
 
 def create_response(
