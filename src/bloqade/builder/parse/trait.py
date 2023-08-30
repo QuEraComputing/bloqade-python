@@ -52,9 +52,9 @@ class Parse(ParseRegister, ParseSequence, ParseCircuit, ParseRoutine):
     def n_atoms(self: "Builder"):
         from .builder import Parser
 
-        ps = Parser().parse_register(self)
+        register = Parser().parse_register(self)
 
-        if isinstance(ps.register, ir.location.ParallelRegister):
-            return ps.register._register.n_atoms
+        if isinstance(register, ir.location.ParallelRegister):
+            return register._register.n_atoms
         else:
-            return ps.register.n_atoms
+            return register.n_atoms

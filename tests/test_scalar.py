@@ -406,8 +406,8 @@ def test_Slice():
 def test_assigned_variable_methods():
     assigned_var = scalar.AssignedVariable("a", Decimal("1.0"))
 
-    assert assigned_var.children() == [Decimal("1.0")]
-    assert assigned_var.print_node() == "DefaultVariable: a"
+    assert assigned_var.children() == []
+    assert assigned_var.print_node() == "DefaultVariable: a = 1.0"
     assert str(assigned_var) == "a"
 
 

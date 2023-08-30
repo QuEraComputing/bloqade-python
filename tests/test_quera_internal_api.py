@@ -29,7 +29,7 @@ def test_quera_submit():
         )
         .assign(run_time=2.0)
         .parallelize(20)
-        .quera.aquila(config_file=config_file, **credentials)
+        .quera.device(config_file=config_file, **credentials)
         .submit(shots=10)
     )
 

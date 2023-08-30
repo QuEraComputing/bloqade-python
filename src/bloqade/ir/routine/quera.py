@@ -17,7 +17,8 @@ from typing import Tuple, Union
 class QuEraServiceOptions(RoutineBase):
     def device(self, config_file: str | None, **api_config):
         if config_file is not None:
-            api_config = {**json.load(config_file), **api_config}
+            with open(config_file, "r") as f:
+                api_config = {**json.load(f), **api_config}
 
         backend = QuEraBackend(**api_config)
 
@@ -40,13 +41,11 @@ class QuEraServiceOptions(RoutineBase):
 class QuEraHardwareRoutine(RoutineBase):
     backend: Union[QuEraBackend, MockBackend]
 
-    def submit(
+    def compile(
         self,
         shots: int,
         args: Tuple[Real, ...] = (),
         name: str | None = None,
-        shuffle: bool = False,
-        **kwargs,
     ) -> RemoteBatch:
         from bloqade.codegen.common.static_assign import StaticAssignProgram
         from bloqade.codegen.hardware.quera import QuEraCodeGen
@@ -70,6 +69,16 @@ class QuEraHardwareRoutine(RoutineBase):
 
         batch = RemoteBatch(source=self.source, tasks=tasks, name=name)
 
-        batch._submit(shuffle, **kwargs)
+        return batch
 
+    def submit(
+        self,
+        shots: int,
+        args: Tuple[Real, ...] = (),
+        name: str | None = None,
+        shuffle: bool = False,
+        **kwargs,
+    ) -> RemoteBatch:
+        batch = self.compile(shots, args, name)
+        batch._submit(shuffle, **kwargs)
         return batch

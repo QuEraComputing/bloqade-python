@@ -26,7 +26,7 @@ class BraketServiceOptions(RoutineBase):
 class BraketHardwareRoutine(RoutineBase):
     backend: BraketBackend
 
-    def submit(
+    def compile(
         self,
         shots: int,
         args: Tuple[Real, ...] = (),
@@ -63,8 +63,18 @@ class BraketHardwareRoutine(RoutineBase):
 
         batch = RemoteBatch(source=self.source, tasks=tasks, name=name)
 
-        batch._submit(shuffle, **kwargs)
+        return batch
 
+    def submit(
+        self,
+        shots: int,
+        args: Tuple[Real, ...] = (),
+        name: str | None = None,
+        shuffle: bool = False,
+        **kwargs,
+    ) -> "RemoteBatch":
+        batch = self.compile(shots, args, name)
+        batch._submit(shuffle, **kwargs)
         return batch
 
     def run(
@@ -92,7 +102,7 @@ class BraketHardwareRoutine(RoutineBase):
 
 @dataclass(frozen=True)
 class BraketLocalEmulatorRoutine(RoutineBase):
-    def run(
+    def compile(
         self, shots: int, args: Tuple[Real, ...] = (), name: str | None = None, **kwargs
     ) -> "LocalBatch":
         ## fall passes here ###
@@ -105,7 +115,7 @@ class BraketLocalEmulatorRoutine(RoutineBase):
         circuit = StaticAssignProgram(params.static_params).visit(circuit)
 
         if isinstance(circuit.register, ParallelRegister):
-            raise NotImplementedError(
+            raise TypeError(
                 "Parallelization of atom arrangements is not supported for "
                 "local emulation."
             )
@@ -125,6 +135,12 @@ class BraketLocalEmulatorRoutine(RoutineBase):
             )
 
         batch = LocalBatch(source=self.source, tasks=tasks, name=name)
-        batch._run(**kwargs)
 
+        return batch
+
+    def run(
+        self, shots: int, args: Tuple[Real, ...] = (), name: str | None = None, **kwargs
+    ) -> "LocalBatch":
+        batch = self.compile(shots, args, name)
+        batch._run(**kwargs)
         return batch
