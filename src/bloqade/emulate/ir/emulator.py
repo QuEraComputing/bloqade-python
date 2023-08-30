@@ -5,27 +5,27 @@ from bloqade.ir.control.sequence import LevelCoupling
 from bloqade.emulate.ir.space import Space
 
 
-@dataclass
+@dataclass(frozen=True)
 class RabiTerm:
     target_atoms: Dict[int, float]
     amplitude: Callable[[float], float]
     phase: Optional[Callable[[float], float]] = None
 
 
-@dataclass
+@dataclass(frozen=True)
 class DetuningTerm:
     target_atoms: Dict[int, float]
     amplitude: Callable[[float], float]
 
 
-@dataclass
+@dataclass(frozen=True)
 class LaserCoupling:
     level_coupling: LevelCoupling
     detuning: List[DetuningTerm]
     rabi: List[RabiTerm]
 
 
-@dataclass
+@dataclass(frozen=True)
 class EmulatorProgram:
     space: Space
     duration: float

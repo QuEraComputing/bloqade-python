@@ -1,34 +1,61 @@
-from bloqade.emulator.sparse_operator import IndexMapping, Diagonal
-
-from dataclasses import dataclass
+from bloqade.emulate.sparse_operator import IndexMapping
 from scipy.sparse import csr_matrix
+from dataclasses import dataclass, field
 from numpy.typing import NDArray
-from typing import List, Callable, Union, Tuple
+from typing import List, Callable, Union, Optional
 import numpy as np
 from scipy.integrate import ode
 
+SparseOperator = Union[IndexMapping, csr_matrix]
 
-@dataclass
-class AnalogGate:
-    SUPPORTED_SOLVERS = ["lsoda", "dop853", "dopri5"]
 
-    terms: List[Tuple[Callable, Union[Diagonal, IndexMapping, csr_matrix]]]
-    initial_time: float
-    final_time: float
-    atol: float = 1e-7
-    rtol: float = 1e-14
-    nsteps: int = 2_147_483_647
+@dataclass(frozen=True)
+class DetuningOperator:
+    diagonal: NDArray
+    amplitude: Optional[Callable[[float], float]] = None
+
+    def get_diagonal(self, time: float):
+        if self.amplitude:
+            return self.diagonal * self.amplitude(time)
+        else:
+            return self.diagonal
+
+
+@dataclass(frozen=True)
+class RabiOperator:
+    op: SparseOperator
+    amplitude: Callable[[float], float]
+    phase: Optional[Callable[[float], float]] = None
+
+    def dot(self, register: NDArray, time: float):
+        amplitude = self.amplitude(time)
+        if self.phase is None:
+            return self.op.dot(register) * amplitude
+
+        amplitude *= np.exp(1j * self.phase(time))
+        output = self.op.dot(register) * amplitude
+        output += self.op.T.dot(register) * np.conj(amplitude)
+
+        return output
+
+
+@dataclass(frozen=True)
+class RydbergHamiltonian:
+    rydberg: NDArray
+    detuning_ops: List[DetuningOperator] = field(default_factory=list)
+    rabi_ops: List[RabiOperator] = field(default_factory=list)
 
     def _ode_complex_kernel(self, time: float, register: NDArray):
-        result_register = np.zeros_like(register)
-        for function, operator in self.terms:
-            if function is None:
-                result_register += operator.dot(register)
-            else:
-                result_register += function(time + self.initial_time) * operator.dot(
-                    register
-                )
+        diagonal = sum(
+            (detuning.get_diagonal(time) for detuning in self.detuning_ops),
+            start=self.rydberg,
+        )
 
+        result_register = diagonal * register
+        for rabi_op in self.rabi_ops:
+            result_register += rabi_op.dot(register, time)
+
+        result_register *= -1j
         return result_register
 
     def _ode_real_kernel(self, time: float, register: NDArray):
@@ -36,6 +63,18 @@ class AnalogGate:
         return self._ode_complex_kernel(time, register.view(np.complex128)).view(
             np.float64
         )
+
+
+@dataclass(frozen=True)
+class AnalogGate:
+    SUPPORTED_SOLVERS = ["lsoda", "dop853", "dopri5"]
+
+    hamiltonian: RydbergHamiltonian
+    initial_time: float
+    final_time: float
+    atol: float = 1e-7
+    rtol: float = 1e-14
+    nsteps: int = 2_147_483_647
 
     @staticmethod
     def _error_check_dop(status_code: int):
@@ -96,7 +135,7 @@ class AnalogGate:
 
     def _solve(self, state: NDArray, solver_name: str):
         state = np.asarray(state, dtype=np.complex128)
-        solver = ode(self._ode_real_kernel)
+        solver = ode(self.hamiltonian._ode_real_kernel)
         solver.set_initial_value(state.view(np.float64), self.initial_time)
         solver.set_integrator(
             solver_name, atol=self.atol, rtol=self.rtol, nstep=self.nsteps

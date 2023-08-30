@@ -5,44 +5,42 @@ from numpy.typing import NDArray
 from typing import Union
 
 
-@dataclass(frozen=True)
-class Diagonal:  # used to represent detuning + Rydberg
-    diagonal: NDArray
-
-    def dot(self, other):
-        return self.diagonal * other
-
-    def to_csr(self):
-        indices = np.arange(len(self.diagonal))
-        indptr = np.arange(len(self.diagonal) + 1)
-        data = self.diagonal
-        return csr_matrix(
-            (data, indices, indptr), shape=(len(self.diagonal), len(self.diagonal))
-        )
-
-
 # use csr_matrix for rabi-terms that span multiple sites.
 # use PermMatrix for local rabi-terms
 @dataclass(frozen=True)
 class IndexMapping:
     n_row: int
-    col_indices: Union[slice, NDArray]
     row_indices: Union[slice, NDArray]
+    col_indices: Union[slice, NDArray]
 
-    def ajoint(self):
-        return IndexMapping(self.row_indices, self.col_indices)
+    @property
+    def T(self) -> "IndexMapping":
+        return IndexMapping(self.n_row, self.col_indices, self.row_indices)
 
-    def dot(self, other, out=None):
+    def dot(self, other):
         result = np.zeros_like(other)
         result[self.row_indices] = other[self.col_indices]
 
     def to_csr(self):
-        indptr = np.zeros(self.n_row + 1)
+        indptr = np.zeros(self.n_row + 1, dtype=np.int64)
         indptr[1:][self.row_indices] = 1
         np.cumsum(indptr, out=indptr)
 
         if isinstance(self.col_indices, slice):
-            indices = np.arange(self.n_row)
+            start = self.col_indices.start
+            stop = self.col_indices.stop
+            step = self.col_indices.step
+
+            if start is None:
+                start = 0
+
+            if stop is None:
+                stop = self.n_row
+
+            if step is None:
+                step = 1
+
+            indices = np.arange(start, stop, step)
         else:
             indices = self.col_indices
 

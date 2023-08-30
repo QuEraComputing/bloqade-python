@@ -16,8 +16,8 @@ import bloqade.ir.control.waveform as waveform
 import bloqade.ir.control.field as field
 import bloqade.ir as ir
 
-from bloqade.emulator.ir.space import LocalHilbertSpace, Space
-from bloqade.emulator.ir.emulator_program import (
+from bloqade.emulate.ir.space import Space, TwoLevelAtom, ThreeLevelAtom
+from bloqade.emulate.ir.emulator import (
     DetuningTerm,
     EmulatorProgram,
     LaserCoupling,
@@ -180,13 +180,13 @@ class EmulatorSpace(ProgramVisitor):
         if self.add_hyperfine:
             self.space = Space.create(
                 atom_positions,
-                LocalHilbertSpace.ThreeLevel,
+                ThreeLevelAtom,
                 blockade_radius=self.blockade_radius,
             )
         else:
             self.space = Space.create(
                 atom_positions,
-                LocalHilbertSpace.TwoLevel,
+                TwoLevelAtom,
                 blockade_radius=self.blockade_radius,
             )
 
