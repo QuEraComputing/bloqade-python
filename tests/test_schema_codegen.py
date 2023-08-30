@@ -19,9 +19,7 @@ def test_location_exceedloc():
         seq = Linear(start=0.0, stop=1.0, duration=0.5).append(
             2 * Constant(0.5, duration=0.5)
         )
-        start.rydberg.detuning.location(0).apply(seq).quera.mock().compile_taskdata(
-            shots=10
-        )
+        start.rydberg.detuning.location(0).apply(seq).quera.mock().compile(10)
 
 
 def test_hyperfine_schema():
@@ -29,9 +27,9 @@ def test_hyperfine_schema():
         seq = Linear(start=0.0, stop=1.0, duration=0.5).append(
             2 * Constant(0.5, duration=0.5)
         )
-        Square(1).hyperfine.detuning.location(0).apply(
-            seq
-        ).quera.mock().compile_taskdata(shots=10)
+        Square(1).hyperfine.detuning.location(0).apply(seq).quera.mock().compile(
+            shots=10
+        )
 
 
 def test_local_no_global():
@@ -53,7 +51,7 @@ def test_local_no_global():
     panel = panel["remote_batch"]
 
     task = panel["tasks"][0][1]["quera_task"]
-    ir = task["task_data"]["quera_task_data"]["task_ir"]
+    ir = task["task_ir"]["quera_task_specification"]
 
     assert ir["nshots"] == 10
     assert fvec(ir["lattice"]["sites"][0]) == [0.0, 0.0]
@@ -91,7 +89,7 @@ def test_local_global():
 
     print(panel)
     task = panel["tasks"][0][1]["quera_task"]
-    ir = task["task_data"]["quera_task_data"]["task_ir"]
+    ir = task["task_ir"]["quera_task_specification"]
 
     assert ir["nshots"] == 10
     assert fvec(ir["lattice"]["sites"][0]) == [0.0, 0.0]
