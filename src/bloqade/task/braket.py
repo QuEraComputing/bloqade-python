@@ -50,7 +50,7 @@ class BraketTask(RemoteTask):
         if status == QuEraTaskStatusCode.Completed:
             self.task_result_ir = self.backend.task_results(self.task_id)
         else:
-            self.task_result_ir = QuEraTaskResults(status)
+            self.task_result_ir = QuEraTaskResults(task_status=status)
 
         return self
 
