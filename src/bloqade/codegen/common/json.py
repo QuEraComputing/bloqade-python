@@ -73,7 +73,6 @@ class ScalarSerilaizer(ScalarVisitor):
                 raise ValueError(f"Invalid Interval({ast.start}, {ast.stop})")
 
     def default(self, obj: Any) -> Dict[str, Any]:
-        print(obj, type(obj))
         if isinstance(obj, scalar.Scalar):
             return self.visit(obj)
 
