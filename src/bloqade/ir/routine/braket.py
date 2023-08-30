@@ -1,22 +1,17 @@
 from collections import OrderedDict
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Tuple
+from typing import Tuple
 from numbers import Real
 
+from bloqade.ir.routine.base import RoutineBase
 from bloqade.submission.braket import BraketBackend
 from bloqade.task.batch import LocalBatch, RemoteBatch
 from bloqade.task.braket_simulator import BraketEmulatorTask
 from bloqade.task.braket import BraketTask
 
 
-if TYPE_CHECKING:
-    from bloqade.builder.base import Builder
-
-
 @dataclass(frozen=True)
-class BraketServiceOptions:
-    source: "Builder"
-
+class BraketServiceOptions(RoutineBase):
     def aquila(self) -> "BraketHardwareRoutine":
         backend = BraketBackend(
             device_arn="arn:aws:braket:us-east-1::device/qpu/quera/Aquila"
@@ -28,8 +23,7 @@ class BraketServiceOptions:
 
 
 @dataclass(frozen=True)
-class BraketHardwareRoutine:
-    source: "Builder"
+class BraketHardwareRoutine(RoutineBase):
     backend: BraketBackend
 
     def submit(
@@ -41,13 +35,12 @@ class BraketHardwareRoutine:
         **kwargs,
     ) -> "RemoteBatch":
         ## fall passes here ###
-        from bloqade.builder.parse.builder import Parser
         from bloqade.codegen.common.static_assign import StaticAssignProgram
         from bloqade.codegen.hardware.quera import QuEraCodeGen
 
         capabilities = self.backend.get_capabilities()
 
-        circuit, params = Parser().parse(self.source)
+        circuit, params = self.parse_source()
         circuit = StaticAssignProgram(params.static_params).visit(circuit)
 
         tasks = OrderedDict()
@@ -98,20 +91,17 @@ class BraketHardwareRoutine:
 
 
 @dataclass(frozen=True)
-class BraketLocalEmulatorRoutine:
-    source: "Builder"
-
+class BraketLocalEmulatorRoutine(RoutineBase):
     def run(
         self, shots: int, args: Tuple[Real, ...] = (), name: str | None = None, **kwargs
     ) -> "LocalBatch":
         ## fall passes here ###
         from bloqade.ir import ParallelRegister
-        from bloqade.builder.parse.builder import Parser
         from bloqade.codegen.common.static_assign import StaticAssignProgram
         from bloqade.codegen.hardware.quera import QuEraCodeGen
         from bloqade.submission.ir.braket import to_braket_task_ir
 
-        circuit, params = Parser().parse(self.source)
+        circuit, params = self.parse_source()
         circuit = StaticAssignProgram(params.static_params).visit(circuit)
 
         if isinstance(circuit.register, ParallelRegister):

@@ -2,22 +2,19 @@ from collections import OrderedDict
 from dataclasses import dataclass
 import json
 from numbers import Real
+
+from bloqade.ir.routine.base import RoutineBase
 from bloqade.submission.quera import QuEraBackend
 from bloqade.submission.mock import MockBackend
 from bloqade.submission.quera_api_client.load_config import load_config
 from bloqade.task.batch import RemoteBatch
 from bloqade.task.quera import QuEraTask
 
-from typing import TYPE_CHECKING, Tuple, Union
-
-if TYPE_CHECKING:
-    from bloqade.builder.base import Builder
+from typing import Tuple, Union
 
 
 @dataclass(frozen=True)
-class QuEraServiceOptions:
-    source: "Builder"
-
+class QuEraServiceOptions(RoutineBase):
     def device(self, config_file: str | None, **api_config):
         if config_file is not None:
             api_config = {**json.load(config_file), **api_config}
@@ -40,8 +37,7 @@ class QuEraServiceOptions:
 
 
 @dataclass(frozen=True)
-class QuEraHardwareRoutine:
-    source: "Builder"
+class QuEraHardwareRoutine(RoutineBase):
     backend: Union[QuEraBackend, MockBackend]
 
     def submit(
@@ -52,11 +48,10 @@ class QuEraHardwareRoutine:
         shuffle: bool = False,
         **kwargs,
     ) -> RemoteBatch:
-        from bloqade.builder.parse.builder import Parser
         from bloqade.codegen.common.static_assign import StaticAssignProgram
         from bloqade.codegen.hardware.quera import QuEraCodeGen
 
-        circuit, params = Parser().parse(self.source)
+        circuit, params = self.parse_source()
         capabilities = self.backend.get_capabilities()
         circuit = StaticAssignProgram(params.static_params).visit(circuit)
 

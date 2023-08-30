@@ -226,6 +226,7 @@ class Parser:
     ) -> Union[ir.AtomArrangement, ir.ParallelRegister]:
         self.stream = BuilderStream.create(builder)
         self.read_register()
+        self.read_pragmas()
         return self.register
 
     def parse_sequence(self, builder: Builder) -> ir.Sequence:
@@ -233,7 +234,19 @@ class Parser:
         self.read_sequeence()
         return self.sequence
 
-    def parse(self, builder: Builder) -> Tuple["AnalogCircuit", "Params"]:
+    def parse_circuit(self, builder: Builder) -> "AnalogCircuit":
+        from bloqade.ir.analog_circuit import AnalogCircuit
+
+        self.stream = BuilderStream.create(builder)
+        self.read_register()
+        self.read_sequeence()
+        self.read_pragmas()
+
+        circuit = AnalogCircuit(self.register, self.sequence)
+
+        return circuit
+
+    def parse_source(self, builder: Builder) -> Tuple["AnalogCircuit", "Params"]:
         from bloqade.builder.parse.stream import BuilderStream
         from bloqade.ir.routine.params import Params
         from bloqade.ir.analog_circuit import AnalogCircuit
