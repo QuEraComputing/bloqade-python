@@ -1,6 +1,6 @@
 from bloqade.codegen.common.assignment_scan import AssignmentScan
 from bloqade.ir.location.base import AtomArrangement, SiteFilling
-from bloqade.ir.visitor.program import ProgramVisitor
+from bloqade.ir.visitor.analog_circuit import AnalogCircuitVisitor
 from bloqade.ir.visitor.waveform import WaveformVisitor
 from bloqade.ir.control.field import (
     Field,
@@ -152,21 +152,26 @@ class WaveformCompiler(WaveformVisitor):
         return lambda t: ast(t, **self.assignments)
 
 
-class EmulatorSpace(ProgramVisitor):
-    def __init__(
-        self,
-        assignments: Dict[str, Number] = {},
-        add_hyperfine: bool = False,
-        blockade_radius: float = 0.0,
-    ):
-        self.assignments = assignments
-        self.blockade_radius = blockade_radius
-        self.add_hyperfine = add_hyperfine
-        self.space = None
 
-    def visit_program(self, ast: ir.Program):
-        self.visit(ast.sequence)
+class EmulatorProgramCodeGen(AnalogCircuitVisitor):
+    def __init__(
+        self, add_hyperfine: bool = False, assignments: Dict[str, Number] = {}, blockade_radius: float = 0.0
+    ):
+        self.add_hyperfine = add_hyperfine
+        self.assignments = assignments
+        self.waveform_compiler = WaveformCompiler(assignments)
+        self.blockade_radius = blockade_radius
+        self.space = None
+        self.register = None
+        self.duration = 0.0
+        self.rydberg = None
+        self.hyperfine = None
+
+    def visit_program(self, ast: ir.AnalogCircuit):
+        self.add_hyperfine = sequence.hyperfine in ast.sequence.pulses or self.add_hyperfine
         self.visit(ast.register)
+        self.visit(ast.sequence)
+
 
     def visit_register(self, ast: AtomArrangement) -> Any:
         atom_positions = []
@@ -189,39 +194,6 @@ class EmulatorSpace(ProgramVisitor):
                 TwoLevelAtom,
                 blockade_radius=self.blockade_radius,
             )
-
-    def visit_sequence(self, ast: sequence.SequenceExpr):
-        match ast:
-            case sequence.Sequence(pulses):
-                if sequence.hyperfine in pulses:
-                    self.hyperfine = True
-
-            case sequence.NamedSequence(sub_sequence, _):
-                self.visit(sub_sequence)
-
-            case _:
-                raise NotImplementedError
-
-    def emit(self, program: ir.Program) -> EmulatorProgram:
-        self.visit(program)
-        return self.space
-
-
-class ToEmulatorProgram(ProgramVisitor):
-    def __init__(
-        self, assignments: Dict[str, Number] = {}, blockade_radius: float = 0.0
-    ):
-        self.assignments = assignments
-        self.waveform_compiler = WaveformCompiler(assignments)
-        self.blockade_radius = blockade_radius
-        self.space = None
-        self.register = None
-        self.duration = 0.0
-        self.rydberg = None
-        self.hyperfine = None
-
-    def visit_program(self, ast: ir.Program):
-        self.visit(ast.sequence)
 
     def visit_sequence(self, ast: sequence.SequenceExpr):
         match ast:
@@ -402,12 +374,10 @@ class ToEmulatorProgram(ProgramVisitor):
             case _:
                 raise NotImplementedError
 
-    def emit(self, program: ir.Program, add_hyperfine: bool = False) -> EmulatorProgram:
-        self.space = EmulatorSpace(
-            self.assignments, add_hyperfine, self.blockade_radius
-        ).emit(program)
-
-        self.visit(program)
+    def emit(self, circuit: ir.AnalogCircuit) -> EmulatorProgram:
+        self.assignments = AssignmentScan(self.assignments).emit(circuit.sequence)
+        
+        self.visit(circuit)
         return EmulatorProgram(
             space=self.space,
             duration=self.duration,

@@ -25,7 +25,7 @@ from scipy.sparse import csr_matrix
 import numpy as np
 
 
-class ToAnalogGate(Visitor):
+class RydbergHamiltonianCodeGen(Visitor):
     def __init__(self):
         self.rabi_ops = []
         self.detuning_ops = []
