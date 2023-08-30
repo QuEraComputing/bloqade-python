@@ -1,4 +1,5 @@
 from bloqade.ir.location import ListOfLocations
+import tempfile
 
 prog = (
     ListOfLocations()
@@ -26,8 +27,10 @@ prog = (
         rabi_amplitude_max=15,
     )
 )
-future = prog.quera.mock().submit(shots=100)
-future.fetch()
+
+with tempfile.NamedTemporaryFile() as f:
+    future = prog.quera.mock(state_file=f.name).submit(shots=100)
+    future.pull()
 
 print(future.report().bitstrings)
 print(future.report().counts)
