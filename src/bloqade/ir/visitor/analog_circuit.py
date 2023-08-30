@@ -3,9 +3,9 @@ from bloqade.ir.control.field import Field, SpatialModulation
 from bloqade.ir.control.pulse import PulseExpr
 from bloqade.ir.control.sequence import SequenceExpr
 from bloqade.ir.location.base import AtomArrangement, ParallelRegister
+from bloqade.ir.analog_circuit import AnalogCircuit
 from typing import Union, Any
 
-from bloqade.ir.program import Program
 
 AstType = Union[
     Waveform,
@@ -15,10 +15,11 @@ AstType = Union[
     SequenceExpr,
     AtomArrangement,
     ParallelRegister,
+    AnalogCircuit,
 ]
 
 
-class ProgramVisitor:
+class AnalogCircuitVisitor:
     def visit_waveform(self, ast: Waveform) -> Any:
         raise NotImplementedError(
             f"No visitor method implemented in {self.__class__} for Waveform"
@@ -54,9 +55,9 @@ class ProgramVisitor:
             f"No visitor method implemented in {self.__class__} for MultuplexRegister"
         )
 
-    def visit_program(self, ast: AstType) -> Any:
+    def visit_analog_circuit(self, ast: AnalogCircuit) -> Any:
         raise NotImplementedError(
-            f"No visitor method implemented in {self.__class__} for Program"
+            f"No visitor method implemented in {self.__class__} for AnalogCircuit"
         )
 
     def visit(self, ast: AstType) -> Any:
@@ -74,7 +75,7 @@ class ProgramVisitor:
             return self.visit_register(ast)
         elif isinstance(ast, ParallelRegister):
             return self.visit_parallel_register(ast)
-        elif isinstance(ast, Program):
-            return self.visit_program(ast)
+        elif isinstance(ast, AnalogCircuit):
+            return self.visit_analog_circuit(ast)
         else:
             raise NotImplementedError(f"{ast.__class__} is not a bloqade AST type")

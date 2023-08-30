@@ -3,11 +3,11 @@ import bloqade.ir as ir
 
 from bloqade.submission.base import SubmissionBackend
 from bloqade.submission.braket import BraketBackend
-from bloqade.submission.mock import DumbMockBackend
+from bloqade.submission.mock import MockBackend
 from bloqade.submission.quera import QuEraBackend
 from bloqade.submission.ir.braket import to_braket_task_ir
 
-from bloqade.ir import Program
+from bloqade.ir import AnalogCircuit
 from bloqade.ir.location.base import AtomArrangement, ParallelRegister
 
 from pydantic import BaseModel
@@ -387,7 +387,7 @@ class Emit(Builder):
     def __compile_hardware(
         self, nshots: int, backend: SubmissionBackend
     ) -> HardwareBatchTask:
-        from bloqade.codegen.hardware.quera import SchemaCodeGen
+        from bloqade.codegen.targets.quera import SchemaCodeGen
 
         capabilities = backend.get_capabilities()
         tasks = OrderedDict()
@@ -454,7 +454,7 @@ class Emit(Builder):
         return self.__sequence__
 
     @property
-    def program(self) -> Program:
+    def program(self) -> AnalogCircuit:
         """
         Get the Program from the current builder.
         See also [`Program`][bloqade.ir.program.Program]
@@ -463,7 +463,7 @@ class Emit(Builder):
             prog (Program)
 
         """
-        return Program(self.register, self.sequence)
+        return AnalogCircuit(self.register, self.sequence)
 
     def simu(self, *args, **kwargs):
         raise NotImplementedError
@@ -481,7 +481,7 @@ class Emit(Builder):
             BraketEmulatorJob
 
         """
-        from bloqade.codegen.hardware.quera import SchemaCodeGen
+        from bloqade.codegen.targets.quera import SchemaCodeGen
 
         if isinstance(self.register, ParallelRegister):
             raise TypeError("Braket emulator doesn't support parallel registers.")
@@ -565,6 +565,6 @@ class Emit(Builder):
             HardwareBatchTask
 
         """
-        backend = DumbMockBackend(state_file=state_file)
+        backend = MockBackend(state_file=state_file)
 
         return self.__compile_hardware(nshots, backend)

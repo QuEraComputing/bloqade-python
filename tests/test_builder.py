@@ -9,7 +9,10 @@
 import bloqade.ir as ir
 from bloqade.builder import spatial
 from bloqade.builder import waveform
-import bloqade.builder.backend as builder_backend
+
+# import bloqade.builder.backend as builder_backend
+import bloqade.ir.routine.quera as quera
+import bloqade.ir.routine.braket as braket
 
 
 from bloqade.ir import rydberg, detuning, hyperfine, rabi
@@ -233,10 +236,11 @@ def test_piecewise_linear_mismatch():
 def test_backend_route():
     prog = start.rydberg.detuning.uniform.constant(4, 4)
 
-    assert isinstance(prog.device("quera.aquila"), builder_backend.quera.Aquila)
-    assert isinstance(prog.device("quera.gemini"), builder_backend.quera.Gemini)
-    assert isinstance(prog.device("braket.aquila"), builder_backend.braket.Aquila)
-    assert isinstance(prog.device("braket.simu"), builder_backend.braket.LocalBackend)
+    assert isinstance(prog.device("quera.aquila"), quera.QuEraHardwareRoutine)
+    assert isinstance(prog.device("braket.aquila"), braket.BraketHardwareRoutine)
+    assert isinstance(
+        prog.device("braket.local_emulator"), braket.BraketLocalEmulatorRoutine
+    )
     with pytest.raises(ValueError):
         prog.device("foo")
 

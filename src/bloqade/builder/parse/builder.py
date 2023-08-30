@@ -1,36 +1,37 @@
+from decimal import Decimal
+from bloqade.builder.base import Builder
+from bloqade.builder.coupling import LevelCoupling, Rydberg, Hyperfine
+from bloqade.builder.sequence_builder import SequenceBuilder
+from bloqade.builder.field import Field, Detuning, RabiAmplitude, RabiPhase
+from bloqade.builder.spatial import SpatialModulation, Location, Uniform, Var, Scale
+from bloqade.builder.waveform import WaveformPrimitive, Slice, Record, Sample, Fn
+from bloqade.builder.assign import Assign, BatchAssign
+from bloqade.builder.flatten import Flatten
+from bloqade.builder.parallelize import Parallelize, ParallelizeFlatten
+from bloqade.builder.parse.stream import BuilderNode, BuilderStream
+
 import bloqade.ir as ir
-
-from ..base import Builder
-from ..coupling import LevelCoupling, Rydberg, Hyperfine
-from ..sequence_builder import SequenceBuilder
-from ..field import Field, Detuning, RabiAmplitude, RabiPhase
-from ..spatial import SpatialModulation, Location, Uniform, Var, Scale
-from ..waveform import WaveformPrimitive, Slice, Record, Sample, Fn
-from ..assign import Assign, BatchAssign
-from ..flatten import Flatten
-from ..parallelize import Parallelize, ParallelizeFlatten
-
-from .stream import BuilderNode
-
 from itertools import repeat
-from typing import Tuple
+from typing import TYPE_CHECKING, Tuple, Union, Dict, List, Optional, Set
+
+if TYPE_CHECKING:
+    from bloqade.ir.routine.params import Params, ParamType
+    from bloqade.ir.analog_circuit import AnalogCircuit
 
 
 class Parser:
-    pragma_types = (
-        Assign,
-        BatchAssign,
-        Flatten,
-        Parallelize,
-        ParallelizeFlatten,
-    )
+    stream: Optional["BuilderStream"] = None
+    vector_node_names: Set[str] = set()
+    sequence: ir.Sequence = ir.Sequence()
+    register: Union[ir.AtomArrangement, ir.ParallelRegister, None] = None
+    batch_params: List[Dict[str, "ParamType"]] = [{}]
+    static_params: Dict[str, "ParamType"] = {}
+    order: Tuple[str, ...] = ()
 
-    def __init__(self, ast: Builder) -> None:
-        from .stream import BuilderStream
-
-        self.stream = BuilderStream.create(ast)
-        self.vector_node_names = set([])
-        self.sequence = ir.Sequence({})
+    def reset(self, builder: Builder):
+        self.stream = BuilderStream.create(builder)
+        self.vector_node_names = set()
+        self.sequence = ir.Sequence()
         self.register = None
         self.batch_params = [{}]
         self.static_params = {}
@@ -131,6 +132,10 @@ class Parser:
     def read_field(self, head) -> ir.Field:
         sm, curr = self.read_spatial_modulation(head)
         wf, _ = self.read_waveform(curr)
+
+        if wf is None or sm is None:
+            return ir.Field({})
+
         return ir.Field({sm: wf})
 
     def read_sequeence(self) -> ir.Sequence:
@@ -172,16 +177,28 @@ class Parser:
         return self.register
 
     def read_pragmas(self) -> None:
+        pragma_types = (
+            Assign,
+            BatchAssign,
+            Flatten,
+            Parallelize,
+            ParallelizeFlatten,
+        )
+
         stream = self.stream.copy()
-        curr = stream.read_next(Parser.pragma_types)
+        curr = stream.read_next(pragma_types)
 
         while curr is not None:
             match curr.node:
                 case Assign(static_params):
-                    self.static_params = static_params
+                    self.static_params = {
+                        name: Decimal(str(value))
+                        for name, value in static_params.items()
+                    }
+
                 case BatchAssign(batch_param):
                     tuple_iterators = [
-                        zip(repeat(name), values)
+                        zip(repeat(name), map(Decimal, map(str, values)))
                         for name, values in batch_param.items()
                     ]
                     self.batch_params = list(map(dict, zip(*tuple_iterators)))
@@ -216,14 +233,45 @@ class Parser:
 
             curr = curr.next
 
-    def parse(self):
+    def parse_register(
+        self, builder: Builder
+    ) -> Union[ir.AtomArrangement, ir.ParallelRegister]:
+        self.reset(builder)
+        self.read_register()
+        self.read_pragmas()
+        return self.register
+
+    def parse_sequence(self, builder: Builder) -> ir.Sequence:
+        self.reset(builder)
+        self.read_sequeence()
+        return self.sequence
+
+    def parse_circuit(self, builder: Builder) -> "AnalogCircuit":
+        from bloqade.ir.analog_circuit import AnalogCircuit
+
+        self.reset(builder)
         self.read_register()
         self.read_sequeence()
         self.read_pragmas()
-        return ir.Program(
-            self.register,
-            self.sequence,
-            self.static_params,
-            self.batch_params,
-            self.order,
+
+        circuit = AnalogCircuit(self.register, self.sequence)
+
+        return circuit
+
+    def parse_source(self, builder: Builder) -> Tuple["AnalogCircuit", "Params"]:
+        from bloqade.ir.routine.params import Params
+        from bloqade.ir.analog_circuit import AnalogCircuit
+
+        self.reset(builder)
+        self.read_register()
+        self.read_sequeence()
+        self.read_pragmas()
+
+        params = Params(
+            static_params=self.static_params,
+            batch_params=self.batch_params,
+            flatten_params=self.order,
         )
+        circuit = AnalogCircuit(self.register, self.sequence)
+
+        return circuit, params

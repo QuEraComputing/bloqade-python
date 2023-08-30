@@ -53,7 +53,7 @@ def test_integration_jump_err():
                 anneal_time=10,
             )
             .quera.mock()
-            .compile_tasks(10)
+            .compile(10)
         )
 
 
@@ -74,7 +74,7 @@ def test_integration_scale():
 
     task_data = panel["remote_batch"]["tasks"][0][1]
 
-    ir = task_data["quera_task"]["task_data"]["quera_task_data"]["task_ir"]
+    ir = task_data["quera_task"]["task_ir"]["quera_task_specification"]
 
     assert ir["nshots"] == 10
     assert fvec(ir["lattice"]["sites"][0]) == [0.0, 0.0]
@@ -102,7 +102,7 @@ def test_integration_neg():
 
     task_data = panel["remote_batch"]["tasks"][0][1]
 
-    ir = task_data["quera_task"]["task_data"]["quera_task_data"]["task_ir"]
+    ir = task_data["quera_task"]["task_ir"]["quera_task_specification"]
 
     assert ir["nshots"] == 10
     assert fvec(ir["lattice"]["sites"][0]) == [0.0, 0.0]
@@ -122,7 +122,7 @@ def test_integration_poly_order_err():
             location.Square(1)
             .rydberg.detuning.uniform.apply(seq)
             .quera.mock()
-            .compile_taskdata(shots=10)
+            .compile(shots=10)
         )
 
 
@@ -136,7 +136,7 @@ def test_integration_poly_const():
 
     task_data = panel["remote_batch"]["tasks"][0][1]
 
-    ir = task_data["quera_task"]["task_data"]["quera_task_data"]["task_ir"]
+    ir = task_data["quera_task"]["task_ir"]["quera_task_specification"]
 
     assert ir["nshots"] == 12
     assert fvec(ir["lattice"]["sites"][0]) == [0.0, 0.0]
@@ -158,7 +158,7 @@ def test_integration_poly_linear():
 
     task_data = panel["remote_batch"]["tasks"][0][1]
 
-    ir = task_data["quera_task"]["task_data"]["quera_task_data"]["task_ir"]
+    ir = task_data["quera_task"]["task_ir"]["quera_task_specification"]
 
     assert ir["nshots"] == 10
     assert fvec(ir["lattice"]["sites"][0]) == [0.0, 0.0]
@@ -202,7 +202,7 @@ def test_integration_slice_linear_const():
 
     task_data = panel["remote_batch"]["tasks"][0][1]
 
-    ir = task_data["quera_task"]["task_data"]["quera_task_data"]["task_ir"]
+    ir = task_data["quera_task"]["task_ir"]["quera_task_specification"]
 
     assert ir["nshots"] == 10
     assert fvec(ir["lattice"]["sites"][0]) == [0.0, 0.0]
@@ -224,7 +224,7 @@ def test_integration_slice_linear_no_stop():
 
     task_data = panel["remote_batch"]["tasks"][0][1]
 
-    ir = task_data["quera_task"]["task_data"]["quera_task_data"]["task_ir"]
+    ir = task_data["quera_task"]["task_ir"]["quera_task_specification"]
 
     assert ir["nshots"] == 10
     assert fvec(ir["lattice"]["sites"][0]) == [0.0, 0.0]
@@ -245,7 +245,7 @@ def test_integration_slice_linear_no_start():
     print(panel)
 
     task_data = panel["remote_batch"]["tasks"][0][1]
-    ir = task_data["quera_task"]["task_data"]["quera_task_data"]["task_ir"]
+    ir = task_data["quera_task"]["task_ir"]["quera_task_specification"]
 
     assert ir["nshots"] == 10
     assert fvec(ir["lattice"]["sites"][0]) == [0.0, 0.0]
@@ -298,7 +298,7 @@ def test_integration_phase():
 
     task_data = panel["remote_batch"]["tasks"][0][1]
 
-    ir = task_data["quera_task"]["task_data"]["quera_task_data"]["task_ir"]
+    ir = task_data["quera_task"]["task_ir"]["quera_task_specification"]
 
     assert ir["nshots"] == 10
     assert fvec(ir["lattice"]["sites"][0]) == [0.0, 0.0]
@@ -318,7 +318,7 @@ def test_intergration_phase_nonconst_err():
                 durations=[0.5, 0.5], values=[0, 1, 2]
             )
             .quera.mock()
-            .compile_taskdata(10)
+            .compile(10)
         )
 
     seq = Poly(coeffs=[1, 2], duration=0.5)
@@ -340,7 +340,7 @@ def test_integration_phase_linear():
 
     task_data = panel["remote_batch"]["tasks"][0][1]
 
-    ir = task_data["quera_task"]["task_data"]["quera_task_data"]["task_ir"]
+    ir = task_data["quera_task"]["task_ir"]["quera_task_specification"]
 
     assert ir["nshots"] == 10
     assert fvec(ir["lattice"]["sites"][0]) == [0.0, 0.0]
@@ -364,7 +364,7 @@ def test_integration_phase_polyconst():
 
     task_data = panel["remote_batch"]["tasks"][0][1]
 
-    ir = task_data["quera_task"]["task_data"]["quera_task_data"]["task_ir"]
+    ir = task_data["quera_task"]["task_ir"]["quera_task_specification"]
 
     assert ir["nshots"] == 10
     assert fvec(ir["lattice"]["sites"][0]) == [0.0, 0.0]
@@ -389,7 +389,7 @@ def test_integration_phase_slice():
 
     task_data = panel["remote_batch"]["tasks"][0][1]
 
-    ir = task_data["quera_task"]["task_data"]["quera_task_data"]["task_ir"]
+    ir = task_data["quera_task"]["task_ir"]["quera_task_specification"]
 
     assert ir["nshots"] == 10
     assert fvec(ir["lattice"]["sites"][0]) == [0.0, 0.0]
@@ -413,7 +413,7 @@ def test_integration_phase_scale():
 
     task_data = panel["remote_batch"]["tasks"][0][1]
 
-    ir = task_data["quera_task"]["task_data"]["quera_task_data"]["task_ir"]
+    ir = task_data["quera_task"]["task_ir"]["quera_task_specification"]
 
     assert ir["nshots"] == 10
     assert fvec(ir["lattice"]["sites"][0]) == [0.0, 0.0]
@@ -437,7 +437,7 @@ def test_integration_phase_neg():
 
     task_data = panel["remote_batch"]["tasks"][0][1]
 
-    ir = task_data["quera_task"]["task_data"]["quera_task_data"]["task_ir"]
+    ir = task_data["quera_task"]["task_ir"]["quera_task_specification"]
 
     assert ir["nshots"] == 10
     assert fvec(ir["lattice"]["sites"][0]) == [0.0, 0.0]
@@ -461,7 +461,7 @@ def test_integration_phase_slice_no_start():
 
     task_data = panel["remote_batch"]["tasks"][0][1]
 
-    ir = task_data["quera_task"]["task_data"]["quera_task_data"]["task_ir"]
+    ir = task_data["quera_task"]["task_ir"]["quera_task_specification"]
 
     assert ir["nshots"] == 10
     assert fvec(ir["lattice"]["sites"][0]) == [0.0, 0.0]
@@ -486,7 +486,7 @@ def test_integration_phase_slice_no_stop():
 
     task_data = panel["remote_batch"]["tasks"][0][1]
 
-    ir = task_data["quera_task"]["task_data"]["quera_task_data"]["task_ir"]
+    ir = task_data["quera_task"]["task_ir"]["quera_task_specification"]
 
     assert ir["nshots"] == 10
     assert fvec(ir["lattice"]["sites"][0]) == [0.0, 0.0]
@@ -511,7 +511,7 @@ def test_integration_phase_slice_same_start_stop():
 
     task_data = panel["remote_batch"]["tasks"][0][1]
 
-    ir = task_data["quera_task"]["task_data"]["quera_task_data"]["task_ir"]
+    ir = task_data["quera_task"]["task_ir"]["quera_task_specification"]
 
     assert ir["nshots"] == 10
     assert fvec(ir["lattice"]["sites"][0]) == [0.0, 0.0]
@@ -553,9 +553,7 @@ def test_integration_phase_sampl_linear_err():
     wf = Sample(wv, Interpolation.Linear, dt)
     ## phase can only have piecewise constant.
     with pytest.raises(ValueError):
-        location.Square(1).rydberg.rabi.phase.uniform.apply(
-            wf
-        ).quera.mock().compile_taskdata(10)
+        location.Square(1).rydberg.rabi.phase.uniform.apply(wf).quera.mock().compile(10)
 
 
 def test_integration_batchassign_assign():
@@ -566,7 +564,7 @@ def test_integration_batchassign_assign():
             .rydberg.detuning.uniform.apply(Constant("initial_detuning", "time"))
             .batch_assign(initial_detuning=[1, 2, 3, 4], time=[2, 4, 5])
             .quera.mock()
-            .compile_taskdata(10)
+            .compile(10)
         )
 
     ## jump at the end of linear -- constant
@@ -600,7 +598,7 @@ def test_integration_record():
 
     task_data = panel["remote_batch"]["tasks"][0][1]
 
-    ir = task_data["quera_task"]["task_data"]["quera_task_data"]["task_ir"]
+    ir = task_data["quera_task"]["task_ir"]["quera_task_specification"]
 
     assert ir["nshots"] == 10
     assert fvec(ir["lattice"]["sites"][0]) == [0.0, 0.0]
@@ -635,7 +633,7 @@ def test_integration_fn_phase():
 
     task_data = panel["remote_batch"]["tasks"][0][1]
 
-    ir = task_data["quera_task"]["task_data"]["quera_task_data"]["task_ir"]
+    ir = task_data["quera_task"]["task_ir"]["quera_task_specification"]
 
     assert ir["nshots"] == 10
     assert fvec(ir["lattice"]["sites"][0]) == [0.0, 0.0]
@@ -672,7 +670,7 @@ def test_integration_fn_detune():
 
     task_data = panel["remote_batch"]["tasks"][0][1]
 
-    ir = task_data["quera_task"]["task_data"]["quera_task_data"]["task_ir"]
+    ir = task_data["quera_task"]["task_ir"]["quera_task_specification"]
 
     assert ir["nshots"] == 10
     assert fvec(ir["lattice"]["sites"][0]) == [0.0, 0.0]
