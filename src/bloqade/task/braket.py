@@ -31,11 +31,15 @@ class BraketTask(RemoteTask):
                 )
         self.task_id = self.backend.submit_task(self.task_ir)
 
+        return self
+
     def validate(self) -> str:
         try:
             self.backend.validate_task(self.task_ir)
         except ValidationError as e:
             return str(e)
+
+        return self
 
     def fetch(self) -> None:
         # non-blocking, pull only when its completed
@@ -45,12 +49,16 @@ class BraketTask(RemoteTask):
         if self.status() == QuEraTaskStatusCode.Completed:
             self.task_result_ir = self.backend.task_results(self.task_id)
 
+        return self
+
     def pull(self) -> None:
         # blocking, force pulling, even its completed
         if self.task_id is None:
             raise ValueError("Task ID not found.")
 
         self.task_result_ir = self.backend.task_results(self.task_id)
+
+        return self
 
     def result(self) -> QuEraTaskResults:
         # blocking, caching
