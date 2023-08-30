@@ -10,6 +10,7 @@ from bloqade.ir.location import (
     ListOfLocations,
     ParallelRegister,
 )
+from bloqade.ir.location.base import LocationInfo
 from typing import Union, Any
 
 
@@ -17,6 +18,11 @@ AstType = Union[AtomArrangement, ParallelRegister]
 
 
 class LocationVisitor:
+    def visit_location_info(self, ast: LocationInfo) -> Any:
+        raise NotImplementedError(
+            f"No visitor method implemented in {self.__class__} for LocationInfo"
+        )
+
     def visit_chain(self, ast: Chain) -> Any:
         raise NotImplementedError(
             f"No visitor method implemented in {self.__class__} for Chain"
@@ -55,6 +61,11 @@ class LocationVisitor:
     def visit_list_of_locations(self, ast: ListOfLocations) -> Any:
         raise NotImplementedError(
             f"No visitor method implemented in {self.__class__} for ListOfLocations"
+        )
+
+    def visit_parallel_register(self, ast: ParallelRegister) -> Any:
+        raise NotImplementedError(
+            f"No visitor method implemented in {self.__class__} for ParallelRegister"
         )
 
     def visit(self, ast: AstType) -> Any:
