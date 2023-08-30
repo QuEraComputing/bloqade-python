@@ -1,7 +1,7 @@
 from typing import Optional, Union, List
 from numbers import Real
 
-from .compile.trait import CompileJSON, Parse
+from bloqade.builder.parse.trait import CompileJSON, Parse
 
 ParamType = Union[Real, List[Real]]
 

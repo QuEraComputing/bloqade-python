@@ -1,55 +1,26 @@
-from numbers import Real
-from bloqade.ir import Sequence
-from typing import TYPE_CHECKING, List, Union, Dict, Tuple
+# from numbers import Real
+from typing import TYPE_CHECKING, Union
 from bokeh.io import show
 from bokeh.layouts import row
 
 if TYPE_CHECKING:
     from bloqade.ir.location.base import AtomArrangement, ParallelRegister
+    from bloqade.ir import Sequence
 
 
 # NOTE: this is just a dummy type bundle geometry and sequence
 #       information together and forward them to backends.
-class Program:
+class AnalogCircuit:
 
     """Program is a dummy type that bundle register and sequence together."""
 
     def __init__(
         self,
         register: Union["AtomArrangement", "ParallelRegister"],
-        sequence: Sequence,
-        static_params: Dict[str, Union[Real, List[Real]]] = {},
-        batch_params: List[Dict[str, Union[Real, List[Real]]]] = [{}],
-        order: Tuple[str, ...] = (),
+        sequence: "Sequence",
     ):
         self._sequence = sequence
         self._register = register
-        self._static_params = static_params
-        self._batch_params = batch_params
-        # order of flattened parameters
-        self._order = order
-
-    @property
-    def static_params(self) -> Dict[str, Union[Real, List[Real]]]:
-        """Get the instances of variables specified by .assign()
-
-        Returns:
-            variable and their instances
-        """
-        return self._static_params
-
-    @property
-    def batch_params(self) -> List[Dict[str, Union[Real, List[Real]]]]:
-        """Get the instances of variables specified by .batch_assign()
-
-        Returns:
-            batch of variable and their instances
-        """
-        return self._batch_params
-
-    @property
-    def order(self):
-        return self._order
 
     @property
     def register(self):
@@ -80,13 +51,8 @@ class Program:
         """
         return self._sequence
 
-    def parse_args(self, *args) -> Dict[str, Union[Real, List[Real]]]:
-        if len(args) != len(self.order):
-            raise ValueError(f"Expected {len(self.order)} arguments, got {len(args)}.")
-
-        return dict(zip(self.order, args))
-
     def __repr__(self):
+        # TODO: add repr for static_params, batch_params and order
         out = ""
         if self._register is not None:
             out += self._register.__repr__()
@@ -112,3 +78,63 @@ class Program:
 
         """
         show(self.figure(**assignments))
+
+
+# class BraketService:
+#     def __init__(self, batch: Batch):
+#         self.batch = batch
+
+#     @property
+#     def aquila(self) -> "BraketHardware":
+#         return BraketHardware(
+#             self.batch, "arn:aws:braket:us-east-1::device/qpu/quera/Aquila"
+#         )
+
+#     @property
+#     def local_emulator(self) -> "BraketLocalEmulator":
+#         return BraketLocalEmulator(self.batch)
+
+
+# class BraketHardware:
+#     def __init__(self, program: Program, device_arn: str):
+#         self.program = program
+#         self.device_arn = device_arn
+
+#     def _compile_batch(
+#         self, shots: int, args: Tuple[Real, ...], name: Optional[str] = None
+#     ) -> "RemoteBatch":
+#         from bloqade.compile.braket import BraketBatchCompiler
+#         from bloqade.submission.braket import BraketBackend
+
+#         backend = BraketBackend(
+#             device_arn=self.device_arn,
+#         )
+
+#         return BraketBatchCompiler(
+#             program=self.program,
+#             backend=backend,
+#         ).compile(shots, args, name=name)
+
+#     def submit(
+#         self, shots: int, args: Tuple[Real, ...], name: Optional[str] = None
+#     ) -> "RemoteBatch":
+#         batch = self._compile_batch(shots, args, name=name)
+#         batch._submit()
+
+#         return batch
+
+#     def run(
+#         self,
+#         shots: int,
+#         args: Tuple[Real, ...],
+#         name: Optional[str] = None,
+#         shuffle_submit_order: bool = False,
+#     ) -> "RemoteBatch":
+#         batch = self._compile_batch(shots, args, name=name)
+#         batch._submit(shuffle_submit_order=shuffle_submit_order)
+#         batch.pull()
+
+#         return batch
+
+#     def __call__(self, *args, shots: int = 1):
+#         return self.run(shots, args)

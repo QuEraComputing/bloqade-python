@@ -21,7 +21,7 @@ quantum_job = (
         rabi_amplitude_max=15,
     )
     .quera.mock()
-    .submit(shots=10)
+    .compile(shots=10)
 )
 
 # print(len(quantum_task.task_result.shot_outputs))

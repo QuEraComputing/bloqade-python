@@ -1,9 +1,9 @@
 from typing import Optional, Union, List, Callable
 from numbers import Real
 from functools import reduce
-from .base import Builder
-from .route import WaveformRoute
-from .. import ir
+from bloqade.builder.base import Builder
+from bloqade.builder.route import WaveformRoute
+import bloqade.ir as ir
 
 ScalarType = Union[float, str, ir.Scalar]
 

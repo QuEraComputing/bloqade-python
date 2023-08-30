@@ -1,6 +1,6 @@
-from ..ir.control.sequence import Sequence
-from .route import PragmaRoute
-from .base import Builder
+from bloqade.ir.control.sequence import Sequence
+from bloqade.builder.route import PragmaRoute
+from bloqade.builder.base import Builder
 
 
 class SequenceBuilder(PragmaRoute):

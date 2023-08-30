@@ -2,7 +2,7 @@ from bloqade.ir.scalar import (
     Scalar,
     Literal,
     Variable,
-    DefaultVariable,
+    AssignedVariable,
     Negative,
     Add,
     Mul,
@@ -26,7 +26,7 @@ class ScalarVisitor:
             f"visit_variable not implemented for {self.__class__.__name__}"
         )
 
-    def visit_default_variable(self, ast: DefaultVariable) -> Any:
+    def visit_assigned_variable(self, ast: AssignedVariable) -> Any:
         raise NotImplementedError(
             f"visit_default_variable not implemented for {self.__class__.__name__}"
         )
@@ -76,8 +76,8 @@ class ScalarVisitor:
             return self.visit_literal(ast)
         elif isinstance(ast, Variable):
             return self.visit_variable(ast)
-        elif isinstance(ast, DefaultVariable):
-            return self.visit_default_variable(ast)
+        elif isinstance(ast, AssignedVariable):
+            return self.visit_assigned_variable(ast)
         elif isinstance(ast, Negative):
             return self.visit_negative(ast)
         elif isinstance(ast, Add):
