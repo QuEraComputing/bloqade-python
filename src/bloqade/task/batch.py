@@ -160,14 +160,14 @@ class RemoteBatch(Serializable):
             nshots += task.task_ir.nshots
         return nshots
 
-    def cancel(self):
+    def cancel(self) -> "RemoteBatch":
         # cancel all jobs
         for task in self.tasks.values():
             task.cancel()
 
         return self
 
-    def fetch(self):
+    def fetch(self) -> "RemoteBatch":
         # online, non-blocking
         # pull the results only when its ready
         for task in self.tasks.values():
@@ -175,7 +175,7 @@ class RemoteBatch(Serializable):
 
         return self
 
-    def pull(self) -> None:
+    def pull(self) -> "RemoteBatch":
         # online, blocking
         # pull the results. if its not ready, hanging
         for task in self.tasks.values():
@@ -183,10 +183,10 @@ class RemoteBatch(Serializable):
 
         return self
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(self.tasks_metric())
 
-    def tasks_metric(self):
+    def tasks_metric(self) -> pd.DataFrame:
         # [TODO] more info on current status
         # offline, non-blocking
         tid = []
@@ -204,7 +204,7 @@ class RemoteBatch(Serializable):
 
         return pd.DataFrame(data, index=tid, columns=["task ID", "status", "shots"])
 
-    def remove_invalid_tasks(self):
+    def remove_invalid_tasks(self) -> "RemoteBatch":
         warnings.warn("Deprecating", DeprecationWarning)
 
         # offline, non-blocking
@@ -223,14 +223,14 @@ class RemoteBatch(Serializable):
 
         return RemoteBatch(new_tasks, name=self.name)
 
-    def resubmit(self, shuffle_submit_order: bool = True):
+    def resubmit(self, shuffle_submit_order: bool = True) -> "RemoteBatch":
         # online, non-blocking
         self._submit(shuffle_submit_order, force=True)
         return self
 
     def _submit(
         self, shuffle_submit_order: bool = True, ignore_submission_error=False, **kwargs
-    ):
+    ) -> "RemoteBatch":
         # online, non-blocking
         if shuffle_submit_order:
             submission_order = np.random.permutation(list(self.tasks.keys()))
@@ -328,50 +328,41 @@ class RemoteBatch(Serializable):
         return RemoteBatch(new_results, self.name)
 
     def get_failed_tasks(self) -> "RemoteBatch":
-        # offline:
-        new_task_results = OrderedDict()
-        for task_number, task in self.tasks.items():
-            if (task.task_id is not None) and (task._result_exists()):
-                if task.task_result_ir.task_status in [
-                    QuEraTaskStatusCode.Failed,
-                    QuEraTaskStatusCode.Unaccepted,
-                ]:
-                    new_task_results[task_number] = task
-
-        return RemoteBatch(new_task_results, name=self.name)
+        # statuses that are in a state that are
+        # completed because of an error
+        statuses = [
+            QuEraTaskStatusCode.Failed,
+            QuEraTaskStatusCode.Unaccepted,
+        ]
+        return self.get_tasks(statuses)
 
     def remove_failed_tasks(self) -> "RemoteBatch":
-        # offline:
-        new_results = OrderedDict()
-        for task_number, task in self.tasks.items():
-            if (task.task_id is not None) and (task._result_exists()):
-                if task.task_result_ir.task_status in [
-                    QuEraTaskStatusCode.Failed,
-                    QuEraTaskStatusCode.Unaccepted,
-                ]:
-                    continue
-            new_results[task_number] = task
-
-        return RemoteBatch(new_results, self.name)
+        # statuses that are in a state that will
+        # not run going forward because of an error
+        statuses = [
+            QuEraTaskStatusCode.Failed,
+            QuEraTaskStatusCode.Unaccepted,
+        ]
+        return self.remove_tasks(statuses)
 
     def get_finished_tasks(self) -> "RemoteBatch":
-        # offline
-        new_results = OrderedDict()
-        for task_number, task in self.tasks.items():
-            if (task.task_id is not None) and (task._result_exists()):
-                new_results[task_number] = task
-
-        return RemoteBatch(new_results, self.name)
+        # statuses that are in a state that will
+        # not run going forward for any reason
+        statuses = [
+            QuEraTaskStatusCode.Completed,
+            QuEraTaskStatusCode.Failed,
+            QuEraTaskStatusCode.Unaccepted,
+            QuEraTaskStatusCode.Partial,
+            QuEraTaskStatusCode.Cancelled,
+        ]
+        return self.remove_tasks(statuses)
 
     def get_completed_tasks(self) -> "RemoteBatch":
-        # offline
-        new_results = OrderedDict()
-        for task_number, task in self.tasks.items():
-            if (task.task_id is not None) and (task._result_exists()):
-                if task.task_result_ir.task_status == QuEraShotStatusCode.Completed:
-                    new_results[task_number] = task
-
-        return RemoteBatch(new_results, self.name)
+        statuses = [
+            QuEraTaskStatusCode.Completed,
+            QuEraTaskStatusCode.Partial,
+        ]
+        return self.get_tasks(statuses)
 
     def report(self) -> "Report":
         ## this potentially can be specialize/disatch
