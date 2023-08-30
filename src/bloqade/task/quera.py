@@ -40,8 +40,8 @@ class QuEraTask(RemoteTask):
 
     def fetch(self) -> None:
         # non-blocking, pull only when its completed
-        if self.task_id is None:
-            raise ValueError("Task ID not found.")
+        # if (self.task_id is None) and (self.task_result_ir is None):
+        #    raise ValueError("Task ID not found.")
 
         status = self.status()
         if status == QuEraTaskStatusCode.Completed:
