@@ -27,10 +27,6 @@ class Geometry:
     filling: List[int]
     parallel_decoder: Optional[ParallelDecoder] = None
 
-    @property
-    def n_atoms(self):
-        return len(self.sites)
-
 
 class JSONInterface(BaseModel):
     def json(self, exclude_none=True, by_alias=True, **json_options) -> str:
@@ -170,12 +166,9 @@ class Report:
         filtered_df = self.dataframe[perfect_sorting == pre_sequence]
         task_numbers = filtered_df.index.get_level_values("task_number")
 
-        bitstrings = [
-            np.zeros((0, self.geos[i].n_atoms)) for i in range(task_numbers.max() + 1)
-        ]
-
-        for task_number in task_numbers.unique():
-            bitstrings[task_number] = filtered_df.loc[task_number, ...].to_numpy()
+        bitstrings = []
+        for task_number in task_numbers:
+            bitstrings.append(filtered_df.loc[task_number, ...].to_numpy())
 
         return bitstrings
 
