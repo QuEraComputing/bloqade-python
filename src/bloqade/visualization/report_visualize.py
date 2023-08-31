@@ -5,6 +5,10 @@ from bokeh.models import ColumnDataSource, LinearColorMapper, Button, SVGIcon
 
 # from bokeh.models import Tabs, TabPanel,, Div, CrosshairTool, Span
 from bokeh.palettes import Dark2_5
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from bloqade.task.base import Report
 
 import math
 
@@ -19,7 +23,7 @@ from decimal import Decimal
 # below are formatting IR data, and called by IR.
 
 
-def format_report_data(report):
+def format_report_data(report: "Report"):
     # return should be
     # data: List[ColumnDataSources],
     # List[str]:ch_names,
