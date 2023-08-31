@@ -47,7 +47,7 @@ class QuEraHardwareRoutine(RoutineBase):
         args: Tuple[Real, ...] = (),
         name: str | None = None,
     ) -> RemoteBatch:
-        from bloqade.codegen.common.static_assign import AssignAnalogCircuit
+        from bloqade.codegen.common.assign_variables import AssignAnalogCircuit
         from bloqade.codegen.common.assignment_scan import AssignmentScan
         from bloqade.codegen.hardware.quera import QuEraCodeGen
 
