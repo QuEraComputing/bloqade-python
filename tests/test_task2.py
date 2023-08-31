@@ -11,10 +11,10 @@ def test_quera_task():
         task_ir=None, task_id=None, metadata={}, backend=backend, parallel_decoder=None
     )
 
-    assert task._result_exists() is False
-
     with pytest.raises(ValueError):
         task.fetch()
+
+    assert task._result_exists() is False
 
     with pytest.raises(ValueError):
         task.pull()
@@ -26,10 +26,10 @@ def test_braket_task():
         task_ir=None, task_id=None, metadata={}, backend=backend, parallel_decoder=None
     )
 
-    assert task._result_exists() is False
-
     with pytest.raises(ValueError):
         task.fetch()
+
+    assert task._result_exists() is False
 
     with pytest.raises(ValueError):
         task.pull()
