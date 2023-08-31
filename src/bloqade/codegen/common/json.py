@@ -5,9 +5,21 @@ import bloqade.ir.control.pulse as pulse
 import bloqade.ir.control.field as field
 import bloqade.ir.analog_circuit as analog_circuit
 import bloqade.ir.control.waveform as waveform
+from bloqade.ir.location import (
+    Chain,
+    Honeycomb,
+    Kagome,
+    Lieb,
+    ListOfLocations,
+    Rectangular,
+    Square,
+    Triangular,
+)
+from bloqade.ir.location.base import AtomArrangement, LocationInfo, ParallelRegister
 import bloqade.ir.scalar as scalar
 
 from bloqade.ir.visitor.analog_circuit import AnalogCircuitVisitor
+from bloqade.ir.visitor.location import LocationVisitor
 from bloqade.ir.visitor.waveform import WaveformVisitor
 from bloqade.ir.visitor.scalar import ScalarVisitor
 
@@ -200,77 +212,86 @@ class WaveformSerializer(WaveformVisitor):
         return super().default(obj)
 
 
-class ProgramSerializer(AnalogCircuitVisitor):
-    def __init__(self) -> None:
-        self.waveform_serializer = WaveformSerializer()
+class LocationSerializer(LocationVisitor):
+    def __init__(self):
         self.scalar_serializer = ScalarSerilaizer()
 
-    def visit_register(self, ast: location.AtomArrangement) -> Any:
-        match ast:
-            case location.ListOfLocations(locations):
-                locations = [
-                    {
-                        "location_info": {
-                            "position": list(
-                                map(self.scalar_serializer.visit, info.position)
-                            ),
-                            "filling": info.filling.value,
-                        }
-                    }
-                    for info in locations
-                ]
-                return {"list_of_locations": locations}
-            case location.Chain(shape, lattice_spacing):
-                return {
-                    "chain": {
-                        "lattice_spacing": self.visit(lattice_spacing),
-                        "L": shape[0],
-                    }
-                }
-            case location.Square(shape, lattice_spacing):
-                return {
-                    "square": {
-                        "lattice_spacing": self.visit(lattice_spacing),
-                        "L": shape[0],
-                    }
-                }
-            case location.Honeycomb(shape, lattice_spacing):
-                return {
-                    "honeycomb": {
-                        "lattice_spacing": self.visit(lattice_spacing),
-                        "L": shape[0],
-                    }
-                }
-            case location.Triangular(shape, lattice_spacing):
-                return {
-                    "triangular": {
-                        "lattice_spacing": self.visit(lattice_spacing),
-                        "L": shape[0],
-                    }
-                }
-            case location.Lieb(shape, lattice_spacing):
-                return {
-                    "lieb": {
-                        "lattice_spacing": self.visit(lattice_spacing),
-                        "L": shape[0],
-                    }
-                }
-            case location.Kagome(shape, lattice_spacing):
-                return {
-                    "kagome": {
-                        "lattice_spacing": self.visit(lattice_spacing),
-                        "L": shape[0],
-                    }
-                }
-            case location.Rectangular(shape, lattice_spacing_x, lattice_spacing_y):
-                return {
-                    "rectangular": {
-                        "lattice_spacing_x": self.visit(lattice_spacing_x),
-                        "lattice_spacing_y": self.visit(lattice_spacing_y),
-                        "width": shape[0],
-                        "height": shape[1],
-                    }
-                }
+    def visit_location_info(self, info: LocationInfo) -> Any:
+        return {
+            "location_info": {
+                "position": list(map(self.scalar_serializer.visit, info.position)),
+                "filling": info.filling.value,
+            }
+        }
+
+    def visit_chain(self, ast: Chain) -> Any:
+        return {
+            "chain": {
+                "lattice_spacing": self.scalar_serializer.visit(ast.lattice_spacing),
+                "L": ast.shape[0],
+            }
+        }
+
+    def visit_honeycomb(self, ast: Honeycomb) -> Any:
+        return {
+            "honeycomb": {
+                "lattice_spacing": self.scalar_serializer.visit(ast.lattice_spacing),
+                "L": ast.shape[0],
+            }
+        }
+
+    def visit_kagome(self, ast: Kagome) -> Any:
+        return {
+            "kagome": {
+                "lattice_spacing": self.scalar_serializer.visit(ast.lattice_spacing),
+                "L": ast.shape[0],
+            }
+        }
+
+    def visit_lieb(self, ast: Lieb) -> Any:
+        return {
+            "lieb": {
+                "lattice_spacing": self.scalar_serializer.visit(ast.lattice_spacing),
+                "L": ast.shape[0],
+            }
+        }
+
+    def visit_list_of_locations(self, ast: ListOfLocations) -> Any:
+        return {
+            "list_of_locations": {"locations": list(map(self.visit, ast.locations))}
+        }
+
+    def visit_rectangular(self, ast: Rectangular) -> Any:
+        return {
+            "rectangular": {
+                "lattice_spacing_x": self.scalar_serializer.visit(
+                    ast.lattice_spacing_x
+                ),
+                "lattice_spacing_y": self.scalar_serializer.visit(
+                    ast.lattice_spacing_y
+                ),
+                "width": ast.shape[0],
+                "height": ast.shape[1],
+            }
+        }
+
+    def visit_square(self, ast: Square) -> Any:
+        return {
+            "square": {
+                "lattice_spacing": self.visit(
+                    self.scalar_serializer.visit(ast.lattice_spacing)
+                ),
+                "L": ast.shape[0],
+            }
+        }
+
+    def visit_triangular(self, ast: Triangular) -> Any:
+        return {
+            "triangular": {
+                "lattice_spacing": self.scalar_serializer.visit(ast.lattice_spacing),
+                "L": ast.shape[0],
+            }
+        }
 
     def visit_parallel_register(self, ast: location.ParallelRegister) -> Any:
         return {
@@ -279,6 +300,19 @@ class ProgramSerializer(AnalogCircuitVisitor):
                 "cluster_spacing": self.visit(ast._cluster_spacing),
             }
         }
+
+
+class ProgramSerializer(AnalogCircuitVisitor):
+    def __init__(self) -> None:
+        self.waveform_serializer = WaveformSerializer()
+        self.scalar_serializer = ScalarSerilaizer()
+        self.location_serializer = LocationSerializer()
+
+    def visit_register(self, ast: AtomArrangement) -> Any:
+        return self.location_serializer.visit(ast)
+
+    def visit_parallel_register(self, ast: ParallelRegister) -> Any:
+        return self.location_serializer.visit(ast)
 
     def visit_sequence(self, ast: sequence.SequenceExpr) -> Any:
         match ast:
