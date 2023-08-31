@@ -1,4 +1,4 @@
-# import bloqade.ir.location as location
+import bloqade.ir.location as location
 import bloqade.ir.control.sequence as sequence
 import bloqade.ir.control.pulse as pulse
 import bloqade.ir.control.field as field
@@ -7,6 +7,7 @@ import bloqade.ir.scalar as scalar
 import bloqade.ir.analog_circuit as analog_circuit
 
 from bloqade.ir.visitor.analog_circuit import AnalogCircuitVisitor
+from bloqade.ir.visitor.location import LocationVisitor
 from bloqade.ir.visitor.waveform import WaveformVisitor
 from bloqade.ir.visitor.scalar import ScalarVisitor
 
@@ -139,10 +140,81 @@ class AssignWaveform(WaveformVisitor):
         return self.visit(ast)
 
 
-class AssignProgram(AnalogCircuitVisitor):
+class AssignLocation(LocationVisitor):
+    def __init__(self, mapping: Dict[str, numbers.Real]):
+        self.mapping = dict(mapping)
+        self.scalar_visitor = AssignScalar(mapping)
+
+    def visit_chain(self, ast: location.Chain) -> location.Chain:
+        return location.Chain(
+            ast.shape[0], self.scalar_visitor.emit(ast.lattice_spacing)
+        )
+
+    def visit_square(self, ast: location.Square) -> location.Square:
+        return location.Square(
+            ast.shape[0], self.scalar_visitor.emit(ast.lattice_spacing)
+        )
+
+    def visit_rectangular(self, ast: location.Rectangular) -> location.Rectangular:
+        return location.Rectangular(
+            ast.shape[0],
+            ast.shape[1],
+            self.scalar_visitor.emit(ast.lattice_spacing_x),
+            self.scalar_visitor.emit(ast.lattice_spacing_y),
+        )
+
+    def visit_triangular(self, ast: location.Triangular) -> location.Triangular:
+        return location.Triangular(
+            ast.shape[0], self.scalar_visitor.emit(ast.lattice_spacing)
+        )
+
+    def visit_honeycomb(self, ast: location.Honeycomb) -> location.Honeycomb:
+        return location.Honeycomb(
+            ast.shape[0], self.scalar_visitor.emit(ast.lattice_spacing)
+        )
+
+    def visit_kagome(self, ast: location.Kagome) -> location.Kagome:
+        return location.Kagome(
+            ast.shape[0], self.scalar_visitor.emit(ast.lattice_spacing)
+        )
+
+    def visit_lieb(self, ast: location.Lieb) -> location.Lieb:
+        return location.Lieb(
+            ast.shape[0], self.scalar_visitor.emit(ast.lattice_spacing)
+        )
+
+    def visit_list_of_locations(
+        self, ast: location.ListOfLocations
+    ) -> location.ListOfLocations:
+        return location.ListOfLocations(list(map(self.visit, ast.locations)))
+
+    def visit_location_info(self, ast: location.LocationInfo) -> location.LocationInfo:
+        return location.LocationInfo(
+            tuple(map(self.scalar_visitor.emit, ast.position)),
+            bool(ast.filling.value),
+        )
+
+    def visit_parallel_register(
+        self, ast: location.ParallelRegister
+    ) -> location.ParallelRegister:
+        return location.ParallelRegister(
+            self.visit(ast._register), self.scalar_visitor(ast._cluster_spacing)
+        )
+
+
+class AssignAnalogCircuit(AnalogCircuitVisitor):
     def __init__(self, mapping: Dict[str, numbers.Real]):
         self.waveform_visitor = AssignWaveform(mapping)
         self.scalar_visitor = AssignScalar(mapping)
+        self.location_visitor = AssignLocation(mapping)
+
+    def visit_register(self, ast: location.AtomArrangement) -> location.AtomArrangement:
+        return self.location_visitor.emit(ast)
+
+    def visit_parallel_register(
+        self, ast: location.ParallelRegister
+    ) -> location.ParallelRegister:
+        return self.location_visitor.emit(ast)
 
     def visit_sequence(self, ast: sequence.SequenceExpr) -> sequence.SequenceExpr:
         match ast:

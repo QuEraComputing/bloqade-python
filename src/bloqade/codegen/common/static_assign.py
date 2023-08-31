@@ -16,7 +16,7 @@ from typing import Any, Dict
 from decimal import Decimal
 
 
-class StaticAssignScalar(ScalarVisitor):
+class AssignScalar(ScalarVisitor):
     def __init__(self, mapping: Dict[str, Decimal]):
         self.mapping = dict(mapping)
 
@@ -58,9 +58,9 @@ class StaticAssignScalar(ScalarVisitor):
         return scalar.Scalar.canonicalize(self.visit(ast))
 
 
-class StaticAssignWaveform(WaveformVisitor):
+class AssignWaveform(WaveformVisitor):
     def __init__(self, mapping: Dict[str, numbers.Real]):
-        self.scalar_visitor = StaticAssignScalar(mapping)
+        self.scalar_visitor = AssignScalar(mapping)
         self.mapping = dict(mapping)
 
     def visit_constant(self, ast: waveform.Constant) -> Any:
@@ -132,10 +132,10 @@ class StaticAssignWaveform(WaveformVisitor):
         return self.visit(ast)
 
 
-class StaticAssignProgram(AnalogCircuitVisitor):
+class AssignAnalogCircuit(AnalogCircuitVisitor):
     def __init__(self, mapping: Dict[str, numbers.Real]):
-        self.waveform_visitor = StaticAssignWaveform(mapping)
-        self.scalar_visitor = StaticAssignScalar(mapping)
+        self.waveform_visitor = AssignWaveform(mapping)
+        self.scalar_visitor = AssignScalar(mapping)
         self.mapping = dict(mapping)
 
     def visit_parallel_register(self, ast: ParallelRegister) -> Any:
