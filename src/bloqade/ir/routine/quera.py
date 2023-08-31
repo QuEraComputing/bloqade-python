@@ -47,20 +47,22 @@ class QuEraHardwareRoutine(RoutineBase):
         args: Tuple[Real, ...] = (),
         name: str | None = None,
     ) -> RemoteBatch:
-        from bloqade.codegen.common.static_assign import StaticAssignProgram
+        from bloqade.codegen.common.static_assign import AssignAnalogCircuit
+        from bloqade.codegen.common.assignment_scan import AssignmentScan
         from bloqade.codegen.hardware.quera import QuEraCodeGen
 
         circuit, params = self.parse_source()
         capabilities = self.backend.get_capabilities()
-        circuit = StaticAssignProgram(params.static_params).visit(circuit)
+        circuit = AssignAnalogCircuit(params.static_params).visit(circuit)
 
         tasks = OrderedDict()
 
         for task_number, batch_params in enumerate(params.batch_assignments(*args)):
-            final_circuit = StaticAssignProgram(batch_params).visit(circuit)
-            task_ir, parallel_decoder = QuEraCodeGen(capabilities=capabilities).emit(
-                shots, final_circuit
-            )
+            final_circuit = AssignAnalogCircuit(batch_params).visit(circuit)
+            record_params = AssignmentScan().emit(final_circuit)
+            task_ir, parallel_decoder = QuEraCodeGen(
+                record_params, capabilities=capabilities
+            ).emit(shots, final_circuit)
 
             task_ir = task_ir.discretize(capabilities)
             tasks[task_number] = QuEraTask(
