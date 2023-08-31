@@ -24,9 +24,9 @@ class ScalarSerilaizer(ScalarVisitor):
 
     def visit_assigned_variable(self, ast: scalar.AssignedVariable) -> Dict[str, Any]:
         return {
-            "default_variable": {
+            "assigned_variable": {
                 "name": ast.name,
-                "default_value": str(ast.value),
+                "value": str(ast.value),
             }
         }
 
@@ -461,7 +461,7 @@ class BloqadeIRDeserializer:
         return (
             "literal" in obj
             or "variable" in obj
-            or "default_variable" in obj
+            or "assigned_variable" in obj
             or "negative" in obj
             or "add" in obj
             or "mul" in obj
@@ -491,7 +491,7 @@ class BloqadeIRDeserializer:
                 return scalar.Literal(Decimal(value))
             case {"variable": {"name": str(name)}}:
                 return scalar.Variable(name)
-            case {"default_variable": {"name": str(name), "default_value": str(value)}}:
+            case {"assigned_variable": {"name": str(name), "value": str(value)}}:
                 return scalar.AssignedVariable(name, Decimal(value))
             case {"negative": {"expr": expr}}:
                 return scalar.Negative(expr)
