@@ -23,7 +23,7 @@ class QuEraTask(RemoteTask):
     parallel_decoder: ParallelDecoder
     task_result_ir: Optional[QuEraTaskResults] = None
 
-    def submit(self, force: bool = False) -> None:
+    def submit(self, force: bool = False) -> "QuEraTask":
         if not force:
             if self.task_id is not None:
                 raise ValueError(
@@ -32,35 +32,58 @@ class QuEraTask(RemoteTask):
 
         self.task_id = self.backend.submit_task(self.task_ir)
 
+        self.task_result_ir = QuEraTaskResults(task_status=QuEraTaskStatusCode.Enqueued)
+
+        return self
+
     def validate(self) -> str:
         try:
             self.backend.validate_task(self.task_ir)
         except ValidationError as e:
             return str(e)
 
-    def fetch(self) -> None:
+        return ""
+
+    def fetch(self) -> "QuEraTask":
         # non-blocking, pull only when its completed
         if self.task_id is None:
             raise ValueError("Task ID not found.")
 
-        if self.status() == QuEraTaskStatusCode.Completed:
+        status = self.status()
+        if status == QuEraTaskStatusCode.Completed:
             self.task_result_ir = self.backend.task_results(self.task_id)
+        else:
+            self.task_result_ir = QuEraTaskResults(task_status=status)
 
-    def pull(self) -> None:
+        return self
+
+    def pull(self) -> "QuEraTask":
         # blocking, force pulling, even its completed
         if self.task_id is None:
             raise ValueError("Task ID not found.")
 
         self.task_result_ir = self.backend.task_results(self.task_id)
 
+        return self
+
     def result(self) -> QuEraTaskResults:
         # blocking, caching
+
         if self.task_result_ir is None:
-            self.pull()
+            pass
+        else:
+            if (
+                self.task_id is not None
+                and self.task_result_ir.task_status != QuEraTaskStatusCode.Completed
+            ):
+                self.pull()
 
         return self.task_result_ir
 
     def status(self) -> QuEraTaskStatusCode:
+        if self.task_id is None:
+            return QuEraTaskStatusCode.Unaccepted
+
         return self.backend.task_status(self.task_id)
 
     def cancel(self) -> None:
@@ -82,7 +105,19 @@ class QuEraTask(RemoteTask):
         )
 
     def _result_exists(self) -> bool:
-        return self.task_result_ir is not None
+        if self.task_id is None:
+            return False
+
+        if self.task_result_ir is None:
+            return False
+        else:
+            if self.task_result_ir.task_status in [
+                QuEraTaskStatusCode.Completed,
+                QuEraTaskStatusCode.Partial,
+            ]:
+                return True
+            else:
+                return False
 
     # def submit_no_task_id(self) -> "HardwareTaskShotResults":
     #    return HardwareTaskShotResults(hardware_task=self)
