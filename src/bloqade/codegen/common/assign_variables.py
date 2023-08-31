@@ -184,7 +184,25 @@ class AssignProgram(AnalogCircuitVisitor):
     def visit_spatial_modulation(
         self, ast: field.SpatialModulation
     ) -> field.SpatialModulation:
-        pass
+        match ast:
+            case field.UniformModulation():
+                return ast
+            case field.RunTimeVector(name):
+                if name in self.mapping:
+                    return field.AssignedRunTimeVector(name, self.mapping[name])
+                else:
+                    return ast
+
+            case field.AssginRunTimeVector(name, value):
+                if name in self.mapping:
+                    raise ValueError(f"Variable {name} already assigned to {value}.")
+            case field.ScaledLocations(values):
+                return field.ScaledLocations(
+                    {
+                        loc: self.scalar_visitor.visit(scale)
+                        for loc, scale in values.items()
+                    }
+                )
 
     def visit_waveform(self, ast: waveform.Waveform) -> waveform.Waveform:
         return self.waveform_visitor.emit(ast)
