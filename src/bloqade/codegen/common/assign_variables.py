@@ -200,6 +200,8 @@ class AssignProgram(AnalogCircuitVisitor):
             case field.AssginRunTimeVector(name, value):
                 if name in self.mapping:
                     raise ValueError(f"Variable {name} already assigned to {value}.")
+                return ast
+
             case field.ScaledLocations(values):
                 return field.ScaledLocations(
                     {
