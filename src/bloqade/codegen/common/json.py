@@ -1,3 +1,4 @@
+from decimal import Decimal
 import bloqade.ir.location as location
 import bloqade.ir.control.sequence as sequence
 import bloqade.ir.control.pulse as pulse
@@ -36,9 +37,9 @@ class ScalarSerilaizer(ScalarVisitor):
 
     def visit_assigned_variable(self, ast: scalar.AssignedVariable) -> Dict[str, Any]:
         return {
-            "default_variable": {
+            "assigned_variable": {
                 "name": ast.name,
-                "default_value": str(ast.value),
+                "value": str(ast.value),
             }
         }
 
@@ -387,6 +388,13 @@ class ProgramSerializer(AnalogCircuitVisitor):
                 return "uniform"
             case field.RunTimeVector(name):
                 return {"run_time_vector": {"name": name}}
+            case field.AssignedRunTimeVector(name, value):
+                return {
+                    "assigned_run_time_vector": {
+                        "name": name,
+                        "value": [str(v) for v in value],
+                    }
+                }
 
     def visit_field(self, ast: field.Field) -> Any:
         return {
@@ -473,6 +481,7 @@ class BloqadeIRDeserializer:
             or "scaled_locations" in obj
             or "uniform" in obj
             or "run_time_vector" in obj
+            or "assigned_run_time_vector" in obj
         )
 
     def is_waveform_obj(self, obj: Dict[str, Any]) -> bool:
@@ -495,7 +504,7 @@ class BloqadeIRDeserializer:
         return (
             "literal" in obj
             or "variable" in obj
-            or "default_variable" in obj
+            or "assigned_variable" in obj
             or "negative" in obj
             or "add" in obj
             or "mul" in obj
@@ -525,7 +534,7 @@ class BloqadeIRDeserializer:
                 return scalar.Literal(Decimal(value))
             case {"variable": {"name": str(name)}}:
                 return scalar.Variable(name)
-            case {"default_variable": {"name": str(name), "default_value": str(value)}}:
+            case {"assigned_variable": {"name": str(name), "value": str(value)}}:
                 return scalar.AssignedVariable(name, Decimal(value))
             case {"negative": {"expr": expr}}:
                 return scalar.Negative(expr)
@@ -681,6 +690,8 @@ class BloqadeIRDeserializer:
                 return field.Uniform
             case {"run_time_vector": {"name": name}}:
                 return field.RunTimeVector(name)
+            case {"assigned_run_time_vector": {"name": name, "value": value}}:
+                return field.AssignedRunTimeVector(name, list(map(Decimal, value)))
             case {"field": {"value": value}}:
                 return field.Field(dict(value))
             case _:
