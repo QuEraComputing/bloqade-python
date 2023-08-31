@@ -132,7 +132,7 @@ class StaticAssignWaveform(WaveformVisitor):
         return self.visit(ast)
 
 
-class StaticAssignProgram(AnalogCircuitVisitor):
+class AssignAnalogCircuit(AnalogCircuitVisitor):
     def __init__(self, mapping: Dict[str, numbers.Real]):
         self.waveform_visitor = StaticAssignWaveform(mapping)
         self.scalar_visitor = StaticAssignScalar(mapping)

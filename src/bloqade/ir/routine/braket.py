@@ -33,19 +33,19 @@ class BraketHardwareRoutine(RoutineBase):
         name: str | None = None,
     ) -> RemoteBatch:
         ## fall passes here ###
-        from bloqade.codegen.common.static_assign import StaticAssignProgram
+        from bloqade.codegen.common.static_assign import AssignAnalogCircuit
         from bloqade.codegen.common.assignment_scan import AssignmentScan
         from bloqade.codegen.hardware.quera import QuEraCodeGen
 
         capabilities = self.backend.get_capabilities()
 
         circuit, params = self.parse_source()
-        circuit = StaticAssignProgram(params.static_params).visit(circuit)
+        circuit = AssignAnalogCircuit(params.static_params).visit(circuit)
 
         tasks = OrderedDict()
 
         for task_number, batch_params in enumerate(params.batch_assignments(*args)):
-            final_circuit = StaticAssignProgram(batch_params).visit(circuit)
+            final_circuit = AssignAnalogCircuit(batch_params).visit(circuit)
             record_params = AssignmentScan().emit(final_circuit)
             task_ir, parallel_decoder = QuEraCodeGen(
                 record_params, capabilities=capabilities
@@ -107,13 +107,13 @@ class BraketLocalEmulatorRoutine(RoutineBase):
     ) -> LocalBatch:
         ## fall passes here ###
         from bloqade.ir import ParallelRegister
-        from bloqade.codegen.common.static_assign import StaticAssignProgram
+        from bloqade.codegen.common.static_assign import AssignAnalogCircuit
         from bloqade.codegen.hardware.quera import QuEraCodeGen
         from bloqade.codegen.common.assignment_scan import AssignmentScan
         from bloqade.submission.ir.braket import to_braket_task_ir
 
         circuit, params = self.parse_source()
-        circuit = StaticAssignProgram(params.static_params).visit(circuit)
+        circuit = AssignAnalogCircuit(params.static_params).visit(circuit)
 
         if isinstance(circuit.register, ParallelRegister):
             raise TypeError(
@@ -124,7 +124,7 @@ class BraketLocalEmulatorRoutine(RoutineBase):
         tasks = OrderedDict()
 
         for task_number, batch_params in enumerate(params.batch_assignments(*args)):
-            final_circuit = StaticAssignProgram(batch_params).visit(circuit)
+            final_circuit = AssignAnalogCircuit(batch_params).visit(circuit)
             record_params = AssignmentScan().emit(final_circuit)
             quera_task_ir, _ = QuEraCodeGen(record_params).emit(shots, final_circuit)
 
