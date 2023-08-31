@@ -43,9 +43,6 @@ def format_report_data(report: "Report"):
     counts = report.counts
     ryds = report.rydberg_densities()
 
-    print(len(task_tid))
-    print(len(counts))
-
     assert len(task_tid) == len(counts)
 
     cnt_sources = []
@@ -54,7 +51,7 @@ def format_report_data(report: "Report"):
         # bitstrings = list(
         #    "\n".join(textwrap.wrap(bitstring, 32)) for bitstring in cnt_data.keys()
         # )
-        bitstrings = cnt_data.keys()
+        bitstrings = list(cnt_data.keys())
         bit_id = [f"[{x}]" for x in range(len(bitstrings))]
 
         cnts = list(cnt_data.values())
@@ -352,7 +349,7 @@ def report_visual(cnt_sources, ryd_sources, metas, geos, name):
 
             xrng = [list(int(i) for i in x) for x in tsrc.data["bitstrings"]]
 
-            print(xrng)
+            # print(xrng)
 
             p = figure(
                 x_range=tsrc.data["bit_id"],
