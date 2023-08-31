@@ -143,6 +143,10 @@ class AssignProgram(AnalogCircuitVisitor):
     def __init__(self, mapping: Dict[str, numbers.Real]):
         self.waveform_visitor = AssignWaveform(mapping)
         self.scalar_visitor = AssignScalar(mapping)
+        self.mapping = dict(mapping)
+
+    def visit_analog_circuit(self, ast: analog_circuit.AnalogCircuit) -> Any:
+        return analog_circuit.AnalogCircuit(ast.register, self.visit(ast.sequence))
 
     def visit_sequence(self, ast: sequence.SequenceExpr) -> sequence.SequenceExpr:
         match ast:
@@ -208,6 +212,4 @@ class AssignProgram(AnalogCircuitVisitor):
         return self.waveform_visitor.emit(ast)
 
     def emit(self, ast: analog_circuit.AnalogCircuit) -> analog_circuit.AnalogCircuit:
-        return analog_circuit.AnalogCircuit(
-            self.visit(ast.register), self.visit(ast.sequence)
-        )
+        return self.visit(ast)

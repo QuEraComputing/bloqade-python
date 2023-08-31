@@ -145,10 +145,10 @@ class AssignedRunTimeVector(SpatialModulation):
         return hash(self.name) ^ hash(self.__class__) ^ hash(tuple(self.value))
 
     def __str__(self):
-        return f"RunTimeVector({str(self.name), str(self.value)})"
+        return f"AssignedRunTimeVector({str(self.name), str(self.value)})"
 
     def print_node(self):
-        return "RunTimeVector"
+        return "AssgiendRunTimeVector"
 
     def children(self):
         return [self.name, *self.value]
