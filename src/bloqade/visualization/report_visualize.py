@@ -19,7 +19,6 @@ if TYPE_CHECKING:
     from bloqade.task.base import Report
 
 import math
-import textwrap
 
 # import itertools
 import numpy as np
@@ -52,9 +51,10 @@ def format_report_data(report: "Report"):
     cnt_sources = []
     ryd_sources = []
     for i, cnt_data in enumerate(counts):
-        bitstrings = list(
-            "\n".join(textwrap.wrap(bitstring, 32)) for bitstring in cnt_data.keys()
-        )
+        # bitstrings = list(
+        #    "\n".join(textwrap.wrap(bitstring, 32)) for bitstring in cnt_data.keys()
+        # )
+        bitstrings = cnt_data.keys()
         bit_id = [f"[{x}]" for x in range(len(bitstrings))]
 
         cnts = list(cnt_data.values())
@@ -350,11 +350,7 @@ def report_visual(cnt_sources, ryd_sources, metas, geos, name):
                 text=content, width=100, height=400, styles={"overflow-y": "scroll"}
             )
 
-            print(tsrc.data["bitstrings"])
-            xrng = [
-                list(int(i) for i in x.replace("\n", ""))
-                for x in tsrc.data["bitstrings"]
-            ]
+            xrng = [list(int(i) for i in x) for x in tsrc.data["bitstrings"]]
 
             print(xrng)
 
