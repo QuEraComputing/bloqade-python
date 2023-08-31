@@ -1,3 +1,4 @@
+from decimal import Decimal
 import bloqade.ir.location as location
 import bloqade.ir.control.sequence as sequence
 import bloqade.ir.control.pulse as pulse
@@ -353,6 +354,13 @@ class ProgramSerializer(AnalogCircuitVisitor):
                 return "uniform"
             case field.RunTimeVector(name):
                 return {"run_time_vector": {"name": name}}
+            case field.AssignedRunTimeVector(name, value):
+                return {
+                    "assigned_run_time_vector": {
+                        "name": name,
+                        "value": [str(v) for v in value],
+                    }
+                }
 
     def visit_field(self, ast: field.Field) -> Any:
         return {
@@ -439,6 +447,7 @@ class BloqadeIRDeserializer:
             or "scaled_locations" in obj
             or "uniform" in obj
             or "run_time_vector" in obj
+            or "assigned_run_time_vector" in obj
         )
 
     def is_waveform_obj(self, obj: Dict[str, Any]) -> bool:
@@ -647,6 +656,8 @@ class BloqadeIRDeserializer:
                 return field.Uniform
             case {"run_time_vector": {"name": name}}:
                 return field.RunTimeVector(name)
+            case {"assigned_run_time_vector": {"name": name, "value": value}}:
+                return field.AssignedRunTimeVector(name, list(map(Decimal, value)))
             case {"field": {"value": value}}:
                 return field.Field(dict(value))
             case _:
