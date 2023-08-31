@@ -111,7 +111,10 @@ class QuEraTask(RemoteTask):
         if self.task_result_ir is None:
             return False
         else:
-            if self.task_result_ir.task_status == QuEraTaskStatusCode.Completed:
+            if self.task_result_ir.task_status in [
+                QuEraTaskStatusCode.Completed,
+                QuEraTaskStatusCode.Partial,
+            ]:
                 return True
             else:
                 return False
