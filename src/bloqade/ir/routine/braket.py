@@ -32,6 +32,20 @@ class BraketHardwareRoutine(RoutineBase):
         args: Tuple[Real, ...] = (),
         name: str | None = None,
     ) -> RemoteBatch:
+        """
+        Compile to a RemoteBatch, which contain
+            Braket backend specific tasks.
+
+        Args:
+            shots (int): number of shots
+            args (Tuple): additional arguments
+            name (str): custom name of the batch
+
+        Return:
+            RemoteBatch
+
+        """
+
         ## fall passes here ###
         from bloqade.codegen.common.static_assign import AssignAnalogCircuit
         from bloqade.codegen.common.assignment_scan import AssignmentScan
@@ -73,6 +87,24 @@ class BraketHardwareRoutine(RoutineBase):
         shuffle: bool = False,
         **kwargs,
     ) -> RemoteBatch:
+        """
+        Compile to a RemoteBatch, which contain
+        Braket backend specific tasks, and submit to Braket.
+
+        Note:
+            This is async.
+
+        Args:
+            shots (int): number of shots
+            args (Tuple): additional arguments
+            name (str): custom name of the batch
+            shuffle (bool): shuffle the order of jobs
+
+        Return:
+            RemoteBatch
+
+        """
+
         batch = self.compile(shots, args, name)
         batch._submit(shuffle, **kwargs)
         return batch
@@ -85,6 +117,26 @@ class BraketHardwareRoutine(RoutineBase):
         shuffle: bool = False,
         **kwargs,
     ) -> RemoteBatch:
+        """
+        Compile to a RemoteBatch, which contain
+        Braket backend specific tasks, submit to Braket,
+        and wait until the results are coming back.
+
+        Note:
+            This is sync, and will wait until remote results
+            finished.
+
+        Args:
+            shots (int): number of shots
+            args (Tuple): additional arguments
+            name (str): custom name of the batch
+            shuffle (bool): shuffle the order of jobs
+
+        Return:
+            RemoteBatch
+
+        """
+
         batch = self.submit(shots, args, name, shuffle, **kwargs)
         batch.pull()
         return batch
@@ -97,6 +149,25 @@ class BraketHardwareRoutine(RoutineBase):
         shuffle: bool = False,
         **kwargs,
     ):
+        """
+        Compile to a RemoteBatch, which contain
+        Braket backend specific tasks, submit to Braket,
+        and wait until the results are coming back.
+
+        Note:
+            This is sync, and will wait until remote results
+            finished.
+
+        Args:
+            shots (int): number of shots
+            args: additional arguments for flatten variables.
+            name (str): custom name of the batch
+            shuffle (bool): shuffle the order of jobs
+
+        Return:
+            RemoteBatch
+
+        """
         return self.run(shots, args, name, shuffle, **kwargs)
 
 
@@ -105,6 +176,18 @@ class BraketLocalEmulatorRoutine(RoutineBase):
     def compile(
         self, shots: int, args: Tuple[Real, ...] = (), name: str | None = None
     ) -> LocalBatch:
+        """
+        Compile to a LocalBatch, which contain tasks to run on local emulator.
+
+        Args:
+            shots (int): number of shots
+            args: additional arguments for flatten variables.
+            name (str): custom name for the batch
+
+        Return:
+            LocalBatch
+
+        """
         ## fall passes here ###
         from bloqade.ir import ParallelRegister
         from bloqade.codegen.common.static_assign import AssignAnalogCircuit
@@ -149,6 +232,25 @@ class BraketLocalEmulatorRoutine(RoutineBase):
         num_workers: int | None = None,
         **kwargs,
     ) -> LocalBatch:
+        """
+        Compile to a LocalBatch, and run.
+        The LocalBatch contain tasks to run on local emulator.
+
+        Note:
+            This is sync, and will wait until remote results
+            finished.
+
+        Args:
+            shots (int): number of shots
+            args: additional arguments for flatten variables.
+            multiprocessing (bool): enable multi-process
+            num_workers (int): number of workers to run the emulator
+
+        Return:
+            LocalBatch
+
+        """
+
         batch = self.compile(shots, args, name)
         batch._run(multiprocessing=multiprocessing, num_workers=num_workers, **kwargs)
         return batch
