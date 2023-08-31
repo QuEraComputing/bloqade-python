@@ -69,7 +69,9 @@ class LocationVisitor:
         )
 
     def visit(self, ast: AstType) -> Any:
-        if isinstance(ast, Chain):
+        if isinstance(ast, LocationInfo):
+            return self.visit_location_info(ast)
+        elif isinstance(ast, Chain):
             return self.visit_chain(ast)
         elif isinstance(ast, Square):
             return self.visit_square(ast)

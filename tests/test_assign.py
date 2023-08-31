@@ -9,7 +9,7 @@ from bloqade.ir import (
     Field,
     AssignedRunTimeVector,
 )
-from bloqade.codegen.common.assign_variables import AssignProgram
+from bloqade.codegen.common.assign_variables import AssignAnalogCircuit
 from decimal import Decimal
 import pytest
 
@@ -23,7 +23,7 @@ def test_assignment():
     )
 
     amp = 2 * [Decimal("1.0")]
-    circuit = AssignProgram(dict(amp=amp)).visit(circuit)
+    circuit = AssignAnalogCircuit(dict(amp=amp)).visit(circuit)
 
     target_circuit = AnalogCircuit(
         lattice,
@@ -56,6 +56,6 @@ def test_assignment_error():
     )
 
     amp = 2 * [Decimal("1.0")]
-    circuit = AssignProgram(dict(amp=amp)).visit(circuit)
+    circuit = AssignAnalogCircuit(dict(amp=amp)).visit(circuit)
     with pytest.raises(ValueError):
-        circuit = AssignProgram(dict(amp=amp)).visit(circuit)
+        circuit = AssignAnalogCircuit(dict(amp=amp)).visit(circuit)
