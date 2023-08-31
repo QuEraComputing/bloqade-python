@@ -198,7 +198,7 @@ class RemoteBatch(Serializable):
             dat[0] = task.task_id
             if task.task_id is not None:
                 if task.task_result_ir is not None:
-                    dat[1] = task.result().task_status.name
+                    dat[1] = task.task_result_ir.task_status.name
                     dat[2] = task.task_ir.nshots
             data.append(dat)
 

@@ -28,9 +28,12 @@ prog = (
     )
 )
 
+
 with tempfile.NamedTemporaryFile() as f:
     future = prog.quera.mock(state_file=f.name).submit(shots=100)
-    future.pull()
+    future
+    future.report().dataframe
+    # future.pull()
 
 print(future.report().bitstrings)
 print(future.report().counts)
