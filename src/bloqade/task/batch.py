@@ -41,6 +41,15 @@ class LocalBatch(Serializable):
     name: Optional[str] = None
 
     def report(self) -> Report:
+        """
+        Generate analysis report base on currently
+        completed tasks in the LocalBatch.
+
+        Return:
+            Report
+
+        """
+
         ## this potentially can be specialize/disatch
         ## offline
         index = []
@@ -113,6 +122,14 @@ class LocalBatch(Serializable):
     def rerun(
         self, multiprocessing: bool = False, num_workers: Optional[int] = None, **kwargs
     ):
+        """
+        Rerun all the tasks in the LocalBatch.
+
+        Return:
+            Report
+
+        """
+
         return self._run(
             multiprocessing=multiprocessing, num_workers=num_workers, **kwargs
         )
@@ -156,12 +173,26 @@ class RemoteBatch(Serializable):
 
     @property
     def total_nshots(self):
+        """
+        Total number of shots of all tasks in the RemoteBatch
+
+        Return:
+            number of shots
+
+        """
         nshots = 0
         for task in self.tasks.values():
             nshots += task.task_ir.nshots
         return nshots
 
     def cancel(self) -> "RemoteBatch":
+        """
+        Cancel all the tasks in the Batch.
+
+        Return:
+            self
+
+        """
         # cancel all jobs
         for task in self.tasks.values():
             task.cancel()
@@ -169,6 +200,18 @@ class RemoteBatch(Serializable):
         return self
 
     def fetch(self) -> "RemoteBatch":
+        """
+        Fetch the tasks in the Batch.
+
+        Note:
+            Fetching will update the status of tasks,
+            and only pull the results for those tasks
+            that have completed.
+
+        Return:
+            self
+
+        """
         # online, non-blocking
         # pull the results only when its ready
         for task in self.tasks.values():
@@ -177,6 +220,17 @@ class RemoteBatch(Serializable):
         return self
 
     def pull(self) -> "RemoteBatch":
+        """
+        Pull results of the tasks in the Batch.
+
+        Note:
+            Pulling will pull the results for the tasks.
+            If a given task(s) has not been completed, wait
+            until it finished.
+
+        Return:
+            self
+        """
         # online, blocking
         # pull the results. if its not ready, hanging
         for task in self.tasks.values():
@@ -188,6 +242,13 @@ class RemoteBatch(Serializable):
         return str(self.tasks_metric())
 
     def tasks_metric(self) -> pd.DataFrame:
+        """
+        Get current tasks status metric
+
+        Return:
+            dataframe with ["task id", "status", "shots"]
+
+        """
         # [TODO] more info on current status
         # offline, non-blocking
         tid = []
@@ -206,11 +267,27 @@ class RemoteBatch(Serializable):
         return pd.DataFrame(data, index=tid, columns=["task ID", "status", "shots"])
 
     def remove_invalid_tasks(self) -> "RemoteBatch":
+        """
+        Create a RemoteBatch object that
+        contain tasks from current Batch,
+        with all Unaccepted tasks removed.
+
+        Return:
+            RemoteBatch
+
+        """
         return self.remove_tasks("Unaccepted")
 
         # return RemoteBatch(new_tasks, name=self.name)
 
     def resubmit(self, shuffle_submit_order: bool = True) -> "RemoteBatch":
+        """
+        Resubmit all the tasks in the RemoteBatch
+
+        Return:
+            self
+
+        """
         # online, non-blocking
         self._submit(shuffle_submit_order, force=True)
         return self
@@ -291,6 +368,13 @@ class RemoteBatch(Serializable):
             pass
 
     def get_tasks(self, *status_codes: str) -> "RemoteBatch":
+        """
+        Get Tasks with specify status_codes.
+
+        Return:
+            RemoteBatch
+
+        """
         # offline:
         st_codes = [QuEraTaskStatusCode(x) for x in status_codes]
 
@@ -303,6 +387,13 @@ class RemoteBatch(Serializable):
         return RemoteBatch(self.source, new_task_results, name=self.name)
 
     def remove_tasks(self, *status_codes: str) -> "RemoteBatch":
+        """
+        Remove Tasks with specify status_codes.
+
+        Return:
+            RemoteBatch
+
+        """
         # offline:
 
         st_codes = [QuEraTaskStatusCode(x) for x in status_codes]
@@ -317,24 +408,80 @@ class RemoteBatch(Serializable):
         return RemoteBatch(self.source, new_results, self.name)
 
     def get_failed_tasks(self) -> "RemoteBatch":
+        """
+        Create a RemoteBatch object that
+        contain failed tasks from current Batch.
+
+        failed tasks with following status codes:
+
+        1. Failed
+        2. Unaccepted
+
+        Return:
+            RemoteBatch
+
+        """
         # statuses that are in a state that are
         # completed because of an error
         statuses = ["Failed", "Unaccepted"]
         return self.get_tasks(*statuses)
 
     def remove_failed_tasks(self) -> "RemoteBatch":
+        """
+        Create a RemoteBatch object that
+        contain tasks from current Batch,
+        with failed tasks removed.
+
+        failed tasks with following status codes:
+
+        1. Failed
+        2. Unaccepted
+
+        Return:
+            RemoteBatch
+
+        """
         # statuses that are in a state that will
         # not run going forward because of an error
         statuses = ["Failed", "Unaccepted"]
         return self.remove_tasks(*statuses)
 
     def get_finished_tasks(self) -> "RemoteBatch":
+        """
+        Create a RemoteBatch object that
+        contain finished tasks from current Batch.
+
+        Tasks consider finished with following status codes:
+
+        1. Failed
+        2. Unaccepted
+        3. Completed
+        4. Partial
+        5. Cancelled
+
+        Return:
+            RemoteBatch
+
+        """
         # statuses that are in a state that will
         # not run going forward for any reason
         statuses = ["Completed", "Failed", "Unaccepted", "Partial", "Cancelled"]
         return self.remove_tasks(*statuses)
 
     def get_completed_tasks(self) -> "RemoteBatch":
+        """
+        Create a RemoteBatch object that
+        contain completed tasks from current Batch.
+
+        Tasks consider completed with following status codes:
+
+        1. Completed
+        2. Partial
+
+        Return:
+            RemoteBatch
+
+        """
         statuses = [
             "Completed",
             "Partial",
@@ -342,6 +489,14 @@ class RemoteBatch(Serializable):
         return self.get_tasks(*statuses)
 
     def report(self) -> "Report":
+        """
+        Generate analysis report base on currently
+        completed tasks in the RemoteBatch.
+
+        Return:
+            Report
+
+        """
         ## this potentially can be specialize/disatch
         ## offline
         index = []
