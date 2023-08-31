@@ -114,7 +114,7 @@ class AssignWaveform(WaveformVisitor):
         return waveform.Negative(self.visit(ast.waveform))
 
     def visit_record(self, ast: waveform.Record) -> Any:
-        if ast.var in self.mapping:
+        if ast.var.name in self.mapping:
             return self.visit(ast.waveform)
         else:
             return waveform.Record(self.visit(ast.waveform), ast.var)

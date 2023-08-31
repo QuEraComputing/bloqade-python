@@ -1,3 +1,11 @@
+from bloqade.ir.control.waveform import (
+    AlignedWaveform,
+    Constant,
+    Linear,
+    Poly,
+    PythonFn,
+    Sample,
+)
 from bloqade.ir.visitor.analog_circuit import AnalogCircuitVisitor
 from bloqade.ir.visitor.waveform import WaveformVisitor
 from bloqade.ir.analog_circuit import AnalogCircuit
@@ -18,7 +26,7 @@ class AssignmentScanRecord(WaveformVisitor):
     def visit_record(self, ast: waveform.Record):
         duration = ast.waveform.duration(**self.assignments)
         var = ast.var
-        value = ast.waveform.eval_decimal(duration, **self.assignments)
+        value = ast.waveform(duration, **self.assignments)
         self.assignments[var.name] = value
         self.visit(ast.waveform)
 
@@ -38,11 +46,26 @@ class AssignmentScanRecord(WaveformVisitor):
     def visit_scale(self, ast: waveform.Scale):
         self.visit(ast.waveform)
 
-    def visit_aligned_waveform(self, ast: waveform.AlignedWaveform):
-        self.visit(ast.waveform)
-
     def visit_smooth(self, ast: waveform.Smooth):
         self.visit(ast.waveform)
+
+    def visit_sample(self, ast: Sample) -> Any:
+        return self.visit(ast.waveform)
+
+    def visit_alligned(self, ast: AlignedWaveform) -> Any:
+        return super().visit_alligned(ast)
+
+    def visit_constant(self, ast: Constant) -> Any:
+        pass
+
+    def visit_linear(self, ast: Linear) -> Any:
+        pass
+
+    def visit_poly(self, ast: Poly) -> Any:
+        pass
+
+    def visit_python_fn(self, ast: PythonFn) -> Any:
+        pass
 
     def emit(self, ast: waveform.Waveform) -> Dict[str, numbers.Real]:
         self.visit(ast)
