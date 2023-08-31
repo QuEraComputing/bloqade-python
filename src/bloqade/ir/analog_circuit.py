@@ -51,6 +51,14 @@ class AnalogCircuit:
         """
         return self._sequence
 
+    def __eq__(self, other):
+        if isinstance(other, AnalogCircuit):
+            return (self.register == other.register) and (
+                self.sequence == other.sequence
+            )
+
+        return False
+
     def __repr__(self):
         # TODO: add repr for static_params, batch_params and order
         out = ""

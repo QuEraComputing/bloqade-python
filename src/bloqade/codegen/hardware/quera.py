@@ -7,6 +7,7 @@ from bloqade.ir.control.field import (
     SpatialModulation,
     ScaledLocations,
     RunTimeVector,
+    AssignedRunTimeVector,
     Uniform,
 )
 from bloqade.ir.control.pulse import (
@@ -412,6 +413,13 @@ class QuEraCodeGen(AnalogCircuitVisitor):
                         f"{self.n_atoms}."
                     )
                 lattice_site_coefficients = list(self.assignments[name])
+            case AssignedRunTimeVector(name, value):
+                if len(value) != self.n_atoms:
+                    raise ValueError(
+                        f"Coefficient list {name} doesn't match the size of register "
+                        f"{self.n_atoms}."
+                    )
+                lattice_site_coefficients = value
 
         self.lattice_site_coefficients = []
         if self.parallel_decoder:

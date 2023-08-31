@@ -1,4 +1,3 @@
-from decimal import Decimal
 from bloqade.builder.base import Builder
 from bloqade.builder.coupling import LevelCoupling, Rydberg, Hyperfine
 from bloqade.builder.sequence_builder import SequenceBuilder
@@ -192,13 +191,12 @@ class Parser:
             match curr.node:
                 case Assign(static_params):
                     self.static_params = {
-                        name: Decimal(str(value))
-                        for name, value in static_params.items()
+                        name: value for name, value in static_params.items()
                     }
 
                 case BatchAssign(batch_param):
                     tuple_iterators = [
-                        zip(repeat(name), map(Decimal, map(str, values)))
+                        zip(repeat(name), values)
                         for name, values in batch_param.items()
                     ]
                     self.batch_params = list(map(dict, zip(*tuple_iterators)))
