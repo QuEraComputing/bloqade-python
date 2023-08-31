@@ -16,7 +16,7 @@ def test_braket_simulator_getbitstring():
 
     output = program.braket.local_emulator().run(shots=10).report()
 
-    assert len(output.bitstrings[0].flatten()) == 10
+    assert len(output.bitstrings()[0].flatten()) == 10
 
 
 """
