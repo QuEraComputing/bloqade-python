@@ -1,4 +1,4 @@
-from .base import AtomArrangement, ParallelRegister
+from .base import AtomArrangement, ParallelRegister, LocationInfo
 from .bravais import (
     BoundedBravais,
     Chain,
@@ -24,4 +24,5 @@ __all__ = [
     "BoundedBravais",
     "ListOfLocations",
     "ParallelRegister",
+    "LocationInfo",
 ]
