@@ -197,7 +197,7 @@ class AssignProgram(AnalogCircuitVisitor):
                 else:
                     return ast
 
-            case field.AssginRunTimeVector(name, value):
+            case field.AssignedRunTimeVector(name, value):
                 if name in self.mapping:
                     raise ValueError(f"Variable {name} already assigned to {value}.")
                 return ast
