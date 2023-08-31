@@ -291,7 +291,7 @@ def plot_register_bits(geo):
     hover.tooltips = [
         ("(x,y)", "(@_x, @_y)"),
         ("index: ", "@_labels"),
-        # ("state: ", "@_bits"),
+        ("state: ", "@_bits"),
     ]
 
     color_mapper = LinearColorMapper(palette="Magma256", low=0, high=1)
@@ -378,7 +378,7 @@ def report_visual(cnt_sources, ryd_sources, metas, geos, name):
             hov_tool = HoverTool()
             hov_tool.tooltips = [
                 ("counts: ", "@cnts"),
-                ("bitstrings:\n", "@bitstrings"),
+                # ("bitstrings:\n", "@bitstrings"),
             ]
             p.add_tools(hov_tool)
 
