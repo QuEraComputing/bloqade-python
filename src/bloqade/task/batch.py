@@ -306,8 +306,6 @@ class RemoteBatch(Serializable):
             #       as well.
             pass
 
-        self.fetch()  # immediately fetch
-
     def get_tasks(self, status_codes: List[QuEraTaskStatusCode]) -> "RemoteBatch":
         # offline:
         new_task_results = OrderedDict()

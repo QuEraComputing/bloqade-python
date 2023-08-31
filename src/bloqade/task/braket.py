@@ -23,13 +23,15 @@ class BraketTask(RemoteTask):
     parallel_decoder: Optional[ParallelDecoder]
     task_result_ir: Optional[QuEraTaskResults] = None
 
-    def submit(self, force: bool = False) -> None:
+    def submit(self, force: bool = False) -> "BraketTask":
         if not force:
             if self.task_id is not None:
                 raise ValueError(
                     "the task is already submitted with %s" % (self.task_id)
                 )
         self.task_id = self.backend.submit_task(self.task_ir)
+
+        self.task_result_ir = QuEraTaskResults(task_status=QuEraTaskStatusCode.Enqueued)
 
         return self
 
@@ -39,12 +41,12 @@ class BraketTask(RemoteTask):
         except ValidationError as e:
             return str(e)
 
-        return self
+        return ""
 
-    def fetch(self) -> None:
+    def fetch(self) -> "BraketTask":
         # non-blocking, pull only when its completed
-        # if (self.task_id is None) and (self.task_result_ir is None):
-        #    raise ValueError("Task ID not found.")
+        if self.task_id is None:
+            raise ValueError("Task ID not found.")
 
         status = self.status()
         if status == QuEraTaskStatusCode.Completed:
@@ -54,7 +56,7 @@ class BraketTask(RemoteTask):
 
         return self
 
-    def pull(self) -> None:
+    def pull(self) -> "BraketTask":
         # blocking, force pulling, even its completed
         if self.task_id is None:
             raise ValueError("Task ID not found.")
@@ -103,7 +105,7 @@ class BraketTask(RemoteTask):
 
     def _result_exists(self) -> bool:
         if self.task_id is None:
-            raise ValueError("Task ID not found.")
+            return False
 
         if self.task_result_ir is None:
             return False
