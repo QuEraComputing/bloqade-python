@@ -43,6 +43,10 @@ def format_report_data(report: "Report"):
 
     counts = report.counts
     ryds = report.rydberg_densities()
+
+    print(len(task_tid))
+    print(len(counts))
+
     assert len(task_tid) == len(counts)
 
     cnt_sources = []
@@ -287,7 +291,7 @@ def plot_register_bits(geo):
     hover.tooltips = [
         ("(x,y)", "(@_x, @_y)"),
         ("index: ", "@_labels"),
-        ("state: ", "@_bits"),
+        # ("state: ", "@_bits"),
     ]
 
     color_mapper = LinearColorMapper(palette="Magma256", low=0, high=1)
@@ -346,7 +350,11 @@ def report_visual(cnt_sources, ryd_sources, metas, geos, name):
                 text=content, width=100, height=400, styles={"overflow-y": "scroll"}
             )
 
-            xrng = [list(int(i) for i in x) for x in tsrc.data["bitstrings"]]
+            print(tsrc.data["bitstrings"])
+            xrng = [
+                list(int(i) for i in x.replace("\n", ""))
+                for x in tsrc.data["bitstrings"]
+            ]
 
             print(xrng)
 

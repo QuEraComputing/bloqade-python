@@ -146,7 +146,7 @@ class Report:
         else:
             df = self.dataframe
 
-        task_numbers = df.index.get_level_values("task_number")
+        task_numbers = df.index.get_level_values("task_number").unique()
 
         bitstrings = []
         for task_number in task_numbers:
