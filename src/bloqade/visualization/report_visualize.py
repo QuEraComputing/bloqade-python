@@ -1,12 +1,25 @@
 from bokeh.plotting import figure
 from bokeh.layouts import column, row
-from bokeh.models import CustomJS, MultiChoice, Div, HoverTool, Range1d, ColorBar
+from bokeh.models import (
+    CustomJS,
+    MultiChoice,
+    Div,
+    HoverTool,
+    Range1d,
+    ColorBar,
+    TapTool,
+)
 from bokeh.models import ColumnDataSource, LinearColorMapper, Button, SVGIcon
 
 # from bokeh.models import Tabs, TabPanel,, Div, CrosshairTool, Span
 from bokeh.palettes import Dark2_5
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from bloqade.task.base import Report
 
 import math
+import textwrap
 
 # import itertools
 import numpy as np
@@ -19,7 +32,7 @@ from decimal import Decimal
 # below are formatting IR data, and called by IR.
 
 
-def format_report_data(report):
+def format_report_data(report: "Report"):
     # return should be
     # data: List[ColumnDataSources],
     # List[str]:ch_names,
@@ -35,15 +48,15 @@ def format_report_data(report):
     cnt_sources = []
     ryd_sources = []
     for i, cnt_data in enumerate(counts):
-        bitstrings = list(cnt_data.keys())
+        bitstrings = list(
+            "\n".join(textwrap.wrap(bitstring, 32)) for bitstring in cnt_data.keys()
+        )
+        bit_id = [f"[{x}]" for x in range(len(bitstrings))]
+
         cnts = list(cnt_data.values())
         tid = [i] * len(cnts)
         src = ColumnDataSource(
-            data=dict(
-                tid=tid,
-                bitstrings=bitstrings,
-                cnts=cnts,
-            )
+            data=dict(tid=tid, bitstrings=bitstrings, cnts=cnts, bit_id=bit_id)
         )
 
         rydens = list(ryds.iloc[i])
@@ -74,12 +87,9 @@ def mock_data():
     bitstrings = ["0010", "1101", "1111"]
     cnts = [4, 7, 5]
     tid = [0] * len(cnts)
+    bit_id = [f"[{x}]" for x in range(len(bitstrings))]
     src = ColumnDataSource(
-        data=dict(
-            tid=tid,
-            bitstrings=bitstrings,
-            cnts=cnts,
-        )
+        data=dict(tid=tid, bitstrings=bitstrings, cnts=cnts, bit_id=bit_id)
     )
     cnt_sources.append(src)
     rsrc = ColumnDataSource(
@@ -107,12 +117,9 @@ def mock_data():
     bitstrings = ["0101", "1101", "1110", "1111"]
     cnts = [4, 7, 5, 10]
     tid = [1] * len(cnts)
+    bit_id = [f"[{x}]" for x in range(len(bitstrings))]
     src = ColumnDataSource(
-        data=dict(
-            tid=tid,
-            bitstrings=bitstrings,
-            cnts=cnts,
-        )
+        data=dict(tid=tid, bitstrings=bitstrings, cnts=cnts, bit_id=bit_id)
     )
     cnt_sources.append(src)
     rsrc = ColumnDataSource(
@@ -198,7 +205,7 @@ def plot_register_ryd_dense(geo, ryds):
     ## remove box_zoom since we don't want to change the scale
 
     p = figure(
-        width=400,
+        width=500,
         height=400,
         tools="wheel_zoom,reset, undo, redo, pan",
         toolbar_location="above",
@@ -242,10 +249,15 @@ def plot_register_ryd_dense(geo, ryds):
     return p
 
 
-def plot_register(geo):
+def plot_register_bits(geo):
     """obtain a figure object from the atom arrangement."""
-    xs_filled, ys_filled, labels_filled = [], [], []
-    xs_vacant, ys_vacant, labels_vacant = [], [], []
+    # xs_filled, ys_filled, labels_filled, density_filled = [], [], [], []
+    # xs_vacant, ys_vacant, labels_vacant, density_vacant = [], [], [], []
+    xs = []
+    ys = []
+    bits = []
+    labels = []
+
     x_min = np.inf
     x_max = -np.inf
     y_min = np.inf
@@ -258,33 +270,27 @@ def plot_register(geo):
         y_min = min(y, y_min)
         x_max = max(x, x_max)
         y_max = max(y, y_max)
-        if filling:
-            xs_filled.append(x)
-            ys_filled.append(y)
-            labels_filled.append(idx)
-        else:
-            xs_vacant.append(x)
-            ys_vacant.append(y)
-            labels_vacant.append(idx)
+
+        xs.append(x)
+        ys.append(y)
+        bits.append(0)
+        labels.append(idx)
 
     if len(geo.sites) > 0:
         length_scale = max(y_max - y_min, x_max - x_min, 1)
     else:
         length_scale = 1
 
-    source_filled = ColumnDataSource(
-        data=dict(_x=xs_filled, _y=ys_filled, _labels=labels_filled)
-    )
-    source_vacant = ColumnDataSource(
-        data=dict(_x=xs_vacant, _y=ys_vacant, _labels=labels_vacant)
-    )
+    source = ColumnDataSource(data=dict(_x=xs, _y=ys, _bits=bits, _labels=labels))
+
     hover = HoverTool()
     hover.tooltips = [
         ("(x,y)", "(@_x, @_y)"),
         ("index: ", "@_labels"),
+        ("state: ", "@_bits"),
     ]
 
-    # color_mapper = LinearColorMapper(palette='Magma256', low=min(y), high=max(y))
+    color_mapper = LinearColorMapper(palette="Magma256", low=0, high=1)
 
     # specify that we want to map the colors to the y values,
     # this could be replaced with a list of colors
@@ -297,23 +303,23 @@ def plot_register(geo):
         height=400,
         tools="wheel_zoom,reset, undo, redo, pan",
         toolbar_location="above",
+        title="reg state",
     )
     p.x_range = Range1d(x_min - 1, x_min + length_scale + 1)
     p.y_range = Range1d(y_min - 1, y_min + length_scale + 1)
 
     p.circle(
-        "_x", "_y", source=source_filled, radius=0.025 * length_scale, fill_alpha=1
-    )
-    p.circle(
         "_x",
         "_y",
-        source=source_vacant,
-        radius=0.025 * length_scale,
+        source=source,
+        radius=0.035 * length_scale,
         fill_alpha=1,
-        color="grey",
-        line_width=0.2 * length_scale,
+        line_color="black",
+        color={"field": "_bits", "transform": color_mapper},
+        name="reg",
     )
 
+    p.xaxis.axis_label = "(um)"
     p.add_tools(hover)
 
     return p
@@ -340,14 +346,21 @@ def report_visual(cnt_sources, ryd_sources, metas, geos, name):
                 text=content, width=100, height=400, styles={"overflow-y": "scroll"}
             )
 
+            xrng = [list(int(i) for i in x) for x in tsrc.data["bitstrings"]]
+
+            print(xrng)
+
             p = figure(
-                x_range=tsrc.data["bitstrings"],
+                x_range=tsrc.data["bit_id"],
                 height=400,
+                width=400,
                 title=f"{taskname}",
                 # toolbar_location=None,
                 tools="xwheel_zoom,reset, box_zoom, xpan",
             )
-            p.vbar(x="bitstrings", top="cnts", source=tsrc, width=0.9, color=color1)
+            bar_rend = p.vbar(
+                x="bit_id", top="cnts", source=tsrc, width=0.9, color=color1
+            )
 
             p.xgrid.grid_line_color = None
             p.xaxis.major_label_orientation = math.pi / 4
@@ -360,6 +373,37 @@ def report_visual(cnt_sources, ryd_sources, metas, geos, name):
                 ("bitstrings:\n", "@bitstrings"),
             ]
             p.add_tools(hov_tool)
+
+            tap = TapTool(renderers=[bar_rend])
+            p.add_tools(tap)
+            p.toolbar.active_tap = tap
+
+            preg = plot_register_bits(geo)
+            # get render obj:
+            reg_obj = None
+            for rd in preg.renderers:
+                if rd.name == "reg":
+                    reg_obj = rd
+                    break
+
+            cb = CustomJS(
+                args=dict(
+                    tsrc=tsrc,
+                    xrng=xrng,
+                    bitsrc=reg_obj.data_source,
+                    reg_obj=reg_obj,
+                    preg=preg,
+                ),
+                code="""
+                            var sel_bar_i = tsrc.selected.indices[0];
+                            bitsrc.data['_bits'] = xrng[sel_bar_i];
+                            preg.title.text = "reg state: [" + sel_bar_i + "]";
+                            bitsrc.change.emit();
+                            reg_obj.change.emit();
+                            preg.change.emit();
+                          """,
+            )
+            tsrc.selected.js_on_change("indices", cb)
 
             # pryd = figure(
             #    x_range=trydsrc.data["sites"],
@@ -385,7 +429,7 @@ def report_visual(cnt_sources, ryd_sources, metas, geos, name):
             # print(geo,  trydsrc.data["ryds"])
             pgeo = plot_register_ryd_dense(geo, trydsrc.data["ryds"])
 
-            figs.append(row(div, p, pgeo, name=taskname))
+            figs.append(row(div, p, preg, pgeo, name=taskname))
             figs[-1].visible = False
 
         # Create a dropdown menu to select between the two graphs
