@@ -13,7 +13,7 @@ def cast_param(value: Union[Real, List[Real]]):
         return Decimal(str(value))
 
     if isinstance(value, list):
-        return list(map(Decimal, value))
+        return list(map(Decimal, map(str, value)))
 
     raise ValueError(
         "the value of the assignment must be a Real scalar or list of Real scalars, "
