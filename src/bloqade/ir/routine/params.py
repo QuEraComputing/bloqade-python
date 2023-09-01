@@ -26,7 +26,8 @@ class Params:
         return [{**flattened_args, **batch} for batch in self.batch_params]
 
     def __repr__(self):
-        out = "> Static assign:\n"
+        out = "--------------------\n"
+        out += "> Static assign:\n"
         for var, litrl in self.static_params.items():
             out += f" :: {var} \n      => {litrl}\n"
 
