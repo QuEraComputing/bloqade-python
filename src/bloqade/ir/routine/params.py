@@ -26,17 +26,17 @@ class Params:
         return [{**flattened_args, **batch} for batch in self.batch_params]
 
     def __repr__(self):
-        out = "Static assign:\n"
+        out = "> Static assign:\n"
         for var, litrl in self.static_params.items():
-            out += f" :: {var} \t= {litrl}\n"
+            out += f" :: {var} \n      => {litrl}\n"
 
-        out += "\nBatch params/assign:\n"
+        out += "\n> Batch params/assign:\n"
         for lid, pair in enumerate(self.batch_params):
             out += f"- batch {lid}:\n"
             for var, litrl in pair.items():
-                out += f"   :: {var} = {litrl}\n"
+                out += f"   :: {var}\n       => {litrl}\n"
 
-        out += "\nFlatten params:\n"
+        out += "\n> Flatten params:\n"
         out += "  " + repr(self.flatten_params)
 
         return out
