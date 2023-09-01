@@ -165,6 +165,7 @@ class RydbergHamiltonianCodeGen(Visitor):
     def emit(self, emulator_program: EmulatorProgram) -> RydbergHamiltonian:
         self.visit(emulator_program)
         return RydbergHamiltonian(
+            duration=emulator_program,
             rydberg=self.rydberg,
             detuning_ops=self.detuning_ops,
             rabi_ops=self.rabi_ops,

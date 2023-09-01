@@ -1,3 +1,4 @@
+from bloqade.emulate.ir.emulator import EmulatorProgram
 from bloqade.emulate.sparse_operator import IndexMapping
 from scipy.sparse import csr_matrix
 from dataclasses import dataclass, field
@@ -41,6 +42,7 @@ class RabiOperator:
 
 @dataclass(frozen=True)
 class RydbergHamiltonian:
+    emulator_ir: EmulatorProgram
     rydberg: NDArray
     detuning_ops: List[DetuningOperator] = field(default_factory=list)
     rabi_ops: List[RabiOperator] = field(default_factory=list)
@@ -70,11 +72,6 @@ class AnalogGate:
     SUPPORTED_SOLVERS = ["lsoda", "dop853", "dopri5"]
 
     hamiltonian: RydbergHamiltonian
-    initial_time: float
-    final_time: float
-    atol: float = 1e-7
-    rtol: float = 1e-14
-    nsteps: int = 2_147_483_647
 
     @staticmethod
     def _error_check_dop(status_code: int):
@@ -133,20 +130,22 @@ class AnalogGate:
             case str("lsoda"):
                 AnalogGate._error_check_lsoda(status_code)
 
-    def _solve(self, state: NDArray, solver_name: str):
-        state = np.asarray(state, dtype=np.complex128)
-        solver = ode(self.hamiltonian._ode_real_kernel)
-        solver.set_initial_value(state.view(np.float64), self.initial_time)
-        solver.set_integrator(
-            solver_name, atol=self.atol, rtol=self.rtol, nstep=self.nsteps
-        )
-        solver.integrate(self.final_time)
-        AnalogGate._error_check(solver_name, solver.get_return_code())
-
-        return solver.y.view(np.complex128)
-
-    def apply(self, state: NDArray, solver_name="lsoda"):
+    def apply(
+        self,
+        state: NDArray,
+        solver_name: str = "dop853",
+        atol: float = 1e-7,
+        rtol: float = 1e-14,
+        nsteps: int = 2_147_483_647,
+    ):
         if solver_name not in AnalogGate.SUPPORTED_SOLVERS:
             raise ValueError(f"'{solver_name}' not supported.")
 
-        return self._solve(state, "lsoda")
+        state = np.asarray(state).astype(np.complex128, copy=False)
+        solver = ode(self.hamiltonian._ode_real_kernel)
+        solver.set_initial_value(state.view(np.float64))
+        solver.set_integrator(solver_name, atol=atol, rtol=rtol, nstep=nsteps)
+        solver.integrate(self.hamiltonian.emulator_ir.duration)
+        AnalogGate._error_check(solver_name, solver.get_return_code())
+
+        return solver.y.view(np.complex128)
