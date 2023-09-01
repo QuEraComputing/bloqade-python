@@ -24,3 +24,20 @@ class Params:
     def batch_assignments(self, *args) -> List[Dict[str, ParamType]]:
         flattened_args = self.parse_args(*args)
         return [{**flattened_args, **batch} for batch in self.batch_params]
+
+    def __repr__(self):
+        out = "--------------------\n"
+        out += "> Static assign:\n"
+        for var, litrl in self.static_params.items():
+            out += f" :: {var} \n      => {litrl}\n"
+
+        out += "\n> Batch params/assign:\n"
+        for lid, pair in enumerate(self.batch_params):
+            out += f"- batch {lid}:\n"
+            for var, litrl in pair.items():
+                out += f"   :: {var}\n       => {litrl}\n"
+
+        out += "\n> Flatten params:\n"
+        out += "  " + repr(self.flatten_params)
+
+        return out
