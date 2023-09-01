@@ -39,7 +39,7 @@ class ListOfLocations(AtomArrangement):
 
 start = ListOfLocations()
 """
-    - AnalogCircuit starting node
+    - Program starting node
     - Possible Next <LevelCoupling>
 
         -> `start.rydberg`

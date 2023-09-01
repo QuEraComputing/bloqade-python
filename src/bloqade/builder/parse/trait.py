@@ -1,6 +1,8 @@
 from typing import Tuple, Union, TYPE_CHECKING
 import json
 import bloqade.ir as ir
+from bloqade.visualization.builder_visualize import display_builder
+
 
 if TYPE_CHECKING:
     from bloqade.ir import AtomArrangement, ParallelRegister, Sequence
@@ -58,3 +60,17 @@ class Parse(ParseRegister, ParseSequence, ParseCircuit, ParseRoutine):
             return register._register.n_atoms
         else:
             return register.n_atoms
+
+    def __repr__(self: "Builder"):
+        from .builder import Parser
+
+        analog_circ, metas = Parser().parse_source(self)
+
+        return repr(analog_circ) + "\n" + repr(metas)
+
+    def show(self, batch_id: int = 0):
+        from .builder import Parser
+
+        analog_circ, metas = Parser().parse_source(self)
+
+        display_builder(analog_circ, metas, batch_id)

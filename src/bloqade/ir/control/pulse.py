@@ -206,8 +206,8 @@ class Pulse(PulseExpr):
 
 @dataclass
 class NamedPulse(PulseExpr):
-    pulse: PulseExpr
     name: str
+    pulse: PulseExpr
 
     def __str__(self):
         return f"NamedPulse(name={str(self.name)})"

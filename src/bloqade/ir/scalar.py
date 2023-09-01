@@ -406,7 +406,7 @@ class AssignedVariable(Scalar):
         return []
 
     def print_node(self):
-        return f"DefaultVariable: {self.name} = {self.value}"
+        return f"AssignedVariable: {self.name} = {self.value}"
 
     @validator("name")
     def name_validator(cls, v):
