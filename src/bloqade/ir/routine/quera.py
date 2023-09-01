@@ -47,7 +47,21 @@ class QuEraHardwareRoutine(RoutineBase):
         args: Tuple[Real, ...] = (),
         name: str | None = None,
     ) -> RemoteBatch:
+        """
+        Compile to a RemoteBatch, which contain
+            QuEra backend specific tasks.
+
+        Args:
+            shots (int): number of shots
+            args (Tuple): additional arguments
+            name (str): custom name of the batch
+
+        Return:
+            RemoteBatch
+
+        """
         from bloqade.codegen.common.assign_variables import AssignAnalogCircuit
+
         from bloqade.codegen.common.assignment_scan import AssignmentScan
         from bloqade.codegen.hardware.quera import QuEraCodeGen
 
@@ -81,6 +95,21 @@ class QuEraHardwareRoutine(RoutineBase):
         shuffle: bool = False,
         **kwargs,
     ) -> RemoteBatch:
+        """
+        Compile to a RemoteBatch, which contain
+            QuEra backend specific tasks,
+            and submit through QuEra service.
+
+        Args:
+            shots (int): number of shots
+            args (Tuple): additional arguments
+            name (str): custom name of the batch
+            shuffle (bool): shuffle the order of jobs
+
+        Return:
+            RemoteBatch
+
+        """
         batch = self.compile(shots, args, name)
         batch._submit(shuffle, **kwargs)
         return batch
