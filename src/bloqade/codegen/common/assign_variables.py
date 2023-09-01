@@ -1,4 +1,4 @@
-# import bloqade.ir.location as location
+import bloqade.ir.location as location
 import bloqade.ir.control.sequence as sequence
 import bloqade.ir.control.pulse as pulse
 import bloqade.ir.control.field as field
@@ -7,6 +7,7 @@ import bloqade.ir.scalar as scalar
 import bloqade.ir.analog_circuit as analog_circuit
 
 from bloqade.ir.visitor.analog_circuit import AnalogCircuitVisitor
+from bloqade.ir.visitor.location import LocationVisitor
 from bloqade.ir.visitor.waveform import WaveformVisitor
 from bloqade.ir.visitor.scalar import ScalarVisitor
 
@@ -87,7 +88,7 @@ class AssignWaveform(WaveformVisitor):
         return waveform.Poly(checkpoints, duration)
 
     def visit_python_fn(self, ast: waveform.PythonFn) -> Any:
-        new_ast = waveform.PythonFn(ast.fn, ast.duration.static_assign(self.mapping))
+        new_ast = waveform.PythonFn(ast.fn, self.scalar_visitor.emit(ast.duration))
         new_ast.parameters = list(map(self.scalar_visitor.emit, ast.parameters))
         return new_ast
 
@@ -110,7 +111,7 @@ class AssignWaveform(WaveformVisitor):
         return waveform.Smooth(static_radius, ast.kernel, self.visit(ast.waveform))
 
     def visit_negative(self, ast: waveform.Negative) -> Any:
-        return waveform.Negative(self.visit(ast))
+        return waveform.Negative(self.visit(ast.waveform))
 
     def visit_record(self, ast: waveform.Record) -> Any:
         return waveform.Record(self.visit(ast.waveform), ast.var)
@@ -120,8 +121,8 @@ class AssignWaveform(WaveformVisitor):
         return waveform.Sample(self.visit(ast.waveform), ast.interpolation, dt)
 
     def visit_scale(self, ast: waveform.Scale) -> Any:
-        scale = ast.scalar.static_assign(**self.mapping)
-        return waveform.Scale(self.visit(ast.waveform), scale)
+        scale = self.scalar_visitor.emit(ast.scalar)
+        return waveform.Scale(scale, self.visit(ast.waveform))
 
     def visit_slice(self, ast: waveform.Slice) -> Any:
         start = ast.interval.start
@@ -136,13 +137,90 @@ class AssignWaveform(WaveformVisitor):
         return waveform.Slice(self.visit(ast.waveform), scalar.Interval(start, stop))
 
     def emit(self, ast: waveform.Waveform) -> waveform.Waveform:
-        return self.visit(ast)
+        return waveform.Waveform.canonicalize(self.visit(ast))
 
 
-class AssignProgram(AnalogCircuitVisitor):
+class AssignLocation(LocationVisitor):
+    def __init__(self, mapping: Dict[str, numbers.Real]):
+        self.mapping = dict(mapping)
+        self.scalar_visitor = AssignScalar(mapping)
+
+    def visit_chain(self, ast: location.Chain) -> location.Chain:
+        return location.Chain(
+            ast.shape[0], self.scalar_visitor.emit(ast.lattice_spacing)
+        )
+
+    def visit_square(self, ast: location.Square) -> location.Square:
+        return location.Square(
+            ast.shape[0], self.scalar_visitor.emit(ast.lattice_spacing)
+        )
+
+    def visit_rectangular(self, ast: location.Rectangular) -> location.Rectangular:
+        return location.Rectangular(
+            ast.shape[0],
+            ast.shape[1],
+            self.scalar_visitor.emit(ast.lattice_spacing_x),
+            self.scalar_visitor.emit(ast.lattice_spacing_y),
+        )
+
+    def visit_triangular(self, ast: location.Triangular) -> location.Triangular:
+        return location.Triangular(
+            ast.shape[0], self.scalar_visitor.emit(ast.lattice_spacing)
+        )
+
+    def visit_honeycomb(self, ast: location.Honeycomb) -> location.Honeycomb:
+        return location.Honeycomb(
+            ast.shape[0], self.scalar_visitor.emit(ast.lattice_spacing)
+        )
+
+    def visit_kagome(self, ast: location.Kagome) -> location.Kagome:
+        return location.Kagome(
+            ast.shape[0], self.scalar_visitor.emit(ast.lattice_spacing)
+        )
+
+    def visit_lieb(self, ast: location.Lieb) -> location.Lieb:
+        return location.Lieb(
+            ast.shape[0], self.scalar_visitor.emit(ast.lattice_spacing)
+        )
+
+    def visit_list_of_locations(
+        self, ast: location.ListOfLocations
+    ) -> location.ListOfLocations:
+        return location.ListOfLocations(list(map(self.visit, ast.location_list)))
+
+    def visit_location_info(self, ast: location.LocationInfo) -> location.LocationInfo:
+        return location.LocationInfo(
+            tuple(map(self.scalar_visitor.emit, ast.position)),
+            bool(ast.filling.value),
+        )
+
+    def visit_parallel_register(
+        self, ast: location.ParallelRegister
+    ) -> location.ParallelRegister:
+        return location.ParallelRegister(
+            self.visit(ast._register), self.scalar_visitor.emit(ast._cluster_spacing)
+        )
+
+
+class AssignAnalogCircuit(AnalogCircuitVisitor):
     def __init__(self, mapping: Dict[str, numbers.Real]):
         self.waveform_visitor = AssignWaveform(mapping)
         self.scalar_visitor = AssignScalar(mapping)
+        self.location_visitor = AssignLocation(mapping)
+        self.mapping = dict(mapping)
+
+    def visit_analog_circuit(self, ast: analog_circuit.AnalogCircuit) -> Any:
+        return analog_circuit.AnalogCircuit(
+            self.visit(ast.register), self.visit(ast.sequence)
+        )
+
+    def visit_register(self, ast: location.AtomArrangement) -> location.AtomArrangement:
+        return self.location_visitor.visit(ast)
+
+    def visit_parallel_register(
+        self, ast: location.ParallelRegister
+    ) -> location.ParallelRegister:
+        return self.location_visitor.visit(ast)
 
     def visit_sequence(self, ast: sequence.SequenceExpr) -> sequence.SequenceExpr:
         match ast:
@@ -184,12 +262,30 @@ class AssignProgram(AnalogCircuitVisitor):
     def visit_spatial_modulation(
         self, ast: field.SpatialModulation
     ) -> field.SpatialModulation:
-        pass
+        match ast:
+            case field.UniformModulation():
+                return ast
+            case field.RunTimeVector(name):
+                if name in self.mapping:
+                    return field.AssignedRunTimeVector(name, self.mapping[name])
+                else:
+                    return ast
+
+            case field.AssignedRunTimeVector(name, value):
+                if name in self.mapping:
+                    raise ValueError(f"Variable {name} already assigned to {value}.")
+                return ast
+
+            case field.ScaledLocations(values):
+                return field.ScaledLocations(
+                    {
+                        loc: self.scalar_visitor.emit(scale)
+                        for loc, scale in values.items()
+                    }
+                )
 
     def visit_waveform(self, ast: waveform.Waveform) -> waveform.Waveform:
         return self.waveform_visitor.emit(ast)
 
     def emit(self, ast: analog_circuit.AnalogCircuit) -> analog_circuit.AnalogCircuit:
-        return analog_circuit.AnalogCircuit(
-            self.visit(ast.register), self.visit(ast.sequence)
-        )
+        return self.visit(ast)

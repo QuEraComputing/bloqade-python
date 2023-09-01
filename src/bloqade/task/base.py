@@ -132,6 +132,14 @@ class Report:
         self.name = name + " " + str(datetime.datetime.now())
 
     def list_param(self, field_name: str) -> List[Union[Number, None]]:
+        """
+        List the parameters associate with the given variable field_name
+        for each tasks.
+
+        Args:
+            field_name (str): variable name
+
+        """
         return [meta.get(field_name) for meta in self.metas]
 
     @property
@@ -139,6 +147,14 @@ class Report:
         return self.dataframe.to_markdown()
 
     def bitstrings(self, filter_perfect_filling: bool = True) -> List[NDArray]:
+        """
+        Get the bitstrings from the data.
+
+        Args:
+            filter_perfect_filling (bool): whether return will
+            only contain perfect filling shots.
+
+        """
         perfect_sorting = self.dataframe.index.get_level_values("perfect_sorting")
         pre_sequence = self.dataframe.index.get_level_values("pre_sequence")
         if filter_perfect_filling:
@@ -146,7 +162,7 @@ class Report:
         else:
             df = self.dataframe
 
-        task_numbers = df.index.get_level_values("task_number")
+        task_numbers = df.index.get_level_values("task_number").unique()
 
         bitstrings = []
         for task_number in task_numbers:
@@ -156,6 +172,13 @@ class Report:
 
     @property
     def counts(self) -> List[OrderedDict[str, int]]:
+        """
+        Get the statistic for the counts for each configuration(s)
+
+        Return:
+            statistic of configuration (str): counts (int) for each task
+
+        """
         if self._counts is not None:
             return self._counts
         self._counts = self._construct_counts()
@@ -178,6 +201,17 @@ class Report:
         return counts
 
     def rydberg_densities(self, filter_perfect_filling: bool = True) -> pd.Series:
+        """
+        Get rydberg density for each task.
+
+        Args:
+            filter_perfect_filling (bool):  whether return will
+            only contain perfect filling shots.
+
+        Return:
+            per-site rydberg density for each task
+
+        """
         # TODO: implement nan for missing task numbers
         perfect_sorting = self.dataframe.index.get_level_values("perfect_sorting")
         pre_sequence = self.dataframe.index.get_level_values("pre_sequence")
@@ -190,6 +224,10 @@ class Report:
         return 1 - (df.groupby("task_number").mean())
 
     def show(self):
+        """
+        Interactive Visualization of the Report
+
+        """
         dat = report_visualize.format_report_data(self)
         p = report_visualize.report_visual(*dat)
         show(p)

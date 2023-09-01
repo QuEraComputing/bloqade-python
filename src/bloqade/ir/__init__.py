@@ -30,6 +30,7 @@ from .control.field import (
     Uniform,
     SpatialModulation,
     RunTimeVector,
+    AssignedRunTimeVector,
 )
 from .control.pulse import Pulse, NamedPulse, FieldName, rabi, detuning
 from .control.sequence import rydberg, hyperfine, Sequence, LevelCoupling
@@ -83,6 +84,7 @@ __all__ = [
     "ScaledLocations",
     "Uniform",
     "RunTimeVector",
+    "AssignedRunTimeVector",
     "SpatialModulation",
     "Pulse",
     "NamedPulse",

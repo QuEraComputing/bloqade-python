@@ -1,16 +1,22 @@
+from bloqade.ir.analog_circuit import AnalogCircuit
 from bloqade.ir.visitor.analog_circuit import AnalogCircuitVisitor
 import bloqade.ir.control.sequence as sequence
 import bloqade.ir.control.pulse as pulse
 import bloqade.ir.control.field as field
 import bloqade.ir.control.waveform as waveform
 import bloqade.ir.scalar as scalar
+import bloqade.ir.analog_circuit as analog_circuit
+
 import numbers
-from typing import Dict
+from typing import Any, Dict
 
 
 class AssignmentScan(AnalogCircuitVisitor):
-    def __init__(self, assignments: Dict[str, numbers.Real]):
+    def __init__(self, assignments: Dict[str, numbers.Real] = {}):
         self.assignments = dict(assignments)
+
+    def visit_analog_circuit(self, ast: AnalogCircuit) -> Any:
+        self.visit(ast.sequence)
 
     def visit_sequence(self, ast: sequence.SequenceExpr):
         match ast:
@@ -73,6 +79,6 @@ class AssignmentScan(AnalogCircuitVisitor):
             case waveform.Smooth(_, sub_waveform):
                 self.visit(sub_waveform)
 
-    def emit(self, ast: sequence.SequenceExpr) -> Dict[str, numbers.Real]:
+    def emit(self, ast: analog_circuit.AnalogCircuit) -> Dict[str, numbers.Real]:
         self.visit(ast)
         return self.assignments

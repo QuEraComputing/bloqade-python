@@ -7,7 +7,8 @@ from bokeh.models.widgets import PreText
 from bokeh.models import ColumnDataSource
 from bloqade.visualization.ir_visualize import get_field_figure
 from pydantic.dataclasses import dataclass
-from typing import Dict
+from typing import Dict, List
+from decimal import Decimal
 
 
 class FieldExpr:
@@ -116,6 +117,41 @@ class RunTimeVector(SpatialModulation):
 
     def children(self):
         return [self.name]
+
+    def figure(self, **assginment):
+        p = figure(sizing_mode="stretch_both")
+        p.text(
+            x=[0.5],
+            y=[0.5],
+            text=self.name,
+            text_algin="center",
+            text_baseline="middle",
+        )
+        return p
+
+    def _get_data(self, **assignment):
+        return [self.name], ["vec"]
+
+    def show(self, **assignment):
+        show(self.figure(**assignment))
+
+
+@dataclass
+class AssignedRunTimeVector(SpatialModulation):
+    name: str
+    value: List[Decimal]
+
+    def __hash__(self) -> int:
+        return hash(self.name) ^ hash(self.__class__) ^ hash(tuple(self.value))
+
+    def __str__(self):
+        return f"AssignedRunTimeVector({str(self.name), str(self.value)})"
+
+    def print_node(self):
+        return "AssgiendRunTimeVector"
+
+    def children(self):
+        return [self.name, *self.value]
 
     def figure(self, **assginment):
         p = figure(sizing_mode="stretch_both")
