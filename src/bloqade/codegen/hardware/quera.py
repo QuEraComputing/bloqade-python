@@ -30,7 +30,6 @@ from bloqade.ir.control.waveform import Record
 
 from bloqade.ir.visitor.analog_circuit import AnalogCircuitVisitor
 from bloqade.ir.visitor.waveform import WaveformVisitor
-from bloqade.codegen.common.assignment_scan import AssignmentScan
 
 import bloqade.submission.ir.task_specification as task_spec
 from bloqade.submission.ir.parallel import ParallelDecoder, ClusterLocationInfo
@@ -727,9 +726,6 @@ class QuEraCodeGen(AnalogCircuitVisitor):
     def emit(
         self, nshots: int, analog_circuit: AnalogCircuit
     ) -> Tuple[task_spec.QuEraTaskSpecification, Optional[ParallelDecoder]]:
-        self.assignments = AssignmentScan(self.assignments).emit(
-            analog_circuit.sequence
-        )
         self.visit(analog_circuit)
 
         task_ir = task_spec.QuEraTaskSpecification(

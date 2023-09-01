@@ -72,11 +72,11 @@ class QuEraHardwareRoutine(RoutineBase):
         tasks = OrderedDict()
 
         for task_number, batch_params in enumerate(params.batch_assignments(*args)):
-            final_circuit = AssignAnalogCircuit(batch_params).visit(circuit)
-            record_params = AssignmentScan().emit(final_circuit)
-            task_ir, parallel_decoder = QuEraCodeGen(
-                record_params, capabilities=capabilities
-            ).emit(shots, final_circuit)
+            record_params = AssignmentScan(batch_params).emit(circuit)
+            final_circuit = AssignAnalogCircuit(record_params).visit(circuit)
+            task_ir, parallel_decoder = QuEraCodeGen(capabilities=capabilities).emit(
+                shots, final_circuit
+            )
 
             task_ir = task_ir.discretize(capabilities)
             tasks[task_number] = QuEraTask(
