@@ -83,9 +83,23 @@ calculation = (
 ```
 
 Here we selected the `uniform` property which indicates that the detuning will be uniform across the atoms. You can also select `var(name)` where `name` is the name of the variable
-defined using a string. This will allow you to define a spatially varying detuning which will be given as a list of real numbers. You can also select individual atoms using the `location(index)` method, where `index` is the integer associated with the lattice. Now that we have the spatial modulation of the drive we can start to build the time dependence of the detuning field. 
+defined using a string. This will allow you to define a spatially varying detuning which will be given as a list of real numbers. You can also select individual atoms using the `location(index)` method, where `index` is the integer associated with the lattice. Now that we have the spatial modulation of the drive we can start to build the time dependence of the detuning field. Continuing with the example we can add individual segments to the time function using `linear` or `constant` methods. or we have methods that are short cuts to common kinda of waveforms like `piecewise_linear` or `piecewise_constant`. On Aquila the detuning must be given in terms of piecewise linear.
 
+```python
+from bloqade import start
 
+calculation = (
+    start
+    .add_position((0, 0))
+    .add_position((0, 6.8))
+    .add_positions([(6.8, 0), (6.8, 6.8)])
+    .rydberg.detuning.uniform.
+    piecewise_linear(
+        durations = [0.1, 1.0 0.1],
+        values = [-10, -10, 10, 10]
+    )
+)
+```
 
 
 
