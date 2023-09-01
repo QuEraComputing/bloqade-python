@@ -1,6 +1,6 @@
 {
-    "api_hostname": "***REMOVED***.execute-api.us-east-1.amazonaws.com",
-    "proxy": "***REMOVED***.execute-api.us-east-1.vpce.amazonaws.com",
+    "api_hostname": "XXXXXXXXXXX.execute-api.us-east-1.amazonaws.com",
+    "proxy": "XXXXXXXXXXX.execute-api.us-east-1.vpce.amazonaws.com",
     "api_stage": "v0",
     "qpu_id": "qpu2-mock",
     "region": "us-east-1"
