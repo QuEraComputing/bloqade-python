@@ -310,6 +310,16 @@ class Space:
         state[0] = 1.0
         return state
 
+    def sample_state_vector(self, state_vector: NDArray, n_samples: int) -> NDArray:
+        p = np.abs(state_vector) ** 2
+        sampled_configs = np.random.choice(self.configurations, size=n_samples, p=p)
+
+        sample_fock_states = np.empty((n_samples, self.n_atoms), dtype=np.uint8)
+
+        for i in range(self.n_atoms):
+            sample_fock_states[:, i] += sampled_configs % self.atom_type.n_level
+            sampled_configs //= self.atom_type.n_level
+
     def __str__(self):
         # TODO: update this to use unicode
         output = ""
