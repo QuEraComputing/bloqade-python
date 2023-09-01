@@ -1,171 +1,389 @@
-from bloqade.constants import RB_C6
-from bloqade.ir.control.sequence import (
-    RydbergLevelCoupling,
-    HyperfineLevelCoupling,
+from bloqade.codegen.common.assignment_scan import AssignmentScan
+from bloqade.ir.location.base import AtomArrangement, SiteFilling
+from bloqade.ir.visitor.analog_circuit import AnalogCircuitVisitor
+from bloqade.ir.visitor.waveform import WaveformVisitor
+from bloqade.ir.control.field import (
+    Field,
+    ScaledLocations,
+    SpatialModulation,
+    RunTimeVector,
+    UniformModulation,
 )
+import bloqade.ir.scalar as scalar
+import bloqade.ir.control.sequence as sequence
+import bloqade.ir.control.pulse as pulse
+import bloqade.ir.control.waveform as waveform
+import bloqade.ir.control.field as field
+import bloqade.ir as ir
+
+from bloqade.emulate.ir.space import Space, TwoLevelAtom, ThreeLevelAtom
 from bloqade.emulate.ir.emulator import (
+    DetuningTerm,
     EmulatorProgram,
     LaserCoupling,
-    DetuningTerm,
     RabiTerm,
-    Visitor,
 )
-from bloqade.emulate.ir.space import (
-    Space,
-    TwoLevelAtomType,
-    ThreeLevelAtomType,
-)
-from bloqade.emulate.ir.state_vector import (
-    RabiOperator,
-    DetuningOperator,
-    RydbergHamiltonian,
-)
-from bloqade.emulate.sparse_operator import IndexMapping
-from scipy.sparse import csr_matrix
-import numpy as np
+
+import dataclasses
+from typing import Any, Dict, Optional, Union, List
+from numbers import Number, Real
+from decimal import Decimal
+
+ParamType = Union[Real, List[Real]]
 
 
-class RydbergHamiltonianCodeGen(Visitor):
-    def __init__(self):
-        self.rabi_ops = []
-        self.detuning_ops = []
-        self.space = None
-        self.n_level = None
-        self.level_coupling = None
-        self.rydberg_state = None
+@dataclasses.dataclass(frozen=True)
+class WaveformScanResults:
+    module_imports: Dict[str, str] = dataclasses.field(default_factory=dict)
+    primative_exprs: Dict[str, str] = dataclasses.field(default_factory=dict)
+    primative_tokens: Dict[str, str] = dataclasses.field(default_factory=dict)
 
-    def visit_emulator_program(self, emulator_program: EmulatorProgram):
-        self.visit(emulator_program.space)
 
-        if emulator_program.rydberg is not None:
-            self.visit(emulator_program.rydberg)
+@dataclasses.dataclass
+class WaveformScan(WaveformVisitor):
+    var_number: int = 0
+    shift: scalar.Scalar = ir.cast(0.0)
+    assignments: Dict[str, ParamType] = dataclasses.field(default_factory=dict)
+    module_imports: Dict[str, str] = dataclasses.field(default_factory=dict)
+    primative_exprs: Dict[str, str] = dataclasses.field(default_factory=dict)
+    primative_tokens: Dict[str, str] = dataclasses.field(default_factory=dict)
 
-        if emulator_program.hyperfine is not None:
-            self.visit(emulator_program.hyperfine)
+    def gensymm(self):
+        self.var_number += 1
+        return f"var{self.var_number}"
 
-    def visit_space(self, space: Space):
-        self.space = space
-        self.n_level = space.atom_type.n_level
-        atom_coordinates = space.atom_coordinates
+    @property
+    def t(self) -> None:
+        return str(ir.cast("t") + self.shift)
 
-        # generate rydberg interaction elements
-        self.rydberg = np.zeros(space.size, dtype=np.float64)
+    def gen_token(self, expr: str) -> None:
+        if expr not in self.primative_exprs:
+            token = self.gensymm()
+            self.primative_exprs[expr] = token
+            self.primative_tokens[token] = expr
 
-        for index_1, coordinate_1 in enumerate(atom_coordinates):
-            coordinate_1 = np.asarray(coordinate_1)
-            is_rydberg_1 = space.is_rydberg_at(index_1)
-            for index_2, coordinate_2 in enumerate(
-                atom_coordinates[index_1 + 1 :], index_1 + 1
-            ):
-                coordinate_2 = np.asarray(coordinate_2)
-                distance = np.linalg.norm(coordinate_1 - coordinate_2)
+    def visit_constant(self, ast: waveform.Constant) -> None:
+        pass
 
-                rydberg_interaction = RB_C6 / (distance**6)
+    def visit_linear(self, ast: waveform.Linear) -> None:
+        start = ast.start(**self.assignments)
+        stop = ast.stop(**self.assignments)
+        duration = ast.duration(**self.assignments)
+        slope = (stop - start) / duration
+        if slope == 0:
+            expr = f"{start!s}"
+        elif slope == Decimal("1"):
+            expr = f"({self.t!s} + {start!s})"
+        else:
+            expr = f"({slope!s} * {self.t!s} + {start!s})"
+        self.gen_token(expr)
 
-                if rydberg_interaction <= np.finfo(np.float64).eps:
-                    continue
+    def visit_poly(self, ast: waveform.Poly) -> None:
+        coeff_str_list = [
+            str(coeff(**self.assignments)) for coeff in ast.checkpoints[::-1]
+        ]
+        coeff_literal = f"[{','.join(coeff_str_list)}]"
+        expr = f"np.polyval({coeff_literal}, {self.t})"
+        self.gen_token(expr)
 
-                mask = np.logical_and(is_rydberg_1, space.is_rydberg_at(index_2))
-                self.rydberg[mask] += rydberg_interaction
+    def visit_python_fn(self, ast: waveform.PythonFn) -> None:
+        import inspect
 
-    def visit_laser_coupling(self, laser_coupling: LaserCoupling):
-        self.level_coupling = laser_coupling.level_coupling
-        terms = laser_coupling.detuning + laser_coupling.rabi
-        for term in terms:
-            self.visit(term)
+        module_name = inspect.getmodule(ast.fn).__name__
 
-    def visit_detuning_term(self, detuning_term: DetuningTerm):
-        diagonal = np.zeros(self.space.size, dtype=np.float64)
+        if module_name != "__main__":
+            # if function is coming from an external module that is not in `__main__`.
+            # keep track of where function is imported from to fix any namespace issues
+            # when generating the code for this function.
+            self.module_imports[module_name] = ast.fn.__name__
 
-        match (self.space.atom_type, self.level_coupling):
-            case (TwoLevelAtomType(), RydbergLevelCoupling()):
-                state = TwoLevelAtomType.State.Rydberg
-            case (ThreeLevelAtomType(), RydbergLevelCoupling()):
-                state = ThreeLevelAtomType.State.Rydberg
-            case (ThreeLevelAtomType(), HyperfineLevelCoupling()):
-                state = ThreeLevelAtomType.State.Hyperfine
+        expr = f"{ast.fn.__name__}({self.t})"
+        self.gen_token(expr)
 
-        for atom_index, value in enumerate(detuning_term.target_atoms):
-            diagonal[self.space.is_state_at(atom_index, state)] = value
+    def visit_negative(self, ast: waveform.Negative) -> None:
+        self.visit(ast.waveform)
 
-        self.detuning_ops.append(
-            DetuningOperator(
-                diagonal=diagonal,
-                amplitude=detuning_term.amplitude,
-            )
+    def visit_scale(self, ast: waveform.Scale) -> None:
+        self.visit(ast.waveform)
+
+    def visit_add(self, ast: waveform.Add) -> None:
+        self.visit(ast.left)
+        self.visit(ast.right)
+
+    def visit_record(self, ast: waveform.Record) -> None:
+        self.visit(ast.waveform)
+
+    def visit_sample(self, ast: waveform.Sample) -> None:
+        pass
+
+    def visit_append(self, ast: waveform.Append) -> None:
+        original_shift = self.shift
+        for wf in ast.waveforms:
+            self.visit(wf)
+            self.shift += wf.duration(**self.assignments)
+        self.shift = original_shift
+
+    def visit_slice(self, ast: waveform.Slice) -> Any:
+        self.shift += ast.interval.start(**self.assignments)
+        self.visit(ast.waveform)
+        self.shift -= ast.interval.start(**self.assignments)
+
+    @staticmethod
+    def scan(ast: waveform.Waveform, **assignments) -> "WaveformScanResults":
+        assignments = AssignmentScan(assignments).emit(ast)
+        scanner = WaveformScan(assignments=assignments)
+        scanner.visit(ast)
+
+        return WaveformScanResults(
+            module_imports=scanner.module_imports,
+            primative_exprs=scanner.primative_exprs,
+            primative_tokens=scanner.primative_tokens,
         )
 
-    def visit_rabi_term(self, rabi_term: RabiTerm):
-        # Get the from and to states for term
-        match (self.space.atom_type, self.level_coupling):
-            case (TwoLevelAtomType(), RydbergLevelCoupling()):
-                to = TwoLevelAtomType.State.Ground
-                fro = TwoLevelAtomType.State.Rydberg
-            case (ThreeLevelAtomType(), RydbergLevelCoupling()):
-                to = ThreeLevelAtomType.State.Hyperfine
-                fro = ThreeLevelAtomType.State.Rydberg
-            case (ThreeLevelAtomType(), HyperfineLevelCoupling()):
-                to = ThreeLevelAtomType.State.Ground
-                fro = ThreeLevelAtomType.State.Hyperfine
 
-        # get matrix element generating function
-        if rabi_term.phase is None:
-            # matrix_ele = lambda atom_index: self.space.swap_state_at(
-            #     atom_index, fro, to
-            # )
-            def matrix_ele(atom_index):
-                return self.space.swap_state_at(atom_index, fro, to)
+class WaveformCompiler(WaveformVisitor):
+    # TODO: implement AST generator for waveforms.
 
-        else:
+    def __init__(self, assignments: Dict[str, Number]):
+        self.assignments = assignments
 
-            def matrix_ele(atom_index):
-                return self.space.swap_state_at(atom_index, fro, to, rabi_term.phase)
+    def emit(self, ast: waveform.Waveform):
+        # fall back on interpreter for now.
+        return lambda t: ast(t, **self.assignments)
 
-            # matrix_ele = lambda atom_index: self.space.transition_state_at(
-            #     atom_index, fro, to
-            # )
 
-        # generate rabi operator
-        if len(rabi_term.target_atoms) == 1:
-            ((atom_index, value),) = rabi_term.target_atoms.items()
-            self.rabi_ops.append(
-                RabiOperator(
-                    op=IndexMapping(self.space.size, *matrix_ele(atom_index)),
-                    amplitude=rabi_term.amplitude,
-                    phase=rabi_term.phase,
+class EmulatorProgramCodeGen(AnalogCircuitVisitor):
+    def __init__(
+        self,
+        add_hyperfine: bool = False,
+        assignments: Dict[str, Number] = {},
+        blockade_radius: float = 0.0,
+    ):
+        self.add_hyperfine = add_hyperfine
+        self.assignments = assignments
+        self.waveform_compiler = WaveformCompiler(assignments)
+        self.blockade_radius = blockade_radius
+        self.space = None
+        self.register = None
+        self.duration = 0.0
+        self.rydberg = None
+        self.hyperfine = None
+
+    def visit_program(self, ast: ir.AnalogCircuit):
+        self.add_hyperfine = (
+            sequence.hyperfine in ast.sequence.pulses or self.add_hyperfine
+        )
+        self.visit(ast.register)
+        self.visit(ast.sequence)
+
+    def visit_register(self, ast: AtomArrangement) -> Any:
+        atom_positions = []
+        for loc_info in ast.enumerate():
+            if loc_info.filling == SiteFilling.filled:
+                positions = tuple(
+                    [pos(**self.assignments) for pos in loc_info.position]
                 )
+                atom_positions.append(positions)
+
+        if self.add_hyperfine:
+            self.space = Space.create(
+                atom_positions,
+                ThreeLevelAtom,
+                blockade_radius=self.blockade_radius,
             )
         else:
-            indptr = np.zeros(self.space.size + 1, dtype=self.space.index_type)
-
-            for atom_index in rabi_term.target_atoms:
-                row_indices, col_indices = matrix_ele(atom_index)
-                indptr[1:][row_indices] = 1
-            np.cumsum(indptr, out=indptr)
-
-            indices = np.zeros(indptr[-1], dtype=self.space.index_type)
-            data = np.zeros(indptr[-1], dtype=np.float64)
-
-            for atom_index, value in rabi_term.target_atoms.items():
-                row_indices, col_indices = matrix_ele(atom_index)
-                indices[indptr[1:][row_indices]] = col_indices
-                data[indptr[1:][row_indices]] = value
-
-            self.rabi_ops.append(
-                RabiOperator(
-                    op=csr_matrix(
-                        (data, indices, indptr),
-                        shape=(self.space.size, self.space.size),
-                    ),
-                    amplitude=rabi_term.amplitude,
-                    phase=rabi_term.phase,
-                )
+            self.space = Space.create(
+                atom_positions,
+                TwoLevelAtom,
+                blockade_radius=self.blockade_radius,
             )
 
-    def emit(self, emulator_program: EmulatorProgram) -> RydbergHamiltonian:
-        self.visit(emulator_program)
-        return RydbergHamiltonian(
+    def visit_sequence(self, ast: sequence.SequenceExpr):
+        match ast:
+            case sequence.Sequence(pulses):
+                for level_coupling, sub_pulse in pulses.items():
+                    self.visit(sub_pulse)
+                    match level_coupling:
+                        case sequence.rydberg:
+                            self.rydberg = LaserCoupling(
+                                level_coupling=level_coupling,
+                                detuning=self.detuning_terms,
+                                rabi=self.rabi_terms,
+                            )
+                        case sequence.hyperfine:
+                            self.hyperfine = LaserCoupling(
+                                level_coupling=level_coupling,
+                                detuning=self.detuning_terms,
+                                rabi=self.rabi_terms,
+                            )
+
+            case sequence.NamedSequence(sub_sequence, _):
+                self.visit(sub_sequence)
+
+            case _:
+                raise NotImplementedError
+
+    def visit_spatial_modulation(self, ast: SpatialModulation) -> Dict[int, float]:
+        match ast:
+            case UniformModulation():
+                return {atom: 1.0 for atom in range(self.space.n_atoms)}
+            case RunTimeVector(name):
+                return {
+                    atom: coeff for atom, coeff in enumerate(self.assignments[name])
+                }
+            case ScaledLocations(locations):
+                return {
+                    loc.value: float(coeff(**self.assignments))
+                    for loc, coeff in locations.items()
+                }
+
+    def visit_detuning(self, ast: Optional[Field]):
+        if ast is None:
+            return []
+
+        terms = []
+
+        match ast:
+            case Field(value) if len(value) < self.space.n_atoms:
+                for sm, wf in value.items():
+                    self.duration = max(
+                        float(wf.duration(**self.assignments)), self.duration
+                    )
+                    terms.append(
+                        DetuningTerm(
+                            target_atoms=self.visit_spatial_modulation(sm),
+                            amplitude=self.waveform_compiler.emit(wf),
+                        )
+                    )
+
+            case Field(value):
+                target_atom_dict = {
+                    sm: self.visit_spatial_modulation(sm) for sm in value.keys()
+                }
+
+                for atom in range(self.space.n_atoms):
+                    wf = sum(
+                        (
+                            target_atom_dict[sm].get(atom, 0.0) * wf
+                            for sm, wf in value.items()
+                        ),
+                        start=waveform.Constant(0.0, 0.0),
+                    )
+                    self.duration = max(
+                        float(wf.duration(**self.assignments)), self.duration
+                    )
+
+                    terms.append(
+                        DetuningTerm(
+                            target_atoms={atom: 1},
+                            amplitude=self.waveform_compiler.emit(wf),
+                        )
+                    )
+
+        return terms
+
+    def visit_rabi(self, amplitude: Optional[Field], phase: Optional[Field]):
+        terms = []
+        match (amplitude, phase):
+            case (None, _):
+                return []
+
+            case (Field(value), None) if len(value) < self.space.n_atoms:
+                for sm, wf in value.items():
+                    self.duration = max(
+                        float(wf.duration(**self.assignments)), self.duration
+                    )
+                    terms.append(
+                        RabiTerm(
+                            target_atoms=self.visit_spatial_modulation(sm),
+                            amplitude=self.waveform_compiler.emit(wf),
+                        )
+                    )
+
+            case (
+                Field(value),
+                Field(value={field.Uniform: phase_waveform}),
+            ) if len(value) < self.space.n_atoms:
+                rabi_phase = self.waveform_compiler.emit(phase_waveform)
+                self.duration = max(
+                    float(phase_waveform.duration(**self.assignments)), self.duration
+                )
+                for sm, wf in value.items():
+                    self.duration = max(
+                        float(wf.duration(**self.assignments)), self.duration
+                    )
+                    terms.append(
+                        RabiTerm(
+                            target_atoms=self.visit_spatial_modulation(sm),
+                            amplitude=self.waveform_compiler.emit(wf),
+                            phase=rabi_phase,
+                        )
+                    )
+
+            case _:  # fully local fields
+                phase_target_atoms_dict = {
+                    sm: self.visit_spatial_modulation(sm) for sm in phase.value.keys()
+                }
+                phase_target_atoms_dict = {
+                    sm: self.visit_spatial_modulation(sm)
+                    for sm in amplitude.value.keys()
+                }
+
+                terms = []
+                for atom in range(self.space.n_atoms):
+                    phase_wf = sum(
+                        (
+                            phase_target_atoms_dict[sm].get(atom, 0.0) * wf
+                            for sm, wf in phase.value.items()
+                        ),
+                        start=waveform.Constant(0.0, 0.0),
+                    )
+                    amplitude_wf = sum(
+                        (
+                            phase_target_atoms_dict[sm].get(atom, 0.0) * wf
+                            for sm, wf in amplitude.value.items()
+                        ),
+                        start=waveform.Constant(0.0, 0.0),
+                    )
+
+                    self.duration = max(
+                        float(phase_wf.duration(**self.assignments)), self.duration
+                    )
+                    self.duration = max(
+                        float(amplitude_wf.duration(**self.assignments)), self.duration
+                    )
+
+                    terms.append(
+                        RabiTerm(
+                            target_atoms={atom: 1},
+                            amplitude=self.waveform_compiler.emit(amplitude_wf),
+                            phase=self.waveform_compiler.emit(phase_wf),
+                        )
+                    )
+
+    def visit_pulse(self, ast: pulse.PulseExpr):
+        match ast:
+            case pulse.Pulse(fields):
+                detuning = fields.get(pulse.detuning, None)
+                amplitude = fields.get(pulse.rabi.amplitude, None)
+                phase = fields.get(pulse.rabi.phase, None)
+
+                self.detuning_terms = self.visit_detuning(detuning)
+                self.rabi_terms = self.visit_rabi(amplitude, phase)
+
+            case pulse.NamedPulse(sub_pulse, _):
+                self.visit(sub_pulse)
+
+            case _:
+                raise NotImplementedError
+
+    def emit(self, circuit: ir.AnalogCircuit) -> EmulatorProgram:
+        self.assignments = AssignmentScan(self.assignments).emit(circuit.sequence)
+
+        self.visit(circuit)
+        return EmulatorProgram(
+            space=self.space,
+            duration=self.duration,
             rydberg=self.rydberg,
-            detuning_ops=self.detuning_ops,
-            rabi_ops=self.rabi_ops,
+            hyperfine=self.hyperfine,
         )
