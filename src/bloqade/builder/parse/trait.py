@@ -23,6 +23,7 @@ class CompileJSON:
 
 class ParseRegister:
     def parse_register(self: "Builder") -> Union["AtomArrangement", "ParallelRegister"]:
+        """Parse the arrangement of atoms of the program."""
         from bloqade.builder.parse.builder import Parser
 
         return Parser().parse_register(self)
@@ -30,6 +31,7 @@ class ParseRegister:
 
 class ParseSequence:
     def parse_sequence(self: "Builder") -> "Sequence":
+        """Parse the pulse sequence part of the program."""
         from bloqade.builder.parse.builder import Parser
 
         return Parser().parse_sequence(self)
@@ -37,12 +39,15 @@ class ParseSequence:
 
 class ParseCircuit:
     def parse_circuit(self: "Builder") -> "AnalogCircuit":
+        """Parse the analog circuit from the program."""
         from bloqade.builder.parse.builder import Parser
 
         return Parser().parse_circuit(self)
 
 
 class ParseRoutine:
+    """Parse the program to return an AnalogCircuit as well as the parameters for the circuit."""
+
     def parse_source(self: "Builder") -> Tuple["AnalogCircuit", "Params"]:
         from bloqade.builder.parse.builder import Parser
 
