@@ -2,6 +2,9 @@ from typing import Any, Dict, Type
 from bloqade.codegen.common.json import BloqadeIRSerializer, BloqadeIRDeserializer
 from bloqade.builder.start import ProgramStart
 from bloqade.builder.sequence_builder import SequenceBuilder
+from bloqade.builder.backend.braket import BraketService, BraketDeviceRoute
+from bloqade.builder.backend.quera import QuEraService, QuEraDeviceRoute
+from bloqade.builder.backend.bloqade import BloqadeService, BloqadeDeviceRoute
 
 # from bloqade.builder.base import Builder
 from bloqade.builder.spatial import Location, Scale, Var, Uniform
@@ -38,28 +41,6 @@ class BuilderSerializer(BloqadeIRSerializer):
             return "program_start"
 
         match obj:
-            case braket.Aquila(parent):
-                return {"braket_aquila": {"parent": parent}}
-            case braket.BraketEmulator(parent):
-                return {"braket_simu": {"parent": parent}}
-            case quera.Aquila(parent):
-                return {"quera_aquila": {"parent": parent}}
-            case quera.Gemini(parent):
-                return {"quera_gemini": {"parent": parent}}
-            case bloqade.BloqadePython(parent):
-                return {"bloqade_python": {"parent": parent}}
-            case bloqade.BloqadeJulia(parent):
-                return {"bloqade_julia": {"parent": parent}}
-            case braket.BraketDeviceRoute(parent) | quera.QuEraDeviceRoute(
-                parent
-            ) | bloqade.BloqadeDeviceRoute(parent) | braket.BraketService(
-                parent
-            ) | quera.QuEraService(
-                parent
-            ) | bloqade.BloqadeService(
-                parent
-            ):
-                return {camel_to_snake(obj.__class__.__name__): {"parent": parent}}
             case Parallelize(cluster_spacing, parent):
                 return {
                     "parallelize": {"cluster_spacing": cluster_spacing},
@@ -117,20 +98,6 @@ class BuilderSerializer(BloqadeIRSerializer):
                 )
             case Apply(wf, parent):
                 return {"apply": {"wf": wf, "parent": parent}}
-            case Slice(None, stop, parent):
-                return {
-                    "slice": {
-                        "stop": stop,
-                        "parent": parent,
-                    }
-                }
-            case Slice(start, None, parent):
-                return {
-                    "slice": {
-                        "start": start,
-                        "parent": parent,
-                    }
-                }
             case Slice(start, stop, parent):
                 return {
                     "slice": {
@@ -190,7 +157,19 @@ class BuilderSerializer(BloqadeIRSerializer):
                 return {"uniform": {"parent": parent}}
             case Detuning(parent) | RabiAmplitude(parent) | RabiPhase(parent) | Rabi(
                 parent
-            ) | Hyperfine(parent) | Rydberg(parent):
+            ) | Hyperfine(parent) | Rydberg(parent) | BraketDeviceRoute(
+                parent
+            ) | QuEraDeviceRoute(
+                parent
+            ) | BloqadeDeviceRoute(
+                parent
+            ) | BraketService(
+                parent
+            ) | QuEraService(
+                parent
+            ) | BloqadeService(
+                parent
+            ):
                 return {camel_to_snake(obj.__class__.__name__): {"parent": parent}}
             case _:
                 return super().default(obj)
@@ -223,18 +202,11 @@ class BuilderDeserializer(BloqadeIRDeserializer):
         "sequence_builder": SequenceBuilder,
         "assign": Assign,
         "batch_assign": BatchAssign,
-        "bloqade_python": bloqade.BloqadePython,
-        "bloqade_julia": bloqade.BloqadeJulia,
         "bloqade_device_route": bloqade.BloqadeDeviceRoute,
         "bloqade_service": bloqade.BloqadeService,
         "braket_device_route": braket.BraketDeviceRoute,
         "braket_service": braket.BraketService,
-        "braket_aquila": braket.Aquila,
-        "braket_simu": braket.BraketEmulator,
-        "quera_device_route": quera.QuEraDeviceRoute,
-        "quera_service": quera.QuEraService,
-        "quera_aquila": quera.Aquila,
-        "quera_gemini": quera.Gemini,
+        "braket_aquila": braket.BraketDeviceRoute,
     }
 
     def object_hook(self, obj: Dict[str, Any]):

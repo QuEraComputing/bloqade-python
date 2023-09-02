@@ -258,7 +258,9 @@ class LocationSerializer(LocationVisitor):
 
     def visit_list_of_locations(self, ast: ListOfLocations) -> Any:
         return {
-            "list_of_locations": {"locations": list(map(self.visit, ast.locations))}
+            "list_of_locations": {
+                "location_list": list(map(self.visit, ast.location_list))
+            }
         }
 
     def visit_rectangular(self, ast: Rectangular) -> Any:
