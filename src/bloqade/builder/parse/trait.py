@@ -13,6 +13,7 @@ if TYPE_CHECKING:
 
 class CompileJSON:
     def json(self: "Builder", **json_options) -> str:
+        """transform the program to a JSON string."""
         from bloqade.builder.parse.json import BuilderSerializer
 
         return json.dumps(self, cls=BuilderSerializer, **json_options)
@@ -57,6 +58,7 @@ class ParseRoutine:
 class Parse(ParseRegister, ParseSequence, ParseCircuit, ParseRoutine):
     @property
     def n_atoms(self: "Builder"):
+        """Return the number of atoms in the program."""
         from .builder import Parser
 
         register = Parser().parse_register(self)
