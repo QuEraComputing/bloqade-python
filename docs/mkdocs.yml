@@ -10,20 +10,17 @@ repo_url: https://github.com/QuEraComputing/bloqade-python
 nav:
   - Home: index.md
   - Getting started:
-    - Installation: getting-started.md
-    - Philosophy: philosophy.md
-    - License: license.md
-    - Contributing:
-      - contributing/index.md
-      - Reporting a bug: contributing/reporting-a-bug.md
-      - Reporting a docs issue: contributing/reporting-a-docs-issue.md
-      - Requesting a change: contributing/requesting-a-change.md
-      - Creating a reproduction: contributing/creating-a-reproduction.md
-      - Setting up development: contributing/setup.md
-      - Asking a question: https://github.com/QuEraComputing/bloqade-python/discussions
+    - Installation: getting_started/installation.md
+    - Philosophy: getting_started/philosophy.md
+  - Contributing:
+    - Reporting a bug: contributing/reporting-a-bug.md
+    - Reporting a docs issue: contributing/reporting-a-docs-issue.md
+    - Requesting a change: contributing/requesting-a-change.md
+    - Creating a reproduction: contributing/creating-a-reproduction.md
+    - Setting up development: contributing/setup.md
+    - Asking a question: https://github.com/QuEraComputing/bloqade-python/discussions
   - Tutorials:
     - tutorials/index.md
-    - Rabi oscillation: examples/simple-rabi-oscillation.md
   - Reference:
     - Builder workflow : tree/builder.md
     - API References : reference/bloqade/
@@ -31,6 +28,7 @@ nav:
     - blog/index.md
     - 2023:
       - blog/posts/bloqade-release.md
+  - License: license.md
 
 copyright: Copyright &copy; 2022 - QuEra Computing Inc.
 theme:
