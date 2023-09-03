@@ -1,17 +1,6 @@
 # Welcome to Bloqade -- QuEra's Neutral Atom SDK
 
-For full documentation visit [mkdocs.org](https://www.mkdocs.org).
 
-## Commands
+## What is Bloqade?
 
-* `mkdocs new [dir-name]` - Create a new project.
-* `mkdocs serve` - Start the live-reloading docs server.
-* `mkdocs build` - Build the documentation site.
-* `mkdocs -h` - Print help message and exit.
-
-## Project layout
-
-    mkdocs.yml    # The configuration file.
-    docs/
-        index.md  # The documentation homepage.
-        ...       # Other markdown pages, images and other files.
+Bloqade is an SDK for neutral atom quantum computers created by QuEra Compling. It is designed to be a simple, easy-to-use interface for writing analog quantum programs on neutral atom quantum computers. Currently QuEra's hardware is hosting on Amazon Braket which is the primary method of accessing QuEra's quantum hardware. Over the alpha phase we plan to expand the emulator capabilities to include a perfromance python emulator but also a direct integration with Julia via [Bloqade.jl](https://queracomputing.github.io/Bloqade.jl/dev/).

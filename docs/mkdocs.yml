@@ -23,6 +23,7 @@ nav:
       - Asking a question: https://github.com/QuEraComputing/bloqade-python/discussions
   - Tutorials:
     - tutorials/index.md
+    - Rabi oscillation: examples/simple-rabi-oscillation.md
   - Reference:
     - Builder workflow : tree/builder.md
     - API References : reference/bloqade/

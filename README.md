@@ -1,6 +1,4 @@
-# Bloqade
-
-The python SDK for Bloqade.
+# Welcome to Bloqade -- QuEra's Neutral Atom SDK
 
 ## Installation
 
@@ -227,14 +225,7 @@ hardware_batch.fetch().report().show()
 
 ```
 
-
-
-
-
-
-
 A good place to start for examples are the Aquila whitepaper examples bound [here]().
-
 
 
 ### Development Guide
