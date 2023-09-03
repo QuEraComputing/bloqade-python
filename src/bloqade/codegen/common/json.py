@@ -642,9 +642,7 @@ class BloqadeIRDeserializer:
     def register_hook(self, obj: Dict[str, Any]):
         match obj:
             case {"location_info": {"position": position, "filled": filled}}:
-                return location.LocationInfo(
-                    tuple(position), filled
-                )
+                return location.LocationInfo(tuple(position), filled)
             case {"list_of_locations": {"location_list": location_list}}:
                 return location.ListOfLocations(location_list)
             case {"chain": {"lattice_spacing": lattice_spacing, "L": L}}:
