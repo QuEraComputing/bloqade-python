@@ -12,7 +12,10 @@ def cast_param(value: Union[Real, List[Real]]):
     if isinstance(value, list):
         return list(map(Decimal, map(str, value)))
 
-    return Decimal(str(value))
+    if isinstance(value, (Real, Decimal)):
+        return Decimal(str(value))
+
+    raise ValueError("value must be a real number or a list of real numbers")
 
 
 class AssignBase(Builder):
