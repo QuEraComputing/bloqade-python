@@ -4,6 +4,9 @@ from bloqade.builder.start import ProgramStart
 from bloqade.builder.sequence_builder import SequenceBuilder
 
 # from bloqade.builder.base import Builder
+from bloqade.builder.backend.bloqade import BloqadeDeviceRoute, BloqadeService
+from bloqade.builder.backend.braket import BraketDeviceRoute, BraketService
+from bloqade.builder.backend.quera import QuEraDeviceRoute, QuEraService
 from bloqade.builder.spatial import Location, Scale, Var, Uniform
 from bloqade.builder.waveform import (
     Linear,
@@ -22,9 +25,6 @@ from bloqade.builder.coupling import Rydberg, Hyperfine
 from bloqade.builder.parallelize import Parallelize, ParallelizeFlatten
 from bloqade.builder.assign import Assign, BatchAssign
 from bloqade.builder.flatten import Flatten
-from bloqade.builder.backend import bloqade
-from bloqade.builder.backend import braket
-from bloqade.builder.backend import quera
 
 
 class BuilderSerializer(BloqadeIRSerializer):
@@ -38,25 +38,13 @@ class BuilderSerializer(BloqadeIRSerializer):
             return "program_start"
 
         match obj:
-            case braket.Aquila(parent):
-                return {"braket_aquila": {"parent": parent}}
-            case braket.BraketEmulator(parent):
-                return {"braket_simu": {"parent": parent}}
-            case quera.Aquila(parent):
-                return {"quera_aquila": {"parent": parent}}
-            case quera.Gemini(parent):
-                return {"quera_gemini": {"parent": parent}}
-            case bloqade.BloqadePython(parent):
-                return {"bloqade_python": {"parent": parent}}
-            case bloqade.BloqadeJulia(parent):
-                return {"bloqade_julia": {"parent": parent}}
-            case braket.BraketDeviceRoute(parent) | quera.QuEraDeviceRoute(
+            case BraketDeviceRoute(parent) | QuEraDeviceRoute(
                 parent
-            ) | bloqade.BloqadeDeviceRoute(parent) | braket.BraketService(
+            ) | BloqadeDeviceRoute(parent) | BraketService(
                 parent
-            ) | quera.QuEraService(
+            ) | QuEraService(
                 parent
-            ) | bloqade.BloqadeService(
+            ) | BloqadeService(
                 parent
             ):
                 return {camel_to_snake(obj.__class__.__name__): {"parent": parent}}
@@ -223,18 +211,13 @@ class BuilderDeserializer(BloqadeIRDeserializer):
         "sequence_builder": SequenceBuilder,
         "assign": Assign,
         "batch_assign": BatchAssign,
-        "bloqade_python": bloqade.BloqadePython,
-        "bloqade_julia": bloqade.BloqadeJulia,
-        "bloqade_device_route": bloqade.BloqadeDeviceRoute,
-        "bloqade_service": bloqade.BloqadeService,
-        "braket_device_route": braket.BraketDeviceRoute,
-        "braket_service": braket.BraketService,
-        "braket_aquila": braket.Aquila,
-        "braket_simu": braket.BraketEmulator,
-        "quera_device_route": quera.QuEraDeviceRoute,
-        "quera_service": quera.QuEraService,
-        "quera_aquila": quera.Aquila,
-        "quera_gemini": quera.Gemini,
+        "bloqade_device_route": BloqadeDeviceRoute,
+        "bloqade_service": BloqadeService,
+        "braket_device_route": BraketDeviceRoute,
+        "braket_service": BraketService,
+        "quera_device_route": QuEraDeviceRoute,
+        "quera_service": QuEraService,
+
     }
 
     def object_hook(self, obj: Dict[str, Any]):
