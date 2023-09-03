@@ -47,7 +47,11 @@ class ParseCircuit:
 
 
 class ParseRoutine:
-    """Parse the program to return an AnalogCircuit as well as the parameters for the circuit."""
+    """Parse the program to return an AnalogCircuit as well as the parameters
+    for the circuit.
+
+
+    """
 
     def parse_source(self: "Builder") -> Tuple["AnalogCircuit", "Params"]:
         from bloqade.builder.parse.builder import Parser
