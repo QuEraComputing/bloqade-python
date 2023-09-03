@@ -8,6 +8,7 @@ from bloqade.builder.factory import (
     constant,
 )
 import bloqade.ir as _ir
+from bloqade.builder.parse.json import save_program, load_program
 from bloqade.task.json import save_batch, load_batch
 from bloqade.constants import RB_C6
 
@@ -43,4 +44,6 @@ __all__ = [
     "set_print_depth",
     "save_batch",
     "load_batch",
+    "save_program",
+    "load_program",
 ]

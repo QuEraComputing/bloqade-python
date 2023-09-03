@@ -1,4 +1,5 @@
-from typing import Any, Dict, Type
+from typing import Any, Dict, TextIO, Type, Union
+from bloqade.builder.base import Builder
 from bloqade.codegen.common.json import BloqadeIRSerializer, BloqadeIRDeserializer
 from bloqade.builder.start import ProgramStart
 from bloqade.builder.sequence_builder import SequenceBuilder
@@ -208,15 +209,31 @@ class BuilderDeserializer(BloqadeIRDeserializer):
         "braket_service": braket.BraketService,
         "braket_aquila": braket.BraketDeviceRoute,
     }
-
+    
     def object_hook(self, obj: Dict[str, Any]):
         match obj:
             case str("program_start"):
                 return ProgramStart(None)
-            case dict([(str(head), dict(options))]):
+            case dict() if len(obj) == 1:
+                (head, options), = obj.items()
                 if head in self.methods:
                     return self.methods[head](**options)
-                else:
-                    super().object_hook(obj)
-            case _:
-                raise NotImplementedError(f"Missing implementation for {obj}")
+
+        return super().object_hook(obj)
+
+
+def load_program(filename_or_io: Union[str, TextIO]) -> Builder:
+    import json
+    if isinstance(filename_or_io, str):
+        with open(filename_or_io, "r") as f:
+            return json.load(f, object_hook=BuilderDeserializer().object_hook)
+    else:
+        return json.load(filename_or_io, object_hook=BuilderDeserializer().object_hook)
+    
+def save_program(filename_or_io: Union[str, TextIO], program: Builder) -> None:
+    import json
+    if isinstance(filename_or_io, str):
+        with open(filename_or_io, "w") as f:
+            json.dump(program, f, cls=BuilderSerializer)
+    else:
+        json.dump(program, filename_or_io, cls=BuilderSerializer)
