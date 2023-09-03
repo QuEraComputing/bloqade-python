@@ -22,16 +22,10 @@
 
 # %%
 from bloqade import start, cast
-from bloqade.task import HardwareBatchResult
+from bloqade.task.json import load_batch, save_batch
+from decimal import Decimal
+import matplotlib.pyplot as plt
 
-import os
-import numpy as np
-
-from bokeh.io import output_notebook
-from bokeh.plotting import figure, show
-from bokeh.models import HoverTool, ColumnDataSource, CrosshairTool
-
-output_notebook()
 
 # %% [markdown]
 
@@ -57,7 +51,7 @@ rabi_oscillations_program = (
 # %%
 rabi_oscillation_job = rabi_oscillations_program.assign(
     ramp_time=0.06, rabi_value=15, detuning_value=0.0
-).batch_assign(run_time=np.around(np.arange(0, 21, 1) * 0.05, 13))
+).batch_assign(run_time=[Decimal("0.05") * i for i in range(21)])
 
 # %% [markdown]
 # Run the program in emulation, obtaining a report
@@ -66,7 +60,9 @@ rabi_oscillation_job = rabi_oscillations_program.assign(
 # `run_time` variable), let the task have 10000 shots.
 
 # %%
-emu_report = rabi_oscillation_job.braket_local_simulator(10000).submit().report()
+emulator_results = rabi_oscillation_job.braket.local_emulator().run(1000)
+save_batch("rabi-emulator-job.json", emulator_results)
+
 
 # %% [markdown]
 # Submit the same program to hardware,
@@ -82,87 +78,27 @@ emu_report = rabi_oscillation_job.braket_local_simulator(10000).submit().report(
 
 # %%
 """
-(
-    rabi_oscillation_job.parallelize(24)
-    .braket(100)
-    .submit()
-    .save_json("rabi-job.json")
-)
+hardware_result = rabi_oscillation_job.parallelize(24).braket.aquila().submit(1000)
+save_batch("rabi-job.json", hardware_result)
 """
 
 # %% [markdown]
 # Load JSON and pull results from Braket
 
 # %%
-hw_future = HardwareBatchResult.load_json(
-    os.getcwd() + "/docs/docs/examples/" + "rabi-job.json"
-)
-hw_rydberg_densities = hw_future.report().rydberg_densities()
+emulator_report = load_batch("rabi-emulator-job.json").report()
+# hardware_report = load_batch("rabi-job.json").fetch().report()
 
-# %% [markdown]
-# We can now plot the results from the hardware and emulation together.
+times = emulator_report.list_param("run_time")
+bitstrings = emulator_report.bitstrings()
+emu_density = [ele.mean() for ele in bitstrings]
+plt.plot(times, emu_density)
+
+# bitstrings = hardware_report.bitstrings()
+# qpu_density = [ele.mean() for ele in bitstrings]
+
+# plt.plot(times, qpu_density)
+plt.show()
+
 
 # %%
-data = {
-    "times": np.around(np.arange(0, 21, 1) * 0.05, 13),
-    "emu_densities": emu_report.rydberg_densities()[0].to_list(),
-    "hw_densities": hw_rydberg_densities[0].to_list(),
-}
-source = ColumnDataSource(data=data)
-
-p = figure(
-    x_axis_label="Time (μs)",
-    y_axis_label="Rydberg Density",
-    toolbar_location="right",
-    tools=["pan,wheel_zoom,box_zoom,reset,save"],
-)
-
-p.axis.axis_label_text_font_size = "15pt"
-p.axis.major_label_text_font_size = "10pt"
-
-emu_line = p.line(
-    x="times",
-    y="emu_densities",
-    source=source,
-    legend_label="Emulator",
-    color="grey",
-    line_width=2,
-)
-p.circle(x="times", y="emu_densities", source=source, color="grey", size=8)
-# hardware densities
-hw_line = p.line(
-    x="times",
-    y="hw_densities",
-    source=source,
-    legend_label="Hardware",
-    color="purple",
-    line_width=2,
-)
-p.circle(x="times", y="hw_densities", source=source, color="purple", size=8)
-
-hw_hover_tool = HoverTool(
-    renderers=[hw_line],
-    tooltips=[
-        ("Backend", "Hardware"),
-        ("Density", "@hw_densities"),
-        ("Time", "@times μs"),
-    ],
-    mode="vline",
-    attachment="right",
-)
-p.add_tools(hw_hover_tool)
-emu_hover_tool = HoverTool(
-    renderers=[emu_line],
-    tooltips=[
-        ("Backend", "Emulator"),
-        ("Density", "@emu_densities"),
-        ("Time", "@times μs"),
-    ],
-    mode="vline",
-    attachment="left",
-)
-p.add_tools(emu_hover_tool)
-cross_hair_tool = CrosshairTool(dimensions="height")
-p.add_tools(cross_hair_tool)
-
-show(p)
