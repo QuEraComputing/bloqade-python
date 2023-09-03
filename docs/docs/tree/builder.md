@@ -1,5 +1,5 @@
 
-# Builder workflow:
+# Build workflow:
 
 ``` mermaid
 graph TD
@@ -18,14 +18,39 @@ graph TD
   SpaceModulation(SpaceModulation)
   Waveform{Waveform}
 
-  Codegen(["[Compile]
-  quera()
-  mock()
-  braket()
-  braket_local_simulator()"])
+  Options(["[Options]
+  assign
+  batch_assign
+  flatten
+  parallelize
+  "])
+
+  Services(["[Services]
+  bloqade
+  quera
+  braket"])
+
+  QuEraBackends(["[Backends]
+  mock
+  cloud_mock
+  aquila
+  device
+  "])
+
+  BraketBackends(["[Backends]
+  aquila
+  local_emulator
+  "])
+
+  BloqadeBackends(["[Backends]
+  python
+  julia
+  "])
 
   Submit("[Submission]
-  submit()")
+  submit()
+  run()
+  __call__")
 
   ProgramStart --> Coupling;
   Coupling --> Detuning;
@@ -41,6 +66,14 @@ graph TD
   SpaceModulation --> Waveform;
 
   Waveform --> Coupling;
-  Waveform --> Codegen;
-  Codegen --> Submit;
+  Waveform --> Services;
+  Waveform --> Options;
+  Options --> Services;
+
+  Services -->|quera| QuEraBackends;
+  Services -->|braket| BraketBackends;
+  Services -->|bloqade| BloqadeBackends;
+  QuEraBackends --> Submit;
+  BraketBackends --> Submit;
+  BloqadeBackends --> Submit;
 ```
