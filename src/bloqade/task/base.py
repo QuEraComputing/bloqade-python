@@ -140,7 +140,14 @@ class Report:
             field_name (str): variable name
 
         """
-        return [meta.get(field_name) for meta in self.metas]
+
+        def cast(x):
+            try:
+                return float(x)
+            except ValueError:
+                return x
+
+        return list(map(cast, (meta.get(field_name) for meta in self.metas)))
 
     @property
     def markdown(self) -> str:
