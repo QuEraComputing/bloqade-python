@@ -1,4 +1,5 @@
-from typing import Any, Dict, Type
+from typing import Any, Dict, TextIO, Type, Union
+from bloqade.builder.base import Builder
 from bloqade.codegen.common.json import BloqadeIRSerializer, BloqadeIRDeserializer
 from bloqade.builder.start import ProgramStart
 from bloqade.builder.sequence_builder import SequenceBuilder
@@ -40,9 +41,7 @@ class BuilderSerializer(BloqadeIRSerializer):
         match obj:
             case BraketDeviceRoute(parent) | QuEraDeviceRoute(
                 parent
-            ) | BloqadeDeviceRoute(parent) | BraketService(
-                parent
-            ) | QuEraService(
+            ) | BloqadeDeviceRoute(parent) | BraketService(parent) | QuEraService(
                 parent
             ) | BloqadeService(
                 parent
@@ -105,20 +104,6 @@ class BuilderSerializer(BloqadeIRSerializer):
                 )
             case Apply(wf, parent):
                 return {"apply": {"wf": wf, "parent": parent}}
-            case Slice(None, stop, parent):
-                return {
-                    "slice": {
-                        "stop": stop,
-                        "parent": parent,
-                    }
-                }
-            case Slice(start, None, parent):
-                return {
-                    "slice": {
-                        "start": start,
-                        "parent": parent,
-                    }
-                }
             case Slice(start, stop, parent):
                 return {
                     "slice": {
@@ -178,7 +163,19 @@ class BuilderSerializer(BloqadeIRSerializer):
                 return {"uniform": {"parent": parent}}
             case Detuning(parent) | RabiAmplitude(parent) | RabiPhase(parent) | Rabi(
                 parent
-            ) | Hyperfine(parent) | Rydberg(parent):
+            ) | Hyperfine(parent) | Rydberg(parent) | BraketDeviceRoute(
+                parent
+            ) | QuEraDeviceRoute(
+                parent
+            ) | BloqadeDeviceRoute(
+                parent
+            ) | BraketService(
+                parent
+            ) | QuEraService(
+                parent
+            ) | BloqadeService(
+                parent
+            ):
                 return {camel_to_snake(obj.__class__.__name__): {"parent": parent}}
             case _:
                 return super().default(obj)
@@ -217,17 +214,35 @@ class BuilderDeserializer(BloqadeIRDeserializer):
         "braket_service": BraketService,
         "quera_device_route": QuEraDeviceRoute,
         "quera_service": QuEraService,
-
     }
 
     def object_hook(self, obj: Dict[str, Any]):
         match obj:
             case str("program_start"):
                 return ProgramStart(None)
-            case dict([(str(head), dict(options))]):
+            case dict() if len(obj) == 1:
+                ((head, options),) = obj.items()
                 if head in self.methods:
                     return self.methods[head](**options)
-                else:
-                    super().object_hook(obj)
-            case _:
-                raise NotImplementedError(f"Missing implementation for {obj}")
+
+        return super().object_hook(obj)
+
+
+def load_program(filename_or_io: Union[str, TextIO]) -> Builder:
+    import json
+
+    if isinstance(filename_or_io, str):
+        with open(filename_or_io, "r") as f:
+            return json.load(f, object_hook=BuilderDeserializer().object_hook)
+    else:
+        return json.load(filename_or_io, object_hook=BuilderDeserializer().object_hook)
+
+
+def save_program(filename_or_io: Union[str, TextIO], program: Builder) -> None:
+    import json
+
+    if isinstance(filename_or_io, str):
+        with open(filename_or_io, "w") as f:
+            json.dump(program, f, cls=BuilderSerializer)
+    else:
+        json.dump(program, filename_or_io, cls=BuilderSerializer)

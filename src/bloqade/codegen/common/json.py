@@ -220,7 +220,7 @@ class LocationSerializer(LocationVisitor):
         return {
             "location_info": {
                 "position": list(map(self.scalar_serializer.visit, info.position)),
-                "filling": info.filling.value,
+                "filled": bool(info.filling.value),
             }
         }
 
@@ -258,7 +258,9 @@ class LocationSerializer(LocationVisitor):
 
     def visit_list_of_locations(self, ast: ListOfLocations) -> Any:
         return {
-            "list_of_locations": {"locations": list(map(self.visit, ast.locations))}
+            "list_of_locations": {
+                "location_list": list(map(self.visit, ast.location_list))
+            }
         }
 
     def visit_rectangular(self, ast: Rectangular) -> Any:
@@ -449,6 +451,7 @@ class BloqadeIRDeserializer:
     def is_register_obj(self, obj: Dict[str, Any]) -> bool:
         return (
             "list_of_locations" in obj
+            or "location_info" in obj
             or "chain" in obj
             or "square" in obj
             or "honeycomb" in obj
@@ -638,12 +641,12 @@ class BloqadeIRDeserializer:
 
     def register_hook(self, obj: Dict[str, Any]):
         match obj:
-            case {"location_info": {"position": position, "filling": filling_str}}:
+            case {"location_info": {"position": position, "filled": filled}}:
                 return location.LocationInfo(
-                    tuple(position), location.Filling(filling_str)
+                    tuple(position), filled
                 )
-            case {"list_of_locations": locations}:
-                return location.ListOfLocations(locations)
+            case {"list_of_locations": {"location_list": location_list}}:
+                return location.ListOfLocations(location_list)
             case {"chain": {"lattice_spacing": lattice_spacing, "L": L}}:
                 return location.Chain(L, lattice_spacing)
             case {"square": {"lattice_spacing": lattice_spacing, "L": L}}:
