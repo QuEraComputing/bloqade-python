@@ -1,14 +1,12 @@
 from ..scalar import Scalar, cast
 from ..tree_print import Printer
 from .waveform import Waveform
-from bokeh.plotting import figure, show
-from bokeh.layouts import gridplot, row, layout
-from bokeh.models.widgets import PreText
-from bokeh.models import ColumnDataSource
 from bloqade.visualization.ir_visualize import get_field_figure
 from pydantic.dataclasses import dataclass
 from typing import Dict, List
 from decimal import Decimal
+from bloqade.visualization.display import display_field, display_spatialmod
+from bloqade.visualization.ir_visualize import get_spmod_figure
 
 
 class FieldExpr:
@@ -85,18 +83,10 @@ class UniformModulation(SpatialModulation):
         return ["uni"], ["all"]
 
     def figure(self, **assignment):
-        p = figure(sizing_mode="stretch_both")
-        p.text(
-            x=[0.5],
-            y=[0.5],
-            text="Uniform",
-            text_algin="center",
-            text_baseline="middle",
-        )
-        return p
+        return get_spmod_figure(self, **assignment)
 
     def show(self, **assignment):
-        show(self.figure(**assignment))
+        display_spatialmod(self, **assignment)
 
 
 Uniform = UniformModulation()
@@ -119,21 +109,13 @@ class RunTimeVector(SpatialModulation):
         return [self.name]
 
     def figure(self, **assginment):
-        p = figure(sizing_mode="stretch_both")
-        p.text(
-            x=[0.5],
-            y=[0.5],
-            text=self.name,
-            text_algin="center",
-            text_baseline="middle",
-        )
-        return p
+        return get_spmod_figure(self, **assginment)
 
     def _get_data(self, **assignment):
         return [self.name], ["vec"]
 
     def show(self, **assignment):
-        show(self.figure(**assignment))
+        display_spatialmod(self, **assignment)
 
 
 @dataclass
@@ -154,21 +136,13 @@ class AssignedRunTimeVector(SpatialModulation):
         return [self.name, *self.value]
 
     def figure(self, **assginment):
-        p = figure(sizing_mode="stretch_both")
-        p.text(
-            x=[0.5],
-            y=[0.5],
-            text=self.name,
-            text_algin="center",
-            text_baseline="middle",
-        )
-        return p
+        return get_spmod_figure(self, **assginment)
 
     def _get_data(self, **assignment):
         return [self.name], ["vec"]
 
     def show(self, **assignment):
-        show(self.figure(**assignment))
+        display_spatialmod(self, **assignment)
 
 
 @dataclass(init=False, repr=False)
@@ -229,23 +203,10 @@ class ScaledLocations(SpatialModulation):
         return bool(self.value)
 
     def figure(self, **assignments):
-        locs = []
-        literal_val = []
-        for k, v in self.value.items():
-            locs.append(f"loc[{k.value}]")
-            literal_val.append(float(v(**assignments)))
-
-        source = ColumnDataSource(data=dict(locations=locs, yvals=literal_val))
-
-        p = figure(
-            y_range=locs, sizing_mode="stretch_both", x_axis_label="Scale factor"
-        )
-        p.hbar(y="locations", right="yvals", source=source, height=0.4)
-
-        return p
+        return get_spmod_figure(self, **assignments)
 
     def show(self, **assignment):
-        show(self.figure(**assignment))
+        display_spatialmod(self, assignment)
 
 
 @dataclass
@@ -298,52 +259,6 @@ class Field(FieldExpr):
         # return dict with annotations
         return {spatial_mod.print_node(): wf for spatial_mod, wf in self.value.items()}
 
-    def figure_old(self, **assignments):
-        full_figs = []
-        idx = 0
-        for spmod, wf in self.value.items():
-            fig_mod = spmod.figure(**assignments)
-            fig_wvfm = wf.figure(**assignments)
-
-            # format AST tree:
-            txt = wf.__repr__()
-            txt = "> Waveform AST:\n" + txt
-
-            txt_asgn = ""
-            # format assignment:
-            if len(assignments):
-                txt_asgn = "> Assignments:\n"
-                for key, val in assignments.items():
-                    txt_asgn += f"{key} := {val}\n"
-                txt_asgn += "\n"
-
-            # Display AST tree:
-
-            header = "Ch[%d]\n" % (idx)
-            text_box = PreText(text=header + txt_asgn + txt, sizing_mode="stretch_both")
-            text_box.styles = {"overflow": "scroll", "border": "1px solid black"}
-
-            # layout channel:
-            fp = gridplot(
-                [[row(text_box, fig_mod, sizing_mode="stretch_both"), fig_wvfm]],
-                merge_tools=False,
-                sizing_mode="stretch_both",
-            )
-            fp.styles = {"border": "2px solid black"}
-            fp.width_policy = "max"
-
-            full_figs.append(fp)
-            idx += 1
-
-        full = layout(
-            full_figs,
-            # merge_tools=False,
-            sizing_mode="stretch_both",
-        )
-        full.width_policy = "max"
-
-        return full
-
     def figure(self, **assignments):
         return get_field_figure(self, "Field", None, **assignments)
 
@@ -356,4 +271,4 @@ class Field(FieldExpr):
                 existing variables in the Field
 
         """
-        show(self.figure(**assignments))
+        display_field(self, assignments)

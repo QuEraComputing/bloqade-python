@@ -1,7 +1,7 @@
 from typing import Tuple, Union, TYPE_CHECKING
 import json
 import bloqade.ir as ir
-from bloqade.visualization.builder_visualize import display_builder
+from bloqade.visualization.display import display_builder
 
 
 if TYPE_CHECKING:
