@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Dict, List, Tuple, Optional, Callable
+from typing import Any, Dict, List, Tuple, Optional, Callable
 from enum import Enum
 from bloqade.ir.control.sequence import LevelCoupling
 from bloqade.emulate.ir.space import AtomType
@@ -85,28 +85,28 @@ class EmulatorProgram:
 
 
 class Visitor:
-    def visit_emulator_program(self, ast):
+    def visit_emulator_program(self, ast: EmulatorProgram) -> Any:
         raise NotImplementedError
 
-    def visit_laser_coupling(self, ast):
+    def visit_laser_coupling(self, ast: LaserCoupling) -> Any:
         raise NotImplementedError
 
-    def visit_detuning_operator_data(self, ast):
+    def visit_detuning_operator_data(self, ast: DetuningOperatorData) -> Any:
         raise NotImplementedError
 
-    def visit_rabi_operator_data(self, ast):
+    def visit_rabi_operator_data(self, ast: RabiOperatorData) -> Any:
         raise NotImplementedError
 
-    def visit_detuning_term(self, ast):
+    def visit_detuning_term(self, ast: DetuningTerm) -> Any:
         raise NotImplementedError
 
-    def visit_rabi_term(self, ast):
+    def visit_rabi_term(self, ast: RabiTerm) -> Any:
         raise NotImplementedError
 
-    def visit_register(self, ast):
+    def visit_register(self, ast: Register) -> Any:
         raise NotImplementedError
 
-    def visit(self, ast):
+    def visit(self, ast) -> Any:
         match ast:
             case EmulatorProgram():
                 return self.visit_emulator_program(ast)
