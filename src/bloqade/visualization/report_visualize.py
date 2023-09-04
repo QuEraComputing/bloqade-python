@@ -460,7 +460,9 @@ def report_visual(cnt_sources, ryd_sources, metas, geos, name):
     headline = Div(text="Report: " + name)
 
     bt = Button(label="Bloqade", icon=SVGIcon(svg=bloqadeICON()))
-    bt.js_on_click(CustomJS(args=dict(url="about:blank"), code="window.open(url)"))
+    bt.js_on_click(
+        CustomJS(args=dict(url="https://bloqade.quera.com"), code="window.open(url)")
+    )
 
     bt2 = Button(label="QuEra", icon=SVGIcon(svg=queraICON()))
     bt2.js_on_click(
