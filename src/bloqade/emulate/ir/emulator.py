@@ -58,10 +58,13 @@ class Geometry:
 
     def __hash__(self) -> int:
         if self.blockade_radius == Decimal("0"):
-            return hash(self.atom_type) ^ hash(len(self.positions))
+            return (
+                hash(self.__class__) ^ hash(self.atom_type) ^ hash(len(self.positions))
+            )
         else:
             return (
-                hash(self.atom_type)
+                hash(self.__class__)
+                ^ hash(self.atom_type)
                 ^ hash(self.blockade_radius)
                 ^ hash(tuple(self.positions))
             )
