@@ -203,6 +203,10 @@ def format_spmod_data(spmod_ir, **assignments):
 
 def get_spmod_figure(spmod_ir, **assignments):
     d0, d1, scl = format_spmod_data(spmod_ir, **assignments)
+    d0 = d0["uni"] + d0["chs"]
+    d1 = d1["uni"] + d1["chs"]
+    scl = scl["uni"] + scl["chs"]
+
     spmod_source = ColumnDataSource(
         data=dict(
             d0=d0,

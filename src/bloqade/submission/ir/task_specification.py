@@ -1,18 +1,21 @@
 from pydantic import BaseModel
 from typing import Optional, List, Tuple
 from decimal import Decimal
-
-from bokeh.plotting import figure, show
-from bokeh.models import ColumnDataSource, Step, HoverTool
-
-
 from bloqade.submission.ir.capabilities import QuEraCapabilities
 from bloqade.visualization.task_visualize import (
     get_lattice_figure,
     get_quera_task_figure,
+    get_rabi_phase_figure,
+    get_detune_figure,
+    get_rabi_amp_figure,
 )
-from bloqade.visualization.display import display_task_lattice, display_quera_task_ir
-
+from bloqade.visualization.display import (
+    display_task_lattice,
+    display_quera_task_ir,
+    display_quera_task_rabi_phase,
+    display_quera_task_detuning,
+    display_quera_task_rabi_amp,
+)
 
 __all__ = ["QuEraTaskSpecification"]
 
@@ -85,42 +88,11 @@ class RabiFrequencyAmplitude(BaseModel):
 
         return src
 
-    def figure(self, source, **fig_kwargs):
-        hover = HoverTool()
-        hover.tooltips = [("(x,y)", "(@times_amp, @values_amp)")]
-
-        line_plt = figure(
-            **fig_kwargs,
-            x_axis_label="Time (s)",
-            y_axis_label="Ω(t) (rad/s)",
-        )
-
-        line_plt.x_range.start = 0
-        line_plt.y_range.start = min(source.data["values_amp"]) - 5e6
-        line_plt.y_range.end = max(source.data["values_amp"]) + 5e6
-
-        line_plt.line(
-            x="times_amp", y="values_amp", source=source, line_width=2, color="black"
-        )
-
-        line_plt.circle(
-            x="times_amp", y="values_amp", source=source, size=4, color="black"
-        )
-
-        line_plt.varea(
-            x="times_amp",
-            y1="values_amp",
-            y2="values_floor_amp",
-            source=source,
-            fill_alpha=0.3,
-            color="#6437FF",
-        )
-        line_plt.add_tools(hover)
-
-        return line_plt
+    def figure(self, **fig_kwargs):
+        return get_rabi_amp_figure(self, **fig_kwargs)
 
     def show(self):
-        show(self.figure(ColumnDataSource(self._get_data_source())))
+        display_quera_task_rabi_amp(self)
 
 
 class RabiFrequencyPhase(BaseModel):
@@ -157,38 +129,14 @@ class RabiFrequencyPhase(BaseModel):
 
         return src
 
-    def figure(self, source, **fig_kwargs):
-        TOOLTIPS = [("(x,y)", "(@times_phase, @values_phase)")]
-
-        line_plt = figure(
-            **fig_kwargs,
-            tooltips=TOOLTIPS,
-            x_axis_label="Time (s)",
-            y_axis_label="ϕ(t) (rad)",
-        )
-
-        line_plt.y_range.start = min(source.data["values_phase"]) - 5e6
-        line_plt.y_range.end = max(source.data["values_phase"]) + 5e6
-        line_plt.x_range.start = 0
-
-        steps = Step(
-            x="times_phase",
-            y="values_phase",
-            line_color="black",
-            line_width=2,
-            mode="center",
-        )
-
-        line_plt.add_glyph(source, steps)
-
-        line_plt.circle(
-            x="times_phase", y="values_phase", source=source, size=4, color="black"
-        )
-
-        return line_plt
+    def figure(self, **fig_kwargs):
+        ## fig_kwargs is for extra tuning when assemble
+        ## e.g. calling from QuEraTaskSpecification.figure()
+        return get_rabi_phase_figure(self, **fig_kwargs)
 
     def show(self):
-        show(self.figure(ColumnDataSource(self._get_data_source())))
+        # we dont need fig_kwargs when display alone
+        display_quera_task_rabi_phase(self)
 
 
 class Detuning(BaseModel):
@@ -238,46 +186,11 @@ class Detuning(BaseModel):
 
         return src
 
-    def global_figure(self, source, **fig_kwargs):
-        TOOLTIPS = [("(x,y)", "(@times_detune, @values_detune)")]
-
-        line_plt = figure(
-            **fig_kwargs,
-            tooltips=TOOLTIPS,
-            x_axis_label="Time (s)",
-            y_axis_label="Δ(t) (rad/s)",
-        )
-
-        line_plt.x_range.start = 0
-
-        line_plt.y_range.start = min(source.data["values_detune"]) - 5e6
-        line_plt.y_range.end = max(source.data["values_detune"]) + 5e6
-
-        line_plt.line(
-            x="times_detune",
-            y="values_detune",
-            source=source,
-            line_width=2,
-            color="black",
-        )
-
-        line_plt.circle(
-            x="times_detune", y="values_detune", source=source, size=4, color="black"
-        )
-
-        line_plt.varea(
-            x="times_detune",
-            y1="values_detune",
-            y2="values_floor_detune",
-            source=source,
-            fill_alpha=0.5,
-            color="#EFD0DE",
-        )
-
-        return line_plt
+    def global_figure(self, **fig_kwargs):
+        return get_detune_figure(self, **fig_kwargs)
 
     def show_global(self):
-        show(self.global_figure(ColumnDataSource(self._get_data_source())))
+        display_quera_task_detuning(self)
 
 
 class RydbergHamiltonian(BaseModel):

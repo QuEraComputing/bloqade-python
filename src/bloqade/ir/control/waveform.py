@@ -101,7 +101,7 @@ class Waveform:
         return times, values
 
     def show(self, **assignments):
-        display_waveform(self, **assignments)
+        display_waveform(self, assignments)
 
     def align(
         self, alignment: Alignment, value: Union[None, AlignedValue, Scalar] = None

@@ -206,7 +206,7 @@ class ScaledLocations(SpatialModulation):
         return get_spmod_figure(self, **assignments)
 
     def show(self, **assignment):
-        display_spatialmod(self, **assignment)
+        display_spatialmod(self, assignment)
 
 
 @dataclass
