@@ -3,8 +3,8 @@ from ..tree_print import Printer
 from .field import Field
 from typing import List
 from pydantic.dataclasses import dataclass
-from bokeh.io import show
 from bloqade.visualization.ir_visualize import get_pulse_figure
+from bloqade.visualization.display import display_pulse
 
 __all__ = [
     "Pulse",
@@ -201,7 +201,7 @@ class Pulse(PulseExpr):
                 existing variables in the Pulse
 
         """
-        show(self.figure(**assignments))
+        display_pulse(self, assignments)
 
 
 @dataclass
@@ -225,7 +225,7 @@ class NamedPulse(PulseExpr):
         return get_pulse_figure(self, **assignments)
 
     def show(self, **assignments):
-        show(self.figure(**assignments))
+        display_pulse(self, assignments)
 
 
 @dataclass
