@@ -140,6 +140,9 @@ class AnalogGate:
         rtol: float = 1e-14,
         nsteps: int = 2_147_483_647,
     ):
+        if state is None:
+            state = self.hamiltonian.space.zero_state()
+
         if solver_name not in AnalogGate.SUPPORTED_SOLVERS:
             raise ValueError(f"'{solver_name}' not supported.")
 
@@ -151,3 +154,18 @@ class AnalogGate:
         AnalogGate._error_check(solver_name, solver.get_return_code())
 
         return solver.y.view(np.complex128)
+
+    def run(
+        self,
+        shots: int = 1,
+        solver_name: str = "dop853",
+        atol: float = 1e-7,
+        rtol: float = 1e-14,
+        nsteps: int = 2_147_483_647,
+    ):
+        """Run the emulation with all atoms in the ground state,
+        sampling the final state vector."""
+        state = self.hamiltonian.space.zero_state()
+        result = self.apply(state, solver_name, atol, rtol, nsteps)
+
+        return self.hamiltonian.space.sample_state_vector(result, shots)

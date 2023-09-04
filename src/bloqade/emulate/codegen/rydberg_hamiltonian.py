@@ -28,7 +28,7 @@ from bloqade.emulate.sparse_operator import IndexMapping
 from scipy.sparse import csr_matrix
 import numpy as np
 from numpy.typing import NDArray
-from typing import Dict, Tuple, Union
+from typing import Dict, Optional, Tuple, Union
 from dataclasses import dataclass, field
 
 OperatorData = Union[DetuningOperatorData, RabiOperatorData]
@@ -46,7 +46,10 @@ class CompileCache:
 
 
 class RydbergHamiltonianCodeGen(Visitor):
-    def __init__(self, compile_cache: CompileCache = CompileCache()):
+    def __init__(self, compile_cache: Optional[CompileCache] = None):
+        if compile_cache is None:
+            compile_cache = CompileCache()
+
         self.rabi_ops = []
         self.detuning_ops = []
         self.level_coupling = None
@@ -196,9 +199,7 @@ class RydbergHamiltonianCodeGen(Visitor):
             )
         )
 
-    def emit(
-        self, emulator_program: EmulatorProgram
-    ) -> Tuple[RydbergHamiltonian, CompileCache]:
+    def emit(self, emulator_program: EmulatorProgram) -> RydbergHamiltonian:
         self.visit(emulator_program)
         hamiltonian = RydbergHamiltonian(
             emulator_ir=emulator_program,
@@ -207,4 +208,4 @@ class RydbergHamiltonianCodeGen(Visitor):
             detuning_ops=self.detuning_ops,
             rabi_ops=self.rabi_ops,
         )
-        return hamiltonian, self.compile_cache
+        return hamiltonian

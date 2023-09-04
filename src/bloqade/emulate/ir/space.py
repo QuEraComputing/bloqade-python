@@ -298,15 +298,23 @@ class Space:
         state[0] = 1.0
         return state
 
-    def sample_state_vector(self, state_vector: NDArray, n_samples: int) -> NDArray:
+    def sample_state_vector(
+        self, state_vector: NDArray, n_samples: int, project_hyperfine: bool = True
+    ) -> NDArray:
         p = np.abs(state_vector) ** 2
         sampled_configs = np.random.choice(self.configurations, size=n_samples, p=p)
 
         sample_fock_states = np.empty((n_samples, self.n_atoms), dtype=np.uint8)
 
         for i in range(self.n_atoms):
-            sample_fock_states[:, i] += sampled_configs % self.atom_type.n_level
+            sample_fock_states[:, i] = sampled_configs % self.atom_type.n_level
             sampled_configs //= self.atom_type.n_level
+
+        if project_hyperfine and isinstance(self.atom_type, ThreeLevelAtomType):
+            sample_fock_states[sample_fock_states == 1] = 0
+            sample_fock_states[sample_fock_states == 2] = 1
+
+        return sample_fock_states
 
     def __str__(self):
         # TODO: update this to use unicode
