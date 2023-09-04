@@ -1,4 +1,5 @@
 from bloqade.emulate.ir.emulator import EmulatorProgram
+from bloqade.emulate.ir.space import Space
 from bloqade.emulate.sparse_operator import IndexMapping
 from scipy.sparse import csr_matrix
 from dataclasses import dataclass, field
@@ -43,6 +44,7 @@ class RabiOperator:
 @dataclass(frozen=True)
 class RydbergHamiltonian:
     emulator_ir: EmulatorProgram
+    space: Space
     rydberg: NDArray
     detuning_ops: List[DetuningOperator] = field(default_factory=list)
     rabi_ops: List[RabiOperator] = field(default_factory=list)

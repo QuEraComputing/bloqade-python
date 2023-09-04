@@ -1,8 +1,11 @@
 from dataclasses import dataclass
 from numpy.typing import NDArray
-from typing import List, Tuple, Union
+from typing import Union, TYPE_CHECKING
 import numpy as np
 from enum import Enum
+
+if TYPE_CHECKING:
+    from .emulator import Geometry
 
 
 class SpaceType(str, Enum):
@@ -10,6 +13,7 @@ class SpaceType(str, Enum):
     SubSpace = "sub_space"
 
 
+@dataclass(frozen=True)
 class AtomType:
     def string_to_integer(self, fock_state: str) -> int:
         state_string = fock_state.replace("|", "").replace(">", "")
@@ -56,17 +60,20 @@ class AtomType:
     def is_state_at(self, configurations: NDArray, index: int, state: int) -> NDArray:
         raise NotImplementedError
 
+    def __hash__(self):
+        return hash(self.__class__)
 
+
+@dataclass(frozen=True)
 class ThreeLevelAtomType(AtomType):
+    n_level = 3
+    str_to_int = {"g": 0, "h": 1, "r": 2}
+    int_to_str = ["g", "h", "r"]
+
     class State(int, Enum):
         Ground = 0
         Hyperfine = 1
         Rydberg = 2
-
-    n_level = 3
-
-    str_to_int = {"g": 0, "h": 1, "r": 2}
-    int_to_str = ["g", "h", "r"]
 
     def is_state_at(cls, configurations: NDArray, index: int, state):
         if not isinstance(state, cls.State):
@@ -107,15 +114,15 @@ class ThreeLevelAtomType(AtomType):
         return (input_configs, output_configs + (delta * 3**index))
 
 
+@dataclass(frozen=True)
 class TwoLevelAtomType(AtomType):
+    n_level = 2
+    str_to_int = {"g": 0, "r": 1}
+    int_to_str = ["g", "r"]
+
     class State(int, Enum):
         Ground = 0
         Rydberg = 1
-
-    n_level = 2
-
-    str_to_int = {"g": 0, "r": 1}
-    int_to_str = ["g", "r"]
 
     def is_state_at(self, configurations: NDArray, index: int, state: State):
         state = self.State(state)
@@ -153,21 +160,17 @@ TwoLevelAtom = TwoLevelAtomType()
 class Space:
     space_type: SpaceType
     atom_type: AtomType
-    atom_coordinates: List[Tuple[float, float]]
+    geometry: "Geometry"
     configurations: NDArray
 
     @staticmethod
     def create(
-        atom_coordinates: List[Tuple[float, float]],
+        geometry: "Geometry",
         n_level: Union[int, AtomType] = TwoLevelAtom,
         blockade_radius=0.0,
     ):
-        atom_coordinates = [
-            tuple([float(value) for value in coordinate])
-            for coordinate in atom_coordinates
-        ]
-
-        n_atom = len(atom_coordinates)
+        positions = geometry.positions
+        n_atom = len(positions)
 
         if isinstance(n_level, AtomType):
             atom_type = n_level
@@ -183,12 +186,10 @@ class Space:
 
         check_atoms = []
 
-        for index_1, position_1 in enumerate(atom_coordinates):
+        for index_1, position_1 in enumerate(positions):
             position_1 = np.asarray(position_1)
             atoms = []
-            for index_2, position_2 in enumerate(
-                atom_coordinates[index_1 + 1 :], index_1 + 1
-            ):
+            for index_2, position_2 in enumerate(positions[index_1 + 1 :], index_1 + 1):
                 position_2 = np.asarray(position_2)
                 if np.linalg.norm(position_1 - position_2) <= blockade_radius:
                     atoms.append(index_2)
@@ -198,9 +199,7 @@ class Space:
         configurations = np.arange(Ns, dtype=np.min_scalar_type(Ns - 1))
 
         if all(len(sub_list) == 0 for sub_list in check_atoms):
-            return Space(
-                SpaceType.FullSpace, atom_type, atom_coordinates, configurations
-            )
+            return Space(SpaceType.FullSpace, atom_type, positions, configurations)
 
         for index_1, indices in enumerate(check_atoms):
             # get which configurations are in rydberg state for the current index.
@@ -216,7 +215,7 @@ class Space:
                 configurations = configurations[mask]
                 rydberg_configs_1 = rydberg_configs_1[mask]
 
-        return Space(SpaceType.SubSpace, atom_type, atom_coordinates, configurations)
+        return Space(SpaceType.SubSpace, atom_type, positions, configurations)
 
     @property
     def index_type(self) -> np.dtype:
@@ -231,7 +230,7 @@ class Space:
 
     @property
     def n_atoms(self) -> int:
-        return len(self.atom_coordinates)
+        return len(self.geometry)
 
     @property
     def state_type(self) -> np.dtype:

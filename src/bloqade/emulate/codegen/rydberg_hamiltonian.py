@@ -4,16 +4,20 @@ from bloqade.ir.control.sequence import (
     HyperfineLevelCoupling,
 )
 from bloqade.emulate.ir.emulator import (
+    DetuningOperatorData,
     EmulatorProgram,
+    Geometry,
     LaserCoupling,
     DetuningTerm,
+    RabiOperatorData,
+    RabiOperatorType,
     RabiTerm,
     Visitor,
 )
 from bloqade.emulate.ir.space import (
     Space,
-    TwoLevelAtomType,
     ThreeLevelAtomType,
+    TwoLevelAtomType,
 )
 from bloqade.emulate.ir.state_vector import (
     RabiOperator,
@@ -23,58 +27,78 @@ from bloqade.emulate.ir.state_vector import (
 from bloqade.emulate.sparse_operator import IndexMapping
 from scipy.sparse import csr_matrix
 import numpy as np
+from numpy.typing import NDArray
+from typing import Dict, Tuple, Union
+from dataclasses import dataclass, field
+
+OperatorData = Union[DetuningOperatorData, RabiOperatorData]
+MatrixTypes = Union[csr_matrix, IndexMapping, NDArray]
+
+
+@dataclass
+class CompileCache:
+    operator_cache: Dict[OperatorData, MatrixTypes] = field(default_factory=dict)
+    space_cache: Dict[Geometry, Tuple[Space, NDArray]] = field(default_factory=dict)
 
 
 class RydbergHamiltonianCodeGen(Visitor):
-    def __init__(self):
+    def __init__(self, compile_cache: CompileCache = CompileCache()):
         self.rabi_ops = []
         self.detuning_ops = []
-        self.space = None
-        self.n_level = None
         self.level_coupling = None
-        self.rydberg_state = None
+        self.level_couplings = set()
+        self.compile_cache = compile_cache
 
     def visit_emulator_program(self, emulator_program: EmulatorProgram):
-        self.visit(emulator_program.space)
+        self.level_couplings = set(list(emulator_program.drives.keys()))
 
-        if emulator_program.rydberg is not None:
-            self.visit(emulator_program.rydberg)
+        self.visit(emulator_program.geometry)
+        for level_coupling, laser_coupling in emulator_program.drives.items():
+            self.level_coupling = level_coupling
+            self.visit(laser_coupling)
 
-        if emulator_program.hyperfine is not None:
-            self.visit(emulator_program.hyperfine)
+    def visit_geometry(self, geometry: Geometry):
+        if geometry in self.compile_cache.space_cache:
+            self.space, self.rydberg = self.compile_cache.space_cache[geometry]
+            return
 
-    def visit_space(self, space: Space):
-        self.space = space
-        self.n_level = space.atom_type.n_level
-        atom_coordinates = space.atom_coordinates
+        self.space = Space.create(
+            atom_type=geometry.atom_type,
+            positions=geometry.positions,
+            blockade_radius=geometry.blockade_radius,
+        )
+
+        positions = geometry.positions
 
         # generate rydberg interaction elements
-        self.rydberg = np.zeros(space.size, dtype=np.float64)
+        self.rydberg = np.zeros(self.space.size, dtype=np.float64)
 
-        for index_1, coordinate_1 in enumerate(atom_coordinates):
-            coordinate_1 = np.asarray(coordinate_1)
-            is_rydberg_1 = space.is_rydberg_at(index_1)
-            for index_2, coordinate_2 in enumerate(
-                atom_coordinates[index_1 + 1 :], index_1 + 1
-            ):
-                coordinate_2 = np.asarray(coordinate_2)
-                distance = np.linalg.norm(coordinate_1 - coordinate_2)
+        for index_1, pos_1 in enumerate(positions):
+            pos_1 = np.asarray(list(map(float, pos_1)))
+            is_rydberg_1 = self.space.is_rydberg_at(index_1)
+            for index_2, pos_2 in enumerate(positions[index_1 + 1 :], index_1 + 1):
+                pos_2 = np.asarray(list(map(float, pos_2)))
+                distance = np.linalg.norm(pos_1 - pos_2)
 
                 rydberg_interaction = RB_C6 / (distance**6)
 
                 if rydberg_interaction <= np.finfo(np.float64).eps:
                     continue
 
-                mask = np.logical_and(is_rydberg_1, space.is_rydberg_at(index_2))
+                mask = np.logical_and(is_rydberg_1, self.space.is_rydberg_at(index_2))
                 self.rydberg[mask] += rydberg_interaction
 
+        self.compile_cache.space_cache[geometry] = (self.space, self.rydberg)
+
     def visit_laser_coupling(self, laser_coupling: LaserCoupling):
-        self.level_coupling = laser_coupling.level_coupling
         terms = laser_coupling.detuning + laser_coupling.rabi
         for term in terms:
             self.visit(term)
 
-    def visit_detuning_term(self, detuning_term: DetuningTerm):
+    def visit_detuning_operator_data(self, detuning_data: DetuningOperatorData):
+        if detuning_data in self.compile_cache.operator_cache:
+            return self.compile_cache.operator_cache[detuning_data]
+
         diagonal = np.zeros(self.space.size, dtype=np.float64)
 
         match (self.space.atom_type, self.level_coupling):
@@ -85,17 +109,16 @@ class RydbergHamiltonianCodeGen(Visitor):
             case (ThreeLevelAtomType(), HyperfineLevelCoupling()):
                 state = ThreeLevelAtomType.State.Hyperfine
 
-        for atom_index, value in enumerate(detuning_term.target_atoms):
-            diagonal[self.space.is_state_at(atom_index, state)] = value
+        for atom_index, value in enumerate(detuning_data.target_atoms):
+            diagonal[self.space.is_state_at(atom_index, state)] += value
 
-        self.detuning_ops.append(
-            DetuningOperator(
-                diagonal=diagonal,
-                amplitude=detuning_term.amplitude,
-            )
-        )
+        self.compile_cache.operator_cache[detuning_data] = diagonal
+        return diagonal
 
-    def visit_rabi_term(self, rabi_term: RabiTerm):
+    def visit_rabi_operator_data(self, rabi_operator_data: RabiOperatorData):
+        if rabi_operator_data in self.compile_cache.operator_cache:
+            return self.compile_cache.operator_cache[rabi_operator_data]
+
         # Get the from and to states for term
         match (self.space.atom_type, self.level_coupling):
             case (TwoLevelAtomType(), RydbergLevelCoupling()):
@@ -109,36 +132,24 @@ class RydbergHamiltonianCodeGen(Visitor):
                 fro = ThreeLevelAtomType.State.Hyperfine
 
         # get matrix element generating function
-        if rabi_term.phase is None:
-            # matrix_ele = lambda atom_index: self.space.swap_state_at(
-            #     atom_index, fro, to
-            # )
+        if rabi_operator_data.operator_type is RabiOperatorType.RabiSymmetric:
+
             def matrix_ele(atom_index):
                 return self.space.swap_state_at(atom_index, fro, to)
 
-        else:
+        elif rabi_operator_data.operator_type is RabiOperatorType.RabiAsymmetric:
 
             def matrix_ele(atom_index):
-                return self.space.swap_state_at(atom_index, fro, to, rabi_term.phase)
-
-            # matrix_ele = lambda atom_index: self.space.transition_state_at(
-            #     atom_index, fro, to
-            # )
+                return self.space.transition_state_at(atom_index, fro, to)
 
         # generate rabi operator
-        if len(rabi_term.target_atoms) == 1:
-            ((atom_index, value),) = rabi_term.target_atoms.items()
-            self.rabi_ops.append(
-                RabiOperator(
-                    op=IndexMapping(self.space.size, *matrix_ele(atom_index)),
-                    amplitude=rabi_term.amplitude,
-                    phase=rabi_term.phase,
-                )
-            )
+        if len(rabi_operator_data.target_atoms) == 1:
+            ((atom_index, value),) = rabi_operator_data.target_atoms.items()
+            operator = matrix_ele(atom_index) * value
         else:
             indptr = np.zeros(self.space.size + 1, dtype=self.space.index_type)
 
-            for atom_index in rabi_term.target_atoms:
+            for atom_index in rabi_operator_data.target_atoms:
                 row_indices, col_indices = matrix_ele(atom_index)
                 indptr[1:][row_indices] = 1
             np.cumsum(indptr, out=indptr)
@@ -146,27 +157,50 @@ class RydbergHamiltonianCodeGen(Visitor):
             indices = np.zeros(indptr[-1], dtype=self.space.index_type)
             data = np.zeros(indptr[-1], dtype=np.float64)
 
-            for atom_index, value in rabi_term.target_atoms.items():
+            for atom_index, value in rabi_operator_data.target_atoms.items():
                 row_indices, col_indices = matrix_ele(atom_index)
-                indices[indptr[1:][row_indices]] = col_indices
-                data[indptr[1:][row_indices]] = value
+                indices[indptr[:-1][row_indices]] = col_indices
+                data[indptr[:-1][row_indices]] = value
+                indptr[:-1][row_indices] += 1
 
-            self.rabi_ops.append(
-                RabiOperator(
-                    op=csr_matrix(
-                        (data, indices, indptr),
-                        shape=(self.space.size, self.space.size),
-                    ),
-                    amplitude=rabi_term.amplitude,
-                    phase=rabi_term.phase,
-                )
+            indptr[1:] = indptr[:-1]
+            indptr[0] = 0
+
+            operator = csr_matrix(
+                (data, indices, indptr),
+                shape=(self.space.size, self.space.size),
             )
 
-    def emit(self, emulator_program: EmulatorProgram) -> RydbergHamiltonian:
+        self.compile_cache.operator_cache[rabi_operator_data] = operator
+        return operator
+
+    def visit_detuning_term(self, detuning_term: DetuningTerm):
+        self.detuning_ops.append(
+            DetuningOperator(
+                diagonal=self.visit(detuning_term.operator_data),
+                amplitude=detuning_term.amplitude,
+            )
+        )
+
+    def visit_rabi_term(self, rabi_term: RabiTerm):
+        self.rabi_ops.append(
+            RabiOperator(
+                op=self.visit(rabi_term.operator_data),
+                amplitude=rabi_term.amplitude,
+                phase=rabi_term.phase,
+            )
+        )
+
+    def emit(
+        self, emulator_program: EmulatorProgram
+    ) -> Tuple[RydbergHamiltonian, CompileCache]:
         self.visit(emulator_program)
-        return RydbergHamiltonian(
-            duration=emulator_program,
+        hamiltonian = RydbergHamiltonian(
+            emulator_ir=emulator_program,
+            duration=emulator_program.duration,
+            space=self.space,
             rydberg=self.rydberg,
             detuning_ops=self.detuning_ops,
             rabi_ops=self.rabi_ops,
         )
+        return hamiltonian, self.compile_cache
