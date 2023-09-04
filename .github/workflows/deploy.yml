@@ -14,7 +14,7 @@ env:
 
 jobs:
   documentation:
-    name: Build documentation
+    name: Deploy documentation
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
