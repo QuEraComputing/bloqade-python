@@ -8,10 +8,11 @@ from pydantic.dataclasses import dataclass
 from typing import Any, Tuple, Union, List, Callable
 from enum import Enum
 
-from bokeh.plotting import figure, show
 import numpy as np
 import inspect
 import scipy.integrate as integrate
+from bloqade.visualization.ir_visualize import get_waveform_figure
+from bloqade.visualization.display import display_waveform
 
 
 def instruction(duration: Any) -> "PythonFn":
@@ -82,19 +83,7 @@ class Waveform:
         Returns:
             figure: a bokeh figure
         """
-        # Varlist = []
-        duration = float(self.duration(**assignments))
-        times = np.linspace(0, duration, 1001)
-        values = [self.__call__(time, **assignments) for time in times]
-        fig = figure(
-            sizing_mode="stretch_both",
-            x_axis_label="Time (s)",
-            y_axis_label="Waveform(t)",
-            tools="hover",
-        )
-        fig.line(times, values)
-
-        return fig
+        return get_waveform_figure(self, **assignments)
 
     def _get_data(self, npoints, **assignments):
         duration = float(self.duration(**assignments))
@@ -103,7 +92,7 @@ class Waveform:
         return times, values
 
     def show(self, **assignments):
-        show(self.figure(**assignments))
+        display_waveform(self, assignments)
 
     def align(
         self, alignment: Alignment, value: Union[None, AlignedValue, Scalar] = None

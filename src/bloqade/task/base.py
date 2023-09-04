@@ -14,9 +14,8 @@ import pandas as pd
 import numpy as np
 from pydantic.dataclasses import dataclass
 from bloqade.submission.ir.parallel import ParallelDecoder
-from bloqade.visualization import report_visualize
-from bokeh.io import show
 import datetime
+from bloqade.visualization.display import display_report
 
 JSONSubType = TypeVar("JSONSubType", bound="JSONInterface")
 
@@ -140,7 +139,14 @@ class Report:
             field_name (str): variable name
 
         """
-        return [meta.get(field_name) for meta in self.metas]
+
+        def cast(x):
+            try:
+                return float(x)
+            except ValueError:
+                return x
+
+        return list(map(cast, (meta.get(field_name) for meta in self.metas)))
 
     @property
     def markdown(self) -> str:
@@ -228,6 +234,4 @@ class Report:
         Interactive Visualization of the Report
 
         """
-        dat = report_visualize.format_report_data(self)
-        p = report_visualize.report_visual(*dat)
-        show(p)
+        display_report(self)

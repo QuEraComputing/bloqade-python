@@ -1,24 +1,3 @@
-# Welcome to Bloqade -- QuEra's Neutral Atom SDK
-
-
-## What is Bloqade?
-
-Bloqade is an SDK designed to be a simple, easy-to-use interface for writing, submitting, and analyzing results of analog quantum programs on QuEra's neutral atom quantum computers. Currently, QuEra's hardware is on Amazon Braket, the primary method of accessing QuEra's quantum hardware. Over the alpha phase, we plan to expand the emulator capabilities to include a performance Python emulator but also a direct integration with Julia via [Bloqade.jl](https://queracomputing.github.io/Bloqade.jl/dev/).
-
-## What does Bloqade do?
-
-Bloqade is primarily a language for writing analog quantum programs for nuetral atom quantum computers. Our interface is designed to guide our users through the process of defining a analog quantum program as well as different methods to run the program, whether it is on a real quantum computer or a simulator. Bloqade also provides a simple interface for analyzing the results of the program, whether it is a single run or a batch of runs or even some types of hybrid quantum-classical algorithms.
-
-## Installation
-
-You can install the package with pip.
-
-```sh
-pip install bloqade
-```
-
-## Usage philosophy
-
 In bloqade we use the `.` to separate the different parts of your quantum program. The most basic starting point for your program will be the `bloqade.start` object.
 
 ```python
@@ -235,3 +214,5 @@ emulator_batch.report().show()
 hardware_batch.fetch().report().show()
 
 ```
+
+An excellent place to start for examples is the Aquila whitepaper examples bound [here](). Also, a flow diagram can be found [here](../tree/builder.md) that discusses the entire build process.
