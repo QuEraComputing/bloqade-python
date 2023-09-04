@@ -178,6 +178,58 @@ def assemble_sequences(pulse_tabs: List):
     return Tabs(tabs=pulse_tabs)  # Tab
 
 
+def format_spmod_data(spmod_ir, **assignments):
+    d0 = {"uni": [], "chs": []}
+    d1 = {"uni": [], "chs": []}
+    scl = {"uni": [], "chs": []}
+
+    locs, scales = spmod_ir._get_data(**assignments)
+    name = None
+    if str(spmod_ir) == "Uniform":
+        name = "Uni"
+
+        d0["uni"] += [name] * len(locs)
+        d1["uni"] += list(locs)
+        scl["uni"] += list(scales)
+    else:
+        name = "Channel"
+
+        d0["chs"] += [name] * len(locs)
+        d1["chs"] += list(locs)
+        scl["chs"] += list(scales)
+
+    return d0, d1, scl
+
+
+def get_spmod_figure(spmod_ir, **assignments):
+    d0, d1, scl = format_spmod_data(spmod_ir, **assignments)
+    spmod_source = ColumnDataSource(
+        data=dict(
+            d0=d0,
+            d1=d1,
+            px=scl,
+        )
+    )
+    cube = SpacialMod(spmod_source)
+    return row(cube)
+
+
+def get_waveform_figure(wvfm_ir, **assignments):
+    # Varlist = []
+    duration = float(wvfm_ir.duration(**assignments))
+    times = np.linspace(0, duration, 1001)
+    values = [wvfm_ir.__call__(time, **assignments) for time in times]
+    fig = figure(
+        sizing_mode="stretch_both",
+        x_axis_label="Time (s)",
+        y_axis_label="Waveform(t)",
+        tools="hover",
+    )
+    fig.line(times, values)
+
+    return fig
+
+
 ## =====================================================
 # below are formatting IR data, and called by IR.
 def format_field_data(field_ir, **assignments):

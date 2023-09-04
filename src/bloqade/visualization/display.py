@@ -41,7 +41,26 @@ def display_field(field, assignments):
     show(field.figure(**assignments))
 
 
+def display_spatialmod(spmod, assignments):
+    show(spmod.figure(**assignments))
+
+
+def display_waveform(wvfm_ir, assignments):
+    show(wvfm_ir.figure(**assignments))
+
+
 def display_report(report):
     dat = report_visualize.format_report_data(report)
     p = report_visualize.report_visual(*dat)
     show(p)
+
+
+## task_ir
+
+
+def display_task_lattice(lattice):
+    show(lattice.figure())
+
+
+def display_quera_task_ir(task_ir):
+    show(task_ir.figure())

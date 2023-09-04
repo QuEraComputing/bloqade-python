@@ -4,11 +4,15 @@ from decimal import Decimal
 
 from bokeh.plotting import figure, show
 from bokeh.models import ColumnDataSource, Step, HoverTool
-from bokeh.layouts import gridplot
+
 
 from bloqade.submission.ir.capabilities import QuEraCapabilities
-from bloqade.ir.location import ListOfLocations
-from bokeh.layouts import row
+from bloqade.visualization.task_visualize import (
+    get_lattice_figure,
+    get_quera_task_figure,
+)
+from bloqade.visualization.display import display_task_lattice, display_quera_task_ir
+
 
 __all__ = ["QuEraTaskSpecification"]
 
@@ -332,15 +336,10 @@ class Lattice(BaseModel):
     def figure(self, **fig_kwargs):
         ## use ir.Atom_oarrangement's plotting:
         ## covert unit to m -> um
-        sites_um = list(
-            map(lambda cord: (float(cord[0]) * 1e6, float(cord[1]) * 1e6), self.sites)
-        )
-        reg = ListOfLocations().add_positions(sites_um, self.filling)
-        fig_reg = reg.figure(fig_kwargs=fig_kwargs)  # ignore the B-rad widget
-        return fig_reg
+        return get_lattice_figure(self, fig_kwargs)
 
     def show(self):
-        show(self.figure())
+        display_task_lattice(self)
 
 
 class QuEraTaskSpecification(BaseModel):
@@ -368,53 +367,7 @@ class QuEraTaskSpecification(BaseModel):
         )
 
     def figure(self):
-        # grab all the datas and combine them:
-        rabi_amp_src = (
-            self.effective_hamiltonian.rydberg.rabi_frequency_amplitude._get_data_source()
-        )
-        rabi_phase_src = (
-            self.effective_hamiltonian.rydberg.rabi_frequency_phase._get_data_source()
-        )
-        global_detuning_src = (
-            self.effective_hamiltonian.rydberg.detuning._get_data_source()
-        )
-
-        rabi_amp_src = ColumnDataSource(rabi_amp_src)
-        rabi_phase_src = ColumnDataSource(rabi_phase_src)
-        global_detuning_src = ColumnDataSource(global_detuning_src)
-
-        # grab global figures
-        rabi_amplitude = (
-            self.effective_hamiltonian.rydberg.rabi_frequency_amplitude.figure(
-                rabi_amp_src, tools="wheel_zoom,reset, undo, redo, pan"
-            )
-        )
-
-        rabi_phase = self.effective_hamiltonian.rydberg.rabi_frequency_phase.figure(
-            rabi_phase_src,
-            x_range=rabi_amplitude.x_range,
-            tools="hover,wheel_zoom,reset, undo, redo, pan",
-        )
-        global_detuning = self.effective_hamiltonian.rydberg.detuning.global_figure(
-            global_detuning_src,
-            x_range=rabi_amplitude.x_range,
-            tools="hover,wheel_zoom,reset, undo, redo, pan",
-        )
-
-        # lattice:
-        register = self.lattice.figure(x_axis_label="x (um)", y_axis_label="y (um)")
-
-        col_plt = gridplot(
-            [[rabi_amplitude], [global_detuning], [rabi_phase]],
-            merge_tools=False,
-            sizing_mode="stretch_both",
-        )
-        col_plt.width_policy = "max"
-
-        full_plt = row(col_plt, register, sizing_mode="stretch_both")
-        full_plt.width_policy = "max"
-
-        return full_plt
+        return get_quera_task_figure(self)
 
     def show(self):
-        show(self.figure())
+        display_quera_task_ir(self)

@@ -1,13 +1,12 @@
 from ..scalar import Scalar, cast
 from ..tree_print import Printer
 from .waveform import Waveform
-from bokeh.plotting import figure, show
-from bokeh.models import ColumnDataSource
 from bloqade.visualization.ir_visualize import get_field_figure
 from pydantic.dataclasses import dataclass
 from typing import Dict, List
 from decimal import Decimal
-from bloqade.visualization.display import display_field
+from bloqade.visualization.display import display_field, display_spatialmod
+from bloqade.visualization.ir_visualize import get_spmod_figure
 
 
 class FieldExpr:
@@ -84,18 +83,10 @@ class UniformModulation(SpatialModulation):
         return ["uni"], ["all"]
 
     def figure(self, **assignment):
-        p = figure(sizing_mode="stretch_both")
-        p.text(
-            x=[0.5],
-            y=[0.5],
-            text="Uniform",
-            text_algin="center",
-            text_baseline="middle",
-        )
-        return p
+        return get_spmod_figure(self, **assignment)
 
     def show(self, **assignment):
-        show(self.figure(**assignment))
+        display_spatialmod(self, **assignment)
 
 
 Uniform = UniformModulation()
@@ -118,21 +109,13 @@ class RunTimeVector(SpatialModulation):
         return [self.name]
 
     def figure(self, **assginment):
-        p = figure(sizing_mode="stretch_both")
-        p.text(
-            x=[0.5],
-            y=[0.5],
-            text=self.name,
-            text_algin="center",
-            text_baseline="middle",
-        )
-        return p
+        return get_spmod_figure(self, **assginment)
 
     def _get_data(self, **assignment):
         return [self.name], ["vec"]
 
     def show(self, **assignment):
-        show(self.figure(**assignment))
+        display_spatialmod(self, **assignment)
 
 
 @dataclass
@@ -153,21 +136,13 @@ class AssignedRunTimeVector(SpatialModulation):
         return [self.name, *self.value]
 
     def figure(self, **assginment):
-        p = figure(sizing_mode="stretch_both")
-        p.text(
-            x=[0.5],
-            y=[0.5],
-            text=self.name,
-            text_algin="center",
-            text_baseline="middle",
-        )
-        return p
+        return get_spmod_figure(self, **assginment)
 
     def _get_data(self, **assignment):
         return [self.name], ["vec"]
 
     def show(self, **assignment):
-        show(self.figure(**assignment))
+        display_spatialmod(self, **assignment)
 
 
 @dataclass(init=False, repr=False)
@@ -228,23 +203,10 @@ class ScaledLocations(SpatialModulation):
         return bool(self.value)
 
     def figure(self, **assignments):
-        locs = []
-        literal_val = []
-        for k, v in self.value.items():
-            locs.append(f"loc[{k.value}]")
-            literal_val.append(float(v(**assignments)))
-
-        source = ColumnDataSource(data=dict(locations=locs, yvals=literal_val))
-
-        p = figure(
-            y_range=locs, sizing_mode="stretch_both", x_axis_label="Scale factor"
-        )
-        p.hbar(y="locations", right="yvals", source=source, height=0.4)
-
-        return p
+        return get_spmod_figure(self, **assignments)
 
     def show(self, **assignment):
-        show(self.figure(**assignment))
+        display_spatialmod(self, **assignment)
 
 
 @dataclass
