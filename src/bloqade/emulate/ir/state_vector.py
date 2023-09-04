@@ -49,15 +49,34 @@ class RydbergHamiltonian:
     detuning_ops: List[DetuningOperator] = field(default_factory=list)
     rabi_ops: List[RabiOperator] = field(default_factory=list)
 
+    # def _ode_complex_kernel(self, time: float, register: NDArray):
+    #     diagonal = sum(
+    #         (detuning.get_diagonal(time) for detuning in self.detuning_ops),
+    #         start=self.rydberg,
+    #     )
+
+    #     result_register = diagonal * register
+    #     for rabi_op in self.rabi_ops:
+    #         result_register += rabi_op.dot(register, time)
+
+    #     result_register *= -1j
+    #     return result_register
+
     def _ode_complex_kernel(self, time: float, register: NDArray):
         diagonal = sum(
             (detuning.get_diagonal(time) for detuning in self.detuning_ops),
-            start=self.rydberg,
         )
 
-        result_register = diagonal * register
+        u = np.exp(-1j * self.rydberg * time)
+
+        int_register = u * register
+
+        result_register = diagonal * int_register
         for rabi_op in self.rabi_ops:
-            result_register += rabi_op.dot(register, time)
+            result_register += rabi_op.dot(int_register, time)
+
+        np.conj(u, out=u)
+        np.multiply(u, result_register, out=result_register)
 
         result_register *= -1j
         return result_register
@@ -168,7 +187,7 @@ class AnalogGate:
         sampling the final state vector."""
         state = self.hamiltonian.space.zero_state()
         result = self.apply(state, solver_name, atol, rtol, nsteps)
-
+        result /= np.linalg.norm(result)
         return self.hamiltonian.space.sample_state_vector(
             result, shots, project_hyperfine=project_hyperfine
         )
