@@ -48,7 +48,9 @@ class LaserCoupling:
 
 
 @dataclass(frozen=True)
-class Geometry:
+class Register:
+    """This class represents the of the atoms in the system."""
+
     atom_type: AtomType
     positions: List[Tuple[Decimal, Decimal]]
     blockade_radius: Decimal
@@ -77,7 +79,7 @@ class Geometry:
 
 @dataclass(frozen=True)
 class EmulatorProgram:
-    geometry: Geometry
+    geometry: Register
     duration: float
     drives: Dict[LevelCoupling, LaserCoupling]
 
@@ -108,7 +110,7 @@ class Visitor:
         match ast:
             case EmulatorProgram():
                 return self.visit_emulator_program(ast)
-            case Geometry():
+            case Register():
                 return self.visit_geometry(ast)
             case LaserCoupling():
                 return self.visit_laser_coupling(ast)

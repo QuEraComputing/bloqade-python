@@ -5,7 +5,7 @@ import numpy as np
 from enum import Enum
 
 if TYPE_CHECKING:
-    from .emulator import Geometry
+    from .emulator import Register
 
 
 class SpaceType(str, Enum):
@@ -160,12 +160,12 @@ TwoLevelAtom = TwoLevelAtomType()
 class Space:
     space_type: SpaceType
     atom_type: AtomType
-    geometry: "Geometry"
+    geometry: "Register"
     configurations: NDArray
 
     @staticmethod
     def create(
-        geometry: "Geometry",
+        geometry: "Register",
     ):
         positions = geometry.positions
         n_atom = len(positions)

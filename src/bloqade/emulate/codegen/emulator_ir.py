@@ -23,7 +23,7 @@ from bloqade.emulate.ir.emulator import (
     RabiOperatorType,
     DetuningTerm,
     EmulatorProgram,
-    Geometry,
+    Register,
     LaserCoupling,
     RabiTerm,
 )
@@ -80,11 +80,11 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
                 positions.append(position)
 
         if sequence.hyperfine in self.level_couplings:
-            self.geometry = Geometry(
+            self.geometry = Register(
                 ThreeLevelAtom, positions, blockade_radius=self.blockade_radius
             )
         else:
-            self.geometry = Geometry(
+            self.geometry = Register(
                 TwoLevelAtom, positions, blockade_radius=self.blockade_radius
             )
 
