@@ -62,12 +62,7 @@ class RydbergHamiltonianCodeGen(Visitor):
             self.space, self.rydberg = self.compile_cache.space_cache[geometry]
             return
 
-        self.space = Space.create(
-            atom_type=geometry.atom_type,
-            positions=geometry.positions,
-            blockade_radius=geometry.blockade_radius,
-        )
-
+        self.space = Space.create(geometry)
         positions = geometry.positions
 
         # generate rydberg interaction elements
@@ -109,8 +104,8 @@ class RydbergHamiltonianCodeGen(Visitor):
             case (ThreeLevelAtomType(), HyperfineLevelCoupling()):
                 state = ThreeLevelAtomType.State.Hyperfine
 
-        for atom_index, value in enumerate(detuning_data.target_atoms):
-            diagonal[self.space.is_state_at(atom_index, state)] += value
+        for atom_index, value in detuning_data.target_atoms.items():
+            diagonal[self.space.is_state_at(atom_index, state)] += float(value)
 
         self.compile_cache.operator_cache[detuning_data] = diagonal
         return diagonal
@@ -151,7 +146,7 @@ class RydbergHamiltonianCodeGen(Visitor):
 
             for atom_index in rabi_operator_data.target_atoms:
                 row_indices, col_indices = matrix_ele(atom_index)
-                indptr[1:][row_indices] = 1
+                indptr[1:][row_indices] += 1
             np.cumsum(indptr, out=indptr)
 
             indices = np.zeros(indptr[-1], dtype=self.space.index_type)
@@ -197,7 +192,6 @@ class RydbergHamiltonianCodeGen(Visitor):
         self.visit(emulator_program)
         hamiltonian = RydbergHamiltonian(
             emulator_ir=emulator_program,
-            duration=emulator_program.duration,
             space=self.space,
             rydberg=self.rydberg,
             detuning_ops=self.detuning_ops,

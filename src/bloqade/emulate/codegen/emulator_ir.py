@@ -3,6 +3,7 @@ from bloqade.ir.location.base import AtomArrangement, SiteFilling
 from bloqade.ir.visitor.analog_circuit import AnalogCircuitVisitor
 from bloqade.ir.visitor.waveform import WaveformVisitor
 from bloqade.ir.control.field import (
+    AssignedRunTimeVector,
     Field,
     ScaledLocations,
     SpatialModulation,
@@ -27,11 +28,20 @@ from bloqade.emulate.ir.emulator import (
     RabiTerm,
 )
 
+from dataclasses import dataclass
 from typing import Any, Dict, Optional, Union, List
 from numbers import Number, Real
 from decimal import Decimal
 
 ParamType = Union[Real, List[Real]]
+
+
+@dataclass(frozen=True)
+class CompiledWaveform:
+    source: waveform.Waveform
+
+    def __call__(self, t: float) -> float:
+        return self.source(t)
 
 
 class WaveformCompiler(WaveformVisitor):
@@ -40,11 +50,11 @@ class WaveformCompiler(WaveformVisitor):
     def __init__(self, assignments: Dict[str, Number]):
         self.assignments = assignments
 
-    def emit(self, ast: waveform.Waveform):
+    def emit(self, ast: waveform.Waveform) -> CompiledWaveform:
         from bloqade.codegen.common.assign_variables import AssignWaveform
 
         new_ast = AssignWaveform(self.assignments).emit(ast)
-        return lambda t: new_ast(t)
+        return CompiledWaveform(new_ast)
 
 
 class EmulatorProgramCodeGen(AnalogCircuitVisitor):
@@ -103,10 +113,22 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
             case UniformModulation():
                 return {atom: Decimal("1.0") for atom in range(self.n_atoms)}
             case RunTimeVector(name):
+                if len(self.assignments[name]) != self.n_atoms:
+                    raise ValueError(
+                        f"Invalid number of atoms in '{name}' "
+                        f"({len(self.assignments[name])} != {self.n_atoms})"
+                    )
                 return {
                     atom: Decimal(str(coeff))
                     for atom, coeff in enumerate(self.assignments[name])
                 }
+            case AssignedRunTimeVector(value=value, name=name):
+                if len(value) != self.n_atoms:
+                    raise ValueError(
+                        f"Invalid number of atoms in '{name}' "
+                        f"({len(value)} != {self.n_atoms})"
+                    )
+                return {atom: Decimal(str(coeff)) for atom, coeff in enumerate(value)}
             case ScaledLocations(locations):
                 return {
                     loc.value: coeff(**self.assignments)

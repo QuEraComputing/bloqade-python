@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from numpy.typing import NDArray
-from typing import Union, TYPE_CHECKING
+from typing import TYPE_CHECKING
 import numpy as np
 from enum import Enum
 
@@ -166,23 +166,12 @@ class Space:
     @staticmethod
     def create(
         geometry: "Geometry",
-        n_level: Union[int, AtomType] = TwoLevelAtom,
-        blockade_radius=0.0,
     ):
         positions = geometry.positions
         n_atom = len(positions)
-
-        if isinstance(n_level, AtomType):
-            atom_type = n_level
-            Ns = atom_type.n_level**n_atom
-        elif n_level == 2:
-            atom_type = TwoLevelAtom
-            Ns = 1 << n_atom
-        elif n_level == 3:
-            atom_type = ThreeLevelAtom
-            Ns = 3**n_atom
-        else:
-            raise ValueError(f"n_level: {n_level} is not a valid n_level.")
+        atom_type = geometry.atom_type
+        blockade_radius = geometry.blockade_radius
+        Ns = atom_type.n_level**n_atom
 
         check_atoms = []
 

@@ -16,6 +16,9 @@ class RabiOperatorData:
     operator_type: RabiOperatorType
     target_atoms: Dict[int, Decimal]
 
+    def __hash__(self):
+        return hash(self.operator_type) ^ hash(frozenset(self.target_atoms.items()))
+
 
 @dataclass(frozen=True)
 class RabiTerm:
@@ -27,6 +30,9 @@ class RabiTerm:
 @dataclass(frozen=True)
 class DetuningOperatorData:
     target_atoms: Dict[int, Decimal]
+
+    def __hash__(self) -> int:
+        return hash(frozenset(self.target_atoms.items()))
 
 
 @dataclass(frozen=True)
