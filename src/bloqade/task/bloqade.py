@@ -35,15 +35,21 @@ class BloqadeTask(LocalTask):
     def run(
         self,
         solver_name: str = "dop853",
-        atol: float = 1e-7,
-        rtol: float = 1e-14,
+        atol: float = 1e-14,
+        rtol: float = 1e-7,
         nsteps: int = 2_147_483_647,
     ) -> "BloqadeTask":
         hamiltonian = RydbergHamiltonianCodeGen(self.compile_cache).emit(
             self.emulator_ir
         )
+        options = dict(
+            solver_name=solver_name,
+            atol=atol,
+            rtol=rtol,
+            nsteps=nsteps,
+        )
         shots_array = AnalogGate(hamiltonian).run(
-            self.shots, solver_name, atol, rtol, nsteps, project_hyperfine=True
+            self.shots, project_hyperfine=True, **options
         )
 
         shot_outputs = []

@@ -178,8 +178,8 @@ class AnalogGate:
         self,
         shots: int = 1,
         solver_name: str = "dop853",
-        atol: float = 1e-7,
-        rtol: float = 1e-14,
+        atol: float = 1e-14,
+        rtol: float = 1e-7,
         nsteps: int = 2_147_483_647,
         project_hyperfine: bool = True,
     ):
