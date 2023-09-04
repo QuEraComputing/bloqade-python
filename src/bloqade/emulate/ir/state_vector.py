@@ -149,7 +149,7 @@ class AnalogGate:
         state = np.asarray(state).astype(np.complex128, copy=False)
         solver = ode(self.hamiltonian._ode_real_kernel)
         solver.set_initial_value(state.view(np.float64))
-        solver.set_integrator(solver_name, atol=atol, rtol=rtol, nstep=nsteps)
+        solver.set_integrator(solver_name, atol=atol, rtol=rtol, nsteps=nsteps)
         solver.integrate(self.hamiltonian.emulator_ir.duration)
         AnalogGate._error_check(solver_name, solver.get_return_code())
 

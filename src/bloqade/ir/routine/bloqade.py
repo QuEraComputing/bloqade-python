@@ -38,7 +38,7 @@ class BloqadePythonRoutine(RoutineBase):
             matrix_cache = None
 
         tasks = OrderedDict()
-        for task_number, batch_param in params.batch_assignments(*args):
+        for task_number, batch_param in enumerate(params.batch_assignments(*args)):
             record_params = AssignmentScan(batch_param).emit(circuit)
             final_circuit = AssignAnalogCircuit(record_params).visit(circuit)
             emulator_ir = EmulatorProgramCodeGen(blockade_radius=blockade_radius).emit(
@@ -46,7 +46,7 @@ class BloqadePythonRoutine(RoutineBase):
             )
             tasks[task_number] = BloqadeTask(shots, emulator_ir, matrix_cache)
 
-        return LocalBatch(tasks, name)
+        return LocalBatch(self.source, tasks, name)
 
     def run(
         self,
@@ -55,14 +55,14 @@ class BloqadePythonRoutine(RoutineBase):
         name: str | None = None,
         blockade_radius: float = 0.0,
         cache_matrices: bool = False,
-        multiprocesing: bool = False,
+        multiprocessing: bool = False,
         num_workers: int | None = None,
         solver_name: str = "dop853",
         atol: float = 1e-7,
         rtol: float = 1e-14,
         nsteps: int = 2_147_483_647,
     ):
-        if multiprocesing and cache_matrices:
+        if multiprocessing and cache_matrices:
             raise ValueError(
                 "Cannot use multiprocessing and cache_matrices at the same time."
             )
@@ -76,7 +76,7 @@ class BloqadePythonRoutine(RoutineBase):
         )
 
         solver_options = dict(
-            multiprocesing=multiprocesing,
+            multiprocessing=multiprocessing,
             num_workers=num_workers,
             solver_name=solver_name,
             atol=atol,

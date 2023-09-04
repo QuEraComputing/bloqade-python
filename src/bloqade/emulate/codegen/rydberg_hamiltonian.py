@@ -105,7 +105,7 @@ class RydbergHamiltonianCodeGen(Visitor):
 
         diagonal = np.zeros(self.space.size, dtype=np.float64)
 
-        match (self.space.geometry.atom_type, self.level_coupling):
+        match (self.space.atom_type, self.level_coupling):
             case (TwoLevelAtomType(), RydbergLevelCoupling()):
                 state = TwoLevelAtomType.State.Rydberg
             case (ThreeLevelAtomType(), RydbergLevelCoupling()):
@@ -126,7 +126,7 @@ class RydbergHamiltonianCodeGen(Visitor):
             ]
 
         # Get the from and to states for term
-        match (self.space.geometry.atom_type, self.level_coupling):
+        match (self.space.atom_type, self.level_coupling):
             case (TwoLevelAtomType(), RydbergLevelCoupling()):
                 to = TwoLevelAtomType.State.Ground
                 fro = TwoLevelAtomType.State.Rydberg
