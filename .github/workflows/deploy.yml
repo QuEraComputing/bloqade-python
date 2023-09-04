@@ -2,9 +2,7 @@ name: Docs new version release
 
 on:
   release:
-    types: [published]
-  prerelease:
-    types: [published]
+    types: [published, prereleased]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
