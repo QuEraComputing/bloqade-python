@@ -1,8 +1,8 @@
-name: Docs new version release
-
+name: Deploy Docs
 on:
-  release:
-    types: [published, prereleased]
+  push:
+    tags:
+      - "**"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
