@@ -37,7 +37,11 @@ MatrixTypes = Union[csr_matrix, IndexMapping, NDArray]
 
 @dataclass
 class CompileCache:
-    operator_cache: Dict[OperatorData, MatrixTypes] = field(default_factory=dict)
+    """This class is used to cache the results of the code generation."""
+
+    operator_cache: Dict[Tuple[Geometry, OperatorData], MatrixTypes] = field(
+        default_factory=dict
+    )
     space_cache: Dict[Geometry, Tuple[Space, NDArray]] = field(default_factory=dict)
 
 
@@ -58,6 +62,8 @@ class RydbergHamiltonianCodeGen(Visitor):
             self.visit(laser_coupling)
 
     def visit_geometry(self, geometry: Geometry):
+        self.geometry = geometry
+
         if geometry in self.compile_cache.space_cache:
             self.space, self.rydberg = self.compile_cache.space_cache[geometry]
             return
@@ -91,12 +97,12 @@ class RydbergHamiltonianCodeGen(Visitor):
             self.visit(term)
 
     def visit_detuning_operator_data(self, detuning_data: DetuningOperatorData):
-        if detuning_data in self.compile_cache.operator_cache:
-            return self.compile_cache.operator_cache[detuning_data]
+        if (self.geometry, detuning_data) in self.compile_cache.operator_cache:
+            return self.compile_cache.operator_cache[(self.space, detuning_data)]
 
         diagonal = np.zeros(self.space.size, dtype=np.float64)
 
-        match (self.space.atom_type, self.level_coupling):
+        match (self.space.geometry.atom_type, self.level_coupling):
             case (TwoLevelAtomType(), RydbergLevelCoupling()):
                 state = TwoLevelAtomType.State.Rydberg
             case (ThreeLevelAtomType(), RydbergLevelCoupling()):
@@ -107,15 +113,17 @@ class RydbergHamiltonianCodeGen(Visitor):
         for atom_index, value in detuning_data.target_atoms.items():
             diagonal[self.space.is_state_at(atom_index, state)] += float(value)
 
-        self.compile_cache.operator_cache[detuning_data] = diagonal
+        self.compile_cache.operator_cache[(self.geometry, detuning_data)] = diagonal
         return diagonal
 
     def visit_rabi_operator_data(self, rabi_operator_data: RabiOperatorData):
-        if rabi_operator_data in self.compile_cache.operator_cache:
-            return self.compile_cache.operator_cache[rabi_operator_data]
+        if (self.geometry, rabi_operator_data) in self.compile_cache.operator_cache:
+            return self.compile_cache.operator_cache[
+                (self.geometry, rabi_operator_data)
+            ]
 
         # Get the from and to states for term
-        match (self.space.atom_type, self.level_coupling):
+        match (self.space.geometry.atom_type, self.level_coupling):
             case (TwoLevelAtomType(), RydbergLevelCoupling()):
                 to = TwoLevelAtomType.State.Ground
                 fro = TwoLevelAtomType.State.Rydberg
@@ -166,7 +174,9 @@ class RydbergHamiltonianCodeGen(Visitor):
                 shape=(self.space.size, self.space.size),
             )
 
-        self.compile_cache.operator_cache[rabi_operator_data] = operator
+        self.compile_cache.operator_cache[
+            (self.geometry, rabi_operator_data)
+        ] = operator
         return operator
 
     def visit_detuning_term(self, detuning_term: DetuningTerm):
