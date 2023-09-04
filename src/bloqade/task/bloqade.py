@@ -43,7 +43,7 @@ class BloqadeTask(LocalTask):
             self.emulator_ir
         )
         shots_array = AnalogGate(hamiltonian).run(
-            self.shots, solver_name, atol, rtol, nsteps
+            self.shots, solver_name, atol, rtol, nsteps, project_hyperfine=True
         )
 
         shot_outputs = []

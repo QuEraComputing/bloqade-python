@@ -162,10 +162,13 @@ class AnalogGate:
         atol: float = 1e-7,
         rtol: float = 1e-14,
         nsteps: int = 2_147_483_647,
+        project_hyperfine: bool = True,
     ):
         """Run the emulation with all atoms in the ground state,
         sampling the final state vector."""
         state = self.hamiltonian.space.zero_state()
         result = self.apply(state, solver_name, atol, rtol, nsteps)
 
-        return self.hamiltonian.space.sample_state_vector(result, shots)
+        return self.hamiltonian.space.sample_state_vector(
+            result, shots, project_hyperfine=project_hyperfine
+        )
