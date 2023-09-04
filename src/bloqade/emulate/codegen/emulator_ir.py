@@ -38,10 +38,11 @@ ParamType = Union[Real, List[Real]]
 
 @dataclass(frozen=True)
 class CompiledWaveform:
+    assignments: Dict[str, Number]
     source: waveform.Waveform
 
     def __call__(self, t: float) -> float:
-        return self.source(t)
+        return self.source(t, **self.assignments)
 
 
 class WaveformCompiler(WaveformVisitor):
@@ -50,7 +51,7 @@ class WaveformCompiler(WaveformVisitor):
         self.assignments = assignments
 
     def emit(self, ast: waveform.Waveform) -> CompiledWaveform:
-        return CompiledWaveform(ast)
+        return CompiledWaveform(self.assignments, ast)
 
 
 class EmulatorProgramCodeGen(AnalogCircuitVisitor):
