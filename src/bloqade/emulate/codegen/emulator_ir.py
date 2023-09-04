@@ -46,15 +46,11 @@ class CompiledWaveform:
 
 class WaveformCompiler(WaveformVisitor):
     # TODO: implement AST generator for waveforms.
-
-    def __init__(self, assignments: Dict[str, Number]):
+    def __init__(self, assignments: Dict[str, Number] = {}):
         self.assignments = assignments
 
     def emit(self, ast: waveform.Waveform) -> CompiledWaveform:
-        from bloqade.codegen.common.assign_variables import AssignWaveform
-
-        new_ast = AssignWaveform(self.assignments).emit(ast)
-        return CompiledWaveform(new_ast)
+        return CompiledWaveform(ast)
 
 
 class EmulatorProgramCodeGen(AnalogCircuitVisitor):
