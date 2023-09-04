@@ -61,7 +61,7 @@ class RydbergHamiltonianCodeGen(Visitor):
             self.level_coupling = level_coupling
             self.visit(laser_coupling)
 
-    def visit_geometry(self, geometry: Register):
+    def visit_register(self, geometry: Register):
         self.geometry = geometry
 
         if geometry in self.compile_cache.space_cache:

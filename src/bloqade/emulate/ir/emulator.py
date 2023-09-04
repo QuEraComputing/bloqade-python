@@ -103,7 +103,7 @@ class Visitor:
     def visit_rabi_term(self, ast):
         raise NotImplementedError
 
-    def visit_geometry(self, ast):
+    def visit_register(self, ast):
         raise NotImplementedError
 
     def visit(self, ast):
@@ -111,7 +111,7 @@ class Visitor:
             case EmulatorProgram():
                 return self.visit_emulator_program(ast)
             case Register():
-                return self.visit_geometry(ast)
+                return self.visit_register(ast)
             case LaserCoupling():
                 return self.visit_laser_coupling(ast)
             case DetuningOperatorData():
