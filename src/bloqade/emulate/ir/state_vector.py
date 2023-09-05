@@ -1,12 +1,15 @@
-from bloqade.emulate.ir.emulator import EmulatorProgram
 from bloqade.emulate.ir.space import Space
 from bloqade.emulate.sparse_operator import IndexMapping
 from scipy.sparse import csr_matrix
 from dataclasses import dataclass, field
 from numpy.typing import NDArray
-from typing import List, Callable, Union, Optional
+from typing import TYPE_CHECKING, List, Callable, Union, Optional
 import numpy as np
 from scipy.integrate import ode
+
+if TYPE_CHECKING:
+    from bloqade.emulate.ir.emulator import EmulatorProgram
+
 
 SparseOperator = Union[IndexMapping, csr_matrix]
 
@@ -43,7 +46,7 @@ class RabiOperator:
 
 @dataclass(frozen=True)
 class RydbergHamiltonian:
-    emulator_ir: EmulatorProgram
+    emulator_ir: "EmulatorProgram"
     space: Space
     rydberg: NDArray
     detuning_ops: List[DetuningOperator] = field(default_factory=list)
