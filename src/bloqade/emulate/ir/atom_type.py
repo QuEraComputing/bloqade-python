@@ -4,8 +4,6 @@ import numpy as np
 from numpy.typing import NDArray
 
 
-
-
 @dataclass(frozen=True)
 class AtomType:
     def string_to_integer(self, fock_state: str) -> int:
