@@ -18,9 +18,8 @@ nav:
     - Requesting a change: contributing/requesting-a-change.md
     - Creating a reproduction: contributing/creating-a-reproduction.md
     - Setting up development: contributing/setup.md
-    - Asking a question: https://github.com/QuEraComputing/bloqade-python/discussions
-  - Tutorials:
-    - tutorials/index.md
+    - Asking a question: 'https://github.com/QuEraComputing/bloqade-python/discussions'
+  - Tutorials: 'https://queracomputing.github.io/bloqade-python-examples/latest/'
   - Reference:
     - Builder workflow : tree/builder.md
     - API References : reference/bloqade/
