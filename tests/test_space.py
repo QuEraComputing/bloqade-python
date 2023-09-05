@@ -137,4 +137,69 @@ def test_two_level_swap_indices():
     assert np.all(col_indices == col_indices_expected)
 
 
-test_two_level_swap_indices()
+def test_three_level_swap_indices():
+    positions = [(0, 0), (0, 1)]
+    register = Register(ThreeLevelAtom, positions, 0)
+    space = Space.create(register)
+    print(space)
+
+    # 0. |gg>
+    # 1. |hg>
+    # 2. |rg>
+    # 3. |gh>
+    # 4. |hh>
+    # 5. |rh>
+    # 6. |gr>
+    # 7. |hr>
+    # 8. |rr>
+
+    row_indices, col_indices = space.swap_state_at(0, 0, 1)
+
+    row_indices_expected = np.array(
+        [True, True, False, True, True, False, True, True, False]
+    )
+    col_indices_expected = np.array(
+        [
+            ThreeLevelAtom.string_to_integer("|hg>"),
+            ThreeLevelAtom.string_to_integer("|gg>"),
+            ThreeLevelAtom.string_to_integer("|hh>"),
+            ThreeLevelAtom.string_to_integer("|gh>"),
+            ThreeLevelAtom.string_to_integer("|hr>"),
+            ThreeLevelAtom.string_to_integer("|gr>"),
+        ]
+    )
+
+    assert np.all(row_indices == row_indices_expected)
+    assert np.all(col_indices == col_indices_expected)
+
+    # 0. |gg>
+    # 1. |hg>
+    # 2. |rg>
+    # 3. |gh>
+    # 4. |hh>
+    # 5. |rh>
+    # 6. |gr>
+    # 7. |hr>
+    # 8. |rr>
+
+    row_indices, col_indices = space.swap_state_at(0, 1, 2)
+
+    row_indices_expected = np.array(
+        [False, True, True, False, True, True, False, True, True]
+    )
+    col_indices_expected = np.array(
+        [
+            ThreeLevelAtom.string_to_integer("|rg>"),
+            ThreeLevelAtom.string_to_integer("|hg>"),
+            ThreeLevelAtom.string_to_integer("|rh>"),
+            ThreeLevelAtom.string_to_integer("|hh>"),
+            ThreeLevelAtom.string_to_integer("|rr>"),
+            ThreeLevelAtom.string_to_integer("|hr>"),
+        ]
+    )
+
+    assert np.all(row_indices == row_indices_expected)
+    assert np.all(col_indices == col_indices_expected)
+
+
+test_three_level_swap_indices()
