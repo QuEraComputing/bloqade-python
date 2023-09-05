@@ -160,6 +160,7 @@ class Space:
         self, state_vector: NDArray, n_samples: int, project_hyperfine: bool = True
     ) -> NDArray:
         from .atom_type import ThreeLevelAtomType
+
         p = np.abs(state_vector) ** 2
         sampled_configs = np.random.choice(self.configurations, size=n_samples, p=p)
 
