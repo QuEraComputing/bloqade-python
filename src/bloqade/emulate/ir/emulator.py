@@ -7,7 +7,7 @@ from bloqade.emulate.ir.atom_type import AtomType
 
 
 class RabiOperatorType(Enum):
-    Rabi = 0
+    RabiAsymmetric = 0
     RabiSymmetric = 1
 
 
