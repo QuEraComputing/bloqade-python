@@ -17,28 +17,28 @@ class SpaceType(str, Enum):
 @dataclass(frozen=True)
 class Space:
     space_type: SpaceType
-    atom_type: "AtomType"
+    atom_type: AtomType
     geometry: "Register"
     configurations: NDArray
 
     @staticmethod
     def create(
-        geometry: "Register",
+        register: "Register",
     ):
-        positions = geometry.positions
-        n_atom = len(positions)
-        atom_type = geometry.atom_type
-        blockade_radius = geometry.blockade_radius
+        sites = register.sites
+        n_atom = len(sites)
+        atom_type = register.atom_type
+        blockade_radius = register.blockade_radius
         Ns = atom_type.n_level**n_atom
 
         check_atoms = []
 
-        for index_1, position_1 in enumerate(positions):
-            position_1 = np.asarray(position_1)
+        for index_1, site_1 in enumerate(sites):
+            site_1 = np.asarray(site_1)
             atoms = []
-            for index_2, position_2 in enumerate(positions[index_1 + 1 :], index_1 + 1):
-                position_2 = np.asarray(position_2)
-                if np.linalg.norm(position_1 - position_2) <= blockade_radius:
+            for index_2, site_2 in enumerate(sites[index_1 + 1 :], index_1 + 1):
+                site_2 = np.asarray(site_2)
+                if np.linalg.norm(site_1 - site_2) <= blockade_radius:
                     atoms.append(index_2)
 
             check_atoms.append(atoms)
@@ -46,7 +46,7 @@ class Space:
         configurations = np.arange(Ns, dtype=np.min_scalar_type(Ns - 1))
 
         if all(len(sub_list) == 0 for sub_list in check_atoms):
-            return Space(SpaceType.FullSpace, atom_type, positions, configurations)
+            return Space(SpaceType.FullSpace, atom_type, sites, configurations)
 
         for index_1, indices in enumerate(check_atoms):
             # get which configurations are in rydberg state for the current index.
@@ -62,7 +62,7 @@ class Space:
                 configurations = configurations[mask]
                 rydberg_configs_1 = rydberg_configs_1[mask]
 
-        return Space(SpaceType.SubSpace, atom_type, positions, configurations)
+        return Space(SpaceType.SubSpace, atom_type, sites, configurations)
 
     @property
     def index_type(self) -> np.dtype:
