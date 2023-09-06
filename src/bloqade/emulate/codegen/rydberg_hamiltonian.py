@@ -14,10 +14,10 @@ from bloqade.emulate.ir.emulator import (
     RabiTerm,
     Visitor,
 )
-from bloqade.emulate.ir.space import (
-    Space,
-    ThreeLevelAtomType,
+from bloqade.emulate.ir.space import Space
+from bloqade.emulate.ir.atom_type import (
     TwoLevelAtomType,
+    ThreeLevelAtomType,
 )
 from bloqade.emulate.ir.state_vector import (
     RabiOperator,

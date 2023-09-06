@@ -17,7 +17,7 @@ class SpaceType(str, Enum):
 @dataclass(frozen=True)
 class Space:
     space_type: SpaceType
-    atom_type: AtomType
+    atom_type: "AtomType"
     geometry: "Register"
     configurations: NDArray
 

@@ -16,7 +16,7 @@ import bloqade.ir.control.waveform as waveform
 import bloqade.ir.control.field as field
 import bloqade.ir as ir
 
-from bloqade.emulate.ir.space import ThreeLevelAtom, TwoLevelAtom
+from bloqade.emulate.ir.atom_type import ThreeLevelAtom, TwoLevelAtom
 from bloqade.emulate.ir.emulator import (
     DetuningOperatorData,
     RabiOperatorData,

@@ -12,7 +12,8 @@ from bloqade.submission.ir.task_results import (
     QuEraTaskStatusCode,
     QuEraShotStatusCode,
 )
-
+from typing import Dict
+from bloqade.builder.base import ParamType
 from dataclasses import dataclass
 from typing import Optional
 
@@ -21,6 +22,7 @@ from typing import Optional
 class BloqadeTask(LocalTask):
     shots: int
     emulator_ir: EmulatorProgram
+    metadata: Dict[str, ParamType]
     compile_cache: Optional[CompileCache] = None
     task_result_ir: Optional[QuEraTaskResults] = None
 

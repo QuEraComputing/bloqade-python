@@ -3,7 +3,7 @@ from decimal import Decimal
 from typing import Any, Dict, List, Tuple, Optional, Callable
 from enum import Enum
 from bloqade.ir.control.sequence import LevelCoupling
-from bloqade.emulate.ir.space import AtomType
+from bloqade.emulate.ir.atom_type import AtomType
 
 
 class RabiOperatorType(Enum):
