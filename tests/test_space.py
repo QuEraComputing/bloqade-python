@@ -1,4 +1,5 @@
-from bloqade.emulate.ir.space import ThreeLevelAtom, TwoLevelAtom, Space
+from bloqade.emulate.ir.space import Space
+from bloqade.emulate.ir.atom_type import ThreeLevelAtom, TwoLevelAtom
 from bloqade.emulate.ir.emulator import Register
 import numpy as np
 
