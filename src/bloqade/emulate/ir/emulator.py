@@ -73,7 +73,7 @@ class Register:
                 hash(self.__class__)
                 ^ hash(self.atom_type)
                 ^ hash(self.blockade_radius)
-                ^ hash(tuple(self.positions))
+                ^ hash(frozenset(self.positions))
             )
 
 
