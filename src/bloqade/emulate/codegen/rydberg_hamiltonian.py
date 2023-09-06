@@ -72,7 +72,7 @@ class RydbergHamiltonianCodeGen(Visitor):
             return
 
         self.space = Space.create(geometry)
-        positions = geometry.positions
+        positions = geometry.sites
 
         # generate rydberg interaction elements
         self.rydberg = np.zeros(self.space.size, dtype=np.float64)
