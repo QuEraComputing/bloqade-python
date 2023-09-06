@@ -24,7 +24,6 @@
     * [constants](bloqade/constants.md)
     * [emulate](bloqade/emulate/index.md)
         * [ir](bloqade/emulate/ir/index.md)
-            * [atom_type](bloqade/emulate/ir/atom_type.md)
             * [space](bloqade/emulate/ir/space.md)
             * [state_vector](bloqade/emulate/ir/state_vector.md)
         * [sparse_operator](bloqade/emulate/sparse_operator.md)
