@@ -12,7 +12,9 @@ def cast_scalar_param(value: Union[Real, Decimal]) -> Decimal:
     if isinstance(value, (Real, Decimal)):
         return Decimal(str(value))
 
-    raise ValueError("value must be a real number, found type: {}".format(type(value)))
+    raise TypeError(
+        "assign parameter value must be a real number, " f"found type: {type(value)}"
+    )
 
 
 def cast_batch_param(value: List[Real]) -> List[Decimal]:
@@ -22,8 +24,9 @@ def cast_batch_param(value: List[Real]) -> List[Decimal]:
     if isinstance(value, np.ndarray):
         return list(map(cast_scalar_param, value.tolist()))
 
-    raise ValueError(
-        "value must be a list of real numbers, found type: {}".format(type(value))
+    raise TypeError(
+        "batch_assign parameter value must be a list of real numbers, "
+        f"found type: {type(value)}"
     )
 
 
@@ -48,12 +51,12 @@ class Assign(
 
 class BatchAssign(AssignBase, Parallelizable, BackendRoute, Parse):
     def __init__(self, parent: Optional[Builder] = None, **assignments) -> None:
+        for key, values in assignments.items():
+            assignments[key] = cast_batch_param(values)
+
         if not len(np.unique(list(map(len, assignments.values())))) == 1:
             raise ValueError(
                 "all the assignment variables need to have same number of elements."
             )
-
-        for key, values in assignments.items():
-            assignments[key] = cast_batch_param(values)
 
         super().__init__(parent, **assignments)
