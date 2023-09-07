@@ -32,10 +32,6 @@ def get_atom_arrangement_figure(atom_arng_ir, fig_kwargs=None, **assignments):
             ys_vacant.append(y)
             labels_vacant.append(idx)
 
-    # Ly = y_max - y_min
-    # Lx = x_max - x_min
-    # scale_x = (Lx+2)/(Ly+2)
-
     if atom_arng_ir.n_atoms > 0:
         length_scale = max(y_max - y_min, x_max - x_min, 1)
     else:

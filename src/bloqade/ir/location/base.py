@@ -7,7 +7,7 @@ from enum import Enum
 import plotext as pltxt
 import sys
 from bloqade.visualization.atom_arragement_visualize import get_atom_arrangement_figure
-from bloqade.visualization.display import display_atom_arrangement
+from bloqade.visualization import display_ir
 
 if TYPE_CHECKING:
     from .list import ListOfLocations
@@ -89,7 +89,7 @@ class AtomArrangement(ProgramStart):
         return get_atom_arrangement_figure(self, fig_kwargs, **assignments)
 
     def show(self, **assignments) -> None:
-        display_atom_arrangement(self, assignments)
+        display_ir(self, assignments)
 
     @property
     def n_atoms(self) -> int:

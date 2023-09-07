@@ -9,13 +9,7 @@ from bloqade.visualization.task_visualize import (
     get_detune_figure,
     get_rabi_amp_figure,
 )
-from bloqade.visualization.display import (
-    display_task_lattice,
-    display_quera_task_ir,
-    display_quera_task_rabi_phase,
-    display_quera_task_detuning,
-    display_quera_task_rabi_amp,
-)
+from bloqade.visualization import display_task_ir
 
 __all__ = ["QuEraTaskSpecification"]
 
@@ -92,7 +86,7 @@ class RabiFrequencyAmplitude(BaseModel):
         return get_rabi_amp_figure(self, **fig_kwargs)
 
     def show(self):
-        display_quera_task_rabi_amp(self)
+        display_task_ir(self)
 
 
 class RabiFrequencyPhase(BaseModel):
@@ -136,7 +130,7 @@ class RabiFrequencyPhase(BaseModel):
 
     def show(self):
         # we dont need fig_kwargs when display alone
-        display_quera_task_rabi_phase(self)
+        display_task_ir(self)
 
 
 class Detuning(BaseModel):
@@ -190,7 +184,7 @@ class Detuning(BaseModel):
         return get_detune_figure(self, **fig_kwargs)
 
     def show_global(self):
-        display_quera_task_detuning(self)
+        display_task_ir(self)
 
 
 class RydbergHamiltonian(BaseModel):
@@ -252,7 +246,7 @@ class Lattice(BaseModel):
         return get_lattice_figure(self, fig_kwargs)
 
     def show(self):
-        display_task_lattice(self)
+        display_task_ir(self)
 
 
 class QuEraTaskSpecification(BaseModel):
@@ -283,4 +277,4 @@ class QuEraTaskSpecification(BaseModel):
         return get_quera_task_figure(self)
 
     def show(self):
-        display_quera_task_ir(self)
+        display_task_ir(self)

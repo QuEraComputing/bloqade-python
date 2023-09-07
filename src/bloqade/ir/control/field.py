@@ -5,7 +5,7 @@ from bloqade.visualization.ir_visualize import get_field_figure
 from pydantic.dataclasses import dataclass
 from typing import Dict, List
 from decimal import Decimal
-from bloqade.visualization.display import display_field, display_spatialmod
+from bloqade.visualization import display_ir
 from bloqade.visualization.ir_visualize import get_spmod_figure
 
 
@@ -86,7 +86,7 @@ class UniformModulation(SpatialModulation):
         return get_spmod_figure(self, **assignment)
 
     def show(self, **assignment):
-        display_spatialmod(self, **assignment)
+        display_ir(self, **assignment)
 
 
 Uniform = UniformModulation()
@@ -115,7 +115,7 @@ class RunTimeVector(SpatialModulation):
         return [self.name], ["vec"]
 
     def show(self, **assignment):
-        display_spatialmod(self, **assignment)
+        display_ir(self, **assignment)
 
 
 @dataclass
@@ -142,7 +142,7 @@ class AssignedRunTimeVector(SpatialModulation):
         return [self.name], ["vec"]
 
     def show(self, **assignment):
-        display_spatialmod(self, **assignment)
+        display_ir(self, **assignment)
 
 
 @dataclass(init=False, repr=False)
@@ -206,7 +206,7 @@ class ScaledLocations(SpatialModulation):
         return get_spmod_figure(self, **assignments)
 
     def show(self, **assignment):
-        display_spatialmod(self, assignment)
+        display_ir(self, assignment)
 
 
 @dataclass
@@ -271,4 +271,4 @@ class Field(FieldExpr):
                 existing variables in the Field
 
         """
-        display_field(self, assignments)
+        display_ir(self, assignments)

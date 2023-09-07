@@ -5,7 +5,7 @@ from ..tree_print import Printer
 from pydantic.dataclasses import dataclass
 from typing import List, Dict
 from bloqade.visualization.ir_visualize import get_sequence_figure
-from bloqade.visualization.display import display_sequence
+from bloqade.visualization import display_ir
 
 
 __all__ = [
@@ -157,7 +157,7 @@ class Sequence(SequenceExpr):
                 existing variables in the Sequence
 
         """
-        display_sequence(self, assignments)
+        display_ir(self, assignments)
 
 
 @dataclass
@@ -181,7 +181,7 @@ class NamedSequence(SequenceExpr):
         return get_sequence_figure(self, **assignments)
 
     def show(self, **assignments):
-        display_sequence(self, assignments)
+        display_ir(self, assignments)
 
 
 @dataclass(repr=False)

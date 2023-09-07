@@ -1,7 +1,7 @@
 from typing import Tuple, Union, TYPE_CHECKING
 import json
 import bloqade.ir as ir
-from bloqade.visualization.display import display_builder
+from bloqade.visualization import display_builder
 
 
 if TYPE_CHECKING:
@@ -80,8 +80,4 @@ class Parse(ParseRegister, ParseSequence, ParseCircuit, ParseRoutine):
         return repr(analog_circ) + "\n" + repr(metas)
 
     def show(self, batch_id: int = 0):
-        from .builder import Parser
-
-        analog_circ, metas = Parser().parse_source(self)
-
-        display_builder(analog_circ, metas, batch_id)
+        display_builder(self, batch_id)

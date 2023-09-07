@@ -1,6 +1,6 @@
 # from numbers import Real
 from typing import TYPE_CHECKING, Union
-from bloqade.visualization.display import display_analog_circuit
+from bloqade.visualization import display_ir
 
 if TYPE_CHECKING:
     from bloqade.ir.location.base import AtomArrangement, ParallelRegister
@@ -84,7 +84,7 @@ class AnalogCircuit:
                 existing variables in the program
 
         """
-        display_analog_circuit(self, assignments)
+        display_ir(self, assignments)
 
 
 # class BraketService:

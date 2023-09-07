@@ -4,7 +4,7 @@ from .field import Field
 from typing import List
 from pydantic.dataclasses import dataclass
 from bloqade.visualization.ir_visualize import get_pulse_figure
-from bloqade.visualization.display import display_pulse
+from bloqade.visualization import display_ir
 
 __all__ = [
     "Pulse",
@@ -201,7 +201,7 @@ class Pulse(PulseExpr):
                 existing variables in the Pulse
 
         """
-        display_pulse(self, assignments)
+        display_ir(self, assignments)
 
 
 @dataclass
@@ -225,7 +225,7 @@ class NamedPulse(PulseExpr):
         return get_pulse_figure(self, **assignments)
 
     def show(self, **assignments):
-        display_pulse(self, assignments)
+        display_ir(self, assignments)
 
 
 @dataclass

@@ -12,7 +12,7 @@ import numpy as np
 import inspect
 import scipy.integrate as integrate
 from bloqade.visualization.ir_visualize import get_waveform_figure
-from bloqade.visualization.display import display_waveform
+from bloqade.visualization import display_ir
 
 
 def instruction(duration: Any) -> "PythonFn":
@@ -101,7 +101,7 @@ class Waveform:
         return times, values
 
     def show(self, **assignments):
-        display_waveform(self, assignments)
+        display_ir(self, assignments)
 
     def align(
         self, alignment: Alignment, value: Union[None, AlignedValue, Scalar] = None
