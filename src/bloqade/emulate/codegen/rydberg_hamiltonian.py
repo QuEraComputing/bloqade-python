@@ -150,8 +150,8 @@ class RydbergHamiltonianCodeGen(Visitor):
 
         # generate rabi operator
         if len(rabi_operator_data.target_atoms) == 1:
-            ((atom_index, value),) = rabi_operator_data.target_atoms.items()
-            operator = matrix_ele(atom_index) * value
+            ((atom_index, _),) = rabi_operator_data.target_atoms.items()
+            operator = IndexMapping(self.space.size, *matrix_ele(atom_index))
         else:
             indptr = np.zeros(self.space.size + 1, dtype=self.space.index_type)
 

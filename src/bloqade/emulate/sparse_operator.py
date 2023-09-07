@@ -21,6 +21,8 @@ class IndexMapping:
         result = np.zeros_like(other)
         result[self.row_indices] = other[self.col_indices]
 
+        return result
+
     def to_csr(self):
         indptr = np.zeros(self.n_row + 1, dtype=np.int64)
         indptr[1:][self.row_indices] = 1
