@@ -21,8 +21,9 @@ class Space:
     geometry: "Register"
     configurations: NDArray
 
-    @staticmethod
+    @classmethod
     def create(
+        cls,
         register: "Register",
     ):
         sites = register.sites
@@ -46,7 +47,7 @@ class Space:
         configurations = np.arange(Ns, dtype=np.min_scalar_type(Ns - 1))
 
         if all(len(sub_list) == 0 for sub_list in check_atoms):
-            return Space(SpaceType.FullSpace, atom_type, sites, configurations)
+            return cls(SpaceType.FullSpace, atom_type, sites, configurations)
 
         for index_1, indices in enumerate(check_atoms):
             # get which configurations are in rydberg state for the current index.
@@ -67,7 +68,7 @@ class Space:
         config_type = np.result_type(min_int_type, np.uint32)
         configurations = configurations.astype(config_type)
 
-        return Space(SpaceType.SubSpace, atom_type, sites, configurations)
+        return cls(SpaceType.SubSpace, atom_type, sites, configurations)
 
     @property
     def index_type(self) -> np.dtype:
