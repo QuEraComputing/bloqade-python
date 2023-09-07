@@ -2,14 +2,7 @@ from pydantic import BaseModel
 from typing import Optional, List, Tuple
 from decimal import Decimal
 from bloqade.submission.ir.capabilities import QuEraCapabilities
-from bloqade.visualization.task_visualize import (
-    get_lattice_figure,
-    get_quera_task_figure,
-    get_rabi_phase_figure,
-    get_detune_figure,
-    get_rabi_amp_figure,
-)
-from bloqade.visualization import display_task_ir
+from bloqade.visualization import display_task_ir, get_task_ir_figure
 
 __all__ = ["QuEraTaskSpecification"]
 
@@ -74,6 +67,7 @@ class RabiFrequencyAmplitude(BaseModel):
 
     def _get_data_source(self):
         # isolate this for binding glyph later
+        # required by visualization
         src = {
             "times_amp": [float(i) for i in self.global_.times],
             "values_amp": [float(i) for i in self.global_.values],
@@ -83,7 +77,7 @@ class RabiFrequencyAmplitude(BaseModel):
         return src
 
     def figure(self, **fig_kwargs):
-        return get_rabi_amp_figure(self, **fig_kwargs)
+        return get_task_ir_figure(self, **fig_kwargs)
 
     def show(self):
         display_task_ir(self)
@@ -126,7 +120,7 @@ class RabiFrequencyPhase(BaseModel):
     def figure(self, **fig_kwargs):
         ## fig_kwargs is for extra tuning when assemble
         ## e.g. calling from QuEraTaskSpecification.figure()
-        return get_rabi_phase_figure(self, **fig_kwargs)
+        return get_task_ir_figure(self, **fig_kwargs)
 
     def show(self):
         # we dont need fig_kwargs when display alone
@@ -181,7 +175,7 @@ class Detuning(BaseModel):
         return src
 
     def global_figure(self, **fig_kwargs):
-        return get_detune_figure(self, **fig_kwargs)
+        return get_task_ir_figure(self, **fig_kwargs)
 
     def show_global(self):
         display_task_ir(self)
@@ -243,7 +237,7 @@ class Lattice(BaseModel):
     def figure(self, **fig_kwargs):
         ## use ir.Atom_oarrangement's plotting:
         ## covert unit to m -> um
-        return get_lattice_figure(self, fig_kwargs)
+        return get_task_ir_figure(self, **fig_kwargs)
 
     def show(self):
         display_task_ir(self)
@@ -274,7 +268,7 @@ class QuEraTaskSpecification(BaseModel):
         )
 
     def figure(self):
-        return get_quera_task_figure(self)
+        return get_task_ir_figure(self)
 
     def show(self):
         display_task_ir(self)

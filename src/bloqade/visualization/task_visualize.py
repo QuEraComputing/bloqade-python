@@ -4,7 +4,38 @@ from bokeh.layouts import gridplot, row
 from bloqade.ir.location import ListOfLocations
 
 
-def get_lattice_figure(lattice, fig_kwargs):
+def get_task_ir_figure(task_ir, **fig_kwargs):
+    from bloqade.submission.ir.task_specification import (
+        RabiFrequencyAmplitude,
+        RabiFrequencyPhase,
+        Detuning,
+        Lattice,
+        QuEraTaskSpecification,
+    )
+
+    match task_ir:
+        case RabiFrequencyAmplitude():
+            return get_rabi_amp_figure(task_ir, **fig_kwargs)
+
+        case RabiFrequencyPhase():
+            return get_rabi_phase_figure(task_ir, **fig_kwargs)
+
+        case Detuning():
+            return get_detune_figure(task_ir, **fig_kwargs)
+
+        case Lattice():
+            return get_lattice_figure(task_ir, **fig_kwargs)
+
+        case QuEraTaskSpecification():
+            return get_quera_task_figure(task_ir, **fig_kwargs)
+
+        case _:
+            raise NotImplementedError(
+                f"not supported task IR for figure, got {type(task_ir)}"
+            )
+
+
+def get_lattice_figure(lattice, **fig_kwargs):
     ## use ir.Atom_oarrangement's plotting:
     ## covert unit to m -> um
     sites_um = list(
@@ -15,7 +46,7 @@ def get_lattice_figure(lattice, fig_kwargs):
     return fig_reg
 
 
-def get_quera_task_figure(task_ir):
+def get_quera_task_figure(task_ir, **fig_kwargs):
     # grab global figures
     rabi_amplitude = (
         task_ir.effective_hamiltonian.rydberg.rabi_frequency_amplitude.figure(
@@ -79,6 +110,40 @@ def get_rabi_phase_figure(rabi_phase, **fig_kwargs):
     return line_plt
 
 
+def get_rabi_amp_figure(rabi_amp, **fig_kwargs):
+    source = ColumnDataSource(rabi_amp._get_data_source())
+    hover = HoverTool()
+    hover.tooltips = [("(x,y)", "(@times_amp, @values_amp)")]
+
+    line_plt = figure(
+        **fig_kwargs,
+        x_axis_label="Time (s)",
+        y_axis_label="Ω(t) (rad/s)",
+    )
+
+    line_plt.x_range.start = 0
+    line_plt.y_range.start = min(source.data["values_amp"]) - 5e6
+    line_plt.y_range.end = max(source.data["values_amp"]) + 5e6
+
+    line_plt.line(
+        x="times_amp", y="values_amp", source=source, line_width=2, color="black"
+    )
+
+    line_plt.circle(x="times_amp", y="values_amp", source=source, size=4, color="black")
+
+    line_plt.varea(
+        x="times_amp",
+        y1="values_amp",
+        y2="values_floor_amp",
+        source=source,
+        fill_alpha=0.3,
+        color="#6437FF",
+    )
+    line_plt.add_tools(hover)
+
+    return line_plt
+
+
 def get_detune_figure(detune, **fig_kwargs):
     source = ColumnDataSource(detune._get_data_source())
     TOOLTIPS = [("(x,y)", "(@times_detune, @values_detune)")]
@@ -115,39 +180,5 @@ def get_detune_figure(detune, **fig_kwargs):
         fill_alpha=0.5,
         color="#EFD0DE",
     )
-
-    return line_plt
-
-
-def get_rabi_amp_figure(rabi_amp, **fig_kwargs):
-    source = ColumnDataSource(rabi_amp._get_data_source())
-    hover = HoverTool()
-    hover.tooltips = [("(x,y)", "(@times_amp, @values_amp)")]
-
-    line_plt = figure(
-        **fig_kwargs,
-        x_axis_label="Time (s)",
-        y_axis_label="Ω(t) (rad/s)",
-    )
-
-    line_plt.x_range.start = 0
-    line_plt.y_range.start = min(source.data["values_amp"]) - 5e6
-    line_plt.y_range.end = max(source.data["values_amp"]) + 5e6
-
-    line_plt.line(
-        x="times_amp", y="values_amp", source=source, line_width=2, color="black"
-    )
-
-    line_plt.circle(x="times_amp", y="values_amp", source=source, size=4, color="black")
-
-    line_plt.varea(
-        x="times_amp",
-        y1="values_amp",
-        y2="values_floor_amp",
-        source=source,
-        fill_alpha=0.3,
-        color="#6437FF",
-    )
-    line_plt.add_tools(hover)
 
     return line_plt
