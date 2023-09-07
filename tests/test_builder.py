@@ -248,12 +248,42 @@ def test_backend_route():
 def test_assign_error():
     import numpy as np
 
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         start.rydberg.detuning.uniform.constant("c", "t").assign(c=np, t=10)
 
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         start.rydberg.detuning.uniform.constant("c", "t").batch_assign(
             c=[1, 2, np], t=[10]
+        )
+
+    with pytest.raises(TypeError):
+        (
+            start.add_position((0, 0))
+            .rydberg.rabi.amplitude.uniform.piecewise_linear(
+                [0.2, "rabi_dur_scanned", 0.2], [0.0, 10, 10, 0.0]
+            )
+            .batch_assign(rabi_dur_scanned=1.0)
+        )
+
+    with pytest.raises(TypeError):
+        (
+            start.add_position((0, 0))
+            .rydberg.rabi.amplitude.uniform.piecewise_linear(
+                [0.2, "rabi_dur_scanned", 0.2], [0.0, 10, 10, 0.0]
+            )
+            .assign(rabi_dur_scanned=[1.0])
+        )
+
+    with pytest.raises(TypeError):
+        (
+            start.add_position((0, 0))
+            .rydberg.rabi.amplitude.uniform.piecewise_linear(
+                [0.2, "rabi_dur_scanned", 0.2], [0.0, 10, 10, 0.0]
+            )
+            .amplitude.var("rabi_mask")
+            .piecewise_linear([0.2, "rabi_dur_scanned", 0.2], [0.0, 10, 10, 0.0])
+            .assign(rabi_mask=0.0)
+            .batch_assign(rabi_dur_scanned=[1.0])
         )
 
 

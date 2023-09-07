@@ -1,4 +1,4 @@
-name: Deploy Docs
+name: Deploy Release Docs
 on:
   push:
     tags:
@@ -14,7 +14,7 @@ env:
 
 jobs:
   documentation:
-    name: Deploy documentation
+    name: Deploy release documentation
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
