@@ -62,6 +62,11 @@ class Space:
                 configurations = configurations[mask]
                 rydberg_configs_1 = rydberg_configs_1[mask]
 
+        min_int_type = np.min_scalar_type(configurations[-1])
+        # defauly to 32 bit if smaller than 32 bit
+        config_type = np.result_type(min_int_type, np.uint32)
+        configurations = configurations.astype(config_type)
+
         return Space(SpaceType.SubSpace, atom_type, sites, configurations)
 
     @property
@@ -81,7 +86,7 @@ class Space:
 
     @property
     def state_type(self) -> np.dtype:
-        return np.result_type(np.uint32, np.min_scalar_type(self.configurations[-1]))
+        return self.configurations.dtype
 
     def is_rydberg_at(self, index: int) -> NDArray:
         return self.atom_type.is_rydberg_at(self.configurations, index)
