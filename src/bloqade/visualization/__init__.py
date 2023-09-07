@@ -3,7 +3,8 @@ Use_bokeh = True
 if Use_bokeh:
     from .display import display_ir, display_report, display_task_ir, display_builder
     from .task_visualize import get_task_ir_figure
-    from .atom_arragement_visualize import get_atom_arrangement_figure
+
+    # from .atom_arragement_visualize import get_atom_arrangement_figure
 else:
     # display
     def display_ir(obj, assignemnts):
@@ -23,5 +24,5 @@ else:
         raise Warning("Bokeh not installed", UserWarning)
 
     # atom arrangement
-    def get_atom_arrangement_figure(atom_arng_ir, fig_kwargs=None, **assignments):
-        raise Warning("Bokeh not installed", UserWarning)
+    # def get_atom_arrangement_figure(atom_arng_ir, fig_kwargs=None, **assignments):
+    #    raise Warning("Bokeh not installed", UserWarning)

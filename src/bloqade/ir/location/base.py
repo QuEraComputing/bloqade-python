@@ -6,7 +6,7 @@ import numpy as np
 from enum import Enum
 import plotext as pltxt
 import sys
-from bloqade.visualization import get_atom_arrangement_figure
+from bloqade.visualization.atom_arragement_visualize import get_atom_arrangement_figure
 from bloqade.visualization import display_ir
 
 if TYPE_CHECKING:
