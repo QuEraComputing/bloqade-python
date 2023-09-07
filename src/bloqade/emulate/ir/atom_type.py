@@ -1,7 +1,7 @@
 from dataclasses import dataclass
-from enum import Enum
-import numpy as np
 from numpy.typing import NDArray
+import numpy as np
+from enum import Enum
 
 
 @dataclass(frozen=True)

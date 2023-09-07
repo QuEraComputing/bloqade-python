@@ -18,8 +18,10 @@ class BloqadeService(Builder):
 
 
 class BloqadeDeviceRoute(Builder):
-    def python(self, solver: str):
-        raise NotImplementedError
+    def python(self):
+        from bloqade.ir.routine.bloqade import BloqadeServiceOptions
+
+        return BloqadeServiceOptions(self).python()
 
     def julia(self, solver: str, nthreads: int = 1):
         raise NotImplementedError
