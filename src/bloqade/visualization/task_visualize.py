@@ -1,7 +1,6 @@
 from bokeh.plotting import figure
 from bokeh.models import ColumnDataSource, Step, HoverTool
 from bokeh.layouts import gridplot, row
-from bloqade.ir.location import ListOfLocations
 
 
 def get_task_ir_figure(task_ir, **fig_kwargs):
@@ -36,6 +35,8 @@ def get_task_ir_figure(task_ir, **fig_kwargs):
 
 
 def get_lattice_figure(lattice, **fig_kwargs):
+    from bloqade.ir.location import ListOfLocations
+
     ## use ir.Atom_oarrangement's plotting:
     ## covert unit to m -> um
     sites_um = list(
