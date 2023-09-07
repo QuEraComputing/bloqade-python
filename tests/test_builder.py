@@ -309,6 +309,18 @@ def test_assign_errors():
             .assign(rabi_dur_scanned=[1.0])
         )
 
+    with pytest.raises(TypeError):
+        (
+            start.add_position((0, 0))
+            .rydberg.rabi.amplitude.uniform.piecewise_linear(
+                [0.2, "rabi_dur_scanned", 0.2], [0.0, 10, 10, 0.0]
+            )
+            .amplitude.var("rabi_mask")
+            .piecewise_linear([0.2, "rabi_dur_scanned", 0.2], [0.0, 10, 10, 0.0])
+            .assign(rabi_mask=0.0)
+            .batch_assign(rabi_dur_scanned=[1.0])
+        )
+
 
 """
 prog = start
