@@ -8,14 +8,23 @@ from numbers import Real
 from decimal import Decimal
 
 
-def cast_param(value: Union[Real, List[Real]]):
-    if isinstance(value, list):
-        return list(map(Decimal, map(str, value)))
-
+def cast_scalar_param(value: Union[Real, Decimal]) -> Decimal:
     if isinstance(value, (Real, Decimal)):
         return Decimal(str(value))
 
-    raise ValueError("value must be a real number or a list of real numbers")
+    raise ValueError("value must be a real number, found type: {}".format(type(value)))
+
+
+def cast_batch_param(value: List[Real]) -> List[Decimal]:
+    if isinstance(value, (list, tuple)):
+        return list(map(cast_scalar_param, value))
+
+    if isinstance(value, np.ndarray):
+        return list(map(cast_scalar_param, value.tolist()))
+
+    raise ValueError(
+        "value must be a list of real numbers, found type: {}".format(type(value))
+    )
 
 
 class AssignBase(Builder):
@@ -32,7 +41,8 @@ class Assign(
 ):
     def __init__(self, parent: Optional[Builder] = None, **assignments) -> None:
         for key, value in assignments.items():
-            assignments[key] = cast_param(value)
+            assignments[key] = cast_scalar_param(value)
+
         super().__init__(parent, **assignments)
 
 
@@ -44,6 +54,6 @@ class BatchAssign(AssignBase, Parallelizable, BackendRoute, Parse):
             )
 
         for key, values in assignments.items():
-            assignments[key] = list(map(cast_param, values))
+            assignments[key] = cast_batch_param(values)
 
         super().__init__(parent, **assignments)
