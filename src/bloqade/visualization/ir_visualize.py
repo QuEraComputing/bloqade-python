@@ -350,3 +350,20 @@ def get_sequence_figure(ir_seq, **assignments):
 
     Seq = assemble_sequences(pulse_all)
     return Seq
+
+
+def get_ir_figure(ir, **assignments):
+    # sequence, spmod and waveform does not need extra
+    # pulse, field need extra arguments
+    # so we handle separately
+    from bloqade.ir.control.sequence import SequenceExpr
+    from bloqade.ir.control.field import SpatialModulation
+    from bloqade.ir.control.waveform import Waveform
+
+    match ir:
+        case SequenceExpr():
+            return get_sequence_figure(ir, **assignments)
+        case SpatialModulation():
+            return get_spmod_figure(ir, **assignments)
+        case Waveform():
+            return get_waveform_figure(ir, **assignments)

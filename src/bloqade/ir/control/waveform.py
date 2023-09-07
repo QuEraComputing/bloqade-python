@@ -11,7 +11,7 @@ from enum import Enum
 import numpy as np
 import inspect
 import scipy.integrate as integrate
-from bloqade.visualization.ir_visualize import get_waveform_figure
+from bloqade.visualization import get_ir_figure
 from bloqade.visualization import display_ir
 
 
@@ -92,7 +92,7 @@ class Waveform:
         Returns:
             figure: a bokeh figure
         """
-        return get_waveform_figure(self, **assignments)
+        return get_ir_figure(self, **assignments)
 
     def _get_data(self, npoints, **assignments):
         duration = float(self.duration(**assignments))

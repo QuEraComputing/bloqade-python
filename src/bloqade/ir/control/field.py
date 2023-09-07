@@ -6,7 +6,7 @@ from pydantic.dataclasses import dataclass
 from typing import Dict, List
 from decimal import Decimal
 from bloqade.visualization import display_ir
-from bloqade.visualization.ir_visualize import get_spmod_figure
+from bloqade.visualization import get_spmod_figure
 
 
 class FieldExpr:

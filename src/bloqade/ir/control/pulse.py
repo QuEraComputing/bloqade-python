@@ -3,7 +3,7 @@ from ..tree_print import Printer
 from .field import Field
 from typing import List
 from pydantic.dataclasses import dataclass
-from bloqade.visualization.ir_visualize import get_pulse_figure
+from bloqade.visualization import get_pulse_figure
 from bloqade.visualization import display_ir
 
 __all__ = [

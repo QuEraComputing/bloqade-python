@@ -4,7 +4,7 @@ from ..tree_print import Printer
 
 from pydantic.dataclasses import dataclass
 from typing import List, Dict
-from bloqade.visualization.ir_visualize import get_sequence_figure
+from bloqade.visualization import get_ir_figure
 from bloqade.visualization import display_ir
 
 
@@ -146,7 +146,7 @@ class Sequence(SequenceExpr):
         return None, self.pulses
 
     def figure(self, **assignments):
-        return get_sequence_figure(self, **assignments)
+        return get_ir_figure(self, **assignments)
 
     def show(self, **assignments):
         """
@@ -178,7 +178,7 @@ class NamedSequence(SequenceExpr):
         return self.name, self.sequence.value
 
     def figure(self, **assignments):
-        return get_sequence_figure(self, **assignments)
+        return get_ir_figure(self, **assignments)
 
     def show(self, **assignments):
         display_ir(self, assignments)
