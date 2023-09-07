@@ -1,12 +1,12 @@
 from ..scalar import Scalar, cast
 from ..tree_print import Printer
 from .waveform import Waveform
-from bloqade.visualization.ir_visualize import get_field_figure
+from bloqade.visualization import get_field_figure
 from pydantic.dataclasses import dataclass
 from typing import Dict, List
 from decimal import Decimal
 from bloqade.visualization import display_ir
-from bloqade.visualization import get_spmod_figure
+from bloqade.visualization import get_ir_figure
 
 
 class FieldExpr:
@@ -83,7 +83,7 @@ class UniformModulation(SpatialModulation):
         return ["uni"], ["all"]
 
     def figure(self, **assignment):
-        return get_spmod_figure(self, **assignment)
+        return get_ir_figure(self, **assignment)
 
     def show(self, **assignment):
         display_ir(self, **assignment)
@@ -109,7 +109,7 @@ class RunTimeVector(SpatialModulation):
         return [self.name]
 
     def figure(self, **assginment):
-        return get_spmod_figure(self, **assginment)
+        return get_ir_figure(self, **assginment)
 
     def _get_data(self, **assignment):
         return [self.name], ["vec"]
@@ -136,7 +136,7 @@ class AssignedRunTimeVector(SpatialModulation):
         return [self.name, *self.value]
 
     def figure(self, **assginment):
-        return get_spmod_figure(self, **assginment)
+        return get_ir_figure(self, **assginment)
 
     def _get_data(self, **assignment):
         return [self.name], ["vec"]
@@ -203,7 +203,7 @@ class ScaledLocations(SpatialModulation):
         return bool(self.value)
 
     def figure(self, **assignments):
-        return get_spmod_figure(self, **assignments)
+        return get_ir_figure(self, **assignments)
 
     def show(self, **assignment):
         display_ir(self, assignment)
