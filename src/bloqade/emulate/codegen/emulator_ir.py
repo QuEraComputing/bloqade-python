@@ -61,9 +61,9 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
         self.blockade_radius = Decimal(str(blockade_radius))
         self.assignments = assignments
         self.waveform_compiler = WaveformCompiler(assignments)
-        self.geometry = None
+        self.register = None
         self.duration = 0.0
-        self.drives = {}
+        self.pulses = {}
         self.level_couplings = set()
 
     def visit_analog_circuit(self, ast: ir.AnalogCircuit):
@@ -80,11 +80,11 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
                 positions.append(position)
 
         if sequence.hyperfine in self.level_couplings:
-            self.geometry = Register(
+            self.register = Register(
                 ThreeLevelAtom, positions, blockade_radius=self.blockade_radius
             )
         else:
-            self.geometry = Register(
+            self.register = Register(
                 TwoLevelAtom, positions, blockade_radius=self.blockade_radius
             )
 
@@ -94,7 +94,7 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
                 for level_coupling, sub_pulse in pulses.items():
                     self.level_couplings.add(level_coupling)
                     self.visit(sub_pulse)
-                    self.drives[level_coupling] = Fields(
+                    self.pulses[level_coupling] = Fields(
                         detuning=self.detuning_terms,
                         rabi=self.rabi_terms,
                     )
@@ -324,7 +324,7 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
 
         self.visit(circuit)
         return EmulatorProgram(
-            register=self.geometry,
+            register=self.register,
             duration=self.duration,
-            pulses=self.drives,
+            pulses=self.pulses,
         )
