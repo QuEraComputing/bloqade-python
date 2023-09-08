@@ -165,14 +165,16 @@ class AnalogGate:
         if solver_name not in AnalogGate.SUPPORTED_SOLVERS:
             raise ValueError(f"'{solver_name}' not supported.")
 
+        duration = self.hamiltonian.emulator_ir.duration
+
         state = np.asarray(state).astype(np.complex128, copy=False)
         solver = ode(self.hamiltonian._ode_real_kernel)
         solver.set_initial_value(state.view(np.float64))
         solver.set_integrator(solver_name, atol=atol, rtol=rtol, nsteps=nsteps)
-        solver.integrate(self.hamiltonian.emulator_ir.duration)
+        solver.integrate(duration)
         AnalogGate._error_check(solver_name, solver.get_return_code())
-
-        return solver.y.view(np.complex128)
+        u = np.exp(1j * duration * self.hamiltonian.rydberg)
+        return u * solver.y.view(np.complex128)
 
     def run(
         self,
