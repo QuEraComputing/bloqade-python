@@ -63,7 +63,7 @@ class Register:
             return (
                 self.atom_type == other.atom_type
                 and self.blockade_radius == other.blockade_radius
-                and set(self.positions) == set(other.positions)
+                and set(self.sites) == set(other.sites)
             )
 
         return False
