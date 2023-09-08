@@ -10,7 +10,7 @@ from bloqade.submission.quera_api_client.load_config import load_config
 from bloqade.task.batch import RemoteBatch
 from bloqade.task.quera import QuEraTask
 
-from typing import Tuple, Union
+from typing import Any, Tuple, Union
 
 
 @dataclass(frozen=True)
@@ -112,4 +112,26 @@ class QuEraHardwareRoutine(RoutineBase):
         """
         batch = self.compile(shots, args, name)
         batch._submit(shuffle, **kwargs)
+        return batch
+
+    def __call__(
+        self,
+        *args: float,
+        shots: int = 1,
+        name: str | None = None,
+        shuffle: bool = False,
+        **kwargs,
+    ) -> Any:
+        return self.run(shots, args, name, shuffle, **kwargs)
+
+    def run(
+        self,
+        shots: int,
+        args: Tuple[Real, ...] = (),
+        name: str | None = None,
+        shuffle: bool = False,
+        **kwargs,
+    ):
+        batch = self.submit(shots, args, name, shuffle, **kwargs)
+        batch.pull()
         return batch
