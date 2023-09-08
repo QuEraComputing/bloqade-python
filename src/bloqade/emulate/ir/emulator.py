@@ -58,6 +58,16 @@ class Register:
     def __len__(self):
         return len(self.sites)
 
+    def __eq__(self, other: Any):
+        if isinstance(other, Register):
+            return (
+                self.atom_type == other.atom_type
+                and self.blockade_radius == other.blockade_radius
+                and set(self.positions) == set(other.positions)
+            )
+
+        return False
+
     def __hash__(self) -> int:
         if self.blockade_radius == Decimal("0"):
             # if blockade radius is zero, then the positions are irrelevant
