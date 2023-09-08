@@ -2,7 +2,7 @@ from bloqade import start
 import numpy as np
 
 
-def integration_test():
+def test_integration():
     (
         start.add_position((0, 0))
         .add_position((0, 1.0))
