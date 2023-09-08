@@ -64,25 +64,25 @@ class RydbergHamiltonianCodeGen(Visitor):
             self.level_coupling = level_coupling
             self.visit(laser_coupling)
 
-    def visit_register(self, geometry: Register):
-        self.geometry = geometry
+    def visit_register(self, register: Register):
+        self.register = register
 
-        if geometry in self.compile_cache.space_cache:
-            self.space, self.rydberg = self.compile_cache.space_cache[geometry]
+        if register in self.compile_cache.space_cache:
+            self.space, self.rydberg = self.compile_cache.space_cache[register]
             return
 
-        self.space = Space.create(geometry)
-        positions = geometry.sites
+        self.space = Space.create(register)
+        sites = register.sites
 
         # generate rydberg interaction elements
         self.rydberg = np.zeros(self.space.size, dtype=np.float64)
 
-        for index_1, pos_1 in enumerate(positions):
-            pos_1 = np.asarray(list(map(float, pos_1)))
+        for index_1, site_1 in enumerate(sites):
+            site_1 = np.asarray(list(map(float, site_1)))
             is_rydberg_1 = self.space.is_rydberg_at(index_1)
-            for index_2, pos_2 in enumerate(positions[index_1 + 1 :], index_1 + 1):
-                pos_2 = np.asarray(list(map(float, pos_2)))
-                distance = np.linalg.norm(pos_1 - pos_2)
+            for index_2, sites_2 in enumerate(sites[index_1 + 1 :], index_1 + 1):
+                sites_2 = np.asarray(list(map(float, sites_2)))
+                distance = np.linalg.norm(site_1 - sites_2)
 
                 rydberg_interaction = RB_C6 / (distance**6)
 
@@ -92,15 +92,15 @@ class RydbergHamiltonianCodeGen(Visitor):
                 mask = np.logical_and(is_rydberg_1, self.space.is_rydberg_at(index_2))
                 self.rydberg[mask] += rydberg_interaction
 
-        self.compile_cache.space_cache[geometry] = (self.space, self.rydberg)
+        self.compile_cache.space_cache[register] = (self.space, self.rydberg)
 
-    def visit_fields(self, laser_coupling: Fields):
-        terms = laser_coupling.detuning + laser_coupling.rabi
+    def visit_fields(self, fields: Fields):
+        terms = fields.detuning + fields.rabi
         for term in terms:
             self.visit(term)
 
     def visit_detuning_operator_data(self, detuning_data: DetuningOperatorData):
-        if (self.geometry, detuning_data) in self.compile_cache.operator_cache:
+        if (self.register, detuning_data) in self.compile_cache.operator_cache:
             return self.compile_cache.operator_cache[(self.space, detuning_data)]
 
         diagonal = np.zeros(self.space.size, dtype=np.float64)
@@ -116,13 +116,13 @@ class RydbergHamiltonianCodeGen(Visitor):
         for atom_index, value in detuning_data.target_atoms.items():
             diagonal[self.space.is_state_at(atom_index, state)] += float(value)
 
-        self.compile_cache.operator_cache[(self.geometry, detuning_data)] = diagonal
+        self.compile_cache.operator_cache[(self.register, detuning_data)] = diagonal
         return diagonal
 
     def visit_rabi_operator_data(self, rabi_operator_data: RabiOperatorData):
-        if (self.geometry, rabi_operator_data) in self.compile_cache.operator_cache:
+        if (self.register, rabi_operator_data) in self.compile_cache.operator_cache:
             return self.compile_cache.operator_cache[
-                (self.geometry, rabi_operator_data)
+                (self.register, rabi_operator_data)
             ]
 
         # Get the from and to states for term
@@ -178,7 +178,7 @@ class RydbergHamiltonianCodeGen(Visitor):
             )
 
         self.compile_cache.operator_cache[
-            (self.geometry, rabi_operator_data)
+            (self.register, rabi_operator_data)
         ] = operator
         return operator
 
