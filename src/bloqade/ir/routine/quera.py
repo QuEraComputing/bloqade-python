@@ -10,7 +10,7 @@ from bloqade.submission.quera_api_client.load_config import load_config
 from bloqade.task.batch import RemoteBatch
 from bloqade.task.quera import QuEraTask
 
-from typing import Any, Tuple, Union
+from typing import Tuple, Union
 
 
 @dataclass(frozen=True)
@@ -28,11 +28,11 @@ class QuEraServiceOptions(RoutineBase):
         backend = QuEraBackend(**load_config("Aquila"))
         return QuEraHardwareRoutine(source=self.source, backend=backend)
 
-    def cloud_mock(self):
+    def cloud_mock(self) -> "QuEraHardwareRoutine":
         backend = QuEraBackend(**load_config("Mock"))
         return QuEraHardwareRoutine(source=self.source, backend=backend)
 
-    def mock(self, state_file: str = ".mock_state.txt"):
+    def mock(self, state_file: str = ".mock_state.txt") -> "QuEraHardwareRoutine":
         backend = MockBackend(state_file=state_file)
         return QuEraHardwareRoutine(source=self.source, backend=backend)
 
@@ -121,7 +121,7 @@ class QuEraHardwareRoutine(RoutineBase):
         name: str | None = None,
         shuffle: bool = False,
         **kwargs,
-    ) -> Any:
+    ) -> RemoteBatch:
         return self.run(shots, args, name, shuffle, **kwargs)
 
     def run(
@@ -131,7 +131,7 @@ class QuEraHardwareRoutine(RoutineBase):
         name: str | None = None,
         shuffle: bool = False,
         **kwargs,
-    ):
+    ) -> RemoteBatch:
         batch = self.submit(shots, args, name, shuffle, **kwargs)
         batch.pull()
         return batch
