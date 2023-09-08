@@ -19,6 +19,13 @@ class BloqadeService(Builder):
 
 class BloqadeDeviceRoute(Builder):
     def python(self):
+        """
+        - Specify bloqade python backend
+        - Possible Next:
+
+            -> `...python().run(shots, ...)`
+                :: Run the current program using bloqade python backend
+        """
         from bloqade.ir.routine.bloqade import BloqadeServiceOptions
 
         return BloqadeServiceOptions(self).python()
