@@ -7,7 +7,7 @@ from bloqade.emulate.ir.emulator import (
     DetuningOperatorData,
     EmulatorProgram,
     Register,
-    LaserCoupling,
+    Fields,
     DetuningTerm,
     RabiOperatorData,
     RabiOperatorType,
@@ -57,10 +57,10 @@ class RydbergHamiltonianCodeGen(Visitor):
         self.compile_cache = compile_cache
 
     def visit_emulator_program(self, emulator_program: EmulatorProgram):
-        self.level_couplings = set(list(emulator_program.drives.keys()))
+        self.level_couplings = set(list(emulator_program.pulses.keys()))
 
         self.visit(emulator_program.register)
-        for level_coupling, laser_coupling in emulator_program.drives.items():
+        for level_coupling, laser_coupling in emulator_program.pulses.items():
             self.level_coupling = level_coupling
             self.visit(laser_coupling)
 
@@ -94,7 +94,7 @@ class RydbergHamiltonianCodeGen(Visitor):
 
         self.compile_cache.space_cache[geometry] = (self.space, self.rydberg)
 
-    def visit_laser_coupling(self, laser_coupling: LaserCoupling):
+    def visit_laser_coupling(self, laser_coupling: Fields):
         terms = laser_coupling.detuning + laser_coupling.rabi
         for term in terms:
             self.visit(term)

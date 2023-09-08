@@ -24,7 +24,7 @@ from bloqade.emulate.ir.emulator import (
     DetuningTerm,
     EmulatorProgram,
     Register,
-    LaserCoupling,
+    Fields,
     RabiTerm,
 )
 
@@ -94,7 +94,7 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
                 for level_coupling, sub_pulse in pulses.items():
                     self.level_couplings.add(level_coupling)
                     self.visit(sub_pulse)
-                    self.drives[level_coupling] = LaserCoupling(
+                    self.drives[level_coupling] = Fields(
                         detuning=self.detuning_terms,
                         rabi=self.rabi_terms,
                     )
@@ -326,5 +326,5 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
         return EmulatorProgram(
             register=self.geometry,
             duration=self.duration,
-            drives=self.drives,
+            pulses=self.drives,
         )

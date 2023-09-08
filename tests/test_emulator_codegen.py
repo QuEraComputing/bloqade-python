@@ -4,7 +4,7 @@ from bloqade.emulate.ir.emulator import (
     Register,
     RabiOperatorData,
     RabiTerm,
-    LaserCoupling,
+    Fields,
     DetuningTerm,
     DetuningOperatorData,
     RabiOperatorType,
@@ -40,12 +40,12 @@ def test_codegen_detuning():
         compiled_waveform,
     )
 
-    rydberg_drive = LaserCoupling(detuning=[detuning_term], rabi=[])
+    rydberg_drive = Fields(detuning=[detuning_term], rabi=[])
 
     drives = {rydberg: rydberg_drive}
 
     expected_emulator_ir = EmulatorProgram(
-        register=geometry, duration=1.0, drives=drives
+        register=geometry, duration=1.0, pulses=drives
     )
 
     emulator_ir = EmulatorProgramCodeGen().emit(program)
@@ -90,12 +90,12 @@ def test_codegen_detuning_and_rabi():
         None,
     )
 
-    rydberg_drive = LaserCoupling(detuning=[detuning_term], rabi=[rabi_term])
+    rydberg_drive = Fields(detuning=[detuning_term], rabi=[rabi_term])
 
     drives = {rydberg: rydberg_drive}
 
     expected_emulator_ir = EmulatorProgram(
-        register=geometry, duration=1.0, drives=drives
+        register=geometry, duration=1.0, pulses=drives
     )
 
     emulator_ir = EmulatorProgramCodeGen().emit(program)

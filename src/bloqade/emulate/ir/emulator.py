@@ -42,7 +42,7 @@ class DetuningTerm:
 
 
 @dataclass(frozen=True)
-class LaserCoupling:
+class Fields:
     detuning: List[DetuningTerm]
     rabi: List[RabiTerm]
 
@@ -89,14 +89,14 @@ class Register:
 class EmulatorProgram:
     register: Register
     duration: float
-    drives: Dict[LevelCoupling, LaserCoupling]
+    pulses: Dict[LevelCoupling, Fields]
 
 
 class Visitor:
     def visit_emulator_program(self, ast: EmulatorProgram) -> Any:
         raise NotImplementedError
 
-    def visit_laser_coupling(self, ast: LaserCoupling) -> Any:
+    def visit_laser_coupling(self, ast: Fields) -> Any:
         raise NotImplementedError
 
     def visit_detuning_operator_data(self, ast: DetuningOperatorData) -> Any:
@@ -120,7 +120,7 @@ class Visitor:
                 return self.visit_emulator_program(ast)
             case Register():
                 return self.visit_register(ast)
-            case LaserCoupling():
+            case Fields():
                 return self.visit_laser_coupling(ast)
             case DetuningOperatorData():
                 return self.visit_detuning_operator_data(ast)
