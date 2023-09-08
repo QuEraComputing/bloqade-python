@@ -123,10 +123,10 @@ class Space:
             row_indices = np.argwhere(row_indices).ravel()
 
             mask = col_indices < self.size
-            np.logical_and(
-                mask, col_config == self.configurations[col_indices], out=mask
-            )
+            col_indices = col_indices[mask]
+            row_indices = row_indices[mask]
 
+            mask = col_config == self.configurations[col_indices]
             col_indices = col_indices[mask]
             row_indices = row_indices[mask]
 
