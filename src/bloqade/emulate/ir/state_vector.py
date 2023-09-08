@@ -181,7 +181,7 @@ class AnalogGate:
         for time in times:
             solver.integrate(time)
             AnalogGate._error_check(solver_name, solver.get_return_code())
-            u = np.exp(1j * duration * self.hamiltonian.rydberg)
+            u = np.exp(1j * time * self.hamiltonian.rydberg)
             yield u * solver.y.view(np.complex128)
 
     def run(
