@@ -96,7 +96,7 @@ class Visitor:
     def visit_emulator_program(self, ast: EmulatorProgram) -> Any:
         raise NotImplementedError
 
-    def visit_laser_coupling(self, ast: Fields) -> Any:
+    def visit_fields(self, ast: Fields) -> Any:
         raise NotImplementedError
 
     def visit_detuning_operator_data(self, ast: DetuningOperatorData) -> Any:
@@ -121,7 +121,7 @@ class Visitor:
             case Register():
                 return self.visit_register(ast)
             case Fields():
-                return self.visit_laser_coupling(ast)
+                return self.visit_fields(ast)
             case DetuningOperatorData():
                 return self.visit_detuning_operator_data(ast)
             case RabiOperatorData():

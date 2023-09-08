@@ -94,7 +94,7 @@ class RydbergHamiltonianCodeGen(Visitor):
 
         self.compile_cache.space_cache[geometry] = (self.space, self.rydberg)
 
-    def visit_laser_coupling(self, laser_coupling: Fields):
+    def visit_fields(self, laser_coupling: Fields):
         terms = laser_coupling.detuning + laser_coupling.rabi
         for term in terms:
             self.visit(term)
