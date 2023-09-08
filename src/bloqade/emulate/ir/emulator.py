@@ -87,7 +87,7 @@ class Register:
 
 @dataclass(frozen=True)
 class EmulatorProgram:
-    geometry: Register
+    register: Register
     duration: float
     drives: Dict[LevelCoupling, LaserCoupling]
 

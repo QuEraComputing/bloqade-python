@@ -59,7 +59,7 @@ class RydbergHamiltonianCodeGen(Visitor):
     def visit_emulator_program(self, emulator_program: EmulatorProgram):
         self.level_couplings = set(list(emulator_program.drives.keys()))
 
-        self.visit(emulator_program.geometry)
+        self.visit(emulator_program.register)
         for level_coupling, laser_coupling in emulator_program.drives.items():
             self.level_coupling = level_coupling
             self.visit(laser_coupling)

@@ -324,7 +324,7 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
 
         self.visit(circuit)
         return EmulatorProgram(
-            geometry=self.geometry,
+            register=self.geometry,
             duration=self.duration,
             drives=self.drives,
         )

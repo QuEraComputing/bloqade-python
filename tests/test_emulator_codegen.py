@@ -45,7 +45,7 @@ def test_codegen_detuning():
     drives = {rydberg: rydberg_drive}
 
     expected_emulator_ir = EmulatorProgram(
-        geometry=geometry, duration=1.0, drives=drives
+        register=geometry, duration=1.0, drives=drives
     )
 
     emulator_ir = EmulatorProgramCodeGen().emit(program)
@@ -95,7 +95,7 @@ def test_codegen_detuning_and_rabi():
     drives = {rydberg: rydberg_drive}
 
     expected_emulator_ir = EmulatorProgram(
-        geometry=geometry, duration=1.0, drives=drives
+        register=geometry, duration=1.0, drives=drives
     )
 
     emulator_ir = EmulatorProgramCodeGen().emit(program)
