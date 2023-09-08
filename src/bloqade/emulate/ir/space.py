@@ -120,11 +120,13 @@ class Space:
             return (row_indices, col_config)
         else:
             col_indices = np.searchsorted(self.configurations, col_config)
+            row_indices = np.argwhere(row_indices).ravel()
+
             mask = col_indices < self.size
             mask = np.logical_and(mask, col_config == self.configurations[col_indices])
 
             col_indices = col_indices[mask]
-            row_indices = np.logical_and(row_indices, mask)
+            row_indices = row_indices[mask]
 
             return (row_indices, col_indices)
 
