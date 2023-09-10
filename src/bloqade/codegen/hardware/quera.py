@@ -73,33 +73,24 @@ class PiecewiseLinearCodeGen(WaveformVisitor):
         return [Decimal(0), duration], [value, value]
 
     def visit_poly(self, ast: waveform.Poly) -> Tuple[List[Decimal], List[Decimal]]:
-        match ast:
-            case waveform.Poly(coeffs=coeff_exprs, duration=duration_expr) if len(
-                coeff_exprs
-            ) == 1:
-                duration = duration_expr(**self.assignments)
-                (value,) = [
-                    coeff_expr(**self.assignments) for coeff_expr in coeff_exprs
-                ]
-                return [Decimal(0), duration], [value, value]
+        if len(ast.coeffs) == 1:
+            duration = ast.duration(**self.assignments)
+            value = ast.coeffs[0](**self.assignments)
+            return [Decimal(0), duration], [value, value]
 
-            case waveform.Poly(coeffs=coeff_exprs, duration=duration_expr) if len(
-                coeff_exprs
-            ) == 2:
-                duration = duration_expr(**self.assignments)
-                values = [coeff_expr(**self.assignments) for coeff_expr in coeff_exprs]
+        if len(ast.coeffs) == 2:
+            duration = ast.duration(**self.assignments)
+            start = ast.coeffs[0](**self.assignments)
+            stop = start + ast.coeffs[1](**self.assignments) * duration
 
-                start = values[0]
-                stop = values[0] + values[1] * duration
+            return [Decimal(0), duration], [start, stop]
 
-                return [Decimal(0), duration], [start, stop]
+        order = len(ast.coeffs) - 1
 
-            case waveform.Poly(coeffs=coeffs):
-                order = len(coeffs) - 1
-                raise ValueError(
-                    "Failed to compile Waveform to piecewise linear,"
-                    f"found Polynomial of order {order}."
-                )
+        raise ValueError(
+            "Failed to compile Waveform to piecewise linear,"
+            f"found Polynomial of order {order}."
+        )
 
     def visit_slice(self, ast: waveform.Slice) -> Tuple[List[Decimal], List[Decimal]]:
         duration = ast.waveform.duration(**self.assignments)
@@ -239,22 +230,30 @@ class PiecewiseConstantCodeGen(WaveformVisitor):
         return [Decimal(0), duration], [value, value]
 
     def visit_poly(self, ast: waveform.Poly) -> Tuple[List[Decimal], List[Decimal]]:
-        match ast:
-            case waveform.Poly(coeffs=coeff_exprs, duration=duration_expr) if len(
-                coeff_exprs
-            ) == 1:
-                duration = duration_expr(**self.assignments)
-                (value,) = [
-                    coeff_expr(**self.assignments) for coeff_expr in coeff_exprs
-                ]
-                return [Decimal(0), duration], [value, value]
+        if len(ast.coeffs) == 1:
+            duration = ast.duration(**self.assignments)
+            value = ast.coeffs[0](**self.assignments)
+            return [Decimal(0), duration], [value, value]
 
-            case waveform.Poly(coeffs=coeffs):
-                order = len(coeffs) - 1
+        if len(ast.coeffs) == 2:
+            duration = ast.duration(**self.assignments)
+            start = ast.coeffs[0](**self.assignments)
+            stop = start + ast.coeffs[1](**self.assignments) * duration
+
+            if start != stop:
                 raise ValueError(
-                    "Failed to compile Waveform to piecewise constant,"
-                    f"found Polynomial of order {order}."
+                    "Failed to compile Waveform to piecewise constant, "
+                    "found non-constant Polynomial piece."
                 )
+
+            return [Decimal(0), duration], [start, stop]
+
+        order = len(ast.coeffs) - 1
+
+        raise ValueError(
+            "Failed to compile Waveform to piecewise constant,"
+            f"found Polynomial of order {order}."
+        )
 
     def visit_slice(self, ast: waveform.Slice) -> Tuple[List[Decimal], List[Decimal]]:
         duration = ast.waveform.duration(**self.assignments)
@@ -292,32 +291,33 @@ class PiecewiseConstantCodeGen(WaveformVisitor):
         start_index = bisect_left(times, start_time)
         stop_index = bisect_left(times, stop_time)
 
-        match (start_index, stop_index):
-            case (0, int()) if stop_time == duration:
+        if start_index == 0:
+            if stop_time == duration:
                 absolute_times = times
-            case (0, _):
+                values = values
+            else:
                 absolute_times = times[:stop_index] + [stop_time]
                 values = values[:stop_index] + [values[stop_index - 1]]
-            case (_, int()) if stop_time == duration:
-                if start_time == times[start_index]:
-                    absolute_times = times[start_index:]
-                    values = values[start_index:]
-                else:
-                    absolute_times = [start_time] + times[start_index:]
-                    values = [values[start_index - 1]] + values[start_index:]
-            case (_, _):
-                if start_time == times[start_index]:
-                    absolute_times = times[start_index:stop_index] + [stop_time]
-                    values = values[start_index:stop_index] + [values[stop_index - 1]]
-                else:
-                    absolute_times = (
-                        [start_time] + times[start_index:stop_index] + [stop_time]
-                    )
-                    values = (
-                        [values[start_index - 1]]
-                        + values[start_index:stop_index]
-                        + [values[stop_index - 1]]
-                    )
+        elif start_time == times[start_index]:
+            if stop_time == duration:
+                absolute_times = times[start_index:]
+                values = values[start_index:]
+            else:
+                absolute_times = times[start_index:stop_index] + [stop_time]
+                values = values[start_index:stop_index] + [values[stop_index - 1]]
+        else:
+            if stop_time == duration:
+                absolute_times = [start_time] + times[start_index:]
+                values = [values[start_index - 1]] + values[start_index:]
+            else:
+                absolute_times = (
+                    [start_time] + times[start_index:stop_index] + [stop_time]
+                )
+                values = (
+                    [values[start_index - 1]]
+                    + values[start_index:stop_index]
+                    + [values[stop_index - 1]]
+                )
 
         times = [time - start_time for time in absolute_times]
 
