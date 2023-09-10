@@ -1,34 +1,14 @@
 from bloqade.ir.analog_circuit import AnalogCircuit
 from bloqade.ir.scalar import Literal
 import bloqade.ir.control.waveform as waveform
-from bloqade.ir.control.field import (
-    Field,
-    Location,
-    SpatialModulation,
-    ScaledLocations,
-    RunTimeVector,
-    AssignedRunTimeVector,
-    Uniform,
-)
-from bloqade.ir.control.pulse import (
-    PulseExpr,
-    Pulse,
-    NamedPulse,
-    RabiFrequencyAmplitude,
-    RabiFrequencyPhase,
-    Detuning,
-)
-from bloqade.ir.control.sequence import (
-    SequenceExpr,
-    Sequence,
-    NamedSequence,
-    RydbergLevelCoupling,
-    HyperfineLevelCoupling,
-)
+import bloqade.ir.control.field as field
+import bloqade.ir.control.pulse as pulse
+import bloqade.ir.control.sequence as sequence
+
 from bloqade.ir.location.base import AtomArrangement, ParallelRegister
 from bloqade.ir.control.waveform import Record
 
-from bloqade.ir.visitor.analog_circuit import AnalogCircuitVisitor
+from bloqade.ir.visitor.analog_circuit import AnalogCircuitVisitorV2
 from bloqade.ir.visitor.waveform import WaveformVisitor
 
 import bloqade.submission.ir.task_specification as task_spec
@@ -355,7 +335,7 @@ class PiecewiseConstantCodeGen(WaveformVisitor):
         return self.visit(ast.waveform)
 
 
-class QuEraCodeGen(AnalogCircuitVisitor):
+class QuEraCodeGen(AnalogCircuitVisitorV2):
     def __init__(
         self,
         assignments: Dict[str, Union[numbers.Real, List[numbers.Real]]] = {},
@@ -385,41 +365,7 @@ class QuEraCodeGen(AnalogCircuitVisitor):
     def convert_position_to_SI_units(position: Tuple[Decimal]):
         return tuple(coordinate * Decimal("1e-6") for coordinate in position)
 
-    def visit_spatial_modulation(self, ast: SpatialModulation):
-        lattice_site_coefficients = []
-
-        match ast:
-            case ScaledLocations(locations):
-                for location in locations.keys():
-                    if (
-                        location.value >= self.n_atoms
-                    ):  # n_atoms is now the number of atoms in the parallelized
-                        # lattice, but needs to be num. atoms in the original
-                        raise ValueError(
-                            f"Location({location.value}) is larger than the register."
-                        )
-
-                for atom_index in range(self.n_atoms):
-                    scale = locations.get(Location(atom_index), Literal(0.0))
-                    lattice_site_coefficients.append(
-                        scale(**self.assignments)
-                    )  # append scalars to lattice_site_coefficients
-
-            case RunTimeVector(name):
-                if len(self.assignments[name]) != self.n_atoms:
-                    raise ValueError(
-                        f"Coefficient list {name} doesn't match the size of register "
-                        f"{self.n_atoms}."
-                    )
-                lattice_site_coefficients = list(self.assignments[name])
-            case AssignedRunTimeVector(name, value):
-                if len(value) != self.n_atoms:
-                    raise ValueError(
-                        f"Coefficient list {name} doesn't match the size of register "
-                        f"{self.n_atoms}."
-                    )
-                lattice_site_coefficients = value
-
+    def post_visit_spatial_modulation(self, lattice_site_coefficients):
         self.lattice_site_coefficients = []
         if self.parallel_decoder:
             for cluster_site_info in self.parallel_decoder.mapping:
@@ -429,134 +375,163 @@ class QuEraCodeGen(AnalogCircuitVisitor):
         else:
             self.lattice_site_coefficients = lattice_site_coefficients
 
-    def visit_field(self, ast: Field):
-        match (self.field_name, ast):  # Pulse: Dict of FieldName/Field
-            # Can only have a global RabiFrequencyAmplitude
-            case (RabiFrequencyAmplitude(), Field(terms)) if len(
-                terms
-            ) == 1 and Uniform in terms:
-                times, values = PiecewiseLinearCodeGen(self.assignments).visit(
-                    terms[Uniform]
-                )
+    def visit_location(self, ast: field.Location) -> Any:
+        if (
+            ast.value >= self.n_atoms
+        ):  # n_atoms is now the number of atoms in the parallelized
+            # lattice, but needs to be num. atoms in the original
+            raise ValueError(
+                f"field.Location({ast.value}) is larger than the register."
+            )
 
-                times = QuEraCodeGen.convert_time_to_SI_units(times)
-                values = QuEraCodeGen.convert_energy_to_SI_units(values)
+    def visit_uniform_modulation(self, ast: field.UniformModulation) -> Any:
+        lattice_site_coefficients = [Decimal("1.0") for _ in range(self.n_atoms)]
+        self.post_visit_spatial_modulation(lattice_site_coefficients)
 
-                self.rabi_frequency_amplitude = task_spec.RabiFrequencyAmplitude(
-                    global_=task_spec.GlobalField(times=times, values=values)
-                )
-            # Can only have global RabiFrequencyPhase
-            case (RabiFrequencyPhase(), Field(terms)) if len(
-                terms
-            ) == 1 and Uniform in terms:  # has to be global
-                times, values = PiecewiseConstantCodeGen(self.assignments).visit(
-                    terms[Uniform]
-                )
+    def visit_scaled_locations(self, ast: field.ScaledLocations) -> Any:
+        lattice_site_coefficients = []
 
-                times = QuEraCodeGen.convert_time_to_SI_units(times)
+        for location in ast.value.keys():
+            self.visit(location)
 
-                self.rabi_frequency_phase = task_spec.RabiFrequencyAmplitude(
-                    global_=task_spec.GlobalField(times=times, values=values)
-                )
+        for atom_index in range(self.n_atoms):
+            scale = ast.value.get(field.Location(atom_index), Literal(0.0))
+            lattice_site_coefficients.append(scale(**self.assignments))
 
-            # 3 possible detuning cases:
-            # (global, no local),
-            # (local, no global),
-            # (local, global)
+        self.post_visit_spatial_modulation(lattice_site_coefficients)
 
-            ## global detuning, no local
-            case (Detuning(), Field(terms)) if len(terms) == 1 and Uniform in terms:
-                times, values = PiecewiseLinearCodeGen(self.assignments).visit(
-                    terms[Uniform]
-                )
+    def visit_run_time_vector(self, ast: field.RunTimeVector) -> Any:
+        if len(self.assignments[ast.name]) != self.n_atoms:
+            raise ValueError(
+                f"Coefficient list {ast.name} doesn't match the size of register "
+                f"{self.n_atoms}."
+            )
+        lattice_site_coefficients = list(self.assignments[ast.name])
+        self.post_visit_spatial_modulation(lattice_site_coefficients)
 
-                times = QuEraCodeGen.convert_time_to_SI_units(times)
-                values = QuEraCodeGen.convert_energy_to_SI_units(values)
+    def visit_assigned_run_time_vector(self, ast: field.AssignedRunTimeVector) -> Any:
+        if len(ast.value) != self.n_atoms:
+            raise ValueError(
+                f"Coefficient list {ast.name} doesn't match the size of register "
+                f"{self.n_atoms}."
+            )
+        lattice_site_coefficients = ast.value
+        self.post_visit_spatial_modulation(lattice_site_coefficients)
 
-                self.detuning = task_spec.Detuning(
-                    global_=task_spec.GlobalField(times=times, values=values)
-                )
+    def visit_detuning(self, ast: field.Field) -> Any:
+        if len(ast.value) == 1 and field.Uniform in ast.value:
+            times, values = PiecewiseLinearCodeGen(self.assignments).visit(
+                ast.value[field.Uniform]
+            )
 
-            ## local detuning, no global
-            case (Detuning(), Field(terms)) if len(terms) == 1:
-                ((spatial_modulation, waveform),) = terms.items()
+            times = QuEraCodeGen.convert_time_to_SI_units(times)
+            values = QuEraCodeGen.convert_energy_to_SI_units(values)
 
-                times, values = PiecewiseLinearCodeGen(self.assignments).visit(waveform)
+            self.detuning = task_spec.Detuning(
+                global_=task_spec.GlobalField(times=times, values=values)
+            )
+        elif len(ast.value) == 1:
+            ((spatial_modulation, waveform),) = ast.value.items()
 
-                times = QuEraCodeGen.convert_time_to_SI_units(times)
-                values = QuEraCodeGen.convert_energy_to_SI_units(values)
+            times, values = PiecewiseLinearCodeGen(self.assignments).visit(waveform)
 
-                self.visit(spatial_modulation)
-                self.detuning = task_spec.Detuning(
-                    global_=task_spec.GlobalField(
-                        times=[0, times[-1]], values=[0.0, 0.0]
-                    ),
-                    local=task_spec.LocalField(
-                        times=times,
-                        values=values,
-                        lattice_site_coefficients=self.lattice_site_coefficients,
-                    ),
-                )
+            times = QuEraCodeGen.convert_time_to_SI_units(times)
+            values = QuEraCodeGen.convert_energy_to_SI_units(values)
 
-            # local AND global detuning
-            case (Detuning(), Field(terms)) if len(terms) == 2 and Uniform in terms:
-                # will only be two keys
-                for k in terms.keys():
-                    if k == Uniform:
-                        global_times, global_values = PiecewiseLinearCodeGen(
-                            self.assignments
-                        ).visit(terms[Uniform])
-                    else:  # can be RunTimeVector or ScaledLocations
-                        spatial_modulation = k
-                        local_times, local_values = PiecewiseLinearCodeGen(
-                            self.assignments
-                        ).visit(terms[k])
+            self.visit(spatial_modulation)
+            self.detuning = task_spec.Detuning(
+                global_=task_spec.GlobalField(times=[0, times[-1]], values=[0.0, 0.0]),
+                local=task_spec.LocalField(
+                    times=times,
+                    values=values,
+                    lattice_site_coefficients=self.lattice_site_coefficients,
+                ),
+            )
+        elif len(ast.value) == 2 and field.Uniform in ast.value:
+            # will only be two keys
+            for k in ast.value.keys():
+                if k == field.Uniform:
+                    global_times, global_values = PiecewiseLinearCodeGen(
+                        self.assignments
+                    ).visit(ast.value[field.Uniform])
+                else:  # can be field.RunTimeVector or field.ScaledLocations
+                    spatial_modulation = k
+                    local_times, local_values = PiecewiseLinearCodeGen(
+                        self.assignments
+                    ).visit(ast.value[k])
 
-                self.visit(spatial_modulation)  # just visit the non-uniform locations
+            self.visit(spatial_modulation)  # just visit the non-uniform locations
 
-                global_times = QuEraCodeGen.convert_time_to_SI_units(global_times)
-                local_times = QuEraCodeGen.convert_time_to_SI_units(local_times)
+            global_times = QuEraCodeGen.convert_time_to_SI_units(global_times)
+            local_times = QuEraCodeGen.convert_time_to_SI_units(local_times)
 
-                global_values = QuEraCodeGen.convert_energy_to_SI_units(global_values)
-                local_values = QuEraCodeGen.convert_energy_to_SI_units(local_values)
+            global_values = QuEraCodeGen.convert_energy_to_SI_units(global_values)
+            local_values = QuEraCodeGen.convert_energy_to_SI_units(local_values)
 
-                self.detuning = task_spec.Detuning(
-                    local=task_spec.LocalField(
-                        times=local_times,
-                        values=local_values,
-                        lattice_site_coefficients=self.lattice_site_coefficients,
-                    ),
-                    global_=task_spec.GlobalField(
-                        times=global_times, values=global_values
-                    ),
-                )
+            self.detuning = task_spec.Detuning(
+                local=task_spec.LocalField(
+                    times=local_times,
+                    values=local_values,
+                    lattice_site_coefficients=self.lattice_site_coefficients,
+                ),
+                global_=task_spec.GlobalField(times=global_times, values=global_values),
+            )
+        else:
+            raise ValueError(
+                "Failed to compile Detuning to QuEra task, "
+                "found more than one non-uniform modulation: "
+                f"{repr(ast)}."
+            )
 
-            case _:
-                raise NotImplementedError()
+    def visit_rabi_amplitude(self, ast: field.Field) -> Any:
+        if len(ast.value) == 1 and field.Uniform in ast.value:
+            times, values = PiecewiseLinearCodeGen(self.assignments).visit(
+                ast.value[field.Uniform]
+            )
 
-    def visit_pulse(self, ast: PulseExpr):
-        match ast:
-            case Pulse(fields):
-                if RabiFrequencyAmplitude() in fields:
-                    self.field_name = RabiFrequencyAmplitude()
-                    self.visit(fields[self.field_name])
+            times = QuEraCodeGen.convert_time_to_SI_units(times)
+            values = QuEraCodeGen.convert_energy_to_SI_units(values)
 
-                if RabiFrequencyPhase() in fields:
-                    self.field_name = RabiFrequencyPhase()
-                    self.visit(fields[self.field_name])
+            self.rabi_frequency_amplitude = task_spec.RabiFrequencyAmplitude(
+                global_=task_spec.GlobalField(times=times, values=values)
+            )
+        else:
+            raise ValueError(
+                "Failed to compile Rabi Amplitude to QuEra task, "
+                "found non-uniform modulation: "
+                f"{repr(ast)}."
+            )
 
-                if Detuning() in fields:
-                    self.field_name = Detuning()
-                    self.visit(fields[self.field_name])
+    def visit_rabi_phase(self, ast: field.Field) -> Any:
+        if len(ast.value) == 1 and field.Uniform in ast.value:  # has to be global
+            times, values = PiecewiseConstantCodeGen(self.assignments).visit(
+                ast.value[field.Uniform]
+            )
 
-            case NamedPulse(pulse, _):
-                self.visit(pulse)
+            times = QuEraCodeGen.convert_time_to_SI_units(times)
 
-            case _:
-                raise ValueError(
-                    "Failed to compile pulse expression to QuEra task, "
-                    f"found: {repr(ast)}"
-                )
+            self.rabi_frequency_phase = task_spec.RabiFrequencyAmplitude(
+                global_=task_spec.GlobalField(times=times, values=values)
+            )
+        else:
+            raise ValueError(
+                "Failed to compile Rabi Phase to QuEra task, "
+                "found non-uniform modulation: "
+                f"{repr(ast)}."
+            )
+
+    def visit_field(self, ast: field.Field):
+        if self.field_name == pulse.detuning:
+            self.visit_detuning(ast)
+        elif self.field_name == pulse.rabi.amplitude:
+            self.visit_rabi_amplitude(ast)
+        elif self.field_name == pulse.rabi.phase:
+            self.visit_rabi_phase(ast)
+
+    def visit_pulse(self, ast: pulse.Pulse):
+        for field_name in ast.fields.keys():
+            self.field_name = field_name
+            self.visit(ast.fields[field_name])
 
         # fix-up any missing fields
         duration = 0.0
@@ -594,25 +569,47 @@ class QuEraCodeGen(AnalogCircuitVisitor):
             detuning=self.detuning,
         )
 
-    def visit_sequence(self, ast: SequenceExpr):
-        match ast:
-            case Sequence(pulses):
-                if HyperfineLevelCoupling() in pulses:
-                    raise ValueError("QuEra tasks does not support Hyperfine coupling.")
+    def visit_named_pulse(self, ast: pulse.NamedPulse):
+        self.visit(ast.pulse)
 
-                self.visit(pulses.get(RydbergLevelCoupling(), Pulse({})))
+    def visit_append_pulse(self, ast: pulse.Append):
+        raise NotImplementedError(
+            "Failed to compile Append to QuEra task, "
+            "found non-atomic pulse expression: "
+            f"{repr(ast)}."
+        )
 
-            case NamedSequence(sequence, _):
-                self.visit(sequence)
+    def visit_slice_pulse(self, ast: pulse.Append):
+        raise NotImplementedError(
+            "Failed to compile Append to QuEra task, "
+            "found non-atomic pulse expression: "
+            f"{repr(ast)}."
+        )
 
-            case _:
-                raise ValueError(
-                    "Failed to compile sequence expression to QuEra task, "
-                    f"found: {repr(ast)}"
-                )
+    def visit_sequence(self, ast: sequence.Sequence):
+        if sequence.HyperfineLevelCoupling() in ast.pulses:
+            raise ValueError("QuEra tasks does not support Hyperfine coupling.")
 
+        self.visit(ast.pulses.get(sequence.RydbergLevelCoupling(), pulse.Pulse({})))
         self.effective_hamiltonian = task_spec.EffectiveHamiltonian(
             rydberg=self.rydberg
+        )
+
+    def visit_named_sequence(self, ast: sequence.NamedSequence):
+        self.visit(ast.sequence)
+
+    def visit_append_sequence(self, ast: sequence.Append):
+        raise NotImplementedError(
+            "Failed to compile Append to QuEra task, "
+            "found non-atomic sequence expression: "
+            f"{repr(ast)}."
+        )
+
+    def visit_slice_sequence(self, ast: sequence.Slice):
+        raise NotImplementedError(
+            "Failed to compile Slice to QuEra task, "
+            "found non-atomic sequence expression: "
+            f"{repr(ast)}."
         )
 
     def visit_register(self, ast: AtomArrangement):
