@@ -79,16 +79,16 @@ class Parser:
                         interpolation = ir.Interpolation.Constant
                     else:
                         interpolation = ir.Interpolation.Linear
-                fn_waveform =  node.__parent__.__bloqade_ir__()
-                sample_waveform = ir.Sample(
-                    fn_waveform, interpolation, node._dt
-                )
+                fn_waveform = node.__parent__.__bloqade_ir__()
+                sample_waveform = ir.Sample(fn_waveform, interpolation, node._dt)
                 if waveform is None:
                     waveform = sample_waveform
                 else:
                     waveform = waveform.append(sample_waveform)
-            elif isinstance(node, Fn) and curr.next is not None and isinstance(
-                curr.next.node, Sample
+            elif (
+                isinstance(node, Fn)
+                and curr.next is not None
+                and isinstance(curr.next.node, Sample)
             ):
                 pass
             elif isinstance(node, WaveformPrimitive):
@@ -116,7 +116,9 @@ class Parser:
             if isinstance(node, Location):
                 scaled_locations[ir.Location(node._label)] = 1.0
             elif isinstance(node, Scale):
-                scaled_locations[ir.Location(node.__parent__._label)] = ir.cast(node._value)
+                scaled_locations[ir.Location(node.__parent__._label)] = ir.cast(
+                    node._value
+                )
             elif isinstance(node, Uniform):
                 spatial_modulation = ir.Uniform
             elif isinstance(node, Var):
@@ -224,11 +226,13 @@ class Parser:
                     raise ValueError(
                         f"Cannot flatten RunTimeVectors: {flattened_vector_names}."
                     )
-                
+
                 self.order = order
 
             elif isinstance(node, Parallelize):
-                self.register = ir.ParallelRegister(self.register, node._cluster_spacing)
+                self.register = ir.ParallelRegister(
+                    self.register, node._cluster_spacing
+                )
             else:
                 break
 
