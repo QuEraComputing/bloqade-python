@@ -555,6 +555,35 @@ class Smooth(Waveform):
     kernel: SmoothingKernel
     waveform: Waveform
 
+    def __init__(self, radius, kernel, waveform):
+        if isinstance(kernel, str):
+            if kernel == "Guassian":
+                kernel = GaussianKernel
+            elif kernel == "Logistic":
+                kernel = LogisticKernel
+            elif kernel == "Sigmoid":
+                kernel = SigmoidKernel
+            elif kernel == "Triangle":
+                kernel = TriangleKernel
+            elif kernel == "Uniform":
+                kernel = UniformKernel
+            elif kernel == "Parabolic":
+                kernel = ParabolicKernel
+            elif kernel == "Biweight":
+                kernel = BiweightKernel
+            elif kernel == "Triweight":
+                kernel = TriweightKernel
+            elif kernel == "Tricube":
+                kernel = TricubeKernel
+            elif kernel == "Cosine":
+                kernel = CosineKernel
+            else:
+                raise ValueError(f"Invalid kernel: {kernel}")
+
+        self.radius = cast(radius)
+        self.kernel = kernel
+        self.waveform = waveform
+
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
         float_clock_s = float(clock_s)
         radius = float(self.radius(**kwargs))
