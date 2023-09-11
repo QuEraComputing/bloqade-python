@@ -110,7 +110,6 @@ class PiecewiseLinearCodeGen(WaveformVisitor):
         start_value = ast.waveform.eval_decimal(start_time, **self.assignments)
         stop_value = ast.waveform.eval_decimal(stop_time, **self.assignments)
 
-
         if start_index == 0:
             if stop_time == duration:
                 absolute_times = times
@@ -133,11 +132,7 @@ class PiecewiseLinearCodeGen(WaveformVisitor):
                 absolute_times = (
                     [start_time] + times[start_index:stop_index] + [stop_time]
                 )
-                values = (
-                    [start_value]
-                    + values[start_index:stop_index]
-                    + [stop_value]
-                )
+                values = [start_value] + values[start_index:stop_index] + [stop_value]
 
         times = [time - start_time for time in absolute_times]
 

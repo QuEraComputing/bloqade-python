@@ -99,8 +99,8 @@ class AnalogGate:
 
     @staticmethod
     def _error_check_dop(status_code: int):
-        if status_code in [1,2]:
-            return 
+        if status_code in [1, 2]:
+            return
         elif status_code == -1:
             raise RuntimeError("DOP853/DOPRI5: Input is not consistent.")
         elif status_code == -2:
@@ -108,10 +108,12 @@ class AnalogGate:
         elif status_code == -3:
             raise RuntimeError("DOP853/DOPRI5: Step size becomes too small.")
         elif status_code == -4:
-            raise RuntimeError("DOP853/DOPRI5: Problem is probably stiff (interrupted).")
+            raise RuntimeError(
+                "DOP853/DOPRI5: Problem is probably stiff (interrupted)."
+            )
         else:
             raise RuntimeError(f"DOP853/DOPRI5: unhandled status code {status_code}")
-        
+
     @staticmethod
     def _error_check_lsoda(status_code: int):
         if status_code == 2:
@@ -127,9 +129,7 @@ class AnalogGate:
         elif status_code == -3:
             raise RuntimeError("LSODA: Illegal input detected (internal error).")
         elif status_code == -4:
-            raise RuntimeError(
-                "LSODA: Repeated error test failures (internal error)."
-            )
+            raise RuntimeError("LSODA: Repeated error test failures (internal error).")
         elif status_code == -5:
             raise RuntimeError(
                 "LSODA: Repeated convergence failures "
@@ -150,7 +150,6 @@ class AnalogGate:
             AnalogGate._error_check_lsoda(status_code)
         elif solver_name in ["dop853", "dopri5"]:
             AnalogGate._error_check_dop(status_code)
-
 
     def apply(
         self,

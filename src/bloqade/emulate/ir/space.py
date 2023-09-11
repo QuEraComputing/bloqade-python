@@ -145,7 +145,6 @@ class Space:
 
             return index
 
-
     def index_to_fock_state(self, index: int) -> str:
         if self.space_type is SpaceType.FullSpace:
             return self.atom_type.integer_to_string(index, self.n_atoms)

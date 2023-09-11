@@ -1,3 +1,4 @@
+import numpy as np
 from pydantic.dataclasses import dataclass
 from pydantic import validator
 from .tree_print import Printer
@@ -75,65 +76,57 @@ class Scalar:
                 raise Exception(f"Unknown scalar expression: {self} ({type(self)})")
 
     def __add__(self, other: "Scalar") -> "Scalar":
-        try:
-            rhs = cast(other)
-        except BaseException:
-            return NotImplemented
+        return self.add(other)
 
-        return self.add(rhs)
+    def __sub__(self, other: "Scalar") -> "Scalar":
+        return self.sub(other)
+
+    def __mul__(self, other: "Scalar") -> "Scalar":
+        return self.mul(other)
+
+    def __truediv__(self, other: "Scalar") -> "Scalar":
+        return self.div(other)
 
     def __radd__(self, other: "Scalar") -> "Scalar":
         try:
             lhs = cast(other)
-        except BaseException:
+        except TypeError:
+            return NotImplemented
+
+        if not isinstance(lhs, Scalar):
             return NotImplemented
 
         return lhs.add(self)
 
-    def __sub__(self, other: "Scalar") -> "Scalar":
-        try:
-            rhs = cast(other)
-        except BaseException:
-            return NotImplemented
-
-        return self.sub(rhs)
-
     def __rsub__(self, other: "Scalar") -> "Scalar":
         try:
             lhs = cast(other)
-        except BaseException:
+        except TypeError:
+            return NotImplemented
+
+        if not isinstance(lhs, Scalar):
             return NotImplemented
 
         return lhs.sub(self)
 
-    def __mul__(self, other: "Scalar") -> "Scalar":
-        try:
-            rhs = cast(other)
-        except BaseException:
-            return NotImplemented
-
-        return self.mul(rhs)
-
     def __rmul__(self, other: "Scalar") -> "Scalar":
         try:
             lhs = cast(other)
-        except BaseException:
+        except TypeError:
+            return NotImplemented
+
+        if not isinstance(lhs, Scalar):
             return NotImplemented
 
         return lhs.mul(self)
 
-    def __truediv__(self, other: "Scalar") -> "Scalar":
-        try:
-            rhs = cast(other)
-        except BaseException:
-            return NotImplemented
-
-        return self.div(rhs)
-
     def __rtruediv__(self, other: "Scalar") -> "Scalar":
         try:
             lhs = cast(other)
-        except BaseException:
+        except TypeError:
+            return NotImplemented
+
+        if not isinstance(lhs, Scalar):
             return NotImplemented
 
         return lhs.div(self)
@@ -142,27 +135,69 @@ class Scalar:
         return Scalar.canonicalize(Negative(self))
 
     def add(self, other) -> "Scalar":
-        expr = Add(lhs=self, rhs=cast(other))
+        try:
+            rhs = cast(other)
+        except TypeError:
+            return NotImplemented
+
+        if not isinstance(rhs, Scalar):
+            return NotImplemented
+
+        expr = Add(lhs=self, rhs=rhs)
         return Scalar.canonicalize(expr)
 
     def sub(self, other) -> "Scalar":
-        expr = Add(lhs=self, rhs=-cast(other))
+        try:
+            rhs = cast(other)
+        except TypeError:
+            return NotImplemented
+
+        if not isinstance(rhs, Scalar):
+            return NotImplemented
+
+        expr = Add(lhs=self, rhs=-rhs)
         return Scalar.canonicalize(expr)
 
     def mul(self, other) -> "Scalar":
-        expr = Mul(lhs=self, rhs=cast(other))
+        try:
+            rhs = cast(other)
+        except TypeError:
+            return NotImplemented
+
+        if not isinstance(rhs, Scalar):
+            return NotImplemented
+
+        expr = Mul(lhs=self, rhs=rhs)
         return Scalar.canonicalize(expr)
 
     def div(self, other) -> "Scalar":
-        expr = Div(lhs=self, rhs=cast(other))
+        try:
+            rhs = cast(other)
+        except TypeError:
+            return NotImplemented
+
+        if not isinstance(rhs, Scalar):
+            return NotImplemented
+
+        expr = Div(lhs=self, rhs=rhs)
         return Scalar.canonicalize(expr)
 
     def min(self, other) -> "Scalar":
-        expr = Min(exprs=frozenset({self, cast(other)}))
+        try:
+            other_expr = cast(other)
+        except TypeError:
+            return NotImplemented
+
+        expr = Min(exprs=frozenset({self, other_expr}))
         return Scalar.canonicalize(expr)
 
     def max(self, other) -> "Scalar":
-        expr = Max(exprs=frozenset({self, cast(other)}))
+        try:
+            other_expr = cast(other)
+        except TypeError:
+            return NotImplemented
+
+        expr = Max(exprs=frozenset({self, other_expr}))
         return Scalar.canonicalize(expr)
 
     def __repr__(self) -> str:
@@ -192,45 +227,107 @@ class Scalar:
                 (new_expr,) = new_exprs
                 return new_expr
 
-        match expr:
-            case Negative(Negative(sub_expr)):
-                return Scalar.canonicalize(sub_expr)
-            case Negative(expr=Literal(value)) if value < 0:
-                return Literal(-value)
-            case Add(lhs=Literal(lhs), rhs=Literal(rhs)):
-                return Literal(lhs + rhs)
-            case Add(lhs=Literal(lhs), rhs=Negative(Literal(rhs))):
-                return Literal(lhs - rhs)
-            case Add(lhs=Negative(Literal(lhs)), rhs=Literal(rhs)):
-                return Literal(rhs - lhs)
-            case Add(lhs=Literal(0.0), rhs=sub_expr):
-                return Scalar.canonicalize(sub_expr)
-            case Add(lhs=sub_expr, rhs=Literal(0.0)):
-                return Scalar.canonicalize(sub_expr)
-            case Add(lhs=sub_expr, rhs=Negative(other_expr)) if sub_expr == other_expr:
+        if isinstance(expr, Negative):
+            sub_expr = expr.expr
+            if isinstance(sub_expr, Negative):
+                return Scalar.canonicalize(sub_expr.expr)
+            elif isinstance(sub_expr, Literal) and sub_expr.value < 0:
+                return Literal(-sub_expr.value)
+        elif isinstance(expr, Add):
+            lhs = expr.lhs
+            rhs = expr.rhs
+            if isinstance(lhs, Literal) and lhs.value == 0:
+                return Scalar.canonicalize(rhs)
+            elif isinstance(rhs, Literal) and rhs.value == 0:
+                return Scalar.canonicalize(lhs)
+            elif isinstance(lhs, Literal) and isinstance(rhs, Literal):
+                return Literal(lhs.value + rhs.value)
+            elif (
+                isinstance(lhs, Negative)
+                and isinstance(lhs.expr, Literal)
+                and isinstance(rhs, Literal)
+            ):
+                return Literal(rhs.value - lhs.expr.value)
+            elif (
+                isinstance(rhs, Negative)
+                and isinstance(rhs.expr, Literal)
+                and isinstance(lhs, Literal)
+            ):
+                return Literal(lhs.value - rhs.expr.value)
+            elif isinstance(lhs, Negative) and lhs.expr == rhs:
                 return Literal(0.0)
-            case Add(lhs=Negative(sub_expr), rhs=other_expr) if sub_expr == other_expr:
+            elif isinstance(rhs, Negative) and rhs.expr == lhs:
                 return Literal(0.0)
-            case Mul(lhs=Literal(lhs), rhs=Literal(rhs)):
-                return Literal(lhs * rhs)
-            case Mul(lhs=Literal(0.0), rhs=_):
+        elif isinstance(expr, Mul):
+            lhs = expr.lhs
+            rhs = expr.rhs
+            if isinstance(lhs, Literal) and lhs.value == 1:
+                return Scalar.canonicalize(rhs)
+            elif isinstance(rhs, Literal) and rhs.value == 1:
+                return Scalar.canonicalize(lhs)
+            elif isinstance(lhs, Literal) and isinstance(rhs, Literal):
+                return Literal(lhs.value * rhs.value)
+            elif isinstance(lhs, Literal) and lhs.value == 0:
                 return Literal(0.0)
-            case Mul(lhs=_, rhs=Literal(0.0)):
+            elif isinstance(rhs, Literal) and rhs.value == 0:
                 return Literal(0.0)
-            case Mul(lhs=Literal(1.0), rhs=sub_expr):
-                return Scalar.canonicalize(sub_expr)
-            case Mul(lhs=sub_expr, rhs=Literal(1.0)):
-                return Scalar.canonicalize(sub_expr)
-            case Div(lhs=Literal(lhs), rhs=Literal(rhs)):
-                return Literal(lhs / rhs)
-            case Div(lhs=sub_expr, rhs=Literal(1.0)):
-                return Scalar.canonicalize(sub_expr)
-            case Min(exprs):
-                return minmax(Min, exprs)
-            case Max(exprs):
-                return minmax(Max, exprs)
-            case _:
-                return expr
+        elif isinstance(expr, Div):
+            lhs = expr.lhs
+            rhs = expr.rhs
+            if isinstance(lhs, Literal) and lhs.value == 0:
+                return Literal(0.0)
+            elif isinstance(rhs, Literal) and rhs.value == 1:
+                return Scalar.canonicalize(lhs)
+            elif isinstance(lhs, Literal) and isinstance(rhs, Literal):
+                return Literal(lhs.value / rhs.value)
+        elif isinstance(expr, Min):
+            return minmax(Min, expr.exprs)
+        elif isinstance(expr, Max):
+            return minmax(Max, expr.exprs)
+
+        return expr
+
+        # match expr:
+        #     case Negative(Negative(sub_expr)):
+        #         return Scalar.canonicalize(sub_expr)
+        #     case Negative(expr=Literal(value)) if value < 0:
+        #         return Literal(-value)
+        #     case Add(lhs=Literal(lhs), rhs=Literal(rhs)):
+        #         return Literal(lhs + rhs)
+        #     case Add(lhs=Literal(lhs), rhs=Negative(Literal(rhs))):
+        #         return Literal(lhs - rhs)
+        #     case Add(lhs=Negative(Literal(lhs)), rhs=Literal(rhs)):
+        #         return Literal(rhs - lhs)
+        #     case Add(lhs=Literal(0.0), rhs=sub_expr):
+        #         return Scalar.canonicalize(sub_expr)
+        #     case Add(lhs=sub_expr, rhs=Literal(0.0)):
+        #         return Scalar.canonicalize(sub_expr)
+        #     case Add(lhs=sub_expr, rhs=Negative(other_expr))
+        # if (sub_expr == other_expr):
+        #         return Literal(0.0)
+        #     case Add(lhs=Negative(sub_expr), rhs=other_expr)
+        # if (sub_expr == other_expr):
+        #         return Literal(0.0)
+        #     case Mul(lhs=Literal(lhs), rhs=Literal(rhs)):
+        #         return Literal(lhs * rhs)
+        #     case Mul(lhs=Literal(0.0), rhs=_):
+        #         return Literal(0.0)
+        #     case Mul(lhs=_, rhs=Literal(0.0)):
+        #         return Literal(0.0)
+        #     case Mul(lhs=Literal(1.0), rhs=sub_expr):
+        #         return Scalar.canonicalize(sub_expr)
+        #     case Mul(lhs=sub_expr, rhs=Literal(1.0)):
+        #         return Scalar.canonicalize(sub_expr)
+        #     case Div(lhs=Literal(lhs), rhs=Literal(rhs)):
+        #         return Literal(lhs / rhs)
+        #     case Div(lhs=sub_expr, rhs=Literal(1.0)):
+        #         return Scalar.canonicalize(sub_expr)
+        #     case Min(exprs):
+        #         return minmax(Min, exprs)
+        #     case Max(exprs):
+        #         return minmax(Max, exprs)
+        #     case _:
+        #         return expr
 
 
 def check_variable_name(name: str) -> None:
@@ -267,25 +364,21 @@ def cast(py) -> "Scalar":
 # [KHW] it need to be there. For recursive replace for nested
 #       list/tuple
 def trycast(py) -> "Scalar | None":
-    match py:
-        case int(x) | float(x) | bool(x):
-            return Literal(Decimal(str(x)))
-        case Decimal():
-            return Literal(py)
-        case str(x):
-            check_variable_name(x)
-            return Variable(x)
-        case list() as xs:
-            return list(map(cast, xs))
-        case tuple() as xs:
-            return tuple(map(cast, xs))
-        case Scalar():
-            return py
-        case numbers.Real():
-            return Literal(Decimal(str(py)))
-
-        case _:
-            return
+    # print(type(py))
+    if isinstance(py, (int, bool, numbers.Real)):
+        return Literal(Decimal(str(py)))
+    elif isinstance(py, Decimal):
+        return Literal(py)
+    elif isinstance(py, str):
+        return Variable(py)
+    elif isinstance(py, Scalar):
+        return py
+    elif isinstance(py, (list, tuple)):
+        return type(py)(map(cast, py))
+    elif isinstance(py, np.ndarray):
+        return np.array(list(map(cast, py)))
+    else:
+        return
 
 
 def var(py: str) -> "Variable":
@@ -306,18 +399,14 @@ def var(py: str) -> "Variable":
 
 
 def tryvar(py) -> "Variable | None":
-    match py:
-        case str(x):
-            check_variable_name(x)
-            return Variable(x)
-        # case list() as xs:
-        #     return list(map(var, xs))
-        # case tuple() as xs:
-        #     return tuple(map(var, xs))
-        case Variable():
-            return py
-        case _:
-            return
+    if isinstance(py, str):
+        return Variable(py)
+    if isinstance(py, Variable):
+        return py
+    elif isinstance(py, (list, tuple)):
+        return type(py)(map(var, py))
+    else:
+        return
 
 
 class Real(Scalar):
@@ -379,6 +468,7 @@ class Variable(Real):
 
     @validator("name")
     def name_validator(cls, v):
+        check_variable_name(v)
         # removing reserved toekn check for now.
         # match v:
         #     case "config_file":
