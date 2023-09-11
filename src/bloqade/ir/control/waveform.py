@@ -171,63 +171,31 @@ class Waveform:
     def __truediv__(self, other: Any) -> "Waveform":
         return self.scale(1 / cast(other))
 
-    # @property
-    # def duration(self) -> Scalar:
-    #     if hasattr(self, "_duration"):
-    #         return self._duration
-
-    #     match self:
-    #         case AlignedWaveform(waveform=waveform, alignment=_, value=_):
-    #             self._duration = waveform.duration
-    #         case Slice(waveform=waveform, interval=interval):
-    #             match (interval.start, interval.stop):
-    #                 case (None, None):
-    #                     raise ValueError(f"Cannot compute duration of {self}")
-    #                 case (start, None):
-    #                     self._duration = waveform.duration - start
-    #                 case (None, stop):
-    #                     self._duration = stop
-    #                 case (start, stop):
-    #                     self._duration = stop - start
-    #         case Append(waveforms=waveforms):
-    #             duration = cast(0.0)
-    #             for waveform in waveforms:
-    #                 duration = duration + cast(waveform.duration)
-
-    #             self._duration = duration
-    #         case Sample(waveform=waveform, interpolation=_, dt=_):
-    #             self._duration = waveform.duration
-    #         case Smooth(waveform=waveform, kernel=_, radius=_):
-    #             self._duration = waveform.duration
-    #         case Record(waveform=waveform, var=_):
-    #             self._duration = waveform.duration
-    #         case Add(left=left, right=right):
-    #             self._duration = left.duration.max(right.duration)
-    #         case Scale(waveform=waveform, scalar=_):
-    #             self._duration = waveform.duration
-    #         case _:
-    #             raise ValueError(f"Cannot compute duration of {self}")
-    #     return self._duration
-
     @staticmethod
     def canonicalize(expr: "Waveform") -> "Waveform":
-        match expr:
-            case Add(left=left, right=right):
-                if left == right:
-                    return left.scale(2)
-                if left.duration == cast(0):
-                    return right
-                if right.duration == cast(0):
-                    return left
+        if isinstance(expr, Append):
+            new_waveforms = []
+            for waveform in expr.waveforms:
+                if isinstance(waveform, Append):
+                    new_waveforms += waveform.waveforms
+                else:
+                    new_waveforms.append(waveform)
+
+            new_waveforms = list(map(Waveform.canonicalize, new_waveforms))
+            return Append(new_waveforms)
+        elif isinstance(expr, Add):
+            left = Waveform.canonicalize(expr.left)
+            right = Waveform.canonicalize(expr.right)
+            if left == right:
+                return left.scale(2)
+            if left.duration == cast(0):
+                return right
+            if right.duration == cast(0):
+                return left
+            else:
                 return expr
-            case Append([Append(lhs), Append(rhs)]):
-                return Append(list(map(Waveform.canonicalize, lhs + rhs)))
-            case Append([Append(waveforms), waveform]):
-                return Waveform.canonicalize(Append(waveforms + [waveform]))
-            case Append([waveform, Append(waveforms)]):
-                return Waveform.canonicalize(Append([waveform] + waveforms))
-            case _:
-                return expr
+        else:
+            return expr
 
     def __repr__(self) -> str:
         ph = Printer()
