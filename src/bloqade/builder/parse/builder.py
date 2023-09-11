@@ -66,37 +66,39 @@ class Parser:
         curr = head
         waveform = None
         while curr is not None:
-            match curr.node:
-                case Slice(start, stop, _):
-                    waveform = waveform[start:stop]
-                case Record(name, _):
-                    waveform = waveform.record(name)
-                case Sample(dt, interpolation, Fn() as fn_node):
-                    if interpolation is None:
-                        if self.field_name == ir.rabi.phase:
-                            interpolation = ir.Interpolation.Constant
-                        else:
-                            interpolation = ir.Interpolation.Linear
+            node = curr.node
 
-                    sample_waveform = ir.Sample(
-                        fn_node.__bloqade_ir__(), interpolation, dt
-                    )
-                    if waveform is None:
-                        waveform = sample_waveform
+            if isinstance(node, Slice):
+                waveform = waveform[node._start : node._stop]
+            elif isinstance(node, Record):
+                waveform = waveform.record(node._name)
+            elif isinstance(node, Sample):
+                interpolation = node._interpolation
+                if interpolation is None:
+                    if self.field_name == ir.rabi.phase:
+                        interpolation = ir.Interpolation.Constant
                     else:
-                        waveform = waveform.append(sample_waveform)
+                        interpolation = ir.Interpolation.Linear
+                fn_waveform =  node.__parent__.__bloqade_ir__()
+                sample_waveform = ir.Sample(
+                    fn_waveform, interpolation, node._dt
+                )
+                if waveform is None:
+                    waveform = sample_waveform
+                else:
+                    waveform = waveform.append(sample_waveform)
+            elif isinstance(node, Fn) and curr.next is not None and isinstance(
+                curr.next.node, Sample
+            ):
+                pass
+            elif isinstance(node, WaveformPrimitive):
+                if waveform is None:
+                    waveform = node.__bloqade_ir__()
+                else:
+                    waveform = waveform.append(node.__bloqade_ir__())
+            else:
+                break
 
-                case Fn() if curr.next is not None and isinstance(
-                    curr.next.node, Sample
-                ):  # skip this for the sample node above
-                    pass
-                case WaveformPrimitive() as wf:
-                    if waveform is None:
-                        waveform = wf.__bloqade_ir__()
-                    else:
-                        waveform = waveform.append(wf.__bloqade_ir__())
-                case _:
-                    break
             curr = curr.next
 
         return waveform, curr
