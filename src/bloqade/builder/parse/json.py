@@ -13,7 +13,6 @@ from bloqade.builder.waveform import (
     Linear,
     Constant,
     Poly,
-    Fn,
     Apply,
     Slice,
     Record,
