@@ -118,24 +118,7 @@ def from_braket_task_results(
 
 
 def from_braket_status_codes(braket_message: str) -> QuEraTaskStatusCode:
-    match braket_message:
-        case str("CREATED"):
-            return QuEraTaskStatusCode.Created
-
-        case str("RUNNING"):
-            return QuEraTaskStatusCode.Running
-
-        case str("COMPLETED"):
-            return QuEraTaskStatusCode.Completed
-
-        case str("FAILED"):
-            return QuEraTaskStatusCode.Failed
-
-        case str("CANCELLED"):
-            return QuEraTaskStatusCode.Cancelled
-
-        case str("QUEUED"):
-            return QuEraTaskStatusCode.Enqueued
-
-        case _:
-            raise ValueError(f"unexpected argument {braket_message}")
+    if braket_message == str("QUEUED"):
+        return QuEraTaskStatusCode.Enqueued
+    else:
+        return QuEraTaskStatusCode(braket_message.lower().capitalize())
