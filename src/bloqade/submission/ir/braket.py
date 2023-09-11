@@ -39,18 +39,20 @@ def to_braket_time_series(times: List[Decimal], values: List[Decimal]) -> TimeSe
 
 
 def to_braket_field(quera_field: Union[GlobalField, LocalField]) -> Field:
-    match quera_field:
-        case GlobalField(times=times, values=values):
-            time_series = to_braket_time_series(times, values)
-            return Field(pattern="uniform", time_series=time_series)
-
-        case LocalField(times=times, values=values, lattice_site_coefficients=pattern):
-            time_series = to_braket_time_series(times, values)
-            pattern = Pattern(pattern)
-            return Field(pattern=pattern, time_series=time_series)
-
-        case _:
-            raise TypeError
+    if isinstance(quera_field, GlobalField):
+        times = quera_field.times
+        values = quera_field.values
+        time_series = to_braket_time_series(times, values)
+        return Field(pattern="uniform", time_series=time_series)
+    elif isinstance(quera_field, LocalField):
+        times = quera_field.times
+        values = quera_field.values
+        pattern = quera_field.lattice_site_coefficients
+        time_series = to_braket_time_series(times, values)
+        pattern = Pattern(pattern)
+        return Field(pattern=pattern, time_series=time_series)
+    else:
+        raise TypeError
 
 
 def extract_braket_program(quera_task_ir: QuEraTaskSpecification):
