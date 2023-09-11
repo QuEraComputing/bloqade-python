@@ -28,11 +28,11 @@ class QuEraServiceOptions(RoutineBase):
         backend = QuEraBackend(**load_config("Aquila"))
         return QuEraHardwareRoutine(source=self.source, backend=backend)
 
-    def cloud_mock(self):
+    def cloud_mock(self) -> "QuEraHardwareRoutine":
         backend = QuEraBackend(**load_config("Mock"))
         return QuEraHardwareRoutine(source=self.source, backend=backend)
 
-    def mock(self, state_file: str = ".mock_state.txt"):
+    def mock(self, state_file: str = ".mock_state.txt") -> "QuEraHardwareRoutine":
         backend = MockBackend(state_file=state_file)
         return QuEraHardwareRoutine(source=self.source, backend=backend)
 
@@ -112,4 +112,26 @@ class QuEraHardwareRoutine(RoutineBase):
         """
         batch = self.compile(shots, args, name)
         batch._submit(shuffle, **kwargs)
+        return batch
+
+    def __call__(
+        self,
+        *args: float,
+        shots: int = 1,
+        name: str | None = None,
+        shuffle: bool = False,
+        **kwargs,
+    ) -> RemoteBatch:
+        return self.run(shots, args, name, shuffle, **kwargs)
+
+    def run(
+        self,
+        shots: int,
+        args: Tuple[Real, ...] = (),
+        name: str | None = None,
+        shuffle: bool = False,
+        **kwargs,
+    ) -> RemoteBatch:
+        batch = self.submit(shots, args, name, shuffle, **kwargs)
+        batch.pull()
         return batch
