@@ -914,14 +914,14 @@ class Sample(Waveform):
         if i == len(times):
             return Decimal(0)
 
-        if self.interpolation == Interpolation.Linear:
+        if self.interpolation is Interpolation.Linear:
             if i == 0:
                 return values[i]
             else:
                 slope = (values[i] - values[i - 1]) / (times[i] - times[i - 1])
                 return slope * (clock_s - times[i - 1]) + values[i - 1]
 
-        elif self.interpolation == Interpolation.Constant:
+        elif self.interpolation is Interpolation.Constant:
             if i == 0:
                 return values[i]
             else:

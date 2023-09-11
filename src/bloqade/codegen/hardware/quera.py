@@ -161,7 +161,7 @@ class PiecewiseLinearCodeGen(WaveformVisitor):
         return times, values
 
     def visit_sample(self, ast: waveform.Sample) -> Tuple[List[Decimal], List[Decimal]]:
-        if ast.interpolation != waveform.Interpolation.Linear:
+        if ast.interpolation is not waveform.Interpolation.Linear:
             raise ValueError(
                 "Failed to compile waveform to piecewise linear, "
                 f"found piecewise {ast.interpolation.value} interpolation."
@@ -320,7 +320,7 @@ class PiecewiseConstantCodeGen(WaveformVisitor):
         return times, values
 
     def visit_sample(self, ast: waveform.Sample) -> Tuple[List[Decimal], List[Decimal]]:
-        if ast.interpolation != waveform.Interpolation.Constant:
+        if ast.interpolation is not waveform.Interpolation.Constant:
             raise ValueError(
                 "Failed to compile waveform to piecewise constant, "
                 f"found piecewise {ast.interpolation.value} interpolation."
