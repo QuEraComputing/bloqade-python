@@ -1,9 +1,19 @@
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Any, Dict, List, Tuple, Optional, Callable
+from typing import Any, Dict, List, Tuple, Optional
 from enum import Enum
-from bloqade.ir.control.sequence import LevelCoupling
+from bloqade.ir.control.waveform import Waveform
 from bloqade.emulate.ir.atom_type import AtomType
+from numbers import Real
+
+
+@dataclass(frozen=True)
+class CompiledWaveform:
+    assignments: Dict[str, Real]
+    source: Waveform
+
+    def __call__(self, t: float) -> float:
+        return self.source(t, **self.assignments)
 
 
 class RabiOperatorType(Enum):
@@ -23,8 +33,8 @@ class RabiOperatorData:
 @dataclass(frozen=True)
 class RabiTerm:
     operator_data: RabiOperatorData
-    amplitude: Callable[[float], float]
-    phase: Optional[Callable[[float], float]] = None
+    amplitude: CompiledWaveform
+    phase: Optional[CompiledWaveform] = None
 
 
 @dataclass(frozen=True)
@@ -38,7 +48,7 @@ class DetuningOperatorData:
 @dataclass(frozen=True)
 class DetuningTerm:
     operator_data: DetuningOperatorData
-    amplitude: Callable[[float], float]
+    amplitude: CompiledWaveform
 
 
 @dataclass(frozen=True)
@@ -85,6 +95,11 @@ class Register:
             )
 
 
+class LevelCoupling(str, Enum):
+    Rydberg = "rydberg"
+    Hyperfine = "hyperfine"
+
+
 @dataclass(frozen=True)
 class EmulatorProgram:
     register: Register
@@ -94,6 +109,9 @@ class EmulatorProgram:
 
 class Visitor:
     def visit_emulator_program(self, ast: EmulatorProgram) -> Any:
+        raise NotImplementedError
+
+    def visit_compiled_waveform(self, ast: CompiledWaveform) -> Any:
         raise NotImplementedError
 
     def visit_fields(self, ast: Fields) -> Any:
@@ -115,18 +133,21 @@ class Visitor:
         raise NotImplementedError
 
     def visit(self, ast) -> Any:
-        match ast:
-            case EmulatorProgram():
-                return self.visit_emulator_program(ast)
-            case Register():
-                return self.visit_register(ast)
-            case Fields():
-                return self.visit_fields(ast)
-            case DetuningOperatorData():
-                return self.visit_detuning_operator_data(ast)
-            case RabiOperatorData():
-                return self.visit_rabi_operator_data(ast)
-            case DetuningTerm():
-                return self.visit_detuning_term(ast)
-            case RabiTerm():
-                return self.visit_rabi_term(ast)
+        if isinstance(ast, EmulatorProgram):
+            return self.visit_emulator_program(ast)
+        elif isinstance(ast, Register):
+            return self.visit_register(ast)
+        elif isinstance(ast, RabiTerm):
+            return self.visit_rabi_term(ast)
+        elif isinstance(ast, DetuningTerm):
+            return self.visit_detuning_term(ast)
+        elif isinstance(ast, RabiOperatorData):
+            return self.visit_rabi_operator_data(ast)
+        elif isinstance(ast, DetuningOperatorData):
+            return self.visit_detuning_operator_data(ast)
+        elif isinstance(ast, Fields):
+            return self.visit_fields(ast)
+        elif isinstance(ast, CompiledWaveform):
+            return self.visit_compiled_waveform(ast)
+        else:
+            raise NotImplementedError(f"Unknown AST node type {type(ast)}: {ast!r}")
