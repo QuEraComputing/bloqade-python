@@ -3,7 +3,7 @@ from ..scalar import Interval
 from ..tree_print import Printer
 
 from pydantic.dataclasses import dataclass
-from typing import List, Dict
+from typing import List, Dict, Optional
 from bloqade.visualization.ir_visualize import get_sequence_figure
 from bloqade.visualization.display import display_sequence
 
@@ -108,7 +108,7 @@ class Sequence(SequenceExpr):
 
     pulses: dict[LevelCoupling, PulseExpr]
 
-    def __init__(self, seq_pairs: Dict | None = None):
+    def __init__(self, seq_pairs: Optional[Dict] = None):
         if seq_pairs is None:
             self.pulses = {}
             return

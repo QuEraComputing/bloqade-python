@@ -1,7 +1,7 @@
-from typing import Any
+from typing import Any, Optional
 import numpy as np
 from pydantic.dataclasses import dataclass
-from pydantic import validator
+from pydantic import ValidationError, validator
 from .tree_print import Printer
 import re
 from decimal import Decimal
@@ -262,7 +262,7 @@ def check_variable_name(name: str) -> None:
     regex = "^[A-Za-z_][A-Za-z0-9_]*"
     re_match = re.match(regex, name)
     if re_match.group() != name:
-        raise ValueError(f"string '{name}' is not a valid python identifier")
+        raise ValidationError(f"string '{name}' is not a valid python identifier")
 
 
 def cast(py) -> "Scalar":
@@ -291,7 +291,7 @@ def cast(py) -> "Scalar":
 #       in human brain
 # [KHW] it need to be there. For recursive replace for nested
 #       list/tuple
-def trycast(py) -> "Scalar | None":
+def trycast(py) -> Optional[Scalar]:
     # print(type(py))
     if isinstance(py, (int, bool, numbers.Real)):
         return Literal(Decimal(str(py)))
@@ -326,7 +326,7 @@ def var(py: str) -> "Variable":
     return ret
 
 
-def tryvar(py) -> "Variable | None":
+def tryvar(py) -> Optional["Variable"]:
     if isinstance(py, str):
         return Variable(py)
     if isinstance(py, Variable):
@@ -403,8 +403,8 @@ class Variable(Real):
     def _repr_pretty_(self, p, cycle):
         Printer(p).print(self, cycle)
 
-    @validator("name")
-    def name_validator(cls, v):
+    @validator("name", allow_reuse=True)
+    def validate_name(cls, v):
         check_variable_name(v)
         return v
 
@@ -429,8 +429,8 @@ class AssignedVariable(Scalar):
     def print_node(self):
         return f"AssignedVariable: {self.name} = {self.value}"
 
-    @validator("name")
-    def name_validator(cls, v):
+    @validator("name", allow_reuse=True)
+    def validate_name(cls, v):
         check_variable_name(v)
         return v
 
@@ -454,8 +454,8 @@ class Negative(Scalar):
 
 @dataclass(frozen=True, repr=False)
 class Interval:
-    start: Scalar | None
-    stop: Scalar | None
+    start: Optional[Scalar]
+    stop: Optional[Scalar]
 
     @staticmethod
     def from_slice(s: slice) -> "Interval":

@@ -1,6 +1,6 @@
 from collections import OrderedDict
 from dataclasses import dataclass
-from typing import Tuple
+from typing import Optional, Tuple
 from numbers import Real
 
 from bloqade.ir.routine.base import RoutineBase
@@ -30,7 +30,7 @@ class BraketHardwareRoutine(RoutineBase):
         self,
         shots: int,
         args: Tuple[Real, ...] = (),
-        name: str | None = None,
+        name: Optional[str] = None,
     ) -> RemoteBatch:
         """
         Compile to a RemoteBatch, which contain
@@ -83,7 +83,7 @@ class BraketHardwareRoutine(RoutineBase):
         self,
         shots: int,
         args: Tuple[Real, ...] = (),
-        name: str | None = None,
+        name: Optional[str] = None,
         shuffle: bool = False,
         **kwargs,
     ) -> RemoteBatch:
@@ -113,7 +113,7 @@ class BraketHardwareRoutine(RoutineBase):
         self,
         shots: int,
         args: Tuple[Real, ...] = (),
-        name: str | None = None,
+        name: Optional[str] = None,
         shuffle: bool = False,
         **kwargs,
     ) -> RemoteBatch:
@@ -145,7 +145,7 @@ class BraketHardwareRoutine(RoutineBase):
         self,
         *args: Tuple[Real, ...],
         shots: int = 1,
-        name: str | None = None,
+        name: Optional[str] = None,
         shuffle: bool = False,
         **kwargs,
     ):
@@ -174,7 +174,7 @@ class BraketHardwareRoutine(RoutineBase):
 @dataclass(frozen=True)
 class BraketLocalEmulatorRoutine(RoutineBase):
     def compile(
-        self, shots: int, args: Tuple[Real, ...] = (), name: str | None = None
+        self, shots: int, args: Tuple[Real, ...] = (), name: Optional[str] = None
     ) -> LocalBatch:
         """
         Compile to a LocalBatch, which contain tasks to run on local emulator.
@@ -227,9 +227,9 @@ class BraketLocalEmulatorRoutine(RoutineBase):
         self,
         shots: int,
         args: Tuple[Real, ...] = (),
-        name: str | None = None,
+        name: Optional[str] = None,
         multiprocessing: bool = False,
-        num_workers: int | None = None,
+        num_workers: Optional[int] = None,
         **kwargs,
     ) -> LocalBatch:
         """

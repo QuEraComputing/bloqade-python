@@ -10,12 +10,12 @@ from bloqade.submission.quera_api_client.load_config import load_config
 from bloqade.task.batch import RemoteBatch
 from bloqade.task.quera import QuEraTask
 
-from typing import Tuple, Union
+from typing import Tuple, Union, Optional
 
 
 @dataclass(frozen=True)
 class QuEraServiceOptions(RoutineBase):
-    def device(self, config_file: str | None, **api_config):
+    def device(self, config_file: Optional[str], **api_config):
         if config_file is not None:
             with open(config_file, "r") as f:
                 api_config = {**json.load(f), **api_config}
@@ -45,7 +45,7 @@ class QuEraHardwareRoutine(RoutineBase):
         self,
         shots: int,
         args: Tuple[Real, ...] = (),
-        name: str | None = None,
+        name: Optional[str] = None,
     ) -> RemoteBatch:
         """
         Compile to a RemoteBatch, which contain
@@ -91,7 +91,7 @@ class QuEraHardwareRoutine(RoutineBase):
         self,
         shots: int,
         args: Tuple[Real, ...] = (),
-        name: str | None = None,
+        name: Optional[str] = None,
         shuffle: bool = False,
         **kwargs,
     ) -> RemoteBatch:
@@ -118,7 +118,7 @@ class QuEraHardwareRoutine(RoutineBase):
         self,
         *args: float,
         shots: int = 1,
-        name: str | None = None,
+        name: Optional[str] = None,
         shuffle: bool = False,
         **kwargs,
     ) -> RemoteBatch:
@@ -128,7 +128,7 @@ class QuEraHardwareRoutine(RoutineBase):
         self,
         shots: int,
         args: Tuple[Real, ...] = (),
-        name: str | None = None,
+        name: Optional[str] = None,
         shuffle: bool = False,
         **kwargs,
     ) -> RemoteBatch:
