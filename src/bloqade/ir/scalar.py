@@ -1,3 +1,4 @@
+from typing import Any
 import numpy as np
 from pydantic.dataclasses import dataclass
 from pydantic import validator
@@ -42,38 +43,38 @@ class Scalar:
     ```
     """
 
-    def __call__(self, **kwargs) -> Decimal:
-        match self:
-            case Literal(value):
-                return value
-            case Variable(name):
-                if name in kwargs:
-                    return Decimal(str(kwargs[name]))
-                else:
-                    raise Exception(f"Unknown variable: {name}")
-            case AssignedVariable(name, value):
-                if name in kwargs:
-                    raise ValueError(f"Variable {name} already assigned")
-                else:
-                    return value
-            case Negative(expr):
-                return -expr(**kwargs)
-            case Add(lhs, rhs):
-                return lhs(**kwargs) + rhs(**kwargs)
-            case Mul(lhs, rhs):
-                return lhs(**kwargs) * rhs(**kwargs)
-            case Div(lhs, rhs):
-                return lhs(**kwargs) / rhs(**kwargs)
-            case Min(exprs):
-                return min(map(lambda expr: expr(**kwargs), exprs))
-            case Max(exprs):
-                return max(map(lambda expr: expr(**kwargs), exprs))
-            case Slice(expr, Interval(start, stop)):
-                ret = stop - start
-                ret <= expr(**kwargs)
-                return ret
-            case _:
-                raise Exception(f"Unknown scalar expression: {self} ({type(self)})")
+    # def __call__(self, **kwargs) -> Decimal:
+    #     match self:
+    #         case Literal(value):
+    #             return value
+    #         case Variable(name):
+    #             if name in kwargs:
+    #                 return Decimal(str(kwargs[name]))
+    #             else:
+    #                 raise Exception(f"Unknown variable: {name}")
+    #         case AssignedVariable(name, value):
+    #             if name in kwargs:
+    #                 raise ValueError(f"Variable {name} already assigned")
+    #             else:
+    #                 return value
+    #         case Negative(expr):
+    #             return -expr(**kwargs)
+    #         case Add(lhs, rhs):
+    #             return lhs(**kwargs) + rhs(**kwargs)
+    #         case Mul(lhs, rhs):
+    #             return lhs(**kwargs) * rhs(**kwargs)
+    #         case Div(lhs, rhs):
+    #             return lhs(**kwargs) / rhs(**kwargs)
+    #         case Min(exprs):
+    #             return min(map(lambda expr: expr(**kwargs), exprs))
+    #         case Max(exprs):
+    #             return max(map(lambda expr: expr(**kwargs), exprs))
+    #         case Slice(expr, Interval(start, stop)):
+    #             ret = stop - start
+    #             ret <= expr(**kwargs)
+    #             return ret
+    #         case _:
+    #             raise Exception(f"Unknown scalar expression: {self} ({type(self)})")
 
     def __add__(self, other: "Scalar") -> "Scalar":
         return self.add(other)
@@ -424,6 +425,9 @@ class Literal(Real):
 
     """
 
+    def __call__(self, **assignments) -> Decimal:
+        return self.value
+
     def __repr__(self) -> str:
         return self.__str__()
 
@@ -450,6 +454,12 @@ class Variable(Real):
     """
 
     name: str
+
+    def __call__(self, **assignments) -> Decimal:
+        if self.name not in assignments:
+            raise ValueError(f"Variable {self.name} not assigned")
+
+        return Decimal(str(assignments[self.name]))
 
     def __repr__(self) -> str:
         return self.__str__()
@@ -489,6 +499,12 @@ class AssignedVariable(Scalar):
     name: str
     value: Decimal
 
+    def __call__(self, **assignments) -> Decimal:
+        if self.name in assignments:
+            raise ValueError(f"Variable {self.name} already assigned")
+
+        return self.value
+
     def __str__(self):
         return f"{self.name}"
 
@@ -517,6 +533,9 @@ class AssignedVariable(Scalar):
 class Negative(Scalar):
     expr: Scalar
 
+    def __call__(self, **assignments) -> Decimal:
+        return -self.expr(**assignments)
+
     def __str__(self):
         return f"-({str(self.expr)})"
 
@@ -534,23 +553,29 @@ class Interval:
 
     @staticmethod
     def from_slice(s: slice) -> "Interval":
-        match s:
-            case slice(start=None, stop=None, step=None):
-                raise ValueError("Slice must have at least one argument")
-            case slice(start=None, stop=None, step=_):
-                raise ValueError("Slice step must be None")
-            case slice(start=None, stop=stop, step=None):
-                return Interval(None, cast(stop))
-            case slice(start=None, stop=stop, step=_):
-                raise ValueError("Slice step must be None")
-            case slice(start=start, stop=None, step=None):
-                return Interval(cast(start), None)
-            case slice(start=start, stop=None, step=_):
-                raise ValueError("Slice step must be None")
-            case slice(start=start, stop=stop, step=None):
-                return Interval(cast(start), cast(stop))
-            case slice(start=start, stop=stop, step=_):
-                raise ValueError("Slice step must be None")
+        start, stop, step = s.start, s.stop, s.step
+
+        if start is None and stop is None and step is None:
+            raise ValueError("Slice must have at least one argument")
+        elif step is not None:
+            raise ValueError("Slice step must be None")
+
+        else:
+            if start is None:
+                start = None
+            else:
+                start = cast(start)
+                if not isinstance(start, Scalar):
+                    raise ValueError("Slice start must be Scalar")
+
+            if stop is None:
+                stop = None
+            else:
+                stop = cast(stop)
+                if not isinstance(stop, Scalar):
+                    raise ValueError("Slice stop must be Scalar")
+
+            return Interval(start, stop)
 
     def __repr__(self) -> str:
         ph = Printer()
@@ -591,6 +616,46 @@ class Slice(Scalar):
     expr: Scalar  # duration
     interval: Interval
 
+    def __call__(self, **assignments) -> Decimal:
+        dur = self.expr(**assignments)
+        start = (
+            self.interval.start(**assignments)
+            if self.interval.start is not None
+            else Decimal("0")
+        )
+        stop = (
+            self.interval.stop(**assignments) if self.interval.stop is not None else dur
+        )
+
+        if start < 0:
+            raise ValueError(
+                f"Slice start must be non-negative, got {start} from expr:\n"
+                f"{repr(self.interval.start)}\n"
+                f"with assignments: {assignments}"
+            )
+
+        if stop > dur:
+            raise ValueError(
+                "Slice stop must be smaller or equal to than duration "
+                f"{dur}, got {stop} from expr:\b"
+                f"{repr(self.interval.stop)}\n"
+                f"with assignments: {assignments}"
+            )
+
+        ret = stop - start
+
+        if ret < 0:
+            raise ValueError(
+                f"start is larger than stop, get start = {start} and stop = {stop}\n"
+                "from start expr:\n"
+                f"{repr(self.interval.start)}\n"
+                "and stop expr:\n"
+                f"{repr(self.interval.stop)}\n"
+                f"with assignments: {assignments}"
+            )
+
+        return ret
+
     def __str__(self):
         return f"{str(self.expr)}[{str(self.interval)}]"
 
@@ -605,6 +670,9 @@ class Slice(Scalar):
 class Add(Scalar):
     lhs: Scalar
     rhs: Scalar
+
+    def __call__(self, **assignments) -> Decimal:
+        return self.lhs(**assignments) + self.rhs(**assignments)
 
     def __str__(self):
         return f"({str(self.lhs)} + {str(self.rhs)})"
@@ -621,6 +689,9 @@ class Mul(Scalar):
     lhs: Scalar
     rhs: Scalar
 
+    def __call__(self, **assignments) -> Decimal:
+        return self.lhs(**assignments) * self.rhs(**assignments)
+
     def __str__(self):
         return f"({str(self.lhs)} * {str(self.rhs)})"
 
@@ -636,6 +707,9 @@ class Div(Scalar):
     lhs: Scalar
     rhs: Scalar
 
+    def __call__(self, **assignments) -> Decimal:
+        return self.lhs(**assignments) / self.rhs(**assignments)
+
     def __str__(self):
         return f"({str(self.lhs)} / {str(self.rhs)})"
 
@@ -650,6 +724,9 @@ class Div(Scalar):
 class Min(Scalar):
     exprs: frozenset[Scalar]
 
+    def __call__(self, **assignments) -> Any:
+        return min(expr(**assignments) for expr in self.exprs)
+
     def children(self):
         return list(self.exprs)
 
@@ -663,6 +740,9 @@ class Min(Scalar):
 @dataclass(frozen=True, repr=False)
 class Max(Scalar):
     exprs: frozenset[Scalar]
+
+    def __call__(self, **assignments) -> Any:
+        return max(expr(**assignments) for expr in self.exprs)
 
     def children(self):
         return list(self.exprs)
