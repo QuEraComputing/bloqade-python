@@ -17,15 +17,12 @@ class SpaceType(str, Enum):
 @dataclass(frozen=True)
 class Space:
     space_type: SpaceType
-    atom_type: AtomType
+    atom_type: "AtomType"
     geometry: "Register"
     configurations: NDArray
 
     @classmethod
-    def create(
-        cls,
-        register: "Register",
-    ):
+    def create(cls, register: "Register"):
         sites = register.sites
         n_atom = len(sites)
         atom_type = register.atom_type
@@ -47,7 +44,7 @@ class Space:
         configurations = np.arange(Ns, dtype=np.min_scalar_type(Ns - 1))
 
         if all(len(sub_list) == 0 for sub_list in check_atoms):
-            return cls(SpaceType.FullSpace, atom_type, sites, configurations)
+            return Space(SpaceType.FullSpace, atom_type, sites, configurations)
 
         for index_1, indices in enumerate(check_atoms):
             # get which configurations are in rydberg state for the current index.
@@ -123,11 +120,15 @@ class Space:
             return (row_indices, col_config)
         else:
             col_indices = np.searchsorted(self.configurations, col_config)
-            mask = col_indices < self.size
-            mask = np.logical_and(mask, col_config == self.configurations[col_indices])
+            row_indices = np.argwhere(row_indices).ravel()
 
+            mask = col_indices < self.size
             col_indices = col_indices[mask]
-            row_indices = np.logical_and(row_indices, mask)
+            row_indices = row_indices[mask]
+
+            mask = col_config == self.configurations[col_indices]
+            col_indices = col_indices[mask]
+            row_indices = row_indices[mask]
 
             return (row_indices, col_indices)
 

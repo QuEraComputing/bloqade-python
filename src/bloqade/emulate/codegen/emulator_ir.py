@@ -19,30 +19,22 @@ import bloqade.ir as ir
 from bloqade.emulate.ir.atom_type import ThreeLevelAtom, TwoLevelAtom
 from bloqade.emulate.ir.emulator import (
     DetuningOperatorData,
+    LevelCoupling,
     RabiOperatorData,
     RabiOperatorType,
     DetuningTerm,
+    CompiledWaveform,
     EmulatorProgram,
     Register,
-    LaserCoupling,
+    Fields,
     RabiTerm,
 )
 
-from dataclasses import dataclass
 from typing import Any, Dict, Optional, Union, List
 from numbers import Number, Real
 from decimal import Decimal
 
 ParamType = Union[Real, List[Real]]
-
-
-@dataclass(frozen=True)
-class CompiledWaveform:
-    assignments: Dict[str, Number]
-    source: waveform.Waveform
-
-    def __call__(self, t: float) -> float:
-        return self.source(t, **self.assignments)
 
 
 class WaveformCompiler(WaveformVisitor):
@@ -61,9 +53,9 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
         self.blockade_radius = Decimal(str(blockade_radius))
         self.assignments = assignments
         self.waveform_compiler = WaveformCompiler(assignments)
-        self.geometry = None
+        self.register = None
         self.duration = 0.0
-        self.drives = {}
+        self.pulses = {}
         self.level_couplings = set()
 
     def visit_analog_circuit(self, ast: ir.AnalogCircuit):
@@ -80,21 +72,25 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
                 positions.append(position)
 
         if sequence.hyperfine in self.level_couplings:
-            self.geometry = Register(
+            self.register = Register(
                 ThreeLevelAtom, positions, blockade_radius=self.blockade_radius
             )
         else:
-            self.geometry = Register(
+            self.register = Register(
                 TwoLevelAtom, positions, blockade_radius=self.blockade_radius
             )
 
     def visit_sequence(self, ast: sequence.SequenceExpr):
+        level_coupling_mapping = {
+            sequence.hyperfine: LevelCoupling.Hyperfine,
+            sequence.rydberg: LevelCoupling.Rydberg,
+        }
         match ast:
             case sequence.Sequence(pulses):
                 for level_coupling, sub_pulse in pulses.items():
                     self.level_couplings.add(level_coupling)
                     self.visit(sub_pulse)
-                    self.drives[level_coupling] = LaserCoupling(
+                    self.pulses[level_coupling_mapping[level_coupling]] = Fields(
                         detuning=self.detuning_terms,
                         rabi=self.rabi_terms,
                     )
@@ -324,7 +320,7 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
 
         self.visit(circuit)
         return EmulatorProgram(
-            geometry=self.geometry,
+            register=self.register,
             duration=self.duration,
-            drives=self.drives,
+            pulses=self.pulses,
         )

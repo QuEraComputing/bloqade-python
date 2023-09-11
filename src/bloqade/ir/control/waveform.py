@@ -62,20 +62,11 @@ class Waveform:
     ```
     """
 
-    def __post_init__(self):
-        self._duration = None
+    # def __post_init__(self):
+    #     self._duration = None
 
     def __call__(self, clock_s: float, **kwargs) -> float:
         return float(self.eval_decimal(Decimal(str(clock_s)), **kwargs))
-
-    def __mul__(self, scalar: Scalar) -> "Waveform":
-        return self.scale(cast(scalar))
-
-    def __rmul__(self, scalar: Scalar) -> "Waveform":
-        return self.scale(cast(scalar))
-
-    def __add__(self, other: "Waveform"):
-        return self.add(other)
 
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
         raise NotImplementedError
@@ -135,16 +126,47 @@ class Waveform:
     def record(self, variable_name: Union[str, Variable]):
         return Record(self, cast(variable_name))
 
+    def __add__(self, other: "Waveform") -> "Waveform":
+        if isinstance(other, Waveform):
+            return self.canonicalize(Add(self, other))
+
+        return NotImplemented
+
+    def __radd__(self, other: "Waveform") -> "Waveform":
+        if isinstance(other, Waveform):
+            return self.canonicalize(Add(self, other))
+
+        return NotImplemented
+
+    def __sub__(self, other: "Waveform") -> "Waveform":
+        if isinstance(other, Waveform):
+            return self + (-other)
+
+        return NotImplemented
+
+    def __rsubs__(self, other: "Waveform") -> "Waveform":
+        if isinstance(other, Waveform):
+            return other + (-self)
+
+        return NotImplemented
+
+    def __mul__(self, other: Any) -> "Waveform":
+        return self.scale(cast(other))
+
+    def __rmul__(self, other: Any) -> "Waveform":
+        return self.scale(cast(other))
+
+    def __truediv__(self, other: Any) -> "Waveform":
+        return self.scale(1 / cast(other))
+
     @property
     def duration(self) -> Scalar:
-        if self._duration:
+        if hasattr(self, "_duration"):
             return self._duration
 
         match self:
-            case Instruction(duration=duration):
-                self._duration = duration
             case AlignedWaveform(waveform=waveform, alignment=_, value=_):
-                self._duration = waveform.duration()
+                self._duration = waveform.duration
             case Slice(waveform=waveform, interval=interval):
                 match (interval.start, interval.stop):
                     case (None, None):
@@ -164,9 +186,13 @@ class Waveform:
             case Sample(waveform=waveform, interpolation=_, dt=_):
                 self._duration = waveform.duration
             case Smooth(waveform=waveform, kernel=_, radius=_):
-                return waveform.duration
+                self._duration = waveform.duration
             case Record(waveform=waveform, var=_):
-                return waveform.duration
+                self._duration = waveform.duration
+            case Add(left=left, right=right):
+                self._duration = left.duration.max(right.duration)
+            case Scale(waveform=waveform, scalar=_):
+                self._duration = waveform.duration
             case _:
                 raise ValueError(f"Cannot compute duration of {self}")
         return self._duration
@@ -174,6 +200,14 @@ class Waveform:
     @staticmethod
     def canonicalize(expr: "Waveform") -> "Waveform":
         match expr:
+            case Add(left=left, right=right):
+                if left == right:
+                    return left.scale(2)
+                if left.duration == cast(0):
+                    return right
+                if right.duration == cast(0):
+                    return left
+                return expr
             case Append([Append(lhs), Append(rhs)]):
                 return Append(list(map(Waveform.canonicalize, lhs + rhs)))
             case Append([Append(waveforms), waveform]):
