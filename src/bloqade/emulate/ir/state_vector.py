@@ -1,15 +1,12 @@
+from bloqade.emulate.ir.emulator import EmulatorProgram
 from bloqade.emulate.ir.space import Space
 from bloqade.emulate.sparse_operator import IndexMapping
 from scipy.sparse import csr_matrix
 from dataclasses import dataclass, field
 from numpy.typing import NDArray
-from typing import TYPE_CHECKING, List, Callable, Union, Optional
+from typing import List, Callable, Union, Optional
 import numpy as np
 from scipy.integrate import ode
-
-if TYPE_CHECKING:
-    from bloqade.emulate.ir.emulator import EmulatorProgram
-
 
 SparseOperator = Union[IndexMapping, csr_matrix]
 
@@ -46,7 +43,7 @@ class RabiOperator:
 
 @dataclass(frozen=True)
 class RydbergHamiltonian:
-    emulator_ir: "EmulatorProgram"
+    emulator_ir: EmulatorProgram
     space: Space
     rydberg: NDArray
     detuning_ops: List[DetuningOperator] = field(default_factory=list)
@@ -158,6 +155,7 @@ class AnalogGate:
         atol: float = 1e-7,
         rtol: float = 1e-14,
         nsteps: int = 2_147_483_647,
+        times: List[float] = [],
     ):
         if state is None:
             state = self.hamiltonian.space.zero_state()
@@ -165,14 +163,23 @@ class AnalogGate:
         if solver_name not in AnalogGate.SUPPORTED_SOLVERS:
             raise ValueError(f"'{solver_name}' not supported.")
 
+        duration = self.hamiltonian.emulator_ir.duration
+
         state = np.asarray(state).astype(np.complex128, copy=False)
         solver = ode(self.hamiltonian._ode_real_kernel)
         solver.set_initial_value(state.view(np.float64))
         solver.set_integrator(solver_name, atol=atol, rtol=rtol, nsteps=nsteps)
-        solver.integrate(self.hamiltonian.emulator_ir.duration)
-        AnalogGate._error_check(solver_name, solver.get_return_code())
 
-        return solver.y.view(np.complex128)
+        if any(time >= duration or time < 0.0 for time in times):
+            raise ValueError("Times must be between 0 and duration.")
+
+        times = [*times, duration]
+
+        for time in times:
+            solver.integrate(time)
+            AnalogGate._error_check(solver_name, solver.get_return_code())
+            u = np.exp(-1j * time * self.hamiltonian.rydberg)
+            yield u * solver.y.view(np.complex128)
 
     def run(
         self,
@@ -186,7 +193,7 @@ class AnalogGate:
         """Run the emulation with all atoms in the ground state,
         sampling the final state vector."""
         state = self.hamiltonian.space.zero_state()
-        result = self.apply(state, solver_name, atol, rtol, nsteps)
+        (result,) = self.apply(state, solver_name, atol, rtol, nsteps)
         result /= np.linalg.norm(result)
         return self.hamiltonian.space.sample_state_vector(
             result, shots, project_hyperfine=project_hyperfine

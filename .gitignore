@@ -3,6 +3,7 @@ job.json
 out.txt
 .DS_Store
 tests/data/jobs/
+main.html
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
