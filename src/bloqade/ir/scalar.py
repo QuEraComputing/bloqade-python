@@ -43,39 +43,6 @@ class Scalar:
     ```
     """
 
-    # def __call__(self, **kwargs) -> Decimal:
-    #     match self:
-    #         case Literal(value):
-    #             return value
-    #         case Variable(name):
-    #             if name in kwargs:
-    #                 return Decimal(str(kwargs[name]))
-    #             else:
-    #                 raise Exception(f"Unknown variable: {name}")
-    #         case AssignedVariable(name, value):
-    #             if name in kwargs:
-    #                 raise ValueError(f"Variable {name} already assigned")
-    #             else:
-    #                 return value
-    #         case Negative(expr):
-    #             return -expr(**kwargs)
-    #         case Add(lhs, rhs):
-    #             return lhs(**kwargs) + rhs(**kwargs)
-    #         case Mul(lhs, rhs):
-    #             return lhs(**kwargs) * rhs(**kwargs)
-    #         case Div(lhs, rhs):
-    #             return lhs(**kwargs) / rhs(**kwargs)
-    #         case Min(exprs):
-    #             return min(map(lambda expr: expr(**kwargs), exprs))
-    #         case Max(exprs):
-    #             return max(map(lambda expr: expr(**kwargs), exprs))
-    #         case Slice(expr, Interval(start, stop)):
-    #             ret = stop - start
-    #             ret <= expr(**kwargs)
-    #             return ret
-    #         case _:
-    #             raise Exception(f"Unknown scalar expression: {self} ({type(self)})")
-
     def __add__(self, other: "Scalar") -> "Scalar":
         return self.add(other)
 
@@ -214,13 +181,12 @@ class Scalar:
         def minmax(op, exprs):
             new_exprs = set()
             for expr in exprs:
-                match expr:
-                    case op(exprs):
-                        exprs = map(Scalar.canonicalize, exprs)
-                        new_exprs.update(exprs)
-                    case _:
-                        expr = Scalar.canonicalize(expr)
-                        new_exprs.add(expr)
+                if isinstance(expr, op):
+                    exprs = map(Scalar.canonicalize, exprs)
+                    new_exprs.update(exprs)
+                else:
+                    expr = Scalar.canonicalize(expr)
+                    new_exprs.add(expr)
 
             if len(new_exprs) > 1:
                 return op(exprs=frozenset(new_exprs))
@@ -287,48 +253,6 @@ class Scalar:
             return minmax(Max, expr.exprs)
 
         return expr
-
-        # match expr:
-        #     case Negative(Negative(sub_expr)):
-        #         return Scalar.canonicalize(sub_expr)
-        #     case Negative(expr=Literal(value)) if value < 0:
-        #         return Literal(-value)
-        #     case Add(lhs=Literal(lhs), rhs=Literal(rhs)):
-        #         return Literal(lhs + rhs)
-        #     case Add(lhs=Literal(lhs), rhs=Negative(Literal(rhs))):
-        #         return Literal(lhs - rhs)
-        #     case Add(lhs=Negative(Literal(lhs)), rhs=Literal(rhs)):
-        #         return Literal(rhs - lhs)
-        #     case Add(lhs=Literal(0.0), rhs=sub_expr):
-        #         return Scalar.canonicalize(sub_expr)
-        #     case Add(lhs=sub_expr, rhs=Literal(0.0)):
-        #         return Scalar.canonicalize(sub_expr)
-        #     case Add(lhs=sub_expr, rhs=Negative(other_expr))
-        # if (sub_expr == other_expr):
-        #         return Literal(0.0)
-        #     case Add(lhs=Negative(sub_expr), rhs=other_expr)
-        # if (sub_expr == other_expr):
-        #         return Literal(0.0)
-        #     case Mul(lhs=Literal(lhs), rhs=Literal(rhs)):
-        #         return Literal(lhs * rhs)
-        #     case Mul(lhs=Literal(0.0), rhs=_):
-        #         return Literal(0.0)
-        #     case Mul(lhs=_, rhs=Literal(0.0)):
-        #         return Literal(0.0)
-        #     case Mul(lhs=Literal(1.0), rhs=sub_expr):
-        #         return Scalar.canonicalize(sub_expr)
-        #     case Mul(lhs=sub_expr, rhs=Literal(1.0)):
-        #         return Scalar.canonicalize(sub_expr)
-        #     case Div(lhs=Literal(lhs), rhs=Literal(rhs)):
-        #         return Literal(lhs / rhs)
-        #     case Div(lhs=sub_expr, rhs=Literal(1.0)):
-        #         return Scalar.canonicalize(sub_expr)
-        #     case Min(exprs):
-        #         return minmax(Min, exprs)
-        #     case Max(exprs):
-        #         return minmax(Max, exprs)
-        #     case _:
-        #         return expr
 
 
 def check_variable_name(name: str) -> None:
@@ -479,18 +403,6 @@ class Variable(Real):
     @validator("name")
     def name_validator(cls, v):
         check_variable_name(v)
-        # removing reserved toekn check for now.
-        # match v:
-        #     case "config_file":
-        #         raise ValueError(
-        #             f'"{v}" is a reserved token, cannot create variable '
-        #               'with that name'
-        #         )
-        #     case "clock_s":
-        #         raise ValueError(
-        #             f'"{v}" is a reserved token, cannot create variable '
-        #               'with that name'
-        #         )
         return v
 
 
@@ -516,16 +428,7 @@ class AssignedVariable(Scalar):
 
     @validator("name")
     def name_validator(cls, v):
-        match v:
-            case "config_file":
-                raise ValueError(
-                    f'"{v}" is a reserved token, cannot create variable with that name'
-                )
-            case "clock_s":
-                raise ValueError(
-                    f'"{v}" is a reserved token, cannot create variable with that name'
-                )
-
+        check_variable_name(v)
         return v
 
 
@@ -586,29 +489,31 @@ class Interval:
         Printer(p).print(self, cycle)
 
     def __str__(self):
-        match (self.start, self.stop):
-            case (None, None):
+        if self.start is None:
+            if self.stop is None:
                 raise ValueError("Interval must have at least one bound")
-            case (None, stop):
-                return f":{str(stop)}"
-            case (start, None):
-                return f"{str(start)}:"
-            case (start, stop):
+            else:
+                return f":{str(self.stop)}"
+        else:
+            if self.stop is None:
+                return f"{str(self.start)}:"
+            else:
                 return f"{str(self.start)}:{str(self.stop)}"
 
     def print_node(self):
         return "Interval"
 
     def children(self):
-        match (self.start, self.stop):
-            case (None, None):
+        if self.start is None:
+            if self.stop is None:
                 raise ValueError("Interval must have at least one bound")
-            case (None, stop):
-                return {"stop": stop}
-            case (start, None):
-                return {"start": start}
-            case (start, stop):
-                return {"start": start, "stop": stop}
+            else:
+                return {"stop": self.stop}
+        else:
+            if self.stop is None:
+                return {"start": self.start}
+            else:
+                return {"start": self.start, "stop": self.stop}
 
 
 @dataclass(frozen=True, repr=False)
