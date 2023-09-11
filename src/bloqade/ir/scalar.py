@@ -43,6 +43,9 @@ class Scalar:
     ```
     """
 
+    def __getitem__(self, s: slice) -> "Scalar":
+        return Scalar.canonicalize(Slice(self, Interval.from_slice(s)))
+
     def __add__(self, other: "Scalar") -> "Scalar":
         return self.add(other)
 

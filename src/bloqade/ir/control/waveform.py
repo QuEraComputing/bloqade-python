@@ -1,5 +1,13 @@
-from ..tree_print import Printer
-from ..scalar import Scalar, Interval, Literal, Variable, AssignedVariable, cast, var
+from bloqade.ir.tree_print import Printer
+from bloqade.ir.scalar import (
+    Scalar,
+    Interval,
+    Literal,
+    Variable,
+    AssignedVariable,
+    cast,
+    var,
+)
 
 from bisect import bisect_left
 from dataclasses import InitVar
@@ -64,6 +72,10 @@ class Waveform:
 
     # def __post_init__(self):
     #     self._duration = None
+
+    @property
+    def duration(self):
+        raise NotImplementedError(f"duration not implemented for {type(self).__name__}")
 
     def __call__(self, clock_s: float, **kwargs) -> float:
         return float(self.eval_decimal(Decimal(str(clock_s)), **kwargs))
@@ -159,43 +171,43 @@ class Waveform:
     def __truediv__(self, other: Any) -> "Waveform":
         return self.scale(1 / cast(other))
 
-    @property
-    def duration(self) -> Scalar:
-        if hasattr(self, "_duration"):
-            return self._duration
+    # @property
+    # def duration(self) -> Scalar:
+    #     if hasattr(self, "_duration"):
+    #         return self._duration
 
-        match self:
-            case AlignedWaveform(waveform=waveform, alignment=_, value=_):
-                self._duration = waveform.duration
-            case Slice(waveform=waveform, interval=interval):
-                match (interval.start, interval.stop):
-                    case (None, None):
-                        raise ValueError(f"Cannot compute duration of {self}")
-                    case (start, None):
-                        self._duration = waveform.duration - start
-                    case (None, stop):
-                        self._duration = stop
-                    case (start, stop):
-                        self._duration = stop - start
-            case Append(waveforms=waveforms):
-                duration = cast(0.0)
-                for waveform in waveforms:
-                    duration = duration + cast(waveform.duration)
+    #     match self:
+    #         case AlignedWaveform(waveform=waveform, alignment=_, value=_):
+    #             self._duration = waveform.duration
+    #         case Slice(waveform=waveform, interval=interval):
+    #             match (interval.start, interval.stop):
+    #                 case (None, None):
+    #                     raise ValueError(f"Cannot compute duration of {self}")
+    #                 case (start, None):
+    #                     self._duration = waveform.duration - start
+    #                 case (None, stop):
+    #                     self._duration = stop
+    #                 case (start, stop):
+    #                     self._duration = stop - start
+    #         case Append(waveforms=waveforms):
+    #             duration = cast(0.0)
+    #             for waveform in waveforms:
+    #                 duration = duration + cast(waveform.duration)
 
-                self._duration = duration
-            case Sample(waveform=waveform, interpolation=_, dt=_):
-                self._duration = waveform.duration
-            case Smooth(waveform=waveform, kernel=_, radius=_):
-                self._duration = waveform.duration
-            case Record(waveform=waveform, var=_):
-                self._duration = waveform.duration
-            case Add(left=left, right=right):
-                self._duration = left.duration.max(right.duration)
-            case Scale(waveform=waveform, scalar=_):
-                self._duration = waveform.duration
-            case _:
-                raise ValueError(f"Cannot compute duration of {self}")
-        return self._duration
+    #             self._duration = duration
+    #         case Sample(waveform=waveform, interpolation=_, dt=_):
+    #             self._duration = waveform.duration
+    #         case Smooth(waveform=waveform, kernel=_, radius=_):
+    #             self._duration = waveform.duration
+    #         case Record(waveform=waveform, var=_):
+    #             self._duration = waveform.duration
+    #         case Add(left=left, right=right):
+    #             self._duration = left.duration.max(right.duration)
+    #         case Scale(waveform=waveform, scalar=_):
+    #             self._duration = waveform.duration
+    #         case _:
+    #             raise ValueError(f"Cannot compute duration of {self}")
+    #     return self._duration
 
     @staticmethod
     def canonicalize(expr: "Waveform") -> "Waveform":
@@ -245,6 +257,14 @@ class AlignedWaveform(Waveform):
     alignment: Alignment
     value: Union[Scalar, AlignedValue]
 
+    @property
+    def duration(self):
+        if hasattr(self, "_duration"):
+            return self._duration
+
+        self._duration = self.waveform.duration
+        return self._duration
+
     def print_node(self):
         return "AlignedWaveform"
 
@@ -287,7 +307,9 @@ class Instruction(Waveform):
     ```
     """
 
-    pass
+    @property
+    def duration(self):
+        return self._duration
 
 
 @dataclass(init=False, repr=False)
@@ -619,6 +641,14 @@ class Smooth(Waveform):
         self.waveform = waveform
         super().__init__()
 
+    @property
+    def duration(self):
+        if hasattr(self, "_duration"):
+            return self._duration
+
+        self._duration = self.waveform.duration
+        return self._duration
+
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
         float_clock_s = float(clock_s)
         radius = float(self.radius(**kwargs))
@@ -661,6 +691,16 @@ class Slice(Waveform):
     waveform: Waveform
     interval: Interval
 
+    @property
+    def duration(self):
+        if hasattr(self, "_duration"):
+            return self._duration
+
+        start = self.interval.start
+        stop = self.interval.stop
+        self._duration = self.waveform.duration[start:stop]
+        return self._duration
+
     def __str__(self):
         return f"{str(self.waveform)}[{str(self.interval)}]"
 
@@ -689,6 +729,17 @@ class Append(Waveform):
     """
 
     waveforms: List[Waveform]
+
+    @property
+    def duration(self):
+        if hasattr(self, "_duration"):
+            return self._duration
+
+        self._duration = cast(0.0)
+        for waveform in self.waveforms:
+            self._duration = self._duration + waveform.duration
+
+        return self._duration
 
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
         append_time = Decimal(0)
@@ -722,6 +773,15 @@ class Negative(Waveform):
 
     waveform: Waveform
 
+    @property
+    def duration(self):
+        if hasattr(self, "_duration"):
+            return self._duration
+
+        self._duration = self.waveform.duration
+
+        return self._duration
+
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
         return -self.waveform.eval_decimal(clock_s, **kwargs)
 
@@ -750,6 +810,15 @@ class Scale(Waveform):
         self.scalar = cast(scalar)
         self.waveform = waveform
 
+    @property
+    def duration(self):
+        if hasattr(self, "_duration"):
+            return self._duration
+
+        self._duration = self.waveform.duration
+
+        return self._duration
+
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
         return self.scalar(**kwargs) * self.waveform.eval_decimal(clock_s, **kwargs)
 
@@ -774,6 +843,15 @@ class Add(Waveform):
     left: Waveform
     right: Waveform
 
+    @property
+    def duration(self):
+        if hasattr(self, "_duration"):
+            return self._duration
+
+        self._duration = self.left.duration.max(self.right.duration)
+
+        return self._duration
+
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
         return self.left(clock_s, **kwargs) + self.right(clock_s, **kwargs)
 
@@ -797,6 +875,15 @@ class Record(Waveform):
 
     waveform: Waveform
     var: Variable
+
+    @property
+    def duration(self):
+        if hasattr(self, "_duration"):
+            return self._duration
+
+        self._duration = self.waveform.duration
+
+        return self._duration
 
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
         return self.waveform(clock_s, **kwargs)
@@ -827,6 +914,15 @@ class Sample(Waveform):
     waveform: Waveform
     interpolation: Interpolation
     dt: Scalar
+
+    @property
+    def duration(self):
+        if hasattr(self, "_duration"):
+            return self._duration
+
+        self._duration = self.waveform.duration
+
+        return self._duration
 
     def samples(self, **kwargs) -> Tuple[List[Decimal], List[Decimal]]:
         duration = self.duration(**kwargs)
