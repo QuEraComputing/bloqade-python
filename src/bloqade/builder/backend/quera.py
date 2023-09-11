@@ -1,3 +1,4 @@
+from typing import Optional
 from bloqade.builder.base import Builder
 
 
@@ -22,7 +23,7 @@ class QuEraService(Builder):
 
 
 class QuEraDeviceRoute(Builder):
-    def device(self, config_file: str | None = None, **api_config):
+    def device(self, config_file: Optional[str] = None, **api_config):
         """
         Specify QuEra's QPU device,
 

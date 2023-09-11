@@ -1,3 +1,6 @@
+from typing import Union
+from decimal import Decimal
+from numbers import Real
 from pydantic.dataclasses import dataclass
 from dataclasses import fields
 from typing import List, Tuple, Generator, Optional, Any
@@ -136,13 +139,13 @@ class BoundedBravais(AtomArrangement):
                 position = tuple(self.lattice_spacing * pos)
                 yield LocationInfo(position, True)
 
-    def scale(self, factor: float | Scalar) -> "BoundedBravais":
+    def scale(self, factor: Union[str, Real, Decimal, Scalar]) -> "BoundedBravais":
         """Scale the current location with a factor.
 
         (x,y) -> factor*(x,y)
 
         Args:
-            factor (float | Scalar): scale factor
+            factor (str | Real | Decimal | Scalar): scale factor
 
         Returns:
             BoundedBravais: The lattice with the scaled locations

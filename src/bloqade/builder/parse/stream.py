@@ -22,7 +22,7 @@ class BuilderStream:
     def copy(self) -> "BuilderStream":
         return BuilderStream(head=self.head, curr=self.curr)
 
-    def read(self) -> BuilderNode | None:
+    def read(self) -> Optional[BuilderNode]:
         if self.curr is None:
             return None
 
@@ -30,7 +30,7 @@ class BuilderStream:
         self.curr = self.curr.next
         return node
 
-    def read_next(self, builder_types: List[type[Builder]]) -> BuilderNode | None:
+    def read_next(self, builder_types: List[type[Builder]]) -> Optional[BuilderNode]:
         node = self.read()
         while node is not None:
             if type(node.node) in builder_types:
@@ -39,7 +39,7 @@ class BuilderStream:
         return None
 
     def eat(
-        self, types: List[Type[Builder]], skips: List[Type[Builder]] | None = None
+        self, types: List[Type[Builder]], skips: Optional[List[Type[Builder]]] = None
     ) -> BuilderNode:
         """Scan the stream until a node of type in `types` or `skips` is found.
 

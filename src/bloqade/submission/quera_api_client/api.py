@@ -1,6 +1,5 @@
 import json
 import logging
-from types import NoneType
 import uuid
 from typing import Optional, Union, Dict, Tuple
 import requests
@@ -363,7 +362,7 @@ class QueueApi:
 
         return ApiRequest._result_as_json(result)
 
-    def validate_task(self, task_json: Union[str, dict]) -> NoneType:
+    def validate_task(self, task_json: Union[str, dict]) -> None:
         result = self.api_http_request.post("task", "validate", content=task_json)
 
         if result.status_code == 200:
