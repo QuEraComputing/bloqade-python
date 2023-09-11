@@ -110,30 +110,34 @@ class PiecewiseLinearCodeGen(WaveformVisitor):
         start_value = ast.waveform.eval_decimal(start_time, **self.assignments)
         stop_value = ast.waveform.eval_decimal(stop_time, **self.assignments)
 
-        match (start_index, stop_index):
-            case (0, int()) if stop_time == duration:
+
+        if start_index == 0:
+            if stop_time == duration:
                 absolute_times = times
-            case (0, _):
+                values = values
+            else:
+                absolute_times = times[:stop_index] + [stop_time]
+                values = values[:stop_index] + [stop_value]
+        elif start_time == times[start_index]:
+            if stop_time == duration:
+                absolute_times = times[start_index:]
+                values = values[start_index:]
+            else:
                 absolute_times = times[start_index:stop_index] + [stop_time]
                 values = values[start_index:stop_index] + [stop_value]
-            case (_, int()) if stop_time == duration:
-                if start_time == times[start_index]:
-                    absolute_times = times[start_index:]
-                    values = values[start_index:]
-                else:
-                    absolute_times = [start_time] + times[start_index:]
-                    values = [start_value] + values[start_index:]
-            case (_, _):
-                if start_time == times[start_index]:
-                    absolute_times = times[start_index:stop_index] + [stop_time]
-                    values = values[start_index:stop_index] + [stop_value]
-                else:
-                    absolute_times = (
-                        [start_time] + times[start_index:stop_index] + [stop_time]
-                    )
-                    values = (
-                        [start_value] + values[start_index:stop_index] + [stop_value]
-                    )
+        else:
+            if stop_time == duration:
+                absolute_times = [start_time] + times[start_index:]
+                values = [start_value] + values[start_index:]
+            else:
+                absolute_times = (
+                    [start_time] + times[start_index:stop_index] + [stop_time]
+                )
+                values = (
+                    [start_value]
+                    + values[start_index:stop_index]
+                    + [stop_value]
+                )
 
         times = [time - start_time for time in absolute_times]
 

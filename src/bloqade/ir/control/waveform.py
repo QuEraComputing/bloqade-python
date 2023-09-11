@@ -543,7 +543,7 @@ TricubeKernel = Tricube()
 CosineKernel = Cosine()
 
 
-@dataclass(repr=False)
+@dataclass(init=False, repr=False)
 class Smooth(Waveform):
     """
     ```bnf
@@ -583,6 +583,7 @@ class Smooth(Waveform):
         self.radius = cast(radius)
         self.kernel = kernel
         self.waveform = waveform
+        super().__init__()
 
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
         float_clock_s = float(clock_s)
