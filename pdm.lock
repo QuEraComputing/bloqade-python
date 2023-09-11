@@ -2,7 +2,7 @@
 # It is not intended for manual editing.
 
 [metadata]
-groups = ["default"]
+groups = ["default", "dev", "doc"]
 cross_platform = true
 static_urls = false
 lock_version = "4.3"
