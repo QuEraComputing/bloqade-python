@@ -84,32 +84,31 @@ class WaveformVisitor:
         )
 
     def visit(self, ast: Waveform):
-        match ast:
-            case AlignedWaveform():
-                return self.visit_alligned(ast)
-            case Linear():
-                return self.visit_linear(ast)
-            case Constant():
-                return self.visit_constant(ast)
-            case Poly():
-                return self.visit_poly(ast)
-            case Smooth():
-                return self.visit_smooth(ast)
-            case Append():
-                return self.visit_append(ast)
-            case Negative():
-                return self.visit_negative(ast)
-            case Scale():
-                return self.visit_scale(ast)
-            case Slice():
-                return self.visit_slice(ast)
-            case Add():
-                return self.visit_add(ast)
-            case Record():
-                return self.visit_record(ast)
-            case PythonFn():
-                return self.visit_python_fn(ast)
-            case Sample():
-                return self.visit_sample(ast)
-            case _:
-                raise ValueError(f"{ast.__class__} is not a Waveform AST type.")
+        if isinstance(ast, Linear):
+            return self.visit_linear(ast)
+        elif isinstance(ast, Constant):
+            return self.visit_constant(ast)
+        elif isinstance(ast, PythonFn):
+            return self.visit_python_fn(ast)
+        elif isinstance(ast, Poly):
+            return self.visit_poly(ast)
+        elif isinstance(ast, Append):
+            return self.visit_append(ast)
+        elif isinstance(ast, Record):
+            return self.visit_record(ast)
+        elif isinstance(ast, Sample):
+            return self.visit_sample(ast)
+        elif isinstance(ast, Slice):
+            return self.visit_slice(ast)
+        elif isinstance(ast, Negative):
+            return self.visit_negative(ast)
+        elif isinstance(ast, Scale):
+            return self.visit_scale(ast)
+        elif isinstance(ast, Add):
+            return self.visit_add(ast)
+        elif isinstance(ast, Smooth):
+            return self.visit_smooth(ast)
+        elif isinstance(ast, AlignedWaveform):
+            return self.visit_alligned(ast)
+        else:
+            raise ValueError(f"{ast.__class__} is not a Waveform AST type.")
