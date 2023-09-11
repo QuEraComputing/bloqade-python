@@ -107,54 +107,50 @@ def mock_results():
 def test_happy_path_queue_api(*args):
     def mock_get(*args, **kwargs):
         print("get", args, kwargs)
-        match (args, kwargs):
-            case (
-                ("https://https://api.que-ee.com/v0/qpu-1/capabilities",),
-                {"headers": {"Content-Type": "application/json"}},
-            ):
-                return create_response(200, get_capabilities().dict())
-            case (
-                ("https://https://api.que-ee.com/v0/qpu-1/queue/task/task_id",),
-                {"headers": {"Content-Type": "application/json"}},
-            ):
-                return create_response(200, {"status": "Completed"})
-            case (
-                ("https://https://api.que-ee.com/v0/qpu-1/task/task_id/results",),
-                {"headers": {"Content-Type": "application/json"}},
-            ):
-                return create_response(200, mock_results())
-            case _:
-                raise NotImplementedError
+        if (args, kwargs) == (
+            ("https://https://api.que-ee.com/v0/qpu-1/capabilities",),
+            {"headers": {"Content-Type": "application/json"}},
+        ):
+            return create_response(200, get_capabilities().dict())
+        elif (args, kwargs) == (
+            ("https://https://api.que-ee.com/v0/qpu-1/queue/task/task_id",),
+            {"headers": {"Content-Type": "application/json"}},
+        ):
+            return create_response(200, {"status": "Completed"})
+        elif (args, kwargs) == (
+            ("https://https://api.que-ee.com/v0/qpu-1/task/task_id/results",),
+            {"headers": {"Content-Type": "application/json"}},
+        ):
+            return create_response(200, mock_results())
+        else:
+            raise NotImplementedError
 
     def mock_put(*args, **kwargs):
         print("put", args, kwargs)
-        match (args, kwargs):
-            case (
-                ("https://https://api.que-ee.com/v0/qpu-1/queue/task/task_id/cancel",),
-                {"headers": {"Content-Type": "application/json"}},
-            ):
-                return create_response(200, {})
-            case _:
-                raise NotImplementedError
+        if (args, kwargs) == (
+            ("https://https://api.que-ee.com/v0/qpu-1/queue/task/task_id/cancel",),
+            {"headers": {"Content-Type": "application/json"}},
+        ):
+            return create_response(200, {})
+        else:
+            raise NotImplementedError
 
     def mock_post(*args, **kwargs):
         print("post", args, kwargs)
-        match (args, kwargs):
-            case (
-                ("https://https://api.que-ee.com/v0/qpu-1/queue/task",),
-                {
-                    "headers": {"Content-Type": "application/json"},
-                    "data": str() as task_ir_string,
-                },
-            ):
-                if QuEraTaskSpecification(
-                    **json.loads(task_ir_string)
-                ) != QuEraTaskSpecification(**mock_task_ir()):
-                    raise ValueError("Task IRs do not match")
+        if (
+            args == ("https://https://api.que-ee.com/v0/qpu-1/queue/task",)
+            and kwargs["headers"]["Content-Type"] == "application/json"
+        ):
+            task_ir_string = kwargs["data"]
 
-                return create_response(201, {"task_id": "task_id"})
-            case _:
-                raise NotImplementedError
+            if QuEraTaskSpecification(
+                **json.loads(task_ir_string)
+            ) != QuEraTaskSpecification(**mock_task_ir()):
+                raise ValueError("Task IRs do not match")
+
+            return create_response(201, {"task_id": "task_id"})
+        else:
+            raise NotImplementedError
 
     api_config = dict(
         api_hostname="https://api.que-ee.com", qpu_id="qpu-1", api_stage="v0"
