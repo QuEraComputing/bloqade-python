@@ -137,6 +137,8 @@ class Visitor:
             return self.visit_emulator_program(ast)
         elif isinstance(ast, Register):
             return self.visit_register(ast)
+        elif isinstance(ast, Fields):
+            return self.visit_fields(ast)
         elif isinstance(ast, RabiTerm):
             return self.visit_rabi_term(ast)
         elif isinstance(ast, DetuningTerm):
@@ -145,8 +147,6 @@ class Visitor:
             return self.visit_rabi_operator_data(ast)
         elif isinstance(ast, DetuningOperatorData):
             return self.visit_detuning_operator_data(ast)
-        elif isinstance(ast, Fields):
-            return self.visit_fields(ast)
         elif isinstance(ast, CompiledWaveform):
             return self.visit_compiled_waveform(ast)
         else:

@@ -1,11 +1,8 @@
 from bloqade.constants import RB_C6
-from bloqade.ir.control.sequence import (
-    RydbergLevelCoupling,
-    HyperfineLevelCoupling,
-)
 from bloqade.emulate.ir.emulator import (
     DetuningOperatorData,
     EmulatorProgram,
+    LevelCoupling,
     Register,
     Fields,
     DetuningTerm,
@@ -104,13 +101,12 @@ class RydbergHamiltonianCodeGen(Visitor):
             return self.compile_cache.operator_cache[(self.space, detuning_data)]
 
         diagonal = np.zeros(self.space.size, dtype=np.float64)
-
         match (self.space.atom_type, self.level_coupling):
-            case (TwoLevelAtomType(), RydbergLevelCoupling()):
+            case (TwoLevelAtomType(), LevelCoupling.Rydberg):
                 state = TwoLevelAtomType.State.Rydberg
-            case (ThreeLevelAtomType(), RydbergLevelCoupling()):
+            case (ThreeLevelAtomType(), LevelCoupling.Rydberg):
                 state = ThreeLevelAtomType.State.Rydberg
-            case (ThreeLevelAtomType(), HyperfineLevelCoupling()):
+            case (ThreeLevelAtomType(), LevelCoupling.Hyperfine):
                 state = ThreeLevelAtomType.State.Hyperfine
 
         for atom_index, value in detuning_data.target_atoms.items():
@@ -127,13 +123,13 @@ class RydbergHamiltonianCodeGen(Visitor):
 
         # Get the from and to states for term
         match (self.space.atom_type, self.level_coupling):
-            case (TwoLevelAtomType(), RydbergLevelCoupling()):
+            case (TwoLevelAtomType(), LevelCoupling.Rydberg):
                 to = TwoLevelAtomType.State.Ground
                 fro = TwoLevelAtomType.State.Rydberg
-            case (ThreeLevelAtomType(), RydbergLevelCoupling()):
+            case (ThreeLevelAtomType(), LevelCoupling.Rydberg):
                 to = ThreeLevelAtomType.State.Hyperfine
                 fro = ThreeLevelAtomType.State.Rydberg
-            case (ThreeLevelAtomType(), HyperfineLevelCoupling()):
+            case (ThreeLevelAtomType(), LevelCoupling.Hyperfine):
                 to = ThreeLevelAtomType.State.Ground
                 fro = ThreeLevelAtomType.State.Hyperfine
 
