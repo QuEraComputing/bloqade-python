@@ -240,19 +240,17 @@ class AlignedWaveform(Waveform):
         annotated_children = {}
         annotated_children["Waveform"] = self.waveform
 
-        match self.alignment:
-            case Alignment.Left:
-                annotated_children["Alignment"] = "Left"
-            case Alignment.Right:
-                annotated_children["Alignment"] = "Right"
+        if self.alignment == Alignment.Left:
+            annotated_children["Alignment"] = "Left"
+        elif self.alignment == Alignment.Right:
+            annotated_children["Alignment"] = "Right"
 
-        match self.value:
-            case Scalar():
-                annotated_children["Value"] = self.value
-            case AlignedValue.Left:
-                annotated_children["Value"] = "Left"
-            case AlignedValue.Right:
-                annotated_children["Value"] = "Right"
+        if isinstance(self.value, Scalar):
+            annotated_children["Value"] = self.value
+        elif self.value == AlignedValue.Left:
+            annotated_children["Value"] = "Left"
+        elif self.value == AlignedValue.Right:
+            annotated_children["Value"] = "Right"
 
         return annotated_children
 
@@ -916,21 +914,18 @@ class Sample(Waveform):
         if i == len(times):
             return Decimal(0)
 
-        match self.interpolation:
-            case Interpolation.Linear:
-                if i == 0:
-                    return values[i]
-                else:
-                    slope = (values[i] - values[i - 1]) / (times[i] - times[i - 1])
-                    return slope * (clock_s - times[i - 1]) + values[i - 1]
+        if self.interpolation == Interpolation.Linear:
+            if i == 0:
+                return values[i]
+            else:
+                slope = (values[i] - values[i - 1]) / (times[i] - times[i - 1])
+                return slope * (clock_s - times[i - 1]) + values[i - 1]
 
-            case Interpolation.Constant:
-                if i == 0:
-                    return values[i]
-                else:
-                    return values[i - 1]
-            case _:
-                raise ValueError("No interpolation specified")
+        elif self.interpolation == Interpolation.Constant:
+            if i == 0:
+                return values[i]
+            else:
+                return values[i - 1]
 
     def print_node(self):
         return f"Sample {self.interpolation.value}"
