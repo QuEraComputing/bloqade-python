@@ -111,18 +111,20 @@ class Parser:
         scaled_locations = ir.ScaledLocations({})
 
         while curr is not None:
-            match curr.node:
-                case Location(label, _):
-                    scaled_locations[ir.Location(label)] = 1.0
-                case Scale(value, Location(label, _)):
-                    scaled_locations[ir.Location(label)] = ir.cast(value)
-                case Uniform(_):
-                    spatial_modulation = ir.Uniform
-                case Var(name, _):
-                    spatial_modulation = ir.RunTimeVector(name)
-                    self.vector_node_names.add(name)
-                case _:
-                    break
+            node = curr.node
+
+            if isinstance(node, Location):
+                scaled_locations[ir.Location(node._label)] = 1.0
+            elif isinstance(node, Scale):
+                scaled_locations[ir.Location(node.__parent__._label)] = ir.cast(node._value)
+            elif isinstance(node, Uniform):
+                spatial_modulation = ir.Uniform
+            elif isinstance(node, Var):
+                spatial_modulation = ir.RunTimeVector(node._name)
+                self.vector_node_names.add(node._name)
+            else:
+                break
+
             curr = curr.next
 
         if scaled_locations:
