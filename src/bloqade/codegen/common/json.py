@@ -1,4 +1,3 @@
-from decimal import Decimal
 import bloqade.ir.location as location
 import bloqade.ir.control.sequence as sequence
 import bloqade.ir.control.pulse as pulse
@@ -112,10 +111,15 @@ class WaveformSerializer(WaveformVisitor):
         raise ValueError("Bloqade does not support serialization of Python code.")
 
     def visit_negative(self, ast: waveform.Negative) -> Dict[str, Any]:
-        return {"negative": {"waveform": self.visit(ast.waveform)}}
+        return {"negative_waveform": {"waveform": self.visit(ast.waveform)}}
 
     def visit_add(self, ast: waveform.Add) -> Dict[str, Any]:
-        return {"add": {"left": self.visit(ast.left), "right": self.visit(ast.right)}}
+        return {
+            "add_waveform": {
+                "left": self.visit(ast.left),
+                "right": self.visit(ast.right),
+            }
+        }
 
     def visit_scale(self, ast: waveform.Scale) -> Dict[str, Any]:
         return {
@@ -439,8 +443,8 @@ class BloqadeIRDeserializer:
         "constant": waveform.Constant,
         "linear": waveform.Linear,
         "poly": waveform.Poly,
-        "negative": waveform.Negative,
-        "add": waveform.Add,
+        "negative_waveform": waveform.Negative,
+        "add_waveform": waveform.Add,
         "scale": waveform.Scale,
         "slice_waveform": waveform.Slice,
         "sample": waveform.Sample,
