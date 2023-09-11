@@ -23,7 +23,7 @@ from bloqade.builder.waveform import (
 )
 from bloqade.builder.field import Detuning, Rabi, RabiAmplitude, RabiPhase
 from bloqade.builder.coupling import Rydberg, Hyperfine
-from bloqade.builder.parallelize import Parallelize, ParallelizeFlatten
+from bloqade.builder.parallelize import Parallelize
 from bloqade.builder.assign import Assign, BatchAssign
 from bloqade.builder.flatten import Flatten
 
@@ -50,11 +50,6 @@ class BuilderSerializer(BloqadeIRSerializer):
             case Parallelize(cluster_spacing, parent):
                 return {
                     "parallelize": {"cluster_spacing": cluster_spacing},
-                    "parent": parent,
-                }
-            case ParallelizeFlatten(cluster_spacing, parent):
-                return {
-                    "parallelize_flatten": {"cluster_spacing": cluster_spacing},
                     "parent": parent,
                 }
             case SequenceBuilder(sequence, parent):
@@ -204,7 +199,6 @@ class BuilderDeserializer(BloqadeIRDeserializer):
         "constant": Constant,
         "flatten": Flatten,
         "parallelize": Parallelize,
-        "parallelize_flatten": ParallelizeFlatten,
         "sequence_builder": SequenceBuilder,
         "assign": Assign,
         "batch_assign": BatchAssign,

@@ -6,7 +6,7 @@ from bloqade.builder.spatial import SpatialModulation, Location, Uniform, Var, S
 from bloqade.builder.waveform import WaveformPrimitive, Slice, Record, Sample, Fn
 from bloqade.builder.assign import Assign, BatchAssign
 from bloqade.builder.flatten import Flatten
-from bloqade.builder.parallelize import Parallelize, ParallelizeFlatten
+from bloqade.builder.parallelize import Parallelize
 from bloqade.builder.parse.stream import BuilderNode, BuilderStream
 
 import bloqade.ir as ir
@@ -185,53 +185,52 @@ class Parser:
             BatchAssign,
             Flatten,
             Parallelize,
-            ParallelizeFlatten,
         )
 
         stream = self.stream.copy()
         curr = stream.read_next(pragma_types)
 
         while curr is not None:
-            match curr.node:
-                case Assign(static_params):
-                    self.static_params = {
-                        name: value for name, value in static_params.items()
-                    }
+            node = curr.node
 
-                case BatchAssign(batch_param):
-                    tuple_iterators = [
-                        zip(repeat(name), values)
-                        for name, values in batch_param.items()
-                    ]
-                    self.batch_params = list(map(dict, zip(*tuple_iterators)))
-                case Flatten(order):
-                    self.order = order
+            if isinstance(node, Assign):
+                self.static_params = dict(node._assignments)
+            elif isinstance(node, BatchAssign):
+                tuple_iterators = [
+                    zip(repeat(name), values)
+                    for name, values in node._assignments.items()
+                ]
+                self.batch_params = list(map(dict, zip(*tuple_iterators)))
+            elif isinstance(node, Flatten):
+                order = node._order
 
-                    seen = set()
-                    dup = []
-                    for x in order:
-                        if x not in seen:
-                            seen.add(x)
-                        else:
-                            dup.append(x)
+                seen = set()
+                dup = []
+                for x in order:
+                    if x not in seen:
+                        seen.add(x)
+                    else:
+                        dup.append(x)
 
-                    if dup:
-                        raise ValueError(f"Cannot flatten duplicate names {dup}.")
+                if dup:
+                    raise ValueError(f"Cannot flatten duplicate names {dup}.")
 
-                    order_names = set([*order])
-                    flattened_vector_names = order_names.intersection(
-                        self.vector_node_names
+                order_names = set([*order])
+                flattened_vector_names = order_names.intersection(
+                    self.vector_node_names
+                )
+
+                if flattened_vector_names:
+                    raise ValueError(
+                        f"Cannot flatten RunTimeVectors: {flattened_vector_names}."
                     )
+                
+                self.order = order
 
-                    if flattened_vector_names:
-                        raise ValueError(
-                            f"Cannot flatten RunTimeVectors: {flattened_vector_names}."
-                        )
-
-                case Parallelize(cluster_spacing) | ParallelizeFlatten(cluster_spacing):
-                    self.register = ir.ParallelRegister(self.register, cluster_spacing)
-                case _:
-                    break
+            elif isinstance(node, Parallelize):
+                self.register = ir.ParallelRegister(self.register, node._cluster_spacing)
+            else:
+                break
 
             curr = curr.next
 
