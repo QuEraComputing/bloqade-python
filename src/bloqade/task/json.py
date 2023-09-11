@@ -17,92 +17,75 @@ import json
 
 class BatchSerializer(json.JSONEncoder):
     def default(self, obj):
-        match obj:
-            case RemoteBatch(_, tasks, name):
-                return {
-                    "remote_batch": {
-                        "source": None,
-                        "name": name,
-                        "tasks": [(k, v) for k, v in tasks.items()],
-                    }
+        if isinstance(obj, Decimal):
+            return str(obj)
+        elif isinstance(obj, QuEraBackend):
+            return {
+                "quera_backend": obj.dict(
+                    exclude=set(["access_key", "secret_key", "session_token"])
+                )
+            }
+        elif isinstance(obj, MockBackend):
+            return {"mock_backend": obj.dict()}
+        elif isinstance(obj, BraketBackend):
+            return {"braket_backend": obj.dict()}
+        elif isinstance(obj, QuEraTaskSpecification):
+            return {"quera_task_specification": obj.dict(by_alias=True)}
+        elif isinstance(obj, BraketTaskSpecification):
+            return {"braket_task_specification": obj.dict()}
+        elif isinstance(obj, ParallelDecoder):
+            return {"parallel_decoder": obj.dict()}
+        elif isinstance(obj, QuEraTaskResults):
+            return {"task_result_ir": obj.dict()}
+        elif isinstance(obj, BraketTask):
+            return {
+                "braket_task": {
+                    "task_id": obj.task_id,
+                    "backend": obj.backend,
+                    "parallel_decoder": obj.parallel_decoder,
+                    "task_result_ir": obj.task_result_ir,
+                    "task_ir": obj.task_ir,
+                    "metadata": obj.metadata,
                 }
+            }
+        elif isinstance(obj, BraketEmulatorTask):
+            return {
+                "braket_emulator_task": {
+                    "task_ir": obj.task_ir,
+                    "metadata": obj.metadata,
+                    "task_result_ir": obj.task_result_ir,
+                }
+            }
+        elif isinstance(obj, QuEraTask):
+            return {
+                "quera_task": {
+                    "backend": obj.backend,
+                    "task_id": obj.task_id,
+                    "parallel_decoder": obj.parallel_decoder,
+                    "task_result_ir": obj.task_result_ir,
+                    "task_ir": obj.task_ir,
+                    "metadata": obj.metadata,
+                }
+            }
 
-            case LocalBatch(_, tasks, name):  # skip program for now
-                return {
-                    "local_batch": {
-                        "source": None,
-                        "name": name,
-                        "tasks": [(k, v) for k, v in tasks.items()],
-                    }
+        elif isinstance(obj, LocalBatch):
+            return {
+                "local_batch": {
+                    "source": None,
+                    "name": obj.name,
+                    "tasks": [(k, v) for k, v in obj.tasks.items()],
                 }
-
-            case QuEraTask(
-                task_id,
-                backend,
-                task_ir,
-                metadata,
-                parallel_decoder,
-                task_result_ir,
-            ):
-                return {
-                    "quera_task": {
-                        "backend": backend,
-                        "task_id": task_id,
-                        "parallel_decoder": parallel_decoder,
-                        "task_result_ir": task_result_ir,
-                        "task_ir": task_ir,
-                        "metadata": metadata,
-                    }
+            }
+        elif isinstance(obj, RemoteBatch):
+            return {
+                "remote_batch": {
+                    "source": None,
+                    "name": obj.name,
+                    "tasks": [(k, v) for k, v in obj.tasks.items()],
                 }
-
-            case BraketTask(
-                task_id,
-                backend,
-                task_ir,
-                metadata,
-                parallel_decoder,
-                task_result_ir,
-            ):
-                return {
-                    "braket_task": {
-                        "task_id": task_id,
-                        "backend": backend,
-                        "parallel_decoder": parallel_decoder,
-                        "task_result_ir": task_result_ir,
-                        "task_ir": task_ir,
-                        "metadata": metadata,
-                    }
-                }
-            case BraketEmulatorTask(task_ir, metadata, task_result_ir):
-                return {
-                    "braket_emulator_task": {
-                        "task_ir": task_ir,
-                        "metadata": metadata,
-                        "task_result_ir": task_result_ir,
-                    }
-                }
-            case QuEraBackend() as quera_backend:
-                return {
-                    "quera_backend": quera_backend.dict(
-                        exclude=set(["access_key", "secret_key", "session_token"])
-                    )
-                }
-            case MockBackend() as dumb_mock_backend:
-                return {"mock_backend": dumb_mock_backend.dict()}
-            case BraketBackend() as backend:
-                return {"braket_backend": backend.dict()}
-            case QuEraTaskSpecification() as task_ir:
-                return {"quera_task_specification": task_ir.dict(by_alias=True)}
-            case BraketTaskSpecification() as task_ir:
-                return {"braket_task_specification": task_ir.dict()}
-            case ParallelDecoder() as parallel_decoder:
-                return {"parallel_decoder": parallel_decoder.dict()}
-            case QuEraTaskResults() as task_result_ir:
-                return {"task_result_ir": task_result_ir.dict()}
-            case Decimal():  # needed for dumping BaseModel's with json module
-                return str(obj)
-            case _:
-                return super().default(obj)
+            }
+        else:
+            return obj
 
 
 class BatchDeserializer:
