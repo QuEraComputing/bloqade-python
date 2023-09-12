@@ -82,10 +82,10 @@ pre-commit install
 
 # Design Philosophy and Architecture
 
-Given the heterogenous nature of the hardware we are targeting
-we have decided to use a compiler based approach to our software
-stack. This allows us to target different hardware backends
-with the same high level language. Below is a diagram of the
+Given the heterogeneous nature of the hardware we target,
+We have decided to use a compiler-based approach to our software
+stack, allowing us to target different hardware backends
+with the same high-level language. Below is a diagram of the
 software stack in Bloqade.
 
 ```mermaid
@@ -119,16 +119,13 @@ graph TD
 
 ```
 
-## High Level Builder Representation
+## High-Level Builder Representation
 
-When programming Bloqade using the python API, the user is
-constructing a high level representation of a analog quantum
+When programming Bloqade using the Python API, the user constructs a representation of an analog quantum
 circuit. This representation is a flattened version of
-the actual analog circuit. By Flattened we mean that the user
-input is a linear sequence of operations where the tree can
-be determined by context of neighboring nodes in the sequence
-of instructions. The actual analog circuit is described by the
-Bloqade AST.
+the actual analog circuit. Flattened means that the user
+input is a linear sequence of operations where the context of neighboring nodes in the sequence
+of instructions can determine the tree. The Bloqade AST describes the actual analog circuit.
 
 ## Bloqade AST
 
@@ -137,31 +134,30 @@ Nuetral atom computing. It is a directed acyclic graph (DAG) with nodes
 for different hierarchical levels of the circuit. The base node is the
 `AnalogCircuit` which contains the geometry of the atoms stored as a
 `AtomArragment` or `ParallelRegister` objects. The Other part of the
-circuit is the `Sequence` which contains the waveforms that describe
+circuit is the `Sequence`, which contains the waveforms that describe
 the drives for the Ryberg/Hyperfine transitions of
-each Rydberg atom. Each transition is described by a `Pulse` contains
-the a `Field` that for the druning, rabi amplitude, and rabi phase
-of the drive. A Field describes the spatial and temporal dependence
-of a drive. The spatial modulaates the temporal dependence of the
-waveform. The Waveform is a `Waveform` object which is also described
-by a DAG. Finally we have basic `Scalar` Expressions as well for describing
+each Rydberg atom. Each transition is represented by a `Pulse` including
+a `Field` for the drive's detuning, rabi amplitude, and rabi phase
+. A Field relates the spatial and temporal dependence
+of a drive. The spatial modulates the temporal dependence of the
+waveform. A DAG also describes the `Waveform` object. Finally, we have basic `Scalar` Expressions as well for describing
 The syntax of Real valued continuous numbers.
 
 ## Bloqade Compilers
 
-Given a users program expressed as the Bloqade AST we can target various
+Given a user program expressed as the Bloqade AST, we can target various
 backends by transforming from the Bloqade AST to some other kind of IR.
-For exmaple when submitting a task to QuEra's hardware we lower the
+For example, when submitting a task to QuEra's hardware, we lower the
 Bloqade AST to the IR that describes a valid program for the hardware.
 
-We also support compiling the Bloqade AST to a more convient IR for our
-python emulator backend. This is called the Emulator IR. The Emulator IR
-is a representation of the Bloqade AST that is more convient for lowering
+We also support compiling the Bloqade AST to a more convenient IR for our
+Python emulator backend. This IR is called the Emulator IR. The Emulator IR
+represents the Bloqade AST that is more convenient for lowering
 directly to a state-vector simulation.
 
 We call the "lowering" procedure from the Bloqade AST to the various other
 IR's code generation. The pattern we use for code generation is called
-"visitor pattern". The visitor pattern is a way of traversing a tree
-structure and performing some action on each node while storing an internal
-state. In our case the action is lowering the node to a different IR or
-tranforming the node to create a new Object using the same abstract syntax.
+the "visitor pattern." The visitor pattern traverses a tree
+structure and performs some action on each node while storing an internal
+state. In Bloqade, the transpilling/lowering steps are typically called
+"code generation" and will live in modules named `codegen`.
