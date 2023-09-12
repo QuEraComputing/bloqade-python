@@ -13,7 +13,8 @@ from bloqade.submission.ir.task_results import (
 
 # from bloqade.submission.base import ValidationError
 
-from typing import Union, Optional
+from beartype.typing import Union, Optional
+from beartype import beartype
 from collections import OrderedDict
 from itertools import product
 import json
@@ -119,6 +120,7 @@ class LocalBatch(Serializable):
 
         return rept
 
+    @beartype
     def rerun(
         self, multiprocessing: bool = False, num_workers: Optional[int] = None, **kwargs
     ):
@@ -280,6 +282,7 @@ class RemoteBatch(Serializable):
 
         # return RemoteBatch(new_tasks, name=self.name)
 
+    @beartype
     def resubmit(self, shuffle_submit_order: bool = True) -> "RemoteBatch":
         """
         Resubmit all the tasks in the RemoteBatch
@@ -367,6 +370,7 @@ class RemoteBatch(Serializable):
             #       as well.
             pass
 
+    @beartype
     def get_tasks(self, *status_codes: str) -> "RemoteBatch":
         """
         Get Tasks with specify status_codes.
@@ -386,6 +390,7 @@ class RemoteBatch(Serializable):
 
         return RemoteBatch(self.source, new_task_results, name=self.name)
 
+    @beartype
     def remove_tasks(self, *status_codes: str) -> "RemoteBatch":
         """
         Remove Tasks with specify status_codes.
