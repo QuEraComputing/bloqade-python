@@ -83,7 +83,7 @@ this will help you development examples in jupyter notebook and python scripts s
 ## Lint
 
 We primarily use [ruff](https://github.com/charliermarsh/ruff) - an extremely fast linter for Python, and
-[black](https://github.com/psf/black) as formatter. These has been configured into [pre-commit](https://pre-commit.com/) hooks. You can install pre-commit hooks to git via
+[black](https://github.com/psf/black) as formatter. These have been configured into [pre-commit](https://pre-commit.com/) hooks. After installing pre-commit on your own system, you can install pre-commit hooks to git via
 
 ```bash
 pre-commit install
@@ -131,37 +131,37 @@ graph TD
 ## High-Level Builder Representation
 
 When programming Bloqade using the Python API, the user constructs a representation of an analog quantum
-circuit. This representation is a flattened version of
-the actual analog circuit. Flattened means that the user
+circuit. This representation is a *flattened* version of
+the actual analog circuit. *Flattened* means that the user
 input is a linear sequence of operations where the context of neighboring nodes in the sequence
-of instructions can determine the tree. The Bloqade AST describes the actual analog circuit.
+of instructions can determine the program tree structure. The Bloqade AST describes the actual analog circuit.
 
 ## Bloqade AST
 
-The Bloqade AST/ is a representation of a quantum analog circuit for
-Nuetral atom computing. It is a directed acyclic graph (DAG) with nodes
+The Bloqade AST is a representation of a quantum analog circuit for
+neutral atom computing. It is a directed acyclic graph (DAG) with nodes
 for different hierarchical levels of the circuit. The base node is the
 `AnalogCircuit` which contains the geometry of the atoms stored as a
-`AtomArragment` or `ParallelRegister` objects. The Other part of the
+`AtomArragment` or `ParallelRegister` objects. The other part of the
 circuit is the `Sequence`, which contains the waveforms that describe
 the drives for the Ryberg/Hyperfine transitions of
 each Rydberg atom. Each transition is represented by a `Pulse` including
-a `Field` for the drive's detuning, rabi amplitude, and rabi phase
-. A Field relates the spatial and temporal dependence
+a `Field` for the drive's detuning, Rabi amplitude, and Rabi phase
+. A `Field` relates the spatial and temporal dependence
 of a drive. The spatial modulates the temporal dependence of the
-waveform. A DAG also describes the `Waveform` object. Finally, we have basic `Scalar` Expressions as well for describing
-The syntax of Real valued continuous numbers.
+waveform. A DAG also describes the `Waveform` object. Finally, we have basic `Scalar` expressions as well for describing
+The syntax of real-valued continuous numbers.
 
 ## Bloqade Compilers
 
 Given a user program expressed as the Bloqade AST, we can target various
-backends by transforming from the Bloqade AST to some other kind of IR.
+backends by transforming from the Bloqade AST to other kinds of IR.
 For example, when submitting a task to QuEra's hardware, we lower the
 Bloqade AST to the IR that describes a valid program for the hardware.
 
 We also support compiling the Bloqade AST to a more convenient IR for our
 Python emulator backend. This IR is called the Emulator IR. The Emulator IR
-represents the Bloqade AST that is more convenient for lowering
+represents the Bloqade AST in a form that is more convenient for lowering
 directly to a state-vector simulation.
 
 We call the "lowering" procedure from the Bloqade AST to the various other

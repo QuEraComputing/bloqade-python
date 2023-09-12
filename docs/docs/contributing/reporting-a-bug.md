@@ -1,6 +1,6 @@
 # Reporting a Bug
 
-Bloqade being in the alpha phase means bugs exist in the
+Bloqade is currently in the **alpha** phase of development, meaning bugs most likely exist in the
 current implementation. We are continuously striving to
 improve the stability of Bloqade. As such, we encourage
 our users to report all bugs they find. To do this, we
