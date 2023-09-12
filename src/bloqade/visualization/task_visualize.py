@@ -12,27 +12,21 @@ def get_task_ir_figure(task_ir, **fig_kwargs):
         QuEraTaskSpecification,
     )
 
-    match task_ir:
-        case RabiFrequencyAmplitude():
-            return get_rabi_amp_figure(task_ir, **fig_kwargs)
-
-        case RabiFrequencyPhase():
-            return get_rabi_phase_figure(task_ir, **fig_kwargs)
-
-        case Detuning():
-            return get_detune_figure(task_ir, **fig_kwargs)
-
-        case Lattice():
-            return get_lattice_figure(task_ir, **fig_kwargs)
-
-        case QuEraTaskSpecification():
-            return get_quera_task_figure(task_ir, **fig_kwargs)
-
-        case _:
-            raise NotImplementedError(
-                f"not supported task IR for figure, got {type(task_ir)}"
-            )
-
+    if isinstance(task_ir,  RabiFrequencyAmplitude):
+        return get_rabi_amp_figure(task_ir, **fig_kwargs)
+    elif isinstance(task_ir, RabiFrequencyPhase):
+        return get_rabi_phase_figure(task_ir, **fig_kwargs)
+    elif isinstance(task_ir, Detuning):
+        return get_detune_figure(task_ir, **fig_kwargs)
+    elif isinstance(task_ir, Lattice):
+        return get_lattice_figure(task_ir, **fig_kwargs)
+    elif isinstance(task_ir, QuEraTaskSpecification):
+        return get_quera_task_figure(task_ir, **fig_kwargs)
+    else:
+        raise NotImplementedError(
+            f"not supported task IR for figure, got {type(task_ir)}"
+        )
+    
 
 def get_lattice_figure(lattice, **fig_kwargs):
     from bloqade.ir.location import ListOfLocations

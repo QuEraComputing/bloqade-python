@@ -360,10 +360,13 @@ def get_ir_figure(ir, **assignments):
     from bloqade.ir.control.field import SpatialModulation
     from bloqade.ir.control.waveform import Waveform
 
-    match ir:
-        case SequenceExpr():
-            return get_sequence_figure(ir, **assignments)
-        case SpatialModulation():
-            return get_spmod_figure(ir, **assignments)
-        case Waveform():
-            return get_waveform_figure(ir, **assignments)
+
+    if isinstance(ir,SequenceExpr):
+        return get_sequence_figure(ir, **assignments)
+    elif isinstance(ir,SpatialModulation):
+        return get_spmod_figure(ir, **assignments)
+    elif isinstance(ir,Waveform):
+        return get_waveform_figure(ir, **assignments)
+    else:
+        raise NotImplementedError(f"not supported IR for display, got {type(obj)}")
+

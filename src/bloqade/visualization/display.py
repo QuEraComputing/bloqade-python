@@ -18,25 +18,24 @@ def display_ir(obj, assignments):
     from bloqade.ir.control.waveform import Waveform
     from bloqade.ir.location import AtomArrangement
 
-    match obj:
-        case AnalogCircuit():
-            display_analog_circuit(obj, assignments)
-        case PulseExpr():
-            display_pulse(obj, assignments)
-        case SequenceExpr():
-            display_sequence(obj, assignments)
-        case Field():
-            display_field(obj, assignments)
-        case SpatialModulation():
-            display_spatialmod(obj, assignments)
-        case Waveform():
-            display_waveform(obj, assignments)
-        case AtomArrangement():
-            display_atom_arrangement(obj, assignments)
 
-        case _:
-            raise NotImplementedError(f"not supported IR for display, got {type(obj)}")
-
+    if isinstance(obj, AnalogCircuit):
+        display_analog_circuit(obj, assignments)
+    elif isinstance(obj, PulseExpr):
+        display_pulse(obj, assignments)
+    elif isinstance(obj, SequenceExpr):
+        display_sequence(obj, assignments)
+    elif isinstance(obj, Field):
+        display_field(obj, assignments)
+    elif isinstance(obj, SpatialModulation):
+        display_spatialmod(obj, assignments)
+    elif isinstance(obj, Waveform):
+        display_waveform(obj, assignments)
+    elif isinstance(obj, AtomArrangement):
+        display_atom_arrangement(obj, assignments)
+    else:
+        raise NotImplementedError(f"not supported IR for display, got {type(obj)}")
+    
 
 def liner(txt):
     return f"<p>{txt}</p>"
