@@ -21,8 +21,3 @@ class ParallelizeBase(Builder):
 # SubmitBackendRoute
 class Parallelize(ParallelizeBase, BackendRoute, Parse):
     pass
-
-
-# else use this after flatten restrict the API to only use the FlattenedBackendRoute
-class ParallelizeFlatten(ParallelizeBase, BackendRoute, Parse):
-    pass

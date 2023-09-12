@@ -39,18 +39,20 @@ def to_braket_time_series(times: List[Decimal], values: List[Decimal]) -> TimeSe
 
 
 def to_braket_field(quera_field: Union[GlobalField, LocalField]) -> Field:
-    match quera_field:
-        case GlobalField(times=times, values=values):
-            time_series = to_braket_time_series(times, values)
-            return Field(pattern="uniform", time_series=time_series)
-
-        case LocalField(times=times, values=values, lattice_site_coefficients=pattern):
-            time_series = to_braket_time_series(times, values)
-            pattern = Pattern(pattern)
-            return Field(pattern=pattern, time_series=time_series)
-
-        case _:
-            raise TypeError
+    if isinstance(quera_field, GlobalField):
+        times = quera_field.times
+        values = quera_field.values
+        time_series = to_braket_time_series(times, values)
+        return Field(pattern="uniform", time_series=time_series)
+    elif isinstance(quera_field, LocalField):
+        times = quera_field.times
+        values = quera_field.values
+        pattern = quera_field.lattice_site_coefficients
+        time_series = to_braket_time_series(times, values)
+        pattern = Pattern(pattern)
+        return Field(pattern=pattern, time_series=time_series)
+    else:
+        raise TypeError
 
 
 def extract_braket_program(quera_task_ir: QuEraTaskSpecification):
@@ -116,24 +118,7 @@ def from_braket_task_results(
 
 
 def from_braket_status_codes(braket_message: str) -> QuEraTaskStatusCode:
-    match braket_message:
-        case str("CREATED"):
-            return QuEraTaskStatusCode.Created
-
-        case str("RUNNING"):
-            return QuEraTaskStatusCode.Running
-
-        case str("COMPLETED"):
-            return QuEraTaskStatusCode.Completed
-
-        case str("FAILED"):
-            return QuEraTaskStatusCode.Failed
-
-        case str("CANCELLED"):
-            return QuEraTaskStatusCode.Cancelled
-
-        case str("QUEUED"):
-            return QuEraTaskStatusCode.Enqueued
-
-        case _:
-            raise ValueError(f"unexpected argument {braket_message}")
+    if braket_message == str("QUEUED"):
+        return QuEraTaskStatusCode.Enqueued
+    else:
+        return QuEraTaskStatusCode(braket_message.lower().capitalize())

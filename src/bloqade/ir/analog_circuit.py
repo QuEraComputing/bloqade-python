@@ -10,8 +10,7 @@ if TYPE_CHECKING:
 # NOTE: this is just a dummy type bundle geometry and sequence
 #       information together and forward them to backends.
 class AnalogCircuit:
-
-    """Program is a dummy type that bundle register and sequence together."""
+    """AnalogCircuit is a dummy type that bundle register and sequence together."""
 
     def __init__(
         self,
@@ -86,62 +85,3 @@ class AnalogCircuit:
         """
         display_ir(self, assignments)
 
-
-# class BraketService:
-#     def __init__(self, batch: Batch):
-#         self.batch = batch
-
-#     @property
-#     def aquila(self) -> "BraketHardware":
-#         return BraketHardware(
-#             self.batch, "arn:aws:braket:us-east-1::device/qpu/quera/Aquila"
-#         )
-
-#     @property
-#     def local_emulator(self) -> "BraketLocalEmulator":
-#         return BraketLocalEmulator(self.batch)
-
-
-# class BraketHardware:
-#     def __init__(self, program: Program, device_arn: str):
-#         self.program = program
-#         self.device_arn = device_arn
-
-#     def _compile_batch(
-#         self, shots: int, args: Tuple[Real, ...], name: Optional[str] = None
-#     ) -> "RemoteBatch":
-#         from bloqade.compile.braket import BraketBatchCompiler
-#         from bloqade.submission.braket import BraketBackend
-
-#         backend = BraketBackend(
-#             device_arn=self.device_arn,
-#         )
-
-#         return BraketBatchCompiler(
-#             program=self.program,
-#             backend=backend,
-#         ).compile(shots, args, name=name)
-
-#     def submit(
-#         self, shots: int, args: Tuple[Real, ...], name: Optional[str] = None
-#     ) -> "RemoteBatch":
-#         batch = self._compile_batch(shots, args, name=name)
-#         batch._submit()
-
-#         return batch
-
-#     def run(
-#         self,
-#         shots: int,
-#         args: Tuple[Real, ...],
-#         name: Optional[str] = None,
-#         shuffle_submit_order: bool = False,
-#     ) -> "RemoteBatch":
-#         batch = self._compile_batch(shots, args, name=name)
-#         batch._submit(shuffle_submit_order=shuffle_submit_order)
-#         batch.pull()
-
-#         return batch
-
-#     def __call__(self, *args, shots: int = 1):
-#         return self.run(shots, args)

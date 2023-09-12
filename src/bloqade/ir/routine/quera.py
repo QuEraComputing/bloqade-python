@@ -10,12 +10,12 @@ from bloqade.submission.quera_api_client.load_config import load_config
 from bloqade.task.batch import RemoteBatch
 from bloqade.task.quera import QuEraTask
 
-from typing import Tuple, Union
+from typing import Tuple, Union, Optional
 
 
 @dataclass(frozen=True)
 class QuEraServiceOptions(RoutineBase):
-    def device(self, config_file: str | None, **api_config):
+    def device(self, config_file: Optional[str], **api_config):
         if config_file is not None:
             with open(config_file, "r") as f:
                 api_config = {**json.load(f), **api_config}
@@ -28,11 +28,11 @@ class QuEraServiceOptions(RoutineBase):
         backend = QuEraBackend(**load_config("Aquila"))
         return QuEraHardwareRoutine(source=self.source, backend=backend)
 
-    def cloud_mock(self):
+    def cloud_mock(self) -> "QuEraHardwareRoutine":
         backend = QuEraBackend(**load_config("Mock"))
         return QuEraHardwareRoutine(source=self.source, backend=backend)
 
-    def mock(self, state_file: str = ".mock_state.txt"):
+    def mock(self, state_file: str = ".mock_state.txt") -> "QuEraHardwareRoutine":
         backend = MockBackend(state_file=state_file)
         return QuEraHardwareRoutine(source=self.source, backend=backend)
 
@@ -45,7 +45,7 @@ class QuEraHardwareRoutine(RoutineBase):
         self,
         shots: int,
         args: Tuple[Real, ...] = (),
-        name: str | None = None,
+        name: Optional[str] = None,
     ) -> RemoteBatch:
         """
         Compile to a RemoteBatch, which contain
@@ -91,7 +91,7 @@ class QuEraHardwareRoutine(RoutineBase):
         self,
         shots: int,
         args: Tuple[Real, ...] = (),
-        name: str | None = None,
+        name: Optional[str] = None,
         shuffle: bool = False,
         **kwargs,
     ) -> RemoteBatch:
@@ -112,4 +112,26 @@ class QuEraHardwareRoutine(RoutineBase):
         """
         batch = self.compile(shots, args, name)
         batch._submit(shuffle, **kwargs)
+        return batch
+
+    def __call__(
+        self,
+        *args: float,
+        shots: int = 1,
+        name: Optional[str] = None,
+        shuffle: bool = False,
+        **kwargs,
+    ) -> RemoteBatch:
+        return self.run(shots, args, name, shuffle, **kwargs)
+
+    def run(
+        self,
+        shots: int,
+        args: Tuple[Real, ...] = (),
+        name: Optional[str] = None,
+        shuffle: bool = False,
+        **kwargs,
+    ) -> RemoteBatch:
+        batch = self.submit(shots, args, name, shuffle, **kwargs)
+        batch.pull()
         return batch

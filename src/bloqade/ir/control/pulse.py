@@ -103,16 +103,19 @@ class PulseExpr:
     @staticmethod
     def canonicalize(expr: "PulseExpr") -> "PulseExpr":
         # TODO: update canonicalization rules for appending pulses
-        match expr:
-            case Append([Append(lhs), Append(rhs)]):
-                return Append(list(map(PulseExpr.canonicalize, lhs + rhs)))
-            case Append([Append(pulses), pulse]):
-                return PulseExpr.canonicalize(Append(pulses + [pulse]))
-            case Append([pulse, Append(pulses)]):
-                return PulseExpr.canonicalize(Append([pulse] + pulses))
-            case _:
-                return expr
-        return expr
+
+        if isinstance(expr, Append):
+            new_pulses = []
+            for pulse in expr.value:
+                if isinstance(pulse, Append):
+                    new_pulses += pulse.value
+                else:
+                    new_pulses.append(pulse)
+
+            new_pulses = list(map(PulseExpr.canonicalize, new_pulses))
+            return Append(new_pulses)
+        else:
+            return expr
 
     def __repr__(self) -> str:
         ph = Printer()

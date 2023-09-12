@@ -6,7 +6,10 @@ import bloqade.ir.control.waveform as waveform
 import bloqade.ir.scalar as scalar
 import bloqade.ir.analog_circuit as analog_circuit
 
-from bloqade.ir.visitor.analog_circuit import AnalogCircuitVisitor
+from bloqade.ir.visitor.analog_circuit import (
+    # AnalogCircuitVisitor,
+    AnalogCircuitVisitorV2,
+)
 from bloqade.ir.visitor.location import LocationVisitor
 from bloqade.ir.visitor.waveform import WaveformVisitor
 from bloqade.ir.visitor.scalar import ScalarVisitor
@@ -205,7 +208,7 @@ class AssignLocation(LocationVisitor):
         )
 
 
-class AssignAnalogCircuit(AnalogCircuitVisitor):
+class AssignAnalogCircuit(AnalogCircuitVisitorV2):
     def __init__(self, mapping: Dict[str, numbers.Real]):
         self.waveform_visitor = AssignWaveform(mapping)
         self.scalar_visitor = AssignScalar(mapping)
@@ -225,67 +228,78 @@ class AssignAnalogCircuit(AnalogCircuitVisitor):
     ) -> location.ParallelRegister:
         return self.location_visitor.visit(ast)
 
-    def visit_sequence(self, ast: sequence.SequenceExpr) -> sequence.SequenceExpr:
-        match ast:
-            case sequence.Sequence(pulses):
-                return sequence.Sequence(
-                    {
-                        coupling_name: self.visit(sub_pulse)
-                        for coupling_name, sub_pulse in pulses.items()
-                    }
-                )
-            case sequence.Append(sequences):
-                return sequence.Append(list(map(self.visit, sequences)))
-            case sequence.Slice(sub_sequence, interval):
-                return sequence.Slice(self.visit(sub_sequence), interval)
-            case sequence.NamedSequence(sub_sequence, name):
-                return sequence.NamedSequence(self.visit(sub_sequence), name)
+    def visit_sequence(self, ast: sequence.Sequence) -> sequence.Sequence:
+        return sequence.Sequence(
+            {
+                coupling_name: self.visit(sub_pulse)
+                for coupling_name, sub_pulse in ast.pulses.items()
+            }
+        )
 
-    def visit_pulse(self, ast: pulse.PulseExpr) -> pulse.PulseExpr:
-        match ast:
-            case pulse.Pulse(fields):
-                return pulse.Pulse(
-                    {
-                        field_name: self.visit(sub_field)
-                        for field_name, sub_field in fields.items()
-                    }
-                )
-            case pulse.Append(pulses):
-                return pulse.Append(list(map(self.visit, pulses)))
-            case pulse.Slice(sub_pulse, interval):
-                return pulse.Slice(self.visit(sub_pulse), interval)
-            case pulse.NamedPulse(name, sub_pulse):
-                return pulse.NamedPulse(name, self.visit(sub_pulse))
+    def visit_append_sequence(self, ast: sequence.Append) -> sequence.Append:
+        return sequence.Append(list(map(self.visit, ast.sequences)))
+
+    def visit_slice_sequence(self, ast: sequence.Slice) -> sequence.Slice:
+        return sequence.Slice(
+            self.visit(ast.sequence), self.scalar_visitor.emit(ast.interval)
+        )
+
+    def visit_named_sequence(
+        self, ast: sequence.NamedSequence
+    ) -> sequence.NamedSequence:
+        return sequence.NamedSequence(self.visit(ast.sequence), ast.name)
+
+    def visit_pulse(self, ast: pulse.Pulse) -> pulse.Pulse:
+        return pulse.Pulse(
+            {
+                field_name: self.visit(sub_field)
+                for field_name, sub_field in ast.fields.items()
+            }
+        )
+
+    def visit_append_pulse(self, ast: pulse.Append) -> pulse.Append:
+        return pulse.Append(list(map(self.visit, ast.value)))
+
+    def visit_slice_pulse(self, ast: pulse.Slice) -> pulse.Slice:
+        return pulse.Slice(self.visit(ast.pulse), self.scalar_visitor(ast.interval))
+
+    def visit_named_pulse(self, ast: pulse.NamedPulse) -> Any:
+        return pulse.NamedPulse(ast.name, self.visit(ast.pulse))
 
     def visit_field(self, ast: field.Field) -> field.Field:
         return field.Field(
             {self.visit(sm): self.visit(wf) for sm, wf in ast.value.items()}
         )
 
-    def visit_spatial_modulation(
-        self, ast: field.SpatialModulation
-    ) -> field.SpatialModulation:
-        match ast:
-            case field.UniformModulation():
-                return ast
-            case field.RunTimeVector(name):
-                if name in self.mapping:
-                    return field.AssignedRunTimeVector(name, self.mapping[name])
-                else:
-                    return ast
+    def visit_uniform_modulation(self, ast: field.UniformModulation) -> Any:
+        return ast
 
-            case field.AssignedRunTimeVector(name, value):
-                if name in self.mapping:
-                    raise ValueError(f"Variable {name} already assigned to {value}.")
-                return ast
+    def visit_location(self, ast: field.Location) -> Any:
+        return ast
 
-            case field.ScaledLocations(values):
-                return field.ScaledLocations(
-                    {
-                        loc: self.scalar_visitor.emit(scale)
-                        for loc, scale in values.items()
-                    }
-                )
+    def visit_scaled_locations(self, ast: field.ScaledLocations) -> Any:
+        return field.ScaledLocations(
+            {
+                self.visit(loc): self.scalar_visitor.emit(scale)
+                for loc, scale in ast.value.items()
+            }
+        )
+
+    def visit_run_time_vector(
+        self, ast: field.RunTimeVector
+    ) -> Union[field.RunTimeVector, field.AssignedRunTimeVector]:
+        if ast.name in self.mapping:
+            return field.AssignedRunTimeVector(ast.name, self.mapping[ast.name])
+
+        return ast
+
+    def visit_assigned_run_time_vector(
+        self, ast: field.AssignedRunTimeVector
+    ) -> field.AssignedRunTimeVector:
+        if ast.name in self.mapping:
+            raise ValueError(f"Variable {ast.name} already assigned to {ast.value}.")
+
+        return ast
 
     def visit_waveform(self, ast: waveform.Waveform) -> waveform.Waveform:
         return self.waveform_visitor.emit(ast)

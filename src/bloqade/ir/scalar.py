@@ -1,5 +1,7 @@
+from typing import Any, Optional
+import numpy as np
 from pydantic.dataclasses import dataclass
-from pydantic import validator
+from pydantic import ValidationError, validator
 from .tree_print import Printer
 import re
 from decimal import Decimal
@@ -41,99 +43,61 @@ class Scalar:
     ```
     """
 
-    def __call__(self, **kwargs) -> Decimal:
-        match self:
-            case Literal(value):
-                return value
-            case Variable(name):
-                if name in kwargs:
-                    return Decimal(str(kwargs[name]))
-                else:
-                    raise Exception(f"Unknown variable: {name}")
-            case AssignedVariable(name, value):
-                if name in kwargs:
-                    raise ValueError(f"Variable {name} already assigned")
-                else:
-                    return value
-            case Negative(expr):
-                return -expr(**kwargs)
-            case Add(lhs, rhs):
-                return lhs(**kwargs) + rhs(**kwargs)
-            case Mul(lhs, rhs):
-                return lhs(**kwargs) * rhs(**kwargs)
-            case Div(lhs, rhs):
-                return lhs(**kwargs) / rhs(**kwargs)
-            case Min(exprs):
-                return min(map(lambda expr: expr(**kwargs), exprs))
-            case Max(exprs):
-                return max(map(lambda expr: expr(**kwargs), exprs))
-            case Slice(expr, Interval(start, stop)):
-                ret = stop - start
-                ret <= expr(**kwargs)
-                return ret
-            case _:
-                raise Exception(f"Unknown scalar expression: {self} ({type(self)})")
+    def __getitem__(self, s: slice) -> "Scalar":
+        return Scalar.canonicalize(Slice(self, Interval.from_slice(s)))
 
     def __add__(self, other: "Scalar") -> "Scalar":
-        try:
-            rhs = cast(other)
-        except BaseException:
-            return NotImplemented
+        return self.add(other)
 
-        return self.add(rhs)
+    def __sub__(self, other: "Scalar") -> "Scalar":
+        return self.sub(other)
+
+    def __mul__(self, other: "Scalar") -> "Scalar":
+        return self.mul(other)
+
+    def __truediv__(self, other: "Scalar") -> "Scalar":
+        return self.div(other)
 
     def __radd__(self, other: "Scalar") -> "Scalar":
         try:
             lhs = cast(other)
-        except BaseException:
+        except TypeError:
+            return NotImplemented
+
+        if not isinstance(lhs, Scalar):
             return NotImplemented
 
         return lhs.add(self)
 
-    def __sub__(self, other: "Scalar") -> "Scalar":
-        try:
-            rhs = cast(other)
-        except BaseException:
-            return NotImplemented
-
-        return self.sub(rhs)
-
     def __rsub__(self, other: "Scalar") -> "Scalar":
         try:
             lhs = cast(other)
-        except BaseException:
+        except TypeError:
+            return NotImplemented
+
+        if not isinstance(lhs, Scalar):
             return NotImplemented
 
         return lhs.sub(self)
 
-    def __mul__(self, other: "Scalar") -> "Scalar":
-        try:
-            rhs = cast(other)
-        except BaseException:
-            return NotImplemented
-
-        return self.mul(rhs)
-
     def __rmul__(self, other: "Scalar") -> "Scalar":
         try:
             lhs = cast(other)
-        except BaseException:
+        except TypeError:
+            return NotImplemented
+
+        if not isinstance(lhs, Scalar):
             return NotImplemented
 
         return lhs.mul(self)
 
-    def __truediv__(self, other: "Scalar") -> "Scalar":
-        try:
-            rhs = cast(other)
-        except BaseException:
-            return NotImplemented
-
-        return self.div(rhs)
-
     def __rtruediv__(self, other: "Scalar") -> "Scalar":
         try:
             lhs = cast(other)
-        except BaseException:
+        except TypeError:
+            return NotImplemented
+
+        if not isinstance(lhs, Scalar):
             return NotImplemented
 
         return lhs.div(self)
@@ -142,27 +106,69 @@ class Scalar:
         return Scalar.canonicalize(Negative(self))
 
     def add(self, other) -> "Scalar":
-        expr = Add(lhs=self, rhs=cast(other))
+        try:
+            rhs = cast(other)
+        except TypeError:
+            return NotImplemented
+
+        if not isinstance(rhs, Scalar):
+            return NotImplemented
+
+        expr = Add(lhs=self, rhs=rhs)
         return Scalar.canonicalize(expr)
 
     def sub(self, other) -> "Scalar":
-        expr = Add(lhs=self, rhs=-cast(other))
+        try:
+            rhs = cast(other)
+        except TypeError:
+            return NotImplemented
+
+        if not isinstance(rhs, Scalar):
+            return NotImplemented
+
+        expr = Add(lhs=self, rhs=-rhs)
         return Scalar.canonicalize(expr)
 
     def mul(self, other) -> "Scalar":
-        expr = Mul(lhs=self, rhs=cast(other))
+        try:
+            rhs = cast(other)
+        except TypeError:
+            return NotImplemented
+
+        if not isinstance(rhs, Scalar):
+            return NotImplemented
+
+        expr = Mul(lhs=self, rhs=rhs)
         return Scalar.canonicalize(expr)
 
     def div(self, other) -> "Scalar":
-        expr = Div(lhs=self, rhs=cast(other))
+        try:
+            rhs = cast(other)
+        except TypeError:
+            return NotImplemented
+
+        if not isinstance(rhs, Scalar):
+            return NotImplemented
+
+        expr = Div(lhs=self, rhs=rhs)
         return Scalar.canonicalize(expr)
 
     def min(self, other) -> "Scalar":
-        expr = Min(exprs=frozenset({self, cast(other)}))
+        try:
+            other_expr = cast(other)
+        except TypeError:
+            return NotImplemented
+
+        expr = Min(exprs=frozenset({self, other_expr}))
         return Scalar.canonicalize(expr)
 
     def max(self, other) -> "Scalar":
-        expr = Max(exprs=frozenset({self, cast(other)}))
+        try:
+            other_expr = cast(other)
+        except TypeError:
+            return NotImplemented
+
+        expr = Max(exprs=frozenset({self, other_expr}))
         return Scalar.canonicalize(expr)
 
     def __repr__(self) -> str:
@@ -178,13 +184,12 @@ class Scalar:
         def minmax(op, exprs):
             new_exprs = set()
             for expr in exprs:
-                match expr:
-                    case op(exprs):
-                        exprs = map(Scalar.canonicalize, exprs)
-                        new_exprs.update(exprs)
-                    case _:
-                        expr = Scalar.canonicalize(expr)
-                        new_exprs.add(expr)
+                if isinstance(expr, op):
+                    exprs = map(Scalar.canonicalize, exprs)
+                    new_exprs.update(exprs)
+                else:
+                    expr = Scalar.canonicalize(expr)
+                    new_exprs.add(expr)
 
             if len(new_exprs) > 1:
                 return op(exprs=frozenset(new_exprs))
@@ -192,52 +197,72 @@ class Scalar:
                 (new_expr,) = new_exprs
                 return new_expr
 
-        match expr:
-            case Negative(Negative(sub_expr)):
-                return Scalar.canonicalize(sub_expr)
-            case Negative(expr=Literal(value)) if value < 0:
-                return Literal(-value)
-            case Add(lhs=Literal(lhs), rhs=Literal(rhs)):
-                return Literal(lhs + rhs)
-            case Add(lhs=Literal(lhs), rhs=Negative(Literal(rhs))):
-                return Literal(lhs - rhs)
-            case Add(lhs=Negative(Literal(lhs)), rhs=Literal(rhs)):
-                return Literal(rhs - lhs)
-            case Add(lhs=Literal(0.0), rhs=sub_expr):
-                return Scalar.canonicalize(sub_expr)
-            case Add(lhs=sub_expr, rhs=Literal(0.0)):
-                return Scalar.canonicalize(sub_expr)
-            case Add(lhs=sub_expr, rhs=Negative(other_expr)) if sub_expr == other_expr:
+        if isinstance(expr, Negative):
+            sub_expr = expr.expr
+            if isinstance(sub_expr, Negative):
+                return Scalar.canonicalize(sub_expr.expr)
+            elif isinstance(sub_expr, Literal) and sub_expr.value < 0:
+                return Literal(-sub_expr.value)
+        elif isinstance(expr, Add):
+            lhs = expr.lhs
+            rhs = expr.rhs
+            if isinstance(lhs, Literal) and lhs.value == 0:
+                return Scalar.canonicalize(rhs)
+            elif isinstance(rhs, Literal) and rhs.value == 0:
+                return Scalar.canonicalize(lhs)
+            elif isinstance(lhs, Literal) and isinstance(rhs, Literal):
+                return Literal(lhs.value + rhs.value)
+            elif (
+                isinstance(lhs, Negative)
+                and isinstance(lhs.expr, Literal)
+                and isinstance(rhs, Literal)
+            ):
+                return Literal(rhs.value - lhs.expr.value)
+            elif (
+                isinstance(rhs, Negative)
+                and isinstance(rhs.expr, Literal)
+                and isinstance(lhs, Literal)
+            ):
+                return Literal(lhs.value - rhs.expr.value)
+            elif isinstance(lhs, Negative) and lhs.expr == rhs:
                 return Literal(0.0)
-            case Add(lhs=Negative(sub_expr), rhs=other_expr) if sub_expr == other_expr:
+            elif isinstance(rhs, Negative) and rhs.expr == lhs:
                 return Literal(0.0)
-            case Mul(lhs=Literal(lhs), rhs=Literal(rhs)):
-                return Literal(lhs * rhs)
-            case Mul(lhs=Literal(0.0), rhs=_):
+        elif isinstance(expr, Mul):
+            lhs = expr.lhs
+            rhs = expr.rhs
+            if isinstance(lhs, Literal) and lhs.value == 1:
+                return Scalar.canonicalize(rhs)
+            elif isinstance(rhs, Literal) and rhs.value == 1:
+                return Scalar.canonicalize(lhs)
+            elif isinstance(lhs, Literal) and isinstance(rhs, Literal):
+                return Literal(lhs.value * rhs.value)
+            elif isinstance(lhs, Literal) and lhs.value == 0:
                 return Literal(0.0)
-            case Mul(lhs=_, rhs=Literal(0.0)):
+            elif isinstance(rhs, Literal) and rhs.value == 0:
                 return Literal(0.0)
-            case Mul(lhs=Literal(1.0), rhs=sub_expr):
-                return Scalar.canonicalize(sub_expr)
-            case Mul(lhs=sub_expr, rhs=Literal(1.0)):
-                return Scalar.canonicalize(sub_expr)
-            case Div(lhs=Literal(lhs), rhs=Literal(rhs)):
-                return Literal(lhs / rhs)
-            case Div(lhs=sub_expr, rhs=Literal(1.0)):
-                return Scalar.canonicalize(sub_expr)
-            case Min(exprs):
-                return minmax(Min, exprs)
-            case Max(exprs):
-                return minmax(Max, exprs)
-            case _:
-                return expr
+        elif isinstance(expr, Div):
+            lhs = expr.lhs
+            rhs = expr.rhs
+            if isinstance(lhs, Literal) and lhs.value == 0:
+                return Literal(0.0)
+            elif isinstance(rhs, Literal) and rhs.value == 1:
+                return Scalar.canonicalize(lhs)
+            elif isinstance(lhs, Literal) and isinstance(rhs, Literal):
+                return Literal(lhs.value / rhs.value)
+        elif isinstance(expr, Min):
+            return minmax(Min, expr.exprs)
+        elif isinstance(expr, Max):
+            return minmax(Max, expr.exprs)
+
+        return expr
 
 
 def check_variable_name(name: str) -> None:
     regex = "^[A-Za-z_][A-Za-z0-9_]*"
     re_match = re.match(regex, name)
     if re_match.group() != name:
-        raise ValueError(f"string '{name}' is not a valid python identifier")
+        raise ValidationError(f"string '{name}' is not a valid python identifier")
 
 
 def cast(py) -> "Scalar":
@@ -266,26 +291,22 @@ def cast(py) -> "Scalar":
 #       in human brain
 # [KHW] it need to be there. For recursive replace for nested
 #       list/tuple
-def trycast(py) -> "Scalar | None":
-    match py:
-        case int(x) | float(x) | bool(x):
-            return Literal(Decimal(str(x)))
-        case Decimal():
-            return Literal(py)
-        case str(x):
-            check_variable_name(x)
-            return Variable(x)
-        case list() as xs:
-            return list(map(cast, xs))
-        case tuple() as xs:
-            return tuple(map(cast, xs))
-        case Scalar():
-            return py
-        case numbers.Real():
-            return Literal(Decimal(str(py)))
-
-        case _:
-            return
+def trycast(py) -> Optional[Scalar]:
+    # print(type(py))
+    if isinstance(py, (int, bool, numbers.Real)):
+        return Literal(Decimal(str(py)))
+    elif isinstance(py, Decimal):
+        return Literal(py)
+    elif isinstance(py, str):
+        return Variable(py)
+    elif isinstance(py, Scalar):
+        return py
+    elif isinstance(py, (list, tuple)):
+        return type(py)(map(cast, py))
+    elif isinstance(py, np.ndarray):
+        return np.array(list(map(cast, py)))
+    else:
+        return
 
 
 def var(py: str) -> "Variable":
@@ -305,19 +326,15 @@ def var(py: str) -> "Variable":
     return ret
 
 
-def tryvar(py) -> "Variable | None":
-    match py:
-        case str(x):
-            check_variable_name(x)
-            return Variable(x)
-        # case list() as xs:
-        #     return list(map(var, xs))
-        # case tuple() as xs:
-        #     return tuple(map(var, xs))
-        case Variable():
-            return py
-        case _:
-            return
+def tryvar(py) -> Optional["Variable"]:
+    if isinstance(py, str):
+        return Variable(py)
+    if isinstance(py, Variable):
+        return py
+    elif isinstance(py, (list, tuple)):
+        return type(py)(map(var, py))
+    else:
+        return
 
 
 class Real(Scalar):
@@ -334,6 +351,9 @@ class Literal(Real):
         value (Decimal): decimal value instance
 
     """
+
+    def __call__(self, **assignments) -> Decimal:
+        return self.value
 
     def __repr__(self) -> str:
         return self.__str__()
@@ -362,6 +382,12 @@ class Variable(Real):
 
     name: str
 
+    def __call__(self, **assignments) -> Decimal:
+        if self.name not in assignments:
+            raise ValueError(f"Variable {self.name} not assigned")
+
+        return Decimal(str(assignments[self.name]))
+
     def __repr__(self) -> str:
         return self.__str__()
 
@@ -377,20 +403,9 @@ class Variable(Real):
     def _repr_pretty_(self, p, cycle):
         Printer(p).print(self, cycle)
 
-    @validator("name")
-    def name_validator(cls, v):
-        # removing reserved toekn check for now.
-        # match v:
-        #     case "config_file":
-        #         raise ValueError(
-        #             f'"{v}" is a reserved token, cannot create variable '
-        #               'with that name'
-        #         )
-        #     case "clock_s":
-        #         raise ValueError(
-        #             f'"{v}" is a reserved token, cannot create variable '
-        #               'with that name'
-        #         )
+    @validator("name", allow_reuse=True)
+    def validate_name(cls, v):
+        check_variable_name(v)
         return v
 
 
@@ -398,6 +413,12 @@ class Variable(Real):
 class AssignedVariable(Scalar):
     name: str
     value: Decimal
+
+    def __call__(self, **assignments) -> Decimal:
+        if self.name in assignments:
+            raise ValueError(f"Variable {self.name} already assigned")
+
+        return self.value
 
     def __str__(self):
         return f"{self.name}"
@@ -408,24 +429,18 @@ class AssignedVariable(Scalar):
     def print_node(self):
         return f"AssignedVariable: {self.name} = {self.value}"
 
-    @validator("name")
-    def name_validator(cls, v):
-        match v:
-            case "config_file":
-                raise ValueError(
-                    f'"{v}" is a reserved token, cannot create variable with that name'
-                )
-            case "clock_s":
-                raise ValueError(
-                    f'"{v}" is a reserved token, cannot create variable with that name'
-                )
-
+    @validator("name", allow_reuse=True)
+    def validate_name(cls, v):
+        check_variable_name(v)
         return v
 
 
 @dataclass(frozen=True, repr=False)
 class Negative(Scalar):
     expr: Scalar
+
+    def __call__(self, **assignments) -> Decimal:
+        return -self.expr(**assignments)
 
     def __str__(self):
         return f"-({str(self.expr)})"
@@ -439,28 +454,34 @@ class Negative(Scalar):
 
 @dataclass(frozen=True, repr=False)
 class Interval:
-    start: Scalar | None
-    stop: Scalar | None
+    start: Optional[Scalar]
+    stop: Optional[Scalar]
 
     @staticmethod
     def from_slice(s: slice) -> "Interval":
-        match s:
-            case slice(start=None, stop=None, step=None):
-                raise ValueError("Slice must have at least one argument")
-            case slice(start=None, stop=None, step=_):
-                raise ValueError("Slice step must be None")
-            case slice(start=None, stop=stop, step=None):
-                return Interval(None, cast(stop))
-            case slice(start=None, stop=stop, step=_):
-                raise ValueError("Slice step must be None")
-            case slice(start=start, stop=None, step=None):
-                return Interval(cast(start), None)
-            case slice(start=start, stop=None, step=_):
-                raise ValueError("Slice step must be None")
-            case slice(start=start, stop=stop, step=None):
-                return Interval(cast(start), cast(stop))
-            case slice(start=start, stop=stop, step=_):
-                raise ValueError("Slice step must be None")
+        start, stop, step = s.start, s.stop, s.step
+
+        if start is None and stop is None and step is None:
+            raise ValueError("Slice must have at least one argument")
+        elif step is not None:
+            raise ValueError("Slice step must be None")
+
+        else:
+            if start is None:
+                start = None
+            else:
+                start = cast(start)
+                if not isinstance(start, Scalar):
+                    raise ValueError("Slice start must be Scalar")
+
+            if stop is None:
+                stop = None
+            else:
+                stop = cast(stop)
+                if not isinstance(stop, Scalar):
+                    raise ValueError("Slice stop must be Scalar")
+
+            return Interval(start, stop)
 
     def __repr__(self) -> str:
         ph = Printer()
@@ -471,35 +492,77 @@ class Interval:
         Printer(p).print(self, cycle)
 
     def __str__(self):
-        match (self.start, self.stop):
-            case (None, None):
+        if self.start is None:
+            if self.stop is None:
                 raise ValueError("Interval must have at least one bound")
-            case (None, stop):
-                return f":{str(stop)}"
-            case (start, None):
-                return f"{str(start)}:"
-            case (start, stop):
+            else:
+                return f":{str(self.stop)}"
+        else:
+            if self.stop is None:
+                return f"{str(self.start)}:"
+            else:
                 return f"{str(self.start)}:{str(self.stop)}"
 
     def print_node(self):
         return "Interval"
 
     def children(self):
-        match (self.start, self.stop):
-            case (None, None):
+        if self.start is None:
+            if self.stop is None:
                 raise ValueError("Interval must have at least one bound")
-            case (None, stop):
-                return {"stop": stop}
-            case (start, None):
-                return {"start": start}
-            case (start, stop):
-                return {"start": start, "stop": stop}
+            else:
+                return {"stop": self.stop}
+        else:
+            if self.stop is None:
+                return {"start": self.start}
+            else:
+                return {"start": self.start, "stop": self.stop}
 
 
 @dataclass(frozen=True, repr=False)
 class Slice(Scalar):
     expr: Scalar  # duration
     interval: Interval
+
+    def __call__(self, **assignments) -> Decimal:
+        dur = self.expr(**assignments)
+        start = (
+            self.interval.start(**assignments)
+            if self.interval.start is not None
+            else Decimal("0")
+        )
+        stop = (
+            self.interval.stop(**assignments) if self.interval.stop is not None else dur
+        )
+
+        if start < 0:
+            raise ValueError(
+                f"Slice start must be non-negative, got {start} from expr:\n"
+                f"{repr(self.interval.start)}\n"
+                f"with assignments: {assignments}"
+            )
+
+        if stop > dur:
+            raise ValueError(
+                "Slice stop must be smaller or equal to than duration "
+                f"{dur}, got {stop} from expr:\b"
+                f"{repr(self.interval.stop)}\n"
+                f"with assignments: {assignments}"
+            )
+
+        ret = stop - start
+
+        if ret < 0:
+            raise ValueError(
+                f"start is larger than stop, get start = {start} and stop = {stop}\n"
+                "from start expr:\n"
+                f"{repr(self.interval.start)}\n"
+                "and stop expr:\n"
+                f"{repr(self.interval.stop)}\n"
+                f"with assignments: {assignments}"
+            )
+
+        return ret
 
     def __str__(self):
         return f"{str(self.expr)}[{str(self.interval)}]"
@@ -516,6 +579,9 @@ class Add(Scalar):
     lhs: Scalar
     rhs: Scalar
 
+    def __call__(self, **assignments) -> Decimal:
+        return self.lhs(**assignments) + self.rhs(**assignments)
+
     def __str__(self):
         return f"({str(self.lhs)} + {str(self.rhs)})"
 
@@ -530,6 +596,9 @@ class Add(Scalar):
 class Mul(Scalar):
     lhs: Scalar
     rhs: Scalar
+
+    def __call__(self, **assignments) -> Decimal:
+        return self.lhs(**assignments) * self.rhs(**assignments)
 
     def __str__(self):
         return f"({str(self.lhs)} * {str(self.rhs)})"
@@ -546,6 +615,9 @@ class Div(Scalar):
     lhs: Scalar
     rhs: Scalar
 
+    def __call__(self, **assignments) -> Decimal:
+        return self.lhs(**assignments) / self.rhs(**assignments)
+
     def __str__(self):
         return f"({str(self.lhs)} / {str(self.rhs)})"
 
@@ -560,6 +632,9 @@ class Div(Scalar):
 class Min(Scalar):
     exprs: frozenset[Scalar]
 
+    def __call__(self, **assignments) -> Any:
+        return min(expr(**assignments) for expr in self.exprs)
+
     def children(self):
         return list(self.exprs)
 
@@ -573,6 +648,9 @@ class Min(Scalar):
 @dataclass(frozen=True, repr=False)
 class Max(Scalar):
     exprs: frozenset[Scalar]
+
+    def __call__(self, **assignments) -> Any:
+        return max(expr(**assignments) for expr in self.exprs)
 
     def children(self):
         return list(self.exprs)

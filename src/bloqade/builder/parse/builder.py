@@ -6,7 +6,7 @@ from bloqade.builder.spatial import SpatialModulation, Location, Uniform, Var, S
 from bloqade.builder.waveform import WaveformPrimitive, Slice, Record, Sample, Fn
 from bloqade.builder.assign import Assign, BatchAssign
 from bloqade.builder.flatten import Flatten
-from bloqade.builder.parallelize import Parallelize, ParallelizeFlatten
+from bloqade.builder.parallelize import Parallelize
 from bloqade.builder.parse.stream import BuilderNode, BuilderStream
 
 import bloqade.ir as ir
@@ -66,37 +66,39 @@ class Parser:
         curr = head
         waveform = None
         while curr is not None:
-            match curr.node:
-                case Slice(start, stop, _):
-                    waveform = waveform[start:stop]
-                case Record(name, _):
-                    waveform = waveform.record(name)
-                case Sample(dt, interpolation, Fn() as fn_node):
-                    if interpolation is None:
-                        if self.field_name == ir.rabi.phase:
-                            interpolation = ir.Interpolation.Constant
-                        else:
-                            interpolation = ir.Interpolation.Linear
+            node = curr.node
 
-                    sample_waveform = ir.Sample(
-                        fn_node.__bloqade_ir__(), interpolation, dt
-                    )
-                    if waveform is None:
-                        waveform = sample_waveform
+            if isinstance(node, Slice):
+                waveform = waveform[node._start : node._stop]
+            elif isinstance(node, Record):
+                waveform = waveform.record(node._name)
+            elif isinstance(node, Sample):
+                interpolation = node._interpolation
+                if interpolation is None:
+                    if self.field_name == ir.rabi.phase:
+                        interpolation = ir.Interpolation.Constant
                     else:
-                        waveform = waveform.append(sample_waveform)
+                        interpolation = ir.Interpolation.Linear
+                fn_waveform = node.__parent__.__bloqade_ir__()
+                sample_waveform = ir.Sample(fn_waveform, interpolation, node._dt)
+                if waveform is None:
+                    waveform = sample_waveform
+                else:
+                    waveform = waveform.append(sample_waveform)
+            elif (
+                isinstance(node, Fn)
+                and curr.next is not None
+                and isinstance(curr.next.node, Sample)
+            ):
+                pass
+            elif isinstance(node, WaveformPrimitive):
+                if waveform is None:
+                    waveform = node.__bloqade_ir__()
+                else:
+                    waveform = waveform.append(node.__bloqade_ir__())
+            else:
+                break
 
-                case Fn() if curr.next is not None and isinstance(
-                    curr.next.node, Sample
-                ):  # skip this for the sample node above
-                    pass
-                case WaveformPrimitive() as wf:
-                    if waveform is None:
-                        waveform = wf.__bloqade_ir__()
-                    else:
-                        waveform = waveform.append(wf.__bloqade_ir__())
-                case _:
-                    break
             curr = curr.next
 
         return waveform, curr
@@ -109,18 +111,22 @@ class Parser:
         scaled_locations = ir.ScaledLocations({})
 
         while curr is not None:
-            match curr.node:
-                case Location(label, _):
-                    scaled_locations[ir.Location(label)] = 1.0
-                case Scale(value, Location(label, _)):
-                    scaled_locations[ir.Location(label)] = ir.cast(value)
-                case Uniform(_):
-                    spatial_modulation = ir.Uniform
-                case Var(name, _):
-                    spatial_modulation = ir.RunTimeVector(name)
-                    self.vector_node_names.add(name)
-                case _:
-                    break
+            node = curr.node
+
+            if isinstance(node, Location):
+                scaled_locations[ir.Location(node._label)] = 1.0
+            elif isinstance(node, Scale):
+                scaled_locations[ir.Location(node.__parent__._label)] = ir.cast(
+                    node._value
+                )
+            elif isinstance(node, Uniform):
+                spatial_modulation = ir.Uniform
+            elif isinstance(node, Var):
+                spatial_modulation = ir.RunTimeVector(node._name)
+                self.vector_node_names.add(node._name)
+            else:
+                break
+
             curr = curr.next
 
         if scaled_locations:
@@ -181,53 +187,54 @@ class Parser:
             BatchAssign,
             Flatten,
             Parallelize,
-            ParallelizeFlatten,
         )
 
         stream = self.stream.copy()
         curr = stream.read_next(pragma_types)
 
         while curr is not None:
-            match curr.node:
-                case Assign(static_params):
-                    self.static_params = {
-                        name: value for name, value in static_params.items()
-                    }
+            node = curr.node
 
-                case BatchAssign(batch_param):
-                    tuple_iterators = [
-                        zip(repeat(name), values)
-                        for name, values in batch_param.items()
-                    ]
-                    self.batch_params = list(map(dict, zip(*tuple_iterators)))
-                case Flatten(order):
-                    self.order = order
+            if isinstance(node, Assign):
+                self.static_params = dict(node._assignments)
+            elif isinstance(node, BatchAssign):
+                tuple_iterators = [
+                    zip(repeat(name), values)
+                    for name, values in node._assignments.items()
+                ]
+                self.batch_params = list(map(dict, zip(*tuple_iterators)))
+            elif isinstance(node, Flatten):
+                order = node._order
 
-                    seen = set()
-                    dup = []
-                    for x in order:
-                        if x not in seen:
-                            seen.add(x)
-                        else:
-                            dup.append(x)
+                seen = set()
+                dup = []
+                for x in order:
+                    if x not in seen:
+                        seen.add(x)
+                    else:
+                        dup.append(x)
 
-                    if dup:
-                        raise ValueError(f"Cannot flatten duplicate names {dup}.")
+                if dup:
+                    raise ValueError(f"Cannot flatten duplicate names {dup}.")
 
-                    order_names = set([*order])
-                    flattened_vector_names = order_names.intersection(
-                        self.vector_node_names
+                order_names = set([*order])
+                flattened_vector_names = order_names.intersection(
+                    self.vector_node_names
+                )
+
+                if flattened_vector_names:
+                    raise ValueError(
+                        f"Cannot flatten RunTimeVectors: {flattened_vector_names}."
                     )
 
-                    if flattened_vector_names:
-                        raise ValueError(
-                            f"Cannot flatten RunTimeVectors: {flattened_vector_names}."
-                        )
+                self.order = order
 
-                case Parallelize(cluster_spacing) | ParallelizeFlatten(cluster_spacing):
-                    self.register = ir.ParallelRegister(self.register, cluster_spacing)
-                case _:
-                    break
+            elif isinstance(node, Parallelize):
+                self.register = ir.ParallelRegister(
+                    self.register, node._cluster_spacing
+                )
+            else:
+                break
 
             curr = curr.next
 

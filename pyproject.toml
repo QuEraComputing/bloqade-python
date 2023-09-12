@@ -6,19 +6,18 @@ authors = [
     {name = "QuEra Computing Inc.", email = "info@quera.com"},
 ]
 dependencies = [
-    "juliacall>=0.9.12",
-    "numpy>=1.24.2",
-    "pydantic>=1.10.7",
-    "pandas>=2.0.1",
-    "seaborn>=0.12.2",
-    "bokeh>=3.1.1",
+    "juliacall>=0.9.14",
+    "numpy>=1.25.2",
+    "pydantic>=1.10.12",
+    "scipy>=1.9.3",
+    "pandas>=2.1.0",
+    "bokeh>=3.2.2",
     "tabulate>=0.9.0",
     "requests-sigv4>=0.1.6",
-    "amazon-braket-sdk>=1.41.0",
-    "tqdm>=4.65.0",
+    "amazon-braket-sdk>=1.55.0",
     "plotext>=5.2.8",
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.9"
 readme = "README.md"
 license = {text = "MIT"}
 [project.optional-dependencies]
@@ -64,8 +63,8 @@ exclude = [
     "venv",
 ]
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
-# Assume Python 3.10.
-target-version = "py310"
+# Assume Python 3.9.
+target-version = "py39"
 
 [tool.pdm]
 [tool.pdm.dev-dependencies]

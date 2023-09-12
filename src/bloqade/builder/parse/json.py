@@ -13,7 +13,6 @@ from bloqade.builder.waveform import (
     Linear,
     Constant,
     Poly,
-    Fn,
     Apply,
     Slice,
     Record,
@@ -23,207 +22,102 @@ from bloqade.builder.waveform import (
 )
 from bloqade.builder.field import Detuning, Rabi, RabiAmplitude, RabiPhase
 from bloqade.builder.coupling import Rydberg, Hyperfine
-from bloqade.builder.parallelize import Parallelize, ParallelizeFlatten
+from bloqade.builder.parallelize import Parallelize
 from bloqade.builder.assign import Assign, BatchAssign
 from bloqade.builder.flatten import Flatten
 
 
 class BuilderSerializer(BloqadeIRSerializer):
-    def default(self, obj):
-        def camel_to_snake(name: str) -> str:
-            return "".join("_" + c.lower() if c.isupper() else c for c in name).lstrip(
-                "_"
-            )
+    types = set(
+        [
+            ProgramStart,
+            SequenceBuilder,
+            BloqadeDeviceRoute,
+            BloqadeService,
+            BraketDeviceRoute,
+            BraketService,
+            QuEraDeviceRoute,
+            QuEraService,
+            Location,
+            Scale,
+            Var,
+            Uniform,
+            Linear,
+            Constant,
+            Poly,
+            Apply,
+            Slice,
+            Record,
+            Sample,
+            PiecewiseLinear,
+            PiecewiseConstant,
+            Detuning,
+            Rabi,
+            RabiAmplitude,
+            RabiPhase,
+            Rydberg,
+            Hyperfine,
+            Parallelize,
+            Assign,
+            BatchAssign,
+            Flatten,
+        ]
+    )
 
+    def default(self, obj):
         if isinstance(obj, ProgramStart) and type(obj) is ProgramStart:
             return "program_start"
 
-        match obj:
-            case BraketDeviceRoute(parent) | QuEraDeviceRoute(
-                parent
-            ) | BloqadeDeviceRoute(parent) | BraketService(parent) | QuEraService(
-                parent
-            ) | BloqadeService(
-                parent
-            ):
-                return {camel_to_snake(obj.__class__.__name__): {"parent": parent}}
-            case Parallelize(cluster_spacing, parent):
-                return {
-                    "parallelize": {"cluster_spacing": cluster_spacing},
-                    "parent": parent,
+        if type(obj) in self.types:
+            return {
+                type(obj).__name__: {
+                    arg: getattr(obj, arg) for arg in obj.__match_args__
                 }
-            case ParallelizeFlatten(cluster_spacing, parent):
-                return {
-                    "parallelize_flatten": {"cluster_spacing": cluster_spacing},
-                    "parent": parent,
-                }
-            case SequenceBuilder(sequence, parent):
-                return {
-                    "sequence_builder": {
-                        "sequence": self.default(sequence),
-                        "parent": self.default(parent),
-                    }
-                }
-            case Assign(assignments, parent) | BatchAssign(assignments, parent):
-                return {
-                    camel_to_snake(obj.__class__.__name__): {
-                        "assignments": assignments,
-                        "parent": parent,
-                    }
-                }
-            case Flatten(order, parent):
-                return {"flatten": {"order": order, "parent": parent}}
-            case Constant(value, duration, parent):
-                return {
-                    "constant": {
-                        "value": value,
-                        "duration": duration,
-                        "parent": parent,
-                    }
-                }
-            case Linear(start, stop, duration, parent):
-                return {
-                    "linear": {
-                        "start": start,
-                        "stop": stop,
-                        "duration": duration,
-                        "parent": parent,
-                    }
-                }
-            case Poly(coeffs, duration, parent):
-                return {
-                    "poly": {
-                        "coeffs": coeffs,
-                        "duration": duration,
-                        "parent": parent,
-                    }
-                }
-            case Fn():
-                raise ValueError(
-                    "Bloqade does not support serialization of Python code."
-                )
-            case Apply(wf, parent):
-                return {"apply": {"wf": wf, "parent": parent}}
-            case Slice(start, stop, parent):
-                return {
-                    "slice": {
-                        "start": start,
-                        "stop": stop,
-                        "parent": parent,
-                    }
-                }
-            case Record(name, parent):
-                return {
-                    "record": {
-                        "name": name,
-                        "parent": parent,
-                    }
-                }
-            case Sample(dt, interpolation, parent):
-                return {
-                    "sample": {
-                        "dt": dt,
-                        "interpolation": interpolation,
-                        "parent": parent,
-                    }
-                }
-            case PiecewiseLinear(durations, values, parent):
-                return {
-                    "piecewise_linear": {
-                        "durations": durations,
-                        "values": values,
-                        "parent": parent,
-                    }
-                }
-            case PiecewiseConstant(durations, values, parent):
-                return {
-                    "piecewise_constant": {
-                        "durations": durations,
-                        "values": values,
-                        "parent": parent,
-                    }
-                }
-            case Location(label, parent):
-                return {
-                    "location": {
-                        "label": label,
-                        "parent": parent,
-                    }
-                }
-            case Scale(value, parent):
-                return {
-                    "scale": {
-                        "value": value,
-                        "parent": parent,
-                    }
-                }
-            case Var(name, parent):
-                return {"Var": {"name": name, "parent": parent}}
-            case Uniform(parent):
-                return {"uniform": {"parent": parent}}
-            case Detuning(parent) | RabiAmplitude(parent) | RabiPhase(parent) | Rabi(
-                parent
-            ) | Hyperfine(parent) | Rydberg(parent) | BraketDeviceRoute(
-                parent
-            ) | QuEraDeviceRoute(
-                parent
-            ) | BloqadeDeviceRoute(
-                parent
-            ) | BraketService(
-                parent
-            ) | QuEraService(
-                parent
-            ) | BloqadeService(
-                parent
-            ):
-                return {camel_to_snake(obj.__class__.__name__): {"parent": parent}}
-            case _:
-                return super().default(obj)
+            }
 
 
 class BuilderDeserializer(BloqadeIRDeserializer):
     methods: Dict[str, Type] = {
-        "rydberg": Rydberg,
-        "hyperfine": Hyperfine,
-        "detuning": Detuning,
-        "rabi": Rabi,
-        "rabi_amplitude": RabiAmplitude,
-        "rabi_phase": RabiPhase,
-        "var": Var,
-        "scale": Scale,
-        "location": Location,
-        "uniform": Uniform,
-        "piecewise_constant": PiecewiseConstant,
-        "piecewise_linear": PiecewiseLinear,
-        "sample": Sample,
-        "record": Record,
-        "slice": Slice,
-        "apply": Apply,
-        "poly": Poly,
-        "linear": Linear,
-        "constant": Constant,
-        "flatten": Flatten,
-        "parallelize": Parallelize,
-        "parallelize_flatten": ParallelizeFlatten,
-        "sequence_builder": SequenceBuilder,
-        "assign": Assign,
-        "batch_assign": BatchAssign,
-        "bloqade_device_route": BloqadeDeviceRoute,
-        "bloqade_service": BloqadeService,
-        "braket_device_route": BraketDeviceRoute,
-        "braket_service": BraketService,
-        "quera_device_route": QuEraDeviceRoute,
-        "quera_service": QuEraService,
+        "ProgramStart": ProgramStart,
+        "SequenceBuilder": SequenceBuilder,
+        "BloqadeDeviceRoute": BloqadeDeviceRoute,
+        "BloqadeService": BloqadeService,
+        "BraketDeviceRoute": BraketDeviceRoute,
+        "BraketService": BraketService,
+        "QuEraDeviceRoute": QuEraDeviceRoute,
+        "QuEraService": QuEraService,
+        "Location": Location,
+        "Scale": Scale,
+        "Var": Var,
+        "Uniform": Uniform,
+        "Linear": Linear,
+        "Constant": Constant,
+        "Poly": Poly,
+        "Apply": Apply,
+        "Slice": Slice,
+        "Record": Record,
+        "Sample": Sample,
+        "PiecewiseLinear": PiecewiseLinear,
+        "PiecewiseConstant": PiecewiseConstant,
+        "Detuning": Detuning,
+        "Rabi": Rabi,
+        "RabiAmplitude": RabiAmplitude,
+        "RabiPhase": RabiPhase,
+        "Rydberg": Rydberg,
+        "Hyperfine": Hyperfine,
+        "Parallelize": Parallelize,
+        "Assign": Assign,
+        "BatchAssign": BatchAssign,
+        "Flatten": Flatten,
     }
 
     def object_hook(self, obj: Dict[str, Any]):
-        match obj:
-            case str("program_start"):
-                return ProgramStart(None)
-            case dict() if len(obj) == 1:
-                ((head, options),) = obj.items()
-                if head in self.methods:
-                    return self.methods[head](**options)
+        if isinstance(obj, dict) and len(obj) == 1:
+            ((head, options),) = obj.items()
+            if head in self.methods:
+                return self.methods[head](**options)
+        elif obj == "program_start":
+            return ProgramStart(None)
 
         return super().object_hook(obj)
 
