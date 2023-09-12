@@ -146,7 +146,7 @@ class Parser:
     def read_sequeence(self) -> ir.Sequence:
         if isinstance(self.stream.curr.node, SequenceBuilder):
             # case with sequence builder object.
-            self.sequence = self.stream.read().node.sequence
+            self.sequence = self.stream.read().node._sequence
             return self.sequence
 
         stream = self.stream.copy()

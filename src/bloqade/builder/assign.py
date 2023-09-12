@@ -21,6 +21,9 @@ def cast_scalar_param(value: ParamType, name: str) -> Decimal:
 
 
 def cast_vector_param(value: List[ParamType], name: str) -> List[Decimal]:
+    if isinstance(value, np.ndarray):
+        value = value.tolist()
+
     if isinstance(value, (list, tuple)):
         return list(starmap(cast_scalar_param, zip(value, repeat(name))))
 
@@ -31,6 +34,9 @@ def cast_vector_param(value: List[ParamType], name: str) -> List[Decimal]:
 
 
 def cast_batch_scalar_param(value: List[ParamType], name: str) -> List[Decimal]:
+    if isinstance(value, np.ndarray):
+        value = value.tolist()
+
     if isinstance(value, (list, tuple)):
         return list(starmap(cast_scalar_param, zip(value, repeat(name))))
 
