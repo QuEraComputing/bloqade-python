@@ -1,7 +1,8 @@
 from collections import OrderedDict
 from dataclasses import dataclass
-from typing import Optional, Tuple
-from numbers import Real
+from beartype import beartype
+from beartype.typing import Optional, Tuple
+from bloqade.builder.typing import LiteralType
 
 from bloqade.ir.routine.base import RoutineBase
 from bloqade.submission.braket import BraketBackend
@@ -26,10 +27,10 @@ class BraketServiceOptions(RoutineBase):
 class BraketHardwareRoutine(RoutineBase):
     backend: BraketBackend
 
-    def compile(
+    def _compile(
         self,
         shots: int,
-        args: Tuple[Real, ...] = (),
+        args: Tuple[LiteralType, ...] = (),
         name: Optional[str] = None,
     ) -> RemoteBatch:
         """
@@ -79,10 +80,11 @@ class BraketHardwareRoutine(RoutineBase):
 
         return batch
 
+    @beartype
     def submit(
         self,
         shots: int,
-        args: Tuple[Real, ...] = (),
+        args: Tuple[LiteralType, ...] = (),
         name: Optional[str] = None,
         shuffle: bool = False,
         **kwargs,
@@ -105,14 +107,15 @@ class BraketHardwareRoutine(RoutineBase):
 
         """
 
-        batch = self.compile(shots, args, name)
+        batch = self._compile(shots, args, name)
         batch._submit(shuffle, **kwargs)
         return batch
 
+    @beartype
     def run(
         self,
         shots: int,
-        args: Tuple[Real, ...] = (),
+        args: Tuple[LiteralType, ...] = (),
         name: Optional[str] = None,
         shuffle: bool = False,
         **kwargs,
@@ -141,9 +144,10 @@ class BraketHardwareRoutine(RoutineBase):
         batch.pull()
         return batch
 
+    @beartype
     def __call__(
         self,
-        *args: Tuple[Real, ...],
+        *args: Tuple[LiteralType, ...],
         shots: int = 1,
         name: Optional[str] = None,
         shuffle: bool = False,
@@ -173,8 +177,8 @@ class BraketHardwareRoutine(RoutineBase):
 
 @dataclass(frozen=True)
 class BraketLocalEmulatorRoutine(RoutineBase):
-    def compile(
-        self, shots: int, args: Tuple[Real, ...] = (), name: Optional[str] = None
+    def _compile(
+        self, shots: int, args: Tuple[LiteralType, ...] = (), name: Optional[str] = None
     ) -> LocalBatch:
         """
         Compile to a LocalBatch, which contain tasks to run on local emulator.
@@ -223,10 +227,11 @@ class BraketLocalEmulatorRoutine(RoutineBase):
 
         return batch
 
+    @beartype
     def run(
         self,
         shots: int,
-        args: Tuple[Real, ...] = (),
+        args: Tuple[LiteralType, ...] = (),
         name: Optional[str] = None,
         multiprocessing: bool = False,
         num_workers: Optional[int] = None,
@@ -251,6 +256,43 @@ class BraketLocalEmulatorRoutine(RoutineBase):
 
         """
 
-        batch = self.compile(shots, args, name)
+        batch = self._compile(shots, args, name)
         batch._run(multiprocessing=multiprocessing, num_workers=num_workers, **kwargs)
         return batch
+
+    @beartype
+    def __call__(
+        self,
+        *args: Tuple[LiteralType, ...],
+        shots: int = 1,
+        name: Optional[str] = None,
+        multiprocessing: bool = False,
+        num_workers: Optional[int] = None,
+        **kwargs,
+    ):
+        """
+        Compile to a LocalBatch, and run.
+        The LocalBatch contain tasks to run on local emulator.
+
+        Note:
+            This is sync, and will wait until remote results
+            finished.
+
+        Args:
+            shots (int): number of shots
+            args: additional arguments for flatten variables.
+            multiprocessing (bool): enable multi-process
+            num_workers (int): number of workers to run the emulator
+
+        Return:
+            LocalBatch
+
+        """
+        return self.run(
+            shots,
+            args,
+            name,
+            multiprocessing=multiprocessing,
+            num_workers=num_workers,
+            **kwargs,
+        )

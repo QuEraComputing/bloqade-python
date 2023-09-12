@@ -123,6 +123,7 @@ class BloqadePythonRoutine(RoutineBase):
 
         return batch
 
+    @beartype
     def __call__(
         self,
         *args: LiteralType,
