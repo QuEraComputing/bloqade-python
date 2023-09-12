@@ -1,28 +1,30 @@
-from typing import Union
-from decimal import Decimal
-from numbers import Real
 from pydantic.dataclasses import dataclass
 from dataclasses import fields
-from typing import List, Tuple, Generator, Optional, Any
 import numpy as np
 import itertools
 from numpy.typing import NDArray
 from bloqade.ir.location.base import AtomArrangement, LocationInfo
+from bloqade.ir.location.transform import TransformTrait
 from dataclasses import InitVar
 from bloqade.ir import Literal, Scalar, cast
+
+from bloqade.builder.typing import ScalarType
+from beartype.typing import List, Tuple, Generator, Optional, Any
+from beartype import beartype
 
 import plotext as pltxt
 import sys
 
 
 class Cell:
+    @beartype
     def __init__(self, natoms: int, ndims: int) -> None:
         self.natoms = natoms
         self.ndims = ndims
 
 
 @dataclass
-class BoundedBravais(AtomArrangement):
+class BoundedBravais(AtomArrangement, TransformTrait):
     __match_args__ = ("shape", "lattice_spacing")
     """Base classe for Bravais lattices
     [`AtomArrangement`][bloqade.ir.location.base.AtomArrangement].
@@ -41,7 +43,8 @@ class BoundedBravais(AtomArrangement):
     shape: Tuple[int, ...]
     lattice_spacing: Scalar
 
-    def __init__(self, *shape: int, lattice_spacing: Any = 1.0):
+    @beartype
+    def __init__(self, *shape: int, lattice_spacing: ScalarType = 1.0):
         super().__init__()
         self.shape = shape
         self.lattice_spacing = cast(lattice_spacing)
@@ -66,7 +69,7 @@ class BoundedBravais(AtomArrangement):
         xs, ys = [], []
 
         for index in itertools.product(*[range(n) for n in self.shape]):
-            for pos in self.coordinates(index):
+            for pos in self.coordinates(list(index)):
                 (x, y) = tuple(repr_lattice_spacing * pos)
                 xs.append(x)
                 ys.append(y)
@@ -117,6 +120,7 @@ class BoundedBravais(AtomArrangement):
             self.__n_dims = len(self.cell_vectors())
         return self.__n_dims
 
+    @beartype
     def coordinates(self, index: List[int]) -> NDArray:
         """calculate the coordinates of a cell in the lattice
         given the cell index.
@@ -129,17 +133,18 @@ class BoundedBravais(AtomArrangement):
 
     def enumerate(self) -> Generator[LocationInfo, None, None]:
         for index in itertools.product(*[range(n) for n in self.shape]):
-            for pos in self.coordinates(index):
+            for pos in self.coordinates(list(index)):
                 position = tuple(self.lattice_spacing * pos)
                 yield LocationInfo(position, True)
 
     def __iter__(self):
         for index in itertools.product(*[range(n) for n in self.shape]):
-            for pos in self.coordinates(index):
+            for pos in self.coordinates(list(index)):
                 position = tuple(self.lattice_spacing * pos)
                 yield LocationInfo(position, True)
 
-    def scale(self, factor: Union[str, Real, Decimal, Scalar]) -> "BoundedBravais":
+    @beartype
+    def scale(self, factor: ScalarType) -> "BoundedBravais":
         """Scale the current location with a factor.
 
         (x,y) -> factor*(x,y)
@@ -181,7 +186,8 @@ class Chain(BoundedBravais):
 
     """
 
-    def __init__(self, L: int, lattice_spacing: Any = 1.0):
+    @beartype
+    def __init__(self, L: int, lattice_spacing: ScalarType = 1.0):
         super().__init__(L, lattice_spacing=lattice_spacing)
 
     def __repr__(self):
@@ -216,7 +222,8 @@ class Square(BoundedBravais):
 
     """
 
-    def __init__(self, L: int, lattice_spacing: Any = 1.0):
+    @beartype
+    def __init__(self, L: int, lattice_spacing: ScalarType = 1.0):
         super().__init__(L, L, lattice_spacing=lattice_spacing)
 
     def __repr__(self):
@@ -261,12 +268,13 @@ class Rectangular(BoundedBravais):
     lattice_spacing_x: InitVar[Any]
     lattice_spacing_y: InitVar[Any]
 
+    @beartype
     def __init__(
         self,
         width: int,
         height: int,
-        lattice_spacing_x: Any = 1.0,
-        lattice_spacing_y: Optional[Any] = None,
+        lattice_spacing_x: ScalarType = 1.0,
+        lattice_spacing_y: Optional[ScalarType] = None,
     ):
         super().__init__(width, height, lattice_spacing=lattice_spacing_x)
 
@@ -360,7 +368,8 @@ class Honeycomb(BoundedBravais):
 
     """
 
-    def __init__(self, L: int, lattice_spacing: Any = 1.0):
+    @beartype
+    def __init__(self, L: int, lattice_spacing: ScalarType = 1.0):
         super().__init__(L, L, lattice_spacing=lattice_spacing)
 
     def __repr__(self):
@@ -397,7 +406,8 @@ class Triangular(BoundedBravais):
 
     """
 
-    def __init__(self, L: int, lattice_spacing: Any = 1.0):
+    @beartype
+    def __init__(self, L: int, lattice_spacing: ScalarType = 1.0):
         super().__init__(L, L, lattice_spacing=lattice_spacing)
 
     def __repr__(self):
@@ -435,7 +445,8 @@ class Lieb(BoundedBravais):
 
     """
 
-    def __init__(self, L: int, lattice_spacing: Any = 1.0):
+    @beartype
+    def __init__(self, L: int, lattice_spacing: ScalarType = 1.0):
         super().__init__(L, L, lattice_spacing=lattice_spacing)
 
     def __repr__(self):
@@ -473,7 +484,8 @@ class Kagome(BoundedBravais):
 
     """
 
-    def __init__(self, L: int, lattice_spacing: Any = 1.0):
+    @beartype
+    def __init__(self, L: int, lattice_spacing: ScalarType = 1.0):
         super().__init__(L, L, lattice_spacing=lattice_spacing)
 
     def __repr__(self):
