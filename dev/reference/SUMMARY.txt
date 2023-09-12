@@ -43,6 +43,7 @@
             * [quera_task_result](bloqade/ir/location/quera_task_result.md)
         * [routine](bloqade/ir/routine/index.md)
             * [base](bloqade/ir/routine/base.md)
+            * [bloqade](bloqade/ir/routine/bloqade.md)
             * [braket](bloqade/ir/routine/braket.md)
             * [params](bloqade/ir/routine/params.md)
             * [quera](bloqade/ir/routine/quera.md)
