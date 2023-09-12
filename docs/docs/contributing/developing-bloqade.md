@@ -50,7 +50,7 @@ pdm run coverage
 will print out the coverage file level report in terminal.
 
 ```bash
-pdm run coverage
+pdm run coverage-html
 ```
 
 This command generates an interactive html report in `htmlcov` folder.
