@@ -4,9 +4,13 @@ from bloqade.emulate.sparse_operator import IndexMapping
 from scipy.sparse import csr_matrix
 from dataclasses import dataclass, field
 from numpy.typing import NDArray
-from typing import List, Callable, Union, Optional
+from beartype.typing import List, Callable, Union, Optional
+from beartype.vale import IsAttr, IsEqual
+from typing import Annotated
+from beartype import beartype
 import numpy as np
 from scipy.integrate import ode
+
 
 SparseOperator = Union[IndexMapping, csr_matrix]
 
@@ -88,6 +92,11 @@ class RydbergHamiltonian:
         )
 
 
+RealArray = Annotated[NDArray[np.floating], IsAttr["ndim", IsEqual[1]]]
+Complexarray = Annotated[NDArray[np.complexfloating], IsAttr["ndim", IsEqual[1]]]
+StateArray = Union[RealArray, Complexarray]
+
+
 @dataclass(frozen=True)
 class AnalogGate:
     SUPPORTED_SOLVERS = ["lsoda", "dop853", "dopri5"]
@@ -148,14 +157,15 @@ class AnalogGate:
         elif solver_name in ["dop853", "dopri5"]:
             AnalogGate._error_check_dop(status_code)
 
+    @beartype
     def apply(
         self,
-        state: NDArray,
+        state: StateArray,
         solver_name: str = "dop853",
         atol: float = 1e-7,
         rtol: float = 1e-14,
         nsteps: int = 2_147_483_647,
-        times: List[float] = [],
+        times: Union[List[float], RealArray] = [],
     ):
         if state is None:
             state = self.hamiltonian.space.zero_state()
@@ -181,6 +191,7 @@ class AnalogGate:
             u = np.exp(-1j * time * self.hamiltonian.rydberg)
             yield u * solver.y.view(np.complex128)
 
+    @beartype
     def run(
         self,
         shots: int = 1,
