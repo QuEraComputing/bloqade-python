@@ -6,7 +6,7 @@ from bloqade.ir.control.waveform import (
     PythonFn,
     Sample,
 )
-from bloqade.ir.visitor.analog_circuit import AnalogCircuitVisitor
+from bloqade.ir.visitor.analog_circuit import AnalogCircuitVisitorV2
 from bloqade.ir.visitor.waveform import WaveformVisitor
 from bloqade.ir.analog_circuit import AnalogCircuit
 import bloqade.ir.control.sequence as sequence
@@ -72,7 +72,7 @@ class AssignmentScanRecord(WaveformVisitor):
         return self.assignments
 
 
-class AssignmentScan(AnalogCircuitVisitor):
+class AssignmentScan(AnalogCircuitVisitorV2):
     def __init__(self, assignments: Dict[str, numbers.Real] = {}):
         self.assignments = dict(assignments)
         self.waveform_visitor = AssignmentScanRecord(self.assignments)
@@ -80,36 +80,32 @@ class AssignmentScan(AnalogCircuitVisitor):
     def visit_analog_circuit(self, ast: AnalogCircuit) -> Any:
         self.visit(ast.sequence)
 
-    def visit_sequence(self, ast: sequence.SequenceExpr):
-        match ast:
-            case sequence.Sequence(pulses):
-                list(map(self.visit, pulses.values()))
-            case sequence.Append(sequences):
-                list(map(self.visit, sequences))
-            case sequence.Slice(sub_sequence, _):
-                self.visit(sub_sequence)
-            case sequence.NamedSequence(sub_sequence, _):
-                self.visit(sub_sequence)
+    def visit_sequence(self, ast: sequence.Sequence):
+        list(map(self.visit, ast.pulses.values()))
 
-    def visit_pulse(self, ast: pulse.PulseExpr):
-        match ast:
-            case pulse.Pulse(fields):
-                list(map(self.visit, fields.values()))
-            case pulse.Append(pulses):
-                list(map(self.visit, pulses))
-            case pulse.Slice(sub_pulse, _):
-                self.visit(sub_pulse)
-            case pulse.NamedPulse(_, sub_pulse):
-                self.visit(sub_pulse)
+    def visit_named_sequence(self, ast: sequence.NamedSequence):
+        self.visit(ast.sequence)
+
+    def visit_append_sequence(self, ast: sequence.Append):
+        list(map(self.visit, ast.value))
+
+    def visit_slice_sequence(self, ast: sequence.Slice):
+        self.visit(ast.sequence)
+
+    def visit_pulse(self, ast: pulse.Pulse):
+        list(map(self.visit, ast.fields.values()))
+
+    def visit_named_pulse(self, ast: pulse.NamedPulse) -> Any:
+        self.visit(ast.pulse)
+
+    def visit_append_pulse(self, ast: pulse.Append) -> Any:
+        list(map(self.visit, ast.value))
+
+    def visit_slice_pulse(self, ast: pulse.Slice) -> Any:
+        self.visit(ast.pulse)
 
     def visit_field(self, ast: field.Field):
-        match ast:
-            case field.Field(terms):
-                list(map(self.visit, terms.values()))
-                list(map(self.visit, terms.keys()))
-
-    def visit_spatial_modulation(self, ast: field.SpatialModulation):
-        pass
+        list(map(self.visit, ast.value.values()))
 
     def visit_waveform(self, ast: waveform.Waveform):
         self.assignments.update(self.waveform_visitor.emit(ast))

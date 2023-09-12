@@ -1,19 +1,17 @@
 from bloqade.codegen.common.assignment_scan import AssignmentScan
 from bloqade.ir.location.base import AtomArrangement, SiteFilling
-from bloqade.ir.visitor.analog_circuit import AnalogCircuitVisitor
+from bloqade.ir.visitor.analog_circuit import AnalogCircuitVisitorV2
 from bloqade.ir.visitor.waveform import WaveformVisitor
 from bloqade.ir.control.field import (
     AssignedRunTimeVector,
     Field,
     ScaledLocations,
-    SpatialModulation,
     RunTimeVector,
     UniformModulation,
 )
 import bloqade.ir.control.sequence as sequence
 import bloqade.ir.control.pulse as pulse
 import bloqade.ir.control.waveform as waveform
-import bloqade.ir.control.field as field
 import bloqade.ir as ir
 
 from bloqade.emulate.ir.atom_type import ThreeLevelAtom, TwoLevelAtom
@@ -46,7 +44,7 @@ class WaveformCompiler(WaveformVisitor):
         return CompiledWaveform(self.assignments, ast)
 
 
-class EmulatorProgramCodeGen(AnalogCircuitVisitor):
+class EmulatorProgramCodeGen(AnalogCircuitVisitorV2):
     def __init__(
         self, assignments: Dict[str, Number] = {}, blockade_radius: Real = 0.0
     ):
@@ -80,53 +78,73 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
                 TwoLevelAtom, positions, blockade_radius=self.blockade_radius
             )
 
-    def visit_sequence(self, ast: sequence.SequenceExpr):
+    def visit_sequence(self, ast: sequence.Sequence) -> None:
         level_coupling_mapping = {
             sequence.hyperfine: LevelCoupling.Hyperfine,
             sequence.rydberg: LevelCoupling.Rydberg,
         }
-        match ast:
-            case sequence.Sequence(pulses):
-                for level_coupling, sub_pulse in pulses.items():
-                    self.level_couplings.add(level_coupling)
-                    self.visit(sub_pulse)
-                    self.pulses[level_coupling_mapping[level_coupling]] = Fields(
-                        detuning=self.detuning_terms,
-                        rabi=self.rabi_terms,
-                    )
+        for level_coupling, sub_pulse in ast.pulses.items():
+            self.level_couplings.add(level_coupling)
+            self.visit(sub_pulse)
+            self.pulses[level_coupling_mapping[level_coupling]] = Fields(
+                detuning=self.detuning_terms,
+                rabi=self.rabi_terms,
+            )
 
-            case sequence.NamedSequence(sub_sequence, _):
-                self.visit(sub_sequence)
+    def visit_named_sequence(self, ast: sequence.NamedSequence) -> None:
+        self.vicit(ast.sequence)
 
-            case _:
-                raise NotImplementedError
+    def visit_slice_sequence(self, ast: sequence.Slice) -> None:
+        raise NotImplementedError("Slice sequences are not supported by the emulator.")
 
-    def visit_spatial_modulation(self, ast: SpatialModulation) -> Dict[int, float]:
-        match ast:
-            case UniformModulation():
-                return {atom: Decimal("1.0") for atom in range(self.n_atoms)}
-            case RunTimeVector(name):
-                if len(self.assignments[name]) != self.n_atoms:
-                    raise ValueError(
-                        f"Invalid number of atoms in '{name}' "
-                        f"({len(self.assignments[name])} != {self.n_atoms})"
-                    )
-                return {
-                    atom: Decimal(str(coeff))
-                    for atom, coeff in enumerate(self.assignments[name])
-                }
-            case AssignedRunTimeVector(value=value, name=name):
-                if len(value) != self.n_atoms:
-                    raise ValueError(
-                        f"Invalid number of atoms in '{name}' "
-                        f"({len(value)} != {self.n_atoms})"
-                    )
-                return {atom: Decimal(str(coeff)) for atom, coeff in enumerate(value)}
-            case ScaledLocations(locations):
-                return {
-                    loc.value: coeff(**self.assignments)
-                    for loc, coeff in locations.items()
-                }
+    def visit_append_sequence(self, ast: sequence.Append) -> None:
+        raise NotImplementedError("Append sequences are not supported by the emulator.")
+
+    def visit_pulse(self, ast: pulse.Pulse) -> None:
+        detuning = ast.fields.get(pulse.detuning)
+        amplitude = ast.fields.get(pulse.rabi.amplitude)
+        phase = ast.fields.get(pulse.rabi.phase)
+
+        self.detuning_terms = self.visit_detuning(detuning)
+        self.rabi_terms = self.visit_rabi(amplitude, phase)
+
+    def visit_named_pulse(self, ast: pulse.NamedPulse) -> Any:
+        self.visit(ast.pulse)
+
+    def visit_slice_pulse(self, ast: pulse.Slice) -> Any:
+        raise NotImplementedError("Slice pulses are not supported by the emulator.")
+
+    def visit_append_pulse(self, ast: pulse.Append) -> Any:
+        raise NotImplementedError("Append pulses are not supported by the emulator.")
+
+    def visit_uniform_modulation(self, ast: UniformModulation) -> Dict[int, Decimal]:
+        return {atom: Decimal("1.0") for atom in range(self.n_atoms)}
+
+    def visit_run_time_vector(self, ast: RunTimeVector) -> Dict[int, Decimal]:
+        if len(self.assignments[ast.name]) != self.n_atoms:
+            raise ValueError(
+                f"Invalid number of atoms in '{ast.name}' "
+                f"({len(self.assignments[ast.name])} != {self.n_atoms})"
+            )
+        return {
+            atom: Decimal(str(coeff))
+            for atom, coeff in enumerate(self.assignments[ast.name])
+        }
+
+    def visit_assigned_run_time_vector(
+        self, ast: AssignedRunTimeVector
+    ) -> Dict[int, Decimal]:
+        if len(ast.value) != self.n_atoms:
+            raise ValueError(
+                f"Invalid number of atoms in '{ast.name}' "
+                f"({len(ast.value)} != {self.n_atoms})"
+            )
+        return {atom: Decimal(str(coeff)) for atom, coeff in enumerate(ast.value)}
+
+    def visit_scaled_locations(self, ast: ScaledLocations) -> Dict[int, Decimal]:
+        return {
+            loc.value: coeff(**self.assignments) for loc, coeff in ast.locations.items()
+        }
 
     def visit_detuning(self, ast: Optional[Field]):
         if ast is None:
@@ -134,186 +152,157 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
 
         terms = []
 
-        match ast:
-            case Field(value) if len(value) < self.n_atoms:
-                for sm, wf in value.items():
-                    self.duration = max(
-                        float(wf.duration(**self.assignments)), self.duration
+        if len(ast.value) < self.n_atoms:
+            for sm, wf in ast.value.items():
+                self.duration = max(
+                    float(wf.duration(**self.assignments)), self.duration
+                )
+
+                terms.append(
+                    DetuningTerm(
+                        operator_data=DetuningOperatorData(target_atoms=self.visit(sm)),
+                        amplitude=self.waveform_compiler.emit(wf),
                     )
+                )
+        else:
+            target_atom_dict = {sm: self.visit(sm) for sm in ast.value.keys()}
 
-                    terms.append(
-                        DetuningTerm(
-                            operator_data=DetuningOperatorData(
-                                target_atoms=self.visit_spatial_modulation(sm)
-                            ),
-                            amplitude=self.waveform_compiler.emit(wf),
-                        )
-                    )
+            for atom in range(self.n_atoms):
+                wf = sum(
+                    (
+                        target_atom_dict[sm].get(atom, 0.0) * wf
+                        for sm, wf in ast.value.items()
+                    ),
+                    start=waveform.Constant(0.0, 0.0),
+                )
+                self.duration = max(
+                    float(wf.duration(**self.assignments)), self.duration
+                )
 
-            case Field(value):
-                target_atom_dict = {
-                    sm: self.visit_spatial_modulation(sm) for sm in value.keys()
-                }
-
-                for atom in range(self.n_atoms):
-                    wf = sum(
-                        (
-                            target_atom_dict[sm].get(atom, 0.0) * wf
-                            for sm, wf in value.items()
+                terms.append(
+                    DetuningTerm(
+                        operator_data=DetuningOperatorData(
+                            target_atoms={atom: Decimal("1.0")}
                         ),
-                        start=waveform.Constant(0.0, 0.0),
+                        amplitude=self.waveform_compiler.emit(wf),
                     )
-                    self.duration = max(
-                        float(wf.duration(**self.assignments)), self.duration
-                    )
-
-                    terms.append(
-                        DetuningTerm(
-                            operator_data=DetuningOperatorData(
-                                target_atoms={atom: Decimal("1.0")}
-                            ),
-                            amplitude=self.waveform_compiler.emit(wf),
-                        )
-                    )
+                )
 
         return terms
 
     def visit_rabi(self, amplitude: Optional[Field], phase: Optional[Field]):
         terms = []
 
-        match (amplitude, phase):
-            case (None, _):
-                return []
+        if amplitude is None:
+            return terms
 
-            case (Field(value), None) if len(value) < self.n_atoms:
-                for sm, wf in value.items():
-                    self.duration = max(
-                        float(wf.duration(**self.assignments)), self.duration
-                    )
-                    terms.append(
-                        RabiTerm(
-                            operator_data=RabiOperatorData(
-                                target_atoms=self.visit_spatial_modulation(sm),
-                                operator_type=RabiOperatorType.RabiSymmetric,
-                            ),
-                            amplitude=self.waveform_compiler.emit(wf),
-                        )
-                    )
-
-            case (Field(value), None):
-                terms = []
-                amplitude_target_atoms_dict = {
-                    sm: self.visit_spatial_modulation(sm)
-                    for sm in amplitude.value.keys()
-                }
-                for atom in range(self.n_atoms):
-                    amplitude_wf = sum(
-                        (
-                            amplitude_target_atoms_dict[sm].get(atom, 0.0) * wf
-                            for sm, wf in amplitude.value.items()
-                        ),
-                        start=waveform.Constant(0.0, 0.0),
-                    )
-
-                    self.duration = max(
-                        float(amplitude_wf.duration(**self.assignments)), self.duration
-                    )
-
-                    terms.append(
-                        RabiTerm(
-                            operator_data=RabiOperatorData(
-                                target_atoms={atom: Decimal("1.0")},
-                                operator_type=RabiOperatorType.RabiSymmetric,
-                            ),
-                            amplitude=self.waveform_compiler.emit(amplitude_wf),
-                        )
-                    )
-
-            case (
-                Field(value),
-                Field(value={field.Uniform: phase_waveform}),
-            ) if len(value) < self.n_atoms:
-                rabi_phase = self.waveform_compiler.emit(phase_waveform)
+        if phase is None and len(amplitude.value) < self.n_atoms:
+            for sm, wf in amplitude.value.items():
                 self.duration = max(
-                    float(phase_waveform.duration(**self.assignments)), self.duration
+                    float(wf.duration(**self.assignments)), self.duration
                 )
-                for sm, wf in value.items():
-                    self.duration = max(
-                        float(wf.duration(**self.assignments)), self.duration
-                    )
-                    terms.append(
-                        RabiTerm(
-                            operator_data=RabiOperatorData(
-                                target_atoms=self.visit_spatial_modulation(sm),
-                                operator_type=RabiOperatorType.RabiAsymmetric,
-                            ),
-                            amplitude=self.waveform_compiler.emit(wf),
-                            phase=rabi_phase,
-                        )
-                    )
-
-            case _:  # fully local fields
-                phase_target_atoms_dict = {
-                    sm: self.visit_spatial_modulation(sm) for sm in phase.value.keys()
-                }
-                amplitude_target_atoms_dict = {
-                    sm: self.visit_spatial_modulation(sm)
-                    for sm in amplitude.value.keys()
-                }
-
-                terms = []
-                for atom in range(self.n_atoms):
-                    phase_wf = sum(
-                        (
-                            phase_target_atoms_dict[sm].get(atom, 0.0) * wf
-                            for sm, wf in phase.value.items()
+                terms.append(
+                    RabiTerm(
+                        operator_data=RabiOperatorData(
+                            target_atoms=self.visit(sm),
+                            operator_type=RabiOperatorType.RabiSymmetric,
                         ),
-                        start=waveform.Constant(0.0, 0.0),
+                        amplitude=self.waveform_compiler.emit(wf),
                     )
-
-                    amplitude_wf = sum(
-                        (
-                            amplitude_target_atoms_dict[sm].get(atom, 0.0) * wf
-                            for sm, wf in amplitude.value.items()
+                )
+        elif (
+            len(phase.value) == 1
+            and UniformModulation() in phase.value
+            and len(amplitude.value) < self.n_atoms
+        ):
+            (phase_waveform,) = phase.value.values()
+            rabi_phase = self.waveform_compiler.emit(phase_waveform)
+            self.duration = max(
+                float(phase_waveform.duration(**self.assignments)), self.duration
+            )
+            for sm, wf in amplitude.value.items():
+                self.duration = max(
+                    float(wf.duration(**self.assignments)), self.duration
+                )
+                terms.append(
+                    RabiTerm(
+                        operator_data=RabiOperatorData(
+                            target_atoms=self.visit(sm),
+                            operator_type=RabiOperatorType.RabiAsymmetric,
                         ),
-                        start=waveform.Constant(0.0, 0.0),
+                        amplitude=self.waveform_compiler.emit(wf),
+                        phase=rabi_phase,
                     )
+                )
+        elif phase is None:  # fully local real rabi fields
+            amplitude_target_atoms_dict = {
+                sm: self.visit(sm) for sm in amplitude.value.keys()
+            }
+            for atom in range(self.n_atoms):
+                amplitude_wf = sum(
+                    (
+                        amplitude_target_atoms_dict[sm].get(atom, 0.0) * wf
+                        for sm, wf in amplitude.value.items()
+                    ),
+                    start=waveform.Constant(0.0, 0.0),
+                )
 
-                    self.duration = max(
-                        float(amplitude_wf.duration(**self.assignments)), self.duration
-                    )
-                    self.duration = max(
-                        float(phase_wf.duration(**self.assignments)), self.duration
-                    )
+                self.duration = max(
+                    float(amplitude_wf.duration(**self.assignments)), self.duration
+                )
 
-                    terms.append(
-                        RabiTerm(
-                            operator_data=RabiOperatorData(
-                                target_atoms={atom: 1},
-                                operator_type=RabiOperatorType.RabiAsymmetric,
-                            ),
-                            amplitude=self.waveform_compiler.emit(amplitude_wf),
-                            phase=self.waveform_compiler.emit(phase_wf),
-                        )
+                terms.append(
+                    RabiTerm(
+                        operator_data=RabiOperatorData(
+                            target_atoms={atom: Decimal("1.0")},
+                            operator_type=RabiOperatorType.RabiSymmetric,
+                        ),
+                        amplitude=self.waveform_compiler.emit(amplitude_wf),
                     )
+                )
+        else:
+            phase_target_atoms_dict = {sm: self.visit(sm) for sm in phase.value.keys()}
+            amplitude_target_atoms_dict = {
+                sm: self.visit(sm) for sm in amplitude.value.keys()
+            }
+
+            terms = []
+            for atom in range(self.n_atoms):
+                phase_wf = sum(
+                    (
+                        phase_target_atoms_dict[sm].get(atom, 0.0) * wf
+                        for sm, wf in phase.value.items()
+                    ),
+                    start=waveform.Constant(0.0, 0.0),
+                )
+
+                amplitude_wf = sum(
+                    (
+                        amplitude_target_atoms_dict[sm].get(atom, 0.0) * wf
+                        for sm, wf in amplitude.value.items()
+                    ),
+                    start=waveform.Constant(0.0, 0.0),
+                )
+
+                self.duration = max(
+                    float(amplitude_wf.duration(**self.assignments)), self.duration
+                )
+                self.duration = max(
+                    float(phase_wf.duration(**self.assignments)), self.duration
+                )
+
+                terms.append(
+                    RabiTerm(
+                        operator_data=RabiOperatorData(
+                            target_atoms={atom: 1},
+                            operator_type=RabiOperatorType.RabiAsymmetric,
+                        ),
+                        amplitude=self.waveform_compiler.emit(amplitude_wf),
+                        phase=self.waveform_compiler.emit(phase_wf),
+                    )
+                )
 
         return terms
-
-    def visit_pulse(self, ast: pulse.PulseExpr):
-        match ast:
-            case pulse.Pulse(fields):
-                detuning = fields.get(pulse.detuning)
-                amplitude = fields.get(pulse.rabi.amplitude)
-                phase = fields.get(pulse.rabi.phase)
-
-                self.detuning_terms = self.visit_detuning(detuning)
-                self.rabi_terms = self.visit_rabi(amplitude, phase)
-
-            case pulse.NamedPulse(sub_pulse, _):
-                self.visit(sub_pulse)
-
-            case _:
-                raise NotImplementedError
 
     def emit(self, circuit: ir.AnalogCircuit) -> EmulatorProgram:
         self.assignments = AssignmentScan(self.assignments).emit(circuit.sequence)

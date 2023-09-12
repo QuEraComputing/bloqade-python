@@ -134,29 +134,25 @@ class Space:
 
     def fock_state_to_index(self, fock_state: str) -> int:
         state_int = self.atom_type.string_to_integer(fock_state)
-        match self.space_type:
-            case SpaceType.FullSpace:
-                return state_int
-            case SpaceType.SubSpace:
-                index = np.searchsorted(self.configurations, state_int)
+        if self.space_type is SpaceType.FullSpace:
+            return state_int
+        else:
+            index = np.searchsorted(self.configurations, state_int)
 
-                if state_int != self.configurations[index]:
-                    raise ValueError(
-                        "state: {fock_state} not in rydberg blockade subspace."
-                    )
+            if state_int != self.configurations[index]:
+                raise ValueError(
+                    "state: {fock_state} not in rydberg blockade subspace."
+                )
 
-                return index
-            case _:  # TODO: fix error message
-                raise NotImplementedError
+            return index
 
     def index_to_fock_state(self, index: int) -> str:
-        match self.space_type:
-            case SpaceType.FullSpace:
-                return self.atom_type.integer_to_string(index, self.n_atoms)
-            case SpaceType.SubSpace:
-                return self.atom_type.integer_to_string(
-                    self.configurations[index], self.n_atoms
-                )
+        if self.space_type is SpaceType.FullSpace:
+            return self.atom_type.integer_to_string(index, self.n_atoms)
+        else:
+            return self.atom_type.integer_to_string(
+                self.configurations[index], self.n_atoms
+            )
 
     def zero_state(self, dtype=np.float64) -> NDArray:
         state = np.zeros(self.size, dtype=dtype)

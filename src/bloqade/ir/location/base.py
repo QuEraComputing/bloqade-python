@@ -1,7 +1,9 @@
+from decimal import Decimal
+from numbers import Real
 from bloqade.builder.start import ProgramStart
 from bloqade.ir.scalar import Scalar, Literal, cast
 from pydantic.dataclasses import dataclass
-from typing import List, Generator, Tuple, Optional, Any, TYPE_CHECKING
+from typing import List, Generator, Tuple, Optional, Any, TYPE_CHECKING, Union
 import numpy as np
 from enum import Enum
 import plotext as pltxt
@@ -101,7 +103,7 @@ class AtomArrangement(ProgramStart):
         """number of dimensions in the register."""
         raise NotImplementedError
 
-    def scale(self, scale: float | Scalar) -> "ListOfLocations":
+    def scale(self, scale: Union[Real, Scalar, str, Decimal]) -> "ListOfLocations":
         """scale the atom arrangement with a given factor"""
         from .list import ListOfLocations
 

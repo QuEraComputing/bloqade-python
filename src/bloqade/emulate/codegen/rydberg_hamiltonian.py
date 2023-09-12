@@ -101,12 +101,12 @@ class RydbergHamiltonianCodeGen(Visitor):
             return self.compile_cache.operator_cache[(self.space, detuning_data)]
 
         diagonal = np.zeros(self.space.size, dtype=np.float64)
-        match (self.space.atom_type, self.level_coupling):
-            case (TwoLevelAtomType(), LevelCoupling.Rydberg):
-                state = TwoLevelAtomType.State.Rydberg
-            case (ThreeLevelAtomType(), LevelCoupling.Rydberg):
+        if self.space.atom_type == TwoLevelAtomType():
+            state = TwoLevelAtomType.State.Rydberg
+        elif self.space.atom_type == ThreeLevelAtomType():
+            if self.level_coupling is LevelCoupling.Rydberg:
                 state = ThreeLevelAtomType.State.Rydberg
-            case (ThreeLevelAtomType(), LevelCoupling.Hyperfine):
+            elif self.level_coupling is LevelCoupling.Hyperfine:
                 state = ThreeLevelAtomType.State.Hyperfine
 
         for atom_index, value in detuning_data.target_atoms.items():
@@ -121,15 +121,16 @@ class RydbergHamiltonianCodeGen(Visitor):
                 (self.register, rabi_operator_data)
             ]
 
-        # Get the from and to states for term
-        match (self.space.atom_type, self.level_coupling):
-            case (TwoLevelAtomType(), LevelCoupling.Rydberg):
-                to = TwoLevelAtomType.State.Ground
-                fro = TwoLevelAtomType.State.Rydberg
-            case (ThreeLevelAtomType(), LevelCoupling.Rydberg):
+        # get the form `to` and `from` states for the rabi term
+        if self.space.atom_type == TwoLevelAtomType():
+            to = TwoLevelAtomType.State.Ground
+            fro = TwoLevelAtomType.State.Rydberg
+
+        elif self.space.atom_type == ThreeLevelAtomType():
+            if self.level_coupling is LevelCoupling.Rydberg:
                 to = ThreeLevelAtomType.State.Hyperfine
                 fro = ThreeLevelAtomType.State.Rydberg
-            case (ThreeLevelAtomType(), LevelCoupling.Hyperfine):
+            elif self.level_coupling == LevelCoupling.Hyperfine:
                 to = ThreeLevelAtomType.State.Ground
                 fro = ThreeLevelAtomType.State.Hyperfine
 

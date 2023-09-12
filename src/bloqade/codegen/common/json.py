@@ -1,4 +1,3 @@
-from decimal import Decimal
 import bloqade.ir.location as location
 import bloqade.ir.control.sequence as sequence
 import bloqade.ir.control.pulse as pulse
@@ -70,20 +69,12 @@ class ScalarSerilaizer(ScalarVisitor):
         }
 
     def visit_interval(self, ast: scalar.Interval) -> Dict[str, Any]:
-        match (ast.start, ast.stop):
-            case (None, _):
-                return {"interval": {"stop": self.visit(ast.stop)}}
-            case (_, None):
-                return {"interval": {"start": self.visit(ast.start)}}
-            case (_, _):
-                return {
-                    "interval": {
-                        "start": self.visit(ast.start),
-                        "stop": self.visit(ast.stop),
-                    }
-                }
-            case _:
-                raise ValueError(f"Invalid Interval({ast.start}, {ast.stop})")
+        return {
+            "interval": {
+                "start": self.visit(ast.start) if ast.start is not None else None,
+                "stop": self.visit(ast.stop) if ast.stop is not None else None,
+            }
+        }
 
     def default(self, obj: Any) -> Dict[str, Any]:
         if isinstance(obj, scalar.Scalar):
@@ -120,10 +111,15 @@ class WaveformSerializer(WaveformVisitor):
         raise ValueError("Bloqade does not support serialization of Python code.")
 
     def visit_negative(self, ast: waveform.Negative) -> Dict[str, Any]:
-        return {"negative": {"waveform": self.visit(ast.waveform)}}
+        return {"negative_waveform": {"waveform": self.visit(ast.waveform)}}
 
     def visit_add(self, ast: waveform.Add) -> Dict[str, Any]:
-        return {"add": {"left": self.visit(ast.left), "right": self.visit(ast.right)}}
+        return {
+            "add_waveform": {
+                "left": self.visit(ast.left),
+                "right": self.visit(ast.right),
+            }
+        }
 
     def visit_scale(self, ast: waveform.Scale) -> Dict[str, Any]:
         return {
@@ -162,33 +158,11 @@ class WaveformSerializer(WaveformVisitor):
         }
 
     def visit_smooth(self, ast: waveform.Smooth) -> Dict[str, Any]:
-        match ast.kernel:
-            case waveform.Gaussian:
-                kernel = "gaussian"
-            case waveform.Logistic:
-                kernel = "logistic"
-            case waveform.Sigmoid:
-                kernel = "sigmoid"
-            case waveform.Triangle:
-                kernel = "triangle"
-            case waveform.Uniform:
-                kernel = "uniform"
-            case waveform.Parabolic:
-                kernel = "parabolic"
-            case waveform.Biweight:
-                kernel = "biweight"
-            case waveform.Triweight:
-                kernel = "triweight"
-            case waveform.Tricube:
-                kernel = "tricube"
-            case waveform.Cosine:
-                kernel = "cosine"
-
         return {
             "smooth": {
                 "waveform": self.visit(ast.waveform),
                 "radius": self.scalar_encoder.visit(ast.radius),
-                "kernel": kernel,
+                "kernel": type(ast.kernel).__name__,
             }
         }
 
@@ -304,7 +278,7 @@ class LocationSerializer(LocationVisitor):
         }
 
 
-class ProgramSerializer(AnalogCircuitVisitor):
+class AnalogCircuitSerializer(AnalogCircuitVisitor):
     def __init__(self) -> None:
         self.waveform_serializer = WaveformSerializer()
         self.scalar_serializer = ScalarSerilaizer()
@@ -316,87 +290,93 @@ class ProgramSerializer(AnalogCircuitVisitor):
     def visit_parallel_register(self, ast: ParallelRegister) -> Any:
         return self.location_serializer.visit(ast)
 
-    def visit_sequence(self, ast: sequence.SequenceExpr) -> Any:
-        match ast:
-            case sequence.Sequence(pulses):
-                object_map_str = {
-                    sequence.rydberg: "rydberg",
-                    sequence.hyperfine: "hyperfine",
+    def visit_sequence(self, ast: sequence.Sequence) -> Dict[str, Any]:
+        object_to_str = {
+            sequence.rydberg: "rydberg",
+            sequence.hyperfine: "hyperfine",
+        }
+        return {
+            "sequence": {
+                "pulses": {
+                    object_to_str[k]: self.visit(v) for k, v in ast.pulses.items()
                 }
-                return {
-                    "sequence": {
-                        "pulses": {
-                            object_map_str[k]: self.visit(v) for k, v in pulses.items()
-                        }
-                    }
-                }
-            case sequence.Append(sequences):
-                return {
-                    "append_sequence": {"sequences": [self.visit(s) for s in sequences]}
-                }
-            case sequence.NamedSequence(sub_sequence, name):
-                return {
-                    "named_sequence": {
-                        "name": name,
-                        "sub_sequence": self.visit(sub_sequence),
-                    }
-                }
-            case sequence.Slice(sub_sequence, interval):
-                return {
-                    "slice_sequence": {
-                        "sequence": self.visit(sub_sequence),
-                        "interval": self.scalar_serializer.visit(interval),
-                    }
-                }
+            }
+        }
 
-    def visit_pulse(self, ast: pulse.PulseExpr) -> Any:
-        match ast:
-            case pulse.Pulse(fields):
-                object_map_str = {
-                    pulse.detuning: "detuning",
-                    pulse.rabi.amplitude: "rabi_frequency_amplitude",
-                    pulse.rabi.phase: "rabi_frequency_phase",
-                }
-                return {
-                    "pulse": {
-                        "fields": {
-                            object_map_str[k]: self.visit(v) for k, v in fields.items()
-                        }
-                    }
-                }
-            case pulse.Append(pulses):
-                return {"append_pulse": {"pulses": [self.visit(p) for p in pulses]}}
-            case pulse.NamedPulse(name, sub_pulse):
-                return {
-                    "named_pulse": {"name": name, "sub_pulse": self.visit(sub_pulse)}
-                }
-            case pulse.Slice(sub_pulse, interval):
-                return {
-                    "slice_pulse": {
-                        "pulse": self.visit(sub_pulse),
-                        "interval": self.scalar_serializer.visit(interval),
-                    }
-                }
+    def visit_named_sequence(self, ast: sequence.NamedSequence) -> Dict[str, Any]:
+        return {
+            "named_sequence": {
+                "name": ast.name,
+                "sub_sequence": self.visit(ast.sub_sequence),
+            }
+        }
 
-    def visit_spatial_modulation(self, ast: field.SpatialModulation) -> Any:
-        match ast:
-            case field.ScaledLocations(value):
-                return {
-                    "scaled_locations": [
-                        (self.visit(k), self.visit(v)) for k, v in value.items()
-                    ]
+    def visit_append_sequence(self, ast: sequence.Append) -> Dict[str, Any]:
+        return {
+            "append_sequence": {"sequences": [self.visit(s) for s in ast.sequences]}
+        }
+
+    def visit_slice_sequence(self, ast: sequence.Slice) -> Dict[str, Any]:
+        return {
+            "slice_sequence": {
+                "sequence": self.visit(ast.sequence),
+                "interval": self.scalar_serializer.visit(ast.interval),
+            }
+        }
+
+    def visit_pulse(self, ast: pulse.Pulse):
+        object_map_str = {
+            pulse.detuning: "detuning",
+            pulse.rabi.amplitude: "rabi_frequency_amplitude",
+            pulse.rabi.phase: "rabi_frequency_phase",
+        }
+        return {
+            "pulse": {
+                "fields": {
+                    object_map_str[k]: self.visit(v) for k, v in ast.fields.items()
                 }
-            case field.Uniform:
-                return "uniform"
-            case field.RunTimeVector(name):
-                return {"run_time_vector": {"name": name}}
-            case field.AssignedRunTimeVector(name, value):
-                return {
-                    "assigned_run_time_vector": {
-                        "name": name,
-                        "value": [str(v) for v in value],
-                    }
-                }
+            }
+        }
+
+    def visit_append_pulse(self, ast: pulse.Append) -> Dict[str, Any]:
+        return {"append_pulse": {"pulses": [self.visit(p) for p in ast.pulses]}}
+
+    def visit_named_pulse(self, ast: pulse.NamedPulse) -> Dict[str, Any]:
+        return {
+            "named_pulse": {"name": ast.name, "sub_pulse": self.visit(ast.sub_pulse)}
+        }
+
+    def visit_slice_pulse(self, ast: pulse.Slice) -> Dict[str, Any]:
+        return {
+            "slice_pulse": {
+                "pulse": self.visit(ast.sub_pulse),
+                "interval": self.scalar_serializer.visit(ast.interval),
+            }
+        }
+
+    def visit_location(self, ast: field.Location) -> Dict[str, Any]:
+        return {"location": {"label": ast.label}}
+
+    def visit_scaled_locations(self, ast: field.ScaledLocations) -> Dict[str, Any]:
+        return {
+            "scaled_locations": [(self.visit(k), self.visit(v)) for k, v in ast.items()]
+        }
+
+    def visit_uniform(self, ast: field.Uniform) -> Dict[str, Any]:
+        return {"uniform": {}}
+
+    def visit_run_time_vector(self, ast: field.RunTimeVector) -> Dict[str, Any]:
+        return {"run_time_vector": {"name": ast.name}}
+
+    def visit_assigned_run_time_vector(
+        self, ast: field.AssignedRunTimeVector
+    ) -> Dict[str, Any]:
+        return {
+            "assigned_run_time_vector": {
+                "name": ast.name,
+                "value": [str(v) for v in ast.value],
+            }
+        }
 
     def visit_field(self, ast: field.Field) -> Any:
         return {
@@ -410,7 +390,7 @@ class ProgramSerializer(AnalogCircuitVisitor):
 
     def visit_analog_circuit(self, ast: analog_circuit.AnalogCircuit) -> Any:
         return {
-            "bloqade_program": {
+            "analog_circuit": {
                 "sequence": self.visit(ast.sequence),
                 "register": self.visit(ast.register),
                 "static_params": ast.static_params,
@@ -423,7 +403,7 @@ class ProgramSerializer(AnalogCircuitVisitor):
 class BloqadeIRSerializer(json.JSONEncoder):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.program_serializer = ProgramSerializer()
+        self.analog_circuit_serializer = AnalogCircuitSerializer()
         self.waveform_serializer = WaveformSerializer()
         self.scalar_serializer = ScalarSerilaizer()
         self.bloqade_seq_types = (
@@ -438,7 +418,7 @@ class BloqadeIRSerializer(json.JSONEncoder):
 
     def default(self, o: Any) -> Any:
         if isinstance(o, self.bloqade_seq_types):
-            return self.program_serializer.visit(o)
+            return self.analog_circuit_serializer.visit(o)
         elif isinstance(o, waveform.Waveform):
             return self.waveform_serializer.visit(o)
         elif isinstance(o, scalar.Scalar):
@@ -448,317 +428,60 @@ class BloqadeIRSerializer(json.JSONEncoder):
 
 
 class BloqadeIRDeserializer:
-    def is_register_obj(self, obj: Dict[str, Any]) -> bool:
-        return (
-            "list_of_locations" in obj
-            or "location_info" in obj
-            or "chain" in obj
-            or "square" in obj
-            or "honeycomb" in obj
-            or "triangular" in obj
-            or "lieb" in obj
-            or "kagome" in obj
-            or "rectangular" in obj
-            or "parallel_register" in obj
-        )
+    constructors = {
+        "literal": scalar.Literal,
+        "variable": scalar.Variable,
+        "assigned_variable": scalar.AssignedVariable,
+        "negative": scalar.Negative,
+        "add": scalar.Add,
+        "mul": scalar.Mul,
+        "div": scalar.Div,
+        "min": scalar.Min,
+        "max": scalar.Max,
+        "slice_scalar": scalar.Slice,
+        "interval": scalar.Interval,
+        "constant": waveform.Constant,
+        "linear": waveform.Linear,
+        "poly": waveform.Poly,
+        "negative_waveform": waveform.Negative,
+        "add_waveform": waveform.Add,
+        "scale": waveform.Scale,
+        "slice_waveform": waveform.Slice,
+        "sample": waveform.Sample,
+        "append_waveform": waveform.Append,
+        "record": waveform.Record,
+        "smooth": waveform.Smooth,
+        "alligned": waveform.AlignedWaveform,
+        "chain": location.Chain,
+        "honeycomb": location.Honeycomb,
+        "kagome": location.Kagome,
+        "lieb": location.Lieb,
+        "list_of_locations": location.ListOfLocations,
+        "rectangular": location.Rectangular,
+        "square": location.Square,
+        "triangular": location.Triangular,
+        "parallel_register": location.ParallelRegister,
+        "sequence": sequence.Sequence,
+        "named_sequence": sequence.NamedSequence,
+        "append_sequence": sequence.Append,
+        "slice_sequence": sequence.Slice,
+        "pulse": pulse.Pulse,
+        "append_pulse": pulse.Append,
+        "named_pulse": pulse.NamedPulse,
+        "slice_pulse": pulse.Slice,
+        "location": field.Location,
+        "scaled_locations": field.ScaledLocations,
+        "uniform": field.Uniform,
+        "run_time_vector": field.RunTimeVector,
+        "assigned_run_time_vector": field.AssignedRunTimeVector,
+        "field": field.Field,
+        "analog_circuit": analog_circuit.AnalogCircuit,
+    }
 
-    def is_sequence_obj(self, obj: Dict[str, Any]) -> bool:
-        return (
-            "sequence" in obj
-            or "append_sequence" in obj
-            or "named_sequence" in obj
-            or "slice_sequence" in obj
-        )
-
-    def is_pulse_obj(self, obj: Dict[str, Any]) -> bool:
-        return (
-            "pulse" in obj
-            or "append_pulse" in obj
-            or "named_pulse" in obj
-            or "slice_pulse" in obj
-        )
-
-    def is_field_obj(self, obj: Dict[str, Any]) -> bool:
-        return (
-            "field" in obj
-            or "scaled_locations" in obj
-            or "uniform" in obj
-            or "run_time_vector" in obj
-            or "assigned_run_time_vector" in obj
-        )
-
-    def is_waveform_obj(self, obj: Dict[str, Any]) -> bool:
-        return (
-            "constant" in obj
-            or "linear" in obj
-            or "poly" in obj
-            or "negative" in obj
-            or "add" in obj
-            or "scale" in obj
-            or "slice_waveform" in obj
-            or "sample" in obj
-            or "append_waveform" in obj
-            or "record" in obj
-            or "smooth" in obj
-            or "alligned" in obj
-        )
-
-    def is_scalar_obj(self, obj: Dict[str, Any]) -> bool:
-        return (
-            "literal" in obj
-            or "variable" in obj
-            or "assigned_variable" in obj
-            or "negative" in obj
-            or "add" in obj
-            or "mul" in obj
-            or "div" in obj
-            or "min" in obj
-            or "max" in obj
-            or "slice_scalar" in obj
-            or "interval" in obj
-        )
-
-    def is_bloqade_ir(self, obj: Dict[str, Any]) -> bool:
-        return (
-            self.is_scalar_obj(obj)
-            or self.is_waveform_obj(obj)
-            or self.is_field_obj(obj)
-            or self.is_pulse_obj(obj)
-            or self.is_sequence_obj(obj)
-            or self.is_register_obj(obj)
-            or "bloqade_program" in obj
-        )
-
-    def scalar_hook(self, obj: Dict[str, Any]):
-        from decimal import Decimal
-
-        match obj:
-            case {"literal": {"value": str(value)}}:
-                return scalar.Literal(Decimal(value))
-            case {"variable": {"name": str(name)}}:
-                return scalar.Variable(name)
-            case {"assigned_variable": {"name": str(name), "value": str(value)}}:
-                return scalar.AssignedVariable(name, Decimal(value))
-            case {"negative": {"expr": expr}}:
-                return scalar.Negative(expr)
-            case {"add": {"lhs": lhs, "rhs": rhs}}:
-                return scalar.Add(lhs, rhs)
-            case {"mul": {"lhs": lhs, "rhs": rhs}}:
-                return scalar.Mul(lhs, rhs)
-            case {"div": {"lhs": lhs, "rhs": rhs}}:
-                return scalar.Div(lhs, rhs)
-            case {"min": {"exprs": exprs}}:
-                return scalar.Min(frozenset(exprs))
-            case {"max": {"exprs": exprs}}:
-                return scalar.Max(frozenset(exprs))
-            case {"slice_scalar": {"expr": expr, "interval": interval}}:
-                return scalar.Slice(expr, interval)
-            case {"interval": {"start": start, "stop": stop}}:
-                return scalar.Interval(start, stop)
-            case {"interval": {"start": start}}:
-                return scalar.Interval(start, None)
-            case {"interval": {"stop": stop}}:
-                return scalar.Interval(None, stop)
-            case _:
-                return obj
-
-    def waveform_hook(self, obj: Dict[str, Any]):
-        match obj:
-            case {"constant": {"value": value}}:
-                return waveform.Constant(BloqadeIRDeserializer.object_hook(value))
-            case {"linear": {"start": start, "stop": stop, "duration": duration}}:
-                return waveform.Linear(start, stop, duration)
-            case {"poly": {"coeffs": coeffs, "duration": duration}}:
-                return waveform.Poly(coeffs, duration)
-            case {"negative": {"waveform": sub_waveform}}:
-                return waveform.Negative(sub_waveform)
-            case {"add": {"left": left, "right": right}}:
-                return waveform.Add(left, right)
-            case {"scale": {"waveform": sub_waveform, "scalar": scale}}:
-                return waveform.Scale(sub_waveform, scale)
-            case {"slice_waveform": {"waveform": sub_waveform, "interval": interval}}:
-                return waveform.Slice(sub_waveform, interval)
-            case {
-                "sample": {
-                    "waveform": sub_waveform,
-                    "dt": dt,
-                    "interpolation": interpolation,
-                }
-            }:
-                return waveform.Sample(sub_waveform, dt, interpolation)
-            case {"append_waveform": {"waveforms": waveforms}}:
-                return waveform.Append(waveforms)
-            case {"record": {"var": var, "waveform": sub_waveform}}:
-                return waveform.Record(var, sub_waveform)
-            case {
-                "smooth": {
-                    "waveform": sub_waveform,
-                    "radius": radius,
-                    "kernel": kernel_str,
-                }
-            }:
-                match kernel_str:
-                    case "gaussian":
-                        kernel = waveform.Gaussian
-                    case "logistic":
-                        kernel = waveform.Logistic
-                    case "sigmoid":
-                        kernel = waveform.Sigmoid
-                    case "triangle":
-                        kernel = waveform.Triangle
-                    case "uniform":
-                        kernel = waveform.Uniform
-                    case "parabolic":
-                        kernel = waveform.Parabolic
-                    case "biweight":
-                        kernel = waveform.Biweight
-                    case "triweight":
-                        kernel = waveform.Triweight
-                    case "tricube":
-                        kernel = waveform.Tricube
-                    case "cosine":
-                        kernel = waveform.Cosine
-                    case _:
-                        raise ValueError(f"Invalid kernel: {kernel_str}")
-
-                return waveform.Smooth(radius, kernel, sub_waveform)
-            case {
-                "alligned": {
-                    "waveform": sub_waveform,
-                    "allignment": allignment,
-                    "value": value_obj,
-                }
-            }:
-                match value_obj:
-                    case str():
-                        value = waveform.AlignedValue(value_obj)
-                    case _:
-                        value = value_obj
-
-                return waveform.AlignedWaveform(sub_waveform, allignment, value)
-            case _:
-                raise ValueError(f"Invalid waveform json: {obj}")
-
-    def register_hook(self, obj: Dict[str, Any]):
-        match obj:
-            case {"location_info": {"position": position, "filled": filled}}:
-                return location.LocationInfo(tuple(position), filled)
-            case {"list_of_locations": {"location_list": location_list}}:
-                return location.ListOfLocations(location_list)
-            case {"chain": {"lattice_spacing": lattice_spacing, "L": L}}:
-                return location.Chain(L, lattice_spacing)
-            case {"square": {"lattice_spacing": lattice_spacing, "L": L}}:
-                return location.Square(L, lattice_spacing)
-            case {"honeycomb": {"lattice_spacing": lattice_spacing, "L": L}}:
-                return location.Honeycomb(L, lattice_spacing)
-            case {"triangular": {"lattice_spacing": lattice_spacing, "L": L}}:
-                return location.Triangular(L, lattice_spacing)
-            case {"lieb": {"lattice_spacing": lattice_spacing, "L": L}}:
-                return location.Lieb(L, lattice_spacing)
-            case {"kagome": {"lattice_spacing": lattice_spacing, "L": L}}:
-                return location.Kagome(L, lattice_spacing)
-            case {
-                "rectangular": {
-                    "lattice_spacing_x": lattice_spacing_x,
-                    "lattice_spacing_y": lattice_spacing_y,
-                    "width": width,
-                    "height": height,
-                }
-            }:
-                return location.Rectangular(
-                    width,
-                    height,
-                    lattice_spacing_x,
-                    lattice_spacing_y,
-                )
-            case {
-                "parallel_register": {
-                    "register": register,
-                    "cluster_spacing": cluster_spacing,
-                }
-            }:
-                return location.ParallelRegister(register, cluster_spacing)
-            case _:
-                raise ValueError(f"Invalid register json: {obj}")
-
-    def field_hook(self, obj: Dict[str, Any]):
-        match obj:
-            case {"location": {"value": int(loc)}}:
-                return field.Location(loc)
-            case {"scaled_locations": {"pairs": pairs}}:
-                return field.ScaledLocations(dict(pairs))
-            case "uniform":
-                return field.Uniform
-            case {"run_time_vector": {"name": name}}:
-                return field.RunTimeVector(name)
-            case {"assigned_run_time_vector": {"name": name, "value": value}}:
-                return field.AssignedRunTimeVector(name, list(map(Decimal, value)))
-            case {"field": {"value": value}}:
-                return field.Field(dict(value))
-            case _:
-                raise ValueError(f"Invalid field json: {obj}")
-
-    def pulse_hook(self, obj: Dict[str, Any]):
-        match obj:
-            case {"pulse": {"fields": fields}}:
-                str_map_object = {
-                    "detuning": pulse.detuning,
-                    "rabi_frequency_amplitude": pulse.rabi.amplitude,
-                    "rabi_frequency_phase": pulse.rabi.phase,
-                }
-                return pulse.Pulse(
-                    dict(map(lambda k, v: (str_map_object[k], k), fields))
-                )
-            case {"append_pulse": {"pulses": pulses}}:
-                return pulse.Append(pulses)
-            case {"named_pulse": {"name": name, "sub_pulse": sub_pulse}}:
-                return pulse.NamedPulse(name, sub_pulse)
-            case {"slice_pulse": {"pulse": sub_pulse, "interval": interval}}:
-                return pulse.Slice(sub_pulse, interval)
-            case _:
-                raise ValueError(f"Invalid pulse json: {obj}")
-
-    def sequence_hook(self, obj: Dict[str, Any]):
-        match obj:
-            case {"sequence": {"pulses": pulses}}:
-                str_map_object = {
-                    "rydberg": sequence.rydberg,
-                    "hyperfine": sequence.hyperfine,
-                }
-                return sequence.Sequence(
-                    dict(map(lambda k, v: (str_map_object[k], k), pulses))
-                )
-            case {"append_sequence": {"sequences": sequences}}:
-                return sequence.Append(
-                    list(map(BloqadeIRDeserializer.object_hook, sequences))
-                )
-            case {"named_sequence": {"name": name, "sub_sequence": sub_sequence}}:
-                return sequence.NamedSequence(sub_sequence, name)
-            case {"slice_sequence": {"sequence": sub_sequence, "interval": interval}}:
-                return sequence.Slice(sub_sequence, interval)
-            case _:
-                raise ValueError(f"Invalid sequence json: {obj}")
-
-    def object_hook(self, obj: Dict[str, Any]):
-        if self.is_scalar_obj(obj):
-            return self.scalar_hook(obj)
-        elif self.is_waveform_obj(obj):
-            return self.waveform_hook(obj)
-        elif self.is_field_obj(obj):
-            return self.field_hook(obj)
-        elif self.is_pulse_obj(obj):
-            return self.pulse_hook(obj)
-        elif self.is_sequence_obj(obj):
-            return self.sequence_hook(obj)
-        elif self.is_register_obj(obj):
-            return self.register_hook(obj)
-        elif "bloqade_program" in obj:
-            return analog_circuit.AnalogCircuit(
-                register=self.register_hook(obj["bloqade_program"]["register"]),
-                sequence=self.sequence_hook(obj["bloqade_program"]["sequence"]),
-                static_params=obj["bloqade_program"]["static_params"],
-                batch_params=obj["bloqade_program"]["batch_params"],
-                order=tuple(obj["bloqade_program"]["order"]),
-            )
-        else:
-            return obj
+    @classmethod
+    def object_hook(cls, obj):
+        if isinstance(obj, dict) and len(obj) == 1:
+            ((head, options),) = obj.items()
+            if head in cls.constructors:
+                return cls.constructors[head](**options)
+        return obj

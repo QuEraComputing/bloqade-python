@@ -96,60 +96,57 @@ class AnalogGate:
 
     @staticmethod
     def _error_check_dop(status_code: int):
-        match status_code:
-            case 1 | 2:  # happy path
-                pass
-            case -1:
-                raise RuntimeError("DOP853: Input is not consistent.")
-            case -2:
-                raise RuntimeError("DOP853: Larger nsteps is needed.")
-            case -3:
-                raise RuntimeError("DOP853: Step size becomes too small.")
-            case -4:
-                raise RuntimeError("DOP853: Problem is probably stiff (interrupted).")
-            case _:
-                raise RuntimeError(f"DOP853: unhandled status code {status_code}")
+        if status_code in [1, 2]:
+            return
+        elif status_code == -1:
+            raise RuntimeError("DOP853/DOPRI5: Input is not consistent.")
+        elif status_code == -2:
+            raise RuntimeError("DOP853/DOPRI5: Larger nsteps is needed.")
+        elif status_code == -3:
+            raise RuntimeError("DOP853/DOPRI5: Step size becomes too small.")
+        elif status_code == -4:
+            raise RuntimeError(
+                "DOP853/DOPRI5: Problem is probably stiff (interrupted)."
+            )
+        else:
+            raise RuntimeError(f"DOP853/DOPRI5: unhandled status code {status_code}")
 
     @staticmethod
     def _error_check_lsoda(status_code: int):
-        match status_code:
-            case 2:  # happy path
-                pass
-            case -1:
-                raise RuntimeError(
-                    "LSODA: Excess work done on this call (perhaps wrong Dfun type)."
-                )
-            case -2:
-                raise RuntimeError(
-                    "LSODA: Excess accuracy requested (tolerances too small)."
-                )
-            case -3:
-                raise RuntimeError("LSODA: Illegal input detected (internal error).")
-            case -4:
-                raise RuntimeError(
-                    "LSODA: Repeated error test failures (internal error)."
-                )
-            case -5:
-                raise RuntimeError(
-                    "LSODA: Repeated convergence failures "
-                    "(perhaps bad Jacobian or tolerances)."
-                )
-            case -6:
-                raise RuntimeError("LSODA: Error weight became zero during problem.")
-            case -7:
-                raise RuntimeError(
-                    "LSODA: Internal workspace insufficient to finish (internal error)."
-                )
-            case _:
-                raise RuntimeError(f"LSODA: unhandled status code {status_code}")
+        if status_code == 2:
+            return
+        elif status_code == -1:
+            raise RuntimeError(
+                "LSODA: Excess work done on this call (perhaps wrong Dfun type)."
+            )
+        elif status_code == -2:
+            raise RuntimeError(
+                "LSODA: Excess accuracy requested (tolerances too small)."
+            )
+        elif status_code == -3:
+            raise RuntimeError("LSODA: Illegal input detected (internal error).")
+        elif status_code == -4:
+            raise RuntimeError("LSODA: Repeated error test failures (internal error).")
+        elif status_code == -5:
+            raise RuntimeError(
+                "LSODA: Repeated convergence failures "
+                "(perhaps bad Jacobian or tolerances)."
+            )
+        elif status_code == -6:
+            raise RuntimeError("LSODA: Error weight became zero during problem.")
+        elif status_code == -7:
+            raise RuntimeError(
+                "LSODA: Internal workspace insufficient to finish (internal error)."
+            )
+        else:
+            raise RuntimeError(f"LSODA: unhandled status code {status_code}")
 
     @staticmethod
     def _error_check(solver_name: str, status_code: int):
-        match solver_name:
-            case str("dop853") | str("dopri5"):
-                AnalogGate._error_check_dop(status_code)
-            case str("lsoda"):
-                AnalogGate._error_check_lsoda(status_code)
+        if solver_name == "lsoda":
+            AnalogGate._error_check_lsoda(status_code)
+        elif solver_name in ["dop853", "dopri5"]:
+            AnalogGate._error_check_dop(status_code)
 
     def apply(
         self,

@@ -1,6 +1,5 @@
 import json
 import logging
-from types import NoneType
 import uuid
 from typing import Optional, Union, Dict, Tuple
 import requests
@@ -60,17 +59,18 @@ class ApiRequest:
         return json.loads(result.content)
 
     def _generate_headers(self, base: Optional[dict] = None) -> Dict:
-        match (base, self.hostname):
-            case (None, None):
+        if base is None:
+            if self.hostname is None:
                 return {"Content-Type": "application/json"}
-            case (None, _):
+            else:
                 return {"Content-Type": "application/json", "Host": self.hostname}
-            case (_, None):
+        else:
+            if self.hostname is None:
                 return base
-            case _:
+            else:
                 header = dict(base)
                 header["Host"] = self.hostname
-                return header
+                return header  # type: ignore
 
     def _get_path(self, *path_list: str):
         return "/".join((self.base_url, self.qpu_id) + path_list)
@@ -302,33 +302,28 @@ class QueueApi:
         """
         result = self.api_http_request.post("queue", "task", content=task_json)
 
-        match result.status_code:
-            case 201:
-                message = "Successfully posted task."
-                self.logger.warning(message)
-
-            case 404:
-                message = f"QPU {self.api_http_request.qpu_id} not found."
-                self.logger.error(message)
-                raise QueueApi.NotFound(message)
-
-            case 400:
-                message = (
-                    "The request is invalid. This may indicate an error when parsing "
-                    "a parameter."
-                )
-                self.logger.error(message)
-                raise QueueApi.InvalidRequestError(message)
-
-            case 403:
-                message = "QPU return authentication error, check AWS credentials."
-                self.logger.error(message)
-                raise QueueApi.AuthenticationError(message)
-
-            case _:
-                message = f"QPU returned unhandled status {result.status_code}."
-                self.logger.error(message)
-                raise QueueApi.QueueApiError(message)
+        if result.status_code == 201:
+            message = "Successfully posted task."
+            self.logger.warning(message)
+        elif result.status_code == 404:
+            message = f"QPU {self.api_http_request.qpu_id} not found."
+            self.logger.error(message)
+            raise QueueApi.NotFound(message)
+        elif result.status_code == 400:
+            message = (
+                "The request is invalid. This may indicate an error when parsing "
+                "a parameter."
+            )
+            self.logger.error(message)
+            raise QueueApi.InvalidRequestError(message)
+        elif result.status_code == 403:
+            message = "QPU return authentication error, check AWS credentials."
+            self.logger.error(message)
+            raise QueueApi.AuthenticationError(message)
+        else:
+            message = f"QPU returned unhandled status {result.status_code}."
+            self.logger.error(message)
+            raise QueueApi.QueueApiError(message)
 
         result_json = ApiRequest._result_as_json(result)
 
@@ -349,55 +344,46 @@ class QueueApi:
         """
         result = self.api_http_request.get("capabilities")
 
-        match result.status_code:
-            case 200:
-                message = "Successfully fetched capabilities."
-                self.logger.error(message)
-
-            case 404:
-                message = f"QPU {self.api_http_request.qpu_id} not found."
-                self.logger.error(message)
-                raise QueueApi.NotFound(message)
-
-            case 403:
-                message = "QPU return authentication error, check AWS credentials."
-                self.logger.error(message)
-                raise QueueApi.AuthenticationError(message)
-
-            case _:
-                message = f"QPU returned unhandled status {result.status_code}."
-                self.logger.error(message)
-                raise QueueApi.QueueApiError(message)
+        if result.status_code == 200:
+            message = "Successfully fetched capabilities."
+            self.logger.info(message)
+        elif result.status_code == 404:
+            message = f"QPU {self.api_http_request.qpu_id} not found."
+            self.logger.error(message)
+            raise QueueApi.NotFound(message)
+        elif result.status_code == 403:
+            message = "QPU return authentication error, check AWS credentials."
+            self.logger.error(message)
+            raise QueueApi.AuthenticationError(message)
+        else:
+            message = f"QPU returned unhandled status {result.status_code}."
+            self.logger.error(message)
+            raise QueueApi.QueueApiError(message)
 
         return ApiRequest._result_as_json(result)
 
-    def validate_task(self, task_json: Union[str, dict]) -> NoneType:
+    def validate_task(self, task_json: Union[str, dict]) -> None:
         result = self.api_http_request.post("task", "validate", content=task_json)
 
-        match result.status_code:
-            case 200:
-                message = "Task passed validation."
-                self.logger.info(message)
-
-            case 400:
-                message = f"Task did not pass validation: {result.text}"
-                self.logger.error(message)
-                raise QueueApi.ValidationError(message)
-
-            case 404:
-                message = f"QPU {self.api_http_request.qpu_id} not found."
-                self.logger.error(message)
-                raise QueueApi.NotFound(message)
-
-            case 403:
-                message = "QPU return authentication error, check AWS credentials."
-                self.logger.error(message)
-                raise QueueApi.AuthenticationError(message)
-
-            case _:
-                message = f"QPU returned unhandled status {result.status_code}."
-                self.logger.error(message)
-                raise QueueApi.QueueApiError(message)
+        if result.status_code == 200:
+            message = "Task passed validation."
+            self.logger.info(message)
+        elif result.status_code == 400:
+            message = f"Task did not pass validation: {result.text}"
+            self.logger.error(message)
+            raise QueueApi.ValidationError(message)
+        elif result.status_code == 404:
+            message = f"QPU {self.api_http_request.qpu_id} not found."
+            self.logger.error(message)
+            raise QueueApi.NotFound(message)
+        elif result.status_code == 403:
+            message = "QPU return authentication error, check AWS credentials."
+            self.logger.error(message)
+            raise QueueApi.AuthenticationError(message)
+        else:
+            message = f"QPU returned unhandled status {result.status_code}."
+            self.logger.error(message)
+            raise QueueApi.QueueApiError(message)
 
     def get_task_results(self, task_id: Union[str, uuid.UUID]) -> Dict:
         """
@@ -409,51 +395,45 @@ class QueueApi:
         queue_status = self.get_task_status_in_queue(task_id)
         # TODO: Revisit this mapping when the queue API is
         #       has task result fetching build into the API
-        match queue_status:  # overwrite the
-            case "Created" | "Enqueued" | "Accepted":
-                return {"task_status": "Created", "shot_outputs": []}
-            case "Executing":
-                return {"task_status": "Running", "shot_outputs": []}
-            case "Failed" | "Cancelled":
-                return {"task_status": queue_status, "shot_outputs": []}
-            case "Unaccepted":
-                raise QueueApi.ValidationError(
-                    f"Task: {task_id} has validation error, "
-                    "unable to fetch error message."
-                )
-            case "Completed" | "Partial":
-                pass
-            case _:
-                raise QueueApi.QueueApiError(
-                    f"Undocumented queue status: {queue_status}"
-                )
+
+        if queue_status in ("Created", "Enqueued", "Accepted"):
+            return {"task_status": "Created", "shot_outputs": []}
+        elif queue_status == "Executing":
+            return {"task_status": "Running", "shot_outputs": []}
+        elif queue_status in ("Failed", "Cancelled"):
+            return {"task_status": queue_status, "shot_outputs": []}
+        elif queue_status == "Unaccepted":
+            raise QueueApi.ValidationError(
+                f"Task: {task_id} has validation error, "
+                "unable to fetch error message."
+            )
+        elif queue_status in ("Completed", "Partial"):
+            pass
+        else:
+            raise QueueApi.QueueApiError(f"Undocumented queue status: {queue_status}")
 
         result = self.api_http_request.get("task", str(task_id), "results")
 
-        match result.status_code:
-            case 200:
-                message = f"Successfully fetch task results for task_id {task_id}"
-                self.logger.debug(message)
+        if result.status_code == 200:
+            message = f"Successfully fetch task results for task_id {task_id}"
+            self.logger.debug(message)
+        elif result.status_code == 400:
+            message = QueueApi.bad_request
+            self.logger.debug(message)
+            raise QueueApi.InvalidRequestError(message)
+        elif result.status_code == 404:
+            message = QueueApi.qpu_or_task_not_found
+            self.logger.debug(message)
+            raise QueueApi.NotFound(message)
 
-            case 400:
-                message = QueueApi.bad_request
-                self.logger.debug(message)
-                raise QueueApi.InvalidRequestError(message)
-
-            case 404:
-                message = QueueApi.qpu_or_task_not_found
-                self.logger.debug(message)
-                raise QueueApi.NotFound(message)
-
-            case 403:
-                message = "QPU return authentication error, check AWS credentials."
-                self.logger.error(message)
-                raise QueueApi.AuthenticationError(message)
-
-            case _:
-                message = f"QPU returned unhandled status {result.status_code}."
-                self.logger.error(message)
-                raise QueueApi.QueueApiError(message)
+        elif result.status_code == 403:
+            message = "QPU return authentication error, check AWS credentials."
+            self.logger.error(message)
+            raise QueueApi.AuthenticationError(message)
+        else:
+            message = f"QPU returned unhandled status {result.status_code}."
+            self.logger.error(message)
+            raise QueueApi.QueueApiError(message)
 
         return ApiRequest._result_as_json(result)
 
@@ -475,30 +455,25 @@ class QueueApi:
         """
         result = self.api_http_request.get("queue", "task", str(task_id))
 
-        match result.status_code:
-            case 200:
-                message = "Successfully checked queue."
-                self.logger.debug(message)
+        if result.status_code == 200:
+            message = "Successfully checked queue."
+            self.logger.debug(message)
+        elif result.status_code == 400:
+            message = (
+                "The request is invalid. This may indicate an error when parsing a "
+                "parameter."
+            )
+            self.logger.error(message)
+            raise QueueApi.InvalidRequestError(message)
+        elif result.status_code == 404:
+            message = f"QPU {self.api_http_request.qpu_id} or task {task_id} not found."
+            self.logger.error(message)
+            raise QueueApi.NotFound(message)
+        else:
+            message = f"QPU returned unhandled status {result.status_code}."
+            self.logger.error(message)
+            raise QueueApi.QueueApiError(message)
 
-            case 400:
-                message = (
-                    "The request is invalid. This may indicate an error when parsing a "
-                    "parameter."
-                )
-                self.logger.error(message)
-                raise QueueApi.InvalidRequestError(message)
-
-            case 404:
-                message = (
-                    f"QPU {self.api_http_request.qpu_id} or task {task_id} not found."
-                )
-                self.logger.error(message)
-                raise QueueApi.NotFound(message)
-
-            case _:
-                message = f"QPU returned unhandled status {result.status_code}."
-                self.logger.error(message)
-                raise QueueApi.QueueApiError(message)
         result_json = ApiRequest._result_as_json(result)
 
         return result_json["status"]
@@ -506,27 +481,24 @@ class QueueApi:
     def cancel_task_in_queue(self, task_id: Union[str, uuid.UUID]):
         result = self.api_http_request.put("queue", "task", str(task_id), "cancel")
 
-        match result.status_code:
-            case 200:
-                message = "Task successfully cancelled"
-                self.logger.debug(message)
+        if result.status_code == 200:
+            message = "Task successfully cancelled"
+            self.logger.debug(message)
 
-            case 403:
-                message = "QPU return authentication error, check AWS credentials."
-                self.logger.error(message)
-                raise QueueApi.AuthenticationError(message)
+        elif result.status_code == 403:
+            message = "QPU return authentication error, check AWS credentials."
+            self.logger.error(message)
+            raise QueueApi.AuthenticationError(message)
 
-            case 404:
-                message = (
-                    f"QPU {self.api_http_request.qpu_id} or task {task_id} not found."
-                )
-                self.logger.error(message)
-                raise QueueApi.NotFound(message)
+        elif result.status_code == 404:
+            message = f"QPU {self.api_http_request.qpu_id} or task {task_id} not found."
+            self.logger.error(message)
+            raise QueueApi.NotFound(message)
 
-            case _:
-                message = f"QPU returned unhandled status {result.status_code}."
-                self.logger.error(message)
-                raise QueueApi.QueueApiError(message)
+        else:
+            message = f"QPU returned unhandled status {result.status_code}."
+            self.logger.error(message)
+            raise QueueApi.QueueApiError(message)
 
     def get_task_summary(self, task_id: Union[str, uuid.UUID]) -> Dict:
         """
@@ -544,27 +516,24 @@ class QueueApi:
 
         result = self.api_http_request.get("task", str(task_id))
 
-        match result.status_code:
-            case 200:
-                message = "Successfully checked task summary."
-                self.logger.warning(message)
+        if result.status_code == 200:
+            message = "Successfully checked task summary."
+            self.logger.warning(message)
 
-            case 404:
-                message = (
-                    f"QPU {self.api_http_request.qpu_id} or task {task_id} not found."
-                )
-                self.logger.error(message)
-                raise QueueApi.NotFound(message)
+        elif result.status_code == 404:
+            message = f"QPU {self.api_http_request.qpu_id} or task {task_id} not found."
+            self.logger.error(message)
+            raise QueueApi.NotFound(message)
 
-            case 403:
-                message = "QPU return authentication error, check AWS credentials."
-                self.logger.error(message)
-                raise QueueApi.AuthenticationError(message)
+        elif result.status_code == 403:
+            message = "QPU return authentication error, check AWS credentials."
+            self.logger.error(message)
+            raise QueueApi.AuthenticationError(message)
 
-            case _:
-                message = f"QPU returned unhandled status {result.status_code}."
-                self.logger.error(message)
-                raise QueueApi.QueueApiError(message)
+        else:
+            message = f"QPU returned unhandled status {result.status_code}."
+            self.logger.error(message)
+            raise QueueApi.QueueApiError(message)
 
         return ApiRequest._result_as_json(result)
 

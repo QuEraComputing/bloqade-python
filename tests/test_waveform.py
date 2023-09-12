@@ -402,7 +402,7 @@ def test_wvfn_slice():
     iv2 = Interval(cast(0), None)
     wf3 = Slice(wv, iv2)
 
-    assert wf3.duration == cast(3.0)
+    assert wf3.duration() == Decimal("3.0")
 
 
 def test_wvfm_align():

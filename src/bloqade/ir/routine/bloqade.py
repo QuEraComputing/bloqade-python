@@ -1,7 +1,7 @@
 from collections import OrderedDict
 from .base import RoutineBase
 from bloqade.task.batch import LocalBatch
-from typing import Tuple
+from typing import Optional, Tuple
 from numbers import Real
 from dataclasses import dataclass
 
@@ -18,7 +18,7 @@ class BloqadePythonRoutine(RoutineBase):
         self,
         shots: int,
         args: Tuple[Real, ...] = (),
-        name: str | None = None,
+        name: Optional[str] = None,
         blockade_radius: float = 0.0,
         cache_matrices: bool = False,
     ) -> LocalBatch:
@@ -54,11 +54,11 @@ class BloqadePythonRoutine(RoutineBase):
         self,
         shots: int,
         args: Tuple[Real, ...] = (),
-        name: str | None = None,
+        name: Optional[str] = None,
         blockade_radius: float = 0.0,
         cache_matrices: bool = False,
         multiprocessing: bool = False,
-        num_workers: int | None = None,
+        num_workers: Optional[int] = None,
         solver_name: str = "dop853",
         atol: float = 1e-14,
         rtol: float = 1e-7,
@@ -70,14 +70,14 @@ class BloqadePythonRoutine(RoutineBase):
             shots (int): number of shots after running state vector simulation
             args (Tuple[Real, ...], optional): The arguments defined in `flatten`.
             Defaults to ().
-            name (str | None, optional): Name to give this run. Defaults to None.
+            name (Optional[str], optional): Name to give this run. Defaults to None.
             blockade_radius (float, optional): Use the Blockade subspace given a
             particular radius. Defaults to 0.0.
             cache_matrices (bool, optional): Reuse previously evaluated matrcies when
             possible. Defaults to False.
             multiprocessing (bool, optional): Use multiple processes to process the
             batches. Defaults to False.
-            num_workers (int | None, optional): Number of processes to run with
+            num_workers (Optional[int], optional): Number of processes to run with
             multiprocessing. Defaults to None.
             solver_name (str, optional): Which SciPy Solver to use. Defaults to
             "dop853".
@@ -125,10 +125,10 @@ class BloqadePythonRoutine(RoutineBase):
         self,
         *args: Real,
         shots: int = 1,
-        name: str | None = None,
+        name: Optional[str] = None,
         blockade_radius: float = 0.0,
         multiprocessing: bool = False,
-        num_workers: int | None = None,
+        num_workers: Optional[int] = None,
         cache_matrices: bool = False,
         solver_name: str = "dop853",
         atol: float = 1e-7,
