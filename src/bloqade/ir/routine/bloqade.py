@@ -1,8 +1,9 @@
 from collections import OrderedDict
-from .base import RoutineBase
+from bloqade.ir.routine.base import RoutineBase
+from bloqade.builder.typing import LiteralType
 from bloqade.task.batch import LocalBatch
-from typing import Optional, Tuple
-from numbers import Real
+from beartype import beartype
+from beartype.typing import Optional, Tuple
 from dataclasses import dataclass
 
 
@@ -14,12 +15,12 @@ class BloqadeServiceOptions(RoutineBase):
 
 @dataclass(frozen=True)
 class BloqadePythonRoutine(RoutineBase):
-    def compile(
+    def _compile(
         self,
         shots: int,
-        args: Tuple[Real, ...] = (),
+        args: Tuple[LiteralType, ...] = (),
         name: Optional[str] = None,
-        blockade_radius: float = 0.0,
+        blockade_radius: LiteralType = 0.0,
         cache_matrices: bool = False,
     ) -> LocalBatch:
         from bloqade.codegen.common.assignment_scan import AssignmentScan
@@ -50,10 +51,11 @@ class BloqadePythonRoutine(RoutineBase):
 
         return LocalBatch(self.source, tasks, name)
 
+    @beartype
     def run(
         self,
         shots: int,
-        args: Tuple[Real, ...] = (),
+        args: Tuple[LiteralType, ...] = (),
         name: Optional[str] = None,
         blockade_radius: float = 0.0,
         cache_matrices: bool = False,
@@ -116,14 +118,14 @@ class BloqadePythonRoutine(RoutineBase):
             nsteps=nsteps,
         )
 
-        batch = self.compile(**compile_options)
+        batch = self._compile(**compile_options)
         batch._run(**solver_options)
 
         return batch
 
     def __call__(
         self,
-        *args: Real,
+        *args: LiteralType,
         shots: int = 1,
         name: Optional[str] = None,
         blockade_radius: float = 0.0,
