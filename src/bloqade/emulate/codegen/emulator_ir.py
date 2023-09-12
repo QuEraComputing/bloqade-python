@@ -1,6 +1,6 @@
 from bloqade.codegen.common.assignment_scan import AssignmentScan
 from bloqade.ir.location.base import AtomArrangement, SiteFilling
-from bloqade.ir.visitor.analog_circuit import AnalogCircuitVisitorV2
+from bloqade.ir.visitor.analog_circuit import AnalogCircuitVisitor
 from bloqade.ir.visitor.waveform import WaveformVisitor
 from bloqade.ir.control.field import (
     AssignedRunTimeVector,
@@ -44,7 +44,7 @@ class WaveformCompiler(WaveformVisitor):
         return CompiledWaveform(self.assignments, ast)
 
 
-class EmulatorProgramCodeGen(AnalogCircuitVisitorV2):
+class EmulatorProgramCodeGen(AnalogCircuitVisitor):
     def __init__(
         self, assignments: Dict[str, Number] = {}, blockade_radius: Real = 0.0
     ):
