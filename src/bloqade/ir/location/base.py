@@ -1,14 +1,16 @@
+from bloqade.builder.typing import ScalarType
 from bloqade.builder.start import ProgramStart
 from bloqade.ir.scalar import Scalar, Literal, cast
+from bloqade.ir.location.transform import TransformTrait
+from bloqade.visualization.atom_arragement_visualize import get_atom_arrangement_figure
+from bloqade.visualization.display import display_atom_arrangement
+
 from pydantic.dataclasses import dataclass
-from bloqade.builder.typing import ScalarType
 from beartype.typing import List, Tuple, Generator
 from beartype import beartype
 from enum import Enum
 import plotext as pltxt
 import sys
-from bloqade.visualization.atom_arragement_visualize import get_atom_arrangement_figure
-from bloqade.visualization.display import display_atom_arrangement
 
 
 class SiteFilling(int, Enum):
@@ -31,7 +33,7 @@ class LocationInfo:
         self.position = tuple(cast(ele) for ele in position)
 
 
-class AtomArrangement(ProgramStart):
+class AtomArrangement(ProgramStart, TransformTrait):
     def __repr__(self) -> str:
         xs_filled, xs_vacant = [], []
         ys_filled, ys_vacant = [], []

@@ -4,7 +4,6 @@ import numpy as np
 import itertools
 from numpy.typing import NDArray
 from bloqade.ir.location.base import AtomArrangement, LocationInfo
-from bloqade.ir.location.transform import TransformTrait
 from dataclasses import InitVar
 from bloqade.ir import Literal, Scalar, cast
 
@@ -24,7 +23,7 @@ class Cell:
 
 
 @dataclass
-class BoundedBravais(AtomArrangement, TransformTrait):
+class BoundedBravais(AtomArrangement):
     __match_args__ = ("shape", "lattice_spacing")
     """Base classe for Bravais lattices
     [`AtomArrangement`][bloqade.ir.location.base.AtomArrangement].

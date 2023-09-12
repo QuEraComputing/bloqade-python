@@ -1,16 +1,19 @@
 from bloqade.builder.typing import ScalarType
-from beartype.typing import List, Tuple, Optional
+from beartype.typing import List, Tuple, Optional, TYPE_CHECKING
 from beartype import beartype
 import numpy as np
-from bloqade.ir.location.list import ListOfLocations
-from bloqade.ir.location.base import LocationInfo, SiteFilling
 from bloqade.ir.scalar import cast
+
+if TYPE_CHECKING:
+    from bloqade.ir.location.list import ListOfLocations
 
 
 class TransformTrait:
     @beartype
-    def scale(self, scale: ScalarType) -> ListOfLocations:
+    def scale(self, scale: ScalarType) -> "ListOfLocations":
         """scale the atom arrangement with a given factor"""
+        from .list import ListOfLocations
+        from .base import LocationInfo
 
         scale = cast(scale)
         location_list = []
@@ -26,10 +29,10 @@ class TransformTrait:
     @beartype
     def add_position(
         self, position: Tuple[ScalarType, ScalarType], filled: bool = True
-    ) -> "ListOfLocations":
+    ):
         """add a position to existing atom arrangement."""
-
         from .list import ListOfLocations
+        from .base import LocationInfo
 
         location_list = [LocationInfo(position, filled)]
         for location_info in self.enumerate():
@@ -42,11 +45,16 @@ class TransformTrait:
         self,
         positions: List[Tuple[ScalarType, ScalarType]],
         filling: Optional[List[bool]] = None,
-    ) -> ListOfLocations:
+    ):
         """add a list of positions to existing atom arrangement."""
         from .list import ListOfLocations
+        from .base import LocationInfo
 
         location_list = []
+
+        assert (
+            len(positions) == len(filling) if filling else True
+        ), "Length of positions and filling must be the same"
 
         if filling:
             for position, filled in zip(positions, filling):
@@ -64,9 +72,10 @@ class TransformTrait:
     @beartype
     def apply_defect_count(
         self, n_defects: int, rng: np.random.Generator = np.random.default_rng()
-    ) -> ListOfLocations:
+    ):
         """apply n_defects randomly to existing atom arrangement."""
         from .list import ListOfLocations
+        from .base import LocationInfo, SiteFilling
 
         location_list = []
         for location_info in self.enumerate():
@@ -86,9 +95,10 @@ class TransformTrait:
         self,
         defect_probability: float,
         rng: np.random.Generator = np.random.default_rng(),
-    ) -> "ListOfLocations":
+    ):
         """apply defect_probability randomly to existing atom arrangement."""
         from .list import ListOfLocations
+        from .base import LocationInfo, SiteFilling
 
         p = min(1, max(0, defect_probability))
         location_list = []
