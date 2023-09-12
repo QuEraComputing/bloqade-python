@@ -1,18 +1,23 @@
 from bloqade.ir.control.waveform import Waveform, Linear, Constant
-from typing import Any, List
+from bloqade.builder.typing import ScalarType
+from beartype import beartype
+from beartype.typing import List
 
 # this part only for manually build sequences.
 
 
-def linear(duration, start, stop):
+@beartype
+def linear(duration: ScalarType, start: ScalarType, stop: ScalarType):
     return Linear(start, stop, duration)
 
 
-def constant(duration, value):
+@beartype
+def constant(duration: ScalarType, value: ScalarType):
     return Constant(value, duration)
 
 
-def piecewise_linear(durations: List[Any], values: List[Any]) -> Waveform:
+@beartype
+def piecewise_linear(durations: List[ScalarType], values: List[ScalarType]) -> Waveform:
     pwl_wf = None
     for duration, start, stop in zip(durations, values[:-1], values[1:]):
         if pwl_wf is None:
@@ -23,7 +28,10 @@ def piecewise_linear(durations: List[Any], values: List[Any]) -> Waveform:
     return pwl_wf
 
 
-def piecewise_constant(durations: List[Any], values: List[Any]) -> Waveform:
+@beartype
+def piecewise_constant(
+    durations: List[ScalarType], values: List[ScalarType]
+) -> Waveform:
     pwc_wf = None
     for duration, value in zip(durations, values):
         if pwc_wf is None:

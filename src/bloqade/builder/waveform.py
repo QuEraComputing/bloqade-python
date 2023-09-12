@@ -1,19 +1,16 @@
-from typing import Optional, Union, List, Callable
-from numbers import Real
 from functools import reduce
 from bloqade.builder.base import Builder
+from bloqade.builder.typing import ScalarType
 from bloqade.builder.route import WaveformRoute
+
+from beartype import beartype
+from beartype.typing import Optional, Union, List, Callable
+
 import bloqade.ir as ir
-
-ScalarType = Union[float, str, ir.Scalar]
-
-
-def assert_scalar(name, value) -> None:
-    if not isinstance(value, (Real, str, ir.Scalar)):
-        raise ValueError(f"{name} must be a float, str, or Scalar")
 
 
 class WaveformAttachable(Builder):
+    @beartype
     def linear(
         self, start: ScalarType, stop: ScalarType, duration: ScalarType
     ) -> "Linear":
@@ -93,6 +90,7 @@ class WaveformAttachable(Builder):
         """
         return Linear(start, stop, duration, self)
 
+    @beartype
     def constant(self, value: ScalarType, duration: ScalarType) -> "Constant":
         """
         Append/assign a constant waveform to the current location.
@@ -169,7 +167,8 @@ class WaveformAttachable(Builder):
         """
         return Constant(value, duration, self)
 
-    def poly(self, coeffs: ScalarType, duration: ScalarType) -> "Poly":
+    @beartype
+    def poly(self, coeffs: List[ScalarType], duration: ScalarType) -> "Poly":
         """
         Append/assign a waveform with polynomial profile to the current location.
         with form:
@@ -249,6 +248,7 @@ class WaveformAttachable(Builder):
         """
         return Poly(coeffs, duration, self)
 
+    @beartype
     def apply(self, wf: ir.Waveform) -> "Apply":
         """
         Apply a pre-defined waveform to the current location.
@@ -325,6 +325,7 @@ class WaveformAttachable(Builder):
         """
         return Apply(wf, self)
 
+    @beartype
     def piecewise_linear(
         self, durations: List[ScalarType], values: List[ScalarType]
     ) -> "PiecewiseLinear":
@@ -411,6 +412,7 @@ class WaveformAttachable(Builder):
         """
         return PiecewiseLinear(durations, values, self)
 
+    @beartype
     def piecewise_constant(
         self, durations: List[ScalarType], values: List[ScalarType]
     ) -> "PiecewiseConstant":
@@ -498,6 +500,7 @@ class WaveformAttachable(Builder):
         """
         return PiecewiseConstant(durations, values, self)
 
+    @beartype
     def fn(self, fn: Callable, duration: ScalarType) -> "Fn":
         """
         Append/assign a waveform defined by a python function to the current location.
@@ -599,6 +602,7 @@ class Waveform(WaveformRoute, WaveformAttachable):
 
 # mixin for slice and record
 class Slicible:
+    @beartype
     def slice(
         self,
         start: Optional[ScalarType] = None,
@@ -669,6 +673,7 @@ class Slicible:
 
 
 class Recordable:
+    @beartype
     def record(self, name: str) -> "Record":
         """
         Record the value of the current waveform to a variable.
@@ -796,7 +801,6 @@ class Apply(WaveformPrimitive):
 
     def __init__(self, wf: ir.Waveform, parent: Optional[Builder] = None):
         super().__init__(parent)
-        assert isinstance(wf, ir.Waveform), "input must be of type Waveform."
         self._wf = wf
 
     def __bloqade_ir__(self):
@@ -862,6 +866,7 @@ class Fn(WaveformPrimitive):
         self._fn = fn
         self._duration = ir.cast(duration)
 
+    @beartype
     def sample(
         self, dt: ScalarType, interpolation: Union[ir.Interpolation, str, None] = None
     ):

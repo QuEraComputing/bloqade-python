@@ -1,5 +1,7 @@
 from bloqade.builder.base import Builder
-from typing import Any, List, TYPE_CHECKING
+from bloqade.builder.typing import ScalarType
+from beartype.typing import List, TYPE_CHECKING
+from beartype import beartype
 
 if TYPE_CHECKING:
     from bloqade.builder.parallelize import Parallelize
@@ -8,6 +10,7 @@ if TYPE_CHECKING:
 
 
 class Flattenable(Builder):
+    @beartype
     def flatten(self, orders: List[str]) -> "Flatten":
         from bloqade.builder.flatten import Flatten
 
@@ -49,13 +52,14 @@ class BatchAssignable(Builder):
 
 
 class Parallelizable(Builder):
-    def parallelize(self, cluster_spacing: Any) -> "Parallelize":
+    @beartype
+    def parallelize(self, cluster_spacing: ScalarType) -> "Parallelize":
         """
         Parallelize the current problem (register & sequnece) to fill entire FOV
         with the given cluster spacing.
 
         Args:
-            cluster_spacing (Any, should be Real):
+            cluster_spacing (Real | Decimal | Scalar | str):
             the spacing between parallel clusters.
 
         Examples:

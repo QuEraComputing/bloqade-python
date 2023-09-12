@@ -1,5 +1,6 @@
 from bloqade.builder.base import Builder
 from bloqade.ir.control.sequence import Sequence
+from beartype import beartype
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -75,6 +76,7 @@ class ProgramStart(Builder):
 
         return Hyperfine(self)
 
+    @beartype
     def apply(self, sequence: Sequence) -> "SequenceBuilder":
         """apply an existing pulse sequence to the program."""
         from bloqade.builder.sequence_builder import SequenceBuilder
