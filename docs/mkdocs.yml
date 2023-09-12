@@ -11,7 +11,7 @@ nav:
   - Home: index.md
   - Getting started:
     - Installation: getting_started/installation.md
-    - Philosophy: getting_started/philosophy.md
+    - Usage: getting_started/philosophy.md
   - Contributing:
     - Reporting Bugs: contributing/reporting-a-bug.md
     - Documentation Issues: contributing/reporting-a-docs-issue.md
