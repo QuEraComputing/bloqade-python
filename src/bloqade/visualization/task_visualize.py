@@ -12,7 +12,7 @@ def get_task_ir_figure(task_ir, **fig_kwargs):
         QuEraTaskSpecification,
     )
 
-    if isinstance(task_ir,  RabiFrequencyAmplitude):
+    if isinstance(task_ir, RabiFrequencyAmplitude):
         return get_rabi_amp_figure(task_ir, **fig_kwargs)
     elif isinstance(task_ir, RabiFrequencyPhase):
         return get_rabi_phase_figure(task_ir, **fig_kwargs)
@@ -26,7 +26,7 @@ def get_task_ir_figure(task_ir, **fig_kwargs):
         raise NotImplementedError(
             f"not supported task IR for figure, got {type(task_ir)}"
         )
-    
+
 
 def get_lattice_figure(lattice, **fig_kwargs):
     from bloqade.ir.location import ListOfLocations

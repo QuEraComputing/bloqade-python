@@ -18,7 +18,6 @@ def display_ir(obj, assignments):
     from bloqade.ir.control.waveform import Waveform
     from bloqade.ir.location import AtomArrangement
 
-
     if isinstance(obj, AnalogCircuit):
         display_analog_circuit(obj, assignments)
     elif isinstance(obj, PulseExpr):
@@ -35,7 +34,7 @@ def display_ir(obj, assignments):
         display_atom_arrangement(obj, assignments)
     else:
         raise NotImplementedError(f"not supported IR for display, got {type(obj)}")
-    
+
 
 def liner(txt):
     return f"<p>{txt}</p>"

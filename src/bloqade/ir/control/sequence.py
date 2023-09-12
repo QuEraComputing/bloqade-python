@@ -8,7 +8,6 @@ from bloqade.visualization import get_ir_figure
 from bloqade.visualization import display_ir
 
 
-
 __all__ = [
     "LevelCoupling",
     "rydberg",

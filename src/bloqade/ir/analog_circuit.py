@@ -84,4 +84,3 @@ class AnalogCircuit:
 
         """
         display_ir(self, assignments)
-
