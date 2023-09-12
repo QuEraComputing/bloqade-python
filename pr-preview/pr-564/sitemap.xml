@@ -296,6 +296,11 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
+         <loc>https://bloqade.quera.com/reference/bloqade/ir/location/transform/</loc>
+         <lastmod>2023-09-12</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
          <loc>https://bloqade.quera.com/reference/bloqade/ir/routine/</loc>
          <lastmod>2023-09-12</lastmod>
          <changefreq>daily</changefreq>

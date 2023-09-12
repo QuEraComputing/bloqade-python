@@ -43,6 +43,7 @@
             * [bravais](bloqade/ir/location/bravais.md)
             * [list](bloqade/ir/location/list.md)
             * [quera_task_result](bloqade/ir/location/quera_task_result.md)
+            * [transform](bloqade/ir/location/transform.md)
         * [routine](bloqade/ir/routine/index.md)
             * [base](bloqade/ir/routine/base.md)
             * [bloqade](bloqade/ir/routine/bloqade.md)
