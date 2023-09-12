@@ -7,3 +7,10 @@ If you are interested in contributing, please read the following sections to lea
 
 
 ## Table of Contents
+
+- [Reporting a Bug ](reporting-a-bug.md)
+- [Documentation Issues](documentation-issues.md)
+- [Feature Requests](feature-requests.md)
+- [Developing Bloqade](developing-bloqade.md)
+- [Community Slack](slack.md)
+- [Ask a Question](asking-a-question.md)

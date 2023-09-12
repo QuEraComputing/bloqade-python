@@ -13,11 +13,12 @@ nav:
     - Installation: getting_started/installation.md
     - Usage: getting_started/philosophy.md
   - Contributing:
+    - contributing/index.md
     - Reporting Bugs: contributing/reporting-a-bug.md
-    - Documentation Issues: contributing/reporting-a-docs-issue.md
-    - Feature Requests: contributing/requesting-a-change.md
-    - Developing Bloqade: contributing/setup.md
-    - Community Slack: contributing/slack.md
+    - Documentation Issues: contributing/documentation-issues.md
+    - Feature Requests: contributing/feature-requests.md
+    - Developing Bloqade: contributing/developing-bloqade.md
+    - Community Slack: contributing/community-slack.md
     - Asking a Question: 'https://github.com/QuEraComputing/bloqade-python/discussions'
   - Tutorials: 'https://queracomputing.github.io/bloqade-python-examples/latest/'
   - Reference:
