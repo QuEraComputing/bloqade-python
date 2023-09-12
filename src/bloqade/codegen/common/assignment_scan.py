@@ -6,7 +6,7 @@ from bloqade.ir.control.waveform import (
     PythonFn,
     Sample,
 )
-from bloqade.ir.visitor.analog_circuit import AnalogCircuitVisitorV2
+from bloqade.ir.visitor.analog_circuit import AnalogCircuitVisitor
 from bloqade.ir.visitor.waveform import WaveformVisitor
 from bloqade.ir.analog_circuit import AnalogCircuit
 import bloqade.ir.control.sequence as sequence
@@ -72,7 +72,7 @@ class AssignmentScanRecord(WaveformVisitor):
         return self.assignments
 
 
-class AssignmentScan(AnalogCircuitVisitorV2):
+class AssignmentScan(AnalogCircuitVisitor):
     def __init__(self, assignments: Dict[str, numbers.Real] = {}):
         self.assignments = dict(assignments)
         self.waveform_visitor = AssignmentScanRecord(self.assignments)

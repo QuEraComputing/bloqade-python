@@ -8,7 +8,7 @@ import bloqade.ir.analog_circuit as analog_circuit
 
 from bloqade.ir.visitor.analog_circuit import (
     # AnalogCircuitVisitor,
-    AnalogCircuitVisitorV2,
+    AnalogCircuitVisitor,
 )
 from bloqade.ir.visitor.location import LocationVisitor
 from bloqade.ir.visitor.waveform import WaveformVisitor
@@ -208,7 +208,7 @@ class AssignLocation(LocationVisitor):
         )
 
 
-class AssignAnalogCircuit(AnalogCircuitVisitorV2):
+class AssignAnalogCircuit(AnalogCircuitVisitor):
     def __init__(self, mapping: Dict[str, numbers.Real]):
         self.waveform_visitor = AssignWaveform(mapping)
         self.scalar_visitor = AssignScalar(mapping)

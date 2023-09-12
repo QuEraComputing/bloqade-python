@@ -8,7 +8,7 @@ import bloqade.ir.control.sequence as sequence
 from bloqade.ir.location.base import AtomArrangement, ParallelRegister
 from bloqade.ir.control.waveform import Record
 
-from bloqade.ir.visitor.analog_circuit import AnalogCircuitVisitorV2
+from bloqade.ir.visitor.analog_circuit import AnalogCircuitVisitor
 from bloqade.ir.visitor.waveform import WaveformVisitor
 
 import bloqade.submission.ir.task_specification as task_spec
@@ -334,7 +334,7 @@ class PiecewiseConstantCodeGen(WaveformVisitor):
         return self.visit(ast.waveform)
 
 
-class QuEraCodeGen(AnalogCircuitVisitorV2):
+class QuEraCodeGen(AnalogCircuitVisitor):
     def __init__(
         self,
         assignments: Dict[str, Union[numbers.Real, List[numbers.Real]]] = {},
