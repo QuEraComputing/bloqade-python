@@ -130,11 +130,13 @@ graph TD
 
 ## High-Level Builder Representation
 
-When programming Bloqade using the Python API, the user constructs a representation of an analog quantum
-circuit. This representation is a *flattened* version of
-the actual analog circuit. *Flattened* means that the user
-input is a linear sequence of operations where the context of neighboring nodes in the sequence
-of instructions can determine the program tree structure. The Bloqade AST describes the actual analog circuit.
+When programming Bloqade using the Python API, the user constructs
+a representation of an analog quantum circuit. This representation
+is a *flattened* version of the actual analog circuit. *Flattened*
+means that the user input is a linear sequence of operations where
+the context of neighboring nodes in the sequence of instructions
+can determine the program tree structure. The Bloqade AST describes
+the actual analog circuit.
 
 ## Bloqade AST
 
@@ -149,24 +151,23 @@ each Rydberg atom. Each transition is represented by a `Pulse` including
 a `Field` for the drive's detuning, Rabi amplitude, and Rabi phase
 . A `Field` relates the spatial and temporal dependence
 of a drive. The spatial modulates the temporal dependence of the
-waveform. A DAG also describes the `Waveform` object. Finally, we have basic `Scalar` expressions as well for describing
-The syntax of real-valued continuous numbers.
+waveform. A DAG also describes the `Waveform` object. Finally, we
+have basic `Scalar` expressions as well for describing the syntax
+of real-valued continuous numbers.
 
-## Bloqade Compilers
+## Bloqade Compilers and Transpilers
 
 Given a user program expressed as the Bloqade AST, we can target various
 backends by transforming from the Bloqade AST to other kinds of IR.
-For example, when submitting a task to QuEra's hardware, we lower the
+For example, when submitting a task to QuEra's hardware, we transform the
 Bloqade AST to the IR that describes a valid program for the hardware.
 
-We also support compiling the Bloqade AST to a more convenient IR for our
-Python emulator backend. This IR is called the Emulator IR. The Emulator IR
-represents the Bloqade AST in a form that is more convenient for lowering
-directly to a state-vector simulation.
-
-We call the "lowering" procedure from the Bloqade AST to the various other
-IR's code generation. The pattern we use for code generation is called
-the "visitor pattern." The visitor pattern traverses a tree
-structure and performs some action on each node while storing an internal
-state. In Bloqade, the transpilling/lowering steps are typically called
-"code generation" and will live in modules named `codegen`.
+This process is referred to as `lowering`, which in a general sense is a
+transformation that takes you from one IR to another where the target IR
+is specialized or has a smaller syntactical structure. `Transpiling`
+corresponds to a transformation that takes you from
+one language to equivalent expressions in another. For example, we
+can transpile from the Bloqade AST in Python to the Bloqade AST in Julia.
+The generic term for both of these types of transformation in Bloqade is
+Code Generation. You will find various code generation implementations
+in various `codegen` modules.
