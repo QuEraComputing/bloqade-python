@@ -47,6 +47,15 @@ Or run tests and generate coverage via
 pdm run coverage
 ```
 
+will print out the coverage file level report in terminal.
+
+```bash
+pdm run coverage-html
+```
+
+This command generates an interactive html report in `htmlcov` folder.
+This will show which specific lines are not covered by tests.
+
 ### Documentation
 
 You can build documentation via
