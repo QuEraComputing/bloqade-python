@@ -134,7 +134,7 @@ class QuEraHardwareRoutine(RoutineBase):
     @beartype
     def __call__(
         self,
-        *args: float,
+        *args: LiteralType,
         shots: int = 1,
         name: Optional[str] = None,
         shuffle: bool = False,
