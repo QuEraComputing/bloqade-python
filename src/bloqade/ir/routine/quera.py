@@ -1,8 +1,8 @@
 from collections import OrderedDict
 from dataclasses import dataclass
 import json
-from numbers import Real
 
+from bloqade.builder.typing import LiteralType
 from bloqade.ir.routine.base import RoutineBase
 from bloqade.submission.quera import QuEraBackend
 from bloqade.submission.mock import MockBackend
@@ -10,11 +10,13 @@ from bloqade.submission.quera_api_client.load_config import load_config
 from bloqade.task.batch import RemoteBatch
 from bloqade.task.quera import QuEraTask
 
-from typing import Tuple, Union, Optional
+from beartype.typing import Tuple, Union, Optional
+from beartype import beartype
 
 
 @dataclass(frozen=True)
 class QuEraServiceOptions(RoutineBase):
+    @beartype
     def device(self, config_file: Optional[str], **api_config):
         if config_file is not None:
             with open(config_file, "r") as f:
@@ -32,6 +34,7 @@ class QuEraServiceOptions(RoutineBase):
         backend = QuEraBackend(**load_config("Mock"))
         return QuEraHardwareRoutine(source=self.source, backend=backend)
 
+    @beartype
     def mock(self, state_file: str = ".mock_state.txt") -> "QuEraHardwareRoutine":
         backend = MockBackend(state_file=state_file)
         return QuEraHardwareRoutine(source=self.source, backend=backend)
@@ -41,10 +44,10 @@ class QuEraServiceOptions(RoutineBase):
 class QuEraHardwareRoutine(RoutineBase):
     backend: Union[QuEraBackend, MockBackend]
 
-    def compile(
+    def _compile(
         self,
         shots: int,
-        args: Tuple[Real, ...] = (),
+        args: Tuple[LiteralType, ...] = (),
         name: Optional[str] = None,
     ) -> RemoteBatch:
         """
@@ -87,10 +90,11 @@ class QuEraHardwareRoutine(RoutineBase):
 
         return batch
 
+    @beartype
     def submit(
         self,
         shots: int,
-        args: Tuple[Real, ...] = (),
+        args: Tuple[LiteralType, ...] = (),
         name: Optional[str] = None,
         shuffle: bool = False,
         **kwargs,
@@ -110,10 +114,24 @@ class QuEraHardwareRoutine(RoutineBase):
             RemoteBatch
 
         """
-        batch = self.compile(shots, args, name)
+        batch = self._compile(shots, args, name)
         batch._submit(shuffle, **kwargs)
         return batch
 
+    @beartype
+    def run(
+        self,
+        shots: int,
+        args: Tuple[LiteralType, ...] = (),
+        name: Optional[str] = None,
+        shuffle: bool = False,
+        **kwargs,
+    ) -> RemoteBatch:
+        batch = self.submit(shots, args, name, shuffle, **kwargs)
+        batch.pull()
+        return batch
+
+    @beartype
     def __call__(
         self,
         *args: float,
@@ -123,15 +141,3 @@ class QuEraHardwareRoutine(RoutineBase):
         **kwargs,
     ) -> RemoteBatch:
         return self.run(shots, args, name, shuffle, **kwargs)
-
-    def run(
-        self,
-        shots: int,
-        args: Tuple[Real, ...] = (),
-        name: Optional[str] = None,
-        shuffle: bool = False,
-        **kwargs,
-    ) -> RemoteBatch:
-        batch = self.submit(shots, args, name, shuffle, **kwargs)
-        batch.pull()
-        return batch

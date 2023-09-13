@@ -19,7 +19,7 @@ def test_location_exceedloc():
         seq = Linear(start=0.0, stop=1.0, duration=0.5).append(
             2 * Constant(0.5, duration=0.5)
         )
-        start.rydberg.detuning.location(0).apply(seq).quera.mock().compile(10)
+        start.rydberg.detuning.location(0).apply(seq).quera.mock()._compile(10)
 
 
 def test_hyperfine_schema():
@@ -27,7 +27,7 @@ def test_hyperfine_schema():
         seq = Linear(start=0.0, stop=1.0, duration=0.5).append(
             2 * Constant(0.5, duration=0.5)
         )
-        Square(1).hyperfine.detuning.location(0).apply(seq).quera.mock().compile(
+        Square(1).hyperfine.detuning.location(0).apply(seq).quera.mock()._compile(
             shots=10
         )
 
@@ -42,7 +42,7 @@ def test_local_no_global():
         .scale(0.5)
         .apply(seq)
         .quera.mock()
-        .compile(shots=10)
+        ._compile(shots=10)
     )
 
     panel = json.loads(batch.json())
@@ -81,7 +81,7 @@ def test_local_global():
         .scale(0.5)
         .apply(seq)
         .quera.mock()
-        .compile(shots=10)
+        ._compile(shots=10)
     )
 
     panel = json.loads(job.json())

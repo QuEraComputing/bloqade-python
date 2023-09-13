@@ -101,7 +101,7 @@ calculation = (
     .add_positions([(6.8, 0), (6.8, 6.8)])
     .rydberg.detuning.uniform.
     piecewise_linear(
-        durations = [0.1, 1.0 0.1],
+        durations = [0.1, 1.0, 0.1],
         values = [-10, -10, 10, 10]
     )
 )
@@ -119,12 +119,12 @@ calculation = (
     .add_positions([(6.8, 0), (6.8, 6.8)])
     .rydberg.detuning.uniform.
     piecewise_linear(
-        durations = [0.1, 1.0 0.1],
+        durations = [0.1, 1.0, 0.1],
         values = [-10, -10, 10, 10]
     )
     .amplitude.uniform.
     piecewise_linear(
-        durations = [0.1, 1.0 0.1],
+        durations = [0.1, 1.0, 0.1],
         values = [0, 10, 10, 0]
     )
 )
@@ -147,12 +147,12 @@ calculation = (
     .add_positions([(6.8, 0), (6.8, 6.8)])
     .rydberg.detuning.uniform.
     piecewise_linear(
-        durations = [0.1, 1.0 0.1],
+        durations = [0.1, 1.0, 0.1],
         values = [-10, -10, "final_detuning", "final_detuning"]
     )
     .amplitude.uniform.
     piecewise_linear(
-        durations = [0.1, 1.0 0.1],
+        durations = [0.1, 1.0, 0.1],
         values = [0, 10, 10, 0]
     )
 )
@@ -174,15 +174,15 @@ calculation = (
     .add_positions([(6.8, 0), (6.8, 6.8)])
     .rydberg.detuning.uniform.
     piecewise_linear(
-        durations = [0.1, 1.0 0.1],
+        durations = [0.1, 1.0, 0.1],
         values = [-10, -10, "final_detuning", "final_detuning"]
     )
     .amplitude.uniform.
     piecewise_linear(
-        durations = [0.1, 1.0 0.1],
+        durations = [0.1, 1.0, 0.1],
         values = [0, 10, 10, 0]
     )
-    .batch_assign(detuning_final=[0,1,2,3,4])
+    .batch_assign(final_detuning=[0,1,2,3,4])
     .braket.aquila()
 )
 ```
@@ -214,7 +214,7 @@ program = (
         durations = [0.1, 1.0, 0.1],
         values = [0, 10, 10, 0]
     )
-    .batch_assign(detuning_final=[0,1,2,3,4])
+    .batch_assign(final_detuning=[0,1,2,3,4])
 )
 
 emulator_batch = program.braket.local_emulator().run(1000)
