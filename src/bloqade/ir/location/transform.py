@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 
 class TransformTrait:
     @beartype
-    def scale(self, scale: ScalarType) -> "ListOfLocations":
+    def scale(self, scale: ScalarType):
         """scale the atom arrangement with a given factor"""
         from .list import ListOfLocations
         from .base import LocationInfo
