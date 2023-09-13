@@ -5,7 +5,7 @@ from bloqade import cast
 import pytest
 
 
-def test_listOfLocatoions():
+def test_listOfLocations():
     lattice = ListOfLocations(
         [(0, 0), (0, 1), (1, 0), (1, 1)]
     )  # enumerate method gives a generator that can be taken advantage of

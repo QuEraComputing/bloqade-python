@@ -1,18 +1,16 @@
-from decimal import Decimal
-from numbers import Real
+from bloqade.builder.typing import ScalarType
 from bloqade.builder.start import ProgramStart
 from bloqade.ir.scalar import Scalar, Literal, cast
-from pydantic.dataclasses import dataclass
-from typing import List, Generator, Tuple, Optional, Any, TYPE_CHECKING, Union
-import numpy as np
-from enum import Enum
-import plotext as pltxt
-import sys
+from bloqade.ir.location.transform import TransformTrait
 from bloqade.visualization.atom_arragement_visualize import get_atom_arrangement_figure
 from bloqade.visualization.display import display_atom_arrangement
 
-if TYPE_CHECKING:
-    from .list import ListOfLocations
+from pydantic.dataclasses import dataclass
+from beartype.typing import List, Tuple, Generator
+from beartype import beartype
+from enum import Enum
+import plotext as pltxt
+import sys
 
 
 class SiteFilling(int, Enum):
@@ -20,12 +18,13 @@ class SiteFilling(int, Enum):
     vacant = 0
 
 
-@dataclass
+@dataclass(init=False)
 class LocationInfo:
     position: Tuple[Scalar, Scalar]
     filling: SiteFilling
 
-    def __init__(self, position: Tuple[Any, Any], filled: bool):
+    @beartype
+    def __init__(self, position: Tuple[ScalarType, ScalarType], filled: bool):
         if filled:
             self.filling = SiteFilling.filled
         else:
@@ -34,7 +33,7 @@ class LocationInfo:
         self.position = tuple(cast(ele) for ele in position)
 
 
-class AtomArrangement(ProgramStart):
+class AtomArrangement(ProgramStart, TransformTrait):
     def __repr__(self) -> str:
         xs_filled, xs_vacant = [], []
         ys_filled, ys_vacant = [], []
@@ -103,102 +102,6 @@ class AtomArrangement(ProgramStart):
         """number of dimensions in the register."""
         raise NotImplementedError
 
-    def scale(self, scale: Union[Real, Scalar, str, Decimal]) -> "ListOfLocations":
-        """scale the atom arrangement with a given factor"""
-        from .list import ListOfLocations
-
-        scale = cast(scale)
-        location_list = []
-        for location_info in self.enumerate():
-            x, y = location_info.position
-            new_position = (scale * x, scale * y)
-            location_list.append(
-                LocationInfo(new_position, bool(location_info.filling.value))
-            )
-
-        return ListOfLocations(location_list)
-
-    def add_position(
-        self, position: Tuple[Any, Any], filled: bool = True
-    ) -> "ListOfLocations":
-        """add a position to existing atom arrangement."""
-
-        from .list import ListOfLocations
-
-        location_list = [LocationInfo(position, filled)]
-        for location_info in self.enumerate():
-            location_list.append(location_info)
-
-        return ListOfLocations(location_list)
-
-    def add_positions(
-        self, positions: List[Tuple[Any, Any]], filling: Optional[List[bool]] = None
-    ) -> "ListOfLocations":
-        """add a list of positions to existing atom arrangement."""
-        from .list import ListOfLocations
-
-        location_list = []
-
-        if filling:
-            for position, filled in zip(positions, filling):
-                location_list.append(LocationInfo(position, filled))
-
-        else:
-            for position in positions:
-                location_list.append(LocationInfo(position, True))
-
-        for location_info in self.enumerate():
-            location_list.append(location_info)
-
-        return ListOfLocations(location_list)
-
-    def apply_defect_count(
-        self, n_defects: int, rng: np.random.Generator = np.random.default_rng()
-    ) -> "ListOfLocations":
-        """apply n_defects randomly to existing atom arrangement."""
-        from .list import ListOfLocations
-
-        location_list = []
-        for location_info in self.enumerate():
-            location_list.append(location_info)
-
-        for _ in range(n_defects):
-            idx = rng.integers(0, len(location_list))
-            location_list[idx] = LocationInfo(
-                location_list[idx].position,
-                (False if location_list[idx].filling is SiteFilling.filled else True),
-            )
-
-        return ListOfLocations(location_list)
-
-    def apply_defect_density(
-        self,
-        defect_probability: float,
-        rng: np.random.Generator = np.random.default_rng(),
-    ) -> "ListOfLocations":
-        """apply defect_probability randomly to existing atom arrangement."""
-        from .list import ListOfLocations
-
-        p = min(1, max(0, defect_probability))
-        location_list = []
-
-        for location_info in self.enumerate():
-            if rng.random() < p:
-                location_list.append(
-                    LocationInfo(
-                        location_info.position,
-                        (
-                            False
-                            if location_info.filling is SiteFilling.filled
-                            else True
-                        ),
-                    )
-                )
-            else:
-                location_list.append(location_info)
-
-        return ListOfLocations(location_list=location_list)
-
 
 @dataclass(init=False)
 class ParallelRegister(ProgramStart):
@@ -210,9 +113,10 @@ class ParallelRegister(ProgramStart):
     register_filling: List[int]
     shift_vectors: List[List[Scalar]]
 
-    def __init__(self, register: AtomArrangement, cluster_spacing: Any):
+    @beartype
+    def __init__(self, register: AtomArrangement, cluster_spacing: ScalarType):
         self._register = register
-        self._cluster_spacing = cluster_spacing
+        self._cluster_spacing = cast(cluster_spacing)
 
         if register.n_atoms > 0:
             # calculate bounding box

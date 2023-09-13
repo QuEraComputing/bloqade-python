@@ -1,15 +1,16 @@
 from itertools import repeat, starmap
-from typing import Optional, Union, List
+from beartype.typing import Optional, List
+from bloqade.builder.typing import ParamType
 from bloqade.builder.base import Builder
 from bloqade.builder.pragmas import Parallelizable, Flattenable, BatchAssignable
 from bloqade.builder.backend import BackendRoute
 from bloqade.builder.parse.trait import Parse
-import numpy as np
 from numbers import Real
 from decimal import Decimal
+import numpy as np
 
 
-def cast_scalar_param(value: Union[Real, Decimal], name: str) -> Decimal:
+def cast_scalar_param(value: ParamType, name: str) -> Decimal:
     if isinstance(value, (Real, Decimal)):
         return Decimal(str(value))
 
@@ -19,7 +20,7 @@ def cast_scalar_param(value: Union[Real, Decimal], name: str) -> Decimal:
     )
 
 
-def cast_vector_param(value: Union[List[Real], np.ndarray], name: str) -> List[Decimal]:
+def cast_vector_param(value: List[ParamType], name: str) -> List[Decimal]:
     if isinstance(value, np.ndarray):
         value = value.tolist()
 
@@ -32,7 +33,7 @@ def cast_vector_param(value: Union[List[Real], np.ndarray], name: str) -> List[D
     )
 
 
-def cast_batch_scalar_param(value: List[Real], name: str) -> List[Decimal]:
+def cast_batch_scalar_param(value: List[ParamType], name: str) -> List[Decimal]:
     if isinstance(value, np.ndarray):
         value = value.tolist()
 
@@ -45,10 +46,7 @@ def cast_batch_scalar_param(value: List[Real], name: str) -> List[Decimal]:
     )
 
 
-def cast_batch_vector_param(value: List[List[Real]], name: str) -> List[List[Decimal]]:
-    if isinstance(value, np.ndarray):
-        value = value.tolist()
-
+def cast_batch_vector_param(value: List[ParamType], name: str) -> List[List[Decimal]]:
     if isinstance(value, (list, tuple)):
         return list(starmap(cast_vector_param, zip(value, repeat(name))))
 
