@@ -9,12 +9,42 @@ from bokeh.models import (
 )
 
 
+## unify the entry point:
+def display_ir(obj, assignments):
+    from bloqade.ir.analog_circuit import AnalogCircuit
+    from bloqade.ir.control.pulse import PulseExpr
+    from bloqade.ir.control.sequence import SequenceExpr
+    from bloqade.ir.control.field import Field, SpatialModulation
+    from bloqade.ir.control.waveform import Waveform
+    from bloqade.ir.location import AtomArrangement
+
+    if isinstance(obj, AnalogCircuit):
+        display_analog_circuit(obj, assignments)
+    elif isinstance(obj, PulseExpr):
+        display_pulse(obj, assignments)
+    elif isinstance(obj, SequenceExpr):
+        display_sequence(obj, assignments)
+    elif isinstance(obj, Field):
+        display_field(obj, assignments)
+    elif isinstance(obj, SpatialModulation):
+        display_spatialmod(obj, assignments)
+    elif isinstance(obj, Waveform):
+        display_waveform(obj, assignments)
+    elif isinstance(obj, AtomArrangement):
+        display_atom_arrangement(obj, assignments)
+    else:
+        raise NotImplementedError(f"not supported IR for display, got {type(obj)}")
+
+
 def liner(txt):
     return f"<p>{txt}</p>"
 
 
-## builder:
-def display_builder(analog_circ, metas, batch_id: int):
+def display_builder(builder, batch_id):
+    from bloqade.builder.parse.builder import Parser
+
+    analog_circ, metas = Parser().parse_source(builder)
+
     kwargs = metas.static_params
     kwargs.update(metas.batch_params[batch_id])
 
@@ -94,21 +124,5 @@ def display_report(report):
 
 
 ## task_ir
-def display_task_lattice(lattice):
-    show(lattice.figure())
-
-
-def display_quera_task_ir(task_ir):
+def display_task_ir(task_ir):
     show(task_ir.figure())
-
-
-def display_quera_task_rabi_phase(rabi_phase):
-    show(rabi_phase.figure())
-
-
-def display_quera_task_rabi_amp(rabi_amp):
-    show(rabi_amp.figure())
-
-
-def display_quera_task_detuning(detune):
-    show(detune.global_figure())

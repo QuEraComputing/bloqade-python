@@ -15,7 +15,7 @@ import numpy as np
 from pydantic.dataclasses import dataclass
 from bloqade.submission.ir.parallel import ParallelDecoder
 import datetime
-from bloqade.visualization.display import display_report
+from bloqade.visualization import display_report
 
 JSONSubType = TypeVar("JSONSubType", bound="JSONInterface")
 
