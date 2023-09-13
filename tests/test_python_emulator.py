@@ -87,3 +87,49 @@ def test_integration_4():
         .report()
         .bitstrings()
     )
+
+
+def test_integration_5():
+    ramp_time = var("ramp_time")
+    (
+        start.add_position((0, 0))
+        .add_position((0, 5.0))
+        .scale("r")
+        .rydberg.detuning.uniform.piecewise_linear(
+            [0.1, ramp_time, 0.1], [-100, -100, 100, 100]
+        )
+        .amplitude.uniform.piecewise_linear([0.1, ramp_time, 0.1], [0, 10, 10, 0])
+        .phase.location(1)
+        .linear(0.0, 1.0, ramp_time + 0.2)
+        .assign(ramp_time=3.0)
+        .batch_assign(r=np.linspace(4, 10, 11).tolist())
+        .bloqade.python()
+        .run(10000, cache_matrices=True, blockade_radius=6.0)
+        .report()
+        .bitstrings()
+    )
+
+
+def test_integration_6():
+    ramp_time = var("ramp_time")
+    (
+        start.add_position((0, 0))
+        .add_position((0, 5.0))
+        .scale("r")
+        .rydberg.detuning.uniform.piecewise_linear(
+            [0.1, ramp_time, 0.1], [-100, -100, 100, 100]
+        )
+        .location(1)
+        .constant(3.0, ramp_time + 0.2)
+        .location(0)
+        .linear(2.0, 0, ramp_time + 0.2)
+        .amplitude.uniform.piecewise_linear([0.1, ramp_time, 0.1], [0, 10, 10, 0])
+        .phase.location(1)
+        .linear(0.0, 1.0, ramp_time + 0.2)
+        .assign(ramp_time=3.0)
+        .batch_assign(r=np.linspace(4, 10, 11).tolist())
+        .bloqade.python()
+        .run(10000, cache_matrices=True, blockade_radius=6.0)
+        .report()
+        .bitstrings()
+    )
