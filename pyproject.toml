@@ -7,7 +7,7 @@ authors = [
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
-    "License :: Apache 2.0",
+    "License :: OSI Approved :: Apache Software License",
     "Operating System :: OS Independent",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3.9",
