@@ -1,3 +1,8 @@
+[![Latest Version](https://img.shields.io/pypi/v/bloqade.svg)](https://pypi.python.org/pypi/bloqade)
+[![Supported Python Versions](https://img.shields.io/pypi/pyversions/bloqade.svg)](https://pypi.python.org/pypi/bloqade)
+[![codecov](https://codecov.io/github/QuEraComputing/bloqade-python/graph/badge.svg?token=4YJFc45Jyl)](https://codecov.io/github/QuEraComputing/bloqade-python)
+![CI](https://github.com/QuEraComputing/bloqade-python/actions/workflows/ci.yml/badge.svg)
+
 # Welcome to Bloqade -- QuEra's Neutral Atom SDK
 
 
