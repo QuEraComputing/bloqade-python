@@ -30,7 +30,7 @@ def test_parallel_task():
         )
         .parallelize(10.0)
         .quera.mock()
-        .compile(shots=10)
+        ._compile(shots=10)
     )
 
     assert quantum_batch.tasks[0].parallel_decoder
@@ -46,4 +46,4 @@ def test_error_parallel_noatom():
                 "final_detuning",
                 "final_detuning",
             ],
-        ).parallelize(10.0).quera.mock().compile(shots=1)
+        ).parallelize(10.0).quera.mock()._compile(shots=1)

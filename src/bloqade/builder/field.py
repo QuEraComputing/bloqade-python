@@ -1,4 +1,5 @@
 from bloqade.builder.base import Builder
+from beartype import beartype
 
 
 class Field(Builder):
@@ -44,6 +45,7 @@ class Field(Builder):
 
         return Uniform(self)
 
+    @beartype
     def location(self, label: int):
         """
         Addressing one or multiple specific location(s) for preceeding waveform.
@@ -107,6 +109,7 @@ class Field(Builder):
 
         return Location(label, self)
 
+    @beartype
     def var(self, name: str):
         """
         - Addressing atom location associate with given variable for preceeding waveform

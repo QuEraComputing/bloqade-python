@@ -1,11 +1,17 @@
-from .base import AtomArrangement, LocationInfo
-from typing import List, Tuple, Any, Union
+from bloqade.ir.location.base import AtomArrangement, LocationInfo
+from bloqade.builder.typing import ScalarType
+from beartype.typing import List, Tuple, Union
+from beartype import beartype
 
 
 class ListOfLocations(AtomArrangement):
     __match_args__ = ("location_list",)
 
-    def __init__(self, location_list: List[Union[LocationInfo, Tuple[Any, Any]]] = []):
+    @beartype
+    def __init__(
+        self,
+        location_list: List[Union[LocationInfo, Tuple[ScalarType, ScalarType]]] = [],
+    ):
         self.location_list = []
         for ele in location_list:
             if isinstance(ele, LocationInfo):

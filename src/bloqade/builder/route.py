@@ -1,4 +1,4 @@
-from bloqade.builder.start import ProgramStart
+from bloqade.builder.drive import Drive
 from bloqade.builder.coupling import LevelCoupling
 from bloqade.builder.field import Field, Rabi
 from bloqade.builder.pragmas import (
@@ -10,7 +10,7 @@ from bloqade.builder.pragmas import (
 from bloqade.builder.backend import BackendRoute
 
 
-class PulseRoute(ProgramStart, LevelCoupling, Field, Rabi):
+class PulseRoute(Drive, LevelCoupling, Field, Rabi):
     pass
 
 

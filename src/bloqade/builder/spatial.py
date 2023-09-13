@@ -1,13 +1,13 @@
-from typing import Union, Optional, TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING
+
+from beartype import beartype
+from bloqade.builder.typing import ScalarType
 from bloqade.builder.waveform import WaveformAttachable
 from bloqade.builder.base import Builder
-from bloqade.ir import Scalar
-from numbers import Real
+
 
 if TYPE_CHECKING:
     from bloqade.ir.control.field import UniformModulation
-
-ScalarType = Union[float, str, Scalar]
 
 
 class SpatialModulation(WaveformAttachable):
@@ -43,11 +43,13 @@ class Uniform(SpatialModulation):
 class Location(SpatialModulation):
     __match_args__ = ("_label", "__parent__")
 
+    @beartype
     def __init__(self, label: int, parent: Optional[Builder] = None) -> None:
         assert isinstance(label, int) and label >= 0
         super().__init__(parent)
         self._label = label
 
+    @beartype
     def location(self, label: int) -> "Location":
         """
         Append another location to the current location(s)
@@ -105,7 +107,8 @@ class Location(SpatialModulation):
         """
         return Location(label, self)
 
-    def scale(self, value) -> "Scale":
+    @beartype
+    def scale(self, value: ScalarType) -> "Scale":
         """
         Scale the preceeding waveform by the specified factor.
 
@@ -172,11 +175,12 @@ class Location(SpatialModulation):
 class Scale(WaveformAttachable):
     __match_args__ = ("_value", "__parent__")
 
+    @beartype
     def __init__(self, value: ScalarType, parent: Optional[Builder] = None) -> None:
-        assert isinstance(value, (Real, str, Scalar))
         super().__init__(parent)
         self._value = value
 
+    @beartype
     def location(self, label: int) -> "Location":
         """
         - Append another location to the current location after scale the previous one
@@ -230,6 +234,7 @@ class Scale(WaveformAttachable):
 class Var(SpatialModulation):
     __match_args__ = ("_name", "__parent__")
 
+    @beartype
     def __init__(self, name: str, parent: Optional[Builder] = None) -> None:
         assert isinstance(name, str)
         super().__init__(parent)

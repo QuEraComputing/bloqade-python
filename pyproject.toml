@@ -16,6 +16,7 @@ dependencies = [
     "requests-sigv4>=0.1.6",
     "amazon-braket-sdk>=1.55.0",
     "plotext>=5.2.8",
+    "beartype>=0.15.0",
 ]
 requires-python = ">=3.9"
 readme = "README.md"
