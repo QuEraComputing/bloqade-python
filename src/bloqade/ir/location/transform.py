@@ -1,11 +1,8 @@
 from bloqade.builder.typing import ScalarType
-from beartype.typing import List, Tuple, Optional, TYPE_CHECKING
+from beartype.typing import List, Tuple, Optional
 from beartype import beartype
 import numpy as np
 from bloqade.ir.scalar import cast
-
-if TYPE_CHECKING:
-    from bloqade.ir.location.list import ListOfLocations
 
 
 class TransformTrait:
