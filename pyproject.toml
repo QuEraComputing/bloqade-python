@@ -6,7 +6,7 @@ authors = [
     {name = "QuEra Computing Inc.", email = "info@quera.com"},
 ]
 classifiers = [
-    "Development Status :: 5 - Pre-release Alpha",
+    "Development Status :: 3 - Alpha",
     "License :: Apache 2.0",
     "Operating System :: OS Independent",
     "Programming Language :: Python",
