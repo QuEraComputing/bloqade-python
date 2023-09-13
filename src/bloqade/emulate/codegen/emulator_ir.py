@@ -210,30 +210,6 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
                         amplitude=self.waveform_compiler.emit(wf),
                     )
                 )
-        elif (
-            len(phase.value) == 1
-            and UniformModulation() in phase.value
-            and len(amplitude.value) < self.n_atoms
-        ):
-            (phase_waveform,) = phase.value.values()
-            rabi_phase = self.waveform_compiler.emit(phase_waveform)
-            self.duration = max(
-                float(phase_waveform.duration(**self.assignments)), self.duration
-            )
-            for sm, wf in amplitude.value.items():
-                self.duration = max(
-                    float(wf.duration(**self.assignments)), self.duration
-                )
-                terms.append(
-                    RabiTerm(
-                        operator_data=RabiOperatorData(
-                            target_atoms=self.visit(sm),
-                            operator_type=RabiOperatorType.RabiAsymmetric,
-                        ),
-                        amplitude=self.waveform_compiler.emit(wf),
-                        phase=rabi_phase,
-                    )
-                )
         elif phase is None:  # fully local real rabi fields
             amplitude_target_atoms_dict = {
                 sm: self.visit(sm) for sm in amplitude.value.keys()
@@ -258,6 +234,30 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
                             operator_type=RabiOperatorType.RabiSymmetric,
                         ),
                         amplitude=self.waveform_compiler.emit(amplitude_wf),
+                    )
+                )
+        elif (
+            len(phase.value) == 1
+            and UniformModulation() in phase.value
+            and len(amplitude.value) < self.n_atoms
+        ):
+            (phase_waveform,) = phase.value.values()
+            rabi_phase = self.waveform_compiler.emit(phase_waveform)
+            self.duration = max(
+                float(phase_waveform.duration(**self.assignments)), self.duration
+            )
+            for sm, wf in amplitude.value.items():
+                self.duration = max(
+                    float(wf.duration(**self.assignments)), self.duration
+                )
+                terms.append(
+                    RabiTerm(
+                        operator_data=RabiOperatorData(
+                            target_atoms=self.visit(sm),
+                            operator_type=RabiOperatorType.RabiAsymmetric,
+                        ),
+                        amplitude=self.waveform_compiler.emit(wf),
+                        phase=rabi_phase,
                     )
                 )
         else:
