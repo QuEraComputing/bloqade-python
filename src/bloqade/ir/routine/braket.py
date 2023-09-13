@@ -147,7 +147,7 @@ class BraketHardwareRoutine(RoutineBase):
     @beartype
     def __call__(
         self,
-        *args: Tuple[LiteralType, ...],
+        *args: LiteralType,
         shots: int = 1,
         name: Optional[str] = None,
         shuffle: bool = False,
@@ -263,7 +263,7 @@ class BraketLocalEmulatorRoutine(RoutineBase):
     @beartype
     def __call__(
         self,
-        *args: Tuple[LiteralType, ...],
+        *args: LiteralType,
         shots: int = 1,
         name: Optional[str] = None,
         multiprocessing: bool = False,
