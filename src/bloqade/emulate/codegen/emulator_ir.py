@@ -143,7 +143,7 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
 
     def visit_scaled_locations(self, ast: ScaledLocations) -> Dict[int, Decimal]:
         return {
-            loc.value: coeff(**self.assignments) for loc, coeff in ast.locations.items()
+            loc.value: coeff(**self.assignments) for loc, coeff in ast.value.items()
         }
 
     def visit_detuning(self, ast: Optional[Field]):
