@@ -1,12 +1,12 @@
 from ..scalar import Scalar, cast
 from ..tree_print import Printer
 from .waveform import Waveform
-from bloqade.visualization.ir_visualize import get_field_figure
+from bloqade.visualization import get_field_figure
 from pydantic.dataclasses import dataclass
 from typing import Dict, List
 from decimal import Decimal
-from bloqade.visualization.display import display_field, display_spatialmod
-from bloqade.visualization.ir_visualize import get_spmod_figure
+from bloqade.visualization import display_ir
+from bloqade.visualization import get_ir_figure
 
 
 class FieldExpr:
@@ -83,10 +83,10 @@ class UniformModulation(SpatialModulation):
         return ["uni"], ["all"]
 
     def figure(self, **assignment):
-        return get_spmod_figure(self, **assignment)
+        return get_ir_figure(self, **assignment)
 
     def show(self, **assignment):
-        display_spatialmod(self, **assignment)
+        display_ir(self, **assignment)
 
 
 Uniform = UniformModulation()
@@ -109,13 +109,13 @@ class RunTimeVector(SpatialModulation):
         return [self.name]
 
     def figure(self, **assginment):
-        return get_spmod_figure(self, **assginment)
+        return get_ir_figure(self, **assginment)
 
     def _get_data(self, **assignment):
         return [self.name], ["vec"]
 
     def show(self, **assignment):
-        display_spatialmod(self, **assignment)
+        display_ir(self, **assignment)
 
 
 @dataclass
@@ -136,13 +136,13 @@ class AssignedRunTimeVector(SpatialModulation):
         return [self.name, *self.value]
 
     def figure(self, **assginment):
-        return get_spmod_figure(self, **assginment)
+        return get_ir_figure(self, **assginment)
 
     def _get_data(self, **assignment):
         return [self.name], ["vec"]
 
     def show(self, **assignment):
-        display_spatialmod(self, **assignment)
+        display_ir(self, **assignment)
 
 
 @dataclass(init=False, repr=False)
@@ -203,10 +203,10 @@ class ScaledLocations(SpatialModulation):
         return bool(self.value)
 
     def figure(self, **assignments):
-        return get_spmod_figure(self, **assignments)
+        return get_ir_figure(self, **assignments)
 
     def show(self, **assignment):
-        display_spatialmod(self, assignment)
+        display_ir(self, assignment)
 
 
 @dataclass
@@ -271,4 +271,4 @@ class Field(FieldExpr):
                 existing variables in the Field
 
         """
-        display_field(self, assignments)
+        display_ir(self, assignments)

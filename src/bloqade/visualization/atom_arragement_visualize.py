@@ -5,10 +5,11 @@ from bokeh.models import (
 )
 from bokeh.plotting import figure
 import numpy as np
-import bloqade.ir.location as ir_loc
 
 
 def get_atom_arrangement_figure(atom_arng_ir, fig_kwargs=None, **assignments):
+    import bloqade.ir.location as ir_loc
+
     """obtain a figure object from the atom arrangement."""
     xs_filled, ys_filled, labels_filled = [], [], []
     xs_vacant, ys_vacant, labels_vacant = [], [], []
@@ -31,10 +32,6 @@ def get_atom_arrangement_figure(atom_arng_ir, fig_kwargs=None, **assignments):
             xs_vacant.append(x)
             ys_vacant.append(y)
             labels_vacant.append(idx)
-
-    # Ly = y_max - y_min
-    # Lx = x_max - x_min
-    # scale_x = (Lx+2)/(Ly+2)
 
     if atom_arng_ir.n_atoms > 0:
         length_scale = max(y_max - y_min, x_max - x_min, 1)
