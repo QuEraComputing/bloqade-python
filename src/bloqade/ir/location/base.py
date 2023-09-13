@@ -2,8 +2,6 @@ from bloqade.builder.typing import ScalarType
 from bloqade.builder.start import ProgramStart
 from bloqade.ir.scalar import Scalar, Literal, cast
 from bloqade.ir.location.transform import TransformTrait
-from bloqade.visualization.atom_arragement_visualize import get_atom_arrangement_figure
-from bloqade.visualization.display import display_atom_arrangement
 
 from pydantic.dataclasses import dataclass
 from beartype.typing import List, Tuple, Generator
@@ -13,9 +11,6 @@ import plotext as pltxt
 import sys
 from bloqade.visualization import get_atom_arrangement_figure
 from bloqade.visualization import display_ir
-
-if TYPE_CHECKING:
-    from .list import ListOfLocations
 
 
 class SiteFilling(int, Enum):
