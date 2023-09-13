@@ -111,7 +111,3 @@ def test_codegen_detuning_and_rabi():
     print(expected_emulator_ir)
 
     assert emulator_ir == expected_emulator_ir
-
-
-test_codegen_detuning()
-test_codegen_detuning_and_rabi()
