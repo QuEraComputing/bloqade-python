@@ -91,7 +91,7 @@ upload = "python -m twine upload -r bloqade dist/*"
 build = {cmd = "pdm build"}
 publish = {composite = ["build", "upload"]}
 test = {shell = "git clean -f && pytest tests"}
-coverage = {shell = "git clean -f && coverage run -m pytest tests/ && coverage report"}
+coverage = {shell = "git clean -f && coverage run -m pytest tests/ && coverage xml && coverage report"}
 coverage-html = {shell = "git clean -f && coverage run -m pytest tests/ && coverage html"}
 doc = {cmd = "mkdocs serve -f docs/mkdocs.yml"}
 doc_build = {cmd = "mkdocs build -f docs/mkdocs.yml"}
