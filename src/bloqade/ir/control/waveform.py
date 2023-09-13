@@ -376,7 +376,7 @@ class Poly(Instruction):
     f(t=0:duration) = c[0] + c[1]t + c[2]t^2 + ... + c[n-1]t^n-1 + c[n]t^n
 
     Args:
-        checkpoints (List[Scalar]): the coefficients c[] of the polynomial.
+        coeffs (List[Scalar]): the coefficients c[] of the polynomial.
         duration (Scalar): the time span of the waveform.
 
     """
@@ -385,7 +385,7 @@ class Poly(Instruction):
     duration: InitVar[Scalar]
 
     def __init__(self, coeffs, duration):
-        self.coeffs = list(map(cast, coeffs))
+        self.coeffs = cast(coeffs)
         self._duration = cast(duration)
 
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
@@ -396,8 +396,10 @@ class Poly(Instruction):
             # call clock_s on each element of the scalars,
             # then apply the proper powers
             value = Decimal(0)
-            for exponent, scalar_expr in enumerate(self.coeffs):
-                value += scalar_expr(**kwargs) * clock_s**exponent
+            power = Decimal(1)
+            for scalar_expr in self.coeffs:
+                value += scalar_expr(**kwargs) * power
+                power *= clock_s
 
             return value
 
@@ -411,18 +413,17 @@ class Poly(Instruction):
         # should have annotation for duration
         # then annotations for the polynomial terms and exponents
 
-        annotated_checkpoints = {}
-        for i, checkpoint in enumerate(self.coeffs):
+        annotated_coeffs = {}
+        for i, coeff in enumerate(self.coeffs):
             if i == 0:
-                annotated_checkpoints["b"] = checkpoint
+                annotated_coeffs["b"] = coeff
             elif i == 1:
-                annotated_checkpoints["t"] = checkpoint
+                annotated_coeffs["t"] = coeff
             else:
-                annotated_checkpoints["t^" + str(i)] = checkpoint
+                annotated_coeffs["t^" + str(i)] = coeff
 
-        annotated_checkpoints["duration"] = self._duration
-
-        return annotated_checkpoints
+        annotated_coeffs["duration"] = self._duration
+        return annotated_coeffs
 
 
 @dataclass(init=False, repr=False)

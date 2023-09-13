@@ -789,7 +789,7 @@ class Poly(WaveformPrimitive):
         parent: Optional[Builder] = None,
     ) -> None:
         super().__init__(parent)
-        self._coeffs = map(ir.cast, coeffs)
+        self._coeffs = ir.cast(coeffs)
         self._duration = ir.cast(duration)
 
     def __bloqade_ir__(self):

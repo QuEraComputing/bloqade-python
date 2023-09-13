@@ -185,7 +185,7 @@ class Scalar:
             new_exprs = set()
             for expr in exprs:
                 if isinstance(expr, op):
-                    exprs = map(Scalar.canonicalize, exprs)
+                    exprs = list(map(Scalar.canonicalize, exprs))
                     new_exprs.update(exprs)
                 else:
                     expr = Scalar.canonicalize(expr)
