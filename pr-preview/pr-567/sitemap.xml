@@ -96,6 +96,11 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
+         <loc>https://bloqade.quera.com/reference/bloqade/builder/drive/</loc>
+         <lastmod>2023-09-13</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
          <loc>https://bloqade.quera.com/reference/bloqade/builder/field/</loc>
          <lastmod>2023-09-13</lastmod>
          <changefreq>daily</changefreq>
@@ -132,6 +137,11 @@
     </url>
     <url>
          <loc>https://bloqade.quera.com/reference/bloqade/builder/start/</loc>
+         <lastmod>2023-09-13</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://bloqade.quera.com/reference/bloqade/builder/typing/</loc>
          <lastmod>2023-09-13</lastmod>
          <changefreq>daily</changefreq>
     </url>
@@ -282,6 +292,11 @@
     </url>
     <url>
          <loc>https://bloqade.quera.com/reference/bloqade/ir/location/quera_task_result/</loc>
+         <lastmod>2023-09-13</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://bloqade.quera.com/reference/bloqade/ir/location/transform/</loc>
          <lastmod>2023-09-13</lastmod>
          <changefreq>daily</changefreq>
     </url>
