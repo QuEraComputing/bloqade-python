@@ -128,11 +128,13 @@ class QuEraTask(RemoteTask):
 @QuEraTask.set_serializer
 def _serialze(obj: QuEraTask) -> Dict[str, ParamType]:
     return {
-        "task_id": obj.task_id,
+        "task_id": obj.task_id if obj.task_id is not None else None,
         "backend": obj.backend,
         "task_ir": obj.task_ir.dict(by_alias=True, exclude_none=True),
         "metadata": obj.metadata,
-        "parallel_decoder": obj.parallel_decoder.dict(),
+        "parallel_decoder": obj.parallel_decoder.dict()
+        if obj.parallel_decoder
+        else None,
         "task_result_ir": obj.task_result_ir.dict() if obj.task_result_ir else None,
     }
 
@@ -140,8 +142,12 @@ def _serialze(obj: QuEraTask) -> Dict[str, ParamType]:
 @QuEraTask.set_deserializer
 def _deserializer(d: Dict[str, Any]) -> QuEraTask:
     d["task_ir"] = QuEraTaskSpecification(**d["task_ir"])
-    if d["task_result_ir"] is not None:
-        d["task_result_ir"] = QuEraTaskResults(**d["task_result_ir"])
+    d["task_result_ir"] = (
+        QuEraTaskResults(**d["task_result_ir"]) if d["task_result_ir"] else None
+    )
+    d["parallel_decoder"] = (
+        ParallelDecoder(**d["parallel_decoder"]) if d["parallel_decoder"] else None
+    )
 
     return QuEraTask(**d)
 

@@ -57,4 +57,7 @@ def _serialize(obj: BraketEmulatorTask) -> Dict[str, Any]:
 @BraketEmulatorTask.set_deserializer
 def _serializer(d: Dict[str, Any]) -> BraketEmulatorTask:
     d["task_ir"] = BraketTaskSpecification(**d["task_ir"])
+    d["task_result_ir"] = (
+        QuEraTaskResults(**d["task_result_ir"]) if d["task_result_ir"] else None
+    )
     return BraketEmulatorTask(**d)

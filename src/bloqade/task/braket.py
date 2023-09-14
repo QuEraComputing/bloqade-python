@@ -9,7 +9,7 @@ from bloqade.submission.base import ValidationError
 from bloqade.submission.ir.task_results import QuEraTaskResults, QuEraTaskStatusCode
 import warnings
 from dataclasses import dataclass
-from beartype.typing import Dict, Optional
+from beartype.typing import Dict, Optional, Any
 
 
 ## keep the old conversion for now,
@@ -119,3 +119,30 @@ class BraketTask(RemoteTask):
 
     # def submit_no_task_id(self) -> "HardwareTaskShotResults":
     #    return HardwareTaskShotResults(hardware_task=self)
+
+
+@BraketTask.set_serializer
+def _serialize(obj: BraketTask) -> Dict[str, Any]:
+    return {
+        "task_id": obj.task_id,
+        "backend": obj.backend.dict(),
+        "task_ir": obj.task_ir.dict(exclude_none=True, by_alias=True),
+        "metadata": obj.metadata,
+        "parallel_decoder": obj.parallel_decoder.dict()
+        if obj.parallel_decoder
+        else None,
+        "task_result_ir": obj.task_result_ir.dict() if obj.task_result_ir else None,
+    }
+
+
+@BraketTask.set_deserializer
+def _deserialize(d: Dict[str, Any]) -> BraketTask:
+    d["backend"] = BraketBackend(**d["backend"])
+    d["task_ir"] = QuEraTaskSpecification(**d["task_ir"])
+    d["parallel_decoder"] = (
+        ParallelDecoder(**d["parallel_decoder"]) if d["parallel_decoder"] else None
+    )
+    d["task_result_ir"] = (
+        QuEraTaskResults(**d["task_result_ir"]) if d["task_result_ir"] else None
+    )
+    return BraketTask(**d)
