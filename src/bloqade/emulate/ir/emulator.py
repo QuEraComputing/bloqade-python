@@ -1,15 +1,16 @@
-from dataclasses import dataclass
+from bloqade.serialize import register_serializer
+from pydantic.dataclasses import dataclass
 from decimal import Decimal
 from typing import Any, Dict, List, Tuple, Optional
 from enum import Enum
 from bloqade.ir.control.waveform import Waveform
 from bloqade.emulate.ir.atom_type import AtomType
-from numbers import Real
 
 
+@register_serializer(["assignments", "source"])
 @dataclass(frozen=True)
 class CompiledWaveform:
-    assignments: Dict[str, Real]
+    assignments: Dict[str, Decimal]
     source: Waveform
 
     def __call__(self, t: float) -> float:
@@ -21,6 +22,7 @@ class RabiOperatorType(Enum):
     RabiSymmetric = 1
 
 
+@register_serializer(["operator_type", "target_atoms"])
 @dataclass(frozen=True)
 class RabiOperatorData:
     operator_type: RabiOperatorType
@@ -30,6 +32,7 @@ class RabiOperatorData:
         return hash(self.operator_type) ^ hash(frozenset(self.target_atoms.items()))
 
 
+@register_serializer(["operator_data", "amplitude", "phase"])
 @dataclass(frozen=True)
 class RabiTerm:
     operator_data: RabiOperatorData
@@ -37,6 +40,7 @@ class RabiTerm:
     phase: Optional[CompiledWaveform] = None
 
 
+@register_serializer(["target_atoms"])
 @dataclass(frozen=True)
 class DetuningOperatorData:
     target_atoms: Dict[int, Decimal]
@@ -45,20 +49,23 @@ class DetuningOperatorData:
         return hash(frozenset(self.target_atoms.items()))
 
 
+@register_serializer(["operator_data", "amplitude"])
 @dataclass(frozen=True)
 class DetuningTerm:
     operator_data: DetuningOperatorData
     amplitude: CompiledWaveform
 
 
+@register_serializer(["detuning", "rabi"])
 @dataclass(frozen=True)
 class Fields:
     detuning: List[DetuningTerm]
     rabi: List[RabiTerm]
 
 
+@register_serializer(["atom_type", "sites", "blockade_radius"])
 @dataclass(frozen=True)
-class Register:
+class AtomRegister:
     """This class represents the of the atoms in the system."""
 
     atom_type: AtomType
@@ -69,7 +76,7 @@ class Register:
         return len(self.sites)
 
     def __eq__(self, other: Any):
-        if isinstance(other, Register):
+        if isinstance(other, AtomRegister):
             return (
                 self.atom_type == other.atom_type
                 and self.blockade_radius == other.blockade_radius
@@ -100,9 +107,10 @@ class LevelCoupling(str, Enum):
     Hyperfine = "hyperfine"
 
 
+@register_serializer(["atom_register", "duration", "pulses"])
 @dataclass(frozen=True)
 class EmulatorProgram:
-    register: Register
+    atom_register: AtomRegister
     duration: float
     pulses: Dict[LevelCoupling, Fields]
 
@@ -129,14 +137,14 @@ class Visitor:
     def visit_rabi_term(self, ast: RabiTerm) -> Any:
         raise NotImplementedError
 
-    def visit_register(self, ast: Register) -> Any:
+    def visit_atom_register(self, ast: AtomRegister) -> Any:
         raise NotImplementedError
 
     def visit(self, ast) -> Any:
         if isinstance(ast, EmulatorProgram):
             return self.visit_emulator_program(ast)
-        elif isinstance(ast, Register):
-            return self.visit_register(ast)
+        elif isinstance(ast, AtomRegister):
+            return self.visit_atom_register(ast)
         elif isinstance(ast, Fields):
             return self.visit_fields(ast)
         elif isinstance(ast, RabiTerm):

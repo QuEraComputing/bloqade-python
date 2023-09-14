@@ -1,7 +1,7 @@
 from bloqade.emulate.ir.atom_type import TwoLevelAtom
 from bloqade.emulate.ir.emulator import (
     EmulatorProgram,
-    Register,
+    AtomRegister,
     RabiOperatorData,
     RabiTerm,
     Fields,
@@ -33,7 +33,7 @@ def test_codegen_detuning():
 
     compiled_waveform = CompiledWaveform({}, detuning_waveform)
 
-    geometry = Register(
+    geometry = AtomRegister(
         TwoLevelAtom,
         [(Decimal("0"), Decimal("0")), (Decimal("0"), Decimal("5"))],
         Decimal("0"),
@@ -49,7 +49,7 @@ def test_codegen_detuning():
     drives = {LevelCoupling.Rydberg: rydberg_drive}
 
     expected_emulator_ir = EmulatorProgram(
-        register=geometry, duration=1.0, pulses=drives
+        atom_register=geometry, duration=1.0, pulses=drives
     )
 
     emulator_ir = EmulatorProgramCodeGen().emit(program)
@@ -77,7 +77,7 @@ def test_codegen_detuning_and_rabi():
     compiled_detuning = CompiledWaveform({}, detuning_waveform)
     compiled_amplitude = CompiledWaveform({}, amplitude_waveform)
 
-    geometry = Register(
+    geometry = AtomRegister(
         TwoLevelAtom,
         [(Decimal("0"), Decimal("0")), (Decimal("0"), Decimal("5"))],
         Decimal("0"),
@@ -102,7 +102,7 @@ def test_codegen_detuning_and_rabi():
     drives = {LevelCoupling.Rydberg: rydberg_drive}
 
     expected_emulator_ir = EmulatorProgram(
-        register=geometry, duration=1.0, pulses=drives
+        atom_register=geometry, duration=1.0, pulses=drives
     )
 
     emulator_ir = EmulatorProgramCodeGen().emit(program)

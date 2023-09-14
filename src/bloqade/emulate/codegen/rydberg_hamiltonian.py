@@ -3,7 +3,7 @@ from bloqade.emulate.ir.emulator import (
     DetuningOperatorData,
     EmulatorProgram,
     LevelCoupling,
-    Register,
+    AtomRegister,
     Fields,
     DetuningTerm,
     RabiOperatorData,
@@ -36,10 +36,10 @@ MatrixTypes = Union[csr_matrix, IndexMapping, NDArray]
 class CompileCache:
     """This class is used to cache the results of the code generation."""
 
-    operator_cache: Dict[Tuple[Register, OperatorData], MatrixTypes] = field(
+    operator_cache: Dict[Tuple[AtomRegister, OperatorData], MatrixTypes] = field(
         default_factory=dict
     )
-    space_cache: Dict[Register, Tuple[Space, NDArray]] = field(default_factory=dict)
+    space_cache: Dict[AtomRegister, Tuple[Space, NDArray]] = field(default_factory=dict)
 
 
 class RydbergHamiltonianCodeGen(Visitor):
@@ -56,12 +56,12 @@ class RydbergHamiltonianCodeGen(Visitor):
     def visit_emulator_program(self, emulator_program: EmulatorProgram):
         self.level_couplings = set(list(emulator_program.pulses.keys()))
 
-        self.visit(emulator_program.register)
+        self.visit(emulator_program.atom_register)
         for level_coupling, laser_coupling in emulator_program.pulses.items():
             self.level_coupling = level_coupling
             self.visit(laser_coupling)
 
-    def visit_register(self, register: Register):
+    def visit_atom_register(self, register: AtomRegister):
         self.register = register
 
         if register in self.compile_cache.space_cache:

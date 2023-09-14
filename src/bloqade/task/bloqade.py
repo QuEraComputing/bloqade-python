@@ -27,7 +27,9 @@ class BloqadeTask(LocalTask):
     task_result_ir: Optional[QuEraTaskResults] = None
 
     def _geometry(self) -> Geometry:
-        sites = [tuple(map(float, site)) for site in self.emulator_ir.register.sites]
+        sites = [
+            tuple(map(float, site)) for site in self.emulator_ir.atom_register.sites
+        ]
 
         return Geometry(sites=sites, filling=[1 for _ in sites], parallel_decoder=None)
 
