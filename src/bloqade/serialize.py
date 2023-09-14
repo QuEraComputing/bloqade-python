@@ -1,41 +1,70 @@
-import simplejson as json
+import json
 from typing import Any
 from beartype.typing import Dict, Type, Union, List
 from beartype import beartype
 
 
 class Serializer(json.JSONEncoder):
-    types = ()
+    type_to_str = {}
+    str_to_type = {}
+    serializers = {}
+    deserializers = {}
+
+    @staticmethod
+    @beartype
+    def register(cls: Type):
+        @beartype
+        def set_serializer(f: Callable):
+            type_name = f"{cls.__module__}.{cls.__name__}"
+            Serializer.serializers[cls] = f
+            Serializer.type_to_str[cls] = type_name
+            Serializer.str_to_type[type_name] = cls
+
+            return f
+        
+        @beartype
+        def set_deserializer(f: Callable):
+            Serializer.deserializers[cls] = f
+
+            return f
+
+        Serializer.methods[cls] = None
+
+        setattr(cls, "set_serializer", set_serializer)
+        setattr(cls, "set_deserializer", set_deserializer)
+
+        return cls
+    
+    def object_hook(self, d: Any) -> Any:
+        if isinstance(d, dict) and len(d) == 1:
+            ((key, value),) = d.items()
+            if key in self.str_to_type:
+                return self.str_to_type[key](**value)
+            
+
 
     def default(self, o: Any) -> Any:
-        if type(o) in self.types:  # do not check inheritance
-            return o._bloqade_serialize()
+        if type(o) in self.methods:
+            cls = type(o)
+            if self.methods[cls] is None:
+                raise TypeError(f"no serializer registered for type {cls}")
+            
+
+            method = getattr(o, self.methods[type(o)])
+            return {self.type_to_str[cls]: method(o)}
 
         return super().default(o)
 
 
-class Deserialzer:
-    types = {}
-
-    @classmethod
-    def object_hook(cls, d):
-        if isinstance(d, dict) and len(d) == 1:
-            ((key, value),) = d.items()
-            if key in cls.types:
-                return cls.types[key](**value)
-
-        return d
-
-
 def loads(s, use_decimal=True, **json_kwargs):
     return json.loads(
-        s, object_hook=Deserialzer.object_hook, use_decimal=use_decimal, **json_kwargs
+        s, object_hook=Serializer.object_hook, use_decimal=use_decimal, **json_kwargs
     )
 
 
 def load(fp, use_decimal=True, **json_kwargs):
     return json.load(
-        fp, object_hook=Deserialzer.object_hook, use_decimal=use_decimal, **json_kwargs
+        fp, object_hook=Serializer.object_hook, use_decimal=use_decimal, **json_kwargs
     )
 
 
@@ -45,51 +74,3 @@ def dumps(o, use_decimal=True, **json_kwargs):
 
 def dump(o, fp, use_decimal=True, **json_kwargs):
     return json.dump(o, fp, cls=Serializer, use_decimal=use_decimal, **json_kwargs)
-
-
-@beartype
-def register_serializer(field_aliases: Union[List[str], Dict[str, str]]):
-    """Register a class to be serialized and deserialized by bloqade.
-
-    Args:
-        field_aliases (Dict[str, str]): A dictionary mapping the names of the
-            fields of the class to the names of the fields in the serialized
-            form. Note that the serialized name will be passed into the class's
-            constructor as a keyword argument. The serialized name must be a
-            valid Python identifier (i.e. it must start with a letter or
-            underscore and contain only letters, numbers, and underscores).
-    """
-
-    if isinstance(field_aliases, list):
-        field_aliases = {field_alias: field_alias for field_alias in field_aliases}
-
-    def _bloqade_serialize(self):
-        return {
-            self.__bloqade_type_name__: {
-                field_alias: getattr(self, field_name)
-                for field_name, field_alias in self.__bloqade_field_aliases.items()
-            }
-        }
-
-    @beartype
-    def _wrapper(cls: Type):
-        from inspect import getmodule
-
-        # Check that the field aliases are valid Python identifiers.
-        for field_alias in field_aliases.values():
-            assert field_alias.isidentifier(), (
-                f"Serialized field alias {field_alias} is not a valid Python "
-                "identifier."
-            )
-
-        __bloqade_type_name__ = f"{getmodule(cls).__name__}.{cls.__name__}"
-
-        cls.__bloqade_type_name__ = __bloqade_type_name__
-        cls.__bloqade_field_aliases = field_aliases
-        cls._bloqade_serialize = _bloqade_serialize
-        Serializer.types += (cls,)
-        Deserialzer.types[__bloqade_type_name__] = cls
-
-        return cls
-
-    return _wrapper
