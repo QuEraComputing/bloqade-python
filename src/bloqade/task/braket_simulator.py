@@ -48,7 +48,13 @@ class BraketEmulatorTask(LocalTask):
 @BraketEmulatorTask.set_serializer
 def _serialize(obj: BraketEmulatorTask) -> Dict[str, Any]:
     return {
-        "task_ir": obj.task_ir,
+        "task_ir": obj.task_ir.dict(),
         "metadata": obj.metadata,
         "task_result_ir": obj.task_result_ir,
     }
+
+
+@BraketEmulatorTask.set_deserializer
+def _serializer(d: Dict[str, Any]) -> BraketEmulatorTask:
+    d["task_ir"] = BraketTaskSpecification(**d["task_ir"])
+    return BraketEmulatorTask(**d)
