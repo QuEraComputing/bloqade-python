@@ -21,7 +21,7 @@ class QuEraTask(RemoteTask):
     task_id: Optional[str]
     backend: Union[QuEraBackend, MockBackend]
     task_ir: QuEraTaskSpecification
-    metadata: Dict[str, ParamType] = {}
+    metadata: Dict[str, ParamType]
     parallel_decoder: Optional[ParallelDecoder] = None
     task_result_ir: Optional[QuEraTaskResults] = None
 

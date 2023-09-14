@@ -21,7 +21,7 @@ class BraketTask(RemoteTask):
     task_id: Optional[str]
     backend: BraketBackend
     task_ir: QuEraTaskSpecification
-    metadata: Dict[str, ParamType] = {}
+    metadata: Dict[str, ParamType]
     parallel_decoder: Optional[ParallelDecoder] = None
     task_result_ir: Optional[QuEraTaskResults] = None
 

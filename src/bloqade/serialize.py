@@ -1,4 +1,4 @@
-import json
+import simplejson as json
 from typing import Any
 from beartype.typing import Type, Callable, Dict
 from beartype import beartype
@@ -70,17 +70,21 @@ class Serializer(json.JSONEncoder):
         return super().default(o)
 
 
-def loads(s, **json_kwargs):
-    return json.loads(s, object_hook=Serializer.object_hook, **json_kwargs)
+def loads(s, use_decimal=True, **json_kwargs):
+    return json.loads(
+        s, object_hook=Serializer.object_hook, use_decimal=use_decimal, **json_kwargs
+    )
 
 
-def load(fp, **json_kwargs):
-    return json.load(fp, object_hook=Serializer.object_hook, **json_kwargs)
+def load(fp, use_decimal=True, **json_kwargs):
+    return json.load(
+        fp, object_hook=Serializer.object_hook, use_decimal=use_decimal, **json_kwargs
+    )
 
 
-def dumps(o, **json_kwargs):
-    return json.dumps(o, cls=Serializer, **json_kwargs)
+def dumps(o, use_decimal=True, **json_kwargs):
+    return json.dumps(o, cls=Serializer, use_decimal=use_decimal, **json_kwargs)
 
 
-def dump(o, fp, **json_kwargs):
-    return json.dump(o, fp, cls=Serializer, **json_kwargs)
+def dump(o, fp, use_decimal=True, **json_kwargs):
+    return json.dump(o, fp, cls=Serializer, use_decimal=use_decimal, **json_kwargs)
