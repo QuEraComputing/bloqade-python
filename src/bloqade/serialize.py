@@ -1,6 +1,6 @@
 import json
 from typing import Any
-from beartype.typing import Type, Callable
+from beartype.typing import Type, Callable, Dict
 from beartype import beartype
 
 
@@ -14,20 +14,32 @@ class Serializer(json.JSONEncoder):
     @beartype
     def register(cls: Type):
         @beartype
+        def _deserializer(d: Dict[str, Any]) -> cls:
+            return cls(**d)
+
+        @beartype
+        def _serializer(obj: cls) -> Dict[str, Any]:
+            return obj.__dict__
+
+        @beartype
         def set_serializer(f: Callable):
-            Serializer.serializers[cls] = f
-            return f
+            # TODO: check function signature
+            setattr(cls, "__bloqade_serializer__", staticmethod(f))
+            Serializer.serializers[cls] = cls.__bloqade_serializer__
 
         @beartype
         def set_deserializer(f: Callable):
-            Serializer.deserializers[cls] = f
-            return f
+            # TODO: check function signature
+            setattr(cls, "__bloqade_deserializer__", staticmethod(f))
+            Serializer.deserializers[cls] = cls.__bloqade_deserializer__
 
         type_name = f"{cls.__module__}.{cls.__name__}"
         Serializer.type_to_str[cls] = type_name
         Serializer.str_to_type[type_name] = cls
         setattr(cls, "set_serializer", staticmethod(beartype(set_serializer)))
         setattr(cls, "set_deserializer", staticmethod(beartype(set_deserializer)))
+        cls.set_deserializer(_deserializer)
+        cls.set_serializer(_serializer)
 
         return cls
 

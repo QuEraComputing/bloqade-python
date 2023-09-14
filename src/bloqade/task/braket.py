@@ -1,4 +1,5 @@
 from bloqade.builder.base import ParamType
+from bloqade.serialize import Serializer
 from bloqade.submission.ir.parallel import ParallelDecoder
 from bloqade.task.base import Geometry, RemoteTask
 from bloqade.submission.ir.task_specification import QuEraTaskSpecification
@@ -8,19 +9,20 @@ from bloqade.submission.base import ValidationError
 from bloqade.submission.ir.task_results import QuEraTaskResults, QuEraTaskStatusCode
 import warnings
 from dataclasses import dataclass
-from typing import Dict, Optional
+from beartype.typing import Dict, Optional
 
 
 ## keep the old conversion for now,
 ## we will remove conversion btwn QuEraTask <-> BraketTask,
 ## and specialize/dispatching here.
 @dataclass
+@Serializer.register
 class BraketTask(RemoteTask):
     task_id: Optional[str]
     backend: BraketBackend
     task_ir: QuEraTaskSpecification
-    metadata: Dict[str, ParamType]
-    parallel_decoder: Optional[ParallelDecoder]
+    metadata: Dict[str, ParamType] = {}
+    parallel_decoder: Optional[ParallelDecoder] = None
     task_result_ir: Optional[QuEraTaskResults] = None
 
     def submit(self, force: bool = False) -> "BraketTask":

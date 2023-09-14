@@ -1,3 +1,4 @@
+from bloqade.serialize import Serializer
 from bloqade.builder.base import ParamType
 from .base import LocalTask
 from bloqade.submission.ir.task_results import QuEraTaskResults
@@ -7,7 +8,7 @@ from bloqade.submission.ir.braket import (
 )
 from bloqade.task.base import Geometry
 from braket.devices import LocalSimulator
-from typing import Dict, Optional
+from beartype.typing import Dict, Optional, Any
 from dataclasses import dataclass
 
 ## keep the old conversion for now,
@@ -16,6 +17,7 @@ from dataclasses import dataclass
 
 
 @dataclass
+@Serializer.register
 class BraketEmulatorTask(LocalTask):
     task_ir: BraketTaskSpecification
     metadata: Dict[str, ParamType]
@@ -41,3 +43,12 @@ class BraketEmulatorTask(LocalTask):
             raise ValueError("Braket simulator job haven't submit yet.")
 
         return self.task_result_ir
+
+
+@BraketEmulatorTask.set_serializer
+def _serialize(obj: BraketEmulatorTask) -> Dict[str, Any]:
+    return {
+        "task_ir": obj.task_ir,
+        "metadata": obj.metadata,
+        "task_result_ir": obj.task_result_ir,
+    }
