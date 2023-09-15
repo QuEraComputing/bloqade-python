@@ -1,7 +1,15 @@
 Use_bokeh = True
 
 if Use_bokeh:
-    from .display import display_ir, display_report, display_task_ir, display_builder
+    from .display import (
+        display_ir,
+        display_report,
+        display_task_ir,
+        display_builder,
+        figure_ir,
+        builder_figure,
+        report_figure,
+    )
     from .task_visualize import get_task_ir_figure
     from .atom_arragement_visualize import get_atom_arrangement_figure
     from .ir_visualize import get_ir_figure, get_field_figure, get_pulse_figure
@@ -35,4 +43,14 @@ else:
         raise Warning("Bokeh not installed", UserWarning)
 
     def get_pulse_figure(ir_pulse, title: str = None, **assginments):
+        raise Warning("Bokeh not installed", UserWarning)
+
+    # figure:
+    def figure_ir(obj, assignemnts):
+        raise Warning("Bokeh not installed", UserWarning)
+
+    def builder_figure(builder, batch_id):
+        raise Warning("Bokeh not installed", UserWarning)
+
+    def report_figure(report):
         raise Warning("Bokeh not installed", UserWarning)
