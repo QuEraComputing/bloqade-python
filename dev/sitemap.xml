@@ -81,6 +81,11 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
+         <loc>https://bloqade.quera.com/dev/reference/bloqade/serialize/</loc>
+         <lastmod>2023-09-15</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
          <loc>https://bloqade.quera.com/dev/reference/bloqade/builder/</loc>
          <lastmod>2023-09-15</lastmod>
          <changefreq>daily</changefreq>
