@@ -3,6 +3,8 @@ from numpy.typing import NDArray
 import numpy as np
 from enum import Enum
 
+from bloqade.serialize import Serializer
+
 
 @dataclass(frozen=True)
 class AtomType:
@@ -56,6 +58,7 @@ class AtomType:
 
 
 @dataclass(frozen=True)
+@Serializer.register
 class ThreeLevelAtomType(AtomType):
     n_level = 3
     str_to_int = {"g": 0, "h": 1, "r": 2}
@@ -106,6 +109,7 @@ class ThreeLevelAtomType(AtomType):
 
 
 @dataclass(frozen=True)
+@Serializer.register
 class TwoLevelAtomType(AtomType):
     n_level = 2
     str_to_int = {"g": 0, "r": 1}

@@ -26,6 +26,7 @@ dependencies = [
     "amazon-braket-sdk>=1.55.0",
     "plotext>=5.2.8",
     "beartype>=0.15.0",
+    "simplejson>=3.19.1",
 ]
 requires-python = ">=3.9"
 readme = "README.md"

@@ -1,5 +1,7 @@
 # import pytest
+import pytest
 from bloqade import start
+from bloqade.serialize import loads, dumps
 
 # import numpy as np
 
@@ -17,6 +19,43 @@ def test_braket_simulator_getbitstring():
     output = program.braket.local_emulator().run(shots=10).report()
 
     assert len(output.bitstrings()[0].flatten()) == 10
+
+
+def test_serialize_braket_simulator_batch():
+    program = (
+        start.add_position((0, 0))
+        .rydberg.rabi.amplitude.uniform.piecewise_linear(
+            durations=[0.05, 1, 0.05], values=[0.0, 15.8, 15.8, 0.0]
+        )
+        .detuning.uniform.piecewise_linear(durations=[1.1], values=[0.0, 0.0])
+    )
+
+    output = program.braket.local_emulator().run(shots=10)
+
+    output_str = dumps(output)
+    assert isinstance(loads(output_str), type(output))
+    assert loads(output_str).tasks == output.tasks
+    assert loads(output_str).name == output.name
+
+
+def test_error():
+    program = (
+        start.add_position((0, 0))
+        .rydberg.rabi.amplitude.uniform.piecewise_linear(
+            durations=[0.05, 1, 0.05], values=[0.0, 15.8, 15.8, 0.0]
+        )
+        .detuning.uniform.piecewise_linear(durations=[1.1], values=[0.0, 0.0])
+    )
+
+    output = program.braket.local_emulator()._compile(10)
+
+    with pytest.raises(ValueError):
+        output.tasks[0].result()
+
+    output_str = dumps(output)
+    assert isinstance(loads(output_str), type(output))
+    assert loads(output_str).tasks == output.tasks
+    assert loads(output_str).name == output.name
 
 
 """
