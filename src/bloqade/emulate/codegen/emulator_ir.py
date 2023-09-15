@@ -56,7 +56,7 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
         self.duration = 0.0
         self.pulses = {}
         self.level_couplings = set()
-        self.original_index = {}
+        self.original_index = []
 
     def visit_analog_circuit(self, ast: ir.AnalogCircuit):
         self.n_atoms = ast.register.n_atoms
