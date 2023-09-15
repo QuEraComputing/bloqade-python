@@ -78,12 +78,25 @@ class TransformTrait:
         for location_info in self.enumerate():
             location_list.append(location_info)
 
-        for _ in range(n_defects):
-            idx = rng.integers(0, len(location_list))
-            location_list[idx] = LocationInfo(
-                location_list[idx].position,
-                (False if location_list[idx].filling is SiteFilling.filled else True),
+        filled_sites = []
+
+        for index, location_info in enumerate(location_list):
+            if location_info.filling is SiteFilling.filled:
+                filled_sites.append(index)
+
+        if n_defects >= len(filled_sites):
+            raise ValueError(
+                f"n_defects {n_defects} must be less than the number of filled sites "
+                f"({len(filled_sites)})"
             )
+
+        for _ in range(n_defects):
+            index = rng.choice(filled_sites)
+            location_list[index] = LocationInfo(
+                location_list[index].position,
+                (False if location_list[index].filling is SiteFilling.filled else True),
+            )
+            filled_sites.remove(index)
 
         return ListOfLocations(location_list)
 
@@ -116,3 +129,15 @@ class TransformTrait:
                 location_list.append(location_info)
 
         return ListOfLocations(location_list=location_list)
+
+    def remove_vacant_sites(self):
+        """remove all vacant sites from the register."""
+        from .base import SiteFilling
+        from .list import ListOfLocations
+
+        new_locations = []
+        for location_info in self.enumerate():
+            if location_info.filling is SiteFilling.filled:
+                new_locations.append(location_info)
+
+        return ListOfLocations(new_locations)

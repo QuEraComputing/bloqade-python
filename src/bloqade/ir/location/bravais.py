@@ -96,16 +96,18 @@ class BoundedBravais(AtomArrangement):
         return pltxt.build()
 
     @property
-    def n_atoms(self):
-        """number of atoms
-
-        Returns:
-            int: number of atoms in the lattice
-
-        """
+    def n_atoms(self) -> int:
         if not self.__n_atoms:
             self.__n_atoms = len(self.cell_atoms()) * np.prod(self.shape)
         return self.__n_atoms
+
+    @property
+    def n_sites(self) -> int:
+        return self.n_atoms
+
+    @property
+    def n_vacant(self) -> int:
+        return 0
 
     @property
     def n_dims(self):

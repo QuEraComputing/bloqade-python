@@ -1,4 +1,4 @@
-from bloqade.ir.location.base import AtomArrangement, LocationInfo
+from bloqade.ir.location.base import AtomArrangement, LocationInfo, SiteFilling
 from bloqade.builder.typing import ScalarType
 from beartype.typing import List, Tuple, Union
 from beartype import beartype
@@ -20,7 +20,11 @@ class ListOfLocations(AtomArrangement):
                 self.location_list.append(LocationInfo(ele, True))
 
         if location_list:
-            self.__n_atoms = len(self.location_list)
+            self.__n_atoms = sum(
+                1 for loc in self.location_list if loc.filling == SiteFilling.filled
+            )
+            self.__n_sites = len(self.location_list)
+            self.__n_vacant = self.__n_sites - self.__n_atoms
             self.__n_dims = len(self.location_list[0].position)
         else:
             self.__n_atoms = 0
@@ -31,6 +35,14 @@ class ListOfLocations(AtomArrangement):
     @property
     def n_atoms(self):
         return self.__n_atoms
+
+    @property
+    def n_sites(self):
+        return self.__n_sites
+
+    @property
+    def n_vacant(self):
+        return self.__n_vacant
 
     @property
     def n_dims(self):

@@ -12,6 +12,7 @@ from bloqade.ir.control.field import (
 import bloqade.ir.control.sequence as sequence
 import bloqade.ir.control.pulse as pulse
 import bloqade.ir.control.waveform as waveform
+import bloqade.ir.scalar as scalar
 import bloqade.ir as ir
 
 from bloqade.emulate.ir.atom_type import ThreeLevelAtom, TwoLevelAtom
@@ -55,6 +56,7 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
         self.duration = 0.0
         self.pulses = {}
         self.level_couplings = set()
+        self.original_index = []
 
     def visit_analog_circuit(self, ast: ir.AnalogCircuit):
         self.n_atoms = ast.register.n_atoms
@@ -64,18 +66,23 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
 
     def visit_register(self, ast: AtomArrangement) -> Any:
         positions = []
-        for loc_info in ast.enumerate():
+        for original_index, loc_info in enumerate(ast.enumerate()):
             if loc_info.filling == SiteFilling.filled:
                 position = tuple([pos(**self.assignments) for pos in loc_info.position])
                 positions.append(position)
+                self.original_index.append(original_index)
 
         if sequence.hyperfine in self.level_couplings:
             self.register = Register(
-                ThreeLevelAtom, positions, blockade_radius=self.blockade_radius
+                ThreeLevelAtom,
+                positions,
+                blockade_radius=self.blockade_radius,
             )
         else:
             self.register = Register(
-                TwoLevelAtom, positions, blockade_radius=self.blockade_radius
+                TwoLevelAtom,
+                positions,
+                blockade_radius=self.blockade_radius,
             )
 
     def visit_sequence(self, ast: sequence.Sequence) -> None:
@@ -121,30 +128,27 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
         return {atom: Decimal("1.0") for atom in range(self.n_atoms)}
 
     def visit_run_time_vector(self, ast: RunTimeVector) -> Dict[int, Decimal]:
-        if len(self.assignments[ast.name]) != self.n_atoms:
-            raise ValueError(
-                f"Invalid number of atoms in '{ast.name}' "
-                f"({len(self.assignments[ast.name])} != {self.n_atoms})"
-            )
+        value = self.assignments[ast.name]
         return {
-            atom: Decimal(str(coeff))
-            for atom, coeff in enumerate(self.assignments[ast.name])
+            new_index: Decimal(str(value[original_index]))
+            for new_index, original_index in enumerate(self.original_index)
         }
 
     def visit_assigned_run_time_vector(
         self, ast: AssignedRunTimeVector
     ) -> Dict[int, Decimal]:
-        if len(ast.value) != self.n_atoms:
-            raise ValueError(
-                f"Invalid number of atoms in '{ast.name}' "
-                f"({len(ast.value)} != {self.n_atoms})"
-            )
-        return {atom: Decimal(str(coeff)) for atom, coeff in enumerate(ast.value)}
+        return {
+            new_index: Decimal(str(ast.value[original_index]))
+            for new_index, original_index in enumerate(self.original_index)
+        }
 
     def visit_scaled_locations(self, ast: ScaledLocations) -> Dict[int, Decimal]:
-        return {
-            loc.value: coeff(**self.assignments) for loc, coeff in ast.value.items()
-        }
+        target_atoms = {}
+        for new_index, original_index in enumerate(self.original_index):
+            value = ast.value.get(original_index, scalar.Literal(0))
+            target_atoms[new_index] = value(**self.assignments)
+
+        return target_atoms
 
     def visit_detuning(self, ast: Optional[Field]):
         if ast is None:
