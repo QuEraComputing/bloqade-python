@@ -77,14 +77,12 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
                 ThreeLevelAtom,
                 positions,
                 blockade_radius=self.blockade_radius,
-                original_index=self.original_index,
             )
         else:
             self.register = Register(
                 TwoLevelAtom,
                 positions,
                 blockade_radius=self.blockade_radius,
-                original_index=self.original_index,
             )
 
     def visit_sequence(self, ast: sequence.Sequence) -> None:
