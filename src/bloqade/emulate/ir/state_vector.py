@@ -53,20 +53,26 @@ class RydbergHamiltonian:
     detuning_ops: List[DetuningOperator] = field(default_factory=list)
     rabi_ops: List[RabiOperator] = field(default_factory=list)
 
-    # def _ode_complex_kernel(self, time: float, register: NDArray):
-    #     diagonal = sum(
-    #         (detuning.get_diagonal(time) for detuning in self.detuning_ops),
-    #         start=self.rydberg,
-    #     )
-
-    #     result_register = diagonal * register
-    #     for rabi_op in self.rabi_ops:
-    #         result_register += rabi_op.dot(register, time)
-
-    #     result_register *= -1j
-    #     return result_register
-
     def _ode_complex_kernel(self, time: float, register: NDArray):
+        diagonal = sum(
+            (detuning.get_diagonal(time) for detuning in self.detuning_ops),
+            start=self.rydberg,
+        )
+
+        result_register = diagonal * register
+        for rabi_op in self.rabi_ops:
+            result_register += rabi_op.dot(register, time)
+
+        result_register *= -1j
+        return result_register
+
+    def _ode_real_kernel(self, time: float, register: NDArray):
+        # this is needed to use solver that only work on real-valued states
+        return self._ode_complex_kernel(time, register.view(np.complex128)).view(
+            np.float64
+        )
+
+    def _ode_complex_kernel_int(self, time: float, register: NDArray):
         diagonal = sum(
             (detuning.get_diagonal(time) for detuning in self.detuning_ops),
         )
@@ -85,9 +91,9 @@ class RydbergHamiltonian:
         result_register *= -1j
         return result_register
 
-    def _ode_real_kernel(self, time: float, register: NDArray):
+    def _ode_real_kernel_int(self, time: float, register: NDArray):
         # this is needed to use solver that only work on real-valued states
-        return self._ode_complex_kernel(time, register.view(np.complex128)).view(
+        return self._ode_complex_kernel_int(time, register.view(np.complex128)).view(
             np.float64
         )
 
@@ -166,6 +172,7 @@ class AnalogGate:
         rtol: float = 1e-14,
         nsteps: int = 2_147_483_647,
         times: Union[List[float], RealArray] = [],
+        interaction_picture: bool = False,
     ):
         if state is None:
             state = self.hamiltonian.space.zero_state()
@@ -176,7 +183,12 @@ class AnalogGate:
         duration = self.hamiltonian.emulator_ir.duration
 
         state = np.asarray(state).astype(np.complex128, copy=False)
-        solver = ode(self.hamiltonian._ode_real_kernel)
+
+        if interaction_picture:
+            solver = ode(self.hamiltonian._ode_real_kernel_int)
+        else:
+            solver = ode(self.hamiltonian._ode_real_kernel)
+
         solver.set_initial_value(state.view(np.float64))
         solver.set_integrator(solver_name, atol=atol, rtol=rtol, nsteps=nsteps)
 
@@ -199,12 +211,15 @@ class AnalogGate:
         atol: float = 1e-14,
         rtol: float = 1e-7,
         nsteps: int = 2_147_483_647,
+        interaction_picture: bool = False,
         project_hyperfine: bool = True,
     ):
         """Run the emulation with all atoms in the ground state,
         sampling the final state vector."""
         state = self.hamiltonian.space.zero_state()
-        (result,) = self.apply(state, solver_name, atol, rtol, nsteps)
+        (result,) = self.apply(
+            state, solver_name, atol, rtol, nsteps, interaction_picture
+        )
         result /= np.linalg.norm(result)
         return self.hamiltonian.space.sample_state_vector(
             result, shots, project_hyperfine=project_hyperfine

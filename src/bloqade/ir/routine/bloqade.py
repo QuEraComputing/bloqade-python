@@ -58,6 +58,7 @@ class BloqadePythonRoutine(RoutineBase):
         args: Tuple[LiteralType, ...] = (),
         name: Optional[str] = None,
         blockade_radius: float = 0.0,
+        interaction_picture: bool = False,
         cache_matrices: bool = False,
         multiprocessing: bool = False,
         num_workers: Optional[int] = None,
@@ -116,6 +117,7 @@ class BloqadePythonRoutine(RoutineBase):
             atol=atol,
             rtol=rtol,
             nsteps=nsteps,
+            interaction_picture=interaction_picture,
         )
 
         batch = self._compile(**compile_options)
@@ -130,6 +132,7 @@ class BloqadePythonRoutine(RoutineBase):
         shots: int = 1,
         name: Optional[str] = None,
         blockade_radius: float = 0.0,
+        interaction_picture: bool = False,
         multiprocessing: bool = False,
         num_workers: Optional[int] = None,
         cache_matrices: bool = False,
@@ -150,5 +153,6 @@ class BloqadePythonRoutine(RoutineBase):
             atol=atol,
             rtol=rtol,
             nsteps=nsteps,
+            interaction_picture=interaction_picture,
         )
         return self.run(**options)
