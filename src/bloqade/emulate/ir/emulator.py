@@ -32,7 +32,7 @@ def _deserializer(d: Dict[str, Any]) -> CompiledWaveform:
     return CompiledWaveform(**d)
 
 
-class RabiOperatorType(Enum):
+class RabiOperatorType(int, Enum):
     RabiAsymmetric = 0
     RabiSymmetric = 1
 
