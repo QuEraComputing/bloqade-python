@@ -40,6 +40,7 @@ class BloqadeTask(LocalTask):
         atol: float = 1e-14,
         rtol: float = 1e-7,
         nsteps: int = 2_147_483_647,
+        interaction_picture: bool = False,
     ) -> "BloqadeTask":
         hamiltonian = RydbergHamiltonianCodeGen(self.compile_cache).emit(
             self.emulator_ir
@@ -49,6 +50,7 @@ class BloqadeTask(LocalTask):
             atol=atol,
             rtol=rtol,
             nsteps=nsteps,
+            interaction_picture=interaction_picture,
         )
         shots_array = AnalogGate(hamiltonian).run(
             self.shots, project_hyperfine=True, **options

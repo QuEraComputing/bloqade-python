@@ -144,11 +144,11 @@ class LocalBatch(Serializable):
 
             with Pool(max_workers=num_workers) as pool:
                 futures = OrderedDict()
-                for task in self.tasks.values():
-                    futures[task.task_id] = pool.submit(task.run, **kwargs)
+                for task_number, task in enumerate(self.tasks.values()):
+                    futures[task_number] = pool.submit(task.run, **kwargs)
 
-                for task_id, future in futures.items():
-                    self.tasks[task_id] = future.result()
+                for task_number, future in futures.items():
+                    self.tasks[task_number] = future.result()
 
         else:
             if num_workers is not None:

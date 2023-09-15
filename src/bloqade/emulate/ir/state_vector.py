@@ -216,10 +216,16 @@ class AnalogGate:
     ):
         """Run the emulation with all atoms in the ground state,
         sampling the final state vector."""
-        state = self.hamiltonian.space.zero_state()
-        (result,) = self.apply(
-            state, solver_name, atol, rtol, nsteps, interaction_picture
+
+        options = dict(
+            solver_name=solver_name,
+            atol=atol,
+            rtol=rtol,
+            nsteps=nsteps,
+            interaction_picture=interaction_picture,
         )
+        state = self.hamiltonian.space.zero_state()
+        (result,) = self.apply(state, **options)
         result /= np.linalg.norm(result)
         return self.hamiltonian.space.sample_state_vector(
             result, shots, project_hyperfine=project_hyperfine
