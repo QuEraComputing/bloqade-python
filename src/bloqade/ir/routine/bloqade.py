@@ -76,6 +76,8 @@ class BloqadePythonRoutine(RoutineBase):
             name (Optional[str], optional): Name to give this run. Defaults to None.
             blockade_radius (float, optional): Use the Blockade subspace given a
             particular radius. Defaults to 0.0.
+            interaction_picture (bool, optional): Use the interaction picture when
+            solving schrodinger equation. Defaults to False.
             cache_matrices (bool, optional): Reuse previously evaluated matrcies when
             possible. Defaults to False.
             multiprocessing (bool, optional): Use multiple processes to process the
