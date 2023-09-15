@@ -86,6 +86,7 @@ class Register:
     atom_type: AtomType
     sites: List[Tuple[Decimal, Decimal]]
     blockade_radius: Decimal
+    original_index: List[int]
 
     def __len__(self):
         return len(self.sites)
