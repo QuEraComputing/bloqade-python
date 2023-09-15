@@ -84,6 +84,12 @@ class TransformTrait:
             if location_info.filling is SiteFilling.filled:
                 filled_sites.append(index)
 
+        if n_defects >= len(filled_sites):
+            raise ValueError(
+                f"n_defects {n_defects} must be less than the number of filled sites "
+                f"({len(filled_sites)})"
+            )
+
         for _ in range(n_defects):
             index = rng.choice(filled_sites)
             location_list[index] = LocationInfo(
