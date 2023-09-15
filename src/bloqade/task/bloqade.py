@@ -1,3 +1,4 @@
+from bloqade.serialize import Serializer
 from bloqade.task.base import Geometry, LocalTask
 from bloqade.emulate.ir.emulator import EmulatorProgram
 from bloqade.emulate.codegen.rydberg_hamiltonian import (
@@ -12,13 +13,14 @@ from bloqade.submission.ir.task_results import (
     QuEraTaskStatusCode,
     QuEraShotStatusCode,
 )
-from typing import Dict
+from beartype.typing import Dict, Any
 from bloqade.builder.base import ParamType
 from dataclasses import dataclass
 from typing import Optional
 
 
 @dataclass
+@Serializer.register
 class BloqadeTask(LocalTask):
     shots: int
     emulator_ir: EmulatorProgram
@@ -68,3 +70,13 @@ class BloqadeTask(LocalTask):
         )
 
         return self
+
+
+@BloqadeTask.set_serializer
+def _serialze(obj: BloqadeTask) -> Dict[str, Any]:
+    return {
+        "shots": obj.shots,
+        "emulator_ir": obj.emulator_ir,
+        "metadata": obj.metadata,
+        "task_result_ir": obj.task_result_ir,
+    }

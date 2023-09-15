@@ -1,27 +1,44 @@
+from bloqade.codegen.common.json import WaveformSerializer, BloqadeIRDeserializer
+from bloqade.serialize import Serializer
 from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any, Dict, List, Tuple, Optional
 from enum import Enum
 from bloqade.ir.control.waveform import Waveform
 from bloqade.emulate.ir.atom_type import AtomType
-from numbers import Real
 
 
 @dataclass(frozen=True)
+@Serializer.register
 class CompiledWaveform:
-    assignments: Dict[str, Real]
+    assignments: Dict[str, Decimal]
     source: Waveform
 
     def __call__(self, t: float) -> float:
         return self.source(t, **self.assignments)
 
 
-class RabiOperatorType(Enum):
+@CompiledWaveform.set_serializer
+def _serialize(obj: CompiledWaveform) -> Dict[str, Any]:
+    return {
+        "assignments": obj.assignments,
+        "source": WaveformSerializer().default(obj.source),
+    }
+
+
+@CompiledWaveform.set_deserializer
+def _deserializer(d: Dict[str, Any]) -> CompiledWaveform:
+    d["source"] = BloqadeIRDeserializer.object_hook(d["source"])
+    return CompiledWaveform(**d)
+
+
+class RabiOperatorType(int, Enum):
     RabiAsymmetric = 0
     RabiSymmetric = 1
 
 
 @dataclass(frozen=True)
+@Serializer.register
 class RabiOperatorData:
     operator_type: RabiOperatorType
     target_atoms: Dict[int, Decimal]
@@ -31,6 +48,7 @@ class RabiOperatorData:
 
 
 @dataclass(frozen=True)
+@Serializer.register
 class RabiTerm:
     operator_data: RabiOperatorData
     amplitude: CompiledWaveform
@@ -38,6 +56,7 @@ class RabiTerm:
 
 
 @dataclass(frozen=True)
+@Serializer.register
 class DetuningOperatorData:
     target_atoms: Dict[int, Decimal]
 
@@ -46,18 +65,21 @@ class DetuningOperatorData:
 
 
 @dataclass(frozen=True)
+@Serializer.register
 class DetuningTerm:
     operator_data: DetuningOperatorData
     amplitude: CompiledWaveform
 
 
 @dataclass(frozen=True)
+@Serializer.register
 class Fields:
     detuning: List[DetuningTerm]
     rabi: List[RabiTerm]
 
 
 @dataclass(frozen=True)
+@Serializer.register
 class Register:
     """This class represents the of the atoms in the system."""
 
@@ -101,6 +123,7 @@ class LevelCoupling(str, Enum):
 
 
 @dataclass(frozen=True)
+@Serializer.register
 class EmulatorProgram:
     register: Register
     duration: float
