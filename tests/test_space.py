@@ -1,12 +1,12 @@
 from bloqade.emulate.ir.space import Space
 from bloqade.emulate.ir.atom_type import ThreeLevelAtom, TwoLevelAtom
-from bloqade.emulate.ir.emulator import AtomRegister
+from bloqade.emulate.ir.emulator import Register
 import numpy as np
 
 
 def test_two_level_space():
     positions = [(0, 0), (0, 1)]
-    register = AtomRegister(TwoLevelAtom, positions, 0)
+    register = Register(TwoLevelAtom, positions, 0)
     space = Space.create(register)
     print(space)
     assert space.n_atoms == 2
@@ -16,7 +16,7 @@ def test_two_level_space():
 
 def test_two_level_subspace():
     positions = [(0, 0), (0, 1)]
-    register = AtomRegister(TwoLevelAtom, positions, 1.1)
+    register = Register(TwoLevelAtom, positions, 1.1)
     space = Space.create(register)
     print(space)
     assert space.n_atoms == 2
@@ -26,7 +26,7 @@ def test_two_level_subspace():
 
 def test_two_level_subspace_2():
     positions = [(0, 0), (0, 1), (1, 0), (1, 1)]
-    register = AtomRegister(TwoLevelAtom, positions, np.sqrt(2) + 0.1)
+    register = Register(TwoLevelAtom, positions, np.sqrt(2) + 0.1)
     space = Space.create(register)
     print(space)
     assert space.n_atoms == 4
@@ -36,7 +36,7 @@ def test_two_level_subspace_2():
 
 def test_three_level_space():
     positions = [(0, 0), (0, 1)]
-    register = AtomRegister(ThreeLevelAtom, positions, 0)
+    register = Register(ThreeLevelAtom, positions, 0)
     space = Space.create(register)
     print(space)
     assert space.n_atoms == 2
@@ -46,7 +46,7 @@ def test_three_level_space():
 
 def test_three_level_subspace():
     positions = [(0, 0), (0, 1)]
-    register = AtomRegister(ThreeLevelAtom, positions, 1.1)
+    register = Register(ThreeLevelAtom, positions, 1.1)
     space = Space.create(register)
     print(space)
     assert space.n_atoms == 2
@@ -56,7 +56,7 @@ def test_three_level_subspace():
 
 def test_three_level_subspace_2():
     positions = [(0, 0), (0.5, np.sqrt(3) / 2), (0, 1)]
-    register = AtomRegister(ThreeLevelAtom, positions, 1.1)
+    register = Register(ThreeLevelAtom, positions, 1.1)
     space = Space.create(register)
     print(space)
     assert space.n_atoms == 3
@@ -109,7 +109,7 @@ def test_three_level_string_to_integer():
 
 def test_two_level_swap_indices():
     positions = [(0, 0), (0, 1), (1, 0)]
-    register = AtomRegister(TwoLevelAtom, positions, 0)
+    register = Register(TwoLevelAtom, positions, 0)
     space = Space.create(register)
     print(space)
 
@@ -140,7 +140,7 @@ def test_two_level_swap_indices():
 
 def test_three_level_swap_indices():
     positions = [(0, 0), (0, 1)]
-    register = AtomRegister(ThreeLevelAtom, positions, 0)
+    register = Register(ThreeLevelAtom, positions, 0)
     space = Space.create(register)
     print(space)
 

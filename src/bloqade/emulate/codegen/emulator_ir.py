@@ -23,7 +23,7 @@ from bloqade.emulate.ir.emulator import (
     DetuningTerm,
     CompiledWaveform,
     EmulatorProgram,
-    AtomRegister,
+    Register,
     Fields,
     RabiTerm,
 )
@@ -70,11 +70,11 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
                 positions.append(position)
 
         if sequence.hyperfine in self.level_couplings:
-            self.register = AtomRegister(
+            self.register = Register(
                 ThreeLevelAtom, positions, blockade_radius=self.blockade_radius
             )
         else:
-            self.register = AtomRegister(
+            self.register = Register(
                 TwoLevelAtom, positions, blockade_radius=self.blockade_radius
             )
 
@@ -309,7 +309,7 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
 
         self.visit(circuit)
         return EmulatorProgram(
-            atom_register=self.register,
+            register=self.register,
             duration=self.duration,
             pulses=self.pulses,
         )

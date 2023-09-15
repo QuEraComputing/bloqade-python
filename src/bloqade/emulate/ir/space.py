@@ -5,7 +5,7 @@ import numpy as np
 from enum import Enum
 
 if TYPE_CHECKING:
-    from .emulator import AtomRegister
+    from .emulator import Register
     from .atom_type import AtomType
 
 
@@ -18,11 +18,11 @@ class SpaceType(str, Enum):
 class Space:
     space_type: SpaceType
     atom_type: "AtomType"
-    geometry: "AtomRegister"
+    geometry: "Register"
     configurations: NDArray
 
     @classmethod
-    def create(cls, register: "AtomRegister"):
+    def create(cls, register: "Register"):
         sites = register.sites
         n_atom = len(sites)
         atom_type = register.atom_type

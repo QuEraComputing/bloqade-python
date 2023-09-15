@@ -80,7 +80,7 @@ class Fields:
 
 @dataclass(frozen=True)
 @Serializer.register
-class AtomRegister:
+class Register:
     """This class represents the of the atoms in the system."""
 
     atom_type: AtomType
@@ -91,7 +91,7 @@ class AtomRegister:
         return len(self.sites)
 
     def __eq__(self, other: Any):
-        if isinstance(other, AtomRegister):
+        if isinstance(other, Register):
             return (
                 self.atom_type == other.atom_type
                 and self.blockade_radius == other.blockade_radius
@@ -125,7 +125,7 @@ class LevelCoupling(str, Enum):
 @dataclass(frozen=True)
 @Serializer.register
 class EmulatorProgram:
-    atom_register: AtomRegister
+    register: Register
     duration: float
     pulses: Dict[LevelCoupling, Fields]
 
@@ -152,14 +152,14 @@ class Visitor:
     def visit_rabi_term(self, ast: RabiTerm) -> Any:
         raise NotImplementedError
 
-    def visit_atom_register(self, ast: AtomRegister) -> Any:
+    def visit_register(self, ast: Register) -> Any:
         raise NotImplementedError
 
     def visit(self, ast) -> Any:
         if isinstance(ast, EmulatorProgram):
             return self.visit_emulator_program(ast)
-        elif isinstance(ast, AtomRegister):
-            return self.visit_atom_register(ast)
+        elif isinstance(ast, Register):
+            return self.visit_register(ast)
         elif isinstance(ast, Fields):
             return self.visit_fields(ast)
         elif isinstance(ast, RabiTerm):
