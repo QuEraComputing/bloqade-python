@@ -78,12 +78,19 @@ class TransformTrait:
         for location_info in self.enumerate():
             location_list.append(location_info)
 
+        filled_sites = []
+
+        for index, location_info in enumerate(location_list):
+            if location_info.filling is SiteFilling.filled:
+                filled_sites.append(index)
+
         for _ in range(n_defects):
-            idx = rng.integers(0, len(location_list))
-            location_list[idx] = LocationInfo(
-                location_list[idx].position,
-                (False if location_list[idx].filling is SiteFilling.filled else True),
+            index = rng.choice(filled_sites)
+            location_list[index] = LocationInfo(
+                location_list[index].position,
+                (False if location_list[index].filling is SiteFilling.filled else True),
             )
+            filled_sites.remove(index)
 
         return ListOfLocations(location_list)
 
