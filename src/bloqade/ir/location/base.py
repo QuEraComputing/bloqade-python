@@ -94,7 +94,17 @@ class AtomArrangement(ProgramStart, TransformTrait):
 
     @property
     def n_atoms(self) -> int:
-        """number of atoms in the register."""
+        """number of atoms (filled sites) in the register."""
+        raise NotImplementedError
+
+    @property
+    def n_sites(self) -> int:
+        """number of sites in the register."""
+        raise NotImplementedError
+
+    @property
+    def n_vacant(self) -> int:
+        """number of vacant sites in the register."""
         raise NotImplementedError
 
     @property
