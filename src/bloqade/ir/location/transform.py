@@ -116,3 +116,15 @@ class TransformTrait:
                 location_list.append(location_info)
 
         return ListOfLocations(location_list=location_list)
+
+    def remove_vacant_sites(self):
+        """remove all vacant sites from the register."""
+        from .base import SiteFilling
+        from .list import ListOfLocations
+
+        new_locations = []
+        for location_info in self.enumerate():
+            if location_info.filling is SiteFilling.filled:
+                new_locations.append(location_info)
+
+        return ListOfLocations(new_locations)
