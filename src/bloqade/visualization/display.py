@@ -52,10 +52,8 @@ def display_builder(builder, batch_id):
     for key, val in kwargs.items():
         out += liner(f" :: {key} = {val}")
 
-    rowobj = analog_circ.figure(**kwargs)
+    field, reg = analog_circ.figure(**kwargs)
 
-    field = rowobj.children[0]
-    reg = rowobj.children[1]
     div = Div(text=out, width=200, height=200)
 
     show(row(field, column(reg, div)))
