@@ -50,7 +50,7 @@ def _serialize(obj: BraketEmulatorTask) -> Dict[str, Any]:
     return {
         "task_ir": obj.task_ir.dict(),
         "metadata": obj.metadata,
-        "task_result_ir": obj.task_result_ir,
+        "task_result_ir": obj.task_result_ir.dict() if obj.task_result_ir else None,
     }
 
 
