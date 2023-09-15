@@ -1,3 +1,4 @@
+from bloqade.serialize import Serializer
 from bloqade.task.base import Report
 from bloqade.task.quera import QuEraTask
 from bloqade.task.braket import BraketTask
@@ -13,7 +14,7 @@ from bloqade.submission.ir.task_results import (
 
 # from bloqade.submission.base import ValidationError
 
-from beartype.typing import Union, Optional
+from beartype.typing import Union, Optional, Dict, Any
 from beartype import beartype
 from collections import OrderedDict
 from itertools import product
@@ -36,6 +37,7 @@ class Serializable:
 
 
 @dataclass
+@Serializer.register
 class LocalBatch(Serializable):
     source: Optional[Builder]
     tasks: OrderedDict[int, BraketEmulatorTask]
@@ -161,10 +163,26 @@ class LocalBatch(Serializable):
         return self
 
 
+@LocalBatch.set_serializer
+def _serialize(obj: LocalBatch) -> Dict[str, Any]:
+    return {
+        "source": None,
+        "tasks": [(k, v) for k, v in obj.tasks.items()],
+        "name": obj.name,
+    }
+
+
+@LocalBatch.set_deserializer
+def _deserializer(d: Dict[str, Any]) -> LocalBatch:
+    d["tasks"] = OrderedDict(d["tasks"])
+    return LocalBatch(**d)
+
+
 # this class get collection of tasks
 # basically behaves as a psudo queuing system
 # the user only need to store this objecet
 @dataclass
+@Serializer.register
 class RemoteBatch(Serializable):
     source: Builder
     tasks: Union[OrderedDict[int, QuEraTask], OrderedDict[int, BraketTask]]
@@ -578,3 +596,18 @@ class RemoteBatch(Serializable):
             rept = Report(df, metas, geos, self.name)
 
         return rept
+
+
+@RemoteBatch.set_serializer
+def _serialize(obj: RemoteBatch) -> Dict[str, Any]:
+    return {
+        "source": None,
+        "tasks": [(k, v) for k, v in obj.tasks.items()],
+        "name": obj.name,
+    }
+
+
+@RemoteBatch.set_deserializer
+def _deserialize(d: Dict[str, Any]) -> RemoteBatch:
+    d["tasks"] = OrderedDict(d["tasks"])
+    return RemoteBatch(**d)
