@@ -1,5 +1,6 @@
-from bloqade.serialize import register_serializer
-from pydantic.dataclasses import dataclass
+from bloqade.codegen.common.json import WaveformSerializer, BloqadeIRDeserializer
+from bloqade.serialize import Serializer
+from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any, Dict, List, Tuple, Optional
 from enum import Enum
@@ -7,8 +8,8 @@ from bloqade.ir.control.waveform import Waveform
 from bloqade.emulate.ir.atom_type import AtomType
 
 
-@register_serializer(["assignments", "source"])
 @dataclass(frozen=True)
+@Serializer.register
 class CompiledWaveform:
     assignments: Dict[str, Decimal]
     source: Waveform
@@ -17,13 +18,27 @@ class CompiledWaveform:
         return self.source(t, **self.assignments)
 
 
+@CompiledWaveform.set_serializer
+def _serialize(obj: CompiledWaveform) -> Dict[str, Any]:
+    return {
+        "assignments": obj.assignments,
+        "source": WaveformSerializer().default(obj.source),
+    }
+
+
+@CompiledWaveform.set_deserializer
+def _deserializer(d: Dict[str, Any]) -> CompiledWaveform:
+    d["source"] = BloqadeIRDeserializer.object_hook(d["source"])
+    return CompiledWaveform(**d)
+
+
 class RabiOperatorType(Enum):
     RabiAsymmetric = 0
     RabiSymmetric = 1
 
 
-@register_serializer(["operator_type", "target_atoms"])
 @dataclass(frozen=True)
+@Serializer.register
 class RabiOperatorData:
     operator_type: RabiOperatorType
     target_atoms: Dict[int, Decimal]
@@ -32,16 +47,16 @@ class RabiOperatorData:
         return hash(self.operator_type) ^ hash(frozenset(self.target_atoms.items()))
 
 
-@register_serializer(["operator_data", "amplitude", "phase"])
 @dataclass(frozen=True)
+@Serializer.register
 class RabiTerm:
     operator_data: RabiOperatorData
     amplitude: CompiledWaveform
     phase: Optional[CompiledWaveform] = None
 
 
-@register_serializer(["target_atoms"])
 @dataclass(frozen=True)
+@Serializer.register
 class DetuningOperatorData:
     target_atoms: Dict[int, Decimal]
 
@@ -49,22 +64,22 @@ class DetuningOperatorData:
         return hash(frozenset(self.target_atoms.items()))
 
 
-@register_serializer(["operator_data", "amplitude"])
 @dataclass(frozen=True)
+@Serializer.register
 class DetuningTerm:
     operator_data: DetuningOperatorData
     amplitude: CompiledWaveform
 
 
-@register_serializer(["detuning", "rabi"])
 @dataclass(frozen=True)
+@Serializer.register
 class Fields:
     detuning: List[DetuningTerm]
     rabi: List[RabiTerm]
 
 
-@register_serializer(["atom_type", "sites", "blockade_radius"])
 @dataclass(frozen=True)
+@Serializer.register
 class AtomRegister:
     """This class represents the of the atoms in the system."""
 
@@ -107,8 +122,8 @@ class LevelCoupling(str, Enum):
     Hyperfine = "hyperfine"
 
 
-@register_serializer(["atom_register", "duration", "pulses"])
 @dataclass(frozen=True)
+@Serializer.register
 class EmulatorProgram:
     atom_register: AtomRegister
     duration: float

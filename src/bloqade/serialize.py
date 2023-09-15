@@ -51,9 +51,6 @@ class Serializer(json.JSONEncoder):
                 obj_cls = cls.str_to_type[key]
                 deserialize = cls.deserializers.get(obj_cls)
 
-                if deserialize is None:
-                    raise TypeError(f"no deserializer registered for type {cls}")
-
                 return deserialize(value)
 
         return d
@@ -62,8 +59,6 @@ class Serializer(json.JSONEncoder):
         if type(o) in self.serializers:
             cls = type(o)
             serializer = self.serializers.get(cls)
-            if serializer is None:
-                raise TypeError(f"no serializer registered for type {cls}")
 
             return {self.type_to_str[cls]: serializer(o)}
 

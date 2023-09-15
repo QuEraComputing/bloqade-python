@@ -129,7 +129,9 @@ class QuEraTask(RemoteTask):
 def _serialze(obj: QuEraTask) -> Dict[str, ParamType]:
     return {
         "task_id": obj.task_id if obj.task_id is not None else None,
-        "backend": obj.backend,
+        "backend": obj.backend.dict(
+            exclude=set(["access_key", "secret_key", "session_token"])
+        ),
         "task_ir": obj.task_ir.dict(by_alias=True, exclude_none=True),
         "metadata": obj.metadata,
         "parallel_decoder": obj.parallel_decoder.dict()

@@ -165,7 +165,11 @@ class LocalBatch(Serializable):
 
 @LocalBatch.set_serializer
 def _serialize(obj: LocalBatch) -> Dict[str, Any]:
-    return {"tasks": [(k, v) for k, v in obj.tasks.items()], "name": obj.name}
+    return {
+        "source": None,
+        "tasks": [(k, v) for k, v in obj.tasks.items()],
+        "name": obj.name,
+    }
 
 
 @LocalBatch.set_deserializer
@@ -596,7 +600,11 @@ class RemoteBatch(Serializable):
 
 @RemoteBatch.set_serializer
 def _serialize(obj: RemoteBatch) -> Dict[str, Any]:
-    return {"tasks": [(k, v) for k, v in obj.tasks.items()], "name": obj.name}
+    return {
+        "source": None,
+        "tasks": [(k, v) for k, v in obj.tasks.items()],
+        "name": obj.name,
+    }
 
 
 @RemoteBatch.set_deserializer
