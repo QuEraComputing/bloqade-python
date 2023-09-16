@@ -1,5 +1,5 @@
 import bloqade.ir.location as location
-from bloqade import start, save_batch, load_batch
+from bloqade import start, load, save
 
 from bloqade.ir import Linear, Constant
 import numpy as np
@@ -43,6 +43,6 @@ def test_serializer():
         .run(1)
     )
 
-    save_batch("test.json", batch)
-    new_batch = load_batch("test.json")
+    save(batch, "test.json")
+    new_batch = load("test.json")
     assert batch.tasks == new_batch.tasks
