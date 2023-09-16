@@ -1,6 +1,6 @@
 import simplejson as json
 from typing import Any
-from beartype.typing import Type, Callable, Dict
+from beartype.typing import Type, Callable, Dict, Union, TextIO
 from beartype import beartype
 
 
@@ -71,15 +71,33 @@ def loads(s, use_decimal=True, **json_kwargs):
     )
 
 
-def load(fp, use_decimal=True, **json_kwargs):
-    return json.load(
-        fp, object_hook=Serializer.object_hook, use_decimal=use_decimal, **json_kwargs
-    )
+def load(fp: Union[TextIO, str], use_decimal=True, **json_kwargs):
+    if isinstance(fp, str):
+        with open(fp, "r") as f:
+            return json.load(
+                f,
+                object_hook=Serializer.object_hook,
+                use_decimal=use_decimal,
+                **json_kwargs,
+            )
+    else:
+        return json.load(
+            fp,
+            object_hook=Serializer.object_hook,
+            use_decimal=use_decimal,
+            **json_kwargs,
+        )
 
 
 def dumps(o, use_decimal=True, **json_kwargs):
     return json.dumps(o, cls=Serializer, use_decimal=use_decimal, **json_kwargs)
 
 
-def dump(o, fp, use_decimal=True, **json_kwargs):
-    return json.dump(o, fp, cls=Serializer, use_decimal=use_decimal, **json_kwargs)
+def save(o, fp: Union[TextIO, str], use_decimal=True, **json_kwargs):
+    if isinstance(fp, str):
+        with open(fp, "w") as f:
+            return json.dump(
+                o, f, cls=Serializer, use_decimal=use_decimal, **json_kwargs
+            )
+    else:
+        return json.dump(o, fp, cls=Serializer, use_decimal=use_decimal, **json_kwargs)
