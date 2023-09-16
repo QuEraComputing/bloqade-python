@@ -1,10 +1,12 @@
 import simplejson as json
-from typing import Any
+from typing import Annotated, Any
 from beartype.typing import Type, Callable, Dict, Union, TextIO
+from beartype.vale import IsInstance
 from beartype import beartype
 
 
 class Serializer(json.JSONEncoder):
+    types = ()
     type_to_str = {}
     str_to_type = {}
     serializers = {}
@@ -36,6 +38,7 @@ class Serializer(json.JSONEncoder):
         type_name = f"{cls.__module__}.{cls.__name__}"
         Serializer.type_to_str[cls] = type_name
         Serializer.str_to_type[type_name] = cls
+        Serializer.types += (cls,)
         setattr(cls, "set_serializer", staticmethod(beartype(set_serializer)))
         setattr(cls, "set_deserializer", staticmethod(beartype(set_deserializer)))
         cls.set_deserializer(_deserializer)
@@ -112,7 +115,11 @@ def load(fp: Union[TextIO, str], use_decimal: bool = True, **json_kwargs):
 
 
 @beartype
-def dumps(o: Any, use_decimal: bool = True, **json_kwargs) -> str:
+def dumps(
+    o: Annotated[Any, IsInstance[*Serializer.types]],
+    use_decimal: bool = True,
+    **json_kwargs,
+) -> str:
     """Serialize object to string
 
     Args:
@@ -127,7 +134,12 @@ def dumps(o: Any, use_decimal: bool = True, **json_kwargs) -> str:
 
 
 @beartype
-def save(o: Any, fp: Union[TextIO, str], use_decimal=True, **json_kwargs) -> None:
+def save(
+    o: Annotated[Any, IsInstance[*Serializer.types]],
+    fp: Union[TextIO, str],
+    use_decimal=True,
+    **json_kwargs,
+) -> None:
     """Serialize object to file
 
     Args:
