@@ -1,5 +1,5 @@
 from bloqade.ir import var, cast, Variable, Literal, start
-
+from bloqade.serialize import load, save, loads, dumps
 
 from bloqade.builder.factory import (
     piecewise_linear,
@@ -8,8 +8,6 @@ from bloqade.builder.factory import (
     constant,
 )
 import bloqade.ir as _ir
-from bloqade.builder.parse.json import save_program, load_program
-from bloqade.task.json import save_batch, load_batch
 from bloqade.constants import RB_C6
 
 
@@ -42,8 +40,8 @@ __all__ = [
     "linear",
     "constant",
     "set_print_depth",
-    "save_batch",
-    "load_batch",
-    "save_program",
-    "load_program",
+    "load",
+    "save",
+    "loads",
+    "dumps",
 ]

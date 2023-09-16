@@ -48,10 +48,10 @@ def test_local_no_global():
     panel = json.loads(batch.json())
 
     print(panel)
-    panel = panel["remote_batch"]
+    panel = panel["bloqade.task.batch.RemoteBatch"]
 
-    task = panel["tasks"][0][1]["quera_task"]
-    ir = task["task_ir"]["quera_task_specification"]
+    task = panel["tasks"][0][1]["bloqade.task.quera.QuEraTask"]
+    ir = task["task_ir"]
 
     assert ir["nshots"] == 10
     assert fvec(ir["lattice"]["sites"][0]) == [0.0, 0.0]
@@ -61,7 +61,7 @@ def test_local_no_global():
 
     assert all(fvec(detune_ir["local"]["times"]) == np.array([0, 0.5, 1.0]) * 1e-6)
     assert all(fvec(detune_ir["local"]["values"]) == np.array([0, 1, 1]) * 1e6)
-    assert detune_ir["local"]["lattice_site_coefficients"] == ["0.5"]
+    assert detune_ir["local"]["lattice_site_coefficients"] == [0.5]
 
     # should have global even without assign:
     assert all(fvec(detune_ir["global"]["times"]) == np.array([0, 1]) * 1e-6)
@@ -85,11 +85,11 @@ def test_local_global():
     )
 
     panel = json.loads(job.json())
-    panel = panel["remote_batch"]
+    panel = panel["bloqade.task.batch.RemoteBatch"]
 
     print(panel)
-    task = panel["tasks"][0][1]["quera_task"]
-    ir = task["task_ir"]["quera_task_specification"]
+    task = panel["tasks"][0][1]["bloqade.task.quera.QuEraTask"]
+    ir = task["task_ir"]
 
     assert ir["nshots"] == 10
     assert fvec(ir["lattice"]["sites"][0]) == [0.0, 0.0]

@@ -13,13 +13,17 @@ import os
 
 
 # Integraiton tests
+@pytest.mark.skip(reason="Depricating save_batch")
 @pytest.mark.vcr
 def test_quera_submit():
-    credentials = {
-        "access_key": "XXXXXXXXXXXXXXXXXXXX",
-        "secret_key": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-        "session_token": 900 * "X",
-    }
+    os.environ["AWS_ACCESS_KEY"] = "XXXXXXXXXXXXXXXXXXXX"
+    os.environ["AWS_SECRET_KEY"] = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+    os.environ["AWS_SESSION_TOKEN"] = 900 * "X"
+    # credentials = {
+    #     "access_key": "XXXXXXXXXXXXXXXXXXXX",
+    #     "secret_key": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+    #     "session_token": 900 * "X",
+    # }
     config_file = os.path.join("tests", "data", "config", "submit_quera_api.json")
 
     batch = (
@@ -29,22 +33,25 @@ def test_quera_submit():
         )
         .assign(run_time=2.0)
         .parallelize(20)
-        .quera.device(config_file=config_file, **credentials)
+        .quera.device(config_file=config_file)
         .submit(shots=10)
     )
 
     bloqade.save_batch("quera_submit.json", batch)
 
 
+@pytest.mark.skip(reason="Depricating load_batch")
 @pytest.mark.vcr
 def test_quera_retrieve():
+    from bloqade.task.json import load_batch
+
     credentials = {
         "access_key": "XXXXXXXXXXXXXXXXXXXX",
         "secret_key": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
         "session_token": 900 * "X",
     }
 
-    job_future = bloqade.load_batch("quera_submit.json", **credentials)
+    job_future = load_batch("quera_submit.json", **credentials)
     assert type(job_future) == RemoteBatch
     job_future.pull()
 
