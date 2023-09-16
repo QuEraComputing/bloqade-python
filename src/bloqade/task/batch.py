@@ -1,4 +1,4 @@
-from bloqade.serialize import Serializer
+from bloqade.serialize import Serializer, dumps
 from bloqade.task.base import Report
 from bloqade.task.quera import QuEraTask
 from bloqade.task.braket import BraketTask
@@ -31,9 +31,14 @@ from dataclasses import dataclass
 
 class Serializable:
     def json(self, **options) -> str:
-        from .json import BatchSerializer
+        """
+        Serialize the object to JSON string.
 
-        return json.dumps(self, cls=BatchSerializer, **options)
+        Return:
+            JSON string
+
+        """
+        return dumps(self, **options)
 
 
 @dataclass

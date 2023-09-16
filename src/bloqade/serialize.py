@@ -1,7 +1,6 @@
 import simplejson as json
-from typing import Annotated, Any
+from typing import Any
 from beartype.typing import Type, Callable, Dict, Union, TextIO
-from beartype.vale import IsInstance
 from beartype import beartype
 
 
@@ -116,7 +115,7 @@ def load(fp: Union[TextIO, str], use_decimal: bool = True, **json_kwargs):
 
 @beartype
 def dumps(
-    o: Annotated[Any, IsInstance[*Serializer.types]],
+    o: Any,
     use_decimal: bool = True,
     **json_kwargs,
 ) -> str:
@@ -130,12 +129,17 @@ def dumps(
     Returns:
         str: the serialized object as a string
     """
+    if not isinstance(o, Serializer.types):
+        raise TypeError(
+            f"Object of type {type(o)} is not JSON serializable. "
+            f"Only {Serializer.types} are supported."
+        )
     return json.dumps(o, cls=Serializer, use_decimal=use_decimal, **json_kwargs)
 
 
 @beartype
 def save(
-    o: Annotated[Any, IsInstance[*Serializer.types]],
+    o: Any,
     fp: Union[TextIO, str],
     use_decimal=True,
     **json_kwargs,
@@ -151,6 +155,11 @@ def save(
     Returns:
         None
     """
+    if not isinstance(o, Serializer.types):
+        raise TypeError(
+            f"Object of type {type(o)} is not JSON serializable. "
+            f"Only {Serializer.types} are supported."
+        )
     if isinstance(fp, str):
         with open(fp, "w") as f:
             json.dump(o, f, cls=Serializer, use_decimal=use_decimal, **json_kwargs)
