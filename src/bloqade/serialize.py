@@ -65,13 +65,35 @@ class Serializer(json.JSONEncoder):
         return super().default(o)
 
 
-def loads(s, use_decimal=True, **json_kwargs):
+@beartype
+def loads(s: str, use_decimal: bool = True, **json_kwargs):
+    """Load object from string
+
+    Args:
+        s (str): the string to load
+        use_decimal (bool, optional): use decimal.Decimal for numbers. Defaults to True.
+        **json_kwargs: other arguments passed to json.loads
+
+    Returns:
+        Any: the deserialized object
+    """
     return json.loads(
         s, object_hook=Serializer.object_hook, use_decimal=use_decimal, **json_kwargs
     )
 
 
-def load(fp: Union[TextIO, str], use_decimal=True, **json_kwargs):
+@beartype
+def load(fp: Union[TextIO, str], use_decimal: bool = True, **json_kwargs):
+    """Load object from file
+
+    Args:
+        fp (Union[TextIO, str]): the file path or file object
+        use_decimal (bool, optional): use decimal.Decimal for numbers. Defaults to True.
+        **json_kwargs: other arguments passed to json.load
+
+    Returns:
+        Any: the deserialized object
+    """
     if isinstance(fp, str):
         with open(fp, "r") as f:
             return json.load(
@@ -89,15 +111,36 @@ def load(fp: Union[TextIO, str], use_decimal=True, **json_kwargs):
         )
 
 
-def dumps(o, use_decimal=True, **json_kwargs):
+@beartype
+def dumps(o: Any, use_decimal: bool = True, **json_kwargs) -> str:
+    """Serialize object to string
+
+    Args:
+        o (Any): the object to serialize
+        use_decimal (bool, optional): use decimal.Decimal for numbers. Defaults to True.
+        **json_kwargs: other arguments passed to json.dumps
+
+    Returns:
+        str: the serialized object as a string
+    """
     return json.dumps(o, cls=Serializer, use_decimal=use_decimal, **json_kwargs)
 
 
-def save(o, fp: Union[TextIO, str], use_decimal=True, **json_kwargs):
+@beartype
+def save(o: Any, fp: Union[TextIO, str], use_decimal=True, **json_kwargs) -> None:
+    """Serialize object to file
+
+    Args:
+        o (Any): the object to serialize
+        fp (Union[TextIO, str]): the file path or file object
+        use_decimal (bool, optional): use decimal.Decimal for numbers. Defaults to True.
+        **json_kwargs: other arguments passed to json.dump
+
+    Returns:
+        None
+    """
     if isinstance(fp, str):
         with open(fp, "w") as f:
-            return json.dump(
-                o, f, cls=Serializer, use_decimal=use_decimal, **json_kwargs
-            )
+            json.dump(o, f, cls=Serializer, use_decimal=use_decimal, **json_kwargs)
     else:
-        return json.dump(o, fp, cls=Serializer, use_decimal=use_decimal, **json_kwargs)
+        json.dump(o, fp, cls=Serializer, use_decimal=use_decimal, **json_kwargs)
