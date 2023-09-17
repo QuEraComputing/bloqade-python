@@ -30,7 +30,7 @@ prog = (
 
 
 with tempfile.NamedTemporaryFile() as f:
-    future = prog.quera.mock(state_file=f.name).submit(shots=100)
+    future = prog.quera.mock(state_file=f.name).run_async(shots=100)
     future.pull()
     future2 = future.remove_tasks("Completed")
     future2

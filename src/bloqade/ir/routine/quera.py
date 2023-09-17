@@ -91,7 +91,7 @@ class QuEraHardwareRoutine(RoutineBase):
         return batch
 
     @beartype
-    def submit(
+    def run_async(
         self,
         shots: int,
         args: Tuple[LiteralType, ...] = (),
@@ -102,7 +102,7 @@ class QuEraHardwareRoutine(RoutineBase):
         """
         Compile to a RemoteBatch, which contain
             QuEra backend specific tasks,
-            and submit through QuEra service.
+            and run_async through QuEra service.
 
         Args:
             shots (int): number of shots
@@ -127,7 +127,7 @@ class QuEraHardwareRoutine(RoutineBase):
         shuffle: bool = False,
         **kwargs,
     ) -> RemoteBatch:
-        batch = self.submit(shots, args, name, shuffle, **kwargs)
+        batch = self.run_async(shots, args, name, shuffle, **kwargs)
         batch.pull()
         return batch
 

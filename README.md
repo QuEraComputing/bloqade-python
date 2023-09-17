@@ -191,7 +191,7 @@ calculation = (
     .braket.aquila()
 )
 ```
-For tasks executed through a remote API, there are three options to run your job. The first is an asynchronous call via `submit`, which will return a `RemoteBatch` object. This object has various methods to `fetch` and or `pull` results from the remote API, along with some other tools that can query the status of the task(s) in this batch. `run` is another method that blocks the script waiting for all the tasks to finish, susequently returning the `RemoteBatch`. The final option is to use the `__call__` method of the `calculation` object for hybrid workflows. The call object is effectively the same as calling `run`. However, specifying the `flatten` option will allow you to call `__call__` with arguments corresponding to the list of strings provided by `flatten`.
+For tasks executed through a remote API, there are three options to run your job. The first is an asynchronous call via `run_async`, which will return a `RemoteBatch` object. This is a non-blocking call and `RemoteBatch` acts like a future object. It has various methods to `fetch` and or `pull` results from the remote API, along with some other tools that can query the status of the task(s) in this batch. `run` is another method that blocks the script waiting for all the tasks to finish, susequently returning the `RemoteBatch`. The final option is to use the `__call__` method of the `calculation` object for hybrid workflows. The call object is effectively the same as calling `run`. However, specifying the `flatten` option will allow you to call `__call__` with arguments corresponding to the list of strings provided by `flatten`.
 
 The `RemoteBatch` object can be saved in JSON format using the `save_batch` and reloaded back into Python using the `load_batch` functions. This capability is useful for the asynchronous case, where you can save the batch and load it back later to retrieve the results.
 
@@ -224,7 +224,7 @@ program = (
 
 emulator_batch = program.braket.local_emulator().run(1000)
 
-hardware_batch = program.parallelize(20).braket.aquila().submit(1000)
+hardware_batch = program.parallelize(20).braket.aquila().run_async(1000)
 
 save_batch("emulator_results.json", emulator_batch)
 save_batch("hardware_results.json", hardware_batch)

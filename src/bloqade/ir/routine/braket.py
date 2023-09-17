@@ -81,7 +81,7 @@ class BraketHardwareRoutine(RoutineBase):
         return batch
 
     @beartype
-    def submit(
+    def run_async(
         self,
         shots: int,
         args: Tuple[LiteralType, ...] = (),
@@ -91,7 +91,7 @@ class BraketHardwareRoutine(RoutineBase):
     ) -> RemoteBatch:
         """
         Compile to a RemoteBatch, which contain
-        Braket backend specific tasks, and submit to Braket.
+        Braket backend specific tasks, and run_async to Braket.
 
         Note:
             This is async.
@@ -122,7 +122,7 @@ class BraketHardwareRoutine(RoutineBase):
     ) -> RemoteBatch:
         """
         Compile to a RemoteBatch, which contain
-        Braket backend specific tasks, submit to Braket,
+        Braket backend specific tasks, run_async to Braket,
         and wait until the results are coming back.
 
         Note:
@@ -140,7 +140,7 @@ class BraketHardwareRoutine(RoutineBase):
 
         """
 
-        batch = self.submit(shots, args, name, shuffle, **kwargs)
+        batch = self.run_async(shots, args, name, shuffle, **kwargs)
         batch.pull()
         return batch
 
@@ -155,7 +155,7 @@ class BraketHardwareRoutine(RoutineBase):
     ):
         """
         Compile to a RemoteBatch, which contain
-        Braket backend specific tasks, submit to Braket,
+        Braket backend specific tasks, run_async to Braket,
         and wait until the results are coming back.
 
         Note:
