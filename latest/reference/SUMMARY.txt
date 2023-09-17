@@ -51,6 +51,7 @@
             * [params](bloqade/ir/routine/params.md)
             * [quera](bloqade/ir/routine/quera.md)
         * [scalar](bloqade/ir/scalar.md)
+    * [serialize](bloqade/serialize.md)
     * [submission](bloqade/submission/index.md)
         * [base](bloqade/submission/base.md)
         * [braket](bloqade/submission/braket.md)
