@@ -36,7 +36,7 @@ calculation = (
 ```
 
 From here there will be different methods and properties that you can use to build your program. For example,
-you can start to add atom sites to your program by selecting `add_position` method or `add_position` method.
+you can start to add atom sites to your program by selecting `add_position`.
 
 ```python
 from bloqade import start
