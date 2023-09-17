@@ -34,7 +34,7 @@ def test_quera_submit():
         .assign(run_time=2.0)
         .parallelize(20)
         .quera.device(config_file=config_file)
-        .submit(shots=10)
+        .run_async(shots=10)
     )
 
     bloqade.save_batch("quera_submit.json", batch)

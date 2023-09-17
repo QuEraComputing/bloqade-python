@@ -24,7 +24,7 @@ prog = (
 task = prog.quera.mock()
 
 
-# future = task.submit(shots=100)  ## non0-blk
+# future = task.run_async(shots=100)  ## non0-blk
 
 # future.fetch()
 

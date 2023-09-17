@@ -46,9 +46,9 @@ seq = Sequence(
 
 
 # print(lattice.Square(3).apply(seq).__lattice__)
-# print(lattice.Square(3).apply(seq).braket(nshots=1000).submit().report().dataframe)
+# print(lattice.Square(3).apply(seq).braket(nshots=1000).run_async().report().dataframe)
 # print("bitstring")
-# print(lattice.Square(3).apply(seq).braket(nshots=1000).submit().report().bitstring)
+# print(lattice.Square(3).apply(seq).braket(nshots=1000).run_async().report().bitstring)
 
 # # pipe interface
 # report = (
@@ -61,7 +61,7 @@ seq = Sequence(
 #     .apply(Linear(start=1.0, stop="x", duration=3.0))
 #     .assign(x=10)
 #     .braket(nshots=1000)
-#     .submit()
+#     .run_async()
 #     .report()
 # )
 
@@ -73,7 +73,7 @@ seq = Sequence(
 #     Linear(start=1.0, stop="x", duration=3.0)
 # ).location(3).location(4).apply(Linear(start=1.0, stop="x", duration=3.0)).braket(
 #     nshots=1000
-# ).submit()
+# ).run_async()
 
 # # start.rydberg.detuning.location(2).location(3)
 
@@ -88,7 +88,7 @@ seq = Sequence(
 #     .apply(Linear(start=1.0, stop="x", duration=3.0))
 #     .assign(x=1.0)
 #     .multiplex(10.0).braket(nshots=1000)
-#     .submit()
+#     .run_async()
 #     .report()
 #     .dataframe.groupby(by=["x"])
 #     .count()

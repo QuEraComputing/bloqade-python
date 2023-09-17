@@ -70,10 +70,10 @@ if __name__ == "__main__":
         .braket_local_simulator(1000)
     )
 
-    rydberg_densities = simulator_job.submit().report().rydberg_densities()
+    rydberg_densities = simulator_job.run_async().report().rydberg_densities()
 
     rydberg_densities = (
-        simulator_job.submit(multiprocessing=True).report().rydberg_densities()
+        simulator_job.run_async(multiprocessing=True).report().rydberg_densities()
     )
 
     # durations for rabi and detuning
@@ -92,5 +92,5 @@ if __name__ == "__main__":
 
     mis_udg_job = mis_udg_program.batch_assign(final_detuning=np.linspace(0, 80, 81))
 
-    hw_job = mis_udg_job.braket_local_simulator(100).submit()
+    hw_job = mis_udg_job.braket_local_simulator(100).run_async()
 """
