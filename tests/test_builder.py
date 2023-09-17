@@ -19,8 +19,20 @@ from bloqade.ir import rydberg, detuning, hyperfine, rabi
 from bloqade import start, cast
 
 # from bloqade.ir.location import Square, Chain
-# import numpy as np
+import numpy as np
 import pytest
+
+
+def test_add_position_dispatch():
+    position = np.array([[1, 2], [3, 4]])
+    position_list = list(map(tuple, position.tolist()))
+
+    a = start.add_position(position)
+    b = start.add_position(position_list)
+    c = start.add_position(position_list[0]).add_position(position_list[1])
+
+    assert a.location_list == b.location_list
+    assert a.location_list == c.location_list
 
 
 def test_piecewise_const():

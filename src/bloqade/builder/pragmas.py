@@ -32,7 +32,7 @@ class Assignable(Builder):
             and 0.5 to the variable "span_time".
 
             >>> reg = bloqade.start
-            ...       .add_positions([(0,0),(1,1),(2,2),(3,3)])
+            ...       .add_position([(0,0),(1,1),(2,2),(3,3)])
             >>> seq = reg.rydberg.detuning.uniform
             ...       .linear(start="ival",stop=1,duration="span_time")
             >>> seq = seq.assign(span_time = 0.5, ival = 0.0)
@@ -65,7 +65,7 @@ class Parallelizable(Builder):
             - Parallelize the current problem with cluster spacing 7.2 um.
 
             >>> prob = (
-                    bloqade.start.add_positions([(0,0),(1,1),(2,2),(3,3)])
+                    bloqade.start.add_position([(0,0),(1,1),(2,2),(3,3)])
                     .rydberg.detuning.uniform
                     .linear(start=0,stop=1,duration=1)
                     )

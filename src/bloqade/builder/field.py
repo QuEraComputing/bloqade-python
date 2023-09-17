@@ -37,7 +37,7 @@ class Field(Builder):
             - Addressing rydberg detuning to all atoms in the system with
             4 sites
 
-            >>> reg = bloqade.start.add_positions([(0,0),(1,1),(2,2),(3,3)])
+            >>> reg = bloqade.start.add_position([(0,0),(1,1),(2,2),(3,3)])
             >>> loc = reg.rydberg.detuning.uniform
 
         """
@@ -59,13 +59,13 @@ class Field(Builder):
 
             - Addressing rydberg detuning to location 1 on a system with 4 sites.
 
-            >>> reg = bloqade.start.add_positions([(0,0),(1,1),(2,2),(3,3)])
+            >>> reg = bloqade.start.add_position([(0,0),(1,1),(2,2),(3,3)])
             >>> loc = reg.rydberg.detuning.location(1)
 
             - Addressing rydberg detuning on both location
             0 and 2 on a system with 4 sites.
 
-            >>> reg = bloqade.start.add_positions([(0,0),(1,1),(2,2),(3,3)])
+            >>> reg = bloqade.start.add_position([(0,0),(1,1),(2,2),(3,3)])
             >>> loc = reg.rydberg.detuning.location(1).location(2)
 
         Note:
@@ -142,7 +142,7 @@ class Field(Builder):
             - Addressing rydberg detuning to atom location `myatom` in the system with
             4 sites
 
-            >>> reg = bloqade.start.add_positions([(0,0),(1,1),(2,2),(3,3)])
+            >>> reg = bloqade.start.add_position([(0,0),(1,1),(2,2),(3,3)])
             >>> loc = reg.rydberg.detuning.var('myatom')
 
         """

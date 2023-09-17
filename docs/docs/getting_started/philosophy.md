@@ -10,7 +10,7 @@ calculation = (
 ```
 
 From here there will be different methods and properties that you can use to build your program. For example,
-you can start to add atom sites to your program by selecting `add_position` method or `add_positions` method.
+you can start to add atom sites to your program by selecting `add_position` method or `add_position` method.
 
 ```python
 from bloqade import start
@@ -19,7 +19,7 @@ calculation = (
     start
     .add_position((0, 0))
     .add_position((0, 6.8))
-    .add_positions([(6.8, 0), (6.8, 6.8)])
+    .add_position([(6.8, 0), (6.8, 6.8)])
 )
 ```
 
@@ -32,7 +32,7 @@ calculation = (
     start
     .add_position((0, 0))
     .add_position((0, 6.8))
-    .add_positions([(6.8, 0), (6.8, 6.8)])
+    .add_position([(6.8, 0), (6.8, 6.8)])
     .rydberg
 )
 ```
@@ -47,7 +47,7 @@ calculation = (
     start
     .add_position((0, 0))
     .add_position((0, 6.8))
-    .add_positions([(6.8, 0), (6.8, 6.8)])
+    .add_position([(6.8, 0), (6.8, 6.8)])
     .rydberg.detuning
 )
 ```
@@ -62,7 +62,7 @@ calculation = (
     start
     .add_position((0, 0))
     .add_position((0, 6.8))
-    .add_positions([(6.8, 0), (6.8, 6.8)])
+    .add_position([(6.8, 0), (6.8, 6.8)])
     .rydberg.detuning.uniform
 )
 ```
@@ -77,7 +77,7 @@ calculation = (
     start
     .add_position((0, 0))
     .add_position((0, 6.8))
-    .add_positions([(6.8, 0), (6.8, 6.8)])
+    .add_position([(6.8, 0), (6.8, 6.8)])
     .rydberg.detuning.uniform.
     piecewise_linear(
         durations = [0.1, 1.0 0.1],
@@ -95,7 +95,7 @@ calculation = (
     start
     .add_position((0, 0))
     .add_position((0, 6.8))
-    .add_positions([(6.8, 0), (6.8, 6.8)])
+    .add_position([(6.8, 0), (6.8, 6.8)])
     .rydberg.detuning.uniform.
     piecewise_linear(
         durations = [0.1, 1.0 0.1],
@@ -123,7 +123,7 @@ calculation = (
     start
     .add_position((0, 0))
     .add_position((0, 6.8))
-    .add_positions([(6.8, 0), (6.8, 6.8)])
+    .add_position([(6.8, 0), (6.8, 6.8)])
     .rydberg.detuning.uniform.
     piecewise_linear(
         durations = [0.1, 1.0 0.1],
@@ -150,7 +150,7 @@ calculation = (
     start
     .add_position((0, 0))
     .add_position((0, 6.8))
-    .add_positions([(6.8, 0), (6.8, 6.8)])
+    .add_position([(6.8, 0), (6.8, 6.8)])
     .rydberg.detuning.uniform.
     piecewise_linear(
         durations = [0.1, 1.0 0.1],
@@ -182,7 +182,7 @@ program = (
     start
     .add_position((0, 0))
     .add_position((0, 6.8))
-    .add_positions([(6.8, 0), (6.8, 6.8)])
+    .add_position([(6.8, 0), (6.8, 6.8)])
     .rydberg.detuning.uniform.
     piecewise_linear(
         durations = [0.1, 1.0, 0.1],
