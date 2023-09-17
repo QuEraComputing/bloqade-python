@@ -13,18 +13,18 @@
 </span></code></pre></div> <div class="doc doc-contents "> <ul> <li>Addressing all atom locations for preceeding waveform</li> <li>Next-step: <waveform></li> <li> <p>Possible Next:</p> <p>-&gt; <code>...uniform.linear()</code> :: apply linear waveform</p> <p>-&gt; <code>...uniform.constant()</code> :: apply constant waveform</p> <p>-&gt; <code>...uniform.ploy()</code> :: apply polynomial waveform</p> <p>-&gt; <code>...uniform.apply()</code> :: apply pre-constructed waveform</p> <p>-&gt; <code>...uniform.piecewise_linear()</code> :: apply piecewise linear waveform</p> <p>-&gt; <code>...uniform.piecewise_constant()</code> :: apply piecewise constant waveform</p> <p>-&gt; <code>...uniform.fn()</code> :: apply callable as waveform.</p> </li> </ul> <p>Examples:</p> <div class="language-text highlight"><pre><span></span><code>- Addressing rydberg detuning to all atoms in the system with
 4 sites
 
-&gt;&gt;&gt; reg = bloqade.start.add_positions([(0,0),(1,1),(2,2),(3,3)])
+&gt;&gt;&gt; reg = bloqade.start.add_position([(0,0),(1,1),(2,2),(3,3)])
 &gt;&gt;&gt; loc = reg.rydberg.detuning.uniform
 </code></pre></div> </div> </div> <div class="doc doc-object doc-function"> <h3 id=bloqade.builder.field.Field.location class="doc doc-heading"> <span class="doc doc-object-name doc-function-name">location</span> <a href=#bloqade.builder.field.Field.location class=headerlink title="Permanent link">&para;</a></h3> <div class="doc-signature highlight"><pre><span></span><code><span id=__span-0-1><a id=__codelineno-0-1 name=__codelineno-0-1 href=#__codelineno-0-1></a><span class=n>location</span><span class=p>(</span><span class=n>label</span><span class=p>)</span>
 </span></code></pre></div> <div class="doc doc-contents "> <p>Addressing one or multiple specific location(s) for preceeding waveform.</p> <p>(See [<code>Location</code>][bloqade.builder.location.Location] for more details])</p> <p><strong>Parameters:</strong></p> <table> <thead> <tr> <th>Name</th> <th>Type</th> <th>Description</th> <th>Default</th> </tr> </thead> <tbody> <tr> <td><code>label</code></td> <td> <code>int</code> </td> <td> <div class=doc-md-description> <p>The label of the location to apply the following waveform to.</p> </div> </td> <td> <em>required</em> </td> </tr> </tbody> </table> <p>Examples:</p> <div class="language-text highlight"><pre><span></span><code>- Addressing rydberg detuning to location 1 on a system with 4 sites.
 
-&gt;&gt;&gt; reg = bloqade.start.add_positions([(0,0),(1,1),(2,2),(3,3)])
+&gt;&gt;&gt; reg = bloqade.start.add_position([(0,0),(1,1),(2,2),(3,3)])
 &gt;&gt;&gt; loc = reg.rydberg.detuning.location(1)
 
 - Addressing rydberg detuning on both location
 0 and 2 on a system with 4 sites.
 
-&gt;&gt;&gt; reg = bloqade.start.add_positions([(0,0),(1,1),(2,2),(3,3)])
+&gt;&gt;&gt; reg = bloqade.start.add_position([(0,0),(1,1),(2,2),(3,3)])
 &gt;&gt;&gt; loc = reg.rydberg.detuning.location(1).location(2)
 </code></pre></div> <details class=note open> <summary>Note</summary> <p>label index start with 0, and should be positive.</p> </details> <ul> <li> <p>Possible Next <location>:</p> <p>-&gt; <code>...location(int).location(int)</code> :: adding location into current list</p> <p>-&gt; <code>...location(int).scale(float)</code> :: specify scaling factor to current location for the preceeding waveform</p> </li> <li> <p>Possible Next <waveform>:</p> <p>-&gt; <code>...location(int).linear()</code> :: apply linear waveform</p> <p>-&gt; <code>...location(int).constant()</code> :: apply constant waveform</p> <p>-&gt; <code>...location(int).ploy()</code> :: apply polynomial waveform</p> <p>-&gt; <code>...location(int).apply()</code> :: apply pre-constructed waveform</p> <p>-&gt; <code>...location(int).piecewise_linear()</code> :: apply piecewise linear waveform</p> <p>-&gt; <code>...location(int).piecewise_constant()</code> :: apply piecewise constant waveform</p> <p>-&gt; <code>...location(int).fn()</code> :: apply callable as waveform.</p> </li> </ul> <details class=quote> <summary>Source code in <code>src/bloqade/builder/field.py</code></summary> <div class=highlight><table class=highlighttable><tr><td class=linenos><div class=linenodiv><pre><span></span><span class=normal><a href=#__codelineno-0-48> 48</a></span>
 <span class=normal><a href=#__codelineno-0-49> 49</a></span>
@@ -102,13 +102,13 @@
 </span><span id=__span-0-59><a id=__codelineno-0-59 name=__codelineno-0-59></a>
 </span><span id=__span-0-60><a id=__codelineno-0-60 name=__codelineno-0-60></a><span class=sd>        - Addressing rydberg detuning to location 1 on a system with 4 sites.</span>
 </span><span id=__span-0-61><a id=__codelineno-0-61 name=__codelineno-0-61></a>
-</span><span id=__span-0-62><a id=__codelineno-0-62 name=__codelineno-0-62></a><span class=sd>        &gt;&gt;&gt; reg = bloqade.start.add_positions([(0,0),(1,1),(2,2),(3,3)])</span>
+</span><span id=__span-0-62><a id=__codelineno-0-62 name=__codelineno-0-62></a><span class=sd>        &gt;&gt;&gt; reg = bloqade.start.add_position([(0,0),(1,1),(2,2),(3,3)])</span>
 </span><span id=__span-0-63><a id=__codelineno-0-63 name=__codelineno-0-63></a><span class=sd>        &gt;&gt;&gt; loc = reg.rydberg.detuning.location(1)</span>
 </span><span id=__span-0-64><a id=__codelineno-0-64 name=__codelineno-0-64></a>
 </span><span id=__span-0-65><a id=__codelineno-0-65 name=__codelineno-0-65></a><span class=sd>        - Addressing rydberg detuning on both location</span>
 </span><span id=__span-0-66><a id=__codelineno-0-66 name=__codelineno-0-66></a><span class=sd>        0 and 2 on a system with 4 sites.</span>
 </span><span id=__span-0-67><a id=__codelineno-0-67 name=__codelineno-0-67></a>
-</span><span id=__span-0-68><a id=__codelineno-0-68 name=__codelineno-0-68></a><span class=sd>        &gt;&gt;&gt; reg = bloqade.start.add_positions([(0,0),(1,1),(2,2),(3,3)])</span>
+</span><span id=__span-0-68><a id=__codelineno-0-68 name=__codelineno-0-68></a><span class=sd>        &gt;&gt;&gt; reg = bloqade.start.add_position([(0,0),(1,1),(2,2),(3,3)])</span>
 </span><span id=__span-0-69><a id=__codelineno-0-69 name=__codelineno-0-69></a><span class=sd>        &gt;&gt;&gt; loc = reg.rydberg.detuning.location(1).location(2)</span>
 </span><span id=__span-0-70><a id=__codelineno-0-70 name=__codelineno-0-70></a>
 </span><span id=__span-0-71><a id=__codelineno-0-71 name=__codelineno-0-71></a><span class=sd>    Note:</span>
@@ -155,7 +155,7 @@
 </span></code></pre></div> <div class="doc doc-contents "> <ul> <li>Addressing atom location associate with given variable for preceeding waveform</li> <li> <p>Possible Next <waveform>:</p> <p>-&gt; <code>...location(int).linear()</code> :: apply linear waveform</p> <p>-&gt; <code>...location(int).constant()</code> :: apply constant waveform</p> <p>-&gt; <code>...location(int).ploy()</code> :: apply polynomial waveform</p> <p>-&gt; <code>...location(int).apply()</code> :: apply pre-constructed waveform</p> <p>-&gt; <code>...location(int).piecewise_linear()</code> :: apply piecewise linear waveform</p> <p>-&gt; <code>...location(int).piecewise_constant()</code> :: apply piecewise constant waveform</p> <p>-&gt; <code>...location(int).fn()</code> :: apply callable as waveform.</p> </li> </ul> <p>Examples:</p> <div class="language-text highlight"><pre><span></span><code>- Addressing rydberg detuning to atom location `myatom` in the system with
 4 sites
 
-&gt;&gt;&gt; reg = bloqade.start.add_positions([(0,0),(1,1),(2,2),(3,3)])
+&gt;&gt;&gt; reg = bloqade.start.add_position([(0,0),(1,1),(2,2),(3,3)])
 &gt;&gt;&gt; loc = reg.rydberg.detuning.var(&#39;myatom&#39;)
 </code></pre></div> <details class=quote> <summary>Source code in <code>src/bloqade/builder/field.py</code></summary> <div class=highlight><table class=highlighttable><tr><td class=linenos><div class=linenodiv><pre><span></span><span class=normal><a href=#__codelineno-0-112>112</a></span>
 <span class=normal><a href=#__codelineno-0-113>113</a></span>
@@ -229,7 +229,7 @@
 </span><span id=__span-0-142><a id=__codelineno-0-142 name=__codelineno-0-142></a><span class=sd>        - Addressing rydberg detuning to atom location `myatom` in the system with</span>
 </span><span id=__span-0-143><a id=__codelineno-0-143 name=__codelineno-0-143></a><span class=sd>        4 sites</span>
 </span><span id=__span-0-144><a id=__codelineno-0-144 name=__codelineno-0-144></a>
-</span><span id=__span-0-145><a id=__codelineno-0-145 name=__codelineno-0-145></a><span class=sd>        &gt;&gt;&gt; reg = bloqade.start.add_positions([(0,0),(1,1),(2,2),(3,3)])</span>
+</span><span id=__span-0-145><a id=__codelineno-0-145 name=__codelineno-0-145></a><span class=sd>        &gt;&gt;&gt; reg = bloqade.start.add_position([(0,0),(1,1),(2,2),(3,3)])</span>
 </span><span id=__span-0-146><a id=__codelineno-0-146 name=__codelineno-0-146></a><span class=sd>        &gt;&gt;&gt; loc = reg.rydberg.detuning.var(&#39;myatom&#39;)</span>
 </span><span id=__span-0-147><a id=__codelineno-0-147 name=__codelineno-0-147></a>
 </span><span id=__span-0-148><a id=__codelineno-0-148 name=__codelineno-0-148></a><span class=sd>    &quot;&quot;&quot;</span>
