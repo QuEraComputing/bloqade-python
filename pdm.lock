@@ -221,12 +221,12 @@ files = [
 
 [[package]]
 name = "beartype"
-version = "0.15.0"
+version = "0.16.0"
 requires_python = ">=3.8.0"
 summary = "Unbearably fast runtime type checking in pure Python."
 files = [
-    {file = "beartype-0.15.0-py3-none-any.whl", hash = "sha256:52cd2edea72fdd84e4e7f8011a9e3007bf0125c3d6d7219e937b9d8868169177"},
-    {file = "beartype-0.15.0.tar.gz", hash = "sha256:2af6a8d8a7267ccf7d271e1a3bd908afbc025d2a09aa51123567d7d7b37438df"},
+    {file = "beartype-0.16.0-py3-none-any.whl", hash = "sha256:f0aa0f09468f732c9c4d07c024d3d69cff64cb07fd81e8ab52962e1db16ff04a"},
+    {file = "beartype-0.16.0.tar.gz", hash = "sha256:231379a056da2fc1811a2e1324d5c3d0fa2082e305bfa15cb3acb9b7ce9df516"},
 ]
 
 [[package]]
@@ -1294,7 +1294,7 @@ files = [
 
 [[package]]
 name = "jupytext"
-version = "1.15.1"
+version = "1.15.2"
 requires_python = "~=3.6"
 summary = "Jupyter notebooks as Markdown documents, Julia, Python or R scripts"
 dependencies = [
@@ -1305,8 +1305,8 @@ dependencies = [
     "toml",
 ]
 files = [
-    {file = "jupytext-1.15.1-py3-none-any.whl", hash = "sha256:1df0724f97e5c0db9bb5b71ff9ecf4225e2bccbfb49131834424b043edbe8af8"},
-    {file = "jupytext-1.15.1.tar.gz", hash = "sha256:39c2112a1a007f2e9e2783695054205562466fd44f68acb371ebd52feac7ff58"},
+    {file = "jupytext-1.15.2-py3-none-any.whl", hash = "sha256:ef2a1a3eb8f63d84a3b3772014bdfbe238e4e12a30c4309b8c89e0a54adeb7d1"},
+    {file = "jupytext-1.15.2.tar.gz", hash = "sha256:c9976e24d834e991906c1de55af4b6d512d764f6372aabae45fc1ea72b589173"},
 ]
 
 [[package]]
