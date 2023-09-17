@@ -34,6 +34,9 @@ def test_add_position_dispatch():
     assert a.location_list == b.location_list
     assert a.location_list == c.location_list
 
+    with pytest.raises(AssertionError):
+        start.add_position(position_list, [True])
+
 
 def test_piecewise_const():
     prog = start.rydberg.detuning.uniform.piecewise_constant(
