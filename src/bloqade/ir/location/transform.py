@@ -1,5 +1,5 @@
 from bloqade.builder.typing import ScalarType
-from beartype.typing import List, Tuple, Optional, TYPE_CHECKING
+from beartype.typing import List, Tuple, Optional, Union, TYPE_CHECKING
 from beartype.vale import Is
 from typing import Annotated
 from beartype import beartype
@@ -95,29 +95,42 @@ class TransformTrait:
             filling.tolist() if filling is not None else None,
         )
 
-    def add_position(self, position, filling=None) -> "ListOfLocations":
+    def add_position(
+        self,
+        position: Union[
+            Tuple[ScalarType, ScalarType],
+            List[Tuple[ScalarType, ScalarType]],
+            PositionArray,
+        ],
+        filling: Optional[Union[bool, list[bool], BoolArray]] = None,
+    ) -> "ListOfLocations":
         """add a position or list of positions to existing atom arrangement.
 
         Args:
-            position: a single position or list of positions to add.
-            filling: a single boolean or list of booleans to add. If None, all positions
-                are assumed to be filled. If a list, the length must be the same as the
-                length of the list of positions. defaults to None, in which case all
-                positions are assumed to be filled.
+            position (Tuple[ScalarType, ScalarType]
+            | List[Tuple[ScalarType, ScalarType]
+            | numpy.array with shape (n, 2)]):
+                position to add
+            filling (bool | list[bool]
+            | numpy.array with shape (n, ) | None, optional):
+                filling of the added position(s). Defaults to None.
 
         Returns:
-            a new ListOfLocations object with the added positions.
+            ListOfLocations: new atom arrangement with added positions
+
         """
-        if isinstance(position, tuple):
+        if isinstance(position, tuple) and isinstance(filling, (bool, type(None))):
             return self._add_position(position, filling)
-        elif isinstance(position, list):
+        elif isinstance(position, list) and isinstance(filling, (list, type(None))):
             return self._add_position_list(position, filling)
-        elif isinstance(position, np.ndarray):
+        elif isinstance(position, np.ndarray) and isinstance(
+            filling, (np.ndarray, type(None))
+        ):
             return self._add_numpy_position(position, filling)
         else:
             raise TypeError(
-                "position must be a tuple, list, "
-                f"or numpy.ndarray, not {type(position)}"
+                f"cannot interpret arguments, got {type(position)} "
+                f"for position and {type(filling)} for filling"
             )
 
     @beartype
