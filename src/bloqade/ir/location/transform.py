@@ -1,4 +1,3 @@
-from functools import singledispatchmethod
 from bloqade.builder.typing import ScalarType
 from beartype.typing import List, Tuple, Optional, TYPE_CHECKING
 from beartype.vale import Is
@@ -96,7 +95,6 @@ class TransformTrait:
             filling.tolist() if filling is not None else None,
         )
 
-    @singledispatchmethod
     def add_position(self, position, filling=None) -> "ListOfLocations":
         """add a position or list of positions to existing atom arrangement.
 
@@ -110,24 +108,17 @@ class TransformTrait:
         Returns:
             a new ListOfLocations object with the added positions.
         """
-        raise NotImplementedError(
-            f"add_position is not implemented for {type(position)}"
-        )
-
-    @add_position.register
-    def _(self, position: tuple, filling: Optional[bool] = None):
-        # NOTE: can't use beartype here because ingledispatchmethod needs
-        # annotation to be a type, therefore we must dispatch to private
-        # method that uses beartype for type checking.
-        return self._add_position(position, filling)
-
-    @add_position.register
-    def _(self, position: list, filling: Optional[List[bool]] = None):
-        return self._add_position_list(position, filling)
-
-    @add_position.register
-    def _(self, position: np.ndarray, filling: Optional[np.ndarray] = None):
-        return self._add_numpy_position(position, filling)
+        if isinstance(position, tuple):
+            return self._add_position(position, filling)
+        elif isinstance(position, list):
+            return self._add_position_list(position, filling)
+        elif isinstance(position, np.ndarray):
+            return self._add_numpy_position(position, filling)
+        else:
+            raise TypeError(
+                "position must be a tuple, list, "
+                f"or numpy.ndarray, not {type(position)}"
+            )
 
     @beartype
     def apply_defect_count(
