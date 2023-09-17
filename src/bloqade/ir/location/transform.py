@@ -47,6 +47,7 @@ class TransformTrait:
 
         return ListOfLocations(location_list)
 
+    @beartype
     def _add_position(
         self, position: Tuple[ScalarType, ScalarType], filling: Optional[bool] = None
     ):
@@ -61,6 +62,7 @@ class TransformTrait:
 
         return ListOfLocations(location_list)
 
+    @beartype
     def _add_position_list(
         self,
         position: List[Tuple[ScalarType, ScalarType]],
