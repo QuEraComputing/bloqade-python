@@ -25,13 +25,13 @@ def test_list_of_locations_pprint():
         list_of_locations_pprint_output_path, "r"
     ).read()
 
-    assert repr(start.add_positions(rand_positions)) == list_of_locations_pprint_output
+    assert repr(start.add_position(rand_positions)) == list_of_locations_pprint_output
 
     var1 = cast("var1")
     var2 = cast("var2")
     var3 = cast("var3")
 
-    assert repr(start.add_positions([(var1, var2), (var3, 5), (0, 9)])) == (
+    assert repr(start.add_position([(var1, var2), (var3, 5), (0, 9)])) == (
         "[LocationInfo(position=(var(var1), var(var2)), "
         "filling=<SiteFilling.filled: 1>), "
         "LocationInfo(position=(var(var3), 5), filling=<SiteFilling.filled: 1>), "

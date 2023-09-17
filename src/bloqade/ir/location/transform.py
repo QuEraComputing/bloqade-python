@@ -1,14 +1,37 @@
 from bloqade.builder.typing import ScalarType
-from beartype.typing import List, Tuple, Optional
+from beartype.typing import List, Tuple, Optional, Union, TYPE_CHECKING
+from beartype.vale import Is
+from typing import Annotated
 from beartype import beartype
 import numpy as np
 from bloqade.ir.scalar import cast
+
+if TYPE_CHECKING:
+    from bloqade.ir.location.list import ListOfLocations
+
+
+def check_position_array(array):
+    return (
+        array.ndim == 2
+        and (
+            np.issubdtype(array.dtype, np.floating)
+            or np.issubdtype(array.dtype, np.integer)
+        )
+        and array.shape[1] == 2
+    )
+
+
+def check_bool_array(array):
+    return array.ndim == 1 and np.issubdtype(array.dtype, np.bool_)
+
+
+PositionArray = Annotated[np.ndarray, Is[check_position_array]]
+BoolArray = Annotated[np.ndarray, Is[check_bool_array]]
 
 
 class TransformTrait:
     @beartype
     def scale(self, scale: ScalarType):
-        """scale the atom arrangement with a given factor"""
         from .list import ListOfLocations
         from .base import LocationInfo
 
@@ -24,47 +47,91 @@ class TransformTrait:
         return ListOfLocations(location_list)
 
     @beartype
-    def add_position(
-        self, position: Tuple[ScalarType, ScalarType], filled: bool = True
+    def _add_position(
+        self, position: Tuple[ScalarType, ScalarType], filling: Optional[bool] = None
     ):
-        """add a position to existing atom arrangement."""
         from .list import ListOfLocations
         from .base import LocationInfo
 
-        location_list = [LocationInfo(position, filled)]
-        for location_info in self.enumerate():
-            location_list.append(location_info)
+        if filling is None:
+            filling = True
+
+        location_list = list(self.enumerate())
+        location_list.append(LocationInfo(position, filling))
 
         return ListOfLocations(location_list)
 
     @beartype
-    def add_positions(
+    def _add_position_list(
         self,
-        positions: List[Tuple[ScalarType, ScalarType]],
+        position: List[Tuple[ScalarType, ScalarType]],
         filling: Optional[List[bool]] = None,
     ):
-        """add a list of positions to existing atom arrangement."""
         from .list import ListOfLocations
         from .base import LocationInfo
 
-        location_list = []
+        location_list = list(self.enumerate())
 
         assert (
-            len(positions) == len(filling) if filling else True
+            len(position) == len(filling) if filling else True
         ), "Length of positions and filling must be the same"
 
         if filling:
-            for position, filled in zip(positions, filling):
-                location_list.append(LocationInfo(position, filled))
+            for position, filling in zip(position, filling):
+                location_list.append(LocationInfo(position, filling))
 
         else:
-            for position in positions:
+            for position in position:
                 location_list.append(LocationInfo(position, True))
 
-        for location_info in self.enumerate():
-            location_list.append(location_info)
-
         return ListOfLocations(location_list)
+
+    @beartype
+    def _add_numpy_position(
+        self, position: PositionArray, filling: Optional[BoolArray] = None
+    ):
+        return self._add_position_list(
+            list(map(tuple, position.tolist())),
+            filling.tolist() if filling is not None else None,
+        )
+
+    def add_position(
+        self,
+        position: Union[
+            Tuple[ScalarType, ScalarType],
+            List[Tuple[ScalarType, ScalarType]],
+            PositionArray,
+        ],
+        filling: Optional[Union[bool, list[bool], BoolArray]] = None,
+    ) -> "ListOfLocations":
+        """add a position or list of positions to existing atom arrangement.
+
+        Args:
+            position (Tuple[ScalarType, ScalarType]
+            | List[Tuple[ScalarType, ScalarType]
+            | numpy.array with shape (n, 2)]):
+                position to add
+            filling (bool | list[bool]
+            | numpy.array with shape (n, ) | None, optional):
+                filling of the added position(s). Defaults to None.
+
+        Returns:
+            ListOfLocations: new atom arrangement with added positions
+
+        """
+        if isinstance(position, tuple) and isinstance(filling, (bool, type(None))):
+            return self._add_position(position, filling)
+        elif isinstance(position, list) and isinstance(filling, (list, type(None))):
+            return self._add_position_list(position, filling)
+        elif isinstance(position, np.ndarray) and isinstance(
+            filling, (np.ndarray, type(None))
+        ):
+            return self._add_numpy_position(position, filling)
+        else:
+            raise TypeError(
+                f"cannot interpret arguments, got {type(position)} "
+                f"for position and {type(filling)} for filling"
+            )
 
     @beartype
     def apply_defect_count(

@@ -42,7 +42,7 @@ def test_listOfLocations():
 
 def test_addlocs_on_square():
     lattice = Square(2, lattice_spacing=1.0)
-    lattice1 = lattice.add_positions([(9, 6), (4, 4)])
+    lattice1 = lattice.add_position([(9, 6), (4, 4)])
 
     # type(lattice)
     assert type(lattice1) == ir.location.ListOfLocations
@@ -55,7 +55,7 @@ def test_addlocs_on_square():
 
 def test_addlocs_filling_options():
     lattice = Square(2, lattice_spacing=1.0)
-    lattice = lattice.add_positions([(9, 6), (4, 4)], filling=[False, True])
+    lattice = lattice.add_position([(9, 6), (4, 4)], filling=[False, True])
 
     # type(lattice)
     assert type(lattice) == ir.location.ListOfLocations

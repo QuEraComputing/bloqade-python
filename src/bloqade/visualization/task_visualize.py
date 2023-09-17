@@ -36,7 +36,7 @@ def get_lattice_figure(lattice, **fig_kwargs):
     sites_um = list(
         map(lambda cord: (float(cord[0]) * 1e6, float(cord[1]) * 1e6), lattice.sites)
     )
-    reg = ListOfLocations().add_positions(sites_um, lattice.filling)
+    reg = ListOfLocations().add_position(sites_um, lattice.filling)
     fig_reg = reg.figure(fig_kwargs=fig_kwargs)  # ignore the B-rad widget
     return fig_reg
 

@@ -23,13 +23,13 @@ class Uniform(SpatialModulation):
 
         - To hit this node from the start node:
 
-        >>> reg = bloqade.start.add_positions([(0,0),(1,1),(2,2),(3,3)])
+        >>> reg = bloqade.start.add_position([(0,0),(1,1),(2,2),(3,3)])
         >>> loc = reg.rydberg.detuning.uniform
 
         - Apply Linear waveform:
 
         >>> wv = bloqade.ir.Linear(start=0,stop=1,duration=0.5)
-        >>> reg = bloqade.start.add_positions([(0,0),(1,1),(2,2),(3,3)])
+        >>> reg = bloqade.start.add_position([(0,0),(1,1),(2,2),(3,3)])
         >>> loc = reg.rydberg.detuning.uniform.apply(wv)
 
     """
@@ -61,13 +61,13 @@ class Location(SpatialModulation):
 
             - Append location 1 to the current location 0.
 
-            >>> reg = bloqade.start.add_positions([(0,0),(1,1),(2,2),(3,3)])
+            >>> reg = bloqade.start.add_position([(0,0),(1,1),(2,2),(3,3)])
             >>> loc = reg.rydberg.detuning.location(0)
             >>> loc = loc.location(1)
 
             - One can keep appending by concatenating location()
 
-            >>> reg = bloqade.start.add_positions([(0,0),(1,1),(2,2),(3,3)])
+            >>> reg = bloqade.start.add_position([(0,0),(1,1),(2,2),(3,3)])
             >>> loc = reg.rydberg.detuning.location(0)
             >>> loc = loc.location(1).location(2)
 
@@ -120,19 +120,19 @@ class Location(SpatialModulation):
 
             - Scale the preceeding waveform that addressing location(0) by 1.2.
 
-            >>> reg = bloqade.start.add_positions([(0,0),(1,1),(2,2),(3,3)])
+            >>> reg = bloqade.start.add_position([(0,0),(1,1),(2,2),(3,3)])
             >>> scaled = reg.rydberg.detuning.location(0).scale(1.2)
 
             - Scale multiple locations with different factors.
             (ex. loc 0 by 1.2, loc 1 by 0.5)
 
-            >>> reg = bloqade.start.add_positions([(0,0),(1,1),(2,2),(3,3)])
+            >>> reg = bloqade.start.add_position([(0,0),(1,1),(2,2),(3,3)])
             >>> loc = reg.rydberg.detuning.location(0)
             >>> loc = loc.scale(1.2).location(1).scale(0.5)
 
             - Scale multiple locations with the same factor. (ex. loc 0 and 1 by 1.2)
 
-            >>> reg = bloqade.start.add_positions([(0,0),(1,1),(2,2),(3,3)])
+            >>> reg = bloqade.start.add_position([(0,0),(1,1),(2,2),(3,3)])
             >>> scaled = reg.rydberg.detuning.location(0).location(1).scale(1.2)
 
 
@@ -192,7 +192,7 @@ class Scale(WaveformAttachable):
 
             - Append location 1 after scale location 0 by 1.2.
 
-            >>> reg = bloqade.start.add_positions([(0,0),(1,1),(2,2),(3,3)])
+            >>> reg = bloqade.start.add_position([(0,0),(1,1),(2,2),(3,3)])
             >>> loc = reg.rydberg.detuning.location(0).scale(1.2)
             >>> loc = loc.location(1)
 
