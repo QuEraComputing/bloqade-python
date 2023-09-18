@@ -489,7 +489,5 @@ class BloqadeIRDeserializer:
             ((head, options),) = obj.items()
             if head in cls.constructors:
                 return cls.constructors[head](**options)
-            else:
-                return obj
 
         return obj
