@@ -257,7 +257,6 @@ class Parser:
         self.reset(builder)
         self.read_register()
         self.read_sequeence()
-        self.read_pragmas()
 
         circuit = AnalogCircuit(self.register, self.sequence)
 

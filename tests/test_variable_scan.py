@@ -48,6 +48,7 @@ def test_2():
 
     circuit = (
         start.add_position(("x", "y"))
+        .add_position(("a", "b"))
         .rydberg.rabi.amplitude.var("mask")
         .piecewise_linear([0.1, t - 0.2, 0.1], [0, omega_max, omega_max, 0])
         .slice(t_1, t_2)
@@ -55,11 +56,11 @@ def test_2():
         .detuning.uniform.constant(10, t_2)
         .uniform.linear(0, delta, t_1)
         .phase.uniform.apply(-(2 * detuning))
-        .parallelize("a")
+        .parallelize(20.0)
         .parse_circuit()
     )
 
-    scalar_vars = ["t", "x", "y", "delta", "T", "omega_max", "a", "u"]
+    scalar_vars = ["t", "x", "y", "delta", "T", "omega_max", "a", "u", "b"]
     vector_vars = ["mask"]
     expected_result = ScanVariableResults(
         scalar_vars=scalar_vars, vector_vars=vector_vars

@@ -66,19 +66,20 @@ class Assign(
     __match_args__ = ("_assignments", "__parent__")
 
     def __init__(self, parent: Optional[Builder] = None, **assignments) -> None:
-        from .parse.builder import Parser
+        from bloqade.codegen.common.scan_variables import ScanVariablesAnalogCircuit
 
         super().__init__(parent)
 
-        parser = Parser()
-
-        parser.parse_sequence(self)
-
-        vector_node_names = parser.vector_node_names
+        circuit = self.parse_circuit()
+        vars = ScanVariablesAnalogCircuit().emit(circuit)
 
         self._assignments = {}
         for name, value in assignments.items():
-            if name in vector_node_names:
+            if name not in vars.scalar_vars and name not in vars.vector_vars:
+                raise ValueError(
+                    f"batch_assign parameter '{name}' is not found in analog circuit."
+                )
+            if name in vars.vector_vars:
                 self._assignments[name] = cast_vector_param(value, name)
             else:
                 self._assignments[name] = cast_scalar_param(value, name)
@@ -88,19 +89,20 @@ class BatchAssign(AssignBase, Parallelizable, BackendRoute, Parse):
     __match_args__ = ("_assignments", "__parent__")
 
     def __init__(self, parent: Optional[Builder] = None, **assignments) -> None:
-        from .parse.builder import Parser
+        from bloqade.codegen.common.scan_variables import ScanVariablesAnalogCircuit
 
         super().__init__(parent)
 
-        parser = Parser()
-
-        parser.parse_sequence(self)
-
-        vector_node_names = parser.vector_node_names
+        circuit = self.parse_circuit()
+        vars = ScanVariablesAnalogCircuit().emit(circuit)
 
         self._assignments = {}
         for name, values in assignments.items():
-            if name in vector_node_names:
+            if name not in vars.scalar_vars and name not in vars.vector_vars:
+                raise ValueError(
+                    f"batch_assign parameter '{name}' is not found in analog circuit."
+                )
+            if name in vars.vector_vars:
                 self._assignments[name] = cast_batch_vector_param(values, name)
             else:
                 self._assignments[name] = cast_batch_scalar_param(values, name)
