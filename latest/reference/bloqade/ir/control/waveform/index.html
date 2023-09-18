@@ -64,10 +64,10 @@
 </span><span id=__span-0-448><a id=__codelineno-0-448 name=__codelineno-0-448></a>    <span class=n>signature</span> <span class=o>=</span> <span class=n>inspect</span><span class=o>.</span><span class=n>getfullargspec</span><span class=p>(</span><span class=n>fn</span><span class=p>)</span>
 </span><span id=__span-0-449><a id=__codelineno-0-449 name=__codelineno-0-449></a>
 </span><span id=__span-0-450><a id=__codelineno-0-450 name=__codelineno-0-450></a>    <span class=k>if</span> <span class=n>signature</span><span class=o>.</span><span class=n>varargs</span> <span class=ow>is</span> <span class=ow>not</span> <span class=kc>None</span><span class=p>:</span>
-</span><span id=__span-0-451><a id=__codelineno-0-451 name=__codelineno-0-451></a>        <span class=k>raise</span> <span class=ne>ValueError</span><span class=p>(</span><span class=s2>&quot;Cannot have varargs&quot;</span><span class=p>)</span>
+</span><span id=__span-0-451><a id=__codelineno-0-451 name=__codelineno-0-451></a>        <span class=k>raise</span> <span class=ne>ValueError</span><span class=p>(</span><span class=s2>&quot;Cannot have `*args` in function definition&quot;</span><span class=p>)</span>
 </span><span id=__span-0-452><a id=__codelineno-0-452 name=__codelineno-0-452></a>
 </span><span id=__span-0-453><a id=__codelineno-0-453 name=__codelineno-0-453></a>    <span class=k>if</span> <span class=n>signature</span><span class=o>.</span><span class=n>varkw</span> <span class=ow>is</span> <span class=ow>not</span> <span class=kc>None</span><span class=p>:</span>
-</span><span id=__span-0-454><a id=__codelineno-0-454 name=__codelineno-0-454></a>        <span class=k>raise</span> <span class=ne>ValueError</span><span class=p>(</span><span class=s2>&quot;Cannot have varkw&quot;</span><span class=p>)</span>
+</span><span id=__span-0-454><a id=__codelineno-0-454 name=__codelineno-0-454></a>        <span class=k>raise</span> <span class=ne>ValueError</span><span class=p>(</span><span class=s2>&quot;Cannot have `**kwargs` in function definition&quot;</span><span class=p>)</span>
 </span><span id=__span-0-455><a id=__codelineno-0-455 name=__codelineno-0-455></a>
 </span><span id=__span-0-456><a id=__codelineno-0-456 name=__codelineno-0-456></a>    <span class=c1># get default kwonly first:</span>
 </span><span id=__span-0-457><a id=__codelineno-0-457 name=__codelineno-0-457></a>    <span class=n>default_variables</span> <span class=o>=</span> <span class=p>[]</span>
