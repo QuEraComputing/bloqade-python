@@ -155,7 +155,6 @@ def dumps(
     Returns:
         str: the serialized object as a string
     """
-    load_patchage()
     if not isinstance(o, Serializer.types):
         raise TypeError(
             f"Object of type {type(o)} is not JSON serializable. "
@@ -182,7 +181,6 @@ def save(
     Returns:
         None
     """
-    load_patchage()
     if not isinstance(o, Serializer.types):
         raise TypeError(
             f"Object of type {type(o)} is not JSON serializable. "
