@@ -448,10 +448,10 @@ class PythonFn(Instruction):
         signature = inspect.getfullargspec(fn)
 
         if signature.varargs is not None:
-            raise ValueError("Cannot have varargs")
+            raise ValueError("Cannot have `*args` in function definition")
 
         if signature.varkw is not None:
-            raise ValueError("Cannot have varkw")
+            raise ValueError("Cannot have `**kwargs` in function definition")
 
         # get default kwonly first:
         default_variables = []

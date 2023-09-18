@@ -1,5 +1,5 @@
 from bloqade.builder.base import Builder
-from bloqade.builder.typing import ScalarType
+from bloqade.builder.typing import LiteralType
 from bloqade.builder.parallelize import Parallelize
 from bloqade.builder.flatten import Flatten
 
@@ -52,13 +52,13 @@ class BatchAssignable(Builder):
 
 class Parallelizable(Builder):
     @beartype
-    def parallelize(self, cluster_spacing: ScalarType) -> Parallelize:
+    def parallelize(self, cluster_spacing: LiteralType) -> Parallelize:
         """
         Parallelize the current problem (register & sequnece) to fill entire FOV
         with the given cluster spacing.
 
         Args:
-            cluster_spacing (Real | Decimal | Scalar | str):
+            cluster_spacing (Real | Decimal):
             the spacing between parallel clusters.
 
         Examples:

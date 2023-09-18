@@ -14,13 +14,53 @@ from bloqade.builder import waveform
 import bloqade.ir.routine.quera as quera
 import bloqade.ir.routine.braket as braket
 
-
+from bloqade.ir.control.waveform import instruction
 from bloqade.ir import rydberg, detuning, hyperfine, rabi
-from bloqade import start, cast
+from bloqade import start, cast, var
 
 # from bloqade.ir.location import Square, Chain
 import numpy as np
 import pytest
+
+
+def test_assign_checks():
+    t = var("t")
+
+    t_2 = var("T").max(t)
+    t_1 = var("T").min(t)
+
+    delta = var("delta") / (2 * np.pi)
+    omega_max = var("omega_max") * 2 * np.pi
+
+    @instruction(t_2)
+    def detuning(t, u):
+        return np.abs(t) * u
+
+    with pytest.raises(ValueError):
+        (
+            start.add_position(("x", "y"))
+            .rydberg.rabi.amplitude.var("mask")
+            .piecewise_linear([0.1, t - 0.2, 0.1], [0, omega_max, omega_max, 0])
+            .slice(t_1, t_2)
+            .uniform.poly([1, 2, 3, 4], t_1)
+            .detuning.uniform.constant(10, t_2)
+            .uniform.linear(0, delta, t_1)
+            .phase.uniform.apply(-(2 * detuning))
+            .assign(c=10)
+        )
+
+    with pytest.raises(ValueError):
+        (
+            start.add_position(("x", "y"))
+            .rydberg.rabi.amplitude.var("mask")
+            .piecewise_linear([0.1, t - 0.2, 0.1], [0, omega_max, omega_max, 0])
+            .slice(t_1, t_2)
+            .uniform.poly([1, 2, 3, 4], t_1)
+            .detuning.uniform.constant(10, t_2)
+            .uniform.linear(0, delta, t_1)
+            .phase.uniform.apply(-(2 * detuning))
+            .batch_assign(c=[10])
+        )
 
 
 def test_add_position_dispatch():
