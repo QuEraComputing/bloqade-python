@@ -12,7 +12,6 @@ from bloqade.ir.visitor.location import LocationVisitor
 from bloqade.ir.visitor.waveform import WaveformVisitor
 from bloqade.ir.visitor.scalar import ScalarVisitor
 from beartype.typing import Set, Any, FrozenSet
-from beartype import beartype
 
 
 @dataclass(frozen=True)
@@ -63,7 +62,6 @@ class ScanVariablesScalar(ScalarVisitor):
     def visit_negative(self, ast: scalar.Negative) -> Any:
         self.visit(ast.expr)
 
-    @beartype
     def emit(self, ast: scalar.Scalar) -> Set[str]:
         self.visit(ast)
         return self.vars
@@ -85,7 +83,7 @@ class ScanVariablesWaveform(WaveformVisitor):
 
     def visit_poly(self, ast: waveform.Poly) -> Any:
         for coeff in ast.coeffs:
-            self.vars = self.vars.union(map(self.scalar_visitor.emit, coeff))
+            self.vars = self.vars.union(self.scalar_visitor.emit(coeff))
         self.vars = self.vars.union(self.scalar_visitor.emit(ast.duration))
 
     def visit_python_fn(self, ast: waveform.PythonFn) -> Any:
@@ -172,12 +170,8 @@ class ScanVariablesLocation(LocationVisitor):
             self.vars = self.vars.union(self.scalar_visitor.emit(coord))
 
     def visit_parallel_register(self, ast: location.ParallelRegister) -> Any:
-        self.scalar_vars = self.scalar_vars.union(
-            self.location_visitor.emit(ast._register)
-        )
-        self.scalar_vars = self.scalar_vars.union(
-            self.scalar_visitor.emit(ast._cluster_spacing)
-        )
+        self.visit(ast._register)
+        self.vars = self.vars.union(self.scalar_visitor.emit(ast._cluster_spacing))
 
     def emit(self, ast: location.AtomArrangement) -> Set[str]:
         self.visit(ast)
@@ -191,9 +185,6 @@ class ScanVariablesAnalogCircuit(AnalogCircuitVisitor):
         self.waveform_visitor = ScanVariablesWaveform()
         self.scalar_visitor = ScanVariablesScalar()
         self.location_visitor = ScanVariablesLocation()
-
-    def visit_location(self, ast: field.Location) -> Any:
-        pass
 
     def visit_uniform_modulation(self, ast: field.UniformModulation) -> Any:
         pass
@@ -250,14 +241,10 @@ class ScanVariablesAnalogCircuit(AnalogCircuitVisitor):
         self.scalar_vars = self.scalar_vars.union(self.location_visitor.emit(ast))
 
     def visit_parallel_register(self, ast: location.ParallelRegister) -> Any:
-        self.scalar_vars = self.scalar_vars.union(
-            self.location_visitor.emit(ast._register)
-        )
-        self.scalar_vars = self.scalar_vars.union(
-            self.scalar_visitor.emit(ast._cluster_spacing)
-        )
+        self.scalar_vars = self.scalar_vars.union(self.location_visitor.emit(ast))
 
     def visit_analog_circuit(self, ast: analog_circuit.AnalogCircuit) -> Any:
+        print(type(ast.register))
         self.visit(ast.register)
         self.visit(ast.sequence)
 
