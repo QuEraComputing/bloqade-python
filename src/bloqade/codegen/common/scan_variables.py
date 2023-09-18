@@ -244,7 +244,6 @@ class ScanVariablesAnalogCircuit(AnalogCircuitVisitor):
         self.scalar_vars = self.scalar_vars.union(self.location_visitor.emit(ast))
 
     def visit_analog_circuit(self, ast: analog_circuit.AnalogCircuit) -> Any:
-        print(type(ast.register))
         self.visit(ast.register)
         self.visit(ast.sequence)
 
