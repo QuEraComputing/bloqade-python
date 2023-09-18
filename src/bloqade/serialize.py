@@ -4,6 +4,30 @@ from beartype.typing import Type, Callable, Dict, Union, TextIO
 from beartype import beartype
 
 
+__bloqade_package_loaded__ = False
+
+
+def load_patchage():
+    import pkgutil
+    import os
+
+    # call this function to load all modules in this package
+    # required because if no other modules are imported, the
+    # Various classes will not be registered with Serializer
+    # and the serialization will fail. only need to call this
+    # function once per process hence the flag to prevent
+    # multiple calls
+
+    if not __bloqade_package_loaded__:
+        path = os.path.abspath(os.path.join(os.path.dirname(__file__)))
+
+        for loader, module_name, _ in pkgutil.walk_packages([path]):
+            _module = loader.find_module(module_name).load_module(module_name)
+            globals()[module_name] = _module
+
+        globals()["__bloqade_package_loaded__"] = True
+
+
 class Serializer(json.JSONEncoder):
     types = ()
     type_to_str = {}
@@ -79,6 +103,7 @@ def loads(s: str, use_decimal: bool = True, **json_kwargs):
     Returns:
         Any: the deserialized object
     """
+    load_patchage()
     return json.loads(
         s, object_hook=Serializer.object_hook, use_decimal=use_decimal, **json_kwargs
     )
@@ -96,6 +121,7 @@ def load(fp: Union[TextIO, str], use_decimal: bool = True, **json_kwargs):
     Returns:
         Any: the deserialized object
     """
+    load_patchage()
     if isinstance(fp, str):
         with open(fp, "r") as f:
             return json.load(

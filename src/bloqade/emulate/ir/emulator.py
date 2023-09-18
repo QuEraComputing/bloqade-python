@@ -28,7 +28,10 @@ def _serialize(obj: CompiledWaveform) -> Dict[str, Any]:
 
 @CompiledWaveform.set_deserializer
 def _deserializer(d: Dict[str, Any]) -> CompiledWaveform:
-    d["source"] = BloqadeIRDeserializer.object_hook(d["source"])
+    from json import loads, dumps
+
+    source_str = dumps(d["source"])
+    d["source"] = loads(source_str, object_hook=BloqadeIRDeserializer.object_hook)
     return CompiledWaveform(**d)
 
 

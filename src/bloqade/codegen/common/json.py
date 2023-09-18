@@ -88,7 +88,12 @@ class WaveformSerializer(WaveformVisitor):
         self.scalar_encoder = ScalarSerilaizer()
 
     def visit_constant(self, ast: waveform.Constant) -> Dict[str, Any]:
-        return {"constant": {"value": self.scalar_encoder.visit(ast.value)}}
+        return {
+            "constant": {
+                "value": self.scalar_encoder.visit(ast.value),
+                "duration": self.scalar_encoder.visit(ast.duration),
+            }
+        }
 
     def visit_linear(self, ast: waveform.Linear) -> Dict[str, Any]:
         return {
@@ -484,4 +489,5 @@ class BloqadeIRDeserializer:
             ((head, options),) = obj.items()
             if head in cls.constructors:
                 return cls.constructors[head](**options)
+
         return obj

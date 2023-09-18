@@ -55,7 +55,7 @@ class ParallelDecoder(BaseModel):
         )
 
     # should work if we go to the coordinate-based indexing system
-    @validator("mapping")
+    @validator("mapping", allow_reuse=True)
     def sites_belong_to_unqiue_cluster(cls, mapping):
         sites = [ele.global_location_index for ele in mapping]
         unique_sites = set(sites)

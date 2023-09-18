@@ -39,6 +39,7 @@ def test_serializer():
         .rydberg.detuning.uniform.piecewise_linear(
             [0.1, 0.5, 0.1], [1.0, 2.0, 3.0, 4.0]
         )
+        .constant(4.0, 1)
         .braket.local_emulator()
         .run(1)
     )
