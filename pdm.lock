@@ -42,7 +42,7 @@ files = [
 
 [[package]]
 name = "amazon-braket-sdk"
-version = "1.55.1"
+version = "1.55.1.post0"
 requires_python = ">= 3.8.2"
 summary = "An open source library for interacting with quantum computing devices on Amazon Braket"
 dependencies = [
@@ -61,8 +61,8 @@ dependencies = [
     "sympy",
 ]
 files = [
-    {file = "amazon-braket-sdk-1.55.1.tar.gz", hash = "sha256:daeedec7d6c4f319eeaabce8d66d06f4157de934c90e1d12c3b1bdc47c919f0f"},
-    {file = "amazon_braket_sdk-1.55.1-py3-none-any.whl", hash = "sha256:1041d3347e541195aac17918451422b7d3e9d9c58a05d257cdf758c3b2f6912e"},
+    {file = "amazon-braket-sdk-1.55.1.post0.tar.gz", hash = "sha256:f7f32151d137ffb139c3fb17f568e49955bcb012fe2e04c2088227a46ebf69ff"},
+    {file = "amazon_braket_sdk-1.55.1.post0-py3-none-any.whl", hash = "sha256:a987beb4ce61297ad4f60f3a79e027f01991ffa4b4e6c124be57b69884fd26a9"},
 ]
 
 [[package]]
@@ -1474,7 +1474,7 @@ files = [
 
 [[package]]
 name = "mkdocs"
-version = "1.5.2"
+version = "1.5.3"
 requires_python = ">=3.7"
 summary = "Project documentation with Markdown."
 dependencies = [
@@ -1494,8 +1494,8 @@ dependencies = [
     "watchdog>=2.0",
 ]
 files = [
-    {file = "mkdocs-1.5.2-py3-none-any.whl", hash = "sha256:60a62538519c2e96fe8426654a67ee177350451616118a41596ae7c876bb7eac"},
-    {file = "mkdocs-1.5.2.tar.gz", hash = "sha256:70d0da09c26cff288852471be03c23f0f521fc15cf16ac89c7a3bfb9ae8d24f9"},
+    {file = "mkdocs-1.5.3-py3-none-any.whl", hash = "sha256:3b3a78e736b31158d64dbb2f8ba29bd46a379d0c6e324c2246c3bc3d2189cfc1"},
+    {file = "mkdocs-1.5.3.tar.gz", hash = "sha256:eb7c99214dcb945313ba30426c2451b735992c73c2e10838f76d09e39ff4d0e2"},
 ]
 
 [[package]]
