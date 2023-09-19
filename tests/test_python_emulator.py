@@ -15,7 +15,7 @@ def test_integration_1():
         .assign(ramp_time=3.0)
         .batch_assign(r=np.linspace(4, 10, 11).tolist())
         .bloqade.python()
-        .run(10000, cache_matrices=True, blockade_radius=6.0)
+        .run(10000, cache_matrices=True, blockade_radius=6.0, interaction_picture=True)
         .report()
         .bitstrings()
     )
