@@ -11,7 +11,7 @@ from bloqade.submission.quera import QuEraBackend
 
 from beartype.typing import Dict, Optional, Union, Any
 from bloqade.builder.base import ParamType
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import warnings
 
 
@@ -23,8 +23,10 @@ class QuEraTask(RemoteTask):
     task_ir: QuEraTaskSpecification
     metadata: Dict[str, ParamType]
     parallel_decoder: Optional[ParallelDecoder] = None
-    task_result_ir: QuEraTaskResults = QuEraTaskResults(
-        task_status=QuEraTaskStatusCode.Unsubmitted
+    task_result_ir: QuEraTaskResults = field(
+        default_factory=lambda: QuEraTaskResults(
+            task_status=QuEraTaskStatusCode.Unsubmitted
+        )
     )
 
     def submit(self, force: bool = False) -> "QuEraTask":

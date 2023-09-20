@@ -8,7 +8,7 @@ from bloqade.submission.braket import BraketBackend
 from bloqade.submission.base import ValidationError
 from bloqade.submission.ir.task_results import QuEraTaskResults, QuEraTaskStatusCode
 import warnings
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from beartype.typing import Dict, Optional, Any
 
 
@@ -23,8 +23,10 @@ class BraketTask(RemoteTask):
     task_ir: QuEraTaskSpecification
     metadata: Dict[str, ParamType]
     parallel_decoder: Optional[ParallelDecoder] = None
-    task_result_ir: QuEraTaskResults = QuEraTaskResults(
-        task_status=QuEraTaskStatusCode.Unsubmitted
+    task_result_ir: QuEraTaskResults = field(
+        default_factory=lambda: QuEraTaskResults(
+            task_status=QuEraTaskStatusCode.Unsubmitted
+        )
     )
 
     def submit(self, force: bool = False) -> "BraketTask":
