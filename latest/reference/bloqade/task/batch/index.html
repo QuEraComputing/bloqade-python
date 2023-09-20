@@ -250,7 +250,9 @@
 </span><span id=__span-0-244><a id=__codelineno-0-244 name=__codelineno-0-244></a>
 </span><span id=__span-0-245><a id=__codelineno-0-245 name=__codelineno-0-245></a>    <span class=k>return</span> <span class=bp>self</span>
 </span></code></pre></div></td></tr></table></div> </details> </div> </div> <div class="doc doc-object doc-function"> <h3 id=bloqade.task.batch.RemoteBatch.get_completed_tasks class="doc doc-heading"> <span class="doc doc-object-name doc-function-name">get_completed_tasks</span> <a href=#bloqade.task.batch.RemoteBatch.get_completed_tasks class=headerlink title="Permanent link">&para;</a></h3> <div class="doc-signature highlight"><pre><span></span><code><span id=__span-0-1><a id=__codelineno-0-1 name=__codelineno-0-1 href=#__codelineno-0-1></a><span class=n>get_completed_tasks</span><span class=p>()</span>
-</span></code></pre></div> <div class="doc doc-contents "> <p>Create a RemoteBatch object that contain completed tasks from current Batch.</p> <p>Tasks consider completed with following status codes:</p> <ol> <li>Completed</li> <li>Partial</li> </ol> <details class=return open> <summary>Return</summary> <p>RemoteBatch</p> </details> <details class=quote> <summary>Source code in <code>src/bloqade/task/batch.py</code></summary> <div class=highlight><table class=highlighttable><tr><td class=linenos><div class=linenodiv><pre><span></span><span class=normal><a href=#__codelineno-0-499>499</a></span>
+</span></code></pre></div> <div class="doc doc-contents "> <p>Create a RemoteBatch object that contain completed tasks from current Batch.</p> <p>Tasks consider completed with following status codes:</p> <ol> <li>Completed</li> <li>Partial</li> </ol> <details class=return open> <summary>Return</summary> <p>RemoteBatch</p> </details> <details class=quote> <summary>Source code in <code>src/bloqade/task/batch.py</code></summary> <div class=highlight><table class=highlighttable><tr><td class=linenos><div class=linenodiv><pre><span></span><span class=normal><a href=#__codelineno-0-497>497</a></span>
+<span class=normal><a href=#__codelineno-0-498>498</a></span>
+<span class=normal><a href=#__codelineno-0-499>499</a></span>
 <span class=normal><a href=#__codelineno-0-500>500</a></span>
 <span class=normal><a href=#__codelineno-0-501>501</a></span>
 <span class=normal><a href=#__codelineno-0-502>502</a></span>
@@ -266,29 +268,29 @@
 <span class=normal><a href=#__codelineno-0-512>512</a></span>
 <span class=normal><a href=#__codelineno-0-513>513</a></span>
 <span class=normal><a href=#__codelineno-0-514>514</a></span>
-<span class=normal><a href=#__codelineno-0-515>515</a></span>
-<span class=normal><a href=#__codelineno-0-516>516</a></span>
-<span class=normal><a href=#__codelineno-0-517>517</a></span></pre></div></td><td class=code><div><pre><span></span><code><span id=__span-0-499><a id=__codelineno-0-499 name=__codelineno-0-499></a><span class=k>def</span> <span class=nf>get_completed_tasks</span><span class=p>(</span><span class=bp>self</span><span class=p>)</span> <span class=o>-&gt;</span> <span class=s2>&quot;RemoteBatch&quot;</span><span class=p>:</span>
-</span><span id=__span-0-500><a id=__codelineno-0-500 name=__codelineno-0-500></a><span class=w>    </span><span class=sd>&quot;&quot;&quot;</span>
-</span><span id=__span-0-501><a id=__codelineno-0-501 name=__codelineno-0-501></a><span class=sd>    Create a RemoteBatch object that</span>
-</span><span id=__span-0-502><a id=__codelineno-0-502 name=__codelineno-0-502></a><span class=sd>    contain completed tasks from current Batch.</span>
+<span class=normal><a href=#__codelineno-0-515>515</a></span></pre></div></td><td class=code><div><pre><span></span><code><span id=__span-0-497><a id=__codelineno-0-497 name=__codelineno-0-497></a><span class=k>def</span> <span class=nf>get_completed_tasks</span><span class=p>(</span><span class=bp>self</span><span class=p>)</span> <span class=o>-&gt;</span> <span class=s2>&quot;RemoteBatch&quot;</span><span class=p>:</span>
+</span><span id=__span-0-498><a id=__codelineno-0-498 name=__codelineno-0-498></a><span class=w>    </span><span class=sd>&quot;&quot;&quot;</span>
+</span><span id=__span-0-499><a id=__codelineno-0-499 name=__codelineno-0-499></a><span class=sd>    Create a RemoteBatch object that</span>
+</span><span id=__span-0-500><a id=__codelineno-0-500 name=__codelineno-0-500></a><span class=sd>    contain completed tasks from current Batch.</span>
+</span><span id=__span-0-501><a id=__codelineno-0-501 name=__codelineno-0-501></a>
+</span><span id=__span-0-502><a id=__codelineno-0-502 name=__codelineno-0-502></a><span class=sd>    Tasks consider completed with following status codes:</span>
 </span><span id=__span-0-503><a id=__codelineno-0-503 name=__codelineno-0-503></a>
-</span><span id=__span-0-504><a id=__codelineno-0-504 name=__codelineno-0-504></a><span class=sd>    Tasks consider completed with following status codes:</span>
-</span><span id=__span-0-505><a id=__codelineno-0-505 name=__codelineno-0-505></a>
-</span><span id=__span-0-506><a id=__codelineno-0-506 name=__codelineno-0-506></a><span class=sd>    1. Completed</span>
-</span><span id=__span-0-507><a id=__codelineno-0-507 name=__codelineno-0-507></a><span class=sd>    2. Partial</span>
-</span><span id=__span-0-508><a id=__codelineno-0-508 name=__codelineno-0-508></a>
-</span><span id=__span-0-509><a id=__codelineno-0-509 name=__codelineno-0-509></a><span class=sd>    Return:</span>
-</span><span id=__span-0-510><a id=__codelineno-0-510 name=__codelineno-0-510></a><span class=sd>        RemoteBatch</span>
-</span><span id=__span-0-511><a id=__codelineno-0-511 name=__codelineno-0-511></a>
-</span><span id=__span-0-512><a id=__codelineno-0-512 name=__codelineno-0-512></a><span class=sd>    &quot;&quot;&quot;</span>
-</span><span id=__span-0-513><a id=__codelineno-0-513 name=__codelineno-0-513></a>    <span class=n>statuses</span> <span class=o>=</span> <span class=p>[</span>
-</span><span id=__span-0-514><a id=__codelineno-0-514 name=__codelineno-0-514></a>        <span class=s2>&quot;Completed&quot;</span><span class=p>,</span>
-</span><span id=__span-0-515><a id=__codelineno-0-515 name=__codelineno-0-515></a>        <span class=s2>&quot;Partial&quot;</span><span class=p>,</span>
-</span><span id=__span-0-516><a id=__codelineno-0-516 name=__codelineno-0-516></a>    <span class=p>]</span>
-</span><span id=__span-0-517><a id=__codelineno-0-517 name=__codelineno-0-517></a>    <span class=k>return</span> <span class=bp>self</span><span class=o>.</span><span class=n>get_tasks</span><span class=p>(</span><span class=o>*</span><span class=n>statuses</span><span class=p>)</span>
+</span><span id=__span-0-504><a id=__codelineno-0-504 name=__codelineno-0-504></a><span class=sd>    1. Completed</span>
+</span><span id=__span-0-505><a id=__codelineno-0-505 name=__codelineno-0-505></a><span class=sd>    2. Partial</span>
+</span><span id=__span-0-506><a id=__codelineno-0-506 name=__codelineno-0-506></a>
+</span><span id=__span-0-507><a id=__codelineno-0-507 name=__codelineno-0-507></a><span class=sd>    Return:</span>
+</span><span id=__span-0-508><a id=__codelineno-0-508 name=__codelineno-0-508></a><span class=sd>        RemoteBatch</span>
+</span><span id=__span-0-509><a id=__codelineno-0-509 name=__codelineno-0-509></a>
+</span><span id=__span-0-510><a id=__codelineno-0-510 name=__codelineno-0-510></a><span class=sd>    &quot;&quot;&quot;</span>
+</span><span id=__span-0-511><a id=__codelineno-0-511 name=__codelineno-0-511></a>    <span class=n>statuses</span> <span class=o>=</span> <span class=p>[</span>
+</span><span id=__span-0-512><a id=__codelineno-0-512 name=__codelineno-0-512></a>        <span class=s2>&quot;Completed&quot;</span><span class=p>,</span>
+</span><span id=__span-0-513><a id=__codelineno-0-513 name=__codelineno-0-513></a>        <span class=s2>&quot;Partial&quot;</span><span class=p>,</span>
+</span><span id=__span-0-514><a id=__codelineno-0-514 name=__codelineno-0-514></a>    <span class=p>]</span>
+</span><span id=__span-0-515><a id=__codelineno-0-515 name=__codelineno-0-515></a>    <span class=k>return</span> <span class=bp>self</span><span class=o>.</span><span class=n>get_tasks</span><span class=p>(</span><span class=o>*</span><span class=n>statuses</span><span class=p>)</span>
 </span></code></pre></div></td></tr></table></div> </details> </div> </div> <div class="doc doc-object doc-function"> <h3 id=bloqade.task.batch.RemoteBatch.get_failed_tasks class="doc doc-heading"> <span class="doc doc-object-name doc-function-name">get_failed_tasks</span> <a href=#bloqade.task.batch.RemoteBatch.get_failed_tasks class=headerlink title="Permanent link">&para;</a></h3> <div class="doc-signature highlight"><pre><span></span><code><span id=__span-0-1><a id=__codelineno-0-1 name=__codelineno-0-1 href=#__codelineno-0-1></a><span class=n>get_failed_tasks</span><span class=p>()</span>
-</span></code></pre></div> <div class="doc doc-contents "> <p>Create a RemoteBatch object that contain failed tasks from current Batch.</p> <p>failed tasks with following status codes:</p> <ol> <li>Failed</li> <li>Unaccepted</li> </ol> <details class=return open> <summary>Return</summary> <p>RemoteBatch</p> </details> <details class=quote> <summary>Source code in <code>src/bloqade/task/batch.py</code></summary> <div class=highlight><table class=highlighttable><tr><td class=linenos><div class=linenodiv><pre><span></span><span class=normal><a href=#__codelineno-0-438>438</a></span>
+</span></code></pre></div> <div class="doc doc-contents "> <p>Create a RemoteBatch object that contain failed tasks from current Batch.</p> <p>failed tasks with following status codes:</p> <ol> <li>Failed</li> <li>Unaccepted</li> </ol> <details class=return open> <summary>Return</summary> <p>RemoteBatch</p> </details> <details class=quote> <summary>Source code in <code>src/bloqade/task/batch.py</code></summary> <div class=highlight><table class=highlighttable><tr><td class=linenos><div class=linenodiv><pre><span></span><span class=normal><a href=#__codelineno-0-436>436</a></span>
+<span class=normal><a href=#__codelineno-0-437>437</a></span>
+<span class=normal><a href=#__codelineno-0-438>438</a></span>
 <span class=normal><a href=#__codelineno-0-439>439</a></span>
 <span class=normal><a href=#__codelineno-0-440>440</a></span>
 <span class=normal><a href=#__codelineno-0-441>441</a></span>
@@ -303,28 +305,28 @@
 <span class=normal><a href=#__codelineno-0-450>450</a></span>
 <span class=normal><a href=#__codelineno-0-451>451</a></span>
 <span class=normal><a href=#__codelineno-0-452>452</a></span>
-<span class=normal><a href=#__codelineno-0-453>453</a></span>
-<span class=normal><a href=#__codelineno-0-454>454</a></span>
-<span class=normal><a href=#__codelineno-0-455>455</a></span></pre></div></td><td class=code><div><pre><span></span><code><span id=__span-0-438><a id=__codelineno-0-438 name=__codelineno-0-438></a><span class=k>def</span> <span class=nf>get_failed_tasks</span><span class=p>(</span><span class=bp>self</span><span class=p>)</span> <span class=o>-&gt;</span> <span class=s2>&quot;RemoteBatch&quot;</span><span class=p>:</span>
-</span><span id=__span-0-439><a id=__codelineno-0-439 name=__codelineno-0-439></a><span class=w>    </span><span class=sd>&quot;&quot;&quot;</span>
-</span><span id=__span-0-440><a id=__codelineno-0-440 name=__codelineno-0-440></a><span class=sd>    Create a RemoteBatch object that</span>
-</span><span id=__span-0-441><a id=__codelineno-0-441 name=__codelineno-0-441></a><span class=sd>    contain failed tasks from current Batch.</span>
+<span class=normal><a href=#__codelineno-0-453>453</a></span></pre></div></td><td class=code><div><pre><span></span><code><span id=__span-0-436><a id=__codelineno-0-436 name=__codelineno-0-436></a><span class=k>def</span> <span class=nf>get_failed_tasks</span><span class=p>(</span><span class=bp>self</span><span class=p>)</span> <span class=o>-&gt;</span> <span class=s2>&quot;RemoteBatch&quot;</span><span class=p>:</span>
+</span><span id=__span-0-437><a id=__codelineno-0-437 name=__codelineno-0-437></a><span class=w>    </span><span class=sd>&quot;&quot;&quot;</span>
+</span><span id=__span-0-438><a id=__codelineno-0-438 name=__codelineno-0-438></a><span class=sd>    Create a RemoteBatch object that</span>
+</span><span id=__span-0-439><a id=__codelineno-0-439 name=__codelineno-0-439></a><span class=sd>    contain failed tasks from current Batch.</span>
+</span><span id=__span-0-440><a id=__codelineno-0-440 name=__codelineno-0-440></a>
+</span><span id=__span-0-441><a id=__codelineno-0-441 name=__codelineno-0-441></a><span class=sd>    failed tasks with following status codes:</span>
 </span><span id=__span-0-442><a id=__codelineno-0-442 name=__codelineno-0-442></a>
-</span><span id=__span-0-443><a id=__codelineno-0-443 name=__codelineno-0-443></a><span class=sd>    failed tasks with following status codes:</span>
-</span><span id=__span-0-444><a id=__codelineno-0-444 name=__codelineno-0-444></a>
-</span><span id=__span-0-445><a id=__codelineno-0-445 name=__codelineno-0-445></a><span class=sd>    1. Failed</span>
-</span><span id=__span-0-446><a id=__codelineno-0-446 name=__codelineno-0-446></a><span class=sd>    2. Unaccepted</span>
-</span><span id=__span-0-447><a id=__codelineno-0-447 name=__codelineno-0-447></a>
-</span><span id=__span-0-448><a id=__codelineno-0-448 name=__codelineno-0-448></a><span class=sd>    Return:</span>
-</span><span id=__span-0-449><a id=__codelineno-0-449 name=__codelineno-0-449></a><span class=sd>        RemoteBatch</span>
-</span><span id=__span-0-450><a id=__codelineno-0-450 name=__codelineno-0-450></a>
-</span><span id=__span-0-451><a id=__codelineno-0-451 name=__codelineno-0-451></a><span class=sd>    &quot;&quot;&quot;</span>
-</span><span id=__span-0-452><a id=__codelineno-0-452 name=__codelineno-0-452></a>    <span class=c1># statuses that are in a state that are</span>
-</span><span id=__span-0-453><a id=__codelineno-0-453 name=__codelineno-0-453></a>    <span class=c1># completed because of an error</span>
-</span><span id=__span-0-454><a id=__codelineno-0-454 name=__codelineno-0-454></a>    <span class=n>statuses</span> <span class=o>=</span> <span class=p>[</span><span class=s2>&quot;Failed&quot;</span><span class=p>,</span> <span class=s2>&quot;Unaccepted&quot;</span><span class=p>]</span>
-</span><span id=__span-0-455><a id=__codelineno-0-455 name=__codelineno-0-455></a>    <span class=k>return</span> <span class=bp>self</span><span class=o>.</span><span class=n>get_tasks</span><span class=p>(</span><span class=o>*</span><span class=n>statuses</span><span class=p>)</span>
+</span><span id=__span-0-443><a id=__codelineno-0-443 name=__codelineno-0-443></a><span class=sd>    1. Failed</span>
+</span><span id=__span-0-444><a id=__codelineno-0-444 name=__codelineno-0-444></a><span class=sd>    2. Unaccepted</span>
+</span><span id=__span-0-445><a id=__codelineno-0-445 name=__codelineno-0-445></a>
+</span><span id=__span-0-446><a id=__codelineno-0-446 name=__codelineno-0-446></a><span class=sd>    Return:</span>
+</span><span id=__span-0-447><a id=__codelineno-0-447 name=__codelineno-0-447></a><span class=sd>        RemoteBatch</span>
+</span><span id=__span-0-448><a id=__codelineno-0-448 name=__codelineno-0-448></a>
+</span><span id=__span-0-449><a id=__codelineno-0-449 name=__codelineno-0-449></a><span class=sd>    &quot;&quot;&quot;</span>
+</span><span id=__span-0-450><a id=__codelineno-0-450 name=__codelineno-0-450></a>    <span class=c1># statuses that are in a state that are</span>
+</span><span id=__span-0-451><a id=__codelineno-0-451 name=__codelineno-0-451></a>    <span class=c1># completed because of an error</span>
+</span><span id=__span-0-452><a id=__codelineno-0-452 name=__codelineno-0-452></a>    <span class=n>statuses</span> <span class=o>=</span> <span class=p>[</span><span class=s2>&quot;Failed&quot;</span><span class=p>,</span> <span class=s2>&quot;Unaccepted&quot;</span><span class=p>]</span>
+</span><span id=__span-0-453><a id=__codelineno-0-453 name=__codelineno-0-453></a>    <span class=k>return</span> <span class=bp>self</span><span class=o>.</span><span class=n>get_tasks</span><span class=p>(</span><span class=o>*</span><span class=n>statuses</span><span class=p>)</span>
 </span></code></pre></div></td></tr></table></div> </details> </div> </div> <div class="doc doc-object doc-function"> <h3 id=bloqade.task.batch.RemoteBatch.get_finished_tasks class="doc doc-heading"> <span class="doc doc-object-name doc-function-name">get_finished_tasks</span> <a href=#bloqade.task.batch.RemoteBatch.get_finished_tasks class=headerlink title="Permanent link">&para;</a></h3> <div class="doc-signature highlight"><pre><span></span><code><span id=__span-0-1><a id=__codelineno-0-1 name=__codelineno-0-1 href=#__codelineno-0-1></a><span class=n>get_finished_tasks</span><span class=p>()</span>
-</span></code></pre></div> <div class="doc doc-contents "> <p>Create a RemoteBatch object that contain finished tasks from current Batch.</p> <p>Tasks consider finished with following status codes:</p> <ol> <li>Failed</li> <li>Unaccepted</li> <li>Completed</li> <li>Partial</li> <li>Cancelled</li> </ol> <details class=return open> <summary>Return</summary> <p>RemoteBatch</p> </details> <details class=quote> <summary>Source code in <code>src/bloqade/task/batch.py</code></summary> <div class=highlight><table class=highlighttable><tr><td class=linenos><div class=linenodiv><pre><span></span><span class=normal><a href=#__codelineno-0-477>477</a></span>
+</span></code></pre></div> <div class="doc doc-contents "> <p>Create a RemoteBatch object that contain finished tasks from current Batch.</p> <p>Tasks consider finished with following status codes:</p> <ol> <li>Failed</li> <li>Unaccepted</li> <li>Completed</li> <li>Partial</li> <li>Cancelled</li> </ol> <details class=return open> <summary>Return</summary> <p>RemoteBatch</p> </details> <details class=quote> <summary>Source code in <code>src/bloqade/task/batch.py</code></summary> <div class=highlight><table class=highlighttable><tr><td class=linenos><div class=linenodiv><pre><span></span><span class=normal><a href=#__codelineno-0-475>475</a></span>
+<span class=normal><a href=#__codelineno-0-476>476</a></span>
+<span class=normal><a href=#__codelineno-0-477>477</a></span>
 <span class=normal><a href=#__codelineno-0-478>478</a></span>
 <span class=normal><a href=#__codelineno-0-479>479</a></span>
 <span class=normal><a href=#__codelineno-0-480>480</a></span>
@@ -342,31 +344,30 @@
 <span class=normal><a href=#__codelineno-0-492>492</a></span>
 <span class=normal><a href=#__codelineno-0-493>493</a></span>
 <span class=normal><a href=#__codelineno-0-494>494</a></span>
-<span class=normal><a href=#__codelineno-0-495>495</a></span>
-<span class=normal><a href=#__codelineno-0-496>496</a></span>
-<span class=normal><a href=#__codelineno-0-497>497</a></span></pre></div></td><td class=code><div><pre><span></span><code><span id=__span-0-477><a id=__codelineno-0-477 name=__codelineno-0-477></a><span class=k>def</span> <span class=nf>get_finished_tasks</span><span class=p>(</span><span class=bp>self</span><span class=p>)</span> <span class=o>-&gt;</span> <span class=s2>&quot;RemoteBatch&quot;</span><span class=p>:</span>
-</span><span id=__span-0-478><a id=__codelineno-0-478 name=__codelineno-0-478></a><span class=w>    </span><span class=sd>&quot;&quot;&quot;</span>
-</span><span id=__span-0-479><a id=__codelineno-0-479 name=__codelineno-0-479></a><span class=sd>    Create a RemoteBatch object that</span>
-</span><span id=__span-0-480><a id=__codelineno-0-480 name=__codelineno-0-480></a><span class=sd>    contain finished tasks from current Batch.</span>
+<span class=normal><a href=#__codelineno-0-495>495</a></span></pre></div></td><td class=code><div><pre><span></span><code><span id=__span-0-475><a id=__codelineno-0-475 name=__codelineno-0-475></a><span class=k>def</span> <span class=nf>get_finished_tasks</span><span class=p>(</span><span class=bp>self</span><span class=p>)</span> <span class=o>-&gt;</span> <span class=s2>&quot;RemoteBatch&quot;</span><span class=p>:</span>
+</span><span id=__span-0-476><a id=__codelineno-0-476 name=__codelineno-0-476></a><span class=w>    </span><span class=sd>&quot;&quot;&quot;</span>
+</span><span id=__span-0-477><a id=__codelineno-0-477 name=__codelineno-0-477></a><span class=sd>    Create a RemoteBatch object that</span>
+</span><span id=__span-0-478><a id=__codelineno-0-478 name=__codelineno-0-478></a><span class=sd>    contain finished tasks from current Batch.</span>
+</span><span id=__span-0-479><a id=__codelineno-0-479 name=__codelineno-0-479></a>
+</span><span id=__span-0-480><a id=__codelineno-0-480 name=__codelineno-0-480></a><span class=sd>    Tasks consider finished with following status codes:</span>
 </span><span id=__span-0-481><a id=__codelineno-0-481 name=__codelineno-0-481></a>
-</span><span id=__span-0-482><a id=__codelineno-0-482 name=__codelineno-0-482></a><span class=sd>    Tasks consider finished with following status codes:</span>
-</span><span id=__span-0-483><a id=__codelineno-0-483 name=__codelineno-0-483></a>
-</span><span id=__span-0-484><a id=__codelineno-0-484 name=__codelineno-0-484></a><span class=sd>    1. Failed</span>
-</span><span id=__span-0-485><a id=__codelineno-0-485 name=__codelineno-0-485></a><span class=sd>    2. Unaccepted</span>
-</span><span id=__span-0-486><a id=__codelineno-0-486 name=__codelineno-0-486></a><span class=sd>    3. Completed</span>
-</span><span id=__span-0-487><a id=__codelineno-0-487 name=__codelineno-0-487></a><span class=sd>    4. Partial</span>
-</span><span id=__span-0-488><a id=__codelineno-0-488 name=__codelineno-0-488></a><span class=sd>    5. Cancelled</span>
-</span><span id=__span-0-489><a id=__codelineno-0-489 name=__codelineno-0-489></a>
-</span><span id=__span-0-490><a id=__codelineno-0-490 name=__codelineno-0-490></a><span class=sd>    Return:</span>
-</span><span id=__span-0-491><a id=__codelineno-0-491 name=__codelineno-0-491></a><span class=sd>        RemoteBatch</span>
-</span><span id=__span-0-492><a id=__codelineno-0-492 name=__codelineno-0-492></a>
-</span><span id=__span-0-493><a id=__codelineno-0-493 name=__codelineno-0-493></a><span class=sd>    &quot;&quot;&quot;</span>
-</span><span id=__span-0-494><a id=__codelineno-0-494 name=__codelineno-0-494></a>    <span class=c1># statuses that are in a state that will</span>
-</span><span id=__span-0-495><a id=__codelineno-0-495 name=__codelineno-0-495></a>    <span class=c1># not run going forward for any reason</span>
-</span><span id=__span-0-496><a id=__codelineno-0-496 name=__codelineno-0-496></a>    <span class=n>statuses</span> <span class=o>=</span> <span class=p>[</span><span class=s2>&quot;Completed&quot;</span><span class=p>,</span> <span class=s2>&quot;Failed&quot;</span><span class=p>,</span> <span class=s2>&quot;Unaccepted&quot;</span><span class=p>,</span> <span class=s2>&quot;Partial&quot;</span><span class=p>,</span> <span class=s2>&quot;Cancelled&quot;</span><span class=p>]</span>
-</span><span id=__span-0-497><a id=__codelineno-0-497 name=__codelineno-0-497></a>    <span class=k>return</span> <span class=bp>self</span><span class=o>.</span><span class=n>remove_tasks</span><span class=p>(</span><span class=o>*</span><span class=n>statuses</span><span class=p>)</span>
+</span><span id=__span-0-482><a id=__codelineno-0-482 name=__codelineno-0-482></a><span class=sd>    1. Failed</span>
+</span><span id=__span-0-483><a id=__codelineno-0-483 name=__codelineno-0-483></a><span class=sd>    2. Unaccepted</span>
+</span><span id=__span-0-484><a id=__codelineno-0-484 name=__codelineno-0-484></a><span class=sd>    3. Completed</span>
+</span><span id=__span-0-485><a id=__codelineno-0-485 name=__codelineno-0-485></a><span class=sd>    4. Partial</span>
+</span><span id=__span-0-486><a id=__codelineno-0-486 name=__codelineno-0-486></a><span class=sd>    5. Cancelled</span>
+</span><span id=__span-0-487><a id=__codelineno-0-487 name=__codelineno-0-487></a>
+</span><span id=__span-0-488><a id=__codelineno-0-488 name=__codelineno-0-488></a><span class=sd>    Return:</span>
+</span><span id=__span-0-489><a id=__codelineno-0-489 name=__codelineno-0-489></a><span class=sd>        RemoteBatch</span>
+</span><span id=__span-0-490><a id=__codelineno-0-490 name=__codelineno-0-490></a>
+</span><span id=__span-0-491><a id=__codelineno-0-491 name=__codelineno-0-491></a><span class=sd>    &quot;&quot;&quot;</span>
+</span><span id=__span-0-492><a id=__codelineno-0-492 name=__codelineno-0-492></a>    <span class=c1># statuses that are in a state that will</span>
+</span><span id=__span-0-493><a id=__codelineno-0-493 name=__codelineno-0-493></a>    <span class=c1># not run going forward for any reason</span>
+</span><span id=__span-0-494><a id=__codelineno-0-494 name=__codelineno-0-494></a>    <span class=n>statuses</span> <span class=o>=</span> <span class=p>[</span><span class=s2>&quot;Completed&quot;</span><span class=p>,</span> <span class=s2>&quot;Failed&quot;</span><span class=p>,</span> <span class=s2>&quot;Unaccepted&quot;</span><span class=p>,</span> <span class=s2>&quot;Partial&quot;</span><span class=p>,</span> <span class=s2>&quot;Cancelled&quot;</span><span class=p>]</span>
+</span><span id=__span-0-495><a id=__codelineno-0-495 name=__codelineno-0-495></a>    <span class=k>return</span> <span class=bp>self</span><span class=o>.</span><span class=n>remove_tasks</span><span class=p>(</span><span class=o>*</span><span class=n>statuses</span><span class=p>)</span>
 </span></code></pre></div></td></tr></table></div> </details> </div> </div> <div class="doc doc-object doc-function"> <h3 id=bloqade.task.batch.RemoteBatch.get_tasks class="doc doc-heading"> <span class="doc doc-object-name doc-function-name">get_tasks</span> <a href=#bloqade.task.batch.RemoteBatch.get_tasks class=headerlink title="Permanent link">&para;</a></h3> <div class="doc-signature highlight"><pre><span></span><code><span id=__span-0-1><a id=__codelineno-0-1 name=__codelineno-0-1 href=#__codelineno-0-1></a><span class=n>get_tasks</span><span class=p>(</span><span class=o>*</span><span class=n>status_codes</span><span class=p>)</span>
-</span></code></pre></div> <div class="doc doc-contents "> <p>Get Tasks with specify status_codes.</p> <details class=return open> <summary>Return</summary> <p>RemoteBatch</p> </details> <details class=quote> <summary>Source code in <code>src/bloqade/task/batch.py</code></summary> <div class=highlight><table class=highlighttable><tr><td class=linenos><div class=linenodiv><pre><span></span><span class=normal><a href=#__codelineno-0-396>396</a></span>
+</span></code></pre></div> <div class="doc doc-contents "> <p>Get Tasks with specify status_codes.</p> <details class=return open> <summary>Return</summary> <p>RemoteBatch</p> </details> <details class=quote> <summary>Source code in <code>src/bloqade/task/batch.py</code></summary> <div class=highlight><table class=highlighttable><tr><td class=linenos><div class=linenodiv><pre><span></span><span class=normal><a href=#__codelineno-0-395>395</a></span>
+<span class=normal><a href=#__codelineno-0-396>396</a></span>
 <span class=normal><a href=#__codelineno-0-397>397</a></span>
 <span class=normal><a href=#__codelineno-0-398>398</a></span>
 <span class=normal><a href=#__codelineno-0-399>399</a></span>
@@ -382,27 +383,24 @@
 <span class=normal><a href=#__codelineno-0-409>409</a></span>
 <span class=normal><a href=#__codelineno-0-410>410</a></span>
 <span class=normal><a href=#__codelineno-0-411>411</a></span>
-<span class=normal><a href=#__codelineno-0-412>412</a></span>
-<span class=normal><a href=#__codelineno-0-413>413</a></span>
-<span class=normal><a href=#__codelineno-0-414>414</a></span></pre></div></td><td class=code><div><pre><span></span><code><span id=__span-0-396><a id=__codelineno-0-396 name=__codelineno-0-396></a><span class=nd>@beartype</span>
-</span><span id=__span-0-397><a id=__codelineno-0-397 name=__codelineno-0-397></a><span class=k>def</span> <span class=nf>get_tasks</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=o>*</span><span class=n>status_codes</span><span class=p>:</span> <span class=nb>str</span><span class=p>)</span> <span class=o>-&gt;</span> <span class=s2>&quot;RemoteBatch&quot;</span><span class=p>:</span>
-</span><span id=__span-0-398><a id=__codelineno-0-398 name=__codelineno-0-398></a><span class=w>    </span><span class=sd>&quot;&quot;&quot;</span>
-</span><span id=__span-0-399><a id=__codelineno-0-399 name=__codelineno-0-399></a><span class=sd>    Get Tasks with specify status_codes.</span>
-</span><span id=__span-0-400><a id=__codelineno-0-400 name=__codelineno-0-400></a>
-</span><span id=__span-0-401><a id=__codelineno-0-401 name=__codelineno-0-401></a><span class=sd>    Return:</span>
-</span><span id=__span-0-402><a id=__codelineno-0-402 name=__codelineno-0-402></a><span class=sd>        RemoteBatch</span>
-</span><span id=__span-0-403><a id=__codelineno-0-403 name=__codelineno-0-403></a>
-</span><span id=__span-0-404><a id=__codelineno-0-404 name=__codelineno-0-404></a><span class=sd>    &quot;&quot;&quot;</span>
-</span><span id=__span-0-405><a id=__codelineno-0-405 name=__codelineno-0-405></a>    <span class=c1># offline:</span>
-</span><span id=__span-0-406><a id=__codelineno-0-406 name=__codelineno-0-406></a>    <span class=n>st_codes</span> <span class=o>=</span> <span class=p>[</span><span class=n>QuEraTaskStatusCode</span><span class=p>(</span><span class=n>x</span><span class=p>)</span> <span class=k>for</span> <span class=n>x</span> <span class=ow>in</span> <span class=n>status_codes</span><span class=p>]</span>
-</span><span id=__span-0-407><a id=__codelineno-0-407 name=__codelineno-0-407></a>
-</span><span id=__span-0-408><a id=__codelineno-0-408 name=__codelineno-0-408></a>    <span class=n>new_task_results</span> <span class=o>=</span> <span class=n>OrderedDict</span><span class=p>()</span>
-</span><span id=__span-0-409><a id=__codelineno-0-409 name=__codelineno-0-409></a>    <span class=k>for</span> <span class=n>task_number</span><span class=p>,</span> <span class=n>task</span> <span class=ow>in</span> <span class=bp>self</span><span class=o>.</span><span class=n>tasks</span><span class=o>.</span><span class=n>items</span><span class=p>():</span>
-</span><span id=__span-0-410><a id=__codelineno-0-410 name=__codelineno-0-410></a>        <span class=k>if</span> <span class=p>(</span><span class=n>task</span><span class=o>.</span><span class=n>task_id</span> <span class=ow>is</span> <span class=ow>not</span> <span class=kc>None</span><span class=p>)</span> <span class=ow>and</span> <span class=p>(</span><span class=n>task</span><span class=o>.</span><span class=n>_result_exists</span><span class=p>()):</span>
-</span><span id=__span-0-411><a id=__codelineno-0-411 name=__codelineno-0-411></a>            <span class=k>if</span> <span class=n>task</span><span class=o>.</span><span class=n>task_result_ir</span><span class=o>.</span><span class=n>task_status</span> <span class=ow>in</span> <span class=n>st_codes</span><span class=p>:</span>
-</span><span id=__span-0-412><a id=__codelineno-0-412 name=__codelineno-0-412></a>                <span class=n>new_task_results</span><span class=p>[</span><span class=n>task_number</span><span class=p>]</span> <span class=o>=</span> <span class=n>task</span>
-</span><span id=__span-0-413><a id=__codelineno-0-413 name=__codelineno-0-413></a>
-</span><span id=__span-0-414><a id=__codelineno-0-414 name=__codelineno-0-414></a>    <span class=k>return</span> <span class=n>RemoteBatch</span><span class=p>(</span><span class=bp>self</span><span class=o>.</span><span class=n>source</span><span class=p>,</span> <span class=n>new_task_results</span><span class=p>,</span> <span class=n>name</span><span class=o>=</span><span class=bp>self</span><span class=o>.</span><span class=n>name</span><span class=p>)</span>
+<span class=normal><a href=#__codelineno-0-412>412</a></span></pre></div></td><td class=code><div><pre><span></span><code><span id=__span-0-395><a id=__codelineno-0-395 name=__codelineno-0-395></a><span class=nd>@beartype</span>
+</span><span id=__span-0-396><a id=__codelineno-0-396 name=__codelineno-0-396></a><span class=k>def</span> <span class=nf>get_tasks</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=o>*</span><span class=n>status_codes</span><span class=p>:</span> <span class=nb>str</span><span class=p>)</span> <span class=o>-&gt;</span> <span class=s2>&quot;RemoteBatch&quot;</span><span class=p>:</span>
+</span><span id=__span-0-397><a id=__codelineno-0-397 name=__codelineno-0-397></a><span class=w>    </span><span class=sd>&quot;&quot;&quot;</span>
+</span><span id=__span-0-398><a id=__codelineno-0-398 name=__codelineno-0-398></a><span class=sd>    Get Tasks with specify status_codes.</span>
+</span><span id=__span-0-399><a id=__codelineno-0-399 name=__codelineno-0-399></a>
+</span><span id=__span-0-400><a id=__codelineno-0-400 name=__codelineno-0-400></a><span class=sd>    Return:</span>
+</span><span id=__span-0-401><a id=__codelineno-0-401 name=__codelineno-0-401></a><span class=sd>        RemoteBatch</span>
+</span><span id=__span-0-402><a id=__codelineno-0-402 name=__codelineno-0-402></a>
+</span><span id=__span-0-403><a id=__codelineno-0-403 name=__codelineno-0-403></a><span class=sd>    &quot;&quot;&quot;</span>
+</span><span id=__span-0-404><a id=__codelineno-0-404 name=__codelineno-0-404></a>    <span class=c1># offline:</span>
+</span><span id=__span-0-405><a id=__codelineno-0-405 name=__codelineno-0-405></a>    <span class=n>st_codes</span> <span class=o>=</span> <span class=p>[</span><span class=n>QuEraTaskStatusCode</span><span class=p>(</span><span class=n>x</span><span class=p>)</span> <span class=k>for</span> <span class=n>x</span> <span class=ow>in</span> <span class=n>status_codes</span><span class=p>]</span>
+</span><span id=__span-0-406><a id=__codelineno-0-406 name=__codelineno-0-406></a>
+</span><span id=__span-0-407><a id=__codelineno-0-407 name=__codelineno-0-407></a>    <span class=n>new_task_results</span> <span class=o>=</span> <span class=n>OrderedDict</span><span class=p>()</span>
+</span><span id=__span-0-408><a id=__codelineno-0-408 name=__codelineno-0-408></a>    <span class=k>for</span> <span class=n>task_number</span><span class=p>,</span> <span class=n>task</span> <span class=ow>in</span> <span class=bp>self</span><span class=o>.</span><span class=n>tasks</span><span class=o>.</span><span class=n>items</span><span class=p>():</span>
+</span><span id=__span-0-409><a id=__codelineno-0-409 name=__codelineno-0-409></a>        <span class=k>if</span> <span class=n>task</span><span class=o>.</span><span class=n>task_result_ir</span><span class=o>.</span><span class=n>task_status</span> <span class=ow>in</span> <span class=n>st_codes</span><span class=p>:</span>
+</span><span id=__span-0-410><a id=__codelineno-0-410 name=__codelineno-0-410></a>            <span class=n>new_task_results</span><span class=p>[</span><span class=n>task_number</span><span class=p>]</span> <span class=o>=</span> <span class=n>task</span>
+</span><span id=__span-0-411><a id=__codelineno-0-411 name=__codelineno-0-411></a>
+</span><span id=__span-0-412><a id=__codelineno-0-412 name=__codelineno-0-412></a>    <span class=k>return</span> <span class=n>RemoteBatch</span><span class=p>(</span><span class=bp>self</span><span class=o>.</span><span class=n>source</span><span class=p>,</span> <span class=n>new_task_results</span><span class=p>,</span> <span class=n>name</span><span class=o>=</span><span class=bp>self</span><span class=o>.</span><span class=n>name</span><span class=p>)</span>
 </span></code></pre></div></td></tr></table></div> </details> </div> </div> <div class="doc doc-object doc-function"> <h3 id=bloqade.task.batch.RemoteBatch.pull class="doc doc-heading"> <span class="doc doc-object-name doc-function-name">pull</span> <a href=#bloqade.task.batch.RemoteBatch.pull class=headerlink title="Permanent link">&para;</a></h3> <div class="doc-signature highlight"><pre><span></span><code><span id=__span-0-1><a id=__codelineno-0-1 name=__codelineno-0-1 href=#__codelineno-0-1></a><span class=n>pull</span><span class=p>()</span>
 </span></code></pre></div> <div class="doc doc-contents "> <p>Pull results of the tasks in the Batch.</p> <details class=note open> <summary>Note</summary> <p>Pulling will pull the results for the tasks. If a given task(s) has not been completed, wait until it finished.</p> </details> <details class=return open> <summary>Return</summary> <p>self</p> </details> <details class=quote> <summary>Source code in <code>src/bloqade/task/batch.py</code></summary> <div class=highlight><table class=highlighttable><tr><td class=linenos><div class=linenodiv><pre><span></span><span class=normal><a href=#__codelineno-0-247>247</a></span>
 <span class=normal><a href=#__codelineno-0-248>248</a></span>
@@ -440,7 +438,9 @@
 </span><span id=__span-0-263><a id=__codelineno-0-263 name=__codelineno-0-263></a>
 </span><span id=__span-0-264><a id=__codelineno-0-264 name=__codelineno-0-264></a>    <span class=k>return</span> <span class=bp>self</span>
 </span></code></pre></div></td></tr></table></div> </details> </div> </div> <div class="doc doc-object doc-function"> <h3 id=bloqade.task.batch.RemoteBatch.remove_failed_tasks class="doc doc-heading"> <span class="doc doc-object-name doc-function-name">remove_failed_tasks</span> <a href=#bloqade.task.batch.RemoteBatch.remove_failed_tasks class=headerlink title="Permanent link">&para;</a></h3> <div class="doc-signature highlight"><pre><span></span><code><span id=__span-0-1><a id=__codelineno-0-1 name=__codelineno-0-1 href=#__codelineno-0-1></a><span class=n>remove_failed_tasks</span><span class=p>()</span>
-</span></code></pre></div> <div class="doc doc-contents "> <p>Create a RemoteBatch object that contain tasks from current Batch, with failed tasks removed.</p> <p>failed tasks with following status codes:</p> <ol> <li>Failed</li> <li>Unaccepted</li> </ol> <details class=return open> <summary>Return</summary> <p>RemoteBatch</p> </details> <details class=quote> <summary>Source code in <code>src/bloqade/task/batch.py</code></summary> <div class=highlight><table class=highlighttable><tr><td class=linenos><div class=linenodiv><pre><span></span><span class=normal><a href=#__codelineno-0-457>457</a></span>
+</span></code></pre></div> <div class="doc doc-contents "> <p>Create a RemoteBatch object that contain tasks from current Batch, with failed tasks removed.</p> <p>failed tasks with following status codes:</p> <ol> <li>Failed</li> <li>Unaccepted</li> </ol> <details class=return open> <summary>Return</summary> <p>RemoteBatch</p> </details> <details class=quote> <summary>Source code in <code>src/bloqade/task/batch.py</code></summary> <div class=highlight><table class=highlighttable><tr><td class=linenos><div class=linenodiv><pre><span></span><span class=normal><a href=#__codelineno-0-455>455</a></span>
+<span class=normal><a href=#__codelineno-0-456>456</a></span>
+<span class=normal><a href=#__codelineno-0-457>457</a></span>
 <span class=normal><a href=#__codelineno-0-458>458</a></span>
 <span class=normal><a href=#__codelineno-0-459>459</a></span>
 <span class=normal><a href=#__codelineno-0-460>460</a></span>
@@ -456,29 +456,28 @@
 <span class=normal><a href=#__codelineno-0-470>470</a></span>
 <span class=normal><a href=#__codelineno-0-471>471</a></span>
 <span class=normal><a href=#__codelineno-0-472>472</a></span>
-<span class=normal><a href=#__codelineno-0-473>473</a></span>
-<span class=normal><a href=#__codelineno-0-474>474</a></span>
-<span class=normal><a href=#__codelineno-0-475>475</a></span></pre></div></td><td class=code><div><pre><span></span><code><span id=__span-0-457><a id=__codelineno-0-457 name=__codelineno-0-457></a><span class=k>def</span> <span class=nf>remove_failed_tasks</span><span class=p>(</span><span class=bp>self</span><span class=p>)</span> <span class=o>-&gt;</span> <span class=s2>&quot;RemoteBatch&quot;</span><span class=p>:</span>
-</span><span id=__span-0-458><a id=__codelineno-0-458 name=__codelineno-0-458></a><span class=w>    </span><span class=sd>&quot;&quot;&quot;</span>
-</span><span id=__span-0-459><a id=__codelineno-0-459 name=__codelineno-0-459></a><span class=sd>    Create a RemoteBatch object that</span>
-</span><span id=__span-0-460><a id=__codelineno-0-460 name=__codelineno-0-460></a><span class=sd>    contain tasks from current Batch,</span>
-</span><span id=__span-0-461><a id=__codelineno-0-461 name=__codelineno-0-461></a><span class=sd>    with failed tasks removed.</span>
+<span class=normal><a href=#__codelineno-0-473>473</a></span></pre></div></td><td class=code><div><pre><span></span><code><span id=__span-0-455><a id=__codelineno-0-455 name=__codelineno-0-455></a><span class=k>def</span> <span class=nf>remove_failed_tasks</span><span class=p>(</span><span class=bp>self</span><span class=p>)</span> <span class=o>-&gt;</span> <span class=s2>&quot;RemoteBatch&quot;</span><span class=p>:</span>
+</span><span id=__span-0-456><a id=__codelineno-0-456 name=__codelineno-0-456></a><span class=w>    </span><span class=sd>&quot;&quot;&quot;</span>
+</span><span id=__span-0-457><a id=__codelineno-0-457 name=__codelineno-0-457></a><span class=sd>    Create a RemoteBatch object that</span>
+</span><span id=__span-0-458><a id=__codelineno-0-458 name=__codelineno-0-458></a><span class=sd>    contain tasks from current Batch,</span>
+</span><span id=__span-0-459><a id=__codelineno-0-459 name=__codelineno-0-459></a><span class=sd>    with failed tasks removed.</span>
+</span><span id=__span-0-460><a id=__codelineno-0-460 name=__codelineno-0-460></a>
+</span><span id=__span-0-461><a id=__codelineno-0-461 name=__codelineno-0-461></a><span class=sd>    failed tasks with following status codes:</span>
 </span><span id=__span-0-462><a id=__codelineno-0-462 name=__codelineno-0-462></a>
-</span><span id=__span-0-463><a id=__codelineno-0-463 name=__codelineno-0-463></a><span class=sd>    failed tasks with following status codes:</span>
-</span><span id=__span-0-464><a id=__codelineno-0-464 name=__codelineno-0-464></a>
-</span><span id=__span-0-465><a id=__codelineno-0-465 name=__codelineno-0-465></a><span class=sd>    1. Failed</span>
-</span><span id=__span-0-466><a id=__codelineno-0-466 name=__codelineno-0-466></a><span class=sd>    2. Unaccepted</span>
-</span><span id=__span-0-467><a id=__codelineno-0-467 name=__codelineno-0-467></a>
-</span><span id=__span-0-468><a id=__codelineno-0-468 name=__codelineno-0-468></a><span class=sd>    Return:</span>
-</span><span id=__span-0-469><a id=__codelineno-0-469 name=__codelineno-0-469></a><span class=sd>        RemoteBatch</span>
-</span><span id=__span-0-470><a id=__codelineno-0-470 name=__codelineno-0-470></a>
-</span><span id=__span-0-471><a id=__codelineno-0-471 name=__codelineno-0-471></a><span class=sd>    &quot;&quot;&quot;</span>
-</span><span id=__span-0-472><a id=__codelineno-0-472 name=__codelineno-0-472></a>    <span class=c1># statuses that are in a state that will</span>
-</span><span id=__span-0-473><a id=__codelineno-0-473 name=__codelineno-0-473></a>    <span class=c1># not run going forward because of an error</span>
-</span><span id=__span-0-474><a id=__codelineno-0-474 name=__codelineno-0-474></a>    <span class=n>statuses</span> <span class=o>=</span> <span class=p>[</span><span class=s2>&quot;Failed&quot;</span><span class=p>,</span> <span class=s2>&quot;Unaccepted&quot;</span><span class=p>]</span>
-</span><span id=__span-0-475><a id=__codelineno-0-475 name=__codelineno-0-475></a>    <span class=k>return</span> <span class=bp>self</span><span class=o>.</span><span class=n>remove_tasks</span><span class=p>(</span><span class=o>*</span><span class=n>statuses</span><span class=p>)</span>
+</span><span id=__span-0-463><a id=__codelineno-0-463 name=__codelineno-0-463></a><span class=sd>    1. Failed</span>
+</span><span id=__span-0-464><a id=__codelineno-0-464 name=__codelineno-0-464></a><span class=sd>    2. Unaccepted</span>
+</span><span id=__span-0-465><a id=__codelineno-0-465 name=__codelineno-0-465></a>
+</span><span id=__span-0-466><a id=__codelineno-0-466 name=__codelineno-0-466></a><span class=sd>    Return:</span>
+</span><span id=__span-0-467><a id=__codelineno-0-467 name=__codelineno-0-467></a><span class=sd>        RemoteBatch</span>
+</span><span id=__span-0-468><a id=__codelineno-0-468 name=__codelineno-0-468></a>
+</span><span id=__span-0-469><a id=__codelineno-0-469 name=__codelineno-0-469></a><span class=sd>    &quot;&quot;&quot;</span>
+</span><span id=__span-0-470><a id=__codelineno-0-470 name=__codelineno-0-470></a>    <span class=c1># statuses that are in a state that will</span>
+</span><span id=__span-0-471><a id=__codelineno-0-471 name=__codelineno-0-471></a>    <span class=c1># not run going forward because of an error</span>
+</span><span id=__span-0-472><a id=__codelineno-0-472 name=__codelineno-0-472></a>    <span class=n>statuses</span> <span class=o>=</span> <span class=p>[</span><span class=s2>&quot;Failed&quot;</span><span class=p>,</span> <span class=s2>&quot;Unaccepted&quot;</span><span class=p>]</span>
+</span><span id=__span-0-473><a id=__codelineno-0-473 name=__codelineno-0-473></a>    <span class=k>return</span> <span class=bp>self</span><span class=o>.</span><span class=n>remove_tasks</span><span class=p>(</span><span class=o>*</span><span class=n>statuses</span><span class=p>)</span>
 </span></code></pre></div></td></tr></table></div> </details> </div> </div> <div class="doc doc-object doc-function"> <h3 id=bloqade.task.batch.RemoteBatch.remove_invalid_tasks class="doc doc-heading"> <span class="doc doc-object-name doc-function-name">remove_invalid_tasks</span> <a href=#bloqade.task.batch.RemoteBatch.remove_invalid_tasks class=headerlink title="Permanent link">&para;</a></h3> <div class="doc-signature highlight"><pre><span></span><code><span id=__span-0-1><a id=__codelineno-0-1 name=__codelineno-0-1 href=#__codelineno-0-1></a><span class=n>remove_invalid_tasks</span><span class=p>()</span>
-</span></code></pre></div> <div class="doc doc-contents "> <p>Create a RemoteBatch object that contain tasks from current Batch, with all Unaccepted tasks removed.</p> <details class=return open> <summary>Return</summary> <p>RemoteBatch</p> </details> <details class=quote> <summary>Source code in <code>src/bloqade/task/batch.py</code></summary> <div class=highlight><table class=highlighttable><tr><td class=linenos><div class=linenodiv><pre><span></span><span class=normal><a href=#__codelineno-0-294>294</a></span>
+</span></code></pre></div> <div class="doc doc-contents "> <p>Create a RemoteBatch object that contain tasks from current Batch, with all Unaccepted tasks removed.</p> <details class=return open> <summary>Return</summary> <p>RemoteBatch</p> </details> <details class=quote> <summary>Source code in <code>src/bloqade/task/batch.py</code></summary> <div class=highlight><table class=highlighttable><tr><td class=linenos><div class=linenodiv><pre><span></span><span class=normal><a href=#__codelineno-0-293>293</a></span>
+<span class=normal><a href=#__codelineno-0-294>294</a></span>
 <span class=normal><a href=#__codelineno-0-295>295</a></span>
 <span class=normal><a href=#__codelineno-0-296>296</a></span>
 <span class=normal><a href=#__codelineno-0-297>297</a></span>
@@ -487,20 +486,21 @@
 <span class=normal><a href=#__codelineno-0-300>300</a></span>
 <span class=normal><a href=#__codelineno-0-301>301</a></span>
 <span class=normal><a href=#__codelineno-0-302>302</a></span>
-<span class=normal><a href=#__codelineno-0-303>303</a></span>
-<span class=normal><a href=#__codelineno-0-304>304</a></span></pre></div></td><td class=code><div><pre><span></span><code><span id=__span-0-294><a id=__codelineno-0-294 name=__codelineno-0-294></a><span class=k>def</span> <span class=nf>remove_invalid_tasks</span><span class=p>(</span><span class=bp>self</span><span class=p>)</span> <span class=o>-&gt;</span> <span class=s2>&quot;RemoteBatch&quot;</span><span class=p>:</span>
-</span><span id=__span-0-295><a id=__codelineno-0-295 name=__codelineno-0-295></a><span class=w>    </span><span class=sd>&quot;&quot;&quot;</span>
-</span><span id=__span-0-296><a id=__codelineno-0-296 name=__codelineno-0-296></a><span class=sd>    Create a RemoteBatch object that</span>
-</span><span id=__span-0-297><a id=__codelineno-0-297 name=__codelineno-0-297></a><span class=sd>    contain tasks from current Batch,</span>
-</span><span id=__span-0-298><a id=__codelineno-0-298 name=__codelineno-0-298></a><span class=sd>    with all Unaccepted tasks removed.</span>
-</span><span id=__span-0-299><a id=__codelineno-0-299 name=__codelineno-0-299></a>
-</span><span id=__span-0-300><a id=__codelineno-0-300 name=__codelineno-0-300></a><span class=sd>    Return:</span>
-</span><span id=__span-0-301><a id=__codelineno-0-301 name=__codelineno-0-301></a><span class=sd>        RemoteBatch</span>
-</span><span id=__span-0-302><a id=__codelineno-0-302 name=__codelineno-0-302></a>
-</span><span id=__span-0-303><a id=__codelineno-0-303 name=__codelineno-0-303></a><span class=sd>    &quot;&quot;&quot;</span>
-</span><span id=__span-0-304><a id=__codelineno-0-304 name=__codelineno-0-304></a>    <span class=k>return</span> <span class=bp>self</span><span class=o>.</span><span class=n>remove_tasks</span><span class=p>(</span><span class=s2>&quot;Unaccepted&quot;</span><span class=p>)</span>
+<span class=normal><a href=#__codelineno-0-303>303</a></span></pre></div></td><td class=code><div><pre><span></span><code><span id=__span-0-293><a id=__codelineno-0-293 name=__codelineno-0-293></a><span class=k>def</span> <span class=nf>remove_invalid_tasks</span><span class=p>(</span><span class=bp>self</span><span class=p>)</span> <span class=o>-&gt;</span> <span class=s2>&quot;RemoteBatch&quot;</span><span class=p>:</span>
+</span><span id=__span-0-294><a id=__codelineno-0-294 name=__codelineno-0-294></a><span class=w>    </span><span class=sd>&quot;&quot;&quot;</span>
+</span><span id=__span-0-295><a id=__codelineno-0-295 name=__codelineno-0-295></a><span class=sd>    Create a RemoteBatch object that</span>
+</span><span id=__span-0-296><a id=__codelineno-0-296 name=__codelineno-0-296></a><span class=sd>    contain tasks from current Batch,</span>
+</span><span id=__span-0-297><a id=__codelineno-0-297 name=__codelineno-0-297></a><span class=sd>    with all Unaccepted tasks removed.</span>
+</span><span id=__span-0-298><a id=__codelineno-0-298 name=__codelineno-0-298></a>
+</span><span id=__span-0-299><a id=__codelineno-0-299 name=__codelineno-0-299></a><span class=sd>    Return:</span>
+</span><span id=__span-0-300><a id=__codelineno-0-300 name=__codelineno-0-300></a><span class=sd>        RemoteBatch</span>
+</span><span id=__span-0-301><a id=__codelineno-0-301 name=__codelineno-0-301></a>
+</span><span id=__span-0-302><a id=__codelineno-0-302 name=__codelineno-0-302></a><span class=sd>    &quot;&quot;&quot;</span>
+</span><span id=__span-0-303><a id=__codelineno-0-303 name=__codelineno-0-303></a>    <span class=k>return</span> <span class=bp>self</span><span class=o>.</span><span class=n>remove_tasks</span><span class=p>(</span><span class=s2>&quot;Unaccepted&quot;</span><span class=p>)</span>
 </span></code></pre></div></td></tr></table></div> </details> </div> </div> <div class="doc doc-object doc-function"> <h3 id=bloqade.task.batch.RemoteBatch.remove_tasks class="doc doc-heading"> <span class="doc doc-object-name doc-function-name">remove_tasks</span> <a href=#bloqade.task.batch.RemoteBatch.remove_tasks class=headerlink title="Permanent link">&para;</a></h3> <div class="doc-signature highlight"><pre><span></span><code><span id=__span-0-1><a id=__codelineno-0-1 name=__codelineno-0-1 href=#__codelineno-0-1></a><span class=n>remove_tasks</span><span class=p>(</span><span class=o>*</span><span class=n>status_codes</span><span class=p>)</span>
-</span></code></pre></div> <div class="doc doc-contents "> <p>Remove Tasks with specify status_codes.</p> <details class=return open> <summary>Return</summary> <p>RemoteBatch</p> </details> <details class=quote> <summary>Source code in <code>src/bloqade/task/batch.py</code></summary> <div class=highlight><table class=highlighttable><tr><td class=linenos><div class=linenodiv><pre><span></span><span class=normal><a href=#__codelineno-0-416>416</a></span>
+</span></code></pre></div> <div class="doc doc-contents "> <p>Remove Tasks with specify status_codes.</p> <details class=return open> <summary>Return</summary> <p>RemoteBatch</p> </details> <details class=quote> <summary>Source code in <code>src/bloqade/task/batch.py</code></summary> <div class=highlight><table class=highlighttable><tr><td class=linenos><div class=linenodiv><pre><span></span><span class=normal><a href=#__codelineno-0-414>414</a></span>
+<span class=normal><a href=#__codelineno-0-415>415</a></span>
+<span class=normal><a href=#__codelineno-0-416>416</a></span>
 <span class=normal><a href=#__codelineno-0-417>417</a></span>
 <span class=normal><a href=#__codelineno-0-418>418</a></span>
 <span class=normal><a href=#__codelineno-0-419>419</a></span>
@@ -518,31 +518,31 @@
 <span class=normal><a href=#__codelineno-0-431>431</a></span>
 <span class=normal><a href=#__codelineno-0-432>432</a></span>
 <span class=normal><a href=#__codelineno-0-433>433</a></span>
-<span class=normal><a href=#__codelineno-0-434>434</a></span>
-<span class=normal><a href=#__codelineno-0-435>435</a></span>
-<span class=normal><a href=#__codelineno-0-436>436</a></span></pre></div></td><td class=code><div><pre><span></span><code><span id=__span-0-416><a id=__codelineno-0-416 name=__codelineno-0-416></a><span class=nd>@beartype</span>
-</span><span id=__span-0-417><a id=__codelineno-0-417 name=__codelineno-0-417></a><span class=k>def</span> <span class=nf>remove_tasks</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=o>*</span><span class=n>status_codes</span><span class=p>:</span> <span class=nb>str</span><span class=p>)</span> <span class=o>-&gt;</span> <span class=s2>&quot;RemoteBatch&quot;</span><span class=p>:</span>
-</span><span id=__span-0-418><a id=__codelineno-0-418 name=__codelineno-0-418></a><span class=w>    </span><span class=sd>&quot;&quot;&quot;</span>
-</span><span id=__span-0-419><a id=__codelineno-0-419 name=__codelineno-0-419></a><span class=sd>    Remove Tasks with specify status_codes.</span>
-</span><span id=__span-0-420><a id=__codelineno-0-420 name=__codelineno-0-420></a>
-</span><span id=__span-0-421><a id=__codelineno-0-421 name=__codelineno-0-421></a><span class=sd>    Return:</span>
-</span><span id=__span-0-422><a id=__codelineno-0-422 name=__codelineno-0-422></a><span class=sd>        RemoteBatch</span>
-</span><span id=__span-0-423><a id=__codelineno-0-423 name=__codelineno-0-423></a>
-</span><span id=__span-0-424><a id=__codelineno-0-424 name=__codelineno-0-424></a><span class=sd>    &quot;&quot;&quot;</span>
-</span><span id=__span-0-425><a id=__codelineno-0-425 name=__codelineno-0-425></a>    <span class=c1># offline:</span>
+<span class=normal><a href=#__codelineno-0-434>434</a></span></pre></div></td><td class=code><div><pre><span></span><code><span id=__span-0-414><a id=__codelineno-0-414 name=__codelineno-0-414></a><span class=nd>@beartype</span>
+</span><span id=__span-0-415><a id=__codelineno-0-415 name=__codelineno-0-415></a><span class=k>def</span> <span class=nf>remove_tasks</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=o>*</span><span class=n>status_codes</span><span class=p>:</span> <span class=nb>str</span><span class=p>)</span> <span class=o>-&gt;</span> <span class=s2>&quot;RemoteBatch&quot;</span><span class=p>:</span>
+</span><span id=__span-0-416><a id=__codelineno-0-416 name=__codelineno-0-416></a><span class=w>    </span><span class=sd>&quot;&quot;&quot;</span>
+</span><span id=__span-0-417><a id=__codelineno-0-417 name=__codelineno-0-417></a><span class=sd>    Remove Tasks with specify status_codes.</span>
+</span><span id=__span-0-418><a id=__codelineno-0-418 name=__codelineno-0-418></a>
+</span><span id=__span-0-419><a id=__codelineno-0-419 name=__codelineno-0-419></a><span class=sd>    Return:</span>
+</span><span id=__span-0-420><a id=__codelineno-0-420 name=__codelineno-0-420></a><span class=sd>        RemoteBatch</span>
+</span><span id=__span-0-421><a id=__codelineno-0-421 name=__codelineno-0-421></a>
+</span><span id=__span-0-422><a id=__codelineno-0-422 name=__codelineno-0-422></a><span class=sd>    &quot;&quot;&quot;</span>
+</span><span id=__span-0-423><a id=__codelineno-0-423 name=__codelineno-0-423></a>    <span class=c1># offline:</span>
+</span><span id=__span-0-424><a id=__codelineno-0-424 name=__codelineno-0-424></a>
+</span><span id=__span-0-425><a id=__codelineno-0-425 name=__codelineno-0-425></a>    <span class=n>st_codes</span> <span class=o>=</span> <span class=p>[</span><span class=n>QuEraTaskStatusCode</span><span class=p>(</span><span class=n>x</span><span class=p>)</span> <span class=k>for</span> <span class=n>x</span> <span class=ow>in</span> <span class=n>status_codes</span><span class=p>]</span>
 </span><span id=__span-0-426><a id=__codelineno-0-426 name=__codelineno-0-426></a>
-</span><span id=__span-0-427><a id=__codelineno-0-427 name=__codelineno-0-427></a>    <span class=n>st_codes</span> <span class=o>=</span> <span class=p>[</span><span class=n>QuEraTaskStatusCode</span><span class=p>(</span><span class=n>x</span><span class=p>)</span> <span class=k>for</span> <span class=n>x</span> <span class=ow>in</span> <span class=n>status_codes</span><span class=p>]</span>
-</span><span id=__span-0-428><a id=__codelineno-0-428 name=__codelineno-0-428></a>
-</span><span id=__span-0-429><a id=__codelineno-0-429 name=__codelineno-0-429></a>    <span class=n>new_results</span> <span class=o>=</span> <span class=n>OrderedDict</span><span class=p>()</span>
-</span><span id=__span-0-430><a id=__codelineno-0-430 name=__codelineno-0-430></a>    <span class=k>for</span> <span class=n>task_number</span><span class=p>,</span> <span class=n>task</span> <span class=ow>in</span> <span class=bp>self</span><span class=o>.</span><span class=n>tasks</span><span class=o>.</span><span class=n>items</span><span class=p>():</span>
-</span><span id=__span-0-431><a id=__codelineno-0-431 name=__codelineno-0-431></a>        <span class=k>if</span> <span class=p>(</span><span class=n>task</span><span class=o>.</span><span class=n>task_id</span> <span class=ow>is</span> <span class=ow>not</span> <span class=kc>None</span><span class=p>)</span> <span class=ow>and</span> <span class=p>(</span><span class=n>task</span><span class=o>.</span><span class=n>_result_exists</span><span class=p>()):</span>
-</span><span id=__span-0-432><a id=__codelineno-0-432 name=__codelineno-0-432></a>            <span class=k>if</span> <span class=n>task</span><span class=o>.</span><span class=n>task_result_ir</span><span class=o>.</span><span class=n>task_status</span> <span class=ow>in</span> <span class=n>st_codes</span><span class=p>:</span>
-</span><span id=__span-0-433><a id=__codelineno-0-433 name=__codelineno-0-433></a>                <span class=k>continue</span>
-</span><span id=__span-0-434><a id=__codelineno-0-434 name=__codelineno-0-434></a>        <span class=n>new_results</span><span class=p>[</span><span class=n>task_number</span><span class=p>]</span> <span class=o>=</span> <span class=n>task</span>
-</span><span id=__span-0-435><a id=__codelineno-0-435 name=__codelineno-0-435></a>
-</span><span id=__span-0-436><a id=__codelineno-0-436 name=__codelineno-0-436></a>    <span class=k>return</span> <span class=n>RemoteBatch</span><span class=p>(</span><span class=bp>self</span><span class=o>.</span><span class=n>source</span><span class=p>,</span> <span class=n>new_results</span><span class=p>,</span> <span class=bp>self</span><span class=o>.</span><span class=n>name</span><span class=p>)</span>
+</span><span id=__span-0-427><a id=__codelineno-0-427 name=__codelineno-0-427></a>    <span class=n>new_results</span> <span class=o>=</span> <span class=n>OrderedDict</span><span class=p>()</span>
+</span><span id=__span-0-428><a id=__codelineno-0-428 name=__codelineno-0-428></a>    <span class=k>for</span> <span class=n>task_number</span><span class=p>,</span> <span class=n>task</span> <span class=ow>in</span> <span class=bp>self</span><span class=o>.</span><span class=n>tasks</span><span class=o>.</span><span class=n>items</span><span class=p>():</span>
+</span><span id=__span-0-429><a id=__codelineno-0-429 name=__codelineno-0-429></a>        <span class=k>if</span> <span class=n>task</span><span class=o>.</span><span class=n>task_result_ir</span><span class=o>.</span><span class=n>task_status</span> <span class=ow>in</span> <span class=n>st_codes</span><span class=p>:</span>
+</span><span id=__span-0-430><a id=__codelineno-0-430 name=__codelineno-0-430></a>            <span class=k>continue</span>
+</span><span id=__span-0-431><a id=__codelineno-0-431 name=__codelineno-0-431></a>
+</span><span id=__span-0-432><a id=__codelineno-0-432 name=__codelineno-0-432></a>        <span class=n>new_results</span><span class=p>[</span><span class=n>task_number</span><span class=p>]</span> <span class=o>=</span> <span class=n>task</span>
+</span><span id=__span-0-433><a id=__codelineno-0-433 name=__codelineno-0-433></a>
+</span><span id=__span-0-434><a id=__codelineno-0-434 name=__codelineno-0-434></a>    <span class=k>return</span> <span class=n>RemoteBatch</span><span class=p>(</span><span class=bp>self</span><span class=o>.</span><span class=n>source</span><span class=p>,</span> <span class=n>new_results</span><span class=p>,</span> <span class=bp>self</span><span class=o>.</span><span class=n>name</span><span class=p>)</span>
 </span></code></pre></div></td></tr></table></div> </details> </div> </div> <div class="doc doc-object doc-function"> <h3 id=bloqade.task.batch.RemoteBatch.report class="doc doc-heading"> <span class="doc doc-object-name doc-function-name">report</span> <a href=#bloqade.task.batch.RemoteBatch.report class=headerlink title="Permanent link">&para;</a></h3> <div class="doc-signature highlight"><pre><span></span><code><span id=__span-0-1><a id=__codelineno-0-1 name=__codelineno-0-1 href=#__codelineno-0-1></a><span class=n>report</span><span class=p>()</span>
-</span></code></pre></div> <div class="doc doc-contents "> <p>Generate analysis report base on currently completed tasks in the RemoteBatch.</p> <details class=return open> <summary>Return</summary> <p>Report</p> </details> <details class=quote> <summary>Source code in <code>src/bloqade/task/batch.py</code></summary> <div class=highlight><table class=highlighttable><tr><td class=linenos><div class=linenodiv><pre><span></span><span class=normal><a href=#__codelineno-0-519>519</a></span>
+</span></code></pre></div> <div class="doc doc-contents "> <p>Generate analysis report base on currently completed tasks in the RemoteBatch.</p> <details class=return open> <summary>Return</summary> <p>Report</p> </details> <details class=quote> <summary>Source code in <code>src/bloqade/task/batch.py</code></summary> <div class=highlight><table class=highlighttable><tr><td class=linenos><div class=linenodiv><pre><span></span><span class=normal><a href=#__codelineno-0-517>517</a></span>
+<span class=normal><a href=#__codelineno-0-518>518</a></span>
+<span class=normal><a href=#__codelineno-0-519>519</a></span>
 <span class=normal><a href=#__codelineno-0-520>520</a></span>
 <span class=normal><a href=#__codelineno-0-521>521</a></span>
 <span class=normal><a href=#__codelineno-0-522>522</a></span>
@@ -624,95 +624,94 @@
 <span class=normal><a href=#__codelineno-0-598>598</a></span>
 <span class=normal><a href=#__codelineno-0-599>599</a></span>
 <span class=normal><a href=#__codelineno-0-600>600</a></span>
-<span class=normal><a href=#__codelineno-0-601>601</a></span>
-<span class=normal><a href=#__codelineno-0-602>602</a></span>
-<span class=normal><a href=#__codelineno-0-603>603</a></span></pre></div></td><td class=code><div><pre><span></span><code><span id=__span-0-519><a id=__codelineno-0-519 name=__codelineno-0-519></a><span class=k>def</span> <span class=nf>report</span><span class=p>(</span><span class=bp>self</span><span class=p>)</span> <span class=o>-&gt;</span> <span class=s2>&quot;Report&quot;</span><span class=p>:</span>
-</span><span id=__span-0-520><a id=__codelineno-0-520 name=__codelineno-0-520></a><span class=w>    </span><span class=sd>&quot;&quot;&quot;</span>
-</span><span id=__span-0-521><a id=__codelineno-0-521 name=__codelineno-0-521></a><span class=sd>    Generate analysis report base on currently</span>
-</span><span id=__span-0-522><a id=__codelineno-0-522 name=__codelineno-0-522></a><span class=sd>    completed tasks in the RemoteBatch.</span>
-</span><span id=__span-0-523><a id=__codelineno-0-523 name=__codelineno-0-523></a>
-</span><span id=__span-0-524><a id=__codelineno-0-524 name=__codelineno-0-524></a><span class=sd>    Return:</span>
-</span><span id=__span-0-525><a id=__codelineno-0-525 name=__codelineno-0-525></a><span class=sd>        Report</span>
-</span><span id=__span-0-526><a id=__codelineno-0-526 name=__codelineno-0-526></a>
-</span><span id=__span-0-527><a id=__codelineno-0-527 name=__codelineno-0-527></a><span class=sd>    &quot;&quot;&quot;</span>
-</span><span id=__span-0-528><a id=__codelineno-0-528 name=__codelineno-0-528></a>    <span class=c1>## this potentially can be specialize/disatch</span>
-</span><span id=__span-0-529><a id=__codelineno-0-529 name=__codelineno-0-529></a>    <span class=c1>## offline</span>
-</span><span id=__span-0-530><a id=__codelineno-0-530 name=__codelineno-0-530></a>    <span class=n>index</span> <span class=o>=</span> <span class=p>[]</span>
-</span><span id=__span-0-531><a id=__codelineno-0-531 name=__codelineno-0-531></a>    <span class=n>data</span> <span class=o>=</span> <span class=p>[]</span>
-</span><span id=__span-0-532><a id=__codelineno-0-532 name=__codelineno-0-532></a>    <span class=n>metas</span> <span class=o>=</span> <span class=p>[]</span>
-</span><span id=__span-0-533><a id=__codelineno-0-533 name=__codelineno-0-533></a>    <span class=n>geos</span> <span class=o>=</span> <span class=p>[]</span>
-</span><span id=__span-0-534><a id=__codelineno-0-534 name=__codelineno-0-534></a>
-</span><span id=__span-0-535><a id=__codelineno-0-535 name=__codelineno-0-535></a>    <span class=k>for</span> <span class=n>task_number</span><span class=p>,</span> <span class=n>task</span> <span class=ow>in</span> <span class=bp>self</span><span class=o>.</span><span class=n>tasks</span><span class=o>.</span><span class=n>items</span><span class=p>():</span>
-</span><span id=__span-0-536><a id=__codelineno-0-536 name=__codelineno-0-536></a>        <span class=c1>## fliter not existing results tasks:</span>
-</span><span id=__span-0-537><a id=__codelineno-0-537 name=__codelineno-0-537></a>        <span class=k>if</span> <span class=p>(</span><span class=n>task</span><span class=o>.</span><span class=n>task_id</span> <span class=ow>is</span> <span class=kc>None</span><span class=p>)</span> <span class=ow>or</span> <span class=p>(</span><span class=ow>not</span> <span class=n>task</span><span class=o>.</span><span class=n>_result_exists</span><span class=p>()):</span>
-</span><span id=__span-0-538><a id=__codelineno-0-538 name=__codelineno-0-538></a>            <span class=k>continue</span>
-</span><span id=__span-0-539><a id=__codelineno-0-539 name=__codelineno-0-539></a>
-</span><span id=__span-0-540><a id=__codelineno-0-540 name=__codelineno-0-540></a>        <span class=c1>## filter has result but is not correctly completed.</span>
-</span><span id=__span-0-541><a id=__codelineno-0-541 name=__codelineno-0-541></a>        <span class=k>if</span> <span class=ow>not</span> <span class=n>task</span><span class=o>.</span><span class=n>task_result_ir</span><span class=o>.</span><span class=n>task_status</span> <span class=o>==</span> <span class=n>QuEraTaskStatusCode</span><span class=o>.</span><span class=n>Completed</span><span class=p>:</span>
-</span><span id=__span-0-542><a id=__codelineno-0-542 name=__codelineno-0-542></a>            <span class=k>continue</span>
-</span><span id=__span-0-543><a id=__codelineno-0-543 name=__codelineno-0-543></a>
-</span><span id=__span-0-544><a id=__codelineno-0-544 name=__codelineno-0-544></a>        <span class=n>geometry</span> <span class=o>=</span> <span class=n>task</span><span class=o>.</span><span class=n>geometry</span>
-</span><span id=__span-0-545><a id=__codelineno-0-545 name=__codelineno-0-545></a>        <span class=n>perfect_sorting</span> <span class=o>=</span> <span class=s2>&quot;&quot;</span><span class=o>.</span><span class=n>join</span><span class=p>(</span><span class=nb>map</span><span class=p>(</span><span class=nb>str</span><span class=p>,</span> <span class=n>geometry</span><span class=o>.</span><span class=n>filling</span><span class=p>))</span>
-</span><span id=__span-0-546><a id=__codelineno-0-546 name=__codelineno-0-546></a>        <span class=n>parallel_decoder</span> <span class=o>=</span> <span class=n>geometry</span><span class=o>.</span><span class=n>parallel_decoder</span>
-</span><span id=__span-0-547><a id=__codelineno-0-547 name=__codelineno-0-547></a>
-</span><span id=__span-0-548><a id=__codelineno-0-548 name=__codelineno-0-548></a>        <span class=k>if</span> <span class=n>parallel_decoder</span><span class=p>:</span>
-</span><span id=__span-0-549><a id=__codelineno-0-549 name=__codelineno-0-549></a>            <span class=n>cluster_indices</span> <span class=o>=</span> <span class=n>parallel_decoder</span><span class=o>.</span><span class=n>get_cluster_indices</span><span class=p>()</span>
-</span><span id=__span-0-550><a id=__codelineno-0-550 name=__codelineno-0-550></a>        <span class=k>else</span><span class=p>:</span>
-</span><span id=__span-0-551><a id=__codelineno-0-551 name=__codelineno-0-551></a>            <span class=n>cluster_indices</span> <span class=o>=</span> <span class=p>{(</span><span class=mi>0</span><span class=p>,</span> <span class=mi>0</span><span class=p>):</span> <span class=nb>list</span><span class=p>(</span><span class=nb>range</span><span class=p>(</span><span class=nb>len</span><span class=p>(</span><span class=n>perfect_sorting</span><span class=p>)))}</span>
-</span><span id=__span-0-552><a id=__codelineno-0-552 name=__codelineno-0-552></a>
-</span><span id=__span-0-553><a id=__codelineno-0-553 name=__codelineno-0-553></a>        <span class=n>shot_iter</span> <span class=o>=</span> <span class=nb>filter</span><span class=p>(</span>
-</span><span id=__span-0-554><a id=__codelineno-0-554 name=__codelineno-0-554></a>            <span class=k>lambda</span> <span class=n>shot</span><span class=p>:</span> <span class=n>shot</span><span class=o>.</span><span class=n>shot_status</span> <span class=o>==</span> <span class=n>QuEraShotStatusCode</span><span class=o>.</span><span class=n>Completed</span><span class=p>,</span>
-</span><span id=__span-0-555><a id=__codelineno-0-555 name=__codelineno-0-555></a>            <span class=n>task</span><span class=o>.</span><span class=n>result</span><span class=p>()</span><span class=o>.</span><span class=n>shot_outputs</span><span class=p>,</span>
-</span><span id=__span-0-556><a id=__codelineno-0-556 name=__codelineno-0-556></a>        <span class=p>)</span>
-</span><span id=__span-0-557><a id=__codelineno-0-557 name=__codelineno-0-557></a>
-</span><span id=__span-0-558><a id=__codelineno-0-558 name=__codelineno-0-558></a>        <span class=k>for</span> <span class=n>shot</span><span class=p>,</span> <span class=p>(</span><span class=n>cluster_coordinate</span><span class=p>,</span> <span class=n>cluster_index</span><span class=p>)</span> <span class=ow>in</span> <span class=n>product</span><span class=p>(</span>
-</span><span id=__span-0-559><a id=__codelineno-0-559 name=__codelineno-0-559></a>            <span class=n>shot_iter</span><span class=p>,</span> <span class=n>cluster_indices</span><span class=o>.</span><span class=n>items</span><span class=p>()</span>
-</span><span id=__span-0-560><a id=__codelineno-0-560 name=__codelineno-0-560></a>        <span class=p>):</span>
-</span><span id=__span-0-561><a id=__codelineno-0-561 name=__codelineno-0-561></a>            <span class=n>pre_sequence</span> <span class=o>=</span> <span class=s2>&quot;&quot;</span><span class=o>.</span><span class=n>join</span><span class=p>(</span>
-</span><span id=__span-0-562><a id=__codelineno-0-562 name=__codelineno-0-562></a>                <span class=nb>map</span><span class=p>(</span>
-</span><span id=__span-0-563><a id=__codelineno-0-563 name=__codelineno-0-563></a>                    <span class=nb>str</span><span class=p>,</span>
-</span><span id=__span-0-564><a id=__codelineno-0-564 name=__codelineno-0-564></a>                    <span class=p>(</span><span class=n>shot</span><span class=o>.</span><span class=n>pre_sequence</span><span class=p>[</span><span class=n>index</span><span class=p>]</span> <span class=k>for</span> <span class=n>index</span> <span class=ow>in</span> <span class=n>cluster_index</span><span class=p>),</span>
-</span><span id=__span-0-565><a id=__codelineno-0-565 name=__codelineno-0-565></a>                <span class=p>)</span>
-</span><span id=__span-0-566><a id=__codelineno-0-566 name=__codelineno-0-566></a>            <span class=p>)</span>
-</span><span id=__span-0-567><a id=__codelineno-0-567 name=__codelineno-0-567></a>
-</span><span id=__span-0-568><a id=__codelineno-0-568 name=__codelineno-0-568></a>            <span class=n>post_sequence</span> <span class=o>=</span> <span class=n>np</span><span class=o>.</span><span class=n>asarray</span><span class=p>(</span>
-</span><span id=__span-0-569><a id=__codelineno-0-569 name=__codelineno-0-569></a>                <span class=p>[</span><span class=n>shot</span><span class=o>.</span><span class=n>post_sequence</span><span class=p>[</span><span class=n>index</span><span class=p>]</span> <span class=k>for</span> <span class=n>index</span> <span class=ow>in</span> <span class=n>cluster_index</span><span class=p>],</span>
-</span><span id=__span-0-570><a id=__codelineno-0-570 name=__codelineno-0-570></a>                <span class=n>dtype</span><span class=o>=</span><span class=n>np</span><span class=o>.</span><span class=n>int8</span><span class=p>,</span>
-</span><span id=__span-0-571><a id=__codelineno-0-571 name=__codelineno-0-571></a>            <span class=p>)</span>
-</span><span id=__span-0-572><a id=__codelineno-0-572 name=__codelineno-0-572></a>
-</span><span id=__span-0-573><a id=__codelineno-0-573 name=__codelineno-0-573></a>            <span class=n>pfc_sorting</span> <span class=o>=</span> <span class=s2>&quot;&quot;</span><span class=o>.</span><span class=n>join</span><span class=p>(</span>
-</span><span id=__span-0-574><a id=__codelineno-0-574 name=__codelineno-0-574></a>                <span class=p>[</span><span class=n>perfect_sorting</span><span class=p>[</span><span class=n>index</span><span class=p>]</span> <span class=k>for</span> <span class=n>index</span> <span class=ow>in</span> <span class=n>cluster_index</span><span class=p>]</span>
-</span><span id=__span-0-575><a id=__codelineno-0-575 name=__codelineno-0-575></a>            <span class=p>)</span>
-</span><span id=__span-0-576><a id=__codelineno-0-576 name=__codelineno-0-576></a>
-</span><span id=__span-0-577><a id=__codelineno-0-577 name=__codelineno-0-577></a>            <span class=n>key</span> <span class=o>=</span> <span class=p>(</span>
-</span><span id=__span-0-578><a id=__codelineno-0-578 name=__codelineno-0-578></a>                <span class=n>task_number</span><span class=p>,</span>
-</span><span id=__span-0-579><a id=__codelineno-0-579 name=__codelineno-0-579></a>                <span class=n>cluster_coordinate</span><span class=p>,</span>
-</span><span id=__span-0-580><a id=__codelineno-0-580 name=__codelineno-0-580></a>                <span class=n>pfc_sorting</span><span class=p>,</span>
-</span><span id=__span-0-581><a id=__codelineno-0-581 name=__codelineno-0-581></a>                <span class=n>pre_sequence</span><span class=p>,</span>
-</span><span id=__span-0-582><a id=__codelineno-0-582 name=__codelineno-0-582></a>            <span class=p>)</span>
-</span><span id=__span-0-583><a id=__codelineno-0-583 name=__codelineno-0-583></a>
-</span><span id=__span-0-584><a id=__codelineno-0-584 name=__codelineno-0-584></a>            <span class=n>index</span><span class=o>.</span><span class=n>append</span><span class=p>(</span><span class=n>key</span><span class=p>)</span>
-</span><span id=__span-0-585><a id=__codelineno-0-585 name=__codelineno-0-585></a>            <span class=n>data</span><span class=o>.</span><span class=n>append</span><span class=p>(</span><span class=n>post_sequence</span><span class=p>)</span>
-</span><span id=__span-0-586><a id=__codelineno-0-586 name=__codelineno-0-586></a>
-</span><span id=__span-0-587><a id=__codelineno-0-587 name=__codelineno-0-587></a>        <span class=n>metas</span><span class=o>.</span><span class=n>append</span><span class=p>(</span><span class=n>task</span><span class=o>.</span><span class=n>metadata</span><span class=p>)</span>
-</span><span id=__span-0-588><a id=__codelineno-0-588 name=__codelineno-0-588></a>        <span class=n>geos</span><span class=o>.</span><span class=n>append</span><span class=p>(</span><span class=n>task</span><span class=o>.</span><span class=n>geometry</span><span class=p>)</span>
-</span><span id=__span-0-589><a id=__codelineno-0-589 name=__codelineno-0-589></a>
-</span><span id=__span-0-590><a id=__codelineno-0-590 name=__codelineno-0-590></a>    <span class=n>index</span> <span class=o>=</span> <span class=n>pd</span><span class=o>.</span><span class=n>MultiIndex</span><span class=o>.</span><span class=n>from_tuples</span><span class=p>(</span>
-</span><span id=__span-0-591><a id=__codelineno-0-591 name=__codelineno-0-591></a>        <span class=n>index</span><span class=p>,</span> <span class=n>names</span><span class=o>=</span><span class=p>[</span><span class=s2>&quot;task_number&quot;</span><span class=p>,</span> <span class=s2>&quot;cluster&quot;</span><span class=p>,</span> <span class=s2>&quot;perfect_sorting&quot;</span><span class=p>,</span> <span class=s2>&quot;pre_sequence&quot;</span><span class=p>]</span>
-</span><span id=__span-0-592><a id=__codelineno-0-592 name=__codelineno-0-592></a>    <span class=p>)</span>
-</span><span id=__span-0-593><a id=__codelineno-0-593 name=__codelineno-0-593></a>
-</span><span id=__span-0-594><a id=__codelineno-0-594 name=__codelineno-0-594></a>    <span class=n>df</span> <span class=o>=</span> <span class=n>pd</span><span class=o>.</span><span class=n>DataFrame</span><span class=p>(</span><span class=n>data</span><span class=p>,</span> <span class=n>index</span><span class=o>=</span><span class=n>index</span><span class=p>)</span>
-</span><span id=__span-0-595><a id=__codelineno-0-595 name=__codelineno-0-595></a>    <span class=n>df</span><span class=o>.</span><span class=n>sort_index</span><span class=p>(</span><span class=n>axis</span><span class=o>=</span><span class=s2>&quot;index&quot;</span><span class=p>)</span>
-</span><span id=__span-0-596><a id=__codelineno-0-596 name=__codelineno-0-596></a>
-</span><span id=__span-0-597><a id=__codelineno-0-597 name=__codelineno-0-597></a>    <span class=n>rept</span> <span class=o>=</span> <span class=kc>None</span>
-</span><span id=__span-0-598><a id=__codelineno-0-598 name=__codelineno-0-598></a>    <span class=k>if</span> <span class=bp>self</span><span class=o>.</span><span class=n>name</span> <span class=ow>is</span> <span class=kc>None</span><span class=p>:</span>
-</span><span id=__span-0-599><a id=__codelineno-0-599 name=__codelineno-0-599></a>        <span class=n>rept</span> <span class=o>=</span> <span class=n>Report</span><span class=p>(</span><span class=n>df</span><span class=p>,</span> <span class=n>metas</span><span class=p>,</span> <span class=n>geos</span><span class=p>,</span> <span class=s2>&quot;Remote&quot;</span><span class=p>)</span>
-</span><span id=__span-0-600><a id=__codelineno-0-600 name=__codelineno-0-600></a>    <span class=k>else</span><span class=p>:</span>
-</span><span id=__span-0-601><a id=__codelineno-0-601 name=__codelineno-0-601></a>        <span class=n>rept</span> <span class=o>=</span> <span class=n>Report</span><span class=p>(</span><span class=n>df</span><span class=p>,</span> <span class=n>metas</span><span class=p>,</span> <span class=n>geos</span><span class=p>,</span> <span class=bp>self</span><span class=o>.</span><span class=n>name</span><span class=p>)</span>
-</span><span id=__span-0-602><a id=__codelineno-0-602 name=__codelineno-0-602></a>
-</span><span id=__span-0-603><a id=__codelineno-0-603 name=__codelineno-0-603></a>    <span class=k>return</span> <span class=n>rept</span>
+<span class=normal><a href=#__codelineno-0-601>601</a></span></pre></div></td><td class=code><div><pre><span></span><code><span id=__span-0-517><a id=__codelineno-0-517 name=__codelineno-0-517></a><span class=k>def</span> <span class=nf>report</span><span class=p>(</span><span class=bp>self</span><span class=p>)</span> <span class=o>-&gt;</span> <span class=s2>&quot;Report&quot;</span><span class=p>:</span>
+</span><span id=__span-0-518><a id=__codelineno-0-518 name=__codelineno-0-518></a><span class=w>    </span><span class=sd>&quot;&quot;&quot;</span>
+</span><span id=__span-0-519><a id=__codelineno-0-519 name=__codelineno-0-519></a><span class=sd>    Generate analysis report base on currently</span>
+</span><span id=__span-0-520><a id=__codelineno-0-520 name=__codelineno-0-520></a><span class=sd>    completed tasks in the RemoteBatch.</span>
+</span><span id=__span-0-521><a id=__codelineno-0-521 name=__codelineno-0-521></a>
+</span><span id=__span-0-522><a id=__codelineno-0-522 name=__codelineno-0-522></a><span class=sd>    Return:</span>
+</span><span id=__span-0-523><a id=__codelineno-0-523 name=__codelineno-0-523></a><span class=sd>        Report</span>
+</span><span id=__span-0-524><a id=__codelineno-0-524 name=__codelineno-0-524></a>
+</span><span id=__span-0-525><a id=__codelineno-0-525 name=__codelineno-0-525></a><span class=sd>    &quot;&quot;&quot;</span>
+</span><span id=__span-0-526><a id=__codelineno-0-526 name=__codelineno-0-526></a>    <span class=c1>## this potentially can be specialize/disatch</span>
+</span><span id=__span-0-527><a id=__codelineno-0-527 name=__codelineno-0-527></a>    <span class=c1>## offline</span>
+</span><span id=__span-0-528><a id=__codelineno-0-528 name=__codelineno-0-528></a>    <span class=n>index</span> <span class=o>=</span> <span class=p>[]</span>
+</span><span id=__span-0-529><a id=__codelineno-0-529 name=__codelineno-0-529></a>    <span class=n>data</span> <span class=o>=</span> <span class=p>[]</span>
+</span><span id=__span-0-530><a id=__codelineno-0-530 name=__codelineno-0-530></a>    <span class=n>metas</span> <span class=o>=</span> <span class=p>[]</span>
+</span><span id=__span-0-531><a id=__codelineno-0-531 name=__codelineno-0-531></a>    <span class=n>geos</span> <span class=o>=</span> <span class=p>[]</span>
+</span><span id=__span-0-532><a id=__codelineno-0-532 name=__codelineno-0-532></a>
+</span><span id=__span-0-533><a id=__codelineno-0-533 name=__codelineno-0-533></a>    <span class=k>for</span> <span class=n>task_number</span><span class=p>,</span> <span class=n>task</span> <span class=ow>in</span> <span class=bp>self</span><span class=o>.</span><span class=n>tasks</span><span class=o>.</span><span class=n>items</span><span class=p>():</span>
+</span><span id=__span-0-534><a id=__codelineno-0-534 name=__codelineno-0-534></a>        <span class=c1>## fliter not existing results tasks:</span>
+</span><span id=__span-0-535><a id=__codelineno-0-535 name=__codelineno-0-535></a>        <span class=k>if</span> <span class=p>(</span><span class=n>task</span><span class=o>.</span><span class=n>task_id</span> <span class=ow>is</span> <span class=kc>None</span><span class=p>)</span> <span class=ow>or</span> <span class=p>(</span><span class=ow>not</span> <span class=n>task</span><span class=o>.</span><span class=n>_result_exists</span><span class=p>()):</span>
+</span><span id=__span-0-536><a id=__codelineno-0-536 name=__codelineno-0-536></a>            <span class=k>continue</span>
+</span><span id=__span-0-537><a id=__codelineno-0-537 name=__codelineno-0-537></a>
+</span><span id=__span-0-538><a id=__codelineno-0-538 name=__codelineno-0-538></a>        <span class=c1>## filter has result but is not correctly completed.</span>
+</span><span id=__span-0-539><a id=__codelineno-0-539 name=__codelineno-0-539></a>        <span class=k>if</span> <span class=ow>not</span> <span class=n>task</span><span class=o>.</span><span class=n>task_result_ir</span><span class=o>.</span><span class=n>task_status</span> <span class=o>==</span> <span class=n>QuEraTaskStatusCode</span><span class=o>.</span><span class=n>Completed</span><span class=p>:</span>
+</span><span id=__span-0-540><a id=__codelineno-0-540 name=__codelineno-0-540></a>            <span class=k>continue</span>
+</span><span id=__span-0-541><a id=__codelineno-0-541 name=__codelineno-0-541></a>
+</span><span id=__span-0-542><a id=__codelineno-0-542 name=__codelineno-0-542></a>        <span class=n>geometry</span> <span class=o>=</span> <span class=n>task</span><span class=o>.</span><span class=n>geometry</span>
+</span><span id=__span-0-543><a id=__codelineno-0-543 name=__codelineno-0-543></a>        <span class=n>perfect_sorting</span> <span class=o>=</span> <span class=s2>&quot;&quot;</span><span class=o>.</span><span class=n>join</span><span class=p>(</span><span class=nb>map</span><span class=p>(</span><span class=nb>str</span><span class=p>,</span> <span class=n>geometry</span><span class=o>.</span><span class=n>filling</span><span class=p>))</span>
+</span><span id=__span-0-544><a id=__codelineno-0-544 name=__codelineno-0-544></a>        <span class=n>parallel_decoder</span> <span class=o>=</span> <span class=n>geometry</span><span class=o>.</span><span class=n>parallel_decoder</span>
+</span><span id=__span-0-545><a id=__codelineno-0-545 name=__codelineno-0-545></a>
+</span><span id=__span-0-546><a id=__codelineno-0-546 name=__codelineno-0-546></a>        <span class=k>if</span> <span class=n>parallel_decoder</span><span class=p>:</span>
+</span><span id=__span-0-547><a id=__codelineno-0-547 name=__codelineno-0-547></a>            <span class=n>cluster_indices</span> <span class=o>=</span> <span class=n>parallel_decoder</span><span class=o>.</span><span class=n>get_cluster_indices</span><span class=p>()</span>
+</span><span id=__span-0-548><a id=__codelineno-0-548 name=__codelineno-0-548></a>        <span class=k>else</span><span class=p>:</span>
+</span><span id=__span-0-549><a id=__codelineno-0-549 name=__codelineno-0-549></a>            <span class=n>cluster_indices</span> <span class=o>=</span> <span class=p>{(</span><span class=mi>0</span><span class=p>,</span> <span class=mi>0</span><span class=p>):</span> <span class=nb>list</span><span class=p>(</span><span class=nb>range</span><span class=p>(</span><span class=nb>len</span><span class=p>(</span><span class=n>perfect_sorting</span><span class=p>)))}</span>
+</span><span id=__span-0-550><a id=__codelineno-0-550 name=__codelineno-0-550></a>
+</span><span id=__span-0-551><a id=__codelineno-0-551 name=__codelineno-0-551></a>        <span class=n>shot_iter</span> <span class=o>=</span> <span class=nb>filter</span><span class=p>(</span>
+</span><span id=__span-0-552><a id=__codelineno-0-552 name=__codelineno-0-552></a>            <span class=k>lambda</span> <span class=n>shot</span><span class=p>:</span> <span class=n>shot</span><span class=o>.</span><span class=n>shot_status</span> <span class=o>==</span> <span class=n>QuEraShotStatusCode</span><span class=o>.</span><span class=n>Completed</span><span class=p>,</span>
+</span><span id=__span-0-553><a id=__codelineno-0-553 name=__codelineno-0-553></a>            <span class=n>task</span><span class=o>.</span><span class=n>result</span><span class=p>()</span><span class=o>.</span><span class=n>shot_outputs</span><span class=p>,</span>
+</span><span id=__span-0-554><a id=__codelineno-0-554 name=__codelineno-0-554></a>        <span class=p>)</span>
+</span><span id=__span-0-555><a id=__codelineno-0-555 name=__codelineno-0-555></a>
+</span><span id=__span-0-556><a id=__codelineno-0-556 name=__codelineno-0-556></a>        <span class=k>for</span> <span class=n>shot</span><span class=p>,</span> <span class=p>(</span><span class=n>cluster_coordinate</span><span class=p>,</span> <span class=n>cluster_index</span><span class=p>)</span> <span class=ow>in</span> <span class=n>product</span><span class=p>(</span>
+</span><span id=__span-0-557><a id=__codelineno-0-557 name=__codelineno-0-557></a>            <span class=n>shot_iter</span><span class=p>,</span> <span class=n>cluster_indices</span><span class=o>.</span><span class=n>items</span><span class=p>()</span>
+</span><span id=__span-0-558><a id=__codelineno-0-558 name=__codelineno-0-558></a>        <span class=p>):</span>
+</span><span id=__span-0-559><a id=__codelineno-0-559 name=__codelineno-0-559></a>            <span class=n>pre_sequence</span> <span class=o>=</span> <span class=s2>&quot;&quot;</span><span class=o>.</span><span class=n>join</span><span class=p>(</span>
+</span><span id=__span-0-560><a id=__codelineno-0-560 name=__codelineno-0-560></a>                <span class=nb>map</span><span class=p>(</span>
+</span><span id=__span-0-561><a id=__codelineno-0-561 name=__codelineno-0-561></a>                    <span class=nb>str</span><span class=p>,</span>
+</span><span id=__span-0-562><a id=__codelineno-0-562 name=__codelineno-0-562></a>                    <span class=p>(</span><span class=n>shot</span><span class=o>.</span><span class=n>pre_sequence</span><span class=p>[</span><span class=n>index</span><span class=p>]</span> <span class=k>for</span> <span class=n>index</span> <span class=ow>in</span> <span class=n>cluster_index</span><span class=p>),</span>
+</span><span id=__span-0-563><a id=__codelineno-0-563 name=__codelineno-0-563></a>                <span class=p>)</span>
+</span><span id=__span-0-564><a id=__codelineno-0-564 name=__codelineno-0-564></a>            <span class=p>)</span>
+</span><span id=__span-0-565><a id=__codelineno-0-565 name=__codelineno-0-565></a>
+</span><span id=__span-0-566><a id=__codelineno-0-566 name=__codelineno-0-566></a>            <span class=n>post_sequence</span> <span class=o>=</span> <span class=n>np</span><span class=o>.</span><span class=n>asarray</span><span class=p>(</span>
+</span><span id=__span-0-567><a id=__codelineno-0-567 name=__codelineno-0-567></a>                <span class=p>[</span><span class=n>shot</span><span class=o>.</span><span class=n>post_sequence</span><span class=p>[</span><span class=n>index</span><span class=p>]</span> <span class=k>for</span> <span class=n>index</span> <span class=ow>in</span> <span class=n>cluster_index</span><span class=p>],</span>
+</span><span id=__span-0-568><a id=__codelineno-0-568 name=__codelineno-0-568></a>                <span class=n>dtype</span><span class=o>=</span><span class=n>np</span><span class=o>.</span><span class=n>int8</span><span class=p>,</span>
+</span><span id=__span-0-569><a id=__codelineno-0-569 name=__codelineno-0-569></a>            <span class=p>)</span>
+</span><span id=__span-0-570><a id=__codelineno-0-570 name=__codelineno-0-570></a>
+</span><span id=__span-0-571><a id=__codelineno-0-571 name=__codelineno-0-571></a>            <span class=n>pfc_sorting</span> <span class=o>=</span> <span class=s2>&quot;&quot;</span><span class=o>.</span><span class=n>join</span><span class=p>(</span>
+</span><span id=__span-0-572><a id=__codelineno-0-572 name=__codelineno-0-572></a>                <span class=p>[</span><span class=n>perfect_sorting</span><span class=p>[</span><span class=n>index</span><span class=p>]</span> <span class=k>for</span> <span class=n>index</span> <span class=ow>in</span> <span class=n>cluster_index</span><span class=p>]</span>
+</span><span id=__span-0-573><a id=__codelineno-0-573 name=__codelineno-0-573></a>            <span class=p>)</span>
+</span><span id=__span-0-574><a id=__codelineno-0-574 name=__codelineno-0-574></a>
+</span><span id=__span-0-575><a id=__codelineno-0-575 name=__codelineno-0-575></a>            <span class=n>key</span> <span class=o>=</span> <span class=p>(</span>
+</span><span id=__span-0-576><a id=__codelineno-0-576 name=__codelineno-0-576></a>                <span class=n>task_number</span><span class=p>,</span>
+</span><span id=__span-0-577><a id=__codelineno-0-577 name=__codelineno-0-577></a>                <span class=n>cluster_coordinate</span><span class=p>,</span>
+</span><span id=__span-0-578><a id=__codelineno-0-578 name=__codelineno-0-578></a>                <span class=n>pfc_sorting</span><span class=p>,</span>
+</span><span id=__span-0-579><a id=__codelineno-0-579 name=__codelineno-0-579></a>                <span class=n>pre_sequence</span><span class=p>,</span>
+</span><span id=__span-0-580><a id=__codelineno-0-580 name=__codelineno-0-580></a>            <span class=p>)</span>
+</span><span id=__span-0-581><a id=__codelineno-0-581 name=__codelineno-0-581></a>
+</span><span id=__span-0-582><a id=__codelineno-0-582 name=__codelineno-0-582></a>            <span class=n>index</span><span class=o>.</span><span class=n>append</span><span class=p>(</span><span class=n>key</span><span class=p>)</span>
+</span><span id=__span-0-583><a id=__codelineno-0-583 name=__codelineno-0-583></a>            <span class=n>data</span><span class=o>.</span><span class=n>append</span><span class=p>(</span><span class=n>post_sequence</span><span class=p>)</span>
+</span><span id=__span-0-584><a id=__codelineno-0-584 name=__codelineno-0-584></a>
+</span><span id=__span-0-585><a id=__codelineno-0-585 name=__codelineno-0-585></a>        <span class=n>metas</span><span class=o>.</span><span class=n>append</span><span class=p>(</span><span class=n>task</span><span class=o>.</span><span class=n>metadata</span><span class=p>)</span>
+</span><span id=__span-0-586><a id=__codelineno-0-586 name=__codelineno-0-586></a>        <span class=n>geos</span><span class=o>.</span><span class=n>append</span><span class=p>(</span><span class=n>task</span><span class=o>.</span><span class=n>geometry</span><span class=p>)</span>
+</span><span id=__span-0-587><a id=__codelineno-0-587 name=__codelineno-0-587></a>
+</span><span id=__span-0-588><a id=__codelineno-0-588 name=__codelineno-0-588></a>    <span class=n>index</span> <span class=o>=</span> <span class=n>pd</span><span class=o>.</span><span class=n>MultiIndex</span><span class=o>.</span><span class=n>from_tuples</span><span class=p>(</span>
+</span><span id=__span-0-589><a id=__codelineno-0-589 name=__codelineno-0-589></a>        <span class=n>index</span><span class=p>,</span> <span class=n>names</span><span class=o>=</span><span class=p>[</span><span class=s2>&quot;task_number&quot;</span><span class=p>,</span> <span class=s2>&quot;cluster&quot;</span><span class=p>,</span> <span class=s2>&quot;perfect_sorting&quot;</span><span class=p>,</span> <span class=s2>&quot;pre_sequence&quot;</span><span class=p>]</span>
+</span><span id=__span-0-590><a id=__codelineno-0-590 name=__codelineno-0-590></a>    <span class=p>)</span>
+</span><span id=__span-0-591><a id=__codelineno-0-591 name=__codelineno-0-591></a>
+</span><span id=__span-0-592><a id=__codelineno-0-592 name=__codelineno-0-592></a>    <span class=n>df</span> <span class=o>=</span> <span class=n>pd</span><span class=o>.</span><span class=n>DataFrame</span><span class=p>(</span><span class=n>data</span><span class=p>,</span> <span class=n>index</span><span class=o>=</span><span class=n>index</span><span class=p>)</span>
+</span><span id=__span-0-593><a id=__codelineno-0-593 name=__codelineno-0-593></a>    <span class=n>df</span><span class=o>.</span><span class=n>sort_index</span><span class=p>(</span><span class=n>axis</span><span class=o>=</span><span class=s2>&quot;index&quot;</span><span class=p>)</span>
+</span><span id=__span-0-594><a id=__codelineno-0-594 name=__codelineno-0-594></a>
+</span><span id=__span-0-595><a id=__codelineno-0-595 name=__codelineno-0-595></a>    <span class=n>rept</span> <span class=o>=</span> <span class=kc>None</span>
+</span><span id=__span-0-596><a id=__codelineno-0-596 name=__codelineno-0-596></a>    <span class=k>if</span> <span class=bp>self</span><span class=o>.</span><span class=n>name</span> <span class=ow>is</span> <span class=kc>None</span><span class=p>:</span>
+</span><span id=__span-0-597><a id=__codelineno-0-597 name=__codelineno-0-597></a>        <span class=n>rept</span> <span class=o>=</span> <span class=n>Report</span><span class=p>(</span><span class=n>df</span><span class=p>,</span> <span class=n>metas</span><span class=p>,</span> <span class=n>geos</span><span class=p>,</span> <span class=s2>&quot;Remote&quot;</span><span class=p>)</span>
+</span><span id=__span-0-598><a id=__codelineno-0-598 name=__codelineno-0-598></a>    <span class=k>else</span><span class=p>:</span>
+</span><span id=__span-0-599><a id=__codelineno-0-599 name=__codelineno-0-599></a>        <span class=n>rept</span> <span class=o>=</span> <span class=n>Report</span><span class=p>(</span><span class=n>df</span><span class=p>,</span> <span class=n>metas</span><span class=p>,</span> <span class=n>geos</span><span class=p>,</span> <span class=bp>self</span><span class=o>.</span><span class=n>name</span><span class=p>)</span>
+</span><span id=__span-0-600><a id=__codelineno-0-600 name=__codelineno-0-600></a>
+</span><span id=__span-0-601><a id=__codelineno-0-601 name=__codelineno-0-601></a>    <span class=k>return</span> <span class=n>rept</span>
 </span></code></pre></div></td></tr></table></div> </details> </div> </div> <div class="doc doc-object doc-function"> <h3 id=bloqade.task.batch.RemoteBatch.resubmit class="doc doc-heading"> <span class="doc doc-object-name doc-function-name">resubmit</span> <a href=#bloqade.task.batch.RemoteBatch.resubmit class=headerlink title="Permanent link">&para;</a></h3> <div class="doc-signature highlight"><pre><span></span><code><span id=__span-0-1><a id=__codelineno-0-1 name=__codelineno-0-1 href=#__codelineno-0-1></a><span class=n>resubmit</span><span class=p>(</span><span class=n>shuffle_submit_order</span><span class=o>=</span><span class=kc>True</span><span class=p>)</span>
-</span></code></pre></div> <div class="doc doc-contents "> <p>Resubmit all the tasks in the RemoteBatch</p> <details class=return open> <summary>Return</summary> <p>self</p> </details> <details class=quote> <summary>Source code in <code>src/bloqade/task/batch.py</code></summary> <div class=highlight><table class=highlighttable><tr><td class=linenos><div class=linenodiv><pre><span></span><span class=normal><a href=#__codelineno-0-308>308</a></span>
+</span></code></pre></div> <div class="doc doc-contents "> <p>Resubmit all the tasks in the RemoteBatch</p> <details class=return open> <summary>Return</summary> <p>self</p> </details> <details class=quote> <summary>Source code in <code>src/bloqade/task/batch.py</code></summary> <div class=highlight><table class=highlighttable><tr><td class=linenos><div class=linenodiv><pre><span></span><span class=normal><a href=#__codelineno-0-307>307</a></span>
+<span class=normal><a href=#__codelineno-0-308>308</a></span>
 <span class=normal><a href=#__codelineno-0-309>309</a></span>
 <span class=normal><a href=#__codelineno-0-310>310</a></span>
 <span class=normal><a href=#__codelineno-0-311>311</a></span>
@@ -722,19 +721,18 @@
 <span class=normal><a href=#__codelineno-0-315>315</a></span>
 <span class=normal><a href=#__codelineno-0-316>316</a></span>
 <span class=normal><a href=#__codelineno-0-317>317</a></span>
-<span class=normal><a href=#__codelineno-0-318>318</a></span>
-<span class=normal><a href=#__codelineno-0-319>319</a></span></pre></div></td><td class=code><div><pre><span></span><code><span id=__span-0-308><a id=__codelineno-0-308 name=__codelineno-0-308></a><span class=nd>@beartype</span>
-</span><span id=__span-0-309><a id=__codelineno-0-309 name=__codelineno-0-309></a><span class=k>def</span> <span class=nf>resubmit</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=n>shuffle_submit_order</span><span class=p>:</span> <span class=nb>bool</span> <span class=o>=</span> <span class=kc>True</span><span class=p>)</span> <span class=o>-&gt;</span> <span class=s2>&quot;RemoteBatch&quot;</span><span class=p>:</span>
-</span><span id=__span-0-310><a id=__codelineno-0-310 name=__codelineno-0-310></a><span class=w>    </span><span class=sd>&quot;&quot;&quot;</span>
-</span><span id=__span-0-311><a id=__codelineno-0-311 name=__codelineno-0-311></a><span class=sd>    Resubmit all the tasks in the RemoteBatch</span>
-</span><span id=__span-0-312><a id=__codelineno-0-312 name=__codelineno-0-312></a>
-</span><span id=__span-0-313><a id=__codelineno-0-313 name=__codelineno-0-313></a><span class=sd>    Return:</span>
-</span><span id=__span-0-314><a id=__codelineno-0-314 name=__codelineno-0-314></a><span class=sd>        self</span>
-</span><span id=__span-0-315><a id=__codelineno-0-315 name=__codelineno-0-315></a>
-</span><span id=__span-0-316><a id=__codelineno-0-316 name=__codelineno-0-316></a><span class=sd>    &quot;&quot;&quot;</span>
-</span><span id=__span-0-317><a id=__codelineno-0-317 name=__codelineno-0-317></a>    <span class=c1># online, non-blocking</span>
-</span><span id=__span-0-318><a id=__codelineno-0-318 name=__codelineno-0-318></a>    <span class=bp>self</span><span class=o>.</span><span class=n>_submit</span><span class=p>(</span><span class=n>shuffle_submit_order</span><span class=p>,</span> <span class=n>force</span><span class=o>=</span><span class=kc>True</span><span class=p>)</span>
-</span><span id=__span-0-319><a id=__codelineno-0-319 name=__codelineno-0-319></a>    <span class=k>return</span> <span class=bp>self</span>
+<span class=normal><a href=#__codelineno-0-318>318</a></span></pre></div></td><td class=code><div><pre><span></span><code><span id=__span-0-307><a id=__codelineno-0-307 name=__codelineno-0-307></a><span class=nd>@beartype</span>
+</span><span id=__span-0-308><a id=__codelineno-0-308 name=__codelineno-0-308></a><span class=k>def</span> <span class=nf>resubmit</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=n>shuffle_submit_order</span><span class=p>:</span> <span class=nb>bool</span> <span class=o>=</span> <span class=kc>True</span><span class=p>)</span> <span class=o>-&gt;</span> <span class=s2>&quot;RemoteBatch&quot;</span><span class=p>:</span>
+</span><span id=__span-0-309><a id=__codelineno-0-309 name=__codelineno-0-309></a><span class=w>    </span><span class=sd>&quot;&quot;&quot;</span>
+</span><span id=__span-0-310><a id=__codelineno-0-310 name=__codelineno-0-310></a><span class=sd>    Resubmit all the tasks in the RemoteBatch</span>
+</span><span id=__span-0-311><a id=__codelineno-0-311 name=__codelineno-0-311></a>
+</span><span id=__span-0-312><a id=__codelineno-0-312 name=__codelineno-0-312></a><span class=sd>    Return:</span>
+</span><span id=__span-0-313><a id=__codelineno-0-313 name=__codelineno-0-313></a><span class=sd>        self</span>
+</span><span id=__span-0-314><a id=__codelineno-0-314 name=__codelineno-0-314></a>
+</span><span id=__span-0-315><a id=__codelineno-0-315 name=__codelineno-0-315></a><span class=sd>    &quot;&quot;&quot;</span>
+</span><span id=__span-0-316><a id=__codelineno-0-316 name=__codelineno-0-316></a>    <span class=c1># online, non-blocking</span>
+</span><span id=__span-0-317><a id=__codelineno-0-317 name=__codelineno-0-317></a>    <span class=bp>self</span><span class=o>.</span><span class=n>_submit</span><span class=p>(</span><span class=n>shuffle_submit_order</span><span class=p>,</span> <span class=n>force</span><span class=o>=</span><span class=kc>True</span><span class=p>)</span>
+</span><span id=__span-0-318><a id=__codelineno-0-318 name=__codelineno-0-318></a>    <span class=k>return</span> <span class=bp>self</span>
 </span></code></pre></div></td></tr></table></div> </details> </div> </div> <div class="doc doc-object doc-function"> <h3 id=bloqade.task.batch.RemoteBatch.tasks_metric class="doc doc-heading"> <span class="doc doc-object-name doc-function-name">tasks_metric</span> <a href=#bloqade.task.batch.RemoteBatch.tasks_metric class=headerlink title="Permanent link">&para;</a></h3> <div class="doc-signature highlight"><pre><span></span><code><span id=__span-0-1><a id=__codelineno-0-1 name=__codelineno-0-1 href=#__codelineno-0-1></a><span class=n>tasks_metric</span><span class=p>()</span>
 </span></code></pre></div> <div class="doc doc-contents "> <p>Get current tasks status metric</p> <details class=return open> <summary>Return</summary> <p>dataframe with ["task id", "status", "shots"]</p> </details> <details class=quote> <summary>Source code in <code>src/bloqade/task/batch.py</code></summary> <div class=highlight><table class=highlighttable><tr><td class=linenos><div class=linenodiv><pre><span></span><span class=normal><a href=#__codelineno-0-269>269</a></span>
 <span class=normal><a href=#__codelineno-0-270>270</a></span>
@@ -758,8 +756,7 @@
 <span class=normal><a href=#__codelineno-0-288>288</a></span>
 <span class=normal><a href=#__codelineno-0-289>289</a></span>
 <span class=normal><a href=#__codelineno-0-290>290</a></span>
-<span class=normal><a href=#__codelineno-0-291>291</a></span>
-<span class=normal><a href=#__codelineno-0-292>292</a></span></pre></div></td><td class=code><div><pre><span></span><code><span id=__span-0-269><a id=__codelineno-0-269 name=__codelineno-0-269></a><span class=k>def</span> <span class=nf>tasks_metric</span><span class=p>(</span><span class=bp>self</span><span class=p>)</span> <span class=o>-&gt;</span> <span class=n>pd</span><span class=o>.</span><span class=n>DataFrame</span><span class=p>:</span>
+<span class=normal><a href=#__codelineno-0-291>291</a></span></pre></div></td><td class=code><div><pre><span></span><code><span id=__span-0-269><a id=__codelineno-0-269 name=__codelineno-0-269></a><span class=k>def</span> <span class=nf>tasks_metric</span><span class=p>(</span><span class=bp>self</span><span class=p>)</span> <span class=o>-&gt;</span> <span class=n>pd</span><span class=o>.</span><span class=n>DataFrame</span><span class=p>:</span>
 </span><span id=__span-0-270><a id=__codelineno-0-270 name=__codelineno-0-270></a><span class=w>    </span><span class=sd>&quot;&quot;&quot;</span>
 </span><span id=__span-0-271><a id=__codelineno-0-271 name=__codelineno-0-271></a><span class=sd>    Get current tasks status metric</span>
 </span><span id=__span-0-272><a id=__codelineno-0-272 name=__codelineno-0-272></a>
@@ -776,13 +773,12 @@
 </span><span id=__span-0-283><a id=__codelineno-0-283 name=__codelineno-0-283></a>
 </span><span id=__span-0-284><a id=__codelineno-0-284 name=__codelineno-0-284></a>        <span class=n>dat</span> <span class=o>=</span> <span class=p>[</span><span class=kc>None</span><span class=p>,</span> <span class=kc>None</span><span class=p>,</span> <span class=kc>None</span><span class=p>]</span>
 </span><span id=__span-0-285><a id=__codelineno-0-285 name=__codelineno-0-285></a>        <span class=n>dat</span><span class=p>[</span><span class=mi>0</span><span class=p>]</span> <span class=o>=</span> <span class=n>task</span><span class=o>.</span><span class=n>task_id</span>
-</span><span id=__span-0-286><a id=__codelineno-0-286 name=__codelineno-0-286></a>        <span class=k>if</span> <span class=n>task</span><span class=o>.</span><span class=n>task_id</span> <span class=ow>is</span> <span class=ow>not</span> <span class=kc>None</span><span class=p>:</span>
-</span><span id=__span-0-287><a id=__codelineno-0-287 name=__codelineno-0-287></a>            <span class=k>if</span> <span class=n>task</span><span class=o>.</span><span class=n>task_result_ir</span> <span class=ow>is</span> <span class=ow>not</span> <span class=kc>None</span><span class=p>:</span>
-</span><span id=__span-0-288><a id=__codelineno-0-288 name=__codelineno-0-288></a>                <span class=n>dat</span><span class=p>[</span><span class=mi>1</span><span class=p>]</span> <span class=o>=</span> <span class=n>task</span><span class=o>.</span><span class=n>task_result_ir</span><span class=o>.</span><span class=n>task_status</span><span class=o>.</span><span class=n>name</span>
-</span><span id=__span-0-289><a id=__codelineno-0-289 name=__codelineno-0-289></a>                <span class=n>dat</span><span class=p>[</span><span class=mi>2</span><span class=p>]</span> <span class=o>=</span> <span class=n>task</span><span class=o>.</span><span class=n>task_ir</span><span class=o>.</span><span class=n>nshots</span>
-</span><span id=__span-0-290><a id=__codelineno-0-290 name=__codelineno-0-290></a>        <span class=n>data</span><span class=o>.</span><span class=n>append</span><span class=p>(</span><span class=n>dat</span><span class=p>)</span>
-</span><span id=__span-0-291><a id=__codelineno-0-291 name=__codelineno-0-291></a>
-</span><span id=__span-0-292><a id=__codelineno-0-292 name=__codelineno-0-292></a>    <span class=k>return</span> <span class=n>pd</span><span class=o>.</span><span class=n>DataFrame</span><span class=p>(</span><span class=n>data</span><span class=p>,</span> <span class=n>index</span><span class=o>=</span><span class=n>tid</span><span class=p>,</span> <span class=n>columns</span><span class=o>=</span><span class=p>[</span><span class=s2>&quot;task ID&quot;</span><span class=p>,</span> <span class=s2>&quot;status&quot;</span><span class=p>,</span> <span class=s2>&quot;shots&quot;</span><span class=p>])</span>
+</span><span id=__span-0-286><a id=__codelineno-0-286 name=__codelineno-0-286></a>        <span class=k>if</span> <span class=n>task</span><span class=o>.</span><span class=n>task_result_ir</span> <span class=ow>is</span> <span class=ow>not</span> <span class=kc>None</span><span class=p>:</span>
+</span><span id=__span-0-287><a id=__codelineno-0-287 name=__codelineno-0-287></a>            <span class=n>dat</span><span class=p>[</span><span class=mi>1</span><span class=p>]</span> <span class=o>=</span> <span class=n>task</span><span class=o>.</span><span class=n>task_result_ir</span><span class=o>.</span><span class=n>task_status</span><span class=o>.</span><span class=n>name</span>
+</span><span id=__span-0-288><a id=__codelineno-0-288 name=__codelineno-0-288></a>            <span class=n>dat</span><span class=p>[</span><span class=mi>2</span><span class=p>]</span> <span class=o>=</span> <span class=n>task</span><span class=o>.</span><span class=n>task_ir</span><span class=o>.</span><span class=n>nshots</span>
+</span><span id=__span-0-289><a id=__codelineno-0-289 name=__codelineno-0-289></a>        <span class=n>data</span><span class=o>.</span><span class=n>append</span><span class=p>(</span><span class=n>dat</span><span class=p>)</span>
+</span><span id=__span-0-290><a id=__codelineno-0-290 name=__codelineno-0-290></a>
+</span><span id=__span-0-291><a id=__codelineno-0-291 name=__codelineno-0-291></a>    <span class=k>return</span> <span class=n>pd</span><span class=o>.</span><span class=n>DataFrame</span><span class=p>(</span><span class=n>data</span><span class=p>,</span> <span class=n>index</span><span class=o>=</span><span class=n>tid</span><span class=p>,</span> <span class=n>columns</span><span class=o>=</span><span class=p>[</span><span class=s2>&quot;task ID&quot;</span><span class=p>,</span> <span class=s2>&quot;status&quot;</span><span class=p>,</span> <span class=s2>&quot;shots&quot;</span><span class=p>])</span>
 </span></code></pre></div></td></tr></table></div> </details> </div> </div> </div> </div> </div> <div class="doc doc-object doc-class"> <h2 id=bloqade.task.batch.Serializable class="doc doc-heading"> <span class="doc doc-object-name doc-class-name">Serializable</span> <a href=#bloqade.task.batch.Serializable class=headerlink title="Permanent link">&para;</a></h2> <div class="doc doc-contents "> <div class="doc doc-children"> <div class="doc doc-object doc-function"> <h3 id=bloqade.task.batch.Serializable.json class="doc doc-heading"> <span class="doc doc-object-name doc-function-name">json</span> <a href=#bloqade.task.batch.Serializable.json class=headerlink title="Permanent link">&para;</a></h3> <div class="doc-signature highlight"><pre><span></span><code><span id=__span-0-1><a id=__codelineno-0-1 name=__codelineno-0-1 href=#__codelineno-0-1></a><span class=n>json</span><span class=p>(</span><span class=o>**</span><span class=n>options</span><span class=p>)</span>
 </span></code></pre></div> <div class="doc doc-contents "> <p>Serialize the object to JSON string.</p> <details class=return open> <summary>Return</summary> <p>JSON string</p> </details> <details class=quote> <summary>Source code in <code>src/bloqade/task/batch.py</code></summary> <div class=highlight><table class=highlighttable><tr><td class=linenos><div class=linenodiv><pre><span></span><span class=normal><a href=#__codelineno-0-33>33</a></span>
 <span class=normal><a href=#__codelineno-0-34>34</a></span>
