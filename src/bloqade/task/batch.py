@@ -240,6 +240,14 @@ class RemoteBatch(Serializable):
         # online, non-blocking
         # pull the results only when its ready
         for task in self.tasks.values():
+            if task.task_id is None and task._result_exists():
+                # this corresponds to a task that failed to submit.
+                # we should not fetch it. This will error out.
+                # and prevent the batch from being fetched.
+                # only if the batch was compiled but not submitted
+                # we should error out.
+                continue
+
             task.fetch()
 
         return self
@@ -407,7 +415,7 @@ class RemoteBatch(Serializable):
 
         new_task_results = OrderedDict()
         for task_number, task in self.tasks.items():
-            if (task.task_id is not None) and (task._result_exists()):
+            if task._result_exists():
                 if task.task_result_ir.task_status in st_codes:
                     new_task_results[task_number] = task
 
@@ -428,9 +436,10 @@ class RemoteBatch(Serializable):
 
         new_results = OrderedDict()
         for task_number, task in self.tasks.items():
-            if (task.task_id is not None) and (task._result_exists()):
+            if task._result_exists():
                 if task.task_result_ir.task_status in st_codes:
                     continue
+
             new_results[task_number] = task
 
         return RemoteBatch(self.source, new_results, self.name)

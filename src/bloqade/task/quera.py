@@ -107,9 +107,6 @@ class QuEraTask(RemoteTask):
         )
 
     def _result_exists(self) -> bool:
-        if self.task_id is None:
-            return False
-
         if self.task_result_ir is None:
             return False
         else:
