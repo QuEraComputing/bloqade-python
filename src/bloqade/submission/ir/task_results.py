@@ -26,6 +26,7 @@ class QuEraTaskStatusCode(str, Enum):
     Accepted = "Accepted"
     Unaccepted = "Unaccepted"
     Partial = "Partial"
+    Unsubmitted = "Unsubmitted"
 
 
 class QuEraShotResult(BaseModel):

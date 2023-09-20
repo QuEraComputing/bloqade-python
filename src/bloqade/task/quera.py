@@ -23,7 +23,9 @@ class QuEraTask(RemoteTask):
     task_ir: QuEraTaskSpecification
     metadata: Dict[str, ParamType]
     parallel_decoder: Optional[ParallelDecoder] = None
-    task_result_ir: Optional[QuEraTaskResults] = None
+    task_result_ir: QuEraTaskResults = QuEraTaskResults(
+        task_status=QuEraTaskStatusCode.Unsubmitted
+    )
 
     def submit(self, force: bool = False) -> "QuEraTask":
         if not force:
@@ -48,10 +50,10 @@ class QuEraTask(RemoteTask):
 
     def fetch(self) -> "QuEraTask":
         # non-blocking, pull only when its completed
-        if self.task_id is None and self.task_result_ir is None:
+        if self.task_result_ir.task_status is QuEraTaskStatusCode.Unsubmitted:
             raise ValueError("Task ID not found.")
 
-        if self.task_result_ir is not None and self.task_result_ir.task_status in [
+        if self.task_result_ir.task_status in [
             QuEraTaskStatusCode.Completed,
             QuEraTaskStatusCode.Partial,
             QuEraTaskStatusCode.Failed,
