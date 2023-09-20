@@ -406,7 +406,7 @@ class RemoteBatch(Serializable):
 
         new_task_results = OrderedDict()
         for task_number, task in self.tasks.items():
-            if task._result_exists():
+            if task.task_result_ir is not None:
                 if task.task_result_ir.task_status in st_codes:
                     new_task_results[task_number] = task
 
@@ -427,7 +427,7 @@ class RemoteBatch(Serializable):
 
         new_results = OrderedDict()
         for task_number, task in self.tasks.items():
-            if task._result_exists():
+            if task.task_result_ir is not None:
                 if task.task_result_ir.task_status in st_codes:
                     continue
 
