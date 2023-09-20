@@ -240,14 +240,6 @@ class RemoteBatch(Serializable):
         # online, non-blocking
         # pull the results only when its ready
         for task in self.tasks.values():
-            if task.task_id is None and task._result_exists():
-                # this corresponds to a task that failed to submit.
-                # we should not fetch it. This will error out.
-                # and prevent the batch from being fetched.
-                # only if the batch was compiled but not submitted
-                # we should error out.
-                continue
-
             task.fetch()
 
         return self
@@ -291,10 +283,9 @@ class RemoteBatch(Serializable):
 
             dat = [None, None, None]
             dat[0] = task.task_id
-            if task.task_id is not None:
-                if task.task_result_ir is not None:
-                    dat[1] = task.task_result_ir.task_status.name
-                    dat[2] = task.task_ir.nshots
+            if task.task_result_ir is not None:
+                dat[1] = task.task_result_ir.task_status.name
+                dat[2] = task.task_ir.nshots
             data.append(dat)
 
         return pd.DataFrame(data, index=tid, columns=["task ID", "status", "shots"])
