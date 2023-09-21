@@ -60,6 +60,7 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
 
     def visit_analog_circuit(self, ast: ir.AnalogCircuit):
         self.n_atoms = ast.register.n_atoms
+        self.n_sites = ast.register.n_sites
 
         self.visit(ast.sequence)
         self.visit(ast.register)
@@ -144,6 +145,14 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
 
     def visit_scaled_locations(self, ast: ScaledLocations) -> Dict[int, Decimal]:
         target_atoms = {}
+
+        for location in ast.value.keys():
+            if location.value >= self.n_sites or location.value < 0:
+                raise ValueError(
+                    f"Location {location.value} is out of bounds for register with "
+                    f"{self.n_sites} sites."
+                )
+
         for new_index, original_index in enumerate(self.original_index):
             value = ast.value.get(original_index, scalar.Literal(0))
             target_atoms[new_index] = value(**self.assignments)
