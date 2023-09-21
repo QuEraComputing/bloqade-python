@@ -30,7 +30,7 @@ nav:
       - blog/posts/bloqade-release.md
   - License: https://github.com/QuEraComputing/bloqade-python/blob/main/LICENSE
 
-copyright: Copyright &copy; 2022 - QuEra Computing Inc.
+copyright: Copyright &copy; 2023 - QuEra Computing Inc.
 theme:
   name: material
   custom_dir: overrides
