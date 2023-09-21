@@ -34,7 +34,7 @@ class RabiOperator:
     phase: Optional[Callable[[float], float]] = None
 
     def dot(self, register: NDArray, time: float):
-        amplitude = self.amplitude(time)
+        amplitude = self.amplitude(time) / 2
         if self.phase is None:
             return self.op.dot(register) * amplitude
 
