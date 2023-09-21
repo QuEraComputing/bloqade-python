@@ -34,7 +34,7 @@ With our commitment to enabling more seamless program development, we've put the
 
 No more obnoxious switching between your favorite coding environment and documentation in a separate window. Let Bloqade guide you where you'd like to go:
 
-![](../../assets/readme-gifs/smart-docs.gif)
+![](../../../assets/readme-gifs/smart-docs.gif)
 
 #### Fully Parameterized Analog Programs
 
