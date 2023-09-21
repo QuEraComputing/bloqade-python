@@ -11,7 +11,7 @@ from bloqade.submission.quera import QuEraBackend
 
 from beartype.typing import Dict, Optional, Union, Any
 from bloqade.builder.base import ParamType
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import warnings
 
 
@@ -23,7 +23,11 @@ class QuEraTask(RemoteTask):
     task_ir: QuEraTaskSpecification
     metadata: Dict[str, ParamType]
     parallel_decoder: Optional[ParallelDecoder] = None
-    task_result_ir: Optional[QuEraTaskResults] = None
+    task_result_ir: QuEraTaskResults = field(
+        default_factory=lambda: QuEraTaskResults(
+            task_status=QuEraTaskStatusCode.Unsubmitted
+        )
+    )
 
     def submit(self, force: bool = False) -> "QuEraTask":
         if not force:
@@ -48,11 +52,20 @@ class QuEraTask(RemoteTask):
 
     def fetch(self) -> "QuEraTask":
         # non-blocking, pull only when its completed
-        if self.task_id is None:
+        if self.task_result_ir.task_status is QuEraTaskStatusCode.Unsubmitted:
             raise ValueError("Task ID not found.")
 
+        if self.task_result_ir.task_status in [
+            QuEraTaskStatusCode.Completed,
+            QuEraTaskStatusCode.Partial,
+            QuEraTaskStatusCode.Failed,
+            QuEraTaskStatusCode.Unaccepted,
+            QuEraTaskStatusCode.Cancelled,
+        ]:
+            return self
+
         status = self.status()
-        if status == QuEraTaskStatusCode.Completed:
+        if status in [QuEraTaskStatusCode.Completed, QuEraTaskStatusCode.Partial]:
             self.task_result_ir = self.backend.task_results(self.task_id)
         else:
             self.task_result_ir = QuEraTaskResults(task_status=status)
@@ -107,9 +120,6 @@ class QuEraTask(RemoteTask):
         )
 
     def _result_exists(self) -> bool:
-        if self.task_id is None:
-            return False
-
         if self.task_result_ir is None:
             return False
         else:

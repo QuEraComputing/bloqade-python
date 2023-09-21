@@ -283,10 +283,9 @@ class RemoteBatch(Serializable):
 
             dat = [None, None, None]
             dat[0] = task.task_id
-            if task.task_id is not None:
-                if task.task_result_ir is not None:
-                    dat[1] = task.task_result_ir.task_status.name
-                    dat[2] = task.task_ir.nshots
+            if task.task_result_ir is not None:
+                dat[1] = task.task_result_ir.task_status.name
+                dat[2] = task.task_ir.nshots
             data.append(dat)
 
         return pd.DataFrame(data, index=tid, columns=["task ID", "status", "shots"])
@@ -407,9 +406,8 @@ class RemoteBatch(Serializable):
 
         new_task_results = OrderedDict()
         for task_number, task in self.tasks.items():
-            if (task.task_id is not None) and (task._result_exists()):
-                if task.task_result_ir.task_status in st_codes:
-                    new_task_results[task_number] = task
+            if task.task_result_ir.task_status in st_codes:
+                new_task_results[task_number] = task
 
         return RemoteBatch(self.source, new_task_results, name=self.name)
 
@@ -428,9 +426,9 @@ class RemoteBatch(Serializable):
 
         new_results = OrderedDict()
         for task_number, task in self.tasks.items():
-            if (task.task_id is not None) and (task._result_exists()):
-                if task.task_result_ir.task_status in st_codes:
-                    continue
+            if task.task_result_ir.task_status in st_codes:
+                continue
+
             new_results[task_number] = task
 
         return RemoteBatch(self.source, new_results, self.name)

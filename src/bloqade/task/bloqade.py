@@ -63,7 +63,8 @@ class BloqadeTask(LocalTask):
             shot_result = QuEraShotResult(
                 shot_status=QuEraShotStatusCode.Completed,
                 pre_sequence=[1 for _ in shot],
-                post_sequence=list(shot),
+                # flip the bits so that 1 = ground state and 0 = excited state
+                post_sequence=list(1 - shot),
             )
             shot_outputs.append(shot_result)
 
