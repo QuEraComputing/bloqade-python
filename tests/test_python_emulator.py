@@ -177,8 +177,8 @@ def KS_test(
         lhs_cdf.append(lhs_counts.get(bitstring, 0) / n)
         rhs_cdf.append(rhs_counts.get(bitstring, 0) / m)
 
-    lhs_cdf = np.cumsum(sorted(lhs_cdf, reverse=True))
-    rhs_cdf = np.cumsum(sorted(rhs_cdf, reverse=True))
+    lhs_cdf = np.cumsum(lhs_cdf)
+    rhs_cdf = np.cumsum(rhs_cdf)
 
     c_alpha = np.sqrt(-0.5 * np.log(alpha / 2))
 
