@@ -115,7 +115,12 @@ def test_wvfm_pyfn():
     assert wf.eval_decimal(Decimal("3"), omega=1, amplitude=4) == Decimal(0)
 
     assert wf.print_node() == "PythonFn: my_func"
-    assert wf.children() == {"duration": cast(1.0)}
+    assert wf.children() == {
+        "duration": cast(1.0),
+        "omega": cast("omega"),
+        "phi": cast("phi"),
+        "amplitude": cast("amplitude"),
+    }
     assert wf.duration == cast(1.0)
 
     mystdout = StringIO()
@@ -123,7 +128,17 @@ def test_wvfm_pyfn():
 
     wf._repr_pretty_(p, 0)
 
-    assert mystdout.getvalue() == "PythonFn: my_func\n└─ duration\n   ⇒ Literal: 1.0⋮\n"
+    assert mystdout.getvalue() == (
+        "PythonFn: my_func\n"
+        + "├─ duration\n"
+        + "│  ⇒ Literal: 1.0\n⋮\n"
+        + "├─ phi\n"
+        + "│  ⇒ Variable: phi\n⋮\n"
+        + "├─ omega\n"
+        + "│  ⇒ Variable: omega\n⋮\n"
+        + "└─ amplitude\n"
+        + "   ⇒ Variable: amplitude⋮\n"
+    )
 
 
 def test_wvfm_app():
