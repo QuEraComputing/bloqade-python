@@ -188,6 +188,8 @@ def KS_test(
 
 
 def test_bloqade_against_braket():
+    np.random.seed(0)
+
     prog = (
         Chain(5, lattice_spacing=6.1)
         .rydberg.detuning.uniform.piecewise_linear(
@@ -198,9 +200,48 @@ def test_bloqade_against_braket():
         .batch_assign(d=[0, 10, 20, 30, 40])
     )
 
-    nshots = 1000
+    nshots = 10000
     a = prog.bloqade.python().run(nshots, cache_matrices=True).report().counts
     b = prog.braket.local_emulator().run(nshots).report().counts
+
+    for lhs, rhs in zip(a, b):
+        KS_test(lhs, rhs)
+
+
+def test_bloqade_against_braket_2():
+    np.random.seed(0)
+
+    prog_1 = (
+        Chain(5, lattice_spacing=6.1)
+        .rydberg.detuning.uniform.piecewise_linear(
+            [0.1, 3.0, 0.1], [-20, -20, "d", "d"]
+        )
+        .amplitude.uniform.piecewise_linear([0.1, 3.0, 0.1], [0, 15, 15, 0])
+        .batch_assign(d=[0, 10, 20, 30, 40])
+    )
+    prog_2 = (
+        Chain(5, lattice_spacing=6.1)
+        .rydberg.detuning.uniform.piecewise_linear(
+            [0.1, 3.0, 0.1], [-20, -20, "d", "d"]
+        )
+        .amplitude.location(0)
+        .piecewise_linear([0.1, 3.0, 0.1], [0, 15, 15, 0])
+        .amplitude.location(1)
+        .piecewise_linear([0.1, 3.0, 0.1], [0, 15, 15, 0])
+        .amplitude.location(2)
+        .piecewise_linear([0.1, 3.0, 0.1], [0, 15, 15, 0])
+        .amplitude.location(3)
+        .piecewise_linear([0.1, 3.0, 0.1], [0, 15, 15, 0])
+        .amplitude.location(4)
+        .piecewise_linear([0.1, 3.0, 0.1], [0, 15, 15, 0])
+        .phase.location(0)
+        .constant(0.0, 3.2)
+        .batch_assign(d=[0, 10, 20, 30, 40])
+    )
+
+    nshots = 10000
+    a = prog_2.bloqade.python().run(nshots, cache_matrices=True).report().counts
+    b = prog_1.braket.local_emulator().run(nshots).report().counts
 
     for lhs, rhs in zip(a, b):
         KS_test(lhs, rhs)
