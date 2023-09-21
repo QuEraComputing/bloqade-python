@@ -1,8 +1,8 @@
+from numbers import Real
 from bloqade.ir.tree_print import Printer
 from bloqade.ir.scalar import (
     Scalar,
     Interval,
-    Literal,
     Variable,
     AssignedVariable,
     cast,
@@ -13,7 +13,7 @@ from bisect import bisect_left
 from dataclasses import InitVar
 from decimal import Decimal
 from pydantic.dataclasses import dataclass
-from typing import Any, Tuple, Union, List, Callable
+from beartype.typing import Any, Tuple, Union, List, Callable, Dict
 from enum import Enum
 
 import numpy as np
@@ -436,10 +436,10 @@ class PythonFn(Instruction):
     """
 
     fn: Callable  # [[float, ...], float] # f(t) -> value
-    parameters: List[
-        Union[Variable, AssignedVariable, Literal]
-    ]  # come from ast inspect
+    parameters: List[Union[Variable, AssignedVariable]]  # come from ast inspect
     duration: InitVar[Scalar]
+    default_param_values: Dict[str, Decimal]
+    default_arguements: Dict[str, Any]
 
     def __init__(self, fn: Callable, duration: Any):
         self.fn = fn
@@ -454,24 +454,35 @@ class PythonFn(Instruction):
             raise ValueError("Cannot have `**kwargs` in function definition")
 
         # get default kwonly first:
-        default_variables = []
+        variables = []
+        self.default_param_values = {}
+        self.default_arguements = {}
         if signature.kwonlydefaults is not None:
-            default_variables = [
-                AssignedVariable(name, cast(Decimal(str(value))))
-                for name, value in signature.kwonlydefaults.items()
-            ]
+            for name, value in signature.kwonlydefaults.items():
+                if isinstance(value, (Real, Decimal)):
+                    variables.append(name)
+                    self.default_param_values[name] = Decimal(str(value))
+                else:
+                    # self.default_arguements[name] = value
+                    raise ValueError(
+                        f"Default value for parameter {name} is not Real or Decimal, "
+                        "cannot convert to Variable."
+                    )
 
-        variables = signature.args[1:] + [
-            v for v in signature.kwonlyargs if v not in signature.kwonlydefaults.keys()
-        ]
-        self.parameters = list(map(var, variables)) + default_variables
+        variables += signature.args[1:]
+        variables += signature.kwonlyargs
+        self.parameters = list(map(var, variables))
 
     def eval_decimal(self, clock_s: Decimal, **assignments) -> Decimal:
-        if clock_s > self.duration(**assignments):
+        new_assignments = {**self.default_param_values, **assignments}
+
+        if clock_s > self.duration(**new_assignments):
             return Decimal(0)
 
-        kwargs = {param.name: float(param(**assignments)) for param in self.parameters}
-
+        kwargs = {
+            param.name: float(param(**new_assignments)) for param in self.parameters
+        }
+        kwargs = {**self.default_arguements, **kwargs}
         return Decimal(
             str(
                 self.fn(
@@ -485,7 +496,7 @@ class PythonFn(Instruction):
         return f"PythonFn: {self.fn.__name__}"
 
     def children(self):
-        return {"duration": self.duration}
+        return {"duration": self.duration, **{p.name: p for p in self.parameters}}
 
 
 @dataclass(init=False)
