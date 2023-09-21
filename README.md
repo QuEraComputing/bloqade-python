@@ -1,242 +1,190 @@
+<div align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/src/assets/logo-dark.png">
+  <source media="(prefers-color-scheme: light)" srcset="docs/src/assets/logo.png">
+  <img alt="Bloqade Logo">
+</picture>
+</div>
+
 [![Latest Version](https://img.shields.io/pypi/v/bloqade.svg)](https://pypi.python.org/pypi/bloqade)
 [![Supported Python Versions](https://img.shields.io/pypi/pyversions/bloqade.svg)](https://pypi.python.org/pypi/bloqade)
 [![codecov](https://codecov.io/github/QuEraComputing/bloqade-python/graph/badge.svg?token=4YJFc45Jyl)](https://codecov.io/github/QuEraComputing/bloqade-python)
 ![CI](https://github.com/QuEraComputing/bloqade-python/actions/workflows/ci.yml/badge.svg)
+[![Documentation](https://img.shields.io/badge/Documentation-6437FF)](https://queracomputing.github.io/bloqade-python/latest/)
 
 # Welcome to Bloqade -- QuEra's Neutral Atom SDK
 
-
 ## What is Bloqade?
 
-Bloqade is an SDK designed to be a simple, easy-to-use interface for writing, submitting, and analyzing results of analog quantum programs on QuEra's neutral atom quantum computers. Currently, QuEra's hardware is on Amazon Braket, the primary method of accessing QuEra's quantum hardware. Over the alpha phase, we plan to expand the emulator capabilities to include a performance Python emulator but also a direct integration with Julia via [Bloqade.jl](https://queracomputing.github.io/Bloqade.jl/dev/).
+Bloqade is an SDK designed to make writing and analyzing the results of analog quantum programs on QuEra's neutral atom quantum computers as seamless and flexible as possible. Currently, QuEra's hardware is on Amazon Braket, the primary method of accessing QuEra's quantum hardware. Over the alpha phase, we plan to expand the emulator capabilities to include a performance Python emulator but also a direct integration with Julia via [Bloqade.jl](https://queracomputing.github.io/Bloqade.jl/dev/).
+
+## Why A Python Version of Bloqade?
+
+Those coming from Bloqade.jl will most likely have this as their first question in mind. For newcomers the following information is still relevant.
+
+Bloqade.jl was designed as an ***emulation-first*** SDK enabling users to investigate novel physical phenomena and develop complex algorithms with bleeding-edge performance. The result of this focus is that not everything made in Bloqade.jl is compatible with quantum hardware. While the ability to submit to Braket is available in Bloqade.jl it becomes cumbersome to analyze results and keep track of parameter sweeps.
+
+In our mission to make neutral atom quantum computing more accessible to a broader community and the valuable feedback we've received in users of our quantum hardware, we took the opportunity to create a ***hardware-first*** SDK. One that is perfectly positioned to make it even easier to reap the benefits of neutral atoms while minimizing the pain points of initial program creation and post-processing results. 
 
 ## What does Bloqade do?
 
-Bloqade is primarily a language for writing analog quantum programs for nuetral atom quantum computers. Our interface is designed to guide our users through the process of defining a analog quantum program as well as different methods to run the program, whether it is on a real quantum computer or a simulator. Bloqade also provides a simple interface for analyzing the results of the program, whether it is a single run or a batch of runs or even some types of hybrid quantum-classical algorithms.
+Bloqade makes writing analog quantum programs for neutral atom quantum computers a cinch. Its interface is designed to make designing a program, analyzing its results, and building more complex algorithms as seamless as possible.
+
+Our interface is designed to guide our users through the process of defining an analog quantum program as well as different methods to run the program, whether it be real quantum hardware or an emulator. Bloqade also provides a simple interface for analyzing the results of the program, whether it is a single run, a batch of runs, or even some types of hybrid quantum-classical algorithms.
 
 ## Installation
 
-You can install the package with pip.
+You can install the package with `pip` in your Python environment of choice via:
 
 ```sh
 pip install bloqade
 ```
 
-## Usage philosophy
+## Documentation
 
-In bloqade we use the `.` to separate the different parts of your quantum program. The most basic starting point for your program will be the `bloqade.start` object.
+If you're already convinced about what Bloqade brings to the table, feel free to take a look at our documentation with examples [here](https://queracomputing.github.io/bloqade-python/latest/). 
+
+If you aren't convinced, keep scrolling!
+
+## Features
+
+### Smart Documentation
+
+Get where you need to go in your program development with documentation that knows *where* and *when* it's needed. Never get lost developing your algorithm ever again! 
+
+If you're a novice to neutral atoms, smart docs have your back. If you're an expert with neutral atoms, let smart docs give you some guidance on some new avenues for algorithm development.
+
+![](docs/docs/assets/readme-gifs/smart-docs.gif)
+
+
+### Fully Parameterized Analog Programs
+
+*Parameter Sweeps* are a common element of programs for analog quantum computers where you want to observe differences in output from systematically varying value(s) in your program.
+
+You used to have to manually keep track of all the small variations of your program per parameter, keeping careful track not to forget to submit one variation or lose one on top of a convoluted post-processing pipeline to incorporate all the results in one place.
+
+Bloqade eliminates this with its own support for variables and internal handling of program parameter variations. Just drop in a variable in almost any place a single value can live and you can either assign a value later or a whole sequence of values to create a parameter sweep. 
+
+Let Bloqade handle keeping track of all the variations while you focus on becoming a master of neutral atoms.
+
+Did we mention you can throw your program at hardware and emulation and still keep your parameter sweeps?
+
+```python 
+from bloqade import var
+from bloqade.atom_arrangement import Square
+
+import numpy as np
+
+adiabatic_durations = [0.4, 3.2, 0.4]
+
+# create variables explicitly...
+max_detuning = var("max_detuning")
+# ...or implicitly inside the program definition. 
+adiabatic_program = (
+    Square(3, "lattice_spacing")
+    .rydberg.rabi.amplitude.uniform.piecewise_linear(
+        durations=adiabatic_durations, values=[0.0, "max_rabi", "max_rabi", 0.0]
+    )
+    .detuning.uniform.piecewise_linear(
+        durations=adiabatic_durations,
+        values=[
+            -max_detuning, # scalar variables support direct arithmetic operations
+            -max_detuning,
+            max_detuning,
+            max_detuning,
+        ],
+    )
+    .assign(max_rabi=15.8, max_detuning=16.33)
+    .batch_assign(lattice_spacing=np.arange(4.0, 7.0, 0.5))
+)
+
+# Launch your program on your choice of Braket or in-house emulator...
+emu_results = adiabatic_program.braket.local_emulator().run(10000)
+faster_emu_results = adiabatic_program.bloqade.python().run(10000)
+# ...as well as hardware without stress
+hw_results = adiabatic_program.parallelize(24).braket.aquila().run_async(100)
+```
+
+### Integrated Visualization Tools
+
+Simple and fast visualization for programs no matter how complex your program gets:
+
+![](docs/docs/assets/readme-gifs/locations-hover.gif)
+![](docs/docs/assets/readme-gifs/graph-select.gif)
+
+The same holds for results: 
+
+![](docs/docs/assets/readme-gifs/visualize-bitstrings.gif)
+![](docs/docs/assets/readme-gifs/hover-bitstrings.gif)
+
+### Maximum Composability
+
+You can save any intermediate steps in your program construction, enabling you to build on top of a base program to produce all sorts of variants with ease.
+
+Feel free to let your waveforms grow to your liking too!:
 
 ```python
 from bloqade import start
 
-calculation = (
-    start
-)
+# Save your intermediate steps any way you like
+initial_geometry = start.add_position((0,0))
+target_rabi_wf = initial_geometry.rydberg.rabi.amplitude.uniform
+program_1 = target_rabi_wf.piecewise_linear(durations = [0.4, 2.1, 0.4], values = [0, 15.8, 15.8, 0])
+# Tinker with new ideas in a snap
+program_2 = target_rabi_wf.piecewise_linear(durations = [0.5, 1.0, 0.5], values = [0, 10.0, 11.0, 0]).constant(duration = 0.4, value = 5.1)
 
 ```
 
-From here there will be different methods and properties that you can use to build your program. For example,
-you can start to add atom sites to your program by selecting `add_position`.
+Want to focus on building one part of your program first before others (or, just want that same Bloqade.jl flavor?) We've got you covered:
 
 ```python
-from bloqade import start
+from bloqade import piecewise_linear
+from bloqade.ir.location import Square
 
-calculation = (
-    start
-    .add_position((0, 0))
-    .add_position((0, 6.8))
-    .add_position([(6.8, 0), (6.8, 6.8)])
+# Create a geometry without worrying about pulses yet
+square_lattice = Square(3, "lattice_spacing")
+
+# Develop your waveforms any way you like
+
+adiabatic_durations = [0.8, 2.4, 0.8]
+separate_rabi_amp_wf = piecewise_linear(durations = adiabatic_durations, values = [0.0, "max_rabi", "max_rabi", 0.0])
+
+max_detuning = var("max_detuning")
+separate_rabi_detuning = piecewise_linear(durations = adiabatic_durations, values = [-max_detuning, -max_detuning, max_detuning, max_detuning])
+
+# Now bring it all together! 
+# And why not sprinkle in some parameter sweeps for fun?
+full_program = (
+    square_lattice.rydberg.rabi.amplitude.uniform
+    .apply(separate_rabi_amp_wf)
+    .detuning.uniform
+    .apply(separate_rabi_detuning)
+    .assign(max_rabi = 15.8, 
+            max_detuning = 16.33)
+    .batch_assign(lattice_spacing = np.arange(4.0, 7.0, 0.5),
+                  max_rabi = np.linspace(2 * np.pi * 0.5, 2 * np.pi * 2.5, 6))
 )
 ```
 
-If you want to start to build the Rydberg drive you can select the `rydberg` property.
+### Efficient Atom Usage
+
+Have an atom geometry that doesn't use up the entire FOV (Field of View) of the machine or all the possible qubits? Give `.parallelize` a spin!
+
+If your geometry is compact enough, Bloqade can automatically duplicate/"tile" it in each shot with each copy separated by a distance of your specification to minimize interaction between copies. This lets you get more data per shot for more robust results.
+
+Don't sweat the necessary post-processing of data for this, Bloqade does that for you and you can still preserve your standard post-processing pipelines:
 
 ```python
-from bloqade import start
-
-calculation = (
-    start
-    .add_position((0, 0))
-    .add_position((0, 6.8))
-    .add_position([(6.8, 0), (6.8, 6.8)])
-    .rydberg
-)
-```
-Note that from here on out, you can no longer add to your geometry as the `rydberg` property is terminal.
-
-From here, you can select the different parts of the Rydberg drive. For example, if you want to build the detuning part of the drive, you can choose the `detuning` property.
-
-```python
-from bloqade import start
-
-calculation = (
-    start
-    .add_position((0, 0))
-    .add_position((0, 6.8))
-    .add_position([(6.8, 0), (6.8, 6.8)])
-    .rydberg.detuning
-)
+# you could just run your program and leave free qubits on the table...
+program_with_few_atoms.braket.aquila().run_async(100)
+# ...or you can take all you can get!
+program_with_few_atoms.parallelize(24).braket.aquila(24).run_async(100)
 ```
 
-In the code above, `rydberg.detuning` indicates that the following set of methods and properties will be related to the Detuning of the Rydberg drive. You can also select `rabi.amplitude` or `rabi.phase`
-To build the amplitude and phase parts of the drive. Next, we will select the spatial modulation of the driving field.
+### Contributing
 
-```python
-from bloqade import start
+Bloqade wouldn't exist if we weren't fortunate enough to obtain feedback from awesome members of our community such as yourself (:
 
-calculation = (
-    start
-    .add_position((0, 0))
-    .add_position((0, 6.8))
-    .add_position([(6.8, 0), (6.8, 6.8)])
-    .rydberg.detuning.uniform
-)
-```
+If you find a bug, have an idea, or find an issue with our documentation, please feel free to file an issue on the [Github repo itself](https://github.com/QuEraComputing/bloqade-python/issues/new/choose). 
 
-Here, we selected the `uniform` property, indicating that the detuning will be uniform across the atoms. You can also select `var(name)` where `name` is the name of the variable
-defined using a string. Having variables will allow you to define a spatially varying detuning as a list of real numbers. You can also select individual atoms using the `location(index)` method, where `index` is the integer associated with the lattice. Now that we have the drive's spatial modulation, we can start to build the time dependence of the detuning field. Continuing with the example, we can add individual segments to the time function using `linear` or `constant` methods, or we have shortcuts to common waveforms like `piecewise_linear` or `piecewise_constant`. We use a piecewise linear function to define the Detuning waveform on Aquila.
-
-```python
-from bloqade import start
-
-calculation = (
-    start
-    .add_position((0, 0))
-    .add_position((0, 6.8))
-    .add_position([(6.8, 0), (6.8, 6.8)])
-    .rydberg.detuning.uniform.
-    piecewise_linear(
-        durations = [0.1, 1.0, 0.1],
-        values = [-10, -10, 10, 10]
-    )
-)
-```
-
-One can continue using the `.` to append more time-dependent segments to the uniform detuning waveform or select a different spatial modulation of the detuning field. The results will be that the new spatial modulation will be *added* to the existing spatial modulation. You can also start to build another field within the Rydberg drive by selecting the `amplitude` or `phase` properties.
-
-```python
-from bloqade import start
-
-calculation = (
-    start
-    .add_position((0, 0))
-    .add_position((0, 6.8))
-    .add_position([(6.8, 0), (6.8, 6.8)])
-    .rydberg.detuning.uniform.
-    piecewise_linear(
-        durations = [0.1, 1.0, 0.1],
-        values = [-10, -10, 10, 10]
-    )
-    .amplitude.uniform.
-    piecewise_linear(
-        durations = [0.1, 1.0, 0.1],
-        values = [0, 10, 10, 0]
-    )
-)
-```
-
-If the next property is:
-1. `hyperfine` will start to build the Hyperfine driving transition
-2. `amplitude` or `rabi.amplitude` will start to build the rabi amplitude in the current context, e.g. rydberg
-3. `phase` or `rabi.phase` will start to build the rabi phase in the current context
-4. A spatial modulation will add a new channel to the current field, e.g. detuning
-5. Repeating the previously specified spatial modulations will add that waveform with the previously defined waveform in that spatial modulation.
-
-```python
-from bloqade import start
-
-calculation = (
-    start
-    .add_position((0, 0))
-    .add_position((0, 6.8))
-    .add_position([(6.8, 0), (6.8, 6.8)])
-    .rydberg.detuning.uniform.
-    piecewise_linear(
-        durations = [0.1, 1.0, 0.1],
-        values = [-10, -10, "final_detuning", "final_detuning"]
-    )
-    .amplitude.uniform.
-    piecewise_linear(
-        durations = [0.1, 1.0, 0.1],
-        values = [0, 10, 10, 0]
-    )
-)
-```
-
-A string can parameterize continuous values inside the program we call these run-time parameters. There are three ways to specify the value for these parameters; the first is to set the value via `assign`, which means that the variable will have the same assignment regardless of the run. The second is to specify the value via `batch_assign`, which assigns that parameter to a batch. When specifying a batch, the program will automatically execute a quantum teach for each parameter in the batch. The other method to define the variable is through `flatten`. This instruction will delay the specification of the variable till running/submitting the tasks, which is helpful for certain kinds of hybrid quantum-classical applications. Combined with the callable nature of the backends, it will make it very easy to create a quantum-classical loop. You can mix and match some of these methods, and the available options should pop up if you're using an IDE.
-
-Another helpful feature for small clusters of atoms is the `parallelize` option. The idea here is that the atoms are arranged in 2D space in some bounded square region for Aquila and other Neutral Atom machines. You can run multiple copies of that calculation in parallel for small clusters of atoms by spacing those clusters apart by some sufficiently large distance. Our infrastructure will automatically detect the area of the QPU and use that to generate the appropriate number of copies of the calculation. Also, when processing the results, it is possible to automatically stitch the results from the different copies together so that the analysis is unified on the original cluster.
-
-Now that we have specified all the options, we can think about how to run our program. We only support `braket`, which tells bloqade to submit your tasks to the braket service. The credentials are handled entirely by the braket SDK, so we suggest you look at their documentation for how to set that up. However, setting up your AWS credentials in your environment variables is the easiest way. To execute the program on Aquila, you select the `aquila` backend after the `braket` property.
-
-```python
-from bloqade import start
-
-calculation = (
-    start
-    .add_position((0, 0))
-    .add_position((0, 6.8))
-    .add_position([(6.8, 0), (6.8, 6.8)])
-    .rydberg.detuning.uniform.
-    piecewise_linear(
-        durations = [0.1, 1.0, 0.1],
-        values = [-10, -10, "final_detuning", "final_detuning"]
-    )
-    .amplitude.uniform.
-    piecewise_linear(
-        durations = [0.1, 1.0, 0.1],
-        values = [0, 10, 10, 0]
-    )
-    .batch_assign(final_detuning=[0,1,2,3,4])
-    .braket.aquila()
-)
-```
-For tasks executed through a remote API, there are three options to run your job. The first is an asynchronous call via `run_async`, which will return a `RemoteBatch` object. This is a non-blocking call and `RemoteBatch` acts like a future object. It has various methods to `fetch` and or `pull` results from the remote API, along with some other tools that can query the status of the task(s) in this batch. `run` is another method that blocks the script waiting for all the tasks to finish, susequently returning the `RemoteBatch`. The final option is to use the `__call__` method of the `calculation` object for hybrid workflows. The call object is effectively the same as calling `run`. However, specifying the `flatten` option will allow you to call `__call__` with arguments corresponding to the list of strings provided by `flatten`.
-
-The `RemoteBatch` object can be saved in JSON format using the `save_batch` and reloaded back into Python using the `load_batch` functions. This capability is useful for the asynchronous case, where you can save the batch and load it back later to retrieve the results.
-
-The braket service also provides a local emulator, which can be run by selecting the `local_emulator()` options after the `braket` property. There is no asynchronous option for local emulator jobs, so you can only call `run` or `__call__` methods, and the return result is a `LocalBatch`.
-
-The batch objects also have a method `report` that returns a `Report` object. This object will contain all the data inside the batch object, so if no results are present in the `RemoteBatch`, then the `Report` will not have any data either. A common pattern would be first to call `fetch` and then create the `Report` by calling `report`. That way, the generated report will have the most up-to-date results. Similarly, if you are willing to wait, you can call `pull`, which will block until all tasks have stopped running.
-
-Here is what a final calculation might look like for running a parameter scan and comparing hardware to a classical emulator:
-
-```python
-from bloqade import start, save_batch
-
-program = (
-    start
-    .add_position((0, 0))
-    .add_position((0, 6.8))
-    .add_position([(6.8, 0), (6.8, 6.8)])
-    .rydberg.detuning.uniform.
-    piecewise_linear(
-        durations = [0.1, 1.0, 0.1],
-        values = [-10, -10, "final_detuning", "final_detuning"]
-    )
-    .amplitude.uniform.
-    piecewise_linear(
-        durations = [0.1, 1.0, 0.1],
-        values = [0, 10, 10, 0]
-    )
-    .batch_assign(final_detuning=[0,1,2,3,4])
-)
-
-emulator_batch = program.braket.local_emulator().run(1000)
-
-hardware_batch = program.parallelize(20).braket.aquila().run_async(1000)
-
-save_batch("emulator_results.json", emulator_batch)
-save_batch("hardware_results.json", hardware_batch)
-
-# Analysis script
-
-from bloqade import load_batch
-
-emulator_batch = load_batch("emulator_results.json")
-hardware_batch = load_batch("hardware_results.json")
-
-emulator_batch.report().show()
-hardware_batch.fetch().report().show()
-
-```
+*May the van der Waals force be with you!*
