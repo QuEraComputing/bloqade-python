@@ -85,7 +85,7 @@ class Assign(
                 self._assignments[name] = cast_scalar_param(value, name)
 
 
-class BatchAssign(AssignBase, Parallelizable, BackendRoute, Parse):
+class BatchAssign(AssignBase, Flattenable, Parallelizable, BackendRoute, Parse):
     __match_args__ = ("_assignments", "__parent__")
 
     def __init__(self, parent: Optional[Builder] = None, **assignments) -> None:
