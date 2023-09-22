@@ -63,7 +63,7 @@ class Assign(BatchAssignable, Flattenable, Parallelizable, BackendRoute, AssignB
     __match_args__ = ("_assignments", "__parent__")
 
     def __init__(self, parent: Optional[Builder] = None, **assignments) -> None:
-        from bloqade.codegen.common.scan_variables import ScanVariablesAnalogCircuit
+        from bloqade.ir.analysis.scan_variables import ScanVariablesAnalogCircuit
 
         super().__init__(parent)
 
@@ -86,7 +86,7 @@ class BatchAssign(Flattenable, Parallelizable, BackendRoute, AssignBase):
     __match_args__ = ("_assignments", "__parent__")
 
     def __init__(self, parent: Optional[Builder] = None, **assignments) -> None:
-        from bloqade.codegen.common.scan_variables import ScanVariablesAnalogCircuit
+        from bloqade.ir.analysis.scan_variables import ScanVariablesAnalogCircuit
 
         super().__init__(parent)
 

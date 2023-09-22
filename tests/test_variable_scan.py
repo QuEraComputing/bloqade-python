@@ -1,6 +1,6 @@
 from bloqade import start, var
 from bloqade.atom_arrangement import Chain
-from bloqade.codegen.common.scan_variables import (
+from bloqade.ir.analysis.scan_variables import (
     ScanVariablesAnalogCircuit,
     ScanVariableResults,
 )

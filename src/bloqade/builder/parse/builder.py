@@ -143,7 +143,7 @@ class Parser:
 
         return ir.Field({sm: wf})
 
-    def read_sequeence(self) -> ir.Sequence:
+    def read_sequence(self) -> ir.Sequence:
         if isinstance(self.stream.curr.node, SequenceBuilder):
             # case with sequence builder object.
             self.sequence = self.stream.read().node._sequence
@@ -248,7 +248,7 @@ class Parser:
 
     def parse_sequence(self, builder: Builder) -> ir.Sequence:
         self.reset(builder)
-        self.read_sequeence()
+        self.read_sequence()
         return self.sequence
 
     def parse_circuit(self, builder: Builder) -> "AnalogCircuit":
@@ -256,7 +256,7 @@ class Parser:
 
         self.reset(builder)
         self.read_register()
-        self.read_sequeence()
+        self.read_sequence()
 
         circuit = AnalogCircuit(self.register, self.sequence)
 
@@ -268,7 +268,7 @@ class Parser:
 
         self.reset(builder)
         self.read_register()
-        self.read_sequeence()
+        self.read_sequence()
         self.read_pragmas()
 
         params = Params(
