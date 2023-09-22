@@ -49,7 +49,7 @@ class BraketHardwareRoutine(RoutineBase):
 
         ## fall passes here ###
         from bloqade.codegen.common.assign_variables import AssignAnalogCircuit
-        from bloqade.codegen.common.assignment_scan import AssignmentScan
+        from bloqade.ir.analysis.assignment_scan import AssignmentScan
         from bloqade.codegen.hardware.quera import QuEraCodeGen
 
         capabilities = self.backend.get_capabilities()
@@ -198,7 +198,7 @@ class BraketLocalEmulatorRoutine(RoutineBase):
         from bloqade.ir import ParallelRegister
         from bloqade.codegen.common.assign_variables import AssignAnalogCircuit
         from bloqade.codegen.hardware.quera import QuEraCodeGen
-        from bloqade.codegen.common.assignment_scan import AssignmentScan
+        from bloqade.ir.analysis.assignment_scan import AssignmentScan
         from bloqade.submission.ir.braket import to_braket_task_ir
 
         circuit, params = self.parse_source()
