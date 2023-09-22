@@ -196,13 +196,11 @@ class Chain(BoundedBravais):
     ):
         super().__init__(L, lattice_spacing=lattice_spacing)
         self._vertical = vertical
-        print(self._vertical, vertical)
 
     def __repr__(self):
         return super().__repr__()
 
     def cell_vectors(self) -> List[List[float]]:
-        print(self._vertical)
         if self._vertical:
             return [[0, 1]]
         else:
