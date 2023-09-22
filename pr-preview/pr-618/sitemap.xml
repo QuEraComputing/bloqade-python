@@ -251,6 +251,21 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
+         <loc>https://bloqade.quera.com/reference/bloqade/ir/analysis/</loc>
+         <lastmod>2023-09-22</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://bloqade.quera.com/reference/bloqade/ir/analysis/assignment_scan/</loc>
+         <lastmod>2023-09-22</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://bloqade.quera.com/reference/bloqade/ir/analysis/scan_variables/</loc>
+         <lastmod>2023-09-22</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
          <loc>https://bloqade.quera.com/reference/bloqade/ir/control/</loc>
          <lastmod>2023-09-22</lastmod>
          <changefreq>daily</changefreq>
