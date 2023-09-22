@@ -208,6 +208,7 @@ class LocationSerializer(LocationVisitor):
             "chain": {
                 "lattice_spacing": self.scalar_serializer.visit(ast.lattice_spacing),
                 "L": ast.shape[0],
+                "vertical": ast._vertical,
             }
         }
 
