@@ -44,11 +44,11 @@ class BoundedBravais(AtomArrangement):
 
     @beartype
     def __init__(self, *shape: int, lattice_spacing: ScalarType = 1.0):
-        super().__init__()
         self.shape = shape
         self.lattice_spacing = cast(lattice_spacing)
         self.__n_atoms = None
         self.__n_dims = None
+        super().__init__()
 
     def cell_vectors(self) -> Tuple[Tuple[Scalar, ...], ...]:
         raise NotImplementedError
@@ -166,7 +166,7 @@ class BoundedBravais(AtomArrangement):
         return obj
 
 
-@dataclass
+@dataclass(init=False)
 class Chain(BoundedBravais):
     """Chain lattice.
 
@@ -187,15 +187,26 @@ class Chain(BoundedBravais):
 
     """
 
+    _vertical: bool
+    vertical: InitVar[bool]
+
     @beartype
-    def __init__(self, L: int, lattice_spacing: ScalarType = 1.0):
+    def __init__(
+        self, L: int, lattice_spacing: ScalarType = 1.0, vertical: bool = False
+    ):
         super().__init__(L, lattice_spacing=lattice_spacing)
+        self._vertical = vertical
+        print(self._vertical, vertical)
 
     def __repr__(self):
         return super().__repr__()
 
     def cell_vectors(self) -> List[List[float]]:
-        return [[1, 0]]
+        print(self._vertical)
+        if self._vertical:
+            return [[0, 1]]
+        else:
+            return [[1, 0]]
 
     def cell_atoms(self) -> List[List[float]]:
         return [[0, 0]]
