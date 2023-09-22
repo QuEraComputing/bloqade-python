@@ -1527,7 +1527,7 @@ files = [
 
 [[package]]
 name = "mkdocs-jupyter"
-version = "0.24.2"
+version = "0.24.3"
 requires_python = ">=3.7"
 summary = "Use Jupyter in mkdocs websites"
 dependencies = [
@@ -1539,8 +1539,7 @@ dependencies = [
     "pygments>2.12.0",
 ]
 files = [
-    {file = "mkdocs_jupyter-0.24.2-py3-none-any.whl", hash = "sha256:5295a34b1d0bd0a7688a857323eaf0319d83c8a14179b2651709b8ced6eae7db"},
-    {file = "mkdocs_jupyter-0.24.2.tar.gz", hash = "sha256:5e0c109d535d48797230719b6941f4d08de95a7a3c95bf158662c412fc15cb2e"},
+    {file = "mkdocs_jupyter-0.24.3-py3-none-any.whl", hash = "sha256:904262a8678a5e5920b7c3c03b5010b36301a69d0a38f2fcbf430493adf6879e"},
 ]
 
 [[package]]
@@ -1558,7 +1557,7 @@ files = [
 
 [[package]]
 name = "mkdocs-material"
-version = "9.3.2"
+version = "9.4.0"
 requires_python = ">=3.8"
 summary = "Documentation that simply works"
 dependencies = [
@@ -1566,8 +1565,8 @@ dependencies = [
     "colorama~=0.4",
     "jinja2~=3.0",
     "markdown~=3.2",
-    "mkdocs-material-extensions~=1.1",
-    "mkdocs~=1.5",
+    "mkdocs-material-extensions~=1.2",
+    "mkdocs>=1.5.3,~=1.5",
     "paginate~=0.5",
     "pygments~=2.16",
     "pymdown-extensions~=10.2",
@@ -1575,18 +1574,18 @@ dependencies = [
     "requests~=2.26",
 ]
 files = [
-    {file = "mkdocs_material-9.3.2-py3-none-any.whl", hash = "sha256:f2fd5cef6f0266b4caad6414f31c6a51e3183dbdd341995ad8fa7f33bc998c3d"},
-    {file = "mkdocs_material-9.3.2.tar.gz", hash = "sha256:7b3a35a7731af02d70d120224fcec053ce09bebbf83dff3366ab72abc4d5fc89"},
+    {file = "mkdocs_material-9.4.0-py3-none-any.whl", hash = "sha256:b9f1bb8bf3377fa1b7edd34276b1923928c39b2d4a56543af0e811f0cfe59085"},
+    {file = "mkdocs_material-9.4.0.tar.gz", hash = "sha256:492108aae369c12af21af2b14160f9bd5c0d6d7da28055877a74a554a704a671"},
 ]
 
 [[package]]
 name = "mkdocs-material-extensions"
-version = "1.1.1"
+version = "1.2"
 requires_python = ">=3.7"
 summary = "Extension pack for Python Markdown and MkDocs Material."
 files = [
-    {file = "mkdocs_material_extensions-1.1.1-py3-none-any.whl", hash = "sha256:e41d9f38e4798b6617ad98ca8f7f1157b1e4385ac1459ca1e4ea219b556df945"},
-    {file = "mkdocs_material_extensions-1.1.1.tar.gz", hash = "sha256:9c003da71e2cc2493d910237448c672e00cefc800d3d6ae93d2fc69979e3bd93"},
+    {file = "mkdocs_material_extensions-1.2-py3-none-any.whl", hash = "sha256:c767bd6d6305f6420a50f0b541b0c9966d52068839af97029be14443849fb8a1"},
+    {file = "mkdocs_material_extensions-1.2.tar.gz", hash = "sha256:27e2d1ed2d031426a6e10d5ea06989d67e90bb02acd588bc5673106b5ee5eedf"},
 ]
 
 [[package]]
