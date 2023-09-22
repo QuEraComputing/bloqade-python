@@ -49,7 +49,7 @@ class BraketHardwareRoutine(RoutineBase):
 
         ## fall passes here ###
         from bloqade.codegen.common.assign_variables import AssignAnalogCircuit
-        from bloqade.codegen.common.assignment_scan import AssignmentScan
+        from bloqade.ir.analysis.assignment_scan import AssignmentScan
         from bloqade.codegen.hardware.quera import QuEraCodeGen
 
         capabilities = self.backend.get_capabilities()
@@ -62,6 +62,8 @@ class BraketHardwareRoutine(RoutineBase):
         for task_number, batch_params in enumerate(params.batch_assignments(*args)):
             record_params = AssignmentScan(batch_params).emit(circuit)
             final_circuit = AssignAnalogCircuit(record_params).visit(circuit)
+            # TODO: Replace these two steps with:
+            # task_ir, parallel_decoder = BraketCodeGen().emit(shots, final_circuit)
             task_ir, parallel_decoder = QuEraCodeGen(capabilities=capabilities).emit(
                 shots, final_circuit
             )
@@ -196,7 +198,7 @@ class BraketLocalEmulatorRoutine(RoutineBase):
         from bloqade.ir import ParallelRegister
         from bloqade.codegen.common.assign_variables import AssignAnalogCircuit
         from bloqade.codegen.hardware.quera import QuEraCodeGen
-        from bloqade.codegen.common.assignment_scan import AssignmentScan
+        from bloqade.ir.analysis.assignment_scan import AssignmentScan
         from bloqade.submission.ir.braket import to_braket_task_ir
 
         circuit, params = self.parse_source()
@@ -213,6 +215,8 @@ class BraketLocalEmulatorRoutine(RoutineBase):
         for task_number, batch_params in enumerate(params.batch_assignments(*args)):
             record_params = AssignmentScan(batch_params).emit(circuit)
             final_circuit = AssignAnalogCircuit(record_params).visit(circuit)
+            # TODO: Replace these two steps with:
+            # task_ir, _ = BraketCodeGen().emit(shots, final_circuit)
             quera_task_ir, _ = QuEraCodeGen().emit(shots, final_circuit)
 
             task_ir = to_braket_task_ir(quera_task_ir)

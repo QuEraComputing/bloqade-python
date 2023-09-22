@@ -5,10 +5,12 @@ from bloqade.ir.location.bravais import (
     Honeycomb,
     Kagome,
     Triangular,
+    Chain,
 )
 from bloqade.ir.location.bravais import Cell
 from bloqade import cast
 from math import sqrt
+from bloqade.codegen.common.json import BloqadeIRSerializer
 
 
 def test_square():
@@ -129,6 +131,31 @@ def test_scale_lattice():
 
     assert positions == positions_expected
     assert lattice.n_dims == 2
+
+
+def test_chain():
+    lattice = Chain(4, lattice_spacing=1, vertical_chain=False)
+    latt2 = lattice.scale(2)
+    positions = set(map(lambda info: info.position, latt2.enumerate()))
+    positions_expected = set(cast([(0, 0), (2, 0), (4, 0), (6, 0)]))
+
+    assert positions == positions_expected
+    assert lattice.n_dims == 1
+
+    vertical_lattice = Chain(4, lattice_spacing=1, vertical_chain=True)
+    positions = set(map(lambda info: info.position, vertical_lattice.enumerate()))
+    positions_expected = set(cast([(0, 0), (0, 1), (0, 2), (0, 3)]))
+
+    assert positions == positions_expected
+    assert vertical_lattice.n_dims == 1
+
+    lattice_dict = BloqadeIRSerializer().default(vertical_lattice)
+
+    assert lattice_dict["chain"]["L"] == 4
+    assert lattice_dict["chain"]["vertical_chain"] is True
+    assert lattice_dict["chain"]["lattice_spacing"] == {"literal": {"value": "1"}}
+
+    assert lattice_dict
 
 
 def test_cell():

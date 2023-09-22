@@ -4,7 +4,6 @@ from bloqade.builder.typing import ParamType
 from bloqade.builder.base import Builder
 from bloqade.builder.pragmas import Parallelizable, Flattenable, BatchAssignable
 from bloqade.builder.backend import BackendRoute
-from bloqade.builder.parse.trait import Parse
 from numbers import Real
 from decimal import Decimal
 import numpy as np
@@ -60,13 +59,11 @@ class AssignBase(Builder):
     pass
 
 
-class Assign(
-    AssignBase, BatchAssignable, Flattenable, Parallelizable, BackendRoute, Parse
-):
+class Assign(BatchAssignable, Flattenable, Parallelizable, BackendRoute, AssignBase):
     __match_args__ = ("_assignments", "__parent__")
 
     def __init__(self, parent: Optional[Builder] = None, **assignments) -> None:
-        from bloqade.codegen.common.scan_variables import ScanVariablesAnalogCircuit
+        from bloqade.ir.analysis.scan_variables import ScanVariablesAnalogCircuit
 
         super().__init__(parent)
 
@@ -85,11 +82,11 @@ class Assign(
                 self._assignments[name] = cast_scalar_param(value, name)
 
 
-class BatchAssign(AssignBase, Parallelizable, BackendRoute, Parse):
+class BatchAssign(Flattenable, Parallelizable, BackendRoute, AssignBase):
     __match_args__ = ("_assignments", "__parent__")
 
     def __init__(self, parent: Optional[Builder] = None, **assignments) -> None:
-        from bloqade.codegen.common.scan_variables import ScanVariablesAnalogCircuit
+        from bloqade.ir.analysis.scan_variables import ScanVariablesAnalogCircuit
 
         super().__init__(parent)
 

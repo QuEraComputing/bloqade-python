@@ -65,7 +65,7 @@ class QuEraHardwareRoutine(RoutineBase):
         """
         from bloqade.codegen.common.assign_variables import AssignAnalogCircuit
 
-        from bloqade.codegen.common.assignment_scan import AssignmentScan
+        from bloqade.ir.analysis.assignment_scan import AssignmentScan
         from bloqade.codegen.hardware.quera import QuEraCodeGen
 
         circuit, params = self.parse_source()

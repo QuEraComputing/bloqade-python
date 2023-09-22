@@ -23,10 +23,10 @@ class BloqadePythonRoutine(RoutineBase):
         blockade_radius: LiteralType = 0.0,
         cache_matrices: bool = False,
     ) -> LocalBatch:
-        from bloqade.codegen.common.assignment_scan import AssignmentScan
+        from bloqade.ir.analysis.assignment_scan import AssignmentScan
         from bloqade.codegen.common.assign_variables import AssignAnalogCircuit
-        from bloqade.emulate.codegen.emulator_ir import EmulatorProgramCodeGen
-        from bloqade.emulate.codegen.rydberg_hamiltonian import CompileCache
+        from bloqade.codegen.emulator_ir import EmulatorProgramCodeGen
+        from bloqade.emulate.codegen.hamiltonian import CompileCache
         from bloqade.task.bloqade import BloqadeTask
 
         circuit, params = self.source.parse_source()

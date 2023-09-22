@@ -1,7 +1,7 @@
 from bloqade.serialize import Serializer
 from bloqade.task.base import Geometry, LocalTask
 from bloqade.emulate.ir.emulator import EmulatorProgram
-from bloqade.emulate.codegen.rydberg_hamiltonian import (
+from bloqade.emulate.codegen.hamiltonian import (
     RydbergHamiltonianCodeGen,
     CompileCache,
 )
@@ -62,6 +62,8 @@ class BloqadeTask(LocalTask):
         for shot in shots_array[:]:
             shot_result = QuEraShotResult(
                 shot_status=QuEraShotStatusCode.Completed,
+                # TODO: make the pre_sesquence and post_sequence match the
+                # empty sites in the original definition of the register
                 pre_sequence=[1 for _ in shot],
                 # flip the bits so that 1 = ground state and 0 = excited state
                 post_sequence=list(1 - shot),
