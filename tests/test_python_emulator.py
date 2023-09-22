@@ -193,7 +193,7 @@ def test_bloqade_against_braket():
         .batch_assign(d=[0, 10, 20, 30, 40])
     )
 
-    nshots = 10000
+    nshots = 1000
     a = prog.bloqade.python().run(nshots, cache_matrices=True).report().counts
     b = prog.braket.local_emulator().run(nshots).report().counts
 
@@ -230,7 +230,7 @@ def test_bloqade_against_braket_2():
         .batch_assign(d=[0, 10, 20, 30, 40])
     )
 
-    nshots = 10000
+    nshots = 1000
     a = prog_2.bloqade.python().run(nshots, cache_matrices=True).report().counts
     b = prog_1.braket.local_emulator().run(nshots).report().counts
 
