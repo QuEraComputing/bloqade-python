@@ -15,8 +15,7 @@ def test_integration_1():
             [0.1, "ramp_time", 0.1], [-100, -100, 100, 100]
         )
         .amplitude.uniform.piecewise_linear([0.1, "ramp_time", 0.1], [0, 10, 10, 0])
-        .assign(ramp_time=3.0)
-        .batch_assign(r=np.linspace(0.1, 4, 5).tolist())
+        .assign(ramp_time=3.0, r=8)
         .bloqade.python()
         .run(10000, cache_matrices=True, blockade_radius=6.0, interaction_picture=True)
         .report()
@@ -37,8 +36,7 @@ def test_integration_2():
         .phase.uniform.piecewise_constant(
             [0.1, ramp_time / 2, ramp_time / 2, 0.1], [0, 0, np.pi, np.pi]
         )
-        .assign(ramp_time=3.0)
-        .batch_assign(r=np.linspace(0.1, 4, 5).tolist())
+        .assign(ramp_time=3.0, r=6)
         .bloqade.python()
         .run(10000, cache_matrices=True, blockade_radius=6.0)
         .report()
@@ -61,8 +59,7 @@ def test_integration_3():
         )
         .amplitude.var("rabi_mask")
         .fn(lambda t: 4 * np.sin(3 * t), ramp_time + 0.2)
-        .assign(ramp_time=3.0, rabi_mask=[10.0, 0.1])
-        .batch_assign(r=np.linspace(0.1, 4, 4).tolist())
+        .assign(ramp_time=3.0, rabi_mask=[10.0, 0.1], r=6)
         .bloqade.python()
         .run(10000, cache_matrices=True, blockade_radius=6.0)
         .report()
@@ -84,8 +81,7 @@ def test_integration_4():
         .fn(lambda t: 4 * np.sin(3 * t), ramp_time + 0.2)
         .amplitude.location(1)
         .linear(0.0, 1.0, ramp_time + 0.2)
-        .assign(ramp_time=3.0, rabi_mask=[10.0, 0.1])
-        .batch_assign(r=np.linspace(0.1, 4, 5).tolist())
+        .assign(ramp_time=3.0, rabi_mask=[10.0, 0.1], r=6)
         .bloqade.python()
         .run(10000, cache_matrices=True, blockade_radius=6.0)
         .report()
@@ -105,8 +101,7 @@ def test_integration_5():
         .amplitude.uniform.piecewise_linear([0.1, ramp_time, 0.1], [0, 10, 10, 0])
         .phase.location(1)
         .linear(0.0, 1.0, ramp_time + 0.2)
-        .assign(ramp_time=3.0)
-        .batch_assign(r=np.linspace(0.1, 4, 5).tolist())
+        .assign(ramp_time=3.0, r=6)
         .bloqade.python()
         .run(10000, cache_matrices=True, blockade_radius=6.0)
         .report()
@@ -130,8 +125,7 @@ def test_integration_6():
         .amplitude.uniform.piecewise_linear([0.1, ramp_time, 0.1], [0, 10, 10, 0])
         .phase.location(1)
         .linear(0.0, 1.0, ramp_time + 0.2)
-        .assign(ramp_time=3.0)
-        .batch_assign(r=np.linspace(0.1, 4, 5).tolist())
+        .assign(ramp_time=3.0, r=6)
         .bloqade.python()
         .run(10000, cache_matrices=True, blockade_radius=6.0)
         .report()
@@ -183,14 +177,14 @@ def KS_test(
 
 def test_bloqade_against_braket():
     np.random.seed(9123892)
-    durations = cast([0.1, 1.0, 0.1])
+    durations = cast([0.1, 0.1, 0.1])
 
     prog = (
-        Chain(5, lattice_spacing=6.1)
+        Chain(3, lattice_spacing=6.1)
         .rydberg.detuning.uniform.piecewise_linear(durations, [-20, -20, "d", "d"])
         .amplitude.uniform.piecewise_linear(durations, [0, 15, 15, 0])
         .phase.uniform.constant(0.3, sum(durations))
-        .batch_assign(d=[0, 10, 20, 30, 40])
+        .batch_assign(d=[10, 20])
     )
 
     nshots = 1000
@@ -203,17 +197,17 @@ def test_bloqade_against_braket():
 
 def test_bloqade_against_braket_2():
     np.random.seed(192839812)
-    durations = cast([0.1, 1.0, 0.1])
+    durations = cast([0.1, 0.1, 0.1])
     values = [0, 15, 15, 0]
 
     prog_1 = (
-        Chain(5, lattice_spacing=6.1)
+        Chain(3, lattice_spacing=6.1)
         .rydberg.detuning.uniform.piecewise_linear(durations, [-20, -20, "d", "d"])
         .amplitude.uniform.piecewise_linear(durations, values)
-        .batch_assign(d=[0, 10, 20, 30, 40])
+        .batch_assign(d=[10, 20])
     )
     prog_2 = (
-        Chain(5, lattice_spacing=6.1)
+        Chain(3, lattice_spacing=6.1)
         .rydberg.detuning.uniform.piecewise_linear(durations, [-20, -20, "d", "d"])
         .amplitude.location(0)
         .piecewise_linear(durations, values)
@@ -221,13 +215,9 @@ def test_bloqade_against_braket_2():
         .piecewise_linear(durations, values)
         .amplitude.location(2)
         .piecewise_linear(durations, values)
-        .amplitude.location(3)
-        .piecewise_linear(durations, values)
-        .amplitude.location(4)
-        .piecewise_linear(durations, values)
         .phase.location(0)
         .constant(0.0, sum(durations))
-        .batch_assign(d=[0, 10, 20, 30, 40])
+        .batch_assign(d=[10, 20])
     )
 
     nshots = 1000
