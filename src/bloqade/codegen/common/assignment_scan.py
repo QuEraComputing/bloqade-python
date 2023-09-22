@@ -24,11 +24,11 @@ class AssignmentScanRecord(WaveformVisitor):
         self.assignments = dict(assignments)
 
     def visit_record(self, ast: waveform.Record):
+        self.visit(ast.waveform)
         duration = ast.waveform.duration(**self.assignments)
         var = ast.var
         value = ast.waveform.eval_decimal(duration, **self.assignments)
         self.assignments[var.name] = value
-        self.visit(ast.waveform)
 
     def visit_append(self, ast: waveform.Append):
         list(map(self.visit, ast.waveforms))
