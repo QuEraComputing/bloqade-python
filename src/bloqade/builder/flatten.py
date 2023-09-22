@@ -14,4 +14,4 @@ class Flatten(Parallelizable, BackendRoute):
         self, order: List[Union[str, Variable]], parent: Optional[Builder] = None
     ) -> None:
         super().__init__(parent)
-        self._order = tuple(order)
+        self._order = tuple([o.name if isinstance(o, Variable) else o for o in order])
