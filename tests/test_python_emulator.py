@@ -1,8 +1,9 @@
-from bloqade import start, var
+from bloqade import start, var, cast
 from bloqade.atom_arrangement import Chain
 from bloqade.serialize import dumps, loads
 import numpy as np
 from beartype.typing import Dict
+from scipy.stats import ks_2samp
 
 
 def test_integration_1():
@@ -15,7 +16,7 @@ def test_integration_1():
         )
         .amplitude.uniform.piecewise_linear([0.1, "ramp_time", 0.1], [0, 10, 10, 0])
         .assign(ramp_time=3.0)
-        .batch_assign(r=np.linspace(4, 10, 11).tolist())
+        .batch_assign(r=np.linspace(0.1, 4, 5).tolist())
         .bloqade.python()
         .run(10000, cache_matrices=True, blockade_radius=6.0, interaction_picture=True)
         .report()
@@ -37,7 +38,7 @@ def test_integration_2():
             [0.1, ramp_time / 2, ramp_time / 2, 0.1], [0, 0, np.pi, np.pi]
         )
         .assign(ramp_time=3.0)
-        .batch_assign(r=np.linspace(4, 10, 11).tolist())
+        .batch_assign(r=np.linspace(0.1, 4, 5).tolist())
         .bloqade.python()
         .run(10000, cache_matrices=True, blockade_radius=6.0)
         .report()
@@ -61,7 +62,7 @@ def test_integration_3():
         .amplitude.var("rabi_mask")
         .fn(lambda t: 4 * np.sin(3 * t), ramp_time + 0.2)
         .assign(ramp_time=3.0, rabi_mask=[10.0, 0.1])
-        .batch_assign(r=np.linspace(4, 10, 11).tolist())
+        .batch_assign(r=np.linspace(0.1, 4, 4).tolist())
         .bloqade.python()
         .run(10000, cache_matrices=True, blockade_radius=6.0)
         .report()
@@ -84,7 +85,7 @@ def test_integration_4():
         .amplitude.location(1)
         .linear(0.0, 1.0, ramp_time + 0.2)
         .assign(ramp_time=3.0, rabi_mask=[10.0, 0.1])
-        .batch_assign(r=np.linspace(4, 10, 11).tolist())
+        .batch_assign(r=np.linspace(0.1, 4, 5).tolist())
         .bloqade.python()
         .run(10000, cache_matrices=True, blockade_radius=6.0)
         .report()
@@ -105,7 +106,7 @@ def test_integration_5():
         .phase.location(1)
         .linear(0.0, 1.0, ramp_time + 0.2)
         .assign(ramp_time=3.0)
-        .batch_assign(r=np.linspace(4, 10, 11).tolist())
+        .batch_assign(r=np.linspace(0.1, 4, 5).tolist())
         .bloqade.python()
         .run(10000, cache_matrices=True, blockade_radius=6.0)
         .report()
@@ -130,7 +131,7 @@ def test_integration_6():
         .phase.location(1)
         .linear(0.0, 1.0, ramp_time + 0.2)
         .assign(ramp_time=3.0)
-        .batch_assign(r=np.linspace(4, 10, 11).tolist())
+        .batch_assign(r=np.linspace(0.1, 4, 5).tolist())
         .bloqade.python()
         .run(10000, cache_matrices=True, blockade_radius=6.0)
         .report()
@@ -153,7 +154,7 @@ def test_serialization():
         .amplitude.location(1)
         .linear(0.0, 1.0, ramp_time + 0.2)
         .assign(ramp_time=3.0, rabi_mask=[10.0, 0.1])
-        .batch_assign(r=np.linspace(4, 10, 11).tolist())
+        .batch_assign(r=np.linspace(0.1, 4, 5).tolist())
         .bloqade.python()
         ._compile(100)
     )
@@ -166,37 +167,29 @@ def test_serialization():
 def KS_test(
     lhs_counts: Dict[str, int], rhs_counts: Dict[str, int], alpha: float = 0.05
 ) -> None:
-    # statistical test to check of two empirical distributions are the same
-    # https://en.wikipedia.org/wiki/Kolmogorov%E2%80%93Smirnov_test#Two-sample_Kolmogorov%E2%80%93Smirnov_test
-    m = sum(lhs_counts.values())
-    n = sum(rhs_counts.values())
-    lhs_cdf = []
-    rhs_cdf = []
-    bitstrings = sorted(list(set([*lhs_counts.keys(), *rhs_counts.keys()])))
-    for bitstring in bitstrings:
-        lhs_cdf.append(lhs_counts.get(bitstring, 0) / n)
-        rhs_cdf.append(rhs_counts.get(bitstring, 0) / m)
+    lhs_samples = []
+    rhs_samples = []
 
-    lhs_cdf = np.cumsum(lhs_cdf)
-    rhs_cdf = np.cumsum(rhs_cdf)
+    for bitstring, count in lhs_counts.items():
+        lhs_samples += [int(bitstring, 2)] * count
 
-    c_alpha = np.sqrt(-0.5 * np.log(alpha / 2))
+    for bitstring, count in rhs_counts.items():
+        rhs_samples += [int(bitstring, 2)] * count
 
-    assert np.linalg.norm(lhs_cdf - rhs_cdf, ord=np.inf) <= c_alpha * np.sqrt(
-        (m + n) / (m * n)
-    )
+    result = ks_2samp(lhs_samples, rhs_samples, method="exact")
+
+    assert result.pvalue > alpha
 
 
 def test_bloqade_against_braket():
-    np.random.seed(0)
+    np.random.seed(9123892)
+    durations = cast([0.1, 1.0, 0.1])
 
     prog = (
         Chain(5, lattice_spacing=6.1)
-        .rydberg.detuning.uniform.piecewise_linear(
-            [0.1, 3.0, 0.1], [-20, -20, "d", "d"]
-        )
-        .amplitude.uniform.piecewise_linear([0.1, 3.0, 0.1], [0, 15, 15, 0])
-        .phase.uniform.constant(0.3, 3.2)
+        .rydberg.detuning.uniform.piecewise_linear(durations, [-20, -20, "d", "d"])
+        .amplitude.uniform.piecewise_linear(durations, [0, 15, 15, 0])
+        .phase.uniform.constant(0.3, sum(durations))
         .batch_assign(d=[0, 10, 20, 30, 40])
     )
 
@@ -209,33 +202,31 @@ def test_bloqade_against_braket():
 
 
 def test_bloqade_against_braket_2():
-    np.random.seed(0)
+    np.random.seed(192839812)
+    durations = cast([0.1, 1.0, 0.1])
+    values = [0, 15, 15, 0]
 
     prog_1 = (
         Chain(5, lattice_spacing=6.1)
-        .rydberg.detuning.uniform.piecewise_linear(
-            [0.1, 3.0, 0.1], [-20, -20, "d", "d"]
-        )
-        .amplitude.uniform.piecewise_linear([0.1, 3.0, 0.1], [0, 15, 15, 0])
+        .rydberg.detuning.uniform.piecewise_linear(durations, [-20, -20, "d", "d"])
+        .amplitude.uniform.piecewise_linear(durations, values)
         .batch_assign(d=[0, 10, 20, 30, 40])
     )
     prog_2 = (
         Chain(5, lattice_spacing=6.1)
-        .rydberg.detuning.uniform.piecewise_linear(
-            [0.1, 3.0, 0.1], [-20, -20, "d", "d"]
-        )
+        .rydberg.detuning.uniform.piecewise_linear(durations, [-20, -20, "d", "d"])
         .amplitude.location(0)
-        .piecewise_linear([0.1, 3.0, 0.1], [0, 15, 15, 0])
+        .piecewise_linear(durations, values)
         .amplitude.location(1)
-        .piecewise_linear([0.1, 3.0, 0.1], [0, 15, 15, 0])
+        .piecewise_linear(durations, values)
         .amplitude.location(2)
-        .piecewise_linear([0.1, 3.0, 0.1], [0, 15, 15, 0])
+        .piecewise_linear(durations, values)
         .amplitude.location(3)
-        .piecewise_linear([0.1, 3.0, 0.1], [0, 15, 15, 0])
+        .piecewise_linear(durations, values)
         .amplitude.location(4)
-        .piecewise_linear([0.1, 3.0, 0.1], [0, 15, 15, 0])
+        .piecewise_linear(durations, values)
         .phase.location(0)
-        .constant(0.0, 3.2)
+        .constant(0.0, sum(durations))
         .batch_assign(d=[0, 10, 20, 30, 40])
     )
 
