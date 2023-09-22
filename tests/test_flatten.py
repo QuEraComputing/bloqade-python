@@ -1,4 +1,4 @@
-from bloqade import start
+from bloqade import start, var
 import pytest
 
 
@@ -13,7 +13,7 @@ def test_options_1():
         .sample(0.05)
         .assign(x=1)
         .batch_assign(d=[0, 1])
-        .flatten(["y"])
+        .flatten([var("y")])
         .parallelize(20)
         .quera.mock()
     )
