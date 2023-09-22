@@ -601,7 +601,7 @@ class Waveform(WaveformRoute, WaveformAttachable):
 
 
 # mixin for slice and record
-class Slicible:
+class Sliceable:
     @beartype
     def slice(
         self,
@@ -741,7 +741,7 @@ class Recordable:
         return Record(name, self)
 
 
-class WaveformPrimitive(Waveform, Slicible, Recordable):
+class WaveformPrimitive(Waveform, Sliceable, Recordable):
     def __bloqade_ir__(self):
         raise NotImplementedError
 
@@ -892,7 +892,7 @@ class Slice(Waveform, Recordable):
         self._stop = ir.scalar.trycast(stop)
 
 
-class Record(Waveform, Slicible):  # record should not be sliceable
+class Record(Waveform, Sliceable):  # record should not be sliceable
     __match_args__ = ("_name", "__parent__")
 
     def __init__(
@@ -904,7 +904,7 @@ class Record(Waveform, Slicible):  # record should not be sliceable
         self._name = ir.var(name)
 
 
-class Sample(Slicible, Recordable, WaveformRoute):
+class Sample(Sliceable, Recordable, WaveformRoute):
     __match_args__ = ("_dt", "_interpolation", "__parent__")
 
     def __init__(
