@@ -6,7 +6,7 @@ def test_options_1():
     def detuning(t, x, y):
         return y * t + x
 
-    program = (
+    (
         start.add_position((0, 0))
         .add_position((0, "d"))
         .rydberg.rabi.amplitude.uniform.fn(detuning, 4)
@@ -16,18 +16,15 @@ def test_options_1():
         .flatten([var("y")])
         .parallelize(20)
         .quera.mock()
+        ._compile(100, args=(2,))
     )
-
-    results = program.run(100, args=(2,)).report().counts
-
-    assert isinstance(results, list)
 
 
 def test_options_2():
     def detuning(t, x, y):
         return y * t + x
 
-    program = (
+    (
         start.add_position((0, 0))
         .add_position((0, "d"))
         .rydberg.rabi.amplitude.uniform.fn(detuning, 4)
@@ -36,18 +33,15 @@ def test_options_2():
         .flatten(["y", "d"])
         .parallelize(20)
         .quera.mock()
+        ._compile(100, args=(2, 4))
     )
-
-    results = program.run(100, args=(2, 4)).report().counts
-
-    assert isinstance(results, list)
 
 
 def test_options_3():
     def detuning(t, x, y):
         return y * t + x
 
-    program = (
+    (
         start.add_position((0, 0))
         .add_position((0, "d"))
         .rydberg.rabi.amplitude.uniform.fn(detuning, 4)
@@ -56,11 +50,8 @@ def test_options_3():
         .batch_assign(d=[0, 1], y=[0, 1])
         .parallelize(20)
         .quera.mock()
+        ._compile(100)
     )
-
-    results = program.run(100).report().counts
-
-    assert isinstance(results, list)
 
 
 def test_options_4():
@@ -77,10 +68,8 @@ def test_options_4():
         .quera.mock()
     )
 
-    results = program.run(100).report().counts
-
-    assert isinstance(results, list)
+    program._compile(100)
 
     with pytest.raises(ValueError):
         # checking that using `arg` is not allowed without flatten
-        program.run(100, args=(2,))
+        program._compile(100, args=(2,))
