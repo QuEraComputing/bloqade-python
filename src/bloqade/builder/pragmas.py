@@ -1,5 +1,4 @@
 from beartype.typing import List, Union, TYPE_CHECKING
-from bloqade.builder.base import Builder
 from bloqade.builder.typing import LiteralType, ParamType
 from bloqade.ir.scalar import Variable
 
@@ -9,14 +8,14 @@ if TYPE_CHECKING:
     from bloqade.builder.flatten import Flatten
 
 
-class Flattenable(Builder):
+class Flattenable:
     def flatten(self, orders: List[Union[str, Variable]]) -> "Flatten":
         from bloqade.builder.flatten import Flatten
 
         return Flatten(orders, self)
 
 
-class Assignable(Builder):
+class Assignable:
     def assign(self, **assignments) -> "Assign":
         """
         Assign values to variables declared previously in the program.
@@ -43,14 +42,14 @@ class Assignable(Builder):
         return Assign(parent=self, **assignments)
 
 
-class BatchAssignable(Builder):
+class BatchAssignable:
     def batch_assign(self, **assignments: ParamType) -> "BatchAssign":
         from bloqade.builder.assign import BatchAssign
 
         return BatchAssign(parent=self, **assignments)
 
 
-class Parallelizable(Builder):
+class Parallelizable:
     def parallelize(self, cluster_spacing: LiteralType) -> "Parallelize":
         """
         Parallelize the current problem (register & sequnece) to fill entire FOV

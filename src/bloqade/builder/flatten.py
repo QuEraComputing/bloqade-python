@@ -6,7 +6,7 @@ from bloqade.builder.pragmas import Parallelizable
 from bloqade.builder.backend import BackendRoute
 
 
-class Flatten(Parallelizable, BackendRoute):
+class Flatten(Parallelizable, BackendRoute, Builder):
     __match_args__ = ("_order", "__parent__")
 
     @beartype
