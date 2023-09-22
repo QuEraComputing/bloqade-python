@@ -1,7 +1,7 @@
 from bloqade.serialize import Serializer
 from bloqade.task.base import Geometry, LocalTask
 from bloqade.emulate.ir.emulator import EmulatorProgram
-from bloqade.emulate.codegen.rydberg_hamiltonian import (
+from bloqade.emulate.codegen.hamiltonian import (
     RydbergHamiltonianCodeGen,
     CompileCache,
 )
