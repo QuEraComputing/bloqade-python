@@ -187,21 +187,21 @@ class Chain(BoundedBravais):
 
     """
 
-    _vertical: bool
-    vertical: InitVar[bool]
+    vertical: bool
+    vertical_chain: InitVar[bool]
 
     @beartype
     def __init__(
-        self, L: int, lattice_spacing: ScalarType = 1.0, vertical: bool = False
+        self, L: int, lattice_spacing: ScalarType = 1.0, vertical_chain: bool = False
     ):
+        self.vertical = vertical_chain
         super().__init__(L, lattice_spacing=lattice_spacing)
-        self._vertical = vertical
 
     def __repr__(self):
         return super().__repr__()
 
     def cell_vectors(self) -> List[List[float]]:
-        if self._vertical:
+        if self.vertical:
             return [[0, 1]]
         else:
             return [[1, 0]]

@@ -134,7 +134,7 @@ def test_scale_lattice():
 
 
 def test_chain():
-    lattice = Chain(4, lattice_spacing=1, vertical=False)
+    lattice = Chain(4, lattice_spacing=1, vertical_chain=False)
     latt2 = lattice.scale(2)
     positions = set(map(lambda info: info.position, latt2.enumerate()))
     positions_expected = set(cast([(0, 0), (2, 0), (4, 0), (6, 0)]))
@@ -142,7 +142,7 @@ def test_chain():
     assert positions == positions_expected
     assert lattice.n_dims == 1
 
-    vertical_lattice = Chain(4, lattice_spacing=1, vertical=True)
+    vertical_lattice = Chain(4, lattice_spacing=1, vertical_chain=True)
     positions = set(map(lambda info: info.position, vertical_lattice.enumerate()))
     positions_expected = set(cast([(0, 0), (0, 1), (0, 2), (0, 3)]))
 
@@ -152,8 +152,8 @@ def test_chain():
     lattice_dict = BloqadeIRSerializer().default(vertical_lattice)
 
     assert lattice_dict["chain"]["L"] == 4
-    assert lattice_dict["chain"]["vertical"] is True
-    assert lattice_dict["chain"]["lattice_spacing"] == 1
+    assert lattice_dict["chain"]["vertical_chain"] is True
+    assert lattice_dict["chain"]["lattice_spacing"] == {"literal": {"value": "1"}}
 
     assert lattice_dict
 
