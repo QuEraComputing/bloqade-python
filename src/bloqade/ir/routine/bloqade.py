@@ -71,8 +71,8 @@ class BloqadePythonRoutine(RoutineBase):
 
         Args:
             shots (int): number of shots after running state vector simulation
-            args (Tuple[Real, ...], optional): The arguments defined in `flatten`.
-            Defaults to ().
+            args (Tuple[Real, ...], optional): The values for parameters defined
+            in `args`. Defaults to ().
             name (Optional[str], optional): Name to give this run. Defaults to None.
             blockade_radius (float, optional): Use the Blockade subspace given a
             particular radius. Defaults to 0.0.

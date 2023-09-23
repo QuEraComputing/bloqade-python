@@ -108,7 +108,7 @@ class BuilderDeserializer(BloqadeIRDeserializer):
         "Parallelize": Parallelize,
         "Assign": Assign,
         "BatchAssign": BatchAssign,
-        "Flatten": Args,
+        "Args": Args,
     }
 
     def object_hook(self, obj: Dict[str, Any]):

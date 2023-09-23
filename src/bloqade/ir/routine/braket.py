@@ -33,20 +33,6 @@ class BraketHardwareRoutine(RoutineBase):
         args: Tuple[LiteralType, ...] = (),
         name: Optional[str] = None,
     ) -> RemoteBatch:
-        """
-        Compile to a RemoteBatch, which contain
-            Braket backend specific tasks.
-
-        Args:
-            shots (int): number of shots
-            args (Tuple): additional arguments
-            name (str): custom name of the batch
-
-        Return:
-            RemoteBatch
-
-        """
-
         ## fall passes here ###
         from bloqade.codegen.common.assign_variables import AssignAnalogCircuit
         from bloqade.ir.analysis.assignment_scan import AssignmentScan
@@ -100,8 +86,8 @@ class BraketHardwareRoutine(RoutineBase):
 
         Args:
             shots (int): number of shots
-            args (Tuple): additional arguments
-            name (str): custom name of the batch
+            args (Tuple): Values of the parameter defined in `args`, defaults to ()
+            name (str | None): custom name of the batch, defaults to None
             shuffle (bool): shuffle the order of jobs
 
         Return:
@@ -166,7 +152,7 @@ class BraketHardwareRoutine(RoutineBase):
 
         Args:
             shots (int): number of shots
-            args: additional arguments for flatten variables.
+            args: additional arguments for args variables.
             name (str): custom name of the batch
             shuffle (bool): shuffle the order of jobs
 
@@ -182,18 +168,6 @@ class BraketLocalEmulatorRoutine(RoutineBase):
     def _compile(
         self, shots: int, args: Tuple[LiteralType, ...] = (), name: Optional[str] = None
     ) -> LocalBatch:
-        """
-        Compile to a LocalBatch, which contain tasks to run on local emulator.
-
-        Args:
-            shots (int): number of shots
-            args: additional arguments for flatten variables.
-            name (str): custom name for the batch
-
-        Return:
-            LocalBatch
-
-        """
         ## fall passes here ###
         from bloqade.ir import ParallelRegister
         from bloqade.codegen.common.assign_variables import AssignAnalogCircuit
@@ -251,7 +225,7 @@ class BraketLocalEmulatorRoutine(RoutineBase):
 
         Args:
             shots (int): number of shots
-            args: additional arguments for flatten variables.
+            args: additional arguments for args variables.
             multiprocessing (bool): enable multi-process
             num_workers (int): number of workers to run the emulator
 
@@ -284,7 +258,7 @@ class BraketLocalEmulatorRoutine(RoutineBase):
 
         Args:
             shots (int): number of shots
-            args: additional arguments for flatten variables.
+            args: additional arguments for args variables.
             multiprocessing (bool): enable multi-process
             num_workers (int): number of workers to run the emulator
 

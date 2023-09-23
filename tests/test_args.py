@@ -71,5 +71,5 @@ def test_options_4():
     program._compile(100)
 
     with pytest.raises(ValueError):
-        # checking that using `arg` is not allowed without flatten
+        # checking that using `arg` is not allowed without args
         program._compile(100, args=(2,))

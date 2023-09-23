@@ -50,19 +50,6 @@ class QuEraHardwareRoutine(RoutineBase):
         args: Tuple[LiteralType, ...] = (),
         name: Optional[str] = None,
     ) -> RemoteBatch:
-        """
-        Compile to a RemoteBatch, which contain
-            QuEra backend specific tasks.
-
-        Args:
-            shots (int): number of shots
-            args (Tuple): additional arguments
-            name (str): custom name of the batch
-
-        Return:
-            RemoteBatch
-
-        """
         from bloqade.codegen.common.assign_variables import AssignAnalogCircuit
 
         from bloqade.ir.analysis.assignment_scan import AssignmentScan

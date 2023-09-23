@@ -215,16 +215,14 @@ class Parser:
                         dup.append(x)
 
                 if dup:
-                    raise ValueError(f"Cannot flatten duplicate names {dup}.")
+                    raise ValueError(f"Cannot have duplicate names {dup}.")
 
                 order_names = set([*order])
-                flattened_vector_names = order_names.intersection(
-                    self.vector_node_names
-                )
+                vector_names = order_names.intersection(self.vector_node_names)
 
-                if flattened_vector_names:
+                if vector_names:
                     raise ValueError(
-                        f"Cannot flatten RunTimeVectors: {flattened_vector_names}."
+                        f"Cannot have RunTimeVectors: {vector_names} as an argument."
                     )
 
                 self.order = order
