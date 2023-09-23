@@ -21,7 +21,7 @@ graph TD
   Options(["[Options]
   assign
   batch_assign
-  flatten
+  args
   parallelize
   "])
 

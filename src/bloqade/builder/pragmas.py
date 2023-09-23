@@ -5,14 +5,14 @@ from bloqade.ir.scalar import Variable
 if TYPE_CHECKING:
     from bloqade.builder.assign import Assign, BatchAssign
     from bloqade.builder.parallelize import Parallelize
-    from bloqade.builder.flatten import Flatten
+    from bloqade.builder.args import Args
 
 
-class Flattenable:
-    def flatten(self, orders: List[Union[str, Variable]]) -> "Flatten":
-        from bloqade.builder.flatten import Flatten
+class AddArgs:
+    def args(self, args_list: List[Union[str, Variable]]) -> "Args":
+        from bloqade.builder.args import Args
 
-        return Flatten(orders, self)
+        return Args(args_list, self)
 
 
 class Assignable:

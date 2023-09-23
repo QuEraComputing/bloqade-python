@@ -24,7 +24,7 @@ from bloqade.builder.field import Detuning, Rabi, RabiAmplitude, RabiPhase
 from bloqade.builder.coupling import Rydberg, Hyperfine
 from bloqade.builder.parallelize import Parallelize
 from bloqade.builder.assign import Assign, BatchAssign
-from bloqade.builder.flatten import Flatten
+from bloqade.builder.args import Args
 
 
 class BuilderSerializer(BloqadeIRSerializer):
@@ -60,7 +60,7 @@ class BuilderSerializer(BloqadeIRSerializer):
             Parallelize,
             Assign,
             BatchAssign,
-            Flatten,
+            Args,
         ]
     )
 
@@ -108,7 +108,7 @@ class BuilderDeserializer(BloqadeIRDeserializer):
         "Parallelize": Parallelize,
         "Assign": Assign,
         "BatchAssign": BatchAssign,
-        "Flatten": Flatten,
+        "Args": Args,
     }
 
     def object_hook(self, obj: Dict[str, Any]):
