@@ -180,8 +180,9 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
             for atom in range(self.n_atoms):
                 wf = sum(
                     (
-                        target_atom_dict[sm].get(atom, 0.0) * wf
+                        target_atom_dict[sm][atom] * wf
                         for sm, wf in ast.value.items()
+                        if atom in target_atom_dict[sm]
                     ),
                     start=waveform.Constant(0.0, 0.0),
                 )
@@ -227,8 +228,9 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
             for atom in range(self.n_atoms):
                 amplitude_wf = sum(
                     (
-                        amplitude_target_atoms_dict[sm].get(atom, 0.0) * wf
+                        amplitude_target_atoms_dict[sm][atom] * wf
                         for sm, wf in amplitude.value.items()
+                        if atom in amplitude_target_atoms_dict[sm]
                     ),
                     start=waveform.Constant(0.0, 0.0),
                 )
@@ -280,16 +282,18 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
             for atom in range(self.n_atoms):
                 phase_wf = sum(
                     (
-                        phase_target_atoms_dict[sm].get(atom, 0.0) * wf
+                        phase_target_atoms_dict[sm][atom] * wf
                         for sm, wf in phase.value.items()
+                        if atom in phase_target_atoms_dict[sm]
                     ),
                     start=waveform.Constant(0.0, 0.0),
                 )
 
                 amplitude_wf = sum(
                     (
-                        amplitude_target_atoms_dict[sm].get(atom, 0.0) * wf
+                        amplitude_target_atoms_dict[sm][atom] * wf
                         for sm, wf in amplitude.value.items()
+                        if atom in amplitude_target_atoms_dict[sm]
                     ),
                     start=waveform.Constant(0.0, 0.0),
                 )
