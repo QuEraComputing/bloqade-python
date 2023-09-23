@@ -5,7 +5,7 @@ from bloqade.builder.field import Field, Detuning, RabiAmplitude, RabiPhase
 from bloqade.builder.spatial import SpatialModulation, Location, Uniform, Var, Scale
 from bloqade.builder.waveform import WaveformPrimitive, Slice, Record, Sample, Fn
 from bloqade.builder.assign import Assign, BatchAssign
-from bloqade.builder.flatten import Flatten
+from bloqade.builder.args import Args
 from bloqade.builder.parallelize import Parallelize
 from bloqade.builder.parse.stream import BuilderNode, BuilderStream
 
@@ -185,7 +185,7 @@ class Parser:
         pragma_types = (
             Assign,
             BatchAssign,
-            Flatten,
+            Args,
             Parallelize,
         )
 
@@ -203,7 +203,7 @@ class Parser:
                     for name, values in node._assignments.items()
                 ]
                 self.batch_params = list(map(dict, zip(*tuple_iterators)))
-            elif isinstance(node, Flatten):
+            elif isinstance(node, Args):
                 order = node._order
 
                 seen = set()
@@ -274,7 +274,7 @@ class Parser:
         params = Params(
             static_params=self.static_params,
             batch_params=self.batch_params,
-            flatten_params=self.order,
+            args_list=self.order,
         )
         circuit = AnalogCircuit(self.register, self.sequence)
 

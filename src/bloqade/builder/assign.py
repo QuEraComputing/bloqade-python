@@ -2,7 +2,7 @@ from itertools import repeat, starmap
 from beartype.typing import Optional, List
 from bloqade.builder.typing import ParamType
 from bloqade.builder.base import Builder
-from bloqade.builder.pragmas import Parallelizable, Flattenable, BatchAssignable
+from bloqade.builder.pragmas import Parallelizable, AddArgs, BatchAssignable
 from bloqade.builder.backend import BackendRoute
 from numbers import Real
 from decimal import Decimal
@@ -59,7 +59,7 @@ class AssignBase(Builder):
     pass
 
 
-class Assign(BatchAssignable, Flattenable, Parallelizable, BackendRoute, AssignBase):
+class Assign(BatchAssignable, AddArgs, Parallelizable, BackendRoute, AssignBase):
     __match_args__ = ("_assignments", "__parent__")
 
     def __init__(self, parent: Optional[Builder] = None, **assignments) -> None:
@@ -82,7 +82,7 @@ class Assign(BatchAssignable, Flattenable, Parallelizable, BackendRoute, AssignB
                 self._assignments[name] = cast_scalar_param(value, name)
 
 
-class BatchAssign(Flattenable, Parallelizable, BackendRoute, AssignBase):
+class BatchAssign(AddArgs, Parallelizable, BackendRoute, AssignBase):
     __match_args__ = ("_assignments", "__parent__")
 
     def __init__(self, parent: Optional[Builder] = None, **assignments) -> None:
