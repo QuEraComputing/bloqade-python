@@ -13,7 +13,7 @@ def test_options_1():
         .sample(0.05)
         .assign(x=1)
         .batch_assign(d=[0, 1])
-        .flatten([var("y")])
+        .args([var("y")])
         .parallelize(20)
         .quera.mock()
         ._compile(100, args=(2,))
@@ -30,7 +30,7 @@ def test_options_2():
         .rydberg.rabi.amplitude.uniform.fn(detuning, 4)
         .sample(0.05)
         .assign(x=1)
-        .flatten(["y", "d"])
+        .args(["y", "d"])
         .parallelize(20)
         .quera.mock()
         ._compile(100, args=(2, 4))
@@ -71,5 +71,5 @@ def test_options_4():
     program._compile(100)
 
     with pytest.raises(ValueError):
-        # checking that using `arg` is not allowed without flatten
+        # checking that using `arg` is not allowed without args
         program._compile(100, args=(2,))
