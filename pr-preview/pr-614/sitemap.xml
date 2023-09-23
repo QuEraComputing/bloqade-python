@@ -91,6 +91,11 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
+         <loc>https://bloqade.quera.com/reference/bloqade/builder/args/</loc>
+         <lastmod>2023-09-23</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
          <loc>https://bloqade.quera.com/reference/bloqade/builder/assign/</loc>
          <lastmod>2023-09-23</lastmod>
          <changefreq>daily</changefreq>
@@ -107,11 +112,6 @@
     </url>
     <url>
          <loc>https://bloqade.quera.com/reference/bloqade/builder/field/</loc>
-         <lastmod>2023-09-23</lastmod>
-         <changefreq>daily</changefreq>
-    </url>
-    <url>
-         <loc>https://bloqade.quera.com/reference/bloqade/builder/flatten/</loc>
          <lastmod>2023-09-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
