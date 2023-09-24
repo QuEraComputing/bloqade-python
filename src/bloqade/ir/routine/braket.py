@@ -176,7 +176,7 @@ class BraketLocalEmulatorRoutine(RoutineBase):
         from bloqade.submission.ir.braket import to_braket_task_ir
 
         circuit, params = self.parse_source()
-        circuit = AssignAnalogCircuit(params.static_params).visit(circuit)
+        circuit = AssignAnalogCircuit(params.static_params).emit(circuit)
 
         if isinstance(circuit.register, ParallelRegister):
             raise TypeError(

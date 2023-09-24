@@ -33,6 +33,7 @@ class LocationInfo:
         self.position = tuple(cast(ele) for ele in position)
 
 
+@dataclass(init=False, repr=False)
 class AtomArrangement(ProgramStart, TransformTrait):
     def __repr__(self) -> str:
         xs_filled, xs_vacant = [], []
