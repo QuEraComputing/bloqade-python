@@ -68,7 +68,7 @@ def test_scal_loc():
     with pytest.raises(ValueError):
         ScaledLocations({(2, 3): 2})
 
-    assert x.print_node() == "ScaledLocations({'1': 1.0, '2': 2.0})"
+    assert x.print_node() == "ScaledLocations"
     assert x.children() == {"Location(1)": cast(1.0), "Location(2)": cast(2.0)}
 
     mystdout = StringIO()
@@ -76,16 +76,17 @@ def test_scal_loc():
 
     x._repr_pretty_(p, 0)
 
-    assert (
-        mystdout.getvalue()
-        == "ScaledLocations({'1': 1.0, '2': 2.0})\n"
-        + "├─ Location(1)\n"
-        + "│  ⇒ Literal: 1.0\n"
-        + "⋮\n"
-        + "└─ Location(2)\n"
-        + "   ⇒ Literal: 2.0⋮\n"
+    assert mystdout.getvalue() == (
+        "ScaledLocations\n"
+        "├─ Location(1)\n"
+        "│  ⇒ Literal: 1.0\n"
+        "⋮\n"
+        "└─ Location(2)\n"
+        "   ⇒ Literal: 2.0⋮\n"
     )
 
+
+def test_field_scaled_locations():
     Loc = ScaledLocations({1: 1.0, 2: 2.0})
     Loc2 = ScaledLocations({3: 1.0, 4: 2.0})
     f1 = Field({Loc: Linear(start=1.0, stop="x", duration=3.0)})
@@ -101,17 +102,23 @@ def test_scal_loc():
 
     f1._repr_pretty_(p, 10)
 
-    assert (
-        mystdout.getvalue()
-        == "Field\n"
-        + "└─ ScaledLocations({'1': 1.0, '2': 2.0})\n"
-        + "   ⇒ Linear\n"
-        + "     ├─ start\n"
-        + "     │  ⇒ Literal: 1.0\n"
-        + "     ├─ stop\n"
-        + "     │  ⇒ Variable: x\n"
-        + "     └─ duration\n"
-        + "        ⇒ Literal: 3.0"
+    assert mystdout.getvalue() == (
+        "Field\n"
+        "└─ KeyValuePair\n"
+        "   ├─ key\n"
+        "   │  ⇒ ScaledLocations\n"
+        "   │    ├─ Location(1)\n"
+        "   │    │  ⇒ Literal: 1.0\n"
+        "   │    └─ Location(2)\n"
+        "   │       ⇒ Literal: 2.0\n"
+        "   └─ value\n"
+        "      ⇒ Linear\n"
+        "        ├─ start\n"
+        "        │  ⇒ Literal: 1.0\n"
+        "        ├─ stop\n"
+        "        │  ⇒ Variable: x\n"
+        "        └─ duration\n"
+        "           ⇒ Literal: 3.0"
     )
 
     # add with field same spat-mod
@@ -124,8 +131,4 @@ def test_scal_loc():
 
     assert f2.print_node() == "Field"
     # assert type(hash(f1)) == int
-    assert f1.children() == {
-        "ScaledLocations({'1': 1.0, '2': 2.0})": Linear(
-            start=1.0, stop=cast("x"), duration=3.0
-        )
-    }
+    assert f1.children() == [trp.KeyValuePair(k, v) for k, v in f1.drives.items()]
