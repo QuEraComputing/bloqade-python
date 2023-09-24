@@ -5,7 +5,7 @@ from beartype.typing import List, Tuple, Union
 from beartype import beartype
 
 
-@dataclass(init=False, repr=False)
+@dataclass(init=False)
 class ListOfLocations(AtomArrangement):
     __match_args__ = ("location_list",)
     location_list: List[LocationInfo]
