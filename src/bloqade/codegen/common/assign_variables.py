@@ -268,7 +268,7 @@ class AssignAnalogCircuit(AnalogCircuitVisitor):
 
     def visit_field(self, ast: field.Field) -> field.Field:
         return field.Field(
-            {self.visit(sm): self.visit(wf) for sm, wf in ast.value.items()}
+            {self.visit(sm): self.visit(wf) for sm, wf in ast.drives.items()}
         )
 
     def visit_uniform_modulation(self, ast: field.UniformModulation) -> Any:

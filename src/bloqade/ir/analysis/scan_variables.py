@@ -200,8 +200,8 @@ class ScanVariablesAnalogCircuit(AnalogCircuitVisitor):
         self.vector_vars.add(ast.name)
 
     def visit_field(self, ast: field.Field) -> Any:
-        list(map(self.visit, ast.value.keys()))
-        for value in ast.value.values():
+        list(map(self.visit, ast.drives.keys()))
+        for value in ast.drives.values():
             self.visit(value)
 
     def visit_pulse(self, ast: pulse.Pulse) -> Any:

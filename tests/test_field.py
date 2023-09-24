@@ -116,11 +116,11 @@ def test_scal_loc():
 
     # add with field same spat-mod
     o1 = f1.add(f2)
-    assert len(o1.value.keys()) == 1
+    assert len(o1.drives.keys()) == 1
 
     # add with field diff spat-mod
     o2 = f1.add(f3)
-    assert len(o2.value.keys()) == 2
+    assert len(o2.drives.keys()) == 2
 
     assert f2.print_node() == "Field"
     # assert type(hash(f1)) == int

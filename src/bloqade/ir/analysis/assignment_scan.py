@@ -105,7 +105,7 @@ class AssignmentScan(AnalogCircuitVisitor):
         self.visit(ast.pulse)
 
     def visit_field(self, ast: field.Field):
-        list(map(self.visit, ast.value.values()))
+        list(map(self.visit, ast.drives.values()))
 
     def visit_waveform(self, ast: waveform.Waveform):
         self.assignments.update(self.waveform_visitor.emit(ast))

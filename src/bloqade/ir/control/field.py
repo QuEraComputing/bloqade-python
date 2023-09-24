@@ -198,10 +198,10 @@ class Field(FieldExpr):
     ```
     """
 
-    value: Dict[SpatialModulation, Waveform]
+    drives: Dict[SpatialModulation, Waveform]
 
     def __hash__(self) -> int:
-        return hash(frozenset(self.value.items())) ^ hash(self.__class__)
+        return hash(frozenset(self.drives.items())) ^ hash(self.__class__)
 
     def _repr_pretty_(self, p, cycle):
         Printer(p).print(self, cycle)
@@ -210,13 +210,15 @@ class Field(FieldExpr):
         if not isinstance(other, Field):
             raise ValueError(f"Cannot add Field and {other.__class__}")
 
-        out = Field(dict(self.value))
+        out = Field(dict(self.drives))
 
-        for spatial_modulation, waveform in other.value.items():
-            if spatial_modulation in self.value:
-                out.value[spatial_modulation] = out.value[spatial_modulation] + waveform
+        for spatial_modulation, waveform in other.drives.items():
+            if spatial_modulation in self.drives:
+                out.drives[spatial_modulation] = (
+                    out.drives[spatial_modulation] + waveform
+                )
             else:
-                out.value[spatial_modulation] = waveform
+                out.drives[spatial_modulation] = waveform
 
         return out
 
@@ -225,7 +227,7 @@ class Field(FieldExpr):
 
     def children(self):
         # return dict with annotations
-        return [KeyValuePair(k, v) for k, v in self.value.items()]
+        return [KeyValuePair(k, v) for k, v in self.drives.items()]
 
     def figure(self, **assignments):
         return get_field_figure(self, "Field", None, **assignments)

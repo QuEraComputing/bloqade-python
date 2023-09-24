@@ -156,8 +156,8 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
 
         terms = []
 
-        if len(ast.value) <= self.n_atoms:
-            for sm, wf in ast.value.items():
+        if len(ast.drives) <= self.n_atoms:
+            for sm, wf in ast.drives.items():
                 self.duration = max(
                     float(wf.duration(**self.assignments)), self.duration
                 )
@@ -169,13 +169,13 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
                     )
                 )
         else:
-            target_atom_dict = {sm: self.visit(sm) for sm in ast.value.keys()}
+            target_atom_dict = {sm: self.visit(sm) for sm in ast.drives.keys()}
 
             for atom in range(self.n_atoms):
                 wf = sum(
                     (
                         target_atom_dict[sm].get(atom, 0.0) * wf
-                        for sm, wf in ast.value.items()
+                        for sm, wf in ast.drives.items()
                     ),
                     start=waveform.Constant(0.0, 0.0),
                 )
@@ -200,8 +200,8 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
         if amplitude is None:
             return terms
 
-        if phase is None and len(amplitude.value) <= self.n_atoms:
-            for sm, wf in amplitude.value.items():
+        if phase is None and len(amplitude.drives) <= self.n_atoms:
+            for sm, wf in amplitude.drives.items():
                 self.duration = max(
                     float(wf.duration(**self.assignments)), self.duration
                 )
@@ -216,13 +216,13 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
                 )
         elif phase is None:  # fully local real rabi fields
             amplitude_target_atoms_dict = {
-                sm: self.visit(sm) for sm in amplitude.value.keys()
+                sm: self.visit(sm) for sm in amplitude.drives.keys()
             }
             for atom in range(self.n_atoms):
                 amplitude_wf = sum(
                     (
                         amplitude_target_atoms_dict[sm].get(atom, 0.0) * wf
-                        for sm, wf in amplitude.value.items()
+                        for sm, wf in amplitude.drives.items()
                     ),
                     start=waveform.Constant(0.0, 0.0),
                 )
@@ -241,16 +241,16 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
                     )
                 )
         elif (
-            len(phase.value) == 1
-            and UniformModulation() in phase.value
-            and len(amplitude.value) <= self.n_atoms
+            len(phase.drives) == 1
+            and UniformModulation() in phase.drives
+            and len(amplitude.drives) <= self.n_atoms
         ):
-            (phase_waveform,) = phase.value.values()
+            (phase_waveform,) = phase.drives.values()
             rabi_phase = self.waveform_compiler.emit(phase_waveform)
             self.duration = max(
                 float(phase_waveform.duration(**self.assignments)), self.duration
             )
-            for sm, wf in amplitude.value.items():
+            for sm, wf in amplitude.drives.items():
                 self.duration = max(
                     float(wf.duration(**self.assignments)), self.duration
                 )
@@ -265,9 +265,9 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
                     )
                 )
         else:
-            phase_target_atoms_dict = {sm: self.visit(sm) for sm in phase.value.keys()}
+            phase_target_atoms_dict = {sm: self.visit(sm) for sm in phase.drives.keys()}
             amplitude_target_atoms_dict = {
-                sm: self.visit(sm) for sm in amplitude.value.keys()
+                sm: self.visit(sm) for sm in amplitude.drives.keys()
             }
 
             terms = []
@@ -275,7 +275,7 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
                 phase_wf = sum(
                     (
                         phase_target_atoms_dict[sm].get(atom, 0.0) * wf
-                        for sm, wf in phase.value.items()
+                        for sm, wf in phase.drives.items()
                     ),
                     start=waveform.Constant(0.0, 0.0),
                 )
@@ -283,7 +283,7 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
                 amplitude_wf = sum(
                     (
                         amplitude_target_atoms_dict[sm].get(atom, 0.0) * wf
-                        for sm, wf in amplitude.value.items()
+                        for sm, wf in amplitude.drives.items()
                     ),
                     start=waveform.Constant(0.0, 0.0),
                 )
