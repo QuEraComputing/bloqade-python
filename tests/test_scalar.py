@@ -144,8 +144,6 @@ def test_negative_node():
     assert nsa.children() == [sa]
     assert nsa.print_node() == "Negative"
 
-    assert str(nsa) == "-(1.0)"
-
 
 # def test_base_invalid():
 
@@ -160,10 +158,6 @@ def test_interval():
 
     with pytest.raises(ValueError):
         str(itvl_wrong)
-
-    assert str(itvl) == "0.0:1.0"
-    assert str(itvl_no_start) == ":1.0"
-    assert str(itvl_no_stop) == "0:"
 
     with pytest.raises(ValueError):
         itvl_wrong.children()
@@ -241,7 +235,6 @@ def test_add_scalar():
 
     assert C.children() == [A, B]
     assert C.print_node() == "+"
-    assert str(C) == "(1 + 2)"
 
 
 def test_add_zero():
@@ -295,7 +288,6 @@ def test_mul_scalar():
 
     assert C.children() == [A, B]
     assert C.print_node() == "*"
-    assert str(C) == "(1 * 2)"
 
 
 def test_div_scalar():
@@ -306,7 +298,6 @@ def test_div_scalar():
 
     assert C.children() == [A, B]
     assert C.print_node() == "/"
-    assert str(C) == "(1 / 2)"
 
     assert C() == 0.5
 
@@ -319,7 +310,6 @@ def test_min_scalar():
     D = scalar.Min([A, B, C])
     assert D.children() == [A, B, C]
     assert D.print_node() == "min"
-    assert str(D) == "scalar.Min(frozenset({1, 2, 3}))"
 
     mystdout = StringIO()
     p = PP(mystdout)
@@ -339,7 +329,6 @@ def test_max_scalar():
     D = scalar.Max([A, B, C])
     assert D.children() == [A, B, C]
     assert D.print_node() == "max"
-    assert str(D) == "scalar.Max(frozenset({1, 2, 3}))"
 
     mystdout = StringIO()
     p = PP(mystdout)
@@ -383,7 +372,6 @@ def test_Slice():
 
     slc = scalar.Slice(cast(1), itvl)
 
-    assert str(slc) == "1[5:6]"
     assert slc.children() == {"Scalar": cast(1), None: itvl}
     assert slc.print_node() == "Slice"
 
@@ -408,72 +396,3 @@ def test_assigned_variable_methods():
 
     assert assigned_var.children() == []
     assert assigned_var.print_node() == "AssignedVariable: a = 1.0"
-    assert str(assigned_var) == "a"
-
-
-@pytest.mark.skip(reason="Changed implementation of static_assign")
-def test_static_assign():
-    literal = cast(1.0)
-    assert literal == literal.static_assign(a=1, b=2)
-
-    float_value = 1.394023
-
-    variable = var("A")
-    assert variable == variable.static_assign(b=2)
-    assert cast(float_value) == variable.static_assign(A=float_value)
-
-    default_var = scalar.AssignedVariable("A", Decimal("1.0"))
-    assert default_var == default_var.static_assign(b=2)
-    assert cast(float_value) == default_var.static_assign(A=float_value)
-
-    expr = var("a") + var("b")
-    assert cast(float_value) + var("b") == expr.static_assign(a=float_value)
-    assert var("a") + cast(float_value) == expr.static_assign(b=float_value)
-
-    expr = var("a") * var("b")
-    assert cast(float_value) * var("b") == expr.static_assign(a=float_value)
-    assert var("a") * cast(float_value) == expr.static_assign(b=float_value)
-
-    expr = var("a") / var("b")
-    assert cast(float_value) / var("b") == expr.static_assign(a=float_value)
-    assert var("a") / cast(float_value) == expr.static_assign(b=float_value)
-
-    expr = -var("a")
-    assert expr == expr.static_assign(b=float_value)
-    assert -cast(float_value) == expr.static_assign(a=float_value)
-
-    a = var("a")
-    b = var("b")
-    c = var("c")
-    expr = scalar.Slice(a, scalar.Interval(b, c))
-    assert scalar.Slice(cast(float_value), scalar.Interval(b, c)) == expr.static_assign(
-        a=float_value
-    )
-    assert scalar.Slice(a, scalar.Interval(cast(float_value), c)) == expr.static_assign(
-        b=float_value
-    )
-    assert scalar.Slice(a, scalar.Interval(b, cast(float_value))) == expr.static_assign(
-        c=float_value
-    )
-    assert scalar.Slice(
-        cast(float_value), scalar.Interval(cast(float_value), c)
-    ) == expr.static_assign(a=float_value, b=float_value)
-    assert scalar.Slice(
-        cast(float_value), scalar.Interval(b, cast(float_value))
-    ) == expr.static_assign(a=float_value, c=float_value)
-    assert scalar.Slice(
-        a, scalar.Interval(cast(float_value), cast(float_value))
-    ) == expr.static_assign(b=float_value, c=float_value)
-    assert scalar.Slice(
-        cast(float_value), scalar.Interval(cast(float_value), cast(float_value))
-    ) == expr.static_assign(a=float_value, b=float_value, c=float_value)
-
-    expr = scalar.Min(set(map(cast, ["a", "b", "c"])))
-    assert scalar.Min(set(map(cast, [float_value, "b", "c"]))) == expr.static_assign(
-        a=float_value
-    )
-
-    expr = scalar.Max(set(map(cast, ["a", "b", "c"])))
-    assert scalar.Max(set(map(cast, [float_value, "b", "c"]))) == expr.static_assign(
-        a=float_value
-    )

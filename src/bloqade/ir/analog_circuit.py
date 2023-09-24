@@ -59,7 +59,7 @@ class AnalogCircuit:
 
         return False
 
-    def __repr__(self):
+    def __str__(self):
         # TODO: add repr for static_params, batch_params and order
         out = ""
         if self.register is not None:

@@ -86,8 +86,6 @@ def test_scal_loc():
         + "   ⇒ Literal: 2.0⋮\n"
     )
 
-
-def test_field():
     Loc = ScaledLocations({1: 1.0, 2: 2.0})
     Loc2 = ScaledLocations({3: 1.0, 4: 2.0})
     f1 = Field({Loc: Linear(start=1.0, stop="x", duration=3.0)})
