@@ -1,5 +1,5 @@
 from ..scalar import Scalar, cast
-from ..tree_print import Printer
+from ..tree_print import Printer, KeyValuePair
 from .waveform import Waveform
 from bloqade.visualization import get_field_figure
 from pydantic.dataclasses import dataclass
@@ -10,7 +10,10 @@ from bloqade.visualization import get_ir_figure
 
 
 class FieldExpr:
-    pass
+    def __str__(self):
+        ph = Printer()
+        ph.print(self)
+        return ph.get_value()
 
 
 __all__ = [
@@ -26,11 +29,6 @@ __all__ = [
 @dataclass(frozen=True)
 class Location(FieldExpr):
     value: int
-
-    def __repr__(self) -> str:
-        ph = Printer()
-        ph.print(self)
-        return ph.get_value()
 
     def _repr_pretty_(self, p, cycle):
         Printer(p).print(self, cycle)
@@ -50,11 +48,6 @@ class SpatialModulation(FieldExpr):
     def __hash__(self) -> int:
         raise NotImplementedError
 
-    def __repr__(self) -> str:
-        ph = Printer()
-        ph.print(self)
-        return ph.get_value()
-
     def _repr_pretty_(self, p, cycle):
         Printer(p).print(self, cycle)
 
@@ -69,9 +62,6 @@ class SpatialModulation(FieldExpr):
 class UniformModulation(SpatialModulation):
     def __hash__(self) -> int:
         return hash(self.__class__)
-
-    def __str__(self):
-        return "Uniform"
 
     def print_node(self):
         return "UniformModulation"
@@ -99,9 +89,6 @@ class RunTimeVector(SpatialModulation):
     def __hash__(self) -> int:
         return hash(self.name) ^ hash(self.__class__)
 
-    def __str__(self):
-        return f"RunTimeVector({str(self.name)})"
-
     def print_node(self):
         return "RunTimeVector"
 
@@ -125,9 +112,6 @@ class AssignedRunTimeVector(SpatialModulation):
 
     def __hash__(self) -> int:
         return hash(self.name) ^ hash(self.__class__) ^ hash(tuple(self.value))
-
-    def __str__(self):
-        return f"AssignedRunTimeVector({str(self.name), str(self.value)})"
 
     def print_node(self):
         return "AssgiendRunTimeVector"
@@ -165,11 +149,6 @@ class ScaledLocations(SpatialModulation):
     def __hash__(self) -> int:
         return hash(frozenset(self.value.items())) ^ hash(self.__class__)
 
-    def __str__(self):
-        ## formatting location: scale pair:
-        tmp = {f"{str(key.value)}": val for key, val in self.value.items()}
-        return f"ScaledLocations({str(tmp)})"
-
     def _get_data(self, **assignments):
         names = []
         scls = []
@@ -181,7 +160,7 @@ class ScaledLocations(SpatialModulation):
         return names, scls
 
     def print_node(self):
-        return self.__str__()
+        return "ScaledLocations"
 
     def children(self):
         # can return list or dict
@@ -224,19 +203,8 @@ class Field(FieldExpr):
     def __hash__(self) -> int:
         return hash(frozenset(self.value.items())) ^ hash(self.__class__)
 
-    def __repr__(self) -> str:
-        ph = Printer()
-        ph.print(self)
-        return ph.get_value()
-
     def _repr_pretty_(self, p, cycle):
         Printer(p).print(self, cycle)
-
-    def __str__(self):
-        ## formatting location: scale pair:
-        tmp = {str(key): str(val) for key, val in self.value.items()}
-
-        return f"Field({str(tmp)})"
 
     def add(self, other):
         if not isinstance(other, Field):
@@ -257,7 +225,7 @@ class Field(FieldExpr):
 
     def children(self):
         # return dict with annotations
-        return {spatial_mod.print_node(): wf for spatial_mod, wf in self.value.items()}
+        return list(map(KeyValuePair, self.value.keys(), self.value.values()))
 
     def figure(self, **assignments):
         return get_field_figure(self, "Field", None, **assignments)
