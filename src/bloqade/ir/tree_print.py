@@ -17,6 +17,12 @@ class KeyValuePair:
         self.key = key
         self.value = value
 
+    def __eq__(self, __value: object) -> bool:
+        if not isinstance(__value, KeyValuePair):
+            return False
+
+        return self.key == __value.key and self.value == __value.value
+
     def children(self):
         return {"key": self.key, "value": self.value}
 
