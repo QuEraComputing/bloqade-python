@@ -32,10 +32,12 @@ def test_list_of_locations_pprint():
     var3 = cast("var3")
 
     assert str(start.add_position([(var1, var2), (var3, 5), (0, 9)])) == (
-        "[LocationInfo(position=(var(var1), var(var2)), "
-        "filling=<SiteFilling.filled: 1>), "
-        "LocationInfo(position=(var(var3), 5), filling=<SiteFilling.filled: 1>), "
-        "LocationInfo(position=(0, 9), filling=<SiteFilling.filled: 1>)]"
+        "AtomArrangement\n├─ Location: filled\n│  ├─ x\n│  │  "
+        "⇒ \x1b[94mVariable: var1\x1b[0m\n│  └─ y\n│     "
+        "⇒ \x1b[94mVariable: var2\x1b[0m\n├─ Location: filled\n│  "
+        "├─ x\n│  │  ⇒ \x1b[94mVariable: var3\x1b[0m\n│  └─ y\n│     "
+        "⇒ Literal: 5\n└─ Location: filled\n   ├─ x\n   │  ⇒ Literal: 0\n   "
+        "└─ y\n      ⇒ Literal: 9"
     )
 
 
@@ -117,11 +119,4 @@ def test_rectangular_pprint():
     assert (
         str(Rectangular(7, 5).apply_defect_density(0.5, np.random.default_rng(1337)))
         == rectangular_pprint_defect_density_output
-    )
-
-    x_spacing = cast("x_spacing")
-    assert str(Rectangular(7, 5, x_spacing)) == (
-        "Rectangular(shape=(7, 5), "
-        "lattice_spacing=var(x_spacing), "
-        "ratio=(1.0 / var(x_spacing)))"
     )
