@@ -1,5 +1,5 @@
 from ..scalar import Interval
-from ..tree_print import Printer
+from ..tree_print import Printer, KeyValuePair
 from .field import Field
 from typing import List
 from pydantic.dataclasses import dataclass
@@ -20,7 +20,7 @@ class FieldName:
     def children(self):
         return []
 
-    def __repr__(self) -> str:
+    def __str__(self) -> str:
         ph = Printer()
         ph.print(self)
         return ph.get_value()
@@ -31,27 +31,18 @@ class FieldName:
 
 @dataclass(frozen=True)
 class RabiFrequencyAmplitude(FieldName):
-    def __str__(self):
-        return "rabi_frequency_amplitude"
-
     def print_node(self):
         return "RabiFrequencyAmplitude"
 
 
 @dataclass(frozen=True)
 class RabiFrequencyPhase(FieldName):
-    def __str__(self):
-        return "rabi_frequency_phase"
-
     def print_node(self):
         return "RabiFrequencyPhase"
 
 
 @dataclass(frozen=True)
 class Detuning(FieldName):
-    def __str__(self):
-        return "detuning"
-
     def print_node(self):
         return "Detuning"
 
@@ -61,16 +52,8 @@ class RabiRouter:
         self.amplitude = RabiFrequencyAmplitude()
         self.phase = RabiFrequencyPhase()
 
-    def __repr__(self) -> str:
-        ph = Printer()
-        ph.print(self)
-        return ph.get_value()
-
     def _repr_pretty_(self, p, cycle):
         Printer(p).print(self, cycle)
-
-    def __str__(self):
-        return "rabi (amplitude, phase)"
 
     def print_node(self):
         return "RabiRouter"
@@ -117,7 +100,7 @@ class PulseExpr:
         else:
             return expr
 
-    def __repr__(self) -> str:
+    def __str__(self) -> str:
         ph = Printer()
         ph.print(self)
         return ph.get_value()
@@ -145,9 +128,6 @@ class Append(PulseExpr):
 
     value: List[PulseExpr]
 
-    def __str__(self):
-        return "pulse.Append(value=" + f"{str([v.print_node() for v in self.value])})"
-
     def print_node(self):
         return "Append"
 
@@ -155,7 +135,7 @@ class Append(PulseExpr):
         return self.value
 
 
-@dataclass(init=False, repr=False)
+@dataclass(init=False)
 class Pulse(PulseExpr):
     """
     ```bnf
@@ -176,18 +156,12 @@ class Pulse(PulseExpr):
                 raise TypeError(f"Expected Field or dict, got {type(v)}")
         self.fields = fields
 
-    def __str__(self):
-        return f"Pulse(value={str(self.fields)})"
-
     def print_node(self):
         return "Pulse"
 
     def children(self):
         # annotated children
-        annotated_children = {
-            field_name.print_node(): field for field_name, field in self.fields.items()
-        }
-        return annotated_children
+        return [KeyValuePair(k, v) for k, v in self.fields.items()]
 
     def _get_data(self, **assigments):
         return None, self.fields
@@ -212,9 +186,6 @@ class NamedPulse(PulseExpr):
     name: str
     pulse: PulseExpr
 
-    def __str__(self):
-        return f"NamedPulse(name={str(self.name)})"
-
     def print_node(self):
         return "NamedPulse"
 
@@ -235,9 +206,6 @@ class NamedPulse(PulseExpr):
 class Slice(PulseExpr):
     pulse: PulseExpr
     interval: Interval
-
-    def __str__(self):
-        return f"{self.pulse.print_node()}[{str(self.interval)}]"
 
     def print_node(self):
         return "Slice"

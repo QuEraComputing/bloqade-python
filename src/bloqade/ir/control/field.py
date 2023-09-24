@@ -225,7 +225,7 @@ class Field(FieldExpr):
 
     def children(self):
         # return dict with annotations
-        return list(map(KeyValuePair, self.value.keys(), self.value.values()))
+        return [KeyValuePair(k, v) for k, v in self.value.items()]
 
     def figure(self, **assignments):
         return get_field_figure(self, "Field", None, **assignments)
