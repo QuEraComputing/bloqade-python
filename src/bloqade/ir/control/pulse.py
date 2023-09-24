@@ -89,9 +89,9 @@ class PulseExpr:
 
         if isinstance(expr, Append):
             new_pulses = []
-            for pulse in expr.value:
+            for pulse in expr.pulses:
                 if isinstance(pulse, Append):
-                    new_pulses += pulse.value
+                    new_pulses += pulse.pulses
                 else:
                     new_pulses.append(pulse)
 
@@ -126,13 +126,13 @@ class Append(PulseExpr):
     ```
     """
 
-    value: List[PulseExpr]
+    pulses: List[PulseExpr]
 
     def print_node(self):
         return "Append"
 
     def children(self):
-        return self.value
+        return self.pulses
 
 
 @dataclass(init=False)

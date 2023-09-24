@@ -258,7 +258,7 @@ class AssignAnalogCircuit(AnalogCircuitVisitor):
         )
 
     def visit_append_pulse(self, ast: pulse.Append) -> pulse.Append:
-        return pulse.Append(list(map(self.visit, ast.value)))
+        return pulse.Append(list(map(self.visit, ast.pulses)))
 
     def visit_slice_pulse(self, ast: pulse.Slice) -> pulse.Slice:
         return pulse.Slice(self.visit(ast.pulse), self.scalar_visitor(ast.interval))

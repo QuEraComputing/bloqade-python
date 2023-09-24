@@ -99,7 +99,7 @@ class AssignmentScan(AnalogCircuitVisitor):
         self.visit(ast.pulse)
 
     def visit_append_pulse(self, ast: pulse.Append) -> Any:
-        list(map(self.visit, ast.value))
+        list(map(self.visit, ast.pulses))
 
     def visit_slice_pulse(self, ast: pulse.Slice) -> Any:
         self.visit(ast.pulse)
