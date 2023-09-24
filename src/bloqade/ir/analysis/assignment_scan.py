@@ -87,7 +87,7 @@ class AssignmentScan(AnalogCircuitVisitor):
         self.visit(ast.sequence)
 
     def visit_append_sequence(self, ast: sequence.Append):
-        list(map(self.visit, ast.value))
+        list(map(self.visit, ast.sequences))
 
     def visit_slice_sequence(self, ast: sequence.Slice):
         self.visit(ast.sequence)

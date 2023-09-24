@@ -84,10 +84,10 @@ class SequenceExpr:
 
 @dataclass
 class Append(SequenceExpr):
-    value: List[SequenceExpr]
+    sequences: List[SequenceExpr]
 
     def children(self):
-        return self.value
+        return self.sequences
 
     def print_node(self):
         return "Append"

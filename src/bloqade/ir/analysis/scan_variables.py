@@ -223,7 +223,7 @@ class ScanVariablesAnalogCircuit(AnalogCircuitVisitor):
         list(map(self.visit, ast.pulses.values()))
 
     def visit_append_sequence(self, ast: sequence.Append) -> Any:
-        list(map(self.visit, ast.value))
+        list(map(self.visit, ast.sequences))
 
     def visit_slice_sequence(self, ast: sequence.Slice) -> Any:
         self.scalar_vars = self.scalar_vars.union(
