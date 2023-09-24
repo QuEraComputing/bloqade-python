@@ -12,6 +12,18 @@ unicode_enabled = sys.stdout.encoding.lower().startswith("utf")
 color_enabled = ("ipykernel" in sys.modules) or sys.stdout.isatty
 
 
+class KeyValuePair:
+    def __init__(self, key, value):
+        self.key = key
+        self.value = value
+
+    def children(self):
+        return {"key": self.key, "value": self.value}
+
+    def print_node(self):
+        return "KeyValuePair"
+
+
 # charset object, extracts away charset
 @dataclass
 class UnicodeCharSet:
