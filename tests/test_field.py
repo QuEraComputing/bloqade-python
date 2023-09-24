@@ -35,7 +35,7 @@ def test_spacmod_base():
 def test_unform():
     x = Uniform
 
-    assert str(x) == "Uniform"
+    assert str(x) == "UniformModulation\n"
     assert x.print_node() == "UniformModulation"
     assert x.children() == []
 
@@ -50,7 +50,7 @@ def test_unform():
 def test_runtime_vec():
     x = RunTimeVector("sss")
 
-    assert str(x) == "RunTimeVector(sss)"
+    assert str(x) == "RunTimeVector\n" + "└─ sss\n"
     assert x.print_node() == "RunTimeVector"
     assert x.children() == ["sss"]
 
