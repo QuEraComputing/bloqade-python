@@ -29,7 +29,9 @@ def test_codegen_detuning():
         .parse_circuit()
     )
 
-    detuning_waveform = program.sequence.pulses[rydberg].fields[detuning].value[Uniform]
+    detuning_waveform = (
+        program.sequence.pulses[rydberg].fields[detuning].drives[Uniform]
+    )
 
     compiled_waveform = CompiledWaveform({}, detuning_waveform)
 
@@ -69,9 +71,11 @@ def test_codegen_detuning_and_rabi():
         .parse_circuit()
     )
 
-    detuning_waveform = program.sequence.pulses[rydberg].fields[detuning].value[Uniform]
+    detuning_waveform = (
+        program.sequence.pulses[rydberg].fields[detuning].drives[Uniform]
+    )
     amplitude_waveform = (
-        program.sequence.pulses[rydberg].fields[rabi.amplitude].value[Uniform]
+        program.sequence.pulses[rydberg].fields[rabi.amplitude].drives[Uniform]
     )
 
     compiled_detuning = CompiledWaveform({}, detuning_waveform)
