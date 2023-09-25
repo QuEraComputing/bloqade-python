@@ -12,9 +12,9 @@ from bloqade.ir.control.field import (
 import bloqade.ir.control.sequence as sequence
 import bloqade.ir.control.pulse as pulse
 import bloqade.ir.control.waveform as waveform
-import bloqade.ir.scalar as scalar
+import bloqade.ir.control.field as field
 import bloqade.ir as ir
-
+from bloqade.codegen.common.is_hyperfine import IsHyperfineSequence
 from bloqade.emulate.ir.atom_type import ThreeLevelAtom, TwoLevelAtom
 from bloqade.emulate.ir.emulator import (
     DetuningOperatorData,
@@ -59,20 +59,18 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
         self.original_index = []
 
     def visit_analog_circuit(self, ast: ir.AnalogCircuit):
-        self.n_atoms = ast.register.n_atoms
-
-        self.visit(ast.sequence)
         self.visit(ast.register)
+        self.visit(ast.sequence)
 
     def visit_register(self, ast: AtomArrangement) -> Any:
         positions = []
-        for original_index, loc_info in enumerate(ast.enumerate()):
+        for org_index, loc_info in enumerate(ast.enumerate()):
             if loc_info.filling == SiteFilling.filled:
                 position = tuple([pos(**self.assignments) for pos in loc_info.position])
                 positions.append(position)
-                self.original_index.append(original_index)
+                self.original_index.append(org_index)
 
-        if sequence.hyperfine in self.level_couplings:
+        if self.is_hyperfine:
             self.register = Register(
                 ThreeLevelAtom,
                 positions,
@@ -91,7 +89,6 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
             sequence.rydberg: LevelCoupling.Rydberg,
         }
         for level_coupling, sub_pulse in ast.pulses.items():
-            self.level_couplings.add(level_coupling)
             self.visit(sub_pulse)
             self.pulses[level_coupling_mapping[level_coupling]] = Fields(
                 detuning=self.detuning_terms,
@@ -144,9 +141,18 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
 
     def visit_scaled_locations(self, ast: ScaledLocations) -> Dict[int, Decimal]:
         target_atoms = {}
+
+        for location in ast.value.keys():
+            if location.value >= self.n_sites or location.value < 0:
+                raise ValueError(
+                    f"Location {location.value} is out of bounds for register with "
+                    f"{self.n_sites} sites."
+                )
+
         for new_index, original_index in enumerate(self.original_index):
-            value = ast.value.get(original_index, scalar.Literal(0))
-            target_atoms[new_index] = value(**self.assignments)
+            value = ast.value.get(field.Location(original_index))
+            if value is not None:
+                target_atoms[new_index] = value(**self.assignments)
 
         return target_atoms
 
@@ -174,8 +180,9 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
             for atom in range(self.n_atoms):
                 wf = sum(
                     (
-                        target_atom_dict[sm].get(atom, 0.0) * wf
+                        target_atom_dict[sm][atom] * wf
                         for sm, wf in ast.value.items()
+                        if atom in target_atom_dict[sm]
                     ),
                     start=waveform.Constant(0.0, 0.0),
                 )
@@ -221,8 +228,9 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
             for atom in range(self.n_atoms):
                 amplitude_wf = sum(
                     (
-                        amplitude_target_atoms_dict[sm].get(atom, 0.0) * wf
+                        amplitude_target_atoms_dict[sm][atom] * wf
                         for sm, wf in amplitude.value.items()
+                        if atom in amplitude_target_atoms_dict[sm]
                     ),
                     start=waveform.Constant(0.0, 0.0),
                 )
@@ -274,16 +282,18 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
             for atom in range(self.n_atoms):
                 phase_wf = sum(
                     (
-                        phase_target_atoms_dict[sm].get(atom, 0.0) * wf
+                        phase_target_atoms_dict[sm][atom] * wf
                         for sm, wf in phase.value.items()
+                        if atom in phase_target_atoms_dict[sm]
                     ),
                     start=waveform.Constant(0.0, 0.0),
                 )
 
                 amplitude_wf = sum(
                     (
-                        amplitude_target_atoms_dict[sm].get(atom, 0.0) * wf
+                        amplitude_target_atoms_dict[sm][atom] * wf
                         for sm, wf in amplitude.value.items()
+                        if atom in amplitude_target_atoms_dict[sm]
                     ),
                     start=waveform.Constant(0.0, 0.0),
                 )
@@ -310,6 +320,9 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
 
     def emit(self, circuit: ir.AnalogCircuit) -> EmulatorProgram:
         self.assignments = AssignmentScan(self.assignments).emit(circuit.sequence)
+        self.is_hyperfine = IsHyperfineSequence().emit(circuit)
+        self.n_atoms = circuit.register.n_atoms
+        self.n_sites = circuit.register.n_sites
 
         self.visit(circuit)
         return EmulatorProgram(

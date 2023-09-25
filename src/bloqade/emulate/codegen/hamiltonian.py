@@ -98,7 +98,7 @@ class RydbergHamiltonianCodeGen(Visitor):
 
     def visit_detuning_operator_data(self, detuning_data: DetuningOperatorData):
         if (self.register, detuning_data) in self.compile_cache.operator_cache:
-            return self.compile_cache.operator_cache[(self.space, detuning_data)]
+            return self.compile_cache.operator_cache[(self.register, detuning_data)]
 
         diagonal = np.zeros(self.space.size, dtype=np.float64)
         if self.space.atom_type == TwoLevelAtomType():
@@ -110,7 +110,7 @@ class RydbergHamiltonianCodeGen(Visitor):
                 state = ThreeLevelAtomType.State.Hyperfine
 
         for atom_index, value in detuning_data.target_atoms.items():
-            diagonal[self.space.is_state_at(atom_index, state)] += float(value)
+            diagonal[self.space.is_state_at(atom_index, state)] -= float(value)
 
         self.compile_cache.operator_cache[(self.register, detuning_data)] = diagonal
         return diagonal
