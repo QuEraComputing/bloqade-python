@@ -221,12 +221,12 @@ files = [
 
 [[package]]
 name = "beartype"
-version = "0.16.1"
+version = "0.16.2"
 requires_python = ">=3.8.0"
 summary = "Unbearably fast runtime type checking in pure Python."
 files = [
-    {file = "beartype-0.16.1-py3-none-any.whl", hash = "sha256:d86f5472e5e6ff8f643da28ff537469d57b01505ad211aee007c49c5a7de2a05"},
-    {file = "beartype-0.16.1.tar.gz", hash = "sha256:b3bfb911ed6af91aeada851a44b4d564c23662869b5391d71fe3648f2c643b6d"},
+    {file = "beartype-0.16.2-py3-none-any.whl", hash = "sha256:72d133615fe674affc8c49365dd24dfe2260552b9a8a2b7193cdd48021527782"},
+    {file = "beartype-0.16.2.tar.gz", hash = "sha256:47ec1c8c3be3f999f4f9f829e8913f65926aa7e85b180d9ffd305dc78d3e7d7b"},
 ]
 
 [[package]]
@@ -1527,8 +1527,8 @@ files = [
 
 [[package]]
 name = "mkdocs-jupyter"
-version = "0.24.3"
-requires_python = ">=3.7"
+version = "0.24.4"
+requires_python = ">=3.9"
 summary = "Use Jupyter in mkdocs websites"
 dependencies = [
     "ipykernel<7.0.0,>6.0.0",
@@ -1539,8 +1539,8 @@ dependencies = [
     "pygments>2.12.0",
 ]
 files = [
-    {file = "mkdocs_jupyter-0.24.3-py3-none-any.whl", hash = "sha256:904262a8678a5e5920b7c3c03b5010b36301a69d0a38f2fcbf430493adf6879e"},
-    {file = "mkdocs_jupyter-0.24.3.tar.gz", hash = "sha256:3d81da9aea27480e93bab22438910c4f0b9630613e74f85b576590d78e0e8b14"},
+    {file = "mkdocs_jupyter-0.24.4-py3-none-any.whl", hash = "sha256:bdfe71b0480414625ca772a028f9ab0852f8909496c80068306cbd41dd40269b"},
+    {file = "mkdocs_jupyter-0.24.4.tar.gz", hash = "sha256:e152a5990bd68300e918d050396135522e82cf734a587310ba6ba0e0eae30892"},
 ]
 
 [[package]]
