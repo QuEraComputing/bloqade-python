@@ -5,7 +5,7 @@ class LevelCoupling(Builder):
     @property
     def detuning(self):
         """
-        - Specify the Detuning field
+        - Specify the Detuning field of your program.
         - Next-step: <SpacialModulation>
         - Possible Next:
 
