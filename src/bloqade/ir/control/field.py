@@ -15,6 +15,9 @@ class FieldExpr:
         ph.print(self)
         return ph.get_value()
 
+    def _repr_pretty_(self, p, cycle):
+        Printer(p).print(self, cycle)
+
 
 __all__ = [
     "Field",
@@ -30,9 +33,6 @@ __all__ = [
 class Location(FieldExpr):
     value: int
 
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)
-
     def __str__(self):
         return f"Location({str(self.value)})"
 
@@ -47,9 +47,6 @@ class Location(FieldExpr):
 class SpatialModulation(FieldExpr):
     def __hash__(self) -> int:
         raise NotImplementedError
-
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)
 
     def _get_data(self, **assignment):
         return {}
@@ -202,9 +199,6 @@ class Field(FieldExpr):
 
     def __hash__(self) -> int:
         return hash(frozenset(self.drives.items())) ^ hash(self.__class__)
-
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)
 
     def add(self, other):
         if not isinstance(other, Field):

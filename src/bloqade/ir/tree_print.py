@@ -5,7 +5,7 @@ import sys
 import bloqade.ir as ir
 
 # The maximum depth of the tree to print.
-max_tree_depth = 10
+MAX_TREE_DEPTH = 10
 
 
 unicode_enabled = sys.stdout.encoding.lower().startswith("utf")
@@ -133,7 +133,7 @@ class MockPrinter:
 
 
 class Printer:
-    def __init__(self, p=None):
+    def __init__(self, p=None, max_tree_depth=None):
         self.charset = UnicodeCharSet() if unicode_enabled else ASCIICharSet()
         self.colorcode = ColorCode()
         self.state = State()
@@ -141,7 +141,9 @@ class Printer:
             self.p = MockPrinter()
         else:
             self.p = p
-        self.max_tree_depth = max_tree_depth
+        self.max_tree_depth = (
+            MAX_TREE_DEPTH if max_tree_depth is None else max_tree_depth
+        )
 
     def should_print_annotation(self, children):
         if isinstance(
@@ -156,7 +158,7 @@ class Printer:
 
     def print(self, node, cycle=None):
         if cycle is None or isinstance(cycle, bool):
-            cycle = max_tree_depth
+            cycle = MAX_TREE_DEPTH
 
         # list of children
         children = node.children().copy()

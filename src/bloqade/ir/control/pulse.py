@@ -17,6 +17,9 @@ __all__ = [
 
 @dataclass(frozen=True)
 class FieldName:
+    def print_node(self):
+        return self.__class__.__name__
+
     def children(self):
         return []
 
@@ -27,6 +30,9 @@ class FieldName:
 
     def _repr_pretty_(self, p, cycle):
         Printer(p).print(self, cycle)
+
+    def __eq__(self, other):
+        return self.__class__ == other.__class__
 
 
 @dataclass(frozen=True)

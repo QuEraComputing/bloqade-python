@@ -3,6 +3,11 @@ from bloqade.ir.location import Square, Rectangular
 import random
 import numpy as np
 import os
+import bloqade.ir.tree_print as trp
+
+
+trp.color_enabled = False
+
 
 PROJECT_RELATIVE_PPRINT_TESTS_OUTPUT_PATH = os.path.join(
     os.getcwd(), "tests/data/expected_pprint_output"
@@ -31,13 +36,25 @@ def test_list_of_locations_pprint():
     var2 = cast("var2")
     var3 = cast("var3")
 
-    assert str(start.add_position([(var1, var2), (var3, 5), (0, 9)])) == (
-        "AtomArrangement\n├─ Location: filled\n│  ├─ x\n│  │  "
-        "⇒ \x1b[94mVariable: var1\x1b[0m\n│  └─ y\n│     "
-        "⇒ \x1b[94mVariable: var2\x1b[0m\n├─ Location: filled\n│  "
-        "├─ x\n│  │  ⇒ \x1b[94mVariable: var3\x1b[0m\n│  └─ y\n│     "
-        "⇒ Literal: 5\n└─ Location: filled\n   ├─ x\n   │  ⇒ Literal: 0\n   "
-        "└─ y\n      ⇒ Literal: 9"
+    variable_list_of_locations = start.add_position([(var1, var2), (var3, 5), (0, 9)])
+
+    assert str(variable_list_of_locations) == (
+        "AtomArrangement\n"
+        "├─ Location: filled\n"
+        "│  ├─ x\n"
+        "│  │  ⇒ Variable: var1\n"
+        "│  └─ y\n"
+        "│     ⇒ Variable: var2\n"
+        "├─ Location: filled\n"
+        "│  ├─ x\n"
+        "│  │  ⇒ Variable: var3\n"
+        "│  └─ y\n"
+        "│     ⇒ Literal: 5\n"
+        "└─ Location: filled\n"
+        "   ├─ x\n"
+        "   │  ⇒ Literal: 0\n"
+        "   └─ y\n"
+        "      ⇒ Literal: 9"
     )
 
 
