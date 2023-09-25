@@ -16,14 +16,6 @@ class AnalogCircuit:
     atom_arrangement: Union[ParallelRegister, AtomArrangement]
     sequence: SequenceExpr
 
-    # def __init__(
-    #     self,
-    #     register: Union["AtomArrangement", "ParallelRegister"],
-    #     sequence: "Sequence",
-    # ):
-    #     self._sequence = sequence
-    #     self._register = register
-
     @property
     def register(self):
         """Get the register of the program.
@@ -40,17 +32,6 @@ class AnalogCircuit:
             [`AtomArrangement`][bloqade.ir.location.base.AtomArrangement].
         """
         return self.atom_arrangement
-
-    # @property
-    # def sequence(self):
-    #     """Get the sequence of the program.
-
-    #     Returns:
-    #         Sequence: the sequence of the program.
-    #             See also [`Sequence`][bloqade.ir.control.sequence.Sequence].
-
-    #     """
-    #     return self._sequence
 
     def __eq__(self, other):
         if isinstance(other, AnalogCircuit):
