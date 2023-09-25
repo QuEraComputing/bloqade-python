@@ -14,3 +14,11 @@ class Builder(CompileJSON, Parse):
         parent: Optional["Builder"] = None,
     ) -> None:
         self.__parent__ = parent
+
+    # def _repr_pretty_(self, p, cycle):
+    #     from bloqade.ir.tree_print import Printer
+
+    #     Printer(p).print(self.parse_circuit(), cycle)
+
+    # def __str__(self) -> str:
+    #     return self.parse_circuit().__str__()

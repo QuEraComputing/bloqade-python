@@ -2,13 +2,14 @@
 from bloqade.visualization import display_ir
 from bloqade.ir.control.sequence import SequenceExpr
 from bloqade.ir.location.base import AtomArrangement, ParallelRegister
+from bloqade.ir.tree_print import Printer
 from beartype.typing import Union
 from pydantic.dataclasses import dataclass
 
 
 # NOTE: this is just a dummy type bundle geometry and sequence
 #       information together and forward them to backends.
-@dataclass(frozen=True, repr=False)
+@dataclass(frozen=True)
 class AnalogCircuit:
     """AnalogCircuit is a dummy type that bundle register and sequence together."""
 
@@ -60,17 +61,25 @@ class AnalogCircuit:
         return False
 
     def __str__(self):
-        # TODO: add repr for static_params, batch_params and order
         out = ""
         if self.register is not None:
-            out += self.register.__repr__()
+            out += self.register.__str__()
 
         out += "\n"
 
-        if self._sequence is not None:
-            out += self._sequence.__repr__()
+        if self.sequence is not None:
+            out += self.sequence.__str__()
 
         return out
+
+    def print_node(self):
+        return "AnalogCircuit"
+
+    def children(self):
+        return {"register": self.atom_arrangement, "sequence": self.sequence}
+
+    def _repr_pretty_(self, p, cycle):
+        Printer(p).print(self, cycle)
 
     def figure(self, **assignments):
         fig_reg = self.register.figure(**assignments)

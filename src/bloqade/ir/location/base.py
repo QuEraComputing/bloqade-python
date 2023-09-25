@@ -2,6 +2,7 @@ from bloqade.builder.typing import ScalarType
 from bloqade.builder.start import ProgramStart
 from bloqade.ir.scalar import Scalar, Literal, cast
 from bloqade.ir.location.transform import TransformTrait
+from bloqade.ir.tree_print import Printer
 
 from pydantic.dataclasses import dataclass
 from beartype.typing import List, Tuple, Generator
@@ -48,8 +49,6 @@ class LocationInfo:
 @dataclass(init=False)
 class AtomArrangement(ProgramStart, TransformTrait):
     def __str__(self) -> str:
-        from bloqade.ir.tree_print import Printer
-
         def is_literal(x):
             return isinstance(x, Literal)
 
@@ -92,6 +91,9 @@ class AtomArrangement(ProgramStart, TransformTrait):
             ph = Printer()
             ph.print(self)
             return ph.get_value()
+
+    def _repr_pretty_(self, p, cycle):
+        Printer(p).print(self, cycle)
 
     def print_node(self) -> str:
         return "AtomArrangement"
