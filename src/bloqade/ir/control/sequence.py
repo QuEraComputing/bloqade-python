@@ -1,6 +1,6 @@
 from .pulse import PulseExpr, Pulse
 from ..scalar import Interval
-from ..tree_print import KeyValuePair, Printer
+from ..tree_print import Printer
 
 from pydantic.dataclasses import dataclass
 from typing import List, Dict, Optional
@@ -30,7 +30,8 @@ class LevelCoupling:
     def _repr_pretty_(self, p, cycle):
         Printer(p).print(self, cycle)
 
-    pass
+    def __eq__(self, other):
+        return self.__class__ == other.__class__
 
 
 @dataclass(frozen=True)
@@ -122,10 +123,7 @@ class Sequence(SequenceExpr):
 
     # return annotated version
     def children(self):
-        return [
-            KeyValuePair(level_coupling, pulse)
-            for level_coupling, pulse in self.pulses.items()
-        ]
+        return {k.print_node(): v for k, v in self.pulses.items()}
 
     def print_node(self):
         return "Sequence"

@@ -1,5 +1,5 @@
 from ..scalar import Scalar, cast
-from ..tree_print import Printer, KeyValuePair
+from ..tree_print import Printer
 from .waveform import Waveform
 from bloqade.visualization import get_field_figure
 from pydantic.dataclasses import dataclass
@@ -186,6 +186,18 @@ class ScaledLocations(SpatialModulation):
 
 
 @dataclass
+class Drive:
+    modulation: SpatialModulation
+    waveform: Waveform
+
+    def print_node(self):
+        return "Drive"
+
+    def children(self):
+        return {"modulation": self.modulation, "waveform": self.waveform}
+
+
+@dataclass
 class Field(FieldExpr):
     """Field node in the IR. Which contains collection(s) of
     [`Waveform`][bloqade.ir.control.waveform.Waveform]
@@ -221,7 +233,7 @@ class Field(FieldExpr):
 
     def children(self):
         # return dict with annotations
-        return [KeyValuePair(k, v) for k, v in self.drives.items()]
+        return [Drive(k, v) for k, v in self.drives.items()]
 
     def figure(self, **assignments):
         return get_field_figure(self, "Field", None, **assignments)

@@ -1,5 +1,5 @@
 from ..scalar import Interval
-from ..tree_print import Printer, KeyValuePair
+from ..tree_print import Printer
 from .field import Field
 from typing import List
 from pydantic.dataclasses import dataclass
@@ -167,7 +167,7 @@ class Pulse(PulseExpr):
 
     def children(self):
         # annotated children
-        return [KeyValuePair(k, v) for k, v in self.fields.items()]
+        return {k.print_node(): v for k, v in self.fields.items()}
 
     def _get_data(self, **assigments):
         return None, self.fields
