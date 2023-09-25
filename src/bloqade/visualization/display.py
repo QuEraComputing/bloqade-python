@@ -69,7 +69,10 @@ def liner(txt):
 def builder_figure(builder, batch_id):
     from bloqade.builder.parse.builder import Parser
 
-    analog_circ, metas = Parser().parse_source(builder)
+    routine = Parser().parse_source(builder)
+
+    analog_circ = routine.circuit
+    metas = routine.params
 
     kwargs = metas.static_params
     kwargs.update(metas.batch_params[batch_id])

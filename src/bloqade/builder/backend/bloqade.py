@@ -26,9 +26,9 @@ class BloqadeDeviceRoute(Builder):
             -> `...python().run(shots, ...)`
                 :: Run the current program using bloqade python backend
         """
-        from bloqade.ir.routine.bloqade import BloqadeServiceOptions
+        routine = self.parse_source()
 
-        return BloqadeServiceOptions(self).python()
+        return routine.bloqade.python()
 
     def julia(self, solver: str, nthreads: int = 1):
         raise NotImplementedError

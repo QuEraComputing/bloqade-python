@@ -1,4 +1,4 @@
-from typing import Tuple, Union, TYPE_CHECKING
+from beartype.typing import Union, TYPE_CHECKING
 import json
 import bloqade.ir as ir
 from bloqade.visualization import display_builder
@@ -7,7 +7,7 @@ from bloqade.visualization import display_builder
 if TYPE_CHECKING:
     from bloqade.ir import AtomArrangement, ParallelRegister, Sequence
     from bloqade.ir.analog_circuit import AnalogCircuit
-    from bloqade.ir.routine.params import Params
+    from bloqade.ir.routine.base import Routine
     from bloqade.builder.base import Builder
 
 
@@ -53,7 +53,7 @@ class ParseRoutine:
 
     """
 
-    def parse_source(self: "Builder") -> Tuple["AnalogCircuit", "Params"]:
+    def parse_source(self: "Builder") -> "Routine":
         from bloqade.builder.parse.builder import Parser
 
         return Parser().parse_source(self)

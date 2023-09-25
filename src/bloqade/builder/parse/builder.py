@@ -14,7 +14,8 @@ from itertools import repeat
 from typing import TYPE_CHECKING, Tuple, Union, Dict, List, Optional, Set
 
 if TYPE_CHECKING:
-    from bloqade.ir.routine.params import Params, ParamType
+    from bloqade.ir.routine.params import ParamType
+    from bloqade.ir.routine.base import Routine
     from bloqade.ir.analog_circuit import AnalogCircuit
 
 
@@ -260,9 +261,10 @@ class Parser:
 
         return circuit
 
-    def parse_source(self, builder: Builder) -> Tuple["AnalogCircuit", "Params"]:
-        from bloqade.ir.routine.params import Params
+    def parse_source(self, builder: Builder) -> "Routine":
         from bloqade.ir.analog_circuit import AnalogCircuit
+        from bloqade.ir.routine.params import Params
+        from bloqade.ir.routine.base import Routine
 
         self.reset(builder)
         self.read_register()
@@ -276,4 +278,4 @@ class Parser:
         )
         circuit = AnalogCircuit(self.register, self.sequence)
 
-        return circuit, params
+        return Routine(builder, circuit, params)

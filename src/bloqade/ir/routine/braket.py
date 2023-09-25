@@ -17,10 +17,10 @@ class BraketServiceOptions(RoutineBase):
         backend = BraketBackend(
             device_arn="arn:aws:braket:us-east-1::device/qpu/quera/Aquila"
         )
-        return BraketHardwareRoutine(source=self.source, backend=backend)
+        return BraketHardwareRoutine(self.source, self.circuit, self.params, backend)
 
     def local_emulator(self):
-        return BraketLocalEmulatorRoutine(source=self.source)
+        return BraketLocalEmulatorRoutine(self.source, self.circuit, self.params)
 
 
 @dataclass(frozen=True)
@@ -40,7 +40,7 @@ class BraketHardwareRoutine(RoutineBase):
 
         capabilities = self.backend.get_capabilities()
 
-        circuit, params = self.parse_source()
+        circuit, params = self.circuit, self.params
         circuit = AssignAnalogCircuit(params.static_params).visit(circuit)
 
         tasks = OrderedDict()
@@ -175,7 +175,7 @@ class BraketLocalEmulatorRoutine(RoutineBase):
         from bloqade.ir.analysis.assignment_scan import AssignmentScan
         from bloqade.submission.ir.braket import to_braket_task_ir
 
-        circuit, params = self.parse_source()
+        circuit, params = self.circuit, self.params
         circuit = AssignAnalogCircuit(params.static_params).visit(circuit)
 
         if isinstance(circuit.register, ParallelRegister):

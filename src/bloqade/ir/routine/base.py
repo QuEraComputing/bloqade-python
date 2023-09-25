@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING, Union, Tuple
 if TYPE_CHECKING:
     from bloqade.ir.routine.braket import BraketServiceOptions
     from bloqade.ir.routine.quera import QuEraServiceOptions
+    from bloqade.ir.routine.bloqade import BloqadeServiceOptions
 
 
 class RoutineParse:
@@ -31,6 +32,8 @@ class RoutineParse:
 @dataclass(frozen=True)
 class RoutineBase(RoutineParse):
     source: Builder
+    circuit: AnalogCircuit
+    params: Params
 
 
 @dataclass(frozen=True)
@@ -41,10 +44,16 @@ class Routine(RoutineBase):
     def braket(self) -> "BraketServiceOptions":
         from .braket import BraketServiceOptions
 
-        return BraketServiceOptions(source=self.source)
+        return BraketServiceOptions(self.source, self.circuit, self.params)
 
     @property
     def quera(self) -> "QuEraServiceOptions":
         from .quera import QuEraServiceOptions
 
-        return QuEraServiceOptions(source=self.source)
+        return QuEraServiceOptions(self.source, self.circuit, self.params)
+
+    @property
+    def bloqade(self) -> "BloqadeServiceOptions":
+        from .bloqade import BloqadeServiceOptions
+
+        return BloqadeServiceOptions(self.source, self.circuit, self.params)
