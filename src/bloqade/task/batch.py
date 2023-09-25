@@ -3,6 +3,7 @@ from bloqade.task.base import Report
 from bloqade.task.quera import QuEraTask
 from bloqade.task.braket import BraketTask
 from bloqade.task.braket_simulator import BraketEmulatorTask
+from bloqade.task.bloqade import BloqadeTask
 
 from bloqade.builder.base import Builder
 
@@ -45,7 +46,7 @@ class Serializable:
 @Serializer.register
 class LocalBatch(Serializable):
     source: Optional[Builder]
-    tasks: OrderedDict[int, BraketEmulatorTask]
+    tasks: OrderedDict[int, Union[BraketEmulatorTask, BloqadeTask]]
     name: Optional[str] = None
 
     def report(self) -> Report:
