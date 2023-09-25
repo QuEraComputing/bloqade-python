@@ -7,7 +7,7 @@ from bloqade.ir.routine.params import Params
 
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Union, Tuple
+from typing import TYPE_CHECKING, Union
 
 if TYPE_CHECKING:
     from bloqade.ir.routine.braket import BraketServiceOptions
@@ -17,16 +17,16 @@ if TYPE_CHECKING:
 
 class RoutineParse:
     def parse_register(self: "RoutineBase") -> Union[AtomArrangement, ParallelRegister]:
-        return self.source.parse_register()
+        return self.circuit.register
 
     def parse_sequence(self: "RoutineBase") -> Sequence:
-        return self.source.parse_sequence()
+        return self.circuit.sequence
 
     def parse_circuit(self: "RoutineBase") -> AnalogCircuit:
-        return self.source.parse_circuit()
+        return self.circuit
 
-    def parse_source(self: "RoutineBase") -> Tuple[AnalogCircuit, Params]:
-        return self.source.parse()
+    def parse(self: "RoutineBase") -> "Routine":
+        return self
 
 
 @dataclass(frozen=True)
