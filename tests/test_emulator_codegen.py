@@ -135,9 +135,9 @@ def test_codegen_detuning_max_terms():
 
     mask_1 = RunTimeVector("mask_1")
     location_0 = ScaledLocations({Location(0): cast(0.4)})
-    uniform_wf = program.sequence.pulses[rydberg].fields[detuning].value[Uniform]
-    mask_1_wf = program.sequence.pulses[rydberg].fields[detuning].value[mask_1]
-    location_0_wf = program.sequence.pulses[rydberg].fields[detuning].value[location_0]
+    uniform_wf = program.sequence.pulses[rydberg].fields[detuning].drives[Uniform]
+    mask_1_wf = program.sequence.pulses[rydberg].fields[detuning].drives[mask_1]
+    location_0_wf = program.sequence.pulses[rydberg].fields[detuning].drives[location_0]
 
     wf_0 = (1.0 * uniform_wf + mask_1_value[0] * mask_1_wf) + 0.4 * location_0_wf
     wf_1 = 1.0 * uniform_wf + mask_1_value[1] * mask_1_wf
@@ -196,10 +196,10 @@ def test_codegen_rabi_max_terms():
 
     mask_1 = RunTimeVector("mask_1")
     location_0 = ScaledLocations({Location(0): cast(0.4)})
-    uniform_wf = program.sequence.pulses[rydberg].fields[rabi.amplitude].value[Uniform]
-    mask_1_wf = program.sequence.pulses[rydberg].fields[rabi.amplitude].value[mask_1]
+    uniform_wf = program.sequence.pulses[rydberg].fields[rabi.amplitude].drives[Uniform]
+    mask_1_wf = program.sequence.pulses[rydberg].fields[rabi.amplitude].drives[mask_1]
     location_0_wf = (
-        program.sequence.pulses[rydberg].fields[rabi.amplitude].value[location_0]
+        program.sequence.pulses[rydberg].fields[rabi.amplitude].drives[location_0]
     )
 
     wf_0 = (1.0 * uniform_wf + mask_1_value[0] * mask_1_wf) + 0.4 * location_0_wf
@@ -263,8 +263,10 @@ def test_codegen_rabi_uniform_phase():
         .parse_circuit()
     )
 
-    uniform_amp = program.sequence.pulses[rydberg].fields[rabi.amplitude].value[Uniform]
-    uniform_phase = program.sequence.pulses[rydberg].fields[rabi.phase].value[Uniform]
+    uniform_amp = (
+        program.sequence.pulses[rydberg].fields[rabi.amplitude].drives[Uniform]
+    )
+    uniform_phase = program.sequence.pulses[rydberg].fields[rabi.phase].drives[Uniform]
 
     assignments = {}
 
@@ -322,12 +324,14 @@ def test_codegen_uniform_phase_rabi_max_terms():
     mask_1 = RunTimeVector("mask_1")
     location_0 = ScaledLocations({Location(0): cast(0.4)})
 
-    uniform_amp = program.sequence.pulses[rydberg].fields[rabi.amplitude].value[Uniform]
-    mask_1_amp = program.sequence.pulses[rydberg].fields[rabi.amplitude].value[mask_1]
-    location_0_amp = (
-        program.sequence.pulses[rydberg].fields[rabi.amplitude].value[location_0]
+    uniform_amp = (
+        program.sequence.pulses[rydberg].fields[rabi.amplitude].drives[Uniform]
     )
-    phase_wf = program.sequence.pulses[rydberg].fields[rabi.phase].value[Uniform]
+    mask_1_amp = program.sequence.pulses[rydberg].fields[rabi.amplitude].drives[mask_1]
+    location_0_amp = (
+        program.sequence.pulses[rydberg].fields[rabi.amplitude].drives[location_0]
+    )
+    phase_wf = program.sequence.pulses[rydberg].fields[rabi.phase].drives[Uniform]
 
     wf_0 = (1.0 * uniform_amp + mask_1_value[0] * mask_1_amp) + 0.4 * location_0_amp
     wf_1 = 1.0 * uniform_amp + mask_1_value[1] * mask_1_amp
