@@ -69,12 +69,5 @@ class Parse(ParseRegister, ParseSequence, ParseCircuit, ParseRoutine):
 
 
 class Show:
-    def __str__(self):
-        from .builder import Parser
-
-        analog_circ, metas = Parser().parse(self)
-
-        return str(analog_circ) + "\n---------------------\n" + str(metas)
-
     def show(self, batch_id: int = 0):
         display_builder(self, batch_id)

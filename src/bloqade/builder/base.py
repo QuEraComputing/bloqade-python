@@ -14,3 +14,6 @@ class Builder(Parse, Show):
         parent: Optional["Builder"] = None,
     ) -> None:
         self.__parent__ = parent
+
+    def __str__(self):
+        return str(self.parse())
