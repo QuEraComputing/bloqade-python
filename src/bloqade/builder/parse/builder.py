@@ -261,7 +261,7 @@ class Parser:
 
         return circuit
 
-    def parse_source(self, builder: Builder) -> "Routine":
+    def parse(self, builder: Builder) -> "Routine":
         from bloqade.ir.analog_circuit import AnalogCircuit
         from bloqade.ir.routine.params import Params
         from bloqade.ir.routine.base import Routine

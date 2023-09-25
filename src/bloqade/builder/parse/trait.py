@@ -56,7 +56,7 @@ class ParseRoutine:
     def parse_source(self: "Builder") -> "Routine":
         from bloqade.builder.parse.builder import Parser
 
-        return Parser().parse_source(self)
+        return Parser().parse(self)
 
 
 class Parse(ParseRegister, ParseSequence, ParseCircuit, ParseRoutine):
@@ -75,7 +75,7 @@ class Parse(ParseRegister, ParseSequence, ParseCircuit, ParseRoutine):
     def __repr__(self: "Builder"):
         from .builder import Parser
 
-        analog_circ, metas = Parser().parse_source(self)
+        analog_circ, metas = Parser().parse(self)
 
         return repr(analog_circ) + "\n" + repr(metas)
 

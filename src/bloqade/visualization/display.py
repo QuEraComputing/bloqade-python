@@ -69,7 +69,7 @@ def liner(txt):
 def builder_figure(builder, batch_id):
     from bloqade.builder.parse.builder import Parser
 
-    routine = Parser().parse_source(builder)
+    routine = Parser().parse(builder)
 
     analog_circ = routine.circuit
     metas = routine.params
