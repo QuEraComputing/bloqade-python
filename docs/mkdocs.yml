@@ -74,6 +74,8 @@ theme:
         name: Switch to light mode
   favicon: assets/favicon.ico
   logo: assets/logo-dark.png
+  font:
+    text: Lato
 extra_css:
   - stylesheets/extra.css
 
@@ -100,7 +102,7 @@ plugins:
   - mkdocs-jupyter:
       include: ["*.py"] # only include scripts
       ignore: ["*.ipynb"]
-      execute: true # always execute
+      execute: false # always execute
       include_source: True
   - mike
 
