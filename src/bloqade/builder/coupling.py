@@ -6,19 +6,24 @@ class LevelCoupling(Builder):
     @property
     def detuning(self) -> Detuning:
         """
-        - Specify the Detuning field of your program.
-        - Next-step: <SpacialModulation>
-        - Possible Next:
-
-            -> `...detuning.location(int)`
-                :: Address atom at specific location
-
-            -> `...detuning.uniform`
-                :: Address all atoms in register
-
-            -> `...detuning.var(str)`
-                :: Address atom at location labeled by variable
-
+        - Specify the [`Detuning`][bloqade.builder.field.Detuning] field of your program.
+        - Next possible steps to build your program are allowing the field to target specific atoms:
+            - |_ `...detuning.uniform`: To address all atoms in the field
+            - |_ `...detuning.location(int)`: To address an atom at a specific location via index
+            - |_ `...detuning.var(str)`: To address an atom at a specific location via variable name
+        
+        Usage Examples:
+        ```
+        >>> prog = start.add_position(([(0,0), (1,2)]).rydberg.detuning
+        # target all atoms with waveforms specified later
+        >>> prog.uniform
+        # target individual atoms via index in the list of coordinates you passed in earlier
+        # (This is chainable)
+        >>> prog.location(0).location(1)
+        # target individual atoms via index represented as a variable
+        # (This is also chainable)
+        >>> prog.var("atom_1").var("atom_2")
+        ```
         """
 
         return Detuning(self)
@@ -26,16 +31,21 @@ class LevelCoupling(Builder):
     @property
     def rabi(self) -> Rabi:
         """
-        - Specify the Rabi term/field.
-        - Possible Next:
+        - Specify the [`Rabi`][bloqade.builder.field.Rabi] field of your program.
+        - Next possible steps to build your program are 
+          addressing the [`RabiAmplitude`][bloqade.builder.field.RabiAmplitude] and [`RabiPhase`][] of the field:
+            - |_ `...rabi.amplitude`: To address the Rabi amplitude
+            - |_ `...rabi.phase`: To address the Rabi phase
 
-            -> `...rabi.amplitude`
-                :: address rabi amplitude
-
-            -> `...rabi.phase`
-                :: address rabi phase
-
-
+        Usage Examples
+        ```
+        >>> target_rabi_amplitude = start.rydberg.rabi.amplitude
+        >>> type(target_rabi_amplitude)
+        bloqade.builder.field.RabiAmplitude
+        >>> target_rabi_phase = start.rydberg.rabi.phase
+        >>> type(target_rabi_phase)
+        bloqade.builder.field.RabiPhase
+        ```
         """
 
         return Rabi(self)
