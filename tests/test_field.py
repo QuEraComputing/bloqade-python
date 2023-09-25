@@ -7,6 +7,7 @@ from bloqade.ir import (
     SpatialModulation,
     RunTimeVector,
 )
+from bloqade.ir.control.field import Drive
 import pytest
 from bloqade import cast
 from io import StringIO
@@ -104,14 +105,14 @@ def test_field_scaled_locations():
 
     assert mystdout.getvalue() == (
         "Field\n"
-        "└─ KeyValuePair\n"
-        "   ├─ key\n"
+        "└─ Drive\n"
+        "   ├─ modulation\n"
         "   │  ⇒ ScaledLocations\n"
         "   │    ├─ Location(1)\n"
         "   │    │  ⇒ Literal: 1.0\n"
         "   │    └─ Location(2)\n"
         "   │       ⇒ Literal: 2.0\n"
-        "   └─ value\n"
+        "   └─ waveform\n"
         "      ⇒ Linear\n"
         "        ├─ start\n"
         "        │  ⇒ Literal: 1.0\n"
@@ -131,4 +132,4 @@ def test_field_scaled_locations():
 
     assert f2.print_node() == "Field"
     # assert type(hash(f1)) == int
-    assert f1.children() == [trp.KeyValuePair(k, v) for k, v in f1.drives.items()]
+    assert f1.children() == [Drive(k, v) for k, v in f1.drives.items()]

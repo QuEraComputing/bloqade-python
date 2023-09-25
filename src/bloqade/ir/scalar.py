@@ -292,7 +292,6 @@ def cast(py) -> "Scalar":
 # [KHW] it need to be there. For recursive replace for nested
 #       list/tuple
 def trycast(py) -> Optional[Scalar]:
-    # print(type(py))
     if isinstance(py, (int, bool, numbers.Real)):
         return Literal(Decimal(str(py)))
     elif isinstance(py, Decimal):
