@@ -72,7 +72,9 @@ class Parse(ParseRegister, ParseSequence, ParseCircuit, ParseRoutine):
         else:
             return register.n_atoms
 
-    def __str__(self: "Builder"):
+
+class Show:
+    def __str__(self):
         from .builder import Parser
 
         analog_circ, metas = Parser().parse_source(self)
