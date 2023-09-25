@@ -39,7 +39,7 @@ class BraketDeviceRoute(Builder):
                 and results returned
 
         """
-        return self.parse_source().braket.aquila()
+        return self.parse().braket.aquila()
 
     def local_emulator(self):
         """
@@ -55,4 +55,4 @@ class BraketDeviceRoute(Builder):
                 :: run on local emulator
 
         """
-        return self.parse_source().braket.local_emulator()
+        return self.parse().braket.local_emulator()

@@ -48,9 +48,7 @@ class QuEraDeviceRoute(Builder):
 
 
         """
-        from bloqade.ir.routine.base import Routine
-
-        return Routine(self).quera.device(config_file, **api_config)
+        return self.parse().quera.device(config_file, **api_config)
 
     def aquila(self):
         """
@@ -75,7 +73,7 @@ class QuEraDeviceRoute(Builder):
 
 
         """
-        return self.parse_source().quera.aquila()
+        return self.parse().quera.aquila()
 
     def cloud_mock(self):
         """
@@ -100,7 +98,7 @@ class QuEraDeviceRoute(Builder):
 
 
         """
-        return self.parse_source().quera.cloud_mock()
+        return self.parse().quera.cloud_mock()
 
     def mock(self, state_file: str = ".mock_state.txt"):
         """
@@ -125,4 +123,4 @@ class QuEraDeviceRoute(Builder):
 
 
         """
-        return self.parse_source().quera.mock(state_file)
+        return self.parse().quera.mock(state_file)

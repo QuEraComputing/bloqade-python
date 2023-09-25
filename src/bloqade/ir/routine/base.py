@@ -26,7 +26,7 @@ class RoutineParse:
         return self.source.parse_circuit()
 
     def parse_source(self: "RoutineBase") -> Tuple[AnalogCircuit, Params]:
-        return self.source.parse_source()
+        return self.source.parse()
 
 
 @dataclass(frozen=True)
