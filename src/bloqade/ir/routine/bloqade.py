@@ -10,7 +10,7 @@ from dataclasses import dataclass
 @dataclass(frozen=True)
 class BloqadeServiceOptions(RoutineBase):
     def python(self):
-        return BloqadePythonRoutine(source=self.source)
+        return BloqadePythonRoutine(self.source, self.circuit, self.params)
 
 
 @dataclass(frozen=True)
@@ -29,7 +29,7 @@ class BloqadePythonRoutine(RoutineBase):
         from bloqade.emulate.codegen.hamiltonian import CompileCache
         from bloqade.task.bloqade import BloqadeTask
 
-        circuit, params = self.source.parse_source()
+        circuit, params = self.circuit, self.params
 
         circuit = AssignAnalogCircuit(params.static_params).visit(circuit)
 

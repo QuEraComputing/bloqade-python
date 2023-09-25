@@ -1,9 +1,10 @@
 from bloqade.builder.base import Builder
+from bloqade.builder.field import Rabi, Detuning
 
 
 class LevelCoupling(Builder):
     @property
-    def detuning(self):
+    def detuning(self) -> Detuning:
         """
         - Specify the Detuning field
         - Next-step: <SpacialModulation>
@@ -19,12 +20,11 @@ class LevelCoupling(Builder):
                 :: Address atom at location labeled by variable
 
         """
-        from bloqade.builder.field import Detuning
 
         return Detuning(self)
 
     @property
-    def rabi(self):
+    def rabi(self) -> Rabi:
         """
         - Specify the Rabi term/field.
         - Possible Next:
@@ -37,7 +37,6 @@ class LevelCoupling(Builder):
 
 
         """
-        from bloqade.builder.field import Rabi
 
         return Rabi(self)
 
