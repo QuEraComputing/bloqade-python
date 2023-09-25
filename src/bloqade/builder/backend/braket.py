@@ -39,9 +39,7 @@ class BraketDeviceRoute(Builder):
                 and results returned
 
         """
-        from bloqade.ir.routine.base import Routine
-
-        return Routine(self).braket.aquila()
+        return self.parse().braket.aquila()
 
     def local_emulator(self):
         """
@@ -57,6 +55,4 @@ class BraketDeviceRoute(Builder):
                 :: run on local emulator
 
         """
-        from bloqade.ir.routine.base import Routine
-
-        return Routine(self).braket.local_emulator()
+        return self.parse().braket.local_emulator()
