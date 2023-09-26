@@ -1,3 +1,4 @@
+from pydantic import PrivateAttr
 from bloqade.submission.base import SubmissionBackend, ValidationError
 from bloqade.submission.quera_api_client.api import QueueApi
 from bloqade.submission.ir.task_specification import (
@@ -15,6 +16,7 @@ class QuEraBackend(SubmissionBackend):
     api_hostname: str
     qpu_id: str
     api_stage: str = "v0"
+    virtual_queue: Optional[str] = None
     proxy: Optional[str] = None
     # Sigv4Request arguments
     region: Optional[str] = None
@@ -25,11 +27,15 @@ class QuEraBackend(SubmissionBackend):
     role_arn: Optional[str] = None
     role_session_name: Optional[str] = None
     profile: Optional[str] = None
+    _queue_api: Optional[QueueApi] = PrivateAttr(None)
 
     @property
     def queue_api(self):
-        kwargs = {k: v for k, v in self.__dict__.items() if v is not None}
-        return QueueApi(**kwargs)
+        if self._queue_api is None:
+            kwargs = {k: v for k, v in self.__dict__.items() if v is not None}
+            self._queue_api = QueueApi(**kwargs)
+
+        return self._queue_api
 
     def get_capabilities(self) -> QuEraCapabilities:
         try:

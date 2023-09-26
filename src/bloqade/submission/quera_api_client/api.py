@@ -21,6 +21,7 @@ class ApiRequest:
         api_hostname: str,
         qpu_id: str,
         api_stage="v0",
+        virtual_queue: Optional[str] = None,
         proxy: Optional[str] = None,
     ):
         """
@@ -28,6 +29,7 @@ class ApiRequest:
         @param api_hostname: hostname of the API instance.
         @param qpu_id: The QPU ID, for example `qpu1-mock`.
         @param api_stage: Specify which version of the API to call from this object.
+        @param virtual_queue: Optional, the virtual queue to use for the API.
         @param proxy: Optional, the hostname for running the API via some proxy
         endpoint.
         """
@@ -43,6 +45,7 @@ class ApiRequest:
 
         self.base_url = "https://" + uri_with_version
         self.qpu_id = qpu_id
+        self.virtual_queue = virtual_queue
         self.logger = logging.getLogger(self.__class__.__name__)
 
     @staticmethod
@@ -60,17 +63,15 @@ class ApiRequest:
 
     def _generate_headers(self, base: Optional[dict] = None) -> Dict:
         if base is None:
-            if self.hostname is None:
-                return {"Content-Type": "application/json"}
-            else:
-                return {"Content-Type": "application/json", "Host": self.hostname}
-        else:
-            if self.hostname is None:
-                return base
-            else:
-                header = dict(base)
-                header["Host"] = self.hostname
-                return header  # type: ignore
+            header = {"Content-Type": "application/json"}
+
+        if self.hostname is not None:
+            header["Host"] = self.hostname
+
+        if self.virtual_queue is not None:
+            header["virtual_queue"] = self.virtual_queue
+
+        return header
 
     def _get_path(self, *path_list: str):
         return "/".join((self.base_url, self.qpu_id) + path_list)
@@ -124,6 +125,7 @@ class AwsApiRequest(ApiRequest):
         api_hostname: str,
         qpu_id: str,
         api_stage="v0",
+        virtual_queue: Optional[str] = None,
         proxy: Optional[str] = None,
         # Sigv4Request arguments
         region: str = "us-east-1",
@@ -140,6 +142,7 @@ class AwsApiRequest(ApiRequest):
         @param api_hostname: hostname of the API instance.
         @param qpu_id: The QPU ID, for example `qpu1-mock`.
         @param api_stage: Specify which version of the API to call from this object.
+        @param virtual_queue: Optional, the virtual queue to use for the API.
         @param proxy: Optional, the hostname for running the API via some proxy
         endpoint.
         @param region: AWS region, default value: "us-east-1"
@@ -152,7 +155,13 @@ class AwsApiRequest(ApiRequest):
         @param role_session_name: AWS role session name, defualy value: 'awsrequest',
         @param profile: Optional, AWS profile to use credentials for.
         """
-        super().__init__(api_hostname, qpu_id, api_stage=api_stage, proxy=proxy)
+        super().__init__(
+            api_hostname,
+            qpu_id,
+            virtual_queue=virtual_queue,
+            api_stage=api_stage,
+            proxy=proxy,
+        )
 
         self.request = Sigv4Request(
             region=region,
@@ -262,6 +271,7 @@ class QueueApi:
         api_hostname: str,
         qpu_id: str,
         api_stage="v0",
+        virtual_queue: Optional[str] = None,
         proxy: Optional[str] = None,
         **request_sigv4_kwargs,
     ):
@@ -270,6 +280,7 @@ class QueueApi:
         @param api_hostname: hostname of the API instance.
         @param qpu_id: The QPU ID, for example `qpu1-mock`.
         @param api_stage: Specify which version of the API to call from this object.
+        @param virtual_queue: Optional, the virtual queue to use for the API.
         @param proxy: Optional, the hostname for running the API via some proxy
         endpoint.
 
@@ -289,6 +300,7 @@ class QueueApi:
             api_hostname,
             qpu_id,
             api_stage=api_stage,
+            virtual_queue=virtual_queue,
             proxy=proxy,
             **request_sigv4_kwargs,
         )
