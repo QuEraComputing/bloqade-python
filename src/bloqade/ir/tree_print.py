@@ -174,9 +174,8 @@ class Printer:
             if not (self.state.last and len(children) == 0):
                 self.p.text("\n")
 
-        if (
-            self.state.depth > self.max_tree_depth or self.state.depth > cycle
-        ):  # need to set this variable dynamically
+        if self.state.depth > min(cycle, self.max_tree_depth):
+            # need to set this variable dynamically
             self.p.text(self.charset.trunc)
             self.p.text("\n")
             return
