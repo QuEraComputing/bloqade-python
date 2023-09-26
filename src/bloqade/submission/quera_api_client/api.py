@@ -64,6 +64,9 @@ class ApiRequest:
     def _generate_headers(self, base: Optional[dict] = None) -> Dict:
         if base is None:
             header = {"Content-Type": "application/json"}
+        else:
+            header = dict(base)
+            header["Content-Type"] = "application/json"
 
         if self.hostname is not None:
             header["Host"] = self.hostname
