@@ -61,19 +61,23 @@ theme:
     - toc.follow
   palette:
     - scheme: default
-      primary: indigo
-      accent: indigo
+      primary: custom
+      accent: custom
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
     - scheme: slate
-      primary: indigo
-      accent: indigo
+      primary: custom
+      accent: custom
       toggle:
         icon: material/brightness-4
         name: Switch to light mode
   favicon: assets/favicon.ico
   logo: assets/logo-dark.png
+  font:
+    text: Lato
+extra_css:
+  - stylesheets/extra.css
 
 plugins:
   - search:

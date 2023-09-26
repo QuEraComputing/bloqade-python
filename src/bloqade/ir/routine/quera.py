@@ -24,20 +24,20 @@ class QuEraServiceOptions(RoutineBase):
 
         backend = QuEraBackend(**api_config)
 
-        return QuEraHardwareRoutine(source=self.source, backend=backend)
+        return QuEraHardwareRoutine(self.source, self.circuit, self.params, backend)
 
     def aquila(self) -> "QuEraHardwareRoutine":
         backend = QuEraBackend(**load_config("Aquila"))
-        return QuEraHardwareRoutine(source=self.source, backend=backend)
+        return QuEraHardwareRoutine(self.source, self.circuit, self.params, backend)
 
     def cloud_mock(self) -> "QuEraHardwareRoutine":
         backend = QuEraBackend(**load_config("Mock"))
-        return QuEraHardwareRoutine(source=self.source, backend=backend)
+        return QuEraHardwareRoutine(self.source, self.circuit, self.params, backend)
 
     @beartype
     def mock(self, state_file: str = ".mock_state.txt") -> "QuEraHardwareRoutine":
         backend = MockBackend(state_file=state_file)
-        return QuEraHardwareRoutine(source=self.source, backend=backend)
+        return QuEraHardwareRoutine(self.source, self.circuit, self.params, backend)
 
 
 @dataclass(frozen=True)
@@ -55,7 +55,7 @@ class QuEraHardwareRoutine(RoutineBase):
         from bloqade.ir.analysis.assignment_scan import AssignmentScan
         from bloqade.codegen.hardware.quera import QuEraCodeGen
 
-        circuit, params = self.parse_source()
+        circuit, params = self.circuit, self.params
         capabilities = self.backend.get_capabilities()
         circuit = AssignAnalogCircuit(params.static_params).visit(circuit)
 
