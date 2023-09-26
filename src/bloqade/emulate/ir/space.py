@@ -8,6 +8,8 @@ if TYPE_CHECKING:
     from .emulator import Register
     from .atom_type import AtomType
 
+MAX_PRINT_SIZE = 30
+
 
 class SpaceType(str, Enum):
     FullSpace = "full_space"
@@ -96,11 +98,10 @@ class Space:
         row_indices, col_config = self.atom_type.swap_state_at(
             self.configurations, index, state_1, state_2
         )
-        if self.space_type == SpaceType.FullSpace:
+        if self.space_type is SpaceType.FullSpace:
             return (row_indices, col_config)
         else:
             col_indices = np.searchsorted(self.configurations, col_config)
-
             mask = col_indices < self.size
             mask[mask] = col_config[mask] == self.configurations[col_indices[mask]]
 
@@ -108,6 +109,7 @@ class Space:
                 if isinstance(row_indices, slice):
                     return mask, col_indices[mask]
                 else:
+                    row_indices = np.argwhere(row_indices).ravel()
                     return row_indices[mask], col_indices[mask]
             else:
                 return row_indices, col_indices
@@ -138,8 +140,8 @@ class Space:
             return state_int
         else:
             index = np.searchsorted(self.configurations, state_int)
-
-            if state_int != self.configurations[index]:
+            print(state_int, self.size)
+            if index >= self.size or state_int != self.configurations[index]:
                 raise ValueError(
                     "state: {fock_state} not in rydberg blockade subspace."
                 )
@@ -147,6 +149,9 @@ class Space:
             return index
 
     def index_to_fock_state(self, index: int) -> str:
+        if index < 0 or index >= self.size:
+            raise ValueError(f"index: {index} out of bounds.")
+
         if self.space_type is SpaceType.FullSpace:
             return self.atom_type.integer_to_string(index, self.n_atoms)
         else:
@@ -185,20 +190,23 @@ class Space:
 
         n_digits = len(str(self.size - 1))
         fmt = "{{index: >{}d}}. {{fock_state:s}}\n".format(n_digits)
-        if self.size < 50:
+        if self.size < MAX_PRINT_SIZE:
             for index, state_int in enumerate(self.configurations):
                 fock_state = self.atom_type.integer_to_string(state_int, self.n_atoms)
                 output = output + fmt.format(index=index, fock_state=fock_state)
 
         else:
-            for index, state_int in enumerate(self.configurations[:25]):
+            lower_index = MAX_PRINT_SIZE // 2 + (MAX_PRINT_SIZE % 2)
+            upper_index = self.size - MAX_PRINT_SIZE // 2
+
+            for index, state_int in enumerate(self.configurations[:lower_index]):
                 fock_state = self.atom_type.integer_to_string(state_int, self.n_atoms)
                 output = output + fmt.format(index=index, fock_state=fock_state)
 
             output += (n_digits * "  ") + "...\n"
 
             for index, state_int in enumerate(
-                self.configurations[-25:], start=self.size - 25
+                self.configurations[upper_index:], start=self.size - MAX_PRINT_SIZE // 2
             ):
                 fock_state = self.atom_type.integer_to_string(state_int, self.n_atoms)
                 output = output + fmt.format(index=index, fock_state=fock_state)
