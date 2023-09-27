@@ -306,10 +306,60 @@ def test_assign_error():
     with pytest.raises(TypeError):
         start.rydberg.detuning.uniform.constant("c", "t").assign(c=np, t=10)
 
-    with pytest.raises(TypeError):
+    with pytest.raises(ValueError):
         start.rydberg.detuning.uniform.constant("c", "t").batch_assign(
             c=[1, 2, np], t=[10]
         )
+
+    with pytest.raises(TypeError):
+        start.rydberg.detuning.uniform.constant("c", "t").batch_assign(
+            c=[1, 2, np], t=[10, 20, 30]
+        )
+
+    list_dict = [dict(c=1, t=10), dict(c=2, t=20), dict(c=np, t=30)]
+    with pytest.raises(TypeError):
+        start.rydberg.detuning.uniform.constant("c", "t").batch_assign(list_dict)
+
+    list_dict = [dict(c=1, t=10), dict(c=2, t=20), dict(t=30)]
+    with pytest.raises(ValueError):
+        start.rydberg.detuning.uniform.constant("c", "t").batch_assign(list_dict)
+
+    list_dict = [dict(c=1, t=10, f=1), dict(c=2, t=20, f=2), dict(t=30, c=3, f=3)]
+    with pytest.raises(ValueError):
+        start.rydberg.detuning.uniform.constant("c", "t").batch_assign(list_dict)
+
+    dict_list = dict(
+        c=[1, 2, 3], t=[10, 20, 30], mask=[[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+    )
+
+    with pytest.raises(ValueError):
+        start.rydberg.detuning.uniform.constant("c", "t").batch_assign(**dict_list)
+
+    list_dict = [
+        dict(c=1, t=10, mask=[1, 2, 3]),
+        dict(c=2, t=20, mask=[4, 5, 6]),
+        dict(t=30, c=3, mask=[7, 8, 9]),
+    ]
+
+    with pytest.raises(ValueError):
+        start.add_position([(0, 0), (0, 6)]).rydberg.detuning.var("mask").constant(
+            "c", "t"
+        ).batch_assign(list_dict)
+
+    # happy path is to have a list of dicts with the same keys
+    start.add_position([(0, 0), (0, 6), (0, 12)]).rydberg.detuning.var("mask").constant(
+        "c", "t"
+    ).batch_assign(list_dict)
+
+    list_dict = [
+        dict(c=1, t=10, mask=np.array([1, 2, 3])),
+        dict(c=2, t=20, mask=np.array([4, 5, 6])),
+        dict(t=30, c=3, mask=np.array([7, 8, 9])),
+    ]
+    with pytest.raises(ValueError):
+        start.add_position([(0, 0), (0, 6)]).rydberg.detuning.var("mask").constant(
+            "c", "t"
+        ).batch_assign(list_dict)
 
     with pytest.raises(TypeError):
         (
