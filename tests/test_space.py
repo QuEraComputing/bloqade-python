@@ -237,6 +237,117 @@ def test_two_level_subspace_transition_indices():
     assert np.all(col_indices == col_indices_expected)
 
 
+def test_three_level_transition_indices():
+    positions = [(0, 0), (0, 1)]
+    register = Register(ThreeLevelAtom, positions, 0)
+    space = Space.create(register)
+    print(space)
+
+    # 0. |gg> -> |hg>
+    # 1. |hg> ->
+    # 2. |rg> ->
+    # 3. |gh> -> |hh>
+    # 4. |hh> ->
+    # 5. |rh> ->
+    # 6. |gr> -> |hr>
+    # 7. |hr> ->
+    # 8. |rr> ->
+
+    row_indices, col_indices = space.transition_state_at(0, 0, 1)
+
+    row_indices_expected = np.array(
+        [True, False, False, True, False, False, True, False, False]
+    )
+    col_indices_expected = np.array(
+        [
+            ThreeLevelAtom.string_to_integer("|hg>"),
+            ThreeLevelAtom.string_to_integer("|hh>"),
+            ThreeLevelAtom.string_to_integer("|hr>"),
+        ]
+    )
+
+    assert np.all(row_indices == row_indices_expected)
+    assert np.all(col_indices == col_indices_expected)
+
+    # 0. |gg> ->
+    # 1. |hg> -> |rg>
+    # 2. |rg> ->
+    # 3. |gh> ->
+    # 4. |hh> -> |rh>
+    # 5. |rh> ->
+    # 6. |gr> ->
+    # 7. |hr> -> |rr>
+    # 8. |rr> ->
+
+    row_indices, col_indices = space.transition_state_at(0, 1, 2)
+
+    row_indices_expected = np.array(
+        [False, True, False, False, True, False, False, True, False]
+    )
+    col_indices_expected = np.array(
+        [
+            ThreeLevelAtom.string_to_integer("|rg>"),
+            ThreeLevelAtom.string_to_integer("|rh>"),
+            ThreeLevelAtom.string_to_integer("|rr>"),
+        ]
+    )
+
+    assert np.all(row_indices == row_indices_expected)
+    assert np.all(col_indices == col_indices_expected)
+
+
+def test_three_level_subspace_transition_indices():
+    positions = [(0, 0), (0, 1)]
+    register = Register(ThreeLevelAtom, positions, 1.1)
+    space = Space.create(register)
+    print(space)
+
+    # 0. |gg> -> |hg>
+    # 1. |hg> ->
+    # 2. |rg> ->
+    # 3. |gh> -> |hh>
+    # 4. |hh> ->
+    # 5. |rh> ->
+    # 6. |gr> -> |hr>
+    # 7. |hr> ->
+
+    row_indices, col_indices = space.transition_state_at(0, 0, 1)
+
+    row_indices_expected = np.array([0, 3, 6])
+    col_indices_expected = np.array(
+        [
+            ThreeLevelAtom.string_to_integer("|hg>"),
+            ThreeLevelAtom.string_to_integer("|hh>"),
+            ThreeLevelAtom.string_to_integer("|hr>"),
+        ]
+    )
+
+    assert np.all(row_indices == row_indices_expected)
+    assert np.all(col_indices == col_indices_expected)
+
+    # 0. |gg> ->
+    # 1. |hg> -> |rg>
+    # 2. |rg> ->
+    # 3. |gh> ->
+    # 4. |hh> -> |rh>
+    # 5. |rh> ->
+    # 6. |gr> ->
+    # 7. |hr> ->
+
+    row_indices, col_indices = space.transition_state_at(0, 1, 2)
+
+    row_indices_expected = np.array([1, 4])
+    col_indices_expected = np.array(
+        [
+            ThreeLevelAtom.string_to_integer("|rg>"),
+            ThreeLevelAtom.string_to_integer("|rh>"),
+        ]
+    )
+
+    assert np.all(row_indices == row_indices_expected)
+    assert np.all(col_indices == col_indices_expected)
+
+
 def test_two_level_swap_indices():
     positions = [(0, 0), (0, 1), (1, 0)]
     register = Register(TwoLevelAtom, positions, 0)
