@@ -140,7 +140,6 @@ class Space:
             return state_int
         else:
             index = np.searchsorted(self.configurations, state_int)
-            print(state_int, self.size)
             if index >= self.size or state_int != self.configurations[index]:
                 raise ValueError(
                     "state: {fock_state} not in rydberg blockade subspace."
