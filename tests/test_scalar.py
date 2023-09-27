@@ -1,3 +1,4 @@
+from pydantic import ValidationError
 from bloqade import cast, var
 import bloqade.ir.scalar as scalar
 import pytest
@@ -18,6 +19,9 @@ def test_var():
 
     with pytest.raises(ValueError):
         var("a*b")
+
+    with pytest.raises(ValidationError):
+        var("__batch_params")
 
     Vv = var("a")
     vs = var(Vv)
