@@ -45,16 +45,16 @@ class Assignable:
 class BatchAssignable:
     def batch_assign(
         self,
-        batch_params: List[Dict[str, ParamType]] = [],
+        __batch_params: List[Dict[str, ParamType]] = [],
         **assignments: List[ParamType],
     ) -> Union["BatchAssign", "ListAssign"]:
         from bloqade.builder.assign import BatchAssign, ListAssign
 
-        if len(batch_params) > 0 and assignments:
+        if len(__batch_params) > 0 and assignments:
             raise ValueError("batch_params and assignments cannot be used together.")
 
-        if len(batch_params) > 0:
-            return ListAssign(batch_params, parent=self)
+        if len(__batch_params) > 0:
+            return ListAssign(__batch_params, parent=self)
         else:
             return BatchAssign(assignments, parent=self)
 
