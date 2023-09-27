@@ -15,6 +15,21 @@ def get_manybody_op(i, L, op):
     return reduce(np.kron, [op if j == i else Ident for j in range(L)])
 
 
+def project_to_subspace(operator, configurations):
+    from scipy.sparse import csr_matrix
+
+    proj_shape = (configurations.size, operator.shape[0])
+    data = np.ones_like(configurations)
+    rows = np.arange(configurations.size)
+    cols = configurations
+    proj = csr_matrix((data, (rows, cols)), shape=proj_shape)
+
+    if operator.ndim == 1:
+        return proj @ operator
+    else:
+        return proj @ operator @ proj.T
+
+
 @pytest.mark.parametrize("L", [1, 2, 3, 4, 5, 6])
 def test_2_level_uniform(L):
     circuit = (
@@ -33,6 +48,15 @@ def test_2_level_uniform(L):
 
     assert np.all(hamiltonian.rabi_ops[0].op.tocsr().toarray() == rabi)
     assert np.all(hamiltonian.detuning_ops[0].diagonal == detuning)
+
+    emu_prog = EmulatorProgramCodeGen(blockade_radius=6.2).emit(circuit)
+    hamiltonian = RydbergHamiltonianCodeGen().emit(emu_prog)
+
+    rabi_op_proj = project_to_subspace(rabi, hamiltonian.space.configurations)
+    detuning_op_proj = project_to_subspace(detuning, hamiltonian.space.configurations)
+
+    assert np.all(hamiltonian.rabi_ops[0].op.tocsr().toarray() == rabi_op_proj)
+    assert np.all(hamiltonian.detuning_ops[0].diagonal == detuning_op_proj)
 
 
 @pytest.mark.parametrize("L", [1, 2, 3, 4])
@@ -54,3 +78,12 @@ def test_3_level_uniform(L):
 
     assert np.all(hamiltonian.rabi_ops[0].op.tocsr().toarray() == rabi)
     assert np.all(hamiltonian.detuning_ops[0].diagonal == detuning)
+
+    emu_prog = EmulatorProgramCodeGen(blockade_radius=6.2).emit(circuit)
+    hamiltonian = RydbergHamiltonianCodeGen().emit(emu_prog)
+
+    rabi_op_proj = project_to_subspace(rabi, hamiltonian.space.configurations)
+    detuning_op_proj = project_to_subspace(detuning, hamiltonian.space.configurations)
+
+    assert np.all(hamiltonian.rabi_ops[0].op.tocsr().toarray() == rabi_op_proj)
+    assert np.all(hamiltonian.detuning_ops[0].diagonal == detuning_op_proj)
