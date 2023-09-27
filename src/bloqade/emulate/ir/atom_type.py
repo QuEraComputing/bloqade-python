@@ -111,7 +111,14 @@ class ThreeLevelAtomType(AtomType):
         output_configs = configurations[input_configs]
 
         delta = to.value - fro.value
-        return (input_configs, output_configs + (delta * 3**index))
+
+        if delta < 0:
+            delta = -delta
+            output_configs -= np.array(delta * 3**index, dtype=output_configs.dtype)
+        else:
+            output_configs += np.array(delta * 3**index, dtype=output_configs.dtype)
+
+        return (input_configs, output_configs)
 
 
 @dataclass(frozen=True)

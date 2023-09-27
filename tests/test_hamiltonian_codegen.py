@@ -12,7 +12,24 @@ def get_manybody_op(i, L, op):
     else:
         Ident = np.eye(op.shape[0])
 
-    return reduce(np.kron, [op if j == i else Ident for j in range(L)])
+    if i < 0 or i >= L:
+        raise ValueError("i must be in range [0, L-1]")
+
+    if L <= 1:
+        return op
+
+    i = L - i - 1
+
+    if i == 0:
+        rhs = reduce(np.kron, [Ident] * (L - 1))
+        return np.kron(op, rhs)
+    elif i == L - 1:
+        lhs = reduce(np.kron, [Ident] * i)
+        return np.kron(lhs, op)
+    else:
+        lhs = reduce(np.kron, [Ident] * i)
+        rhs = reduce(np.kron, [Ident] * (L - i - 1))
+        return np.kron(np.kron(lhs, op), rhs)
 
 
 def project_to_subspace(operator, configurations):
@@ -31,7 +48,7 @@ def project_to_subspace(operator, configurations):
 
 
 @pytest.mark.parametrize("L", [1, 2, 3, 4, 5, 6])
-def test_2_level_uniform(L):
+def test_2_level_uniform_real(L):
     circuit = (
         Chain(L, lattice_spacing=6.1)
         .rydberg.detuning.uniform.constant(1.0, 1.0)
@@ -59,38 +76,62 @@ def test_2_level_uniform(L):
     assert np.all(hamiltonian.detuning_ops[0].diagonal == detuning_op_proj)
 
 
-@pytest.mark.parametrize("L", [1, 2, 3, 4])
-def test_3_level_uniform(L):
+@pytest.mark.parametrize("L", [1, 2, 3, 4, 5, 6])
+def test_2_level_uniform_complex(L):
     circuit = (
         Chain(L, lattice_spacing=6.1)
-        .hyperfine.detuning.uniform.constant(1.0, 1.0)
-        .amplitude.uniform.constant(1.0, 1.0)
+        .rydberg.rabi.amplitude.uniform.constant(1.0, 1.0)
+        .phase.uniform.constant(0.0, 1.0)
     ).parse_circuit()
-    cache = CompileCache()
-    emu_prog = EmulatorProgramCodeGen().emit(circuit)
-    hamiltonian = RydbergHamiltonianCodeGen(cache).emit(emu_prog)
 
-    detuning_op = np.array([0, -1, 0], dtype=int)
-    rabi_op = np.array([[0, 1, 0], [1, 0, 0], [0, 0, 0]], dtype=int)
+    emu_prog = EmulatorProgramCodeGen().emit(circuit)
+    hamiltonian = RydbergHamiltonianCodeGen().emit(emu_prog)
+    rabi_op = np.array([[0, 0], [1, 0]], dtype=int)
 
     rabi = sum([get_manybody_op(i, L, rabi_op) for i in range(L)])
-    detuning = sum([get_manybody_op(i, L, detuning_op) for i in range(L)])
 
     assert np.all(hamiltonian.rabi_ops[0].op.tocsr().toarray() == rabi)
-    assert np.all(hamiltonian.detuning_ops[0].diagonal == detuning)
 
     emu_prog = EmulatorProgramCodeGen(blockade_radius=6.2).emit(circuit)
     hamiltonian = RydbergHamiltonianCodeGen().emit(emu_prog)
 
     rabi_op_proj = project_to_subspace(rabi, hamiltonian.space.configurations)
-    detuning_op_proj = project_to_subspace(detuning, hamiltonian.space.configurations)
 
     assert np.all(hamiltonian.rabi_ops[0].op.tocsr().toarray() == rabi_op_proj)
-    assert np.all(hamiltonian.detuning_ops[0].diagonal == detuning_op_proj)
 
 
-@pytest.mark.parametrize(("i", "L"), [(i, L) for L in range(3) for i in range(L)])
-def test_2_level_single_atom(i, L):
+@pytest.mark.parametrize("L", [1, 2, 3, 4, 5, 6])
+def test_3_level_uniform_complex(L):
+    circuit = (
+        Chain(L, lattice_spacing=6.1)
+        .hyperfine.rabi.amplitude.uniform.constant(1.0, 1.0)
+        .phase.uniform.constant(0.0, 1.0)
+    ).parse_circuit()
+    cache = CompileCache()
+    emu_prog = EmulatorProgramCodeGen().emit(circuit)
+    hamiltonian = RydbergHamiltonianCodeGen(cache).emit(emu_prog)
+
+    rabi_op = np.array([[0, 0, 0], [1, 0, 0], [0, 0, 0]], dtype=int)
+
+    rabi = sum([get_manybody_op(i, L, rabi_op) for i in range(L)])
+
+    print(rabi)
+    print(hamiltonian.rabi_ops[0].op.tocsr().toarray())
+
+    assert np.all(hamiltonian.rabi_ops[0].op.tocsr().toarray() == rabi)
+
+    emu_prog = EmulatorProgramCodeGen(blockade_radius=6.2).emit(circuit)
+    hamiltonian = RydbergHamiltonianCodeGen().emit(emu_prog)
+
+    rabi_op_proj = project_to_subspace(rabi, hamiltonian.space.configurations)
+
+    assert np.all(hamiltonian.rabi_ops[0].op.tocsr().toarray() == rabi_op_proj)
+
+
+@pytest.mark.parametrize(
+    ("i", "L"), [(i, L) for L in [1, 2, 3, 4, 5, 6] for i in range(L)]
+)
+def test_2_level_single_atom_real(i, L):
     circuit = (
         Chain(L, lattice_spacing=6.1)
         .rydberg.detuning.location(i)
@@ -100,6 +141,7 @@ def test_2_level_single_atom(i, L):
         .scale(0.5)
         .constant(1.0, 1.0)
     ).parse_circuit()
+
     cache = CompileCache()
     emu_prog = EmulatorProgramCodeGen().emit(circuit)
     hamiltonian = RydbergHamiltonianCodeGen(cache).emit(emu_prog)
@@ -108,12 +150,10 @@ def test_2_level_single_atom(i, L):
     rabi_op = np.array([[0, 1], [1, 0]], dtype=int)
 
     rabi = get_manybody_op(i, L, rabi_op)
-    detuning = get_manybody_op(i, L, detuning_op)
-    print(rabi)
-    print(detuning)
-    print(hamiltonian.rabi_ops[0].op.tocsr().toarray())
+    detuning = 2.0 * get_manybody_op(i, L, detuning_op)
+
     assert np.all(hamiltonian.rabi_ops[0].op.tocsr().toarray() == rabi)
-    assert np.all(hamiltonian.detuning_ops[0].diagonal == detuning)
+    assert np.all(hamiltonian.detuning_ops[0].get_diagonal(0.0) == detuning)
 
     emu_prog = EmulatorProgramCodeGen(blockade_radius=6.2).emit(circuit)
     hamiltonian = RydbergHamiltonianCodeGen().emit(emu_prog)
@@ -123,3 +163,100 @@ def test_2_level_single_atom(i, L):
 
     assert np.all(hamiltonian.rabi_ops[0].op.tocsr().toarray() == rabi_op_proj)
     assert np.all(hamiltonian.detuning_ops[0].diagonal == detuning_op_proj)
+
+
+@pytest.mark.parametrize(
+    ("i", "L"), [(i, L) for L in [1, 2, 3, 4, 5, 6] for i in range(L)]
+)
+def test_2_level_single_atom_complex(i, L):
+    circuit = (
+        Chain(L, lattice_spacing=6.1)
+        .rydberg.rabi.amplitude.location(i)
+        .scale(0.5)
+        .constant(1.0, 1.0)
+        .phase.location(i)
+        .constant(0.0, 1.0)
+    ).parse_circuit()
+
+    cache = CompileCache()
+    emu_prog = EmulatorProgramCodeGen().emit(circuit)
+    hamiltonian = RydbergHamiltonianCodeGen(cache).emit(emu_prog)
+
+    rabi_op = np.array([[0, 0], [1, 0]], dtype=int)
+    rabi = get_manybody_op(i, L, rabi_op)
+
+    assert np.all(hamiltonian.rabi_ops[0].op.tocsr().toarray() == rabi)
+
+    emu_prog = EmulatorProgramCodeGen(blockade_radius=6.2).emit(circuit)
+    hamiltonian = RydbergHamiltonianCodeGen().emit(emu_prog)
+
+    rabi_op_proj = project_to_subspace(rabi, hamiltonian.space.configurations)
+
+    assert np.all(hamiltonian.rabi_ops[0].op.tocsr().toarray() == rabi_op_proj)
+
+
+@pytest.mark.parametrize(
+    ("i", "L"), [(i, L) for L in [1, 2, 3, 4, 5, 6] for i in range(L)]
+)
+def test_3_level_single_atom_real(i, L):
+    circuit = (
+        Chain(L, lattice_spacing=6.1)
+        .hyperfine.detuning.location(i)
+        .scale(2.0)
+        .constant(1.0, 1.0)
+        .amplitude.location(i)
+        .scale(0.5)
+        .constant(1.0, 1.0)
+    ).parse_circuit()
+
+    cache = CompileCache()
+    emu_prog = EmulatorProgramCodeGen().emit(circuit)
+    hamiltonian = RydbergHamiltonianCodeGen(cache).emit(emu_prog)
+
+    detuning_op = np.array([0, -1, 0], dtype=int)
+    rabi_op = np.array([[0, 1, 0], [1, 0, 0], [0, 0, 0]], dtype=int)
+
+    rabi = get_manybody_op(i, L, rabi_op)
+    detuning = 2.0 * get_manybody_op(i, L, detuning_op)
+
+    assert np.all(hamiltonian.rabi_ops[0].op.tocsr().toarray() == rabi)
+    assert np.all(hamiltonian.detuning_ops[0].get_diagonal(0.0) == detuning)
+
+    emu_prog = EmulatorProgramCodeGen(blockade_radius=6.2).emit(circuit)
+    hamiltonian = RydbergHamiltonianCodeGen().emit(emu_prog)
+
+    rabi_op_proj = project_to_subspace(rabi, hamiltonian.space.configurations)
+    detuning_op_proj = project_to_subspace(detuning, hamiltonian.space.configurations)
+
+    assert np.all(hamiltonian.rabi_ops[0].op.tocsr().toarray() == rabi_op_proj)
+    assert np.all(hamiltonian.detuning_ops[0].diagonal == detuning_op_proj)
+
+
+@pytest.mark.parametrize(
+    ("i", "L"), [(i, L) for L in [1, 2, 3, 4, 5, 6] for i in range(L)]
+)
+def test_3_level_single_atom_complex(i, L):
+    circuit = (
+        Chain(L, lattice_spacing=6.1)
+        .hyperfine.rabi.amplitude.location(i)
+        .scale(0.5)
+        .constant(1.0, 1.0)
+        .phase.location(i)
+        .constant(0.0, 1.0)
+    ).parse_circuit()
+
+    cache = CompileCache()
+    emu_prog = EmulatorProgramCodeGen().emit(circuit)
+    hamiltonian = RydbergHamiltonianCodeGen(cache).emit(emu_prog)
+
+    rabi_op = np.array([[0, 0, 0], [1, 0, 0], [0, 0, 0]], dtype=int)
+    rabi = get_manybody_op(i, L, rabi_op)
+
+    assert np.all(hamiltonian.rabi_ops[0].op.tocsr().toarray() == rabi)
+
+    emu_prog = EmulatorProgramCodeGen(blockade_radius=6.2).emit(circuit)
+    hamiltonian = RydbergHamiltonianCodeGen().emit(emu_prog)
+
+    rabi_op_proj = project_to_subspace(rabi, hamiltonian.space.configurations)
+
+    assert np.all(hamiltonian.rabi_ops[0].op.tocsr().toarray() == rabi_op_proj)

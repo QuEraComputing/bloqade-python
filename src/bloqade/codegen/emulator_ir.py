@@ -280,6 +280,11 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
 
             terms = []
             for atom in range(self.n_atoms):
+                if not any(
+                    atom in value for value in amplitude_target_atoms_dict.values()
+                ):
+                    continue
+
                 phase_wf = sum(
                     (
                         phase_target_atoms_dict[sm][atom] * wf
@@ -297,6 +302,9 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
                     ),
                     start=waveform.Constant(0.0, 0.0),
                 )
+
+                if amplitude_wf == waveform.Constant(0.0, 0.0):
+                    continue
 
                 self.duration = max(
                     float(amplitude_wf.duration(**self.assignments)), self.duration
