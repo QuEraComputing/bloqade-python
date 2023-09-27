@@ -4,25 +4,33 @@ from bloqade.builder.field import Rabi, Detuning
 
 class LevelCoupling(Builder):
     @property
-    def detuning(self) -> Detuning:
+    def detuning(self) -> Detuning: # field is summation of one or more drives, waveform + spatial modulation = drive
         """
-        - Specify the [`Detuning`][bloqade.builder.field.Detuning] field of your program.
-        - Next possible steps to build your program are allowing the field to target specific atoms:
+        - Specify the [`Detuning`][bloqade.builder.field.Detuning] [`Field`][bloqade.builder.Field] of your program.
+        - A "field" is a summation of one or more "drives", with a drive being the sum of a waveform and spatial modulation.
+            - You are currently building the spatial modulation component and will be able to specify a waveform
+        - You can do this by:
             - |_ `...detuning.uniform`: To address all atoms in the field
             - |_ `...detuning.location(int)`: To address an atom at a specific location via index
-            - |_ `...detuning.var(str)`: To address an atom at a specific location via variable name
+            - |_ `...detuning.var(str)`
+                - |_ To address an atom at a specific location via variable
+                - |_ To address multiple atoms at specific locations by specifying a single variable and then assigning it a list of coordinates
         
         Usage Examples:
         ```
         >>> prog = start.add_position(([(0,0), (1,2)]).rydberg.detuning
-        # target all atoms with waveforms specified later
+        # subsequent specified waveform will target all atoms equally
         >>> prog.uniform
         # target individual atoms via index in the list of coordinates you passed in earlier
         # (This is chainable)
         >>> prog.location(0).location(1)
         # target individual atoms via index represented as a variable
-        # (This is also chainable)
-        >>> prog.var("atom_1").var("atom_2")
+        # (This is NOT chainable)
+        >>> prog.var("atom_1")
+        # target MULTIPLE atoms via indices represented as a single variable
+        # where ... is the rest of your program as you cannot perform variable
+        # assignment afterwards
+        >>> prog.var("locations")...assign(locations = [0, 1])
         ```
         """
 
@@ -31,21 +39,13 @@ class LevelCoupling(Builder):
     @property
     def rabi(self) -> Rabi:
         """
-        - Specify the [`Rabi`][bloqade.builder.field.Rabi] field of your program.
+        - Specify the complex-valued [`Rabi`][bloqade.builder.field.Rabi] field of your program.
+        - The Rabi field is composed of a real-valued Amplitude and Phase field
         - Next possible steps to build your program are 
-          addressing the [`RabiAmplitude`][bloqade.builder.field.RabiAmplitude] and [`RabiPhase`][] of the field:
-            - |_ `...rabi.amplitude`: To address the Rabi amplitude
-            - |_ `...rabi.phase`: To address the Rabi phase
+          creating the [`RabiAmplitude`][bloqade.builder.field.RabiAmplitude] field and [`RabiPhase`][bloqade.builder.field.RabiAmplitude] field of the field:
+            - |_ `...rabi.amplitude`: To create the Rabi amplitude field
+            - |_ `...rabi.phase`: To create the Rabi phase field
 
-        Usage Examples
-        ```
-        >>> target_rabi_amplitude = start.rydberg.rabi.amplitude
-        >>> type(target_rabi_amplitude)
-        bloqade.builder.field.RabiAmplitude
-        >>> target_rabi_phase = start.rydberg.rabi.phase
-        >>> type(target_rabi_phase)
-        bloqade.builder.field.RabiPhase
-        ```
         """
 
         return Rabi(self)

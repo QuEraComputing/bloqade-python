@@ -6,39 +6,18 @@ class Field(Builder):
     @property
     def uniform(self):
         """
-        - Addressing all atom locations for preceeding waveform
-        - Next-step: <WaveForm>
-        - Possible Next:
-
-            -> `...uniform.linear()`
-                :: apply linear waveform
-
-            -> `...uniform.constant()`
-                :: apply constant waveform
-
-            -> `...uniform.ploy()`
-                :: apply polynomial waveform
-
-            -> `...uniform.apply()`
-                :: apply pre-constructed waveform
-
-            -> `...uniform.piecewise_linear()`
-                :: apply piecewise linear waveform
-
-            -> `...uniform.piecewise_constant()`
-                :: apply piecewise constant waveform
-
-            -> `...uniform.fn()`
-                :: apply callable as waveform.
-
-
-        Examples:
-
-            - Addressing rydberg detuning to all atoms in the system with
-            4 sites
-
-            >>> reg = bloqade.start.add_position([(0,0),(1,1),(2,2),(3,3)])
-            >>> loc = reg.rydberg.detuning.uniform
+        - Address all atoms as part of defining the spatial modulation component of a drive.
+        - Next steps to build your program include choosing the waveform that will be summed with the spatial modulation to create a drive
+            - The drive by itself, or the sum of subsequent drives (created by just chaining the construction of drives) will become the field
+            (e.g. Detuning Field, Real-Valued Rabi Amplitude/Rabi Phase Field, etc.)
+        - You can do:
+            - |_ `...uniform.linear(start, stop, duration)` : to apply a linear waveform
+            - |_ `...uniform.constant(value, duration)` : to apply a constant waveform
+            - |_ `...uniform.poly([coefficients], duration)` : to apply a polynomial waveform
+            - |_ `...uniform.apply(wf:bloqade.ir.Waveform)`: to apply a pre-defined waveform
+            - |_ `...uniform.piecewise_linear([durations], [values])`:  to apply a piecewise linear waveform
+            - |_ `...uniform.piecewise_constant([durations], [values])`: to apply a piecewise constant waveform
+            - |_ `...uniform.fn(f(t,...))`: to apply a function as a waveform
 
         """
         from bloqade.builder.spatial import Uniform
@@ -48,61 +27,33 @@ class Field(Builder):
     @beartype
     def location(self, label: int):
         """
-        Addressing one or multiple specific location(s) for preceeding waveform.
+        - Address a single atom (or multiple via chaining calls, see below) as part of defining the spatial modulation component of a drive.
+        - Next steps to build your program include choosing the waveform that will be summed with the spatial modulation to create a drive
+            - The drive by itself, or the sum of subsequent drives (created by just chaining the construction of drives) will become the field
+            (e.g. Detuning Field, Real-Valued Rabi Amplitude/Rabi Phase Field, etc.)
+                - |_ `...location(int).linear(start, stop, duration)` : to apply a linear waveform
+                - |_ `...location(int).constant(value, duration)` : to apply a constant waveform
+                - |_ `...location(int).poly([coefficients], duration)` : to apply a polynomial waveform
+                - |_ `...location(int).apply(wf:bloqade.ir.Waveform)`: to apply a pre-defined waveform
+                - |_ `...location(int).piecewise_linear([durations], [values])`:  to apply a piecewise linear waveform
+                - |_ `...location(int).piecewise_constant([durations], [values])`: to apply a piecewise constant waveform
+                - |_ `...location(int).fn(f(t,..))`: to apply a function as a waveform
+        - You can also address multiple atoms by chaining:
+            - |_ `...location(int).location(int)` 
+                - The waveform you specify after the last `location` in the chain will be applied to all atoms in the chain
+        - And you can scale any waveform by a multiplicative factor on a specific atom via:
+            - |_ `...location(int).scale(float)`
+            - You cannot define a scaling across multiple atoms with one method call! They must be specified atom-by-atom.
 
-        (See [`Location`][bloqade.builder.location.Location] for more details])
 
-        Args:
-            label (int): The label of the location to apply the following waveform to.
-
-        Examples:
-
-            - Addressing rydberg detuning to location 1 on a system with 4 sites.
-
-            >>> reg = bloqade.start.add_position([(0,0),(1,1),(2,2),(3,3)])
-            >>> loc = reg.rydberg.detuning.location(1)
-
-            - Addressing rydberg detuning on both location
-            0 and 2 on a system with 4 sites.
-
-            >>> reg = bloqade.start.add_position([(0,0),(1,1),(2,2),(3,3)])
-            >>> loc = reg.rydberg.detuning.location(1).location(2)
-
-        Note:
-            label index start with 0, and should be positive.
-
-        - Possible Next <Location>:
-
-            -> `...location(int).location(int)`
-                :: adding location into current list
-
-            -> `...location(int).scale(float)`
-                :: specify scaling factor to current location
-                for the preceeding waveform
-
-        - Possible Next <WaveForm>:
-
-            -> `...location(int).linear()`
-                :: apply linear waveform
-
-            -> `...location(int).constant()`
-                :: apply constant waveform
-
-            -> `...location(int).ploy()`
-                :: apply polynomial waveform
-
-            -> `...location(int).apply()`
-                :: apply pre-constructed waveform
-
-            -> `...location(int).piecewise_linear()`
-                :: apply piecewise linear waveform
-
-            -> `...location(int).piecewise_constant()`
-                :: apply piecewise constant waveform
-
-            -> `...location(int).fn()`
-                :: apply callable as waveform.
-
+        Usage Example:
+        ```
+        >>> prog = start.add_position([(0,0),(1,4),(2,8)]).rydberg.rabi
+        # to target a single atom with a waveform
+        >>> one_location_prog = prog.location(0)
+        # to target multiple atoms with same waveform
+        >>> multi_location_prog = prog.location(0).location(2)
+        ```
 
         """
         from bloqade.builder.spatial import Location
@@ -112,38 +63,30 @@ class Field(Builder):
     @beartype
     def var(self, name: str):
         """
-        - Addressing atom location associate with given variable for preceeding waveform
-        - Possible Next <WaveForm>:
-
-            -> `...location(int).linear()`
-                :: apply linear waveform
-
-            -> `...location(int).constant()`
-                :: apply constant waveform
-
-            -> `...location(int).ploy()`
-                :: apply polynomial waveform
-
-            -> `...location(int).apply()`
-                :: apply pre-constructed waveform
-
-            -> `...location(int).piecewise_linear()`
-                :: apply piecewise linear waveform
-
-            -> `...location(int).piecewise_constant()`
-                :: apply piecewise constant waveform
-
-            -> `...location(int).fn()`
-                :: apply callable as waveform.
+        - Address a single atom (or multiple via assigning a list of values) as part of defining the spatial modulation component of a drive.
+        - Next steps to build your program include choosing the waveform that will be summed with the spatial modulation to create a drive
+            - The drive by itself, or the sum of subsequent drives (created by just chaining the construction of drives) will become the field
+            (e.g. Detuning Field, Real-Valued Rabi Amplitude/Rabi Phase Field, etc.)
+                - |_ `...location(int).linear(start, stop, duration)` : to apply a linear waveform
+                - |_ `...location(int).constant(value, duration)` : to apply a constant waveform
+                - |_ `...location(int).poly([coefficients], duration)` : to apply a polynomial waveform
+                - |_ `...location(int).apply(wf:bloqade.ir.Waveform)`: to apply a pre-defined waveform
+                - |_ `...location(int).piecewise_linear(durations, values)`:  to apply a piecewise linear waveform
+                - |_ `...location(int).piecewise_constant(durations, values)`: to apply a piecewise constant waveform
+                - |_ `...location(int).fn(f(t,..))`: to apply a function as a waveform
 
 
-        Examples:
-
-            - Addressing rydberg detuning to atom location `myatom` in the system with
-            4 sites
-
-            >>> reg = bloqade.start.add_position([(0,0),(1,1),(2,2),(3,3)])
-            >>> loc = reg.rydberg.detuning.var('myatom')
+        Usage Example:
+        ```
+        >>> prog = start.add_position([(0,0),(1,4),(2,8)]).rydberg.rabi
+        >>> one_location_prog = prog.var("a")
+        # "a" can be assigned in the END of the program during variable assignment
+        # indicating only a single atom should be targeted OR 
+        # a list of values, indicating a set of atoms should be targeted. 
+        >>> target_one_atom = ...assign(a = 0)
+        >>> target_multiple_atoms = ...assign(a = [0, 2])
+        # Note that `assign` is used, you cannot batch_assign variables used in .var() calls
+        ```
 
         """
         from bloqade.builder.spatial import Var
@@ -211,6 +154,10 @@ class Rabi(Builder):
 
     @property
     def amplitude(self) -> "RabiAmplitude":
+        """
+        - Specify the real-valued Rabi Amplitude field. 
+        - Next steps 
+        """
         """
         - Specify the amplitude of the rabi field.
         - Next-step: <SpacialModulation>
