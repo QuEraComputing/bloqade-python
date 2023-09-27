@@ -100,8 +100,8 @@ class TransformTrait:
         self,
         position: Union[
             PositionArray,
-            Tuple[ScalarType, ScalarType],
             List[Tuple[ScalarType, ScalarType]],
+            Tuple[ScalarType, ScalarType],
         ],
         filling: Optional[Union[BoolArray, List[bool], bool]] = None,
     ) -> "ListOfLocations":
