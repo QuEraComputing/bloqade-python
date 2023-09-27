@@ -303,9 +303,6 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
                     start=waveform.Constant(0.0, 0.0),
                 )
 
-                if amplitude_wf == waveform.Constant(0.0, 0.0):
-                    continue
-
                 self.duration = max(
                     float(amplitude_wf.duration(**self.assignments)), self.duration
                 )
