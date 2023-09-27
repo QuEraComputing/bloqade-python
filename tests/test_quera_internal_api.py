@@ -12,6 +12,25 @@ import pytest
 import os
 
 
+API_HOSTNAME = "api.que-ee.com"
+API_PROXY = "proxy-api.que-ee.com"
+VIRTUAL_QUEUE = "virtual-queue"
+
+API_CONFIG = dict(
+    api_hostname=API_HOSTNAME,
+    qpu_id="qpu-1",
+    api_stage="v0",
+    proxy=API_PROXY,
+    virtual_queue=VIRTUAL_QUEUE,
+)
+
+HEADERS = {
+    "Content-Type": "application/json",
+    "Host": API_HOSTNAME,
+    "virtual_queue": VIRTUAL_QUEUE,
+}
+
+
 # Integraiton tests
 @pytest.mark.skip(reason="Depricating save_batch")
 @pytest.mark.vcr
@@ -115,18 +134,18 @@ def test_happy_path_queue_api(*args):
     def mock_get(*args, **kwargs):
         print("get", args, kwargs)
         if (args, kwargs) == (
-            ("https://https://api.que-ee.com/v0/qpu-1/capabilities",),
-            {"headers": {"Content-Type": "application/json"}},
+            ("https://" + API_PROXY + "/v0/qpu-1/capabilities",),
+            {"headers": HEADERS},
         ):
             return create_response(200, get_capabilities().dict())
         elif (args, kwargs) == (
-            ("https://https://api.que-ee.com/v0/qpu-1/queue/task/task_id",),
-            {"headers": {"Content-Type": "application/json"}},
+            ("https://" + API_PROXY + "/v0/qpu-1/queue/task/task_id",),
+            {"headers": HEADERS},
         ):
             return create_response(200, {"status": "Completed"})
         elif (args, kwargs) == (
-            ("https://https://api.que-ee.com/v0/qpu-1/task/task_id/results",),
-            {"headers": {"Content-Type": "application/json"}},
+            ("https://" + API_PROXY + "/v0/qpu-1/task/task_id/results",),
+            {"headers": HEADERS},
         ):
             return create_response(200, mock_results())
         else:
@@ -135,8 +154,8 @@ def test_happy_path_queue_api(*args):
     def mock_put(*args, **kwargs):
         print("put", args, kwargs)
         if (args, kwargs) == (
-            ("https://https://api.que-ee.com/v0/qpu-1/queue/task/task_id/cancel",),
-            {"headers": {"Content-Type": "application/json"}},
+            ("https://" + API_PROXY + "/v0/qpu-1/queue/task/task_id/cancel",),
+            {"headers": HEADERS},
         ):
             return create_response(200, {})
         else:
@@ -145,7 +164,7 @@ def test_happy_path_queue_api(*args):
     def mock_post(*args, **kwargs):
         print("post", args, kwargs)
         if (
-            args == ("https://https://api.que-ee.com/v0/qpu-1/queue/task",)
+            args == ("https://" + API_PROXY + "/v0/qpu-1/queue/task",)
             and kwargs["headers"]["Content-Type"] == "application/json"
         ):
             task_ir_string = kwargs["data"]
@@ -158,10 +177,6 @@ def test_happy_path_queue_api(*args):
             return create_response(201, {"task_id": "task_id"})
         else:
             raise NotImplementedError
-
-    api_config = dict(
-        api_hostname="https://api.que-ee.com", qpu_id="qpu-1", api_stage="v0"
-    )
 
     sig_v4_config = dict(
         region="us-east-1",
@@ -178,7 +193,7 @@ def test_happy_path_queue_api(*args):
     request_api.get.side_effect = mock_get
     request_api.post.side_effect = mock_post
     request_api.put.side_effect = mock_put
-    queue = bloqade.submission.quera_api_client.api.QueueApi(**api_config)
+    queue = bloqade.submission.quera_api_client.api.QueueApi(**API_CONFIG)
 
     assert queue.get_capabilities() == get_capabilities().dict()
     assert queue.post_task(mock_task_ir()) == "task_id"
@@ -190,10 +205,6 @@ def test_happy_path_queue_api(*args):
 
 @patch("bloqade.submission.quera_api_client.api.Sigv4Request")
 def test_task_results_polling(*args):
-    api_config = dict(
-        api_hostname="https://api.que-ee.com", qpu_id="qpu-1", api_stage="v0"
-    )
-
     sig_v4_config = dict(
         region="us-east-1",
         access_key=None,
@@ -206,7 +217,7 @@ def test_task_results_polling(*args):
     )
 
     request_api = bloqade.submission.quera_api_client.api.Sigv4Request(**sig_v4_config)
-    queue = bloqade.submission.quera_api_client.api.QueueApi(**api_config)
+    queue = bloqade.submission.quera_api_client.api.QueueApi(**API_CONFIG)
 
     request_api.get.side_effect = [
         create_response(200, {"status": "Enqueued"}),
@@ -226,10 +237,6 @@ def test_task_results_polling(*args):
 
 @patch("bloqade.submission.quera_api_client.api.Sigv4Request")
 def test_post_task_error_paths(*args):
-    api_config = dict(
-        api_hostname="https://api.que-ee.com", qpu_id="qpu-1", api_stage="v0"
-    )
-
     sig_v4_config = dict(
         region="us-east-1",
         access_key=None,
@@ -243,7 +250,7 @@ def test_post_task_error_paths(*args):
 
     QueueApi = bloqade.submission.quera_api_client.api.QueueApi
     request_api = bloqade.submission.quera_api_client.api.Sigv4Request(**sig_v4_config)
-    queue = bloqade.submission.quera_api_client.api.QueueApi(**api_config)
+    queue = bloqade.submission.quera_api_client.api.QueueApi(**API_CONFIG)
 
     request_api.post.side_effect = [
         create_response(404, {}),
@@ -271,10 +278,6 @@ def test_post_task_error_paths(*args):
 
 @patch("bloqade.submission.quera_api_client.api.Sigv4Request")
 def test_task_validation_error_paths(*args):
-    api_config = dict(
-        api_hostname="https://api.que-ee.com", qpu_id="qpu-1", api_stage="v0"
-    )
-
     sig_v4_config = dict(
         region="us-east-1",
         access_key=None,
@@ -288,7 +291,7 @@ def test_task_validation_error_paths(*args):
 
     QueueApi = bloqade.submission.quera_api_client.api.QueueApi
     request_api = bloqade.submission.quera_api_client.api.Sigv4Request(**sig_v4_config)
-    queue = bloqade.submission.quera_api_client.api.QueueApi(**api_config)
+    queue = bloqade.submission.quera_api_client.api.QueueApi(**API_CONFIG)
 
     request_api.post.side_effect = [
         create_response(404, {}),
@@ -312,10 +315,6 @@ def test_task_validation_error_paths(*args):
 
 @patch("bloqade.submission.quera_api_client.api.Sigv4Request")
 def test_get_capabilities_error_paths(*args):
-    api_config = dict(
-        api_hostname="https://api.que-ee.com", qpu_id="qpu-1", api_stage="v0"
-    )
-
     sig_v4_config = dict(
         region="us-east-1",
         access_key=None,
@@ -329,7 +328,7 @@ def test_get_capabilities_error_paths(*args):
 
     QueueApi = bloqade.submission.quera_api_client.api.QueueApi
     request_api = bloqade.submission.quera_api_client.api.Sigv4Request(**sig_v4_config)
-    queue = bloqade.submission.quera_api_client.api.QueueApi(**api_config)
+    queue = bloqade.submission.quera_api_client.api.QueueApi(**API_CONFIG)
 
     request_api.get.side_effect = [
         create_response(404, {}),
@@ -348,11 +347,7 @@ def test_get_capabilities_error_paths(*args):
 
 
 def test_api_requests_errors():
-    api_config = dict(
-        api_hostname="https://api.que-ee.com", qpu_id="qpu-1", api_stage="v0"
-    )
-
-    api_requests = bloqade.submission.quera_api_client.api.ApiRequest(**api_config)
+    api_requests = bloqade.submission.quera_api_client.api.ApiRequest(**API_CONFIG)
 
     with pytest.raises(NotImplementedError):
         api_requests._post("https://api.que-ee.com/v0/qpu-1", {}, {})
@@ -366,10 +361,6 @@ def test_api_requests_errors():
 
 @patch("bloqade.submission.quera_api_client.api.Sigv4Request")
 def test_get_task_status_in_queue_error_paths(*args):
-    api_config = dict(
-        api_hostname="https://api.que-ee.com", qpu_id="qpu-1", api_stage="v0"
-    )
-
     sig_v4_config = dict(
         region="us-east-1",
         access_key=None,
@@ -383,7 +374,7 @@ def test_get_task_status_in_queue_error_paths(*args):
 
     QueueApi = bloqade.submission.quera_api_client.api.QueueApi
     request_api = bloqade.submission.quera_api_client.api.Sigv4Request(**sig_v4_config)
-    queue = bloqade.submission.quera_api_client.api.QueueApi(**api_config)
+    queue = bloqade.submission.quera_api_client.api.QueueApi(**API_CONFIG)
 
     request_api.get.side_effect = [
         create_response(400, {}),
@@ -403,10 +394,6 @@ def test_get_task_status_in_queue_error_paths(*args):
 
 @patch("bloqade.submission.quera_api_client.api.Sigv4Request")
 def test_cancel_task_in_queue_error_paths(*args):
-    api_config = dict(
-        api_hostname="https://api.que-ee.com", qpu_id="qpu-1", api_stage="v0"
-    )
-
     sig_v4_config = dict(
         region="us-east-1",
         access_key=None,
@@ -420,7 +407,7 @@ def test_cancel_task_in_queue_error_paths(*args):
 
     QueueApi = bloqade.submission.quera_api_client.api.QueueApi
     request_api = bloqade.submission.quera_api_client.api.Sigv4Request(**sig_v4_config)
-    queue = bloqade.submission.quera_api_client.api.QueueApi(**api_config)
+    queue = bloqade.submission.quera_api_client.api.QueueApi(**API_CONFIG)
 
     request_api.put.side_effect = [
         create_response(403, {}),
@@ -442,10 +429,6 @@ def test_cancel_task_in_queue_error_paths(*args):
 def test_get_task_results_paths(*args):
     from bloqade.submission.quera_api_client.api import ApiRequest
 
-    api_config = dict(
-        api_hostname="https://api.que-ee.com", qpu_id="qpu-1", api_stage="v0"
-    )
-
     sig_v4_config = dict(
         region="us-east-1",
         access_key=None,
@@ -459,7 +442,7 @@ def test_get_task_results_paths(*args):
 
     QueueApi = bloqade.submission.quera_api_client.api.QueueApi
     request_api = bloqade.submission.quera_api_client.api.Sigv4Request(**sig_v4_config)
-    queue = bloqade.submission.quera_api_client.api.QueueApi(**api_config)
+    queue = bloqade.submission.quera_api_client.api.QueueApi(**API_CONFIG)
 
     request_api.get.side_effect = [
         create_response(200, {"status": "Created"}),
@@ -540,10 +523,6 @@ def test_get_task_results_paths(*args):
 
 @patch("bloqade.submission.quera_api_client.api.Sigv4Request")
 def test_get_task_summary_paths(*args):
-    api_config = dict(
-        api_hostname="https://api.que-ee.com", qpu_id="qpu-1", api_stage="v0"
-    )
-
     sig_v4_config = dict(
         region="us-east-1",
         access_key=None,
@@ -557,7 +536,7 @@ def test_get_task_summary_paths(*args):
 
     QueueApi = bloqade.submission.quera_api_client.api.QueueApi
     request_api = bloqade.submission.quera_api_client.api.Sigv4Request(**sig_v4_config)
-    queue = bloqade.submission.quera_api_client.api.QueueApi(**api_config)
+    queue = bloqade.submission.quera_api_client.api.QueueApi(**API_CONFIG)
 
     request_api.get.side_effect = [
         create_response(200, {"status": "Running"}),
