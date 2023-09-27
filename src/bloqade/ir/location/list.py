@@ -22,7 +22,7 @@ class ListOfLocations(AtomArrangement):
             else:
                 self.location_list.append(LocationInfo(ele, True))
 
-        if location_list:
+        if self.location_list:
             self.__n_atoms = sum(
                 1 for loc in self.location_list if loc.filling == SiteFilling.filled
             )
@@ -30,6 +30,7 @@ class ListOfLocations(AtomArrangement):
             self.__n_vacant = self.__n_sites - self.__n_atoms
             self.__n_dims = len(self.location_list[0].position)
         else:
+            self.__n_sites = 0
             self.__n_atoms = 0
             self.__n_dims = None
 

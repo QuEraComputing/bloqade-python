@@ -4,14 +4,12 @@ from bloqade.builder.sequence_builder import SequenceBuilder
 from bloqade.builder.field import Field, Detuning, RabiAmplitude, RabiPhase
 from bloqade.builder.spatial import SpatialModulation, Location, Uniform, Var, Scale
 from bloqade.builder.waveform import WaveformPrimitive, Slice, Record, Sample, Fn
-from bloqade.builder.assign import Assign, BatchAssign
+from bloqade.builder.assign import Assign, BatchAssign, ListAssign
 from bloqade.builder.args import Args
 from bloqade.builder.parallelize import Parallelize
 from bloqade.builder.parse.stream import BuilderNode, BuilderStream
-
 import bloqade.ir as ir
-from itertools import repeat
-from typing import TYPE_CHECKING, Tuple, Union, Dict, List, Optional, Set
+from beartype.typing import TYPE_CHECKING, Tuple, Union, Dict, List, Optional, Set
 
 if TYPE_CHECKING:
     from bloqade.ir.routine.params import ParamType
@@ -186,6 +184,7 @@ class Parser:
         pragma_types = (
             Assign,
             BatchAssign,
+            ListAssign,
             Args,
             Parallelize,
         )
@@ -197,13 +196,9 @@ class Parser:
             node = curr.node
 
             if isinstance(node, Assign):
-                self.static_params = dict(node._assignments)
-            elif isinstance(node, BatchAssign):
-                tuple_iterators = [
-                    zip(repeat(name), values)
-                    for name, values in node._assignments.items()
-                ]
-                self.batch_params = list(map(dict, zip(*tuple_iterators)))
+                self.static_params = dict(node._static_params)
+            elif isinstance(node, BatchAssign) or isinstance(node, ListAssign):
+                self.batch_params = node._batch_params
             elif isinstance(node, Args):
                 order = node._order
 

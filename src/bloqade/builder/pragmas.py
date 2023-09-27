@@ -1,9 +1,9 @@
-from beartype.typing import List, Union, TYPE_CHECKING
+from beartype.typing import List, Dict, Union, TYPE_CHECKING
 from bloqade.builder.typing import LiteralType, ParamType
 from bloqade.ir.scalar import Variable
 
 if TYPE_CHECKING:
-    from bloqade.builder.assign import Assign, BatchAssign
+    from bloqade.builder.assign import Assign, BatchAssign, ListAssign
     from bloqade.builder.parallelize import Parallelize
     from bloqade.builder.args import Args
 
@@ -39,14 +39,24 @@ class Assignable:
         """
         from bloqade.builder.assign import Assign
 
-        return Assign(parent=self, **assignments)
+        return Assign(assignments, parent=self)
 
 
 class BatchAssignable:
-    def batch_assign(self, **assignments: ParamType) -> "BatchAssign":
-        from bloqade.builder.assign import BatchAssign
+    def batch_assign(
+        self,
+        __batch_params: List[Dict[str, ParamType]] = [],
+        **assignments: List[ParamType],
+    ) -> Union["BatchAssign", "ListAssign"]:
+        from bloqade.builder.assign import BatchAssign, ListAssign
 
-        return BatchAssign(parent=self, **assignments)
+        if len(__batch_params) > 0 and assignments:
+            raise ValueError("batch_params and assignments cannot be used together.")
+
+        if len(__batch_params) > 0:
+            return ListAssign(__batch_params, parent=self)
+        else:
+            return BatchAssign(assignments, parent=self)
 
 
 class Parallelizable:
