@@ -306,10 +306,20 @@ def test_assign_error():
     with pytest.raises(TypeError):
         start.rydberg.detuning.uniform.constant("c", "t").assign(c=np, t=10)
 
-    with pytest.raises(TypeError):
+    with pytest.raises(ValueError):
         start.rydberg.detuning.uniform.constant("c", "t").batch_assign(
             c=[1, 2, np], t=[10]
         )
+
+    with pytest.raises(TypeError):
+        start.rydberg.detuning.uniform.constant("c", "t").batch_assign(
+            c=[1, 2, np], t=[10, 20, 30]
+        )
+
+    list_dict = [dict(c=1, t=10), dict(c=2, t=20), dict(c=np, t=30)]
+
+    with pytest.raises(TypeError):
+        start.rydberg.detuning.uniform.constant("c", "t").batch_assign(list_dict)
 
     with pytest.raises(TypeError):
         (
