@@ -128,7 +128,7 @@ class Space:
             col_indices = col_indices[mask]
             row_indices = row_indices[mask]
 
-            mask = col_config == self.configurations[col_indices]
+            mask = col_config[mask] == self.configurations[col_indices]
             col_indices = col_indices[mask]
             row_indices = row_indices[mask]
 
