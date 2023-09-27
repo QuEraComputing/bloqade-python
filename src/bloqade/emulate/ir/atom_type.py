@@ -88,8 +88,14 @@ class ThreeLevelAtomType(AtomType):
         mask_2 = self.is_state_at(configurations, index, state_2)
         delta = state_2.value - state_1.value
 
-        output[mask_1] += delta * 3**index
-        output[mask_2] -= delta * 3**index
+        if delta < 0:
+            mask_1, mask_2 = mask_2, mask_1
+            delta = -delta
+
+        shift_value = np.array(delta * 3**index, dtype=configurations.dtype)
+
+        output[mask_1] += shift_value
+        output[mask_2] -= shift_value
 
         np.logical_or(mask_1, mask_2, out=mask_1)
 

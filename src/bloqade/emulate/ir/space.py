@@ -46,6 +46,11 @@ class Space:
         configurations = np.arange(Ns, dtype=np.min_scalar_type(Ns - 1))
 
         if all(len(sub_list) == 0 for sub_list in check_atoms):
+            min_int_type = np.min_scalar_type(configurations[-1])
+            # defauly to 32 bit if smaller than 32 bit
+            config_type = np.result_type(min_int_type, np.uint32)
+            configurations = configurations.astype(config_type)
+
             return Space(SpaceType.FullSpace, atom_type, sites, configurations)
 
         for index_1, indices in enumerate(check_atoms):
