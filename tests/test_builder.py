@@ -13,6 +13,7 @@ from bloqade.builder import waveform
 # import bloqade.builder.backend as builder_backend
 import bloqade.ir.routine.quera as quera
 import bloqade.ir.routine.braket as braket
+from plum import NotFoundLookupError
 
 from bloqade.ir.control.waveform import instruction
 from bloqade.ir import rydberg, detuning, hyperfine, rabi
@@ -67,15 +68,24 @@ def test_add_position_dispatch():
     position = np.array([[1, 2], [3, 4]])
     position_list = list(map(tuple, position.tolist()))
 
-    a = start.add_position(position)
-    b = start.add_position(position_list)
-    c = start.add_position(position_list[0]).add_position(position_list[1])
+    a = start.add_position(position, np.array([True, False]))
+    b = start.add_position(position_list, [True, False])
+    c = start.add_position(position_list[0]).add_position(position_list[1], False)
 
     assert a.location_list == b.location_list
     assert a.location_list == c.location_list
 
     with pytest.raises(AssertionError):
         start.add_position(position_list, [True])
+
+    with pytest.raises(NotFoundLookupError):
+        start.add_position(position_list, True)
+
+    with pytest.raises(NotFoundLookupError):
+        start.add_position(position_list, np.array([True, True]))
+
+    with pytest.raises(NotFoundLookupError):
+        start.add_position(position, [True, True])
 
 
 def test_piecewise_const():
