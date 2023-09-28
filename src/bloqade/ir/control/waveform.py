@@ -25,7 +25,8 @@ from bloqade.visualization import get_ir_figure
 from bloqade.visualization import display_ir
 
 
-def waveform(duration: Any) -> "PythonFn":
+@beartype
+def waveform(duration: ScalarType) -> Callable[[Callable], "PythonFn"]:
     # turn python function into a waveform instruction."""
 
     def waveform_wrapper(fn: Callable) -> "PythonFn":
@@ -500,11 +501,10 @@ class PythonFn(Instruction):
     def children(self):
         return {"duration": self.duration, **{p.name: p for p in self.parameters}}
 
-    @beartype
     def sample(
         self, dt: ScalarType, interpolation: Union[str, "Interpolation"]
     ) -> "Sample":
-        return Sample(self, dt, interpolation)
+        return Sample(self, interpolation, cast(dt))
 
 
 @dataclass(init=False)
