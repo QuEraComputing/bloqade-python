@@ -354,6 +354,9 @@ class Literal(Real):
     def __call__(self, **assignments) -> Decimal:
         return self.value
 
+    def __str__(self) -> str:
+        return str(self.value)
+
     def children(self):
         return []
 
@@ -380,6 +383,9 @@ class Variable(Real):
             raise ValueError(f"Variable {self.name} not assigned")
 
         return Decimal(str(assignments[self.name]))
+
+    def __str__(self) -> str:
+        return self.name
 
     def children(self):
         return []
@@ -412,6 +418,9 @@ class AssignedVariable(Scalar):
 
         return self.value
 
+    def __str__(self) -> str:
+        return f"{self.name}"
+
     def children(self):
         return []
 
@@ -435,6 +444,9 @@ class Negative(Scalar):
 
     def __call__(self, **assignments) -> Decimal:
         return -self.expr(**assignments)
+
+    def __str__(self) -> str:
+        return f"-({self.expr!s})"
 
     def children(self):
         return [self.expr]
@@ -550,6 +562,9 @@ class Slice(Scalar):
 
         return ret
 
+    def __str__(self) -> str:
+        return f"({self.expr!r})[{self.interval!s}]"
+
     def children(self):
         return {"Scalar": self.expr, None: self.interval}
 
@@ -564,6 +579,9 @@ class Add(Scalar):
 
     def __call__(self, **assignments) -> Decimal:
         return self.lhs(**assignments) + self.rhs(**assignments)
+
+    def __str__(self) -> str:
+        return f"({self.lhs!s} + {self.rhs!s})"
 
     def children(self):
         return [self.lhs, self.rhs]
@@ -580,6 +598,9 @@ class Mul(Scalar):
     def __call__(self, **assignments) -> Decimal:
         return self.lhs(**assignments) * self.rhs(**assignments)
 
+    def __str__(self) -> str:
+        return f"({self.lhs!s} * {self.rhs!s})"
+
     def children(self):
         return [self.lhs, self.rhs]
 
@@ -595,6 +616,9 @@ class Div(Scalar):
     def __call__(self, **assignments) -> Decimal:
         return self.lhs(**assignments) / self.rhs(**assignments)
 
+    def __str__(self) -> str:
+        return f"({self.lhs!s} / {self.rhs!s})"
+
     def children(self):
         return [self.lhs, self.rhs]
 
@@ -609,14 +633,14 @@ class Min(Scalar):
     def __call__(self, **assignments) -> Any:
         return min(expr(**assignments) for expr in self.exprs)
 
+    def __str__(self) -> str:
+        return f"min({', '.join(map(str, self.exprs))})"
+
     def children(self):
         return list(self.exprs)
 
     def print_node(self):
         return "min"
-
-    def __str__(self):
-        return f"scalar.Min({str(self.exprs)})"
 
 
 @dataclass(frozen=True)
@@ -632,5 +656,5 @@ class Max(Scalar):
     def print_node(self):
         return "max"
 
-    def __str__(self):
-        return f"scalar.Max({str(self.exprs)})"
+    def __str__(self) -> str:
+        return f"max({', '.join(map(str, self.exprs))})"
