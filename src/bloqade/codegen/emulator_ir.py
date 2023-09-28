@@ -170,11 +170,18 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
 
                 target_atoms = self.visit(sm)
 
+                target_atoms = {
+                    atom: Decimal(str(value))
+                    for atom, value in target_atoms.items()
+                    if value != 0
+                }
+
                 if len(target_atoms) == 0:
                     continue
                 elif len(target_atoms) == 1:
                     (scale,) = target_atoms.values()
-                    wf = scale * wf
+                    if scale != 1:
+                        wf = scale * wf
 
                 terms.append(
                     DetuningTerm(
