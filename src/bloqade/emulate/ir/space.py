@@ -123,7 +123,7 @@ class Space:
         row_indices, col_config = self.atom_type.transition_state_at(
             self.configurations, index, fro, to
         )
-        if self.space_type == SpaceType.FullSpace:
+        if self.space_type is SpaceType.FullSpace:
             return (row_indices, col_config)
         else:
             col_indices = np.searchsorted(self.configurations, col_config)
