@@ -126,7 +126,7 @@ class AssignedRunTimeVector(SpatialModulation):
         display_ir(self, **assignment)
 
 
-@dataclass(init=False, repr=False)
+@dataclass(init=False)
 class ScaledLocations(SpatialModulation):
     value: Dict[Location, Scalar]
 

@@ -167,7 +167,7 @@ class NamedSequence(SequenceExpr):
         display_ir(self, assignments)
 
 
-@dataclass(repr=False)
+@dataclass
 class Slice(SequenceExpr):
     sequence: SequenceExpr
     interval: Interval
