@@ -17,7 +17,7 @@ __all__ = [
 ]
 
 
-@dataclass(frozen=True, repr=False)
+@dataclass(frozen=True)
 class Scalar:
     """Base class for all scalar expressions.
 
@@ -171,7 +171,7 @@ class Scalar:
         expr = Max(exprs=frozenset({self, other_expr}))
         return Scalar.canonicalize(expr)
 
-    def __repr__(self) -> str:
+    def __str__(self) -> str:
         ph = Printer()
         ph.print(self)
         return ph.get_value()
@@ -292,7 +292,6 @@ def cast(py) -> "Scalar":
 # [KHW] it need to be there. For recursive replace for nested
 #       list/tuple
 def trycast(py) -> Optional[Scalar]:
-    # print(type(py))
     if isinstance(py, (int, bool, numbers.Real)):
         return Literal(Decimal(str(py)))
     elif isinstance(py, Decimal):
@@ -342,7 +341,7 @@ class Real(Scalar):
     pass
 
 
-@dataclass(frozen=True, repr=False)
+@dataclass(frozen=True)
 class Literal(Real):
     value: Decimal
     """Scalar Literal, which stores a decimaal value instance.
@@ -355,11 +354,8 @@ class Literal(Real):
     def __call__(self, **assignments) -> Decimal:
         return self.value
 
-    def __repr__(self) -> str:
-        return self.__str__()
-
-    def __str__(self):
-        return f"{str(self.value)}"
+    def __str__(self) -> str:
+        return str(self.value)
 
     def children(self):
         return []
@@ -371,7 +367,7 @@ class Literal(Real):
         Printer(p).print(self, cycle)
 
 
-@dataclass(frozen=True, repr=False)
+@dataclass(frozen=True)
 class Variable(Real):
     """Variable, which stores a variable name.
 
@@ -388,11 +384,8 @@ class Variable(Real):
 
         return Decimal(str(assignments[self.name]))
 
-    def __repr__(self) -> str:
-        return self.__str__()
-
-    def __str__(self):
-        return f"var({str(self.name)})"
+    def __str__(self) -> str:
+        return self.name
 
     def children(self):
         return []
@@ -414,7 +407,7 @@ class Variable(Real):
         return name
 
 
-@dataclass(frozen=True, repr=False)
+@dataclass(frozen=True)
 class AssignedVariable(Scalar):
     name: str
     value: Decimal
@@ -425,14 +418,14 @@ class AssignedVariable(Scalar):
 
         return self.value
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.name}"
 
     def children(self):
         return []
 
     def print_node(self):
-        return f"AssignedVariable: {self.name} = {self.value}"
+        return f"AssignedVariable: {self.name} = {self.value!s}"
 
     @validator("name", allow_reuse=True)
     def validate_name(cls, name):
@@ -445,15 +438,15 @@ class AssignedVariable(Scalar):
         return name
 
 
-@dataclass(frozen=True, repr=False)
+@dataclass(frozen=True)
 class Negative(Scalar):
     expr: Scalar
 
     def __call__(self, **assignments) -> Decimal:
         return -self.expr(**assignments)
 
-    def __str__(self):
-        return f"-({str(self.expr)})"
+    def __str__(self) -> str:
+        return f"-({self.expr!s})"
 
     def children(self):
         return [self.expr]
@@ -462,7 +455,7 @@ class Negative(Scalar):
         return "Negative"
 
 
-@dataclass(frozen=True, repr=False)
+@dataclass(frozen=True)
 class Interval:
     start: Optional[Scalar]
     stop: Optional[Scalar]
@@ -492,11 +485,6 @@ class Interval:
                     raise ValueError("Slice stop must be Scalar")
 
             return Interval(start, stop)
-
-    def __repr__(self) -> str:
-        ph = Printer()
-        ph.print(self)
-        return ph.get_value()
 
     def _repr_pretty_(self, p, cycle):
         Printer(p).print(self, cycle)
@@ -529,7 +517,7 @@ class Interval:
                 return {"start": self.start, "stop": self.stop}
 
 
-@dataclass(frozen=True, repr=False)
+@dataclass(frozen=True)
 class Slice(Scalar):
     expr: Scalar  # duration
     interval: Interval
@@ -574,8 +562,8 @@ class Slice(Scalar):
 
         return ret
 
-    def __str__(self):
-        return f"{str(self.expr)}[{str(self.interval)}]"
+    def __str__(self) -> str:
+        return f"({self.expr!s})[{self.interval!s}]"
 
     def children(self):
         return {"Scalar": self.expr, None: self.interval}
@@ -584,7 +572,7 @@ class Slice(Scalar):
         return "Slice"
 
 
-@dataclass(frozen=True, repr=False)
+@dataclass(frozen=True)
 class Add(Scalar):
     lhs: Scalar
     rhs: Scalar
@@ -592,8 +580,8 @@ class Add(Scalar):
     def __call__(self, **assignments) -> Decimal:
         return self.lhs(**assignments) + self.rhs(**assignments)
 
-    def __str__(self):
-        return f"({str(self.lhs)} + {str(self.rhs)})"
+    def __str__(self) -> str:
+        return f"({self.lhs!s} + {self.rhs!s})"
 
     def children(self):
         return [self.lhs, self.rhs]
@@ -602,7 +590,7 @@ class Add(Scalar):
         return "+"
 
 
-@dataclass(frozen=True, repr=False)
+@dataclass(frozen=True)
 class Mul(Scalar):
     lhs: Scalar
     rhs: Scalar
@@ -610,8 +598,8 @@ class Mul(Scalar):
     def __call__(self, **assignments) -> Decimal:
         return self.lhs(**assignments) * self.rhs(**assignments)
 
-    def __str__(self):
-        return f"({str(self.lhs)} * {str(self.rhs)})"
+    def __str__(self) -> str:
+        return f"({self.lhs!s} * {self.rhs!s})"
 
     def children(self):
         return [self.lhs, self.rhs]
@@ -620,7 +608,7 @@ class Mul(Scalar):
         return "*"
 
 
-@dataclass(frozen=True, repr=False)
+@dataclass(frozen=True)
 class Div(Scalar):
     lhs: Scalar
     rhs: Scalar
@@ -628,8 +616,8 @@ class Div(Scalar):
     def __call__(self, **assignments) -> Decimal:
         return self.lhs(**assignments) / self.rhs(**assignments)
 
-    def __str__(self):
-        return f"({str(self.lhs)} / {str(self.rhs)})"
+    def __str__(self) -> str:
+        return f"({self.lhs!s} / {self.rhs!s})"
 
     def children(self):
         return [self.lhs, self.rhs]
@@ -638,12 +626,15 @@ class Div(Scalar):
         return "/"
 
 
-@dataclass(frozen=True, repr=False)
+@dataclass(frozen=True)
 class Min(Scalar):
     exprs: frozenset[Scalar]
 
     def __call__(self, **assignments) -> Any:
         return min(expr(**assignments) for expr in self.exprs)
+
+    def __str__(self) -> str:
+        return f"min({', '.join(map(str, self.exprs))})"
 
     def children(self):
         return list(self.exprs)
@@ -651,11 +642,8 @@ class Min(Scalar):
     def print_node(self):
         return "min"
 
-    def __str__(self):
-        return f"scalar.Min({str(self.exprs)})"
 
-
-@dataclass(frozen=True, repr=False)
+@dataclass(frozen=True)
 class Max(Scalar):
     exprs: frozenset[Scalar]
 
@@ -668,5 +656,5 @@ class Max(Scalar):
     def print_node(self):
         return "max"
 
-    def __str__(self):
-        return f"scalar.Max({str(self.exprs)})"
+    def __str__(self) -> str:
+        return f"max({', '.join(map(str, self.exprs))})"

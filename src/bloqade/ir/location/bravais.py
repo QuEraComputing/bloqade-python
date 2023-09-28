@@ -56,7 +56,7 @@ class BoundedBravais(AtomArrangement):
     def cell_atoms(self) -> Tuple[Tuple[Scalar, ...], ...]:
         raise NotImplementedError
 
-    def __repr__(self):
+    def __str__(self):
         has_lattice_spacing_var = False
         if type(self.lattice_spacing) is not Literal:
             # add string denoting this to printer
@@ -295,7 +295,7 @@ class Rectangular(BoundedBravais):
 
         super().__init__(width, height, lattice_spacing=lattice_spacing_x)
 
-    def __repr__(self):
+    def __str__(self):
         # modified version of the standard coordinates method,
         # intercept cell.vectors, then continue with standard
         # operation

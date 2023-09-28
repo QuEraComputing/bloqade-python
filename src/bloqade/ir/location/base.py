@@ -2,6 +2,7 @@ from bloqade.builder.typing import ScalarType
 from bloqade.builder.start import ProgramStart
 from bloqade.ir.scalar import Scalar, Literal, cast
 from bloqade.ir.location.transform import TransformTrait
+from bloqade.ir.tree_print import Printer
 
 from pydantic.dataclasses import dataclass
 from beartype.typing import List, Tuple, Generator
@@ -16,6 +17,12 @@ from bloqade.visualization import display_ir
 class SiteFilling(int, Enum):
     filled = 1
     vacant = 0
+
+    def print_node(self) -> str:
+        return self.name
+
+    def children(self) -> List:
+        return []
 
 
 @dataclass(init=False)
@@ -32,54 +39,67 @@ class LocationInfo:
 
         self.position = tuple(cast(ele) for ele in position)
 
+    def print_node(self) -> str:
+        return f"Location: {self.filling.name}"
 
+    def children(self) -> List[Scalar]:
+        return {"x": self.position[0], "y": self.position[1]}
+
+
+@dataclass(init=False)
 class AtomArrangement(ProgramStart, TransformTrait):
-    def __repr__(self) -> str:
-        xs_filled, xs_vacant = [], []
-        ys_filled, ys_vacant = [], []
+    def __str__(self) -> str:
+        def is_literal(x):
+            return isinstance(x, Literal)
 
-        counter = 0
-        for _, location_info in enumerate(self.enumerate()):
-            counter += 1
-            (x, y) = location_info.position
-            if type(x) is not Literal or type(y) is not Literal:
-                return repr(
-                    list(self.enumerate())
-                )  # default to standard print of internal contents
-            else:
-                if location_info.filling is SiteFilling.filled:
-                    xs_filled.append(float(x.value))
-                    ys_filled.append(float(y.value))
-                else:
-                    xs_vacant.append(float(x.value))
-                    ys_vacant.append(float(y.value))
+        plot_results = all(
+            is_literal(info.position[0]) and is_literal(info.position[1])
+            for info in self.enumerate()
+        )
 
-        if counter == 0:
-            return repr(
-                list(self.enumerate())
-            )  # default to standard print of internal contents
+        if plot_results:
+            xs = [float(info.position[0].value) for info in self.enumerate()]
+            ys = [float(info.position[1].value) for info in self.enumerate()]
+            filling = [bool(info.filling.value) for info in self.enumerate()]
+            xs_filled = [x for x, filled in zip(xs, filling) if filled]
+            ys_filled = [y for y, filled in zip(ys, filling) if filled]
+            xs_vacant = [x for x, filled in zip(xs, filling) if not filled]
+            ys_vacant = [y for y, filled in zip(ys, filling) if not filled]
 
-        pltxt.clear_figure()
-        pltxt.limit_size(False, False)
-        pltxt.plot_size(80, 24)
-        pltxt.canvas_color("default")
-        pltxt.axes_color("default")
-        pltxt.ticks_color("white")
-        pltxt.title("Atom Positions")
-        pltxt.xlabel("x (um)")
-        pltxt.ylabel("y (um)")
+            pltxt.clear_figure()
+            pltxt.limit_size(False, False)
+            pltxt.plot_size(80, 24)
+            pltxt.canvas_color("default")
+            pltxt.axes_color("default")
+            pltxt.ticks_color("white")
+            pltxt.title("Atom Positions")
+            pltxt.xlabel("x (um)")
+            pltxt.ylabel("y (um)")
 
-        marker = "."
-        if sys.stdout.encoding.lower().startswith("utf"):
-            marker = "dot"
+            marker = "."
+            if sys.stdout.encoding.lower().startswith("utf"):
+                marker = "dot"
 
-        pltxt.scatter(xs_filled, ys_filled, color=(100, 55, 255), marker=marker)
-        if len(xs_vacant) > 0:
-            pltxt.scatter(
-                xs_vacant, ys_vacant, color="white", label="vacant", marker=marker
-            )
+            pltxt.scatter(xs_filled, ys_filled, color=(100, 55, 255), marker=marker)
+            if len(xs_vacant) > 0:
+                pltxt.scatter(
+                    xs_vacant, ys_vacant, color="white", label="vacant", marker=marker
+                )
 
-        return pltxt.build()
+            return pltxt.build()
+        else:
+            ph = Printer()
+            ph.print(self)
+            return ph.get_value()
+
+    def _repr_pretty_(self, p, cycle):
+        Printer(p).print(self, cycle)
+
+    def print_node(self) -> str:
+        return "AtomArrangement"
+
+    def children(self) -> List[LocationInfo]:
+        return list(self.enumerate())
 
     def enumerate(self) -> Generator[LocationInfo, None, None]:
         """enumerate all locations in the register."""

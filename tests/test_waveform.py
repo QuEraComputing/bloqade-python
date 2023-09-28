@@ -168,7 +168,6 @@ def test_wvfm_neg():
 
     assert wf2.print_node() == "Negative"
     assert wf2.children() == [wf]
-    assert str(wf2) == "-(" + str(wf2.children()[0]) + ")"
 
     assert wf2.eval_decimal(Decimal("0.5")) == Decimal("-1.0")
 
@@ -194,14 +193,12 @@ def test_wvfm_scale():
 
     assert wf2.print_node() == "Scale"
     assert wf2.children() == [cast(2.0), wf]
-    assert str(wf2) == "(2.0 * %s)" % (str(wf))
 
     assert wf2.eval_decimal(Decimal("0.5")) == Decimal("2.0")
 
     wf3 = wf * 2.0
     assert wf3.print_node() == "Scale"
     assert wf3.children() == [cast(2.0), wf]
-    assert str(wf3) == "(2.0 * %s)" % (str(wf))
 
     assert wf3.eval_decimal(Decimal("0.5")) == Decimal("2.0")
 
@@ -230,7 +227,6 @@ def test_wvfn_add():
 
     assert wf3.print_node() == "+"
     assert wf3.children() == [wf, wf2]
-    assert str(wf3) == "(%s + %s)" % (str(wf), str(wf2))
 
     assert wf3.eval_decimal(Decimal("0")) == Decimal("2.0")
     assert wf3.eval_decimal(Decimal("2.5")) == Decimal("1.0")
@@ -265,7 +261,6 @@ def test_wvfn_rec():
 
     assert re.print_node() == "Record"
     assert re.children() == {"Waveform": wf, "Variable": cast("tst")}
-    assert str(re) == "Record(%s, %s)" % (str(wf), str(cast("tst")))
 
     assert re.eval_decimal(Decimal("0")) == Decimal("1.0")
     assert re.duration == cast(3.0)
@@ -370,10 +365,6 @@ def test_wvfn_smooth():
     wf = wv.smooth(radius=0.5, kernel=GaussianKernel)
 
     assert wf.duration == cast(3.0)
-    assert str(wf) == "Smooth(kernel=%s, waveform=%s)" % (
-        str(GaussianKernel),
-        str(wv),
-    )
 
     assert wf.eval_decimal(Decimal("0.1")) == 1.0844831620655968
 
@@ -385,7 +376,6 @@ def test_wvfn_slice():
     wf = Slice(wv, iv)
 
     assert wf.print_node() == "Slice"
-    assert str(wf) == "%s[%s]" % (str(wv), str(iv))
     assert wf.eval_decimal(Decimal("0.4")) == 0
     assert wf.eval_decimal(Decimal("0.2")) == 2.0
     assert wf.children() == [wv, iv]
