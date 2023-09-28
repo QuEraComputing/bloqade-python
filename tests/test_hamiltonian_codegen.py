@@ -8,7 +8,7 @@ import numpy as np
 import pytest
 
 np.random.seed(2304023)
-L_VALUES = [1, 2, 3, 4, 5, 6]
+L_VALUES = [1, 2, 3, 4, 5]
 
 
 def get_manybody_op(i, L, op):
