@@ -124,21 +124,30 @@ def test_var_member():
 
     assert va.children() == []
     assert va.print_node() == "Variable: a"
+    assert str(va) == "a"
 
 
-def test_scalar_var():
+def test_assign_var_member():
+    va = scalar.AssignedVariable("a", Decimal("1.0"))
+
+    assert va.children() == []
+    assert va.print_node() == "AssignedVariable: a = 1.0"
+    assert str(va) == "a"
+
+
+def test_literal_value():
     va = cast(1.0)
     with pytest.raises(TypeError):
         var(va)
 
+    assert va.children() == []
+    assert va.print_node() == "Literal: 1.0"
+    assert str(va) == "1.0"
 
-@pytest.mark.skip(reason="no longer supported")
+
 def test_invalid_keyword():
-    with pytest.raises(ValueError):
-        var("config_file")
-
-    with pytest.raises(ValueError):
-        var("clock_s")
+    with pytest.raises(ValidationError):
+        var("__batch_params")
 
 
 def test_negative_node():
@@ -147,6 +156,7 @@ def test_negative_node():
 
     assert nsa.children() == [sa]
     assert nsa.print_node() == "Negative"
+    assert str(nsa) == "-(1.0)"
 
 
 # def test_base_invalid():
@@ -169,6 +179,9 @@ def test_interval():
     assert itvl.children() == {"start": cast(0.0), "stop": cast(1.0)}
     assert itvl_no_start.children() == {"stop": cast(1.0)}
     assert itvl_no_stop.children() == {"start": cast(0)}
+    assert str(itvl) == "0.0:1.0"
+    assert str(itvl_no_start) == ":1.0"
+    assert str(itvl_no_stop) == "0:"
 
 
 def test_canonicalize_neg_neg():
@@ -239,6 +252,7 @@ def test_add_scalar():
 
     assert C.children() == [A, B]
     assert C.print_node() == "+"
+    assert str(C) == "(1 + 2)"
 
 
 def test_add_zero():
@@ -323,6 +337,7 @@ def test_min_scalar():
         mystdout.getvalue()
         == "min\n├─ Literal: 1\n⋮\n├─ Literal: 2\n⋮\n└─ Literal: 3⋮\n"
     )
+    assert str(D) == "min(1, 2, 3)"
 
 
 def test_max_scalar():
@@ -342,6 +357,7 @@ def test_max_scalar():
         mystdout.getvalue()
         == "max\n├─ Literal: 1\n⋮\n├─ Literal: 2\n⋮\n└─ Literal: 3⋮\n"
     )
+    assert str(D) == "max(1, 2, 3)"
 
 
 def test_cast_decimal():
@@ -393,6 +409,7 @@ def test_Slice():
         + "└─ Interval\n"
         + "⋮\n"
     )
+    assert str(slc) == "(1)[5:6]"
 
 
 def test_assigned_variable_methods():

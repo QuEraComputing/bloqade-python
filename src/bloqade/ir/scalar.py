@@ -425,7 +425,7 @@ class AssignedVariable(Scalar):
         return []
 
     def print_node(self):
-        return f"AssignedVariable: {self.name} = {self.value}"
+        return f"AssignedVariable: {self.name} = {self.value!s}"
 
     @validator("name", allow_reuse=True)
     def validate_name(cls, name):
@@ -563,7 +563,7 @@ class Slice(Scalar):
         return ret
 
     def __str__(self) -> str:
-        return f"({self.expr!r})[{self.interval!s}]"
+        return f"({self.expr!s})[{self.interval!s}]"
 
     def children(self):
         return {"Scalar": self.expr, None: self.interval}
