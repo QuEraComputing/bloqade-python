@@ -59,7 +59,7 @@ class BatchAssignable:
         __batch_params: List[Dict[str, ParamType]] = [],
         **assignments: List[ParamType],
     ) -> Union["BatchAssign", "ListAssign"]:
-                """
+        """
 
         - Assign multiple values to a single variable to create a parameter sweep. 
         - Bloqade automatically handles the multiple programs this would generate and treats it as 
