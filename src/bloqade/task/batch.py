@@ -224,7 +224,7 @@ def _serialize(self: BatchErrors) -> Dict[str, List]:
 
 
 @BatchErrors.set_deserializer
-def _deserialize(obj: dict):
+def _deserialize(obj: dict) -> BatchErrors:
     return BatchErrors(task_errors=OrderedDict(obj["task_errors"]))
 
 
