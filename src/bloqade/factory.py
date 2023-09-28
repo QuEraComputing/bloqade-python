@@ -1,5 +1,4 @@
 from bloqade.builder.args import Args
-from bloqade.builder.assign import Assign, BatchAssign
 from bloqade.ir.control.waveform import Waveform, Linear, Constant
 from bloqade.builder.typing import ScalarType
 from beartype import beartype
@@ -51,7 +50,7 @@ def rydberg_h(
     static_params: Dict[str, Any] = {},
     batch_params: Union[List[Dict[str, Any]], Dict[str, Any]] = [],
     args: List[str] = [],
-) -> Union[Assign, BatchAssign, Args]:
+) -> Args:
     from bloqade import start
 
     prog = start.add_position(atoms_positions)
@@ -65,16 +64,13 @@ def rydberg_h(
     if phase is not None:
         prog = prog.phase.uniform.apply(phase)
 
-    if len(static_params) > 0:
-        prog = prog.assign(**static_params)
+    prog = prog.assign(**static_params)
 
-    if len(batch_params) > 0:
-        if isinstance(batch_params, dict):
-            prog = prog.batch_assign(**batch_params)
-        else:
-            prog = prog.batch_assign(batch_params)
+    if isinstance(batch_params, dict):
+        prog = prog.batch_assign(**batch_params)
+    else:
+        prog = prog.batch_assign(batch_params)
 
-    if len(args) > 0:
-        prog = prog.args(args)
+    prog = prog.args(args)
 
     return prog
