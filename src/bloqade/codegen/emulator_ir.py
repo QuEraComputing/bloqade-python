@@ -47,7 +47,10 @@ class WaveformCompiler(WaveformVisitor):
 
 class EmulatorProgramCodeGen(AnalogCircuitVisitor):
     def __init__(
-        self, assignments: Dict[str, Number] = {}, blockade_radius: Real = 0.0
+        self,
+        assignments: Dict[str, Number] = {},
+        blockade_radius: Real = 0.0,
+        use_hyperfine: bool = False,
     ):
         self.blockade_radius = Decimal(str(blockade_radius))
         self.assignments = assignments
@@ -57,6 +60,7 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
         self.pulses = {}
         self.level_couplings = set()
         self.original_index = []
+        self.is_hyperfine = use_hyperfine
 
     def visit_analog_circuit(self, ast: ir.AnalogCircuit):
         self.visit(ast.register)
@@ -356,7 +360,7 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
 
     def emit(self, circuit: ir.AnalogCircuit) -> EmulatorProgram:
         self.assignments = AssignmentScan(self.assignments).emit(circuit.sequence)
-        self.is_hyperfine = IsHyperfineSequence().emit(circuit)
+        self.is_hyperfine = IsHyperfineSequence().emit(circuit) or self.is_hyperfine
         self.n_atoms = circuit.register.n_atoms
         self.n_sites = circuit.register.n_sites
 
