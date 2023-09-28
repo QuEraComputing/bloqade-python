@@ -87,7 +87,7 @@ class AssignmentScan(AnalogCircuitVisitor):
         self.visit(ast.sequence)
 
     def visit_append_sequence(self, ast: sequence.Append):
-        list(map(self.visit, ast.value))
+        list(map(self.visit, ast.sequences))
 
     def visit_slice_sequence(self, ast: sequence.Slice):
         self.visit(ast.sequence)
@@ -99,13 +99,13 @@ class AssignmentScan(AnalogCircuitVisitor):
         self.visit(ast.pulse)
 
     def visit_append_pulse(self, ast: pulse.Append) -> Any:
-        list(map(self.visit, ast.value))
+        list(map(self.visit, ast.pulses))
 
     def visit_slice_pulse(self, ast: pulse.Slice) -> Any:
         self.visit(ast.pulse)
 
     def visit_field(self, ast: field.Field):
-        list(map(self.visit, ast.value.values()))
+        list(map(self.visit, ast.drives.values()))
 
     def visit_waveform(self, ast: waveform.Waveform):
         self.assignments.update(self.waveform_visitor.emit(ast))

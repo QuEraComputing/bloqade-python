@@ -10,7 +10,13 @@ from bloqade.visualization import get_ir_figure
 
 
 class FieldExpr:
-    pass
+    def __str__(self):
+        ph = Printer()
+        ph.print(self)
+        return ph.get_value()
+
+    def _repr_pretty_(self, p, cycle):
+        Printer(p).print(self, cycle)
 
 
 __all__ = [
@@ -27,14 +33,6 @@ __all__ = [
 class Location(FieldExpr):
     value: int
 
-    def __repr__(self) -> str:
-        ph = Printer()
-        ph.print(self)
-        return ph.get_value()
-
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)
-
     def __str__(self):
         return f"Location({str(self.value)})"
 
@@ -50,14 +48,6 @@ class SpatialModulation(FieldExpr):
     def __hash__(self) -> int:
         raise NotImplementedError
 
-    def __repr__(self) -> str:
-        ph = Printer()
-        ph.print(self)
-        return ph.get_value()
-
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)
-
     def _get_data(self, **assignment):
         return {}
 
@@ -69,9 +59,6 @@ class SpatialModulation(FieldExpr):
 class UniformModulation(SpatialModulation):
     def __hash__(self) -> int:
         return hash(self.__class__)
-
-    def __str__(self):
-        return "Uniform"
 
     def print_node(self):
         return "UniformModulation"
@@ -99,9 +86,6 @@ class RunTimeVector(SpatialModulation):
     def __hash__(self) -> int:
         return hash(self.name) ^ hash(self.__class__)
 
-    def __str__(self):
-        return f"RunTimeVector({str(self.name)})"
-
     def print_node(self):
         return "RunTimeVector"
 
@@ -126,9 +110,6 @@ class AssignedRunTimeVector(SpatialModulation):
     def __hash__(self) -> int:
         return hash(self.name) ^ hash(self.__class__) ^ hash(tuple(self.value))
 
-    def __str__(self):
-        return f"AssignedRunTimeVector({str(self.name), str(self.value)})"
-
     def print_node(self):
         return "AssgiendRunTimeVector"
 
@@ -145,7 +126,7 @@ class AssignedRunTimeVector(SpatialModulation):
         display_ir(self, **assignment)
 
 
-@dataclass(init=False, repr=False)
+@dataclass(init=False)
 class ScaledLocations(SpatialModulation):
     value: Dict[Location, Scalar]
 
@@ -165,11 +146,6 @@ class ScaledLocations(SpatialModulation):
     def __hash__(self) -> int:
         return hash(frozenset(self.value.items())) ^ hash(self.__class__)
 
-    def __str__(self):
-        ## formatting location: scale pair:
-        tmp = {f"{str(key.value)}": val for key, val in self.value.items()}
-        return f"ScaledLocations({str(tmp)})"
-
     def _get_data(self, **assignments):
         names = []
         scls = []
@@ -181,7 +157,7 @@ class ScaledLocations(SpatialModulation):
         return names, scls
 
     def print_node(self):
-        return self.__str__()
+        return "ScaledLocations"
 
     def children(self):
         # can return list or dict
@@ -210,6 +186,18 @@ class ScaledLocations(SpatialModulation):
 
 
 @dataclass
+class Drive:
+    modulation: SpatialModulation
+    waveform: Waveform
+
+    def print_node(self):
+        return "Drive"
+
+    def children(self):
+        return {"modulation": self.modulation, "waveform": self.waveform}
+
+
+@dataclass
 class Field(FieldExpr):
     """Field node in the IR. Which contains collection(s) of
     [`Waveform`][bloqade.ir.control.waveform.Waveform]
@@ -219,36 +207,24 @@ class Field(FieldExpr):
     ```
     """
 
-    value: Dict[SpatialModulation, Waveform]
+    drives: Dict[SpatialModulation, Waveform]
 
     def __hash__(self) -> int:
-        return hash(frozenset(self.value.items())) ^ hash(self.__class__)
-
-    def __repr__(self) -> str:
-        ph = Printer()
-        ph.print(self)
-        return ph.get_value()
-
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)
-
-    def __str__(self):
-        ## formatting location: scale pair:
-        tmp = {str(key): str(val) for key, val in self.value.items()}
-
-        return f"Field({str(tmp)})"
+        return hash(frozenset(self.drives.items())) ^ hash(self.__class__)
 
     def add(self, other):
         if not isinstance(other, Field):
             raise ValueError(f"Cannot add Field and {other.__class__}")
 
-        out = Field(dict(self.value))
+        out = Field(dict(self.drives))
 
-        for spatial_modulation, waveform in other.value.items():
-            if spatial_modulation in self.value:
-                out.value[spatial_modulation] = out.value[spatial_modulation] + waveform
+        for spatial_modulation, waveform in other.drives.items():
+            if spatial_modulation in self.drives:
+                out.drives[spatial_modulation] = (
+                    out.drives[spatial_modulation] + waveform
+                )
             else:
-                out.value[spatial_modulation] = waveform
+                out.drives[spatial_modulation] = waveform
 
         return out
 
@@ -257,7 +233,7 @@ class Field(FieldExpr):
 
     def children(self):
         # return dict with annotations
-        return {spatial_mod.print_node(): wf for spatial_mod, wf in self.value.items()}
+        return [Drive(k, v) for k, v in self.drives.items()]
 
     def figure(self, **assignments):
         return get_field_figure(self, "Field", None, **assignments)

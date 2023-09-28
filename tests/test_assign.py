@@ -36,7 +36,7 @@ def test_assignment():
                 rydberg: Pulse(
                     {
                         detuning: Field(
-                            value={
+                            drives={
                                 AssignedRunTimeVector("amp", amp): piecewise_linear(
                                     [0.1, 0.5, 0.1], [1.0, 2.0, 3.0, 4.0]
                                 )
@@ -92,7 +92,7 @@ def test_scan():
             rydberg: Pulse(
                 {
                     detuning: Field(
-                        value={
+                        drives={
                             Uniform: waveform.Append(
                                 [
                                     waveform.Slice(

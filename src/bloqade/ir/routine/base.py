@@ -35,6 +35,13 @@ class RoutineBase(RoutineParse):
     circuit: AnalogCircuit
     params: Params
 
+    def __str__(self):
+        out = self.__class__.__name__ + "\n"
+        out = out + str(self.circuit)
+        out = out + "\n---------------------\n"
+        out = out + str(self.params)
+        return out
+
 
 @dataclass(frozen=True)
 class Routine(RoutineBase):

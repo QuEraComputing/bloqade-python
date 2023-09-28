@@ -1,11 +1,14 @@
+from pydantic.dataclasses import dataclass
 from bloqade.ir.location.base import AtomArrangement, LocationInfo, SiteFilling
 from bloqade.builder.typing import ScalarType
 from beartype.typing import List, Tuple, Union
 from beartype import beartype
 
 
+@dataclass(init=False)
 class ListOfLocations(AtomArrangement):
     __match_args__ = ("location_list",)
+    location_list: List[LocationInfo]
 
     @beartype
     def __init__(
@@ -19,7 +22,7 @@ class ListOfLocations(AtomArrangement):
             else:
                 self.location_list.append(LocationInfo(ele, True))
 
-        if location_list:
+        if self.location_list:
             self.__n_atoms = sum(
                 1 for loc in self.location_list if loc.filling == SiteFilling.filled
             )
@@ -27,6 +30,7 @@ class ListOfLocations(AtomArrangement):
             self.__n_vacant = self.__n_sites - self.__n_atoms
             self.__n_dims = len(self.location_list[0].position)
         else:
+            self.__n_sites = 0
             self.__n_atoms = 0
             self.__n_dims = None
 

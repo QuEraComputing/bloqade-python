@@ -23,7 +23,7 @@ class IndexMapping:
 
         return result
 
-    def to_csr(self):
+    def tocsr(self):
         indptr = np.zeros(self.n_row + 1, dtype=np.int64)
         indptr[1:][self.row_indices] = 1
         np.cumsum(indptr, out=indptr)

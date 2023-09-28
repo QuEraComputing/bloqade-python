@@ -200,15 +200,15 @@ class ScanVariablesAnalogCircuit(AnalogCircuitVisitor):
         self.vector_vars.add(ast.name)
 
     def visit_field(self, ast: field.Field) -> Any:
-        list(map(self.visit, ast.value.keys()))
-        for value in ast.value.values():
+        list(map(self.visit, ast.drives.keys()))
+        for value in ast.drives.values():
             self.visit(value)
 
     def visit_pulse(self, ast: pulse.Pulse) -> Any:
         list(map(self.visit, ast.fields.values()))
 
     def visit_append_pulse(self, ast: pulse.Append) -> Any:
-        list(map(self.visit, ast.value))
+        list(map(self.visit, ast.pulses))
 
     def visit_slice_pulse(self, ast: pulse.Slice) -> Any:
         self.scalar_vars = self.scalar_vars.union(
@@ -223,7 +223,7 @@ class ScanVariablesAnalogCircuit(AnalogCircuitVisitor):
         list(map(self.visit, ast.pulses.values()))
 
     def visit_append_sequence(self, ast: sequence.Append) -> Any:
-        list(map(self.visit, ast.value))
+        list(map(self.visit, ast.sequences))
 
     def visit_slice_sequence(self, ast: sequence.Slice) -> Any:
         self.scalar_vars = self.scalar_vars.union(

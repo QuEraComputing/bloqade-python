@@ -47,7 +47,10 @@ class WaveformCompiler(WaveformVisitor):
 
 class EmulatorProgramCodeGen(AnalogCircuitVisitor):
     def __init__(
-        self, assignments: Dict[str, Number] = {}, blockade_radius: Real = 0.0
+        self,
+        assignments: Dict[str, Number] = {},
+        blockade_radius: Real = 0.0,
+        use_hyperfine: bool = False,
     ):
         self.blockade_radius = Decimal(str(blockade_radius))
         self.assignments = assignments
@@ -57,6 +60,7 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
         self.pulses = {}
         self.level_couplings = set()
         self.original_index = []
+        self.is_hyperfine = use_hyperfine
 
     def visit_analog_circuit(self, ast: ir.AnalogCircuit):
         self.visit(ast.register)
@@ -129,6 +133,7 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
         return {
             new_index: Decimal(str(value[original_index]))
             for new_index, original_index in enumerate(self.original_index)
+            if value[original_index] != 0
         }
 
     def visit_assigned_run_time_vector(
@@ -137,6 +142,7 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
         return {
             new_index: Decimal(str(ast.value[original_index]))
             for new_index, original_index in enumerate(self.original_index)
+            if ast.value[original_index] != 0
         }
 
     def visit_scaled_locations(self, ast: ScaledLocations) -> Dict[int, Decimal]:
@@ -151,7 +157,7 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
 
         for new_index, original_index in enumerate(self.original_index):
             value = ast.value.get(field.Location(original_index))
-            if value is not None:
+            if value is not None and value != 0:
                 target_atoms[new_index] = value(**self.assignments)
 
         return target_atoms
@@ -162,8 +168,8 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
 
         terms = []
 
-        if len(ast.value) <= self.n_atoms:
-            for sm, wf in ast.value.items():
+        if len(ast.drives) <= self.n_atoms:
+            for sm, wf in ast.drives.items():
                 self.duration = max(
                     float(wf.duration(**self.assignments)), self.duration
                 )
@@ -175,17 +181,21 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
                     )
                 )
         else:
-            target_atom_dict = {sm: self.visit(sm) for sm in ast.value.keys()}
+            target_atom_dict = {sm: self.visit(sm) for sm in ast.drives.keys()}
 
             for atom in range(self.n_atoms):
+                if not any(atom in value for value in target_atom_dict.values()):
+                    continue
+
                 wf = sum(
                     (
                         target_atom_dict[sm][atom] * wf
-                        for sm, wf in ast.value.items()
+                        for sm, wf in ast.drives.items()
                         if atom in target_atom_dict[sm]
                     ),
                     start=waveform.Constant(0.0, 0.0),
                 )
+
                 self.duration = max(
                     float(wf.duration(**self.assignments)), self.duration
                 )
@@ -207,15 +217,25 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
         if amplitude is None:
             return terms
 
-        if phase is None and len(amplitude.value) <= self.n_atoms:
-            for sm, wf in amplitude.value.items():
+        if phase is None and len(amplitude.drives) <= self.n_atoms:
+            for sm, wf in amplitude.drives.items():
                 self.duration = max(
                     float(wf.duration(**self.assignments)), self.duration
                 )
+
+                target_atoms = self.visit(sm)
+
+                if len(target_atoms) == 0:
+                    continue
+                elif len(target_atoms) == 1:
+                    (scale,) = target_atoms.values()
+                    if scale != 1:
+                        wf = scale * wf
+
                 terms.append(
                     RabiTerm(
                         operator_data=RabiOperatorData(
-                            target_atoms=self.visit(sm),
+                            target_atoms=target_atoms,
                             operator_type=RabiOperatorType.RabiSymmetric,
                         ),
                         amplitude=self.waveform_compiler.emit(wf),
@@ -223,13 +243,18 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
                 )
         elif phase is None:  # fully local real rabi fields
             amplitude_target_atoms_dict = {
-                sm: self.visit(sm) for sm in amplitude.value.keys()
+                sm: self.visit(sm) for sm in amplitude.drives.keys()
             }
             for atom in range(self.n_atoms):
+                if not any(
+                    atom in value for value in amplitude_target_atoms_dict.values()
+                ):
+                    continue
+
                 amplitude_wf = sum(
                     (
                         amplitude_target_atoms_dict[sm][atom] * wf
-                        for sm, wf in amplitude.value.items()
+                        for sm, wf in amplitude.drives.items()
                         if atom in amplitude_target_atoms_dict[sm]
                     ),
                     start=waveform.Constant(0.0, 0.0),
@@ -249,23 +274,33 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
                     )
                 )
         elif (
-            len(phase.value) == 1
-            and UniformModulation() in phase.value
-            and len(amplitude.value) <= self.n_atoms
+            len(phase.drives) == 1
+            and UniformModulation() in phase.drives
+            and len(amplitude.drives) <= self.n_atoms
         ):
-            (phase_waveform,) = phase.value.values()
+            (phase_waveform,) = phase.drives.values()
             rabi_phase = self.waveform_compiler.emit(phase_waveform)
             self.duration = max(
                 float(phase_waveform.duration(**self.assignments)), self.duration
             )
-            for sm, wf in amplitude.value.items():
+            for sm, wf in amplitude.drives.items():
                 self.duration = max(
                     float(wf.duration(**self.assignments)), self.duration
                 )
+
+                target_atoms = self.visit(sm)
+
+                if len(target_atoms) == 0:
+                    continue
+                elif len(target_atoms) == 1:
+                    (scale,) = target_atoms.values()
+                    if scale != 1:
+                        wf = scale * wf
+
                 terms.append(
                     RabiTerm(
                         operator_data=RabiOperatorData(
-                            target_atoms=self.visit(sm),
+                            target_atoms=target_atoms,
                             operator_type=RabiOperatorType.RabiAsymmetric,
                         ),
                         amplitude=self.waveform_compiler.emit(wf),
@@ -273,17 +308,22 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
                     )
                 )
         else:
-            phase_target_atoms_dict = {sm: self.visit(sm) for sm in phase.value.keys()}
+            phase_target_atoms_dict = {sm: self.visit(sm) for sm in phase.drives.keys()}
             amplitude_target_atoms_dict = {
-                sm: self.visit(sm) for sm in amplitude.value.keys()
+                sm: self.visit(sm) for sm in amplitude.drives.keys()
             }
 
             terms = []
             for atom in range(self.n_atoms):
+                if not any(
+                    atom in value for value in amplitude_target_atoms_dict.values()
+                ):
+                    continue
+
                 phase_wf = sum(
                     (
                         phase_target_atoms_dict[sm][atom] * wf
-                        for sm, wf in phase.value.items()
+                        for sm, wf in phase.drives.items()
                         if atom in phase_target_atoms_dict[sm]
                     ),
                     start=waveform.Constant(0.0, 0.0),
@@ -292,7 +332,7 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
                 amplitude_wf = sum(
                     (
                         amplitude_target_atoms_dict[sm][atom] * wf
-                        for sm, wf in amplitude.value.items()
+                        for sm, wf in amplitude.drives.items()
                         if atom in amplitude_target_atoms_dict[sm]
                     ),
                     start=waveform.Constant(0.0, 0.0),
@@ -320,7 +360,7 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
 
     def emit(self, circuit: ir.AnalogCircuit) -> EmulatorProgram:
         self.assignments = AssignmentScan(self.assignments).emit(circuit.sequence)
-        self.is_hyperfine = IsHyperfineSequence().emit(circuit)
+        self.is_hyperfine = IsHyperfineSequence().emit(circuit) or self.is_hyperfine
         self.n_atoms = circuit.register.n_atoms
         self.n_sites = circuit.register.n_sites
 

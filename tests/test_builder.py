@@ -13,6 +13,7 @@ from bloqade.builder import waveform
 # import bloqade.builder.backend as builder_backend
 import bloqade.ir.routine.quera as quera
 import bloqade.ir.routine.braket as braket
+from plum import NotFoundLookupError
 
 from bloqade.ir.control.waveform import instruction
 from bloqade.ir import rydberg, detuning, hyperfine, rabi
@@ -67,15 +68,24 @@ def test_add_position_dispatch():
     position = np.array([[1, 2], [3, 4]])
     position_list = list(map(tuple, position.tolist()))
 
-    a = start.add_position(position)
-    b = start.add_position(position_list)
-    c = start.add_position(position_list[0]).add_position(position_list[1])
+    a = start.add_position(position, np.array([True, False]))
+    b = start.add_position(position_list, [True, False])
+    c = start.add_position(position_list[0]).add_position(position_list[1], False)
 
     assert a.location_list == b.location_list
     assert a.location_list == c.location_list
 
     with pytest.raises(AssertionError):
         start.add_position(position_list, [True])
+
+    with pytest.raises(NotFoundLookupError):
+        start.add_position(position_list, True)
+
+    with pytest.raises(NotFoundLookupError):
+        start.add_position(position_list, np.array([True, True]))
+
+    with pytest.raises(NotFoundLookupError):
+        start.add_position(position, [True, True])
 
 
 def test_piecewise_const():
@@ -123,7 +133,7 @@ def test_scale():
     seq = prog.parse_sequence()
 
     # print(type(list(seq.pulses.keys())[0]))
-    Loc1 = list(seq.pulses[rydberg].fields[detuning].value.keys())[0]
+    Loc1 = list(seq.pulses[rydberg].fields[detuning].drives.keys())[0]
 
     assert type(Loc1) == ir.ScaledLocations
     assert Loc1.value[ir.Location(1)] == cast(1.2)
@@ -149,8 +159,8 @@ def test_build_ast_Scale():
     # compile ast:
     tmp = prog.parse_sequence()
 
-    locs = list(tmp.pulses[rydberg].fields[detuning].value.keys())[0]
-    wvfm = tmp.pulses[rydberg].fields[detuning].value[locs]
+    locs = list(tmp.pulses[rydberg].fields[detuning].drives.keys())[0]
+    wvfm = tmp.pulses[rydberg].fields[detuning].drives[locs]
 
     assert locs == ir.ScaledLocations(
         {ir.Location(2): cast(3.3), ir.Location(1): cast(1.2)}
@@ -168,7 +178,7 @@ def test_spatial_var():
     # test build ast:
     seq = prog.parse_sequence()
 
-    assert seq.pulses[rydberg].fields[detuning].value[
+    assert seq.pulses[rydberg].fields[detuning].drives[
         ir.RunTimeVector("a")
     ] == ir.Constant(value=30, duration=0.1)
 
@@ -251,7 +261,7 @@ def test_record():
     assert type(prog) == waveform.Record
 
     seq = prog.parse_sequence()
-    assert seq.pulses[rydberg].fields[detuning].value[
+    assert seq.pulses[rydberg].fields[detuning].drives[
         ir.ScaledLocations({ir.Location(1): cast(1)})
     ] == ir.Record(waveform=ir.Constant(value=30, duration=0.1), var=cast("detuning"))
 
@@ -261,7 +271,7 @@ def test_hyperfine_phase():
 
     seq = prog.parse_sequence()
 
-    assert seq.pulses[hyperfine].fields[rabi.phase].value[
+    assert seq.pulses[hyperfine].fields[rabi.phase].drives[
         ir.ScaledLocations({ir.Location(1): cast(1)})
     ] == ir.Constant(value=30, duration=0.1)
 
@@ -271,7 +281,7 @@ def test_hyperfine_amplitude():
 
     seq = prog.parse_sequence()
 
-    assert seq.pulses[hyperfine].fields[rabi.amplitude].value[
+    assert seq.pulses[hyperfine].fields[rabi.amplitude].drives[
         ir.ScaledLocations({ir.Location(1): cast(1)})
     ] == ir.Constant(value=30, duration=0.1)
 
@@ -306,10 +316,60 @@ def test_assign_error():
     with pytest.raises(TypeError):
         start.rydberg.detuning.uniform.constant("c", "t").assign(c=np, t=10)
 
-    with pytest.raises(TypeError):
+    with pytest.raises(ValueError):
         start.rydberg.detuning.uniform.constant("c", "t").batch_assign(
             c=[1, 2, np], t=[10]
         )
+
+    with pytest.raises(TypeError):
+        start.rydberg.detuning.uniform.constant("c", "t").batch_assign(
+            c=[1, 2, np], t=[10, 20, 30]
+        )
+
+    list_dict = [dict(c=1, t=10), dict(c=2, t=20), dict(c=np, t=30)]
+    with pytest.raises(TypeError):
+        start.rydberg.detuning.uniform.constant("c", "t").batch_assign(list_dict)
+
+    list_dict = [dict(c=1, t=10), dict(c=2, t=20), dict(t=30)]
+    with pytest.raises(ValueError):
+        start.rydberg.detuning.uniform.constant("c", "t").batch_assign(list_dict)
+
+    list_dict = [dict(c=1, t=10, f=1), dict(c=2, t=20, f=2), dict(t=30, c=3, f=3)]
+    with pytest.raises(ValueError):
+        start.rydberg.detuning.uniform.constant("c", "t").batch_assign(list_dict)
+
+    dict_list = dict(
+        c=[1, 2, 3], t=[10, 20, 30], mask=[[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+    )
+
+    with pytest.raises(ValueError):
+        start.rydberg.detuning.uniform.constant("c", "t").batch_assign(**dict_list)
+
+    list_dict = [
+        dict(c=1, t=10, mask=[1, 2, 3]),
+        dict(c=2, t=20, mask=[4, 5, 6]),
+        dict(t=30, c=3, mask=[7, 8, 9]),
+    ]
+
+    with pytest.raises(ValueError):
+        start.add_position([(0, 0), (0, 6)]).rydberg.detuning.var("mask").constant(
+            "c", "t"
+        ).batch_assign(list_dict)
+
+    # happy path is to have a list of dicts with the same keys
+    start.add_position([(0, 0), (0, 6), (0, 12)]).rydberg.detuning.var("mask").constant(
+        "c", "t"
+    ).batch_assign(list_dict)
+
+    list_dict = [
+        dict(c=1, t=10, mask=np.array([1, 2, 3])),
+        dict(c=2, t=20, mask=np.array([4, 5, 6])),
+        dict(t=30, c=3, mask=np.array([7, 8, 9])),
+    ]
+    with pytest.raises(ValueError):
+        start.add_position([(0, 0), (0, 6)]).rydberg.detuning.var("mask").constant(
+            "c", "t"
+        ).batch_assign(list_dict)
 
     with pytest.raises(TypeError):
         (

@@ -247,7 +247,7 @@ def format_field_data(field_ir, **assignments):
     d1 = {"uni": [], "chs": []}
     scl = {"uni": [], "chs": []}
     ch_names = {"uni": [], "chs": []}
-    for spmod_ir, wvfm_ir in field_ir.value.items():
+    for spmod_ir, wvfm_ir in field_ir.drives.items():
         ## deal with spmod:
         locs, scales = spmod_ir._get_data(**assignments)
 

@@ -258,7 +258,7 @@ class AssignAnalogCircuit(AnalogCircuitVisitor):
         )
 
     def visit_append_pulse(self, ast: pulse.Append) -> pulse.Append:
-        return pulse.Append(list(map(self.visit, ast.value)))
+        return pulse.Append(list(map(self.visit, ast.pulses)))
 
     def visit_slice_pulse(self, ast: pulse.Slice) -> pulse.Slice:
         return pulse.Slice(self.visit(ast.pulse), self.scalar_visitor(ast.interval))
@@ -268,7 +268,7 @@ class AssignAnalogCircuit(AnalogCircuitVisitor):
 
     def visit_field(self, ast: field.Field) -> field.Field:
         return field.Field(
-            {self.visit(sm): self.visit(wf) for sm, wf in ast.value.items()}
+            {self.visit(sm): self.visit(wf) for sm, wf in ast.drives.items()}
         )
 
     def visit_uniform_modulation(self, ast: field.UniformModulation) -> Any:
