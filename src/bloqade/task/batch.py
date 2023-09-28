@@ -442,15 +442,8 @@ class RemoteBatch(Serializable):
                     RuntimeWarning,
                 )
             else:
-                msg = ""
-                for task_index, error in errors.task_errors.items():
-                    msg += (
-                        f"Task {task_index} failed to submit with error: "
-                        f"{error.exception_type}\n"
-                        f"{error.stack_trace}"
-                    )
                 raise RemoteBatch.SubmissionException(
-                    msg
+                    str(errors)
                     + "\n"
                     + "One or more error(s) occured during submission, please see "
                     "the following files for more information:\n"
