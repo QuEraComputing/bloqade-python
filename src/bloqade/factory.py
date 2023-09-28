@@ -52,8 +52,12 @@ def rydberg_h(
     args: List[str] = [],
 ) -> Args:
     from bloqade import start
+    from bloqade.atom_arrangement import AtomArrangement
 
-    prog = start.add_position(atoms_positions)
+    if isinstance(atoms_positions, AtomArrangement):
+        prog = atoms_positions
+    else:
+        prog = start.add_position(atoms_positions)
 
     if detuning is not None:
         prog = prog.rydberg.detuning.uniform.apply(detuning)
