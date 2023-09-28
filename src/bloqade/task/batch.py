@@ -29,9 +29,23 @@ import numpy as np
 from dataclasses import dataclass, field
 
 
+class Serializable:
+    def json(self, **options) -> str:
+        """
+        Serialize the object to JSON string.
+
+        Return:
+            JSON string
+
+        """
+        from bloqade import dumps
+
+        return dumps(self, **options)
+
+
 @dataclass
 @Serializer.register
-class LocalBatch:
+class LocalBatch(Serializable):
     source: Optional[Builder]
     tasks: OrderedDict[int, Union[BraketEmulatorTask, BloqadeTask]]
     name: Optional[str] = None
@@ -173,14 +187,14 @@ def _deserializer(d: Dict[str, Any]) -> LocalBatch:
 
 @dataclass
 @Serializer.register
-class TaskError:
+class TaskError(Serializable):
     exception_type: str
     stack_trace: str
 
 
 @dataclass
 @Serializer.register
-class BatchErrors:
+class BatchErrors(Serializable):
     task_errors: OrderedDict[int, TaskError] = field(
         default_factory=lambda: OrderedDict([])
     )
@@ -233,7 +247,7 @@ def _deserialize(obj: dict) -> BatchErrors:
 # the user only need to store this objecet
 @dataclass
 @Serializer.register
-class RemoteBatch:
+class RemoteBatch(Serializable):
     source: Builder
     tasks: Union[OrderedDict[int, QuEraTask], OrderedDict[int, BraketTask]]
     name: Optional[str] = None
