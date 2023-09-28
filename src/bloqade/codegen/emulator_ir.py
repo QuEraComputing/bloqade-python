@@ -168,9 +168,17 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
                     float(wf.duration(**self.assignments)), self.duration
                 )
 
+                target_atoms = self.visit(sm)
+
+                if len(target_atoms) == 0:
+                    continue
+                elif len(target_atoms) == 1:
+                    (scale,) = target_atoms.values()
+                    wf = scale * wf
+
                 terms.append(
                     DetuningTerm(
-                        operator_data=DetuningOperatorData(target_atoms=self.visit(sm)),
+                        operator_data=DetuningOperatorData(target_atoms=target_atoms),
                         amplitude=self.waveform_compiler.emit(wf),
                     )
                 )
