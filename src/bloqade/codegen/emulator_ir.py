@@ -129,6 +129,7 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
         return {
             new_index: Decimal(str(value[original_index]))
             for new_index, original_index in enumerate(self.original_index)
+            if value[original_index] != 0
         }
 
     def visit_assigned_run_time_vector(
@@ -137,6 +138,7 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
         return {
             new_index: Decimal(str(ast.value[original_index]))
             for new_index, original_index in enumerate(self.original_index)
+            if ast.value[original_index] != 0
         }
 
     def visit_scaled_locations(self, ast: ScaledLocations) -> Dict[int, Decimal]:
@@ -151,7 +153,7 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
 
         for new_index, original_index in enumerate(self.original_index):
             value = ast.value.get(field.Location(original_index))
-            if value is not None:
+            if value is not None and value != 0:
                 target_atoms[new_index] = value(**self.assignments)
 
         return target_atoms
@@ -168,24 +170,9 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
                     float(wf.duration(**self.assignments)), self.duration
                 )
 
-                target_atoms = self.visit(sm)
-
-                target_atoms = {
-                    atom: Decimal(str(value))
-                    for atom, value in target_atoms.items()
-                    if value != 0
-                }
-
-                if len(target_atoms) == 0:
-                    continue
-                elif len(target_atoms) == 1:
-                    (scale,) = target_atoms.values()
-                    if scale != 1:
-                        wf = scale * wf
-
                 terms.append(
                     DetuningTerm(
-                        operator_data=DetuningOperatorData(target_atoms=target_atoms),
+                        operator_data=DetuningOperatorData(target_atoms=self.visit(sm)),
                         amplitude=self.waveform_compiler.emit(wf),
                     )
                 )
@@ -193,6 +180,9 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
             target_atom_dict = {sm: self.visit(sm) for sm in ast.value.keys()}
 
             for atom in range(self.n_atoms):
+                if not any(atom in value for value in target_atom_dict.values()):
+                    continue
+
                 wf = sum(
                     (
                         target_atom_dict[sm][atom] * wf
@@ -201,6 +191,7 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
                     ),
                     start=waveform.Constant(0.0, 0.0),
                 )
+
                 self.duration = max(
                     float(wf.duration(**self.assignments)), self.duration
                 )
@@ -227,10 +218,20 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
                 self.duration = max(
                     float(wf.duration(**self.assignments)), self.duration
                 )
+
+                target_atoms = self.visit(sm)
+
+                if len(target_atoms) == 0:
+                    continue
+                elif len(target_atoms) == 1:
+                    (scale,) = target_atoms.values()
+                    if scale != 1:
+                        wf = scale * wf
+
                 terms.append(
                     RabiTerm(
                         operator_data=RabiOperatorData(
-                            target_atoms=self.visit(sm),
+                            target_atoms=target_atoms,
                             operator_type=RabiOperatorType.RabiSymmetric,
                         ),
                         amplitude=self.waveform_compiler.emit(wf),
@@ -241,6 +242,11 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
                 sm: self.visit(sm) for sm in amplitude.value.keys()
             }
             for atom in range(self.n_atoms):
+                if not any(
+                    atom in value for value in amplitude_target_atoms_dict.values()
+                ):
+                    continue
+
                 amplitude_wf = sum(
                     (
                         amplitude_target_atoms_dict[sm][atom] * wf
@@ -277,10 +283,20 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
                 self.duration = max(
                     float(wf.duration(**self.assignments)), self.duration
                 )
+
+                target_atoms = self.visit(sm)
+
+                if len(target_atoms) == 0:
+                    continue
+                elif len(target_atoms) == 1:
+                    (scale,) = target_atoms.values()
+                    if scale != 1:
+                        wf = scale * wf
+
                 terms.append(
                     RabiTerm(
                         operator_data=RabiOperatorData(
-                            target_atoms=self.visit(sm),
+                            target_atoms=target_atoms,
                             operator_type=RabiOperatorType.RabiAsymmetric,
                         ),
                         amplitude=self.waveform_compiler.emit(wf),
