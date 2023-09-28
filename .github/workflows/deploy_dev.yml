@@ -49,4 +49,5 @@ jobs:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
           GOOGLE_ANALYTICS_KEY: ${{ secrets.GOOGLE_ANALYTICS_KEY }}
         run: |
-          pdm run mike deploy --rebase --push --update-aliases dev -F ${GITHUB_WORKSPACE}/docs/mkdocs.yml
+          git fetch origin gh-pages --depth=1
+          pdm run mike deploy --rebase --push -F ${GITHUB_WORKSPACE}/docs/mkdocs.yml dev
