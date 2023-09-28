@@ -1083,8 +1083,41 @@ def test_3_level_multi_atom_real(sites, L):
     ],
 )
 def test_3_level_multi_atom_complex(sites, L):
-    program = Chain(L, lattice_spacing=6.1).hyperfine.rabi.amplitude
     rabi_coeffs = {site: Decimal(str(np.random.normal(0.0, 1.0))) for site in sites}
+
+    program = Chain(L, lattice_spacing=6.1).rydberg.rabi.amplitude
+
+    for site in sites:
+        program = program.location(site).scale(rabi_coeffs[site])
+
+    circuit = (
+        program.constant(1.0, 1.0).phase.uniform.constant(0.0, 1.0)
+    ).parse_circuit()
+
+    cache = CompileCache()
+    emu_prog = EmulatorProgramCodeGen(use_hyperfine=True).emit(circuit)
+    hamiltonian = RydbergHamiltonianCodeGen(cache).emit(emu_prog)
+
+    rabi_op = np.array([[0, 0, 0], [0, 0, 0], [0, 1, 0]], dtype=int)
+
+    rabi = sum(
+        float(mask) * get_manybody_op(i, L, rabi_op) for i, mask in rabi_coeffs.items()
+    )
+
+    assert np.all(hamiltonian.rabi_ops[0].op.tocsr().toarray() == rabi)
+
+    emu_prog = EmulatorProgramCodeGen(blockade_radius=6.2, use_hyperfine=True).emit(
+        circuit
+    )
+    hamiltonian = RydbergHamiltonianCodeGen().emit(emu_prog)
+
+    rabi_op_proj = project_to_subspace(rabi, hamiltonian.space.configurations)
+
+    assert np.all(hamiltonian.rabi_ops[0].op.tocsr().toarray() == rabi_op_proj)
+
+    # check hyperfine rabi value
+
+    program = Chain(L, lattice_spacing=6.1).hyperfine.rabi.amplitude
 
     for site in sites:
         program = program.location(site).scale(rabi_coeffs[site])
