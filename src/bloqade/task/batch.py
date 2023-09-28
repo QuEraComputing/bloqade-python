@@ -443,11 +443,11 @@ class RemoteBatch(Serializable):
                 )
             else:
                 msg = ""
-                for task_index, error in errors.items():
+                for task_index, error in errors.task_errors.items():
                     msg += (
                         f"Task {task_index} failed to submit with error: "
-                        f"{error['exception_type']}\n"
-                        f"{error['stack trace']}"
+                        f"{error.exception_type}\n"
+                        f"{error.stack_trace}"
                     )
                 raise RemoteBatch.SubmissionException(
                     msg
