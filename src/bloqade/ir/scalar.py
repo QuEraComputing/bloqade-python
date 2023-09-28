@@ -391,9 +391,14 @@ class Variable(Real):
         Printer(p).print(self, cycle)
 
     @validator("name", allow_reuse=True)
-    def validate_name(cls, v):
-        check_variable_name(v)
-        return v
+    def validate_name(cls, name):
+        check_variable_name(name)
+        if name in ["__batch_params"]:
+            raise ValidationError(
+                "Cannot use reserved name `__batch_params` for variable name"
+            )
+
+        return name
 
 
 @dataclass(frozen=True)
@@ -414,9 +419,14 @@ class AssignedVariable(Scalar):
         return f"AssignedVariable: {self.name} = {self.value}"
 
     @validator("name", allow_reuse=True)
-    def validate_name(cls, v):
-        check_variable_name(v)
-        return v
+    def validate_name(cls, name):
+        check_variable_name(name)
+        if name in ["__batch_params"]:
+            raise ValidationError(
+                "Cannot use reserved name `__batch_params` for variable name"
+            )
+
+        return name
 
 
 @dataclass(frozen=True)
