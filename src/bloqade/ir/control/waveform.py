@@ -1,4 +1,5 @@
 from numbers import Real
+from bloqade.builder.typing import ScalarType
 from bloqade.ir.tree_print import Printer
 from bloqade.ir.scalar import (
     Scalar,
@@ -14,6 +15,7 @@ from dataclasses import InitVar
 from decimal import Decimal
 from pydantic.dataclasses import dataclass
 from beartype.typing import Any, Tuple, Union, List, Callable, Dict
+from beartype import beartype
 from enum import Enum
 
 import numpy as np
@@ -23,7 +25,7 @@ from bloqade.visualization import get_ir_figure
 from bloqade.visualization import display_ir
 
 
-def instruction(duration: Any) -> "PythonFn":
+def waveform(duration: Any) -> "PythonFn":
     # turn python function into a waveform instruction."""
 
     def waveform_wrapper(fn: Callable) -> "PythonFn":
@@ -497,6 +499,12 @@ class PythonFn(Instruction):
 
     def children(self):
         return {"duration": self.duration, **{p.name: p for p in self.parameters}}
+
+    @beartype
+    def sample(
+        self, dt: ScalarType, interpolation: Union[str, "Interpolation"]
+    ) -> "Sample":
+        return Sample(self, dt, interpolation)
 
 
 @dataclass(init=False)
