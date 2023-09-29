@@ -4,7 +4,7 @@ from bloqade.builder.typing import LiteralType
 from bloqade.task.batch import LocalBatch
 from beartype import beartype
 from beartype.typing import Optional, Tuple
-from dataclasses import dataclass
+from pydantic.dataclasses import dataclass
 
 
 @dataclass(frozen=True, config=__pydantic_dataclass_config__)
