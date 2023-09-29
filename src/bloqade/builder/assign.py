@@ -93,10 +93,6 @@ class BatchAssign(AddArgs, Parallelizable, BackendRoute, AssignBase):
 
         super().__init__(parent)
 
-        if len(assignments) == 0:
-            self._batch_params = []
-            return
-
         circuit = self.parse_circuit()
         variables = ScanVariablesAnalogCircuit().emit(circuit)
 

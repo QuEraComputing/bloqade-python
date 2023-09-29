@@ -1,19 +1,19 @@
 from collections import OrderedDict
-from bloqade.ir.routine.base import RoutineBase, __pydantic_dataclass_config__
+from bloqade.ir.routine.base import RoutineBase
 from bloqade.builder.typing import LiteralType
 from bloqade.task.batch import LocalBatch
 from beartype import beartype
 from beartype.typing import Optional, Tuple
-from pydantic.dataclasses import dataclass
+from dataclasses import dataclass
 
 
-@dataclass(frozen=True, config=__pydantic_dataclass_config__)
+@dataclass(frozen=True)
 class BloqadeServiceOptions(RoutineBase):
     def python(self):
         return BloqadePythonRoutine(self.source, self.circuit, self.params)
 
 
-@dataclass(frozen=True, config=__pydantic_dataclass_config__)
+@dataclass(frozen=True)
 class BloqadePythonRoutine(RoutineBase):
     def _compile(
         self,

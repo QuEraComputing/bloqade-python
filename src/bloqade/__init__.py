@@ -1,13 +1,11 @@
 from bloqade.ir import var, cast, Variable, Literal, start
-from bloqade.ir import to_waveform as waveform
 from bloqade.serialize import load, save, loads, dumps
 
-from bloqade.factory import (
+from bloqade.builder.factory import (
     piecewise_linear,
     piecewise_constant,
     linear,
     constant,
-    rydberg_h,
 )
 import bloqade.ir as _ir
 from bloqade.constants import RB_C6
@@ -46,6 +44,4 @@ __all__ = [
     "save",
     "loads",
     "dumps",
-    "rydberg_h",
-    "waveform",
 ]

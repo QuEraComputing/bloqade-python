@@ -6,7 +6,7 @@ from bloqade.ir import (
     AlignedWaveform,
     Alignment,
     AlignedValue,
-    to_waveform,
+    instruction,
     Interpolation,
     GaussianKernel,
     LogisticKernel,
@@ -81,7 +81,7 @@ def test_wvfm_pyfn():
 
         return amplitude * np.cos(omega * time + phi)
 
-    @to_waveform(duration=1.0)
+    @instruction(duration=1.0)
     def annot_my_func(time, *, omega, phi=0, amplitude):
         import numpy as np
 
