@@ -26,12 +26,12 @@ def test_batch_error(*args):
     error_files = glob.glob("partial-batch-errors-*")
     batch_files = glob.glob("partial-batch-future-*")
 
-    assert len(error_files) == 1
-    assert len(batch_files) == 1
-
     for error_file, batch_file in zip(error_files, batch_files):
         os.remove(error_file)
         os.remove(batch_file)
+
+    assert len(error_files) == 1
+    assert len(batch_files) == 1
 
 
 @patch("bloqade.ir.routine.quera.MockBackend")
@@ -52,9 +52,9 @@ def test_batch_warn(*args):
     error_files = glob.glob("partial-batch-errors-*")
     batch_files = glob.glob("partial-batch-future-*")
 
-    assert len(error_files) == 1
-    assert len(batch_files) == 1
-
     for error_file, batch_file in zip(error_files, batch_files):
         os.remove(error_file)
         os.remove(batch_file)
+
+    assert len(error_files) == 1
+    assert len(batch_files) == 1
