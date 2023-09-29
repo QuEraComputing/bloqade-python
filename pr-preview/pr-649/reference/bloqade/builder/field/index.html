@@ -10,16 +10,13 @@
 &gt;&gt;&gt; type(node)
 &lt;class &#39;bloqade.builder.field.Detuning&#39;&gt;
 </code></pre></div> <details class=note open> <summary>Note</summary> <p>This node is a SpatialModulation node. See [<code>SpatialModulation</code>][bloqade.builder.field.SpatialModulation] for additional options.</p> </details> <div class="doc doc-children"> </div> </div> </div> <div class="doc doc-object doc-class"> <h2 id=bloqade.builder.field.Field class="doc doc-heading"> <span class="doc doc-object-name doc-class-name">Field</span> <a href=#bloqade.builder.field.Field class=headerlink title="Permanent link">&para;</a></h2> <div class="doc doc-contents "> <p class="doc doc-class-bases"> Bases: <code><span title="bloqade.builder.base.Builder">Builder</span></code></p> <div class="doc doc-children"> <div class="doc doc-object doc-attribute"> <h3 id=bloqade.builder.field.Field.uniform class="doc doc-heading"> <span class="doc doc-object-name doc-attribute-name">uniform</span> <span class="doc doc-labels"> <small class="doc doc-label doc-label-property"><code>property</code></small> </span> <a href=#bloqade.builder.field.Field.uniform class=headerlink title="Permanent link">&para;</a></h3> <div class="doc-signature highlight"><pre><span></span><code><span id=__span-0-1><a id=__codelineno-0-1 name=__codelineno-0-1 href=#__codelineno-0-1></a><span class=n>uniform</span>
-</span></code></pre></div> <div class="doc doc-contents "> <ul> <li>Address all atoms as part of defining the spatial modulation component of a drive.</li> <li>Next steps to build your program include choosing the waveform that will be summed with the spatial modulation to create a drive<ul> <li>The drive by itself, or the sum of subsequent drives (created by just chaining the construction of drives) will become the field (e.g. Detuning Field, Real-Valued Rabi Amplitude/Rabi Phase Field, etc.)</li> </ul> </li> <li>You can do:<ul> <li>|_ <code>...uniform.linear(start, stop, duration)</code> : to apply a linear waveform</li> <li>|_ <code>...uniform.constant(value, duration)</code> : to apply a constant waveform</li> <li>|_ <code>...uniform.poly([coefficients], duration)</code> : to apply a polynomial waveform</li> <li>|_ <code>...uniform.apply(wf:bloqade.ir.Waveform)</code>: to apply a pre-defined waveform</li> <li>|_ <code>...uniform.piecewise_linear([durations], [values])</code>: to apply a piecewise linear waveform</li> <li>|_ <code>...uniform.piecewise_constant([durations], [values])</code>: to apply a piecewise constant waveform</li> <li>|_ <code>...uniform.fn(f(t,...))</code>: to apply a function as a waveform</li> </ul> </li> </ul> </div> </div> <div class="doc doc-object doc-function"> <h3 id=bloqade.builder.field.Field.location class="doc doc-heading"> <span class="doc doc-object-name doc-function-name">location</span> <a href=#bloqade.builder.field.Field.location class=headerlink title="Permanent link">&para;</a></h3> <div class="doc-signature highlight"><pre><span></span><code><span id=__span-0-1><a id=__codelineno-0-1 name=__codelineno-0-1 href=#__codelineno-0-1></a><span class=n>location</span><span class=p>(</span><span class=n>label</span><span class=p>)</span>
-</span></code></pre></div> <div class="doc doc-contents "> <ul> <li>Address a single atom (or multiple via chaining calls, see below) as part of defining the spatial modulation component of a drive.</li> <li>Next steps to build your program include choosing the waveform that will be summed with the spatial modulation to create a drive<ul> <li>The drive by itself, or the sum of subsequent drives (created by just chaining the construction of drives) will become the field (e.g. Detuning Field, Real-Valued Rabi Amplitude/Rabi Phase Field, etc.)<ul> <li>|_ <code>...location(int).linear(start, stop, duration)</code> : to apply a linear waveform</li> <li>|_ <code>...location(int).constant(value, duration)</code> : to apply a constant waveform</li> <li>|_ <code>...location(int).poly([coefficients], duration)</code> : to apply a polynomial waveform</li> <li>|_ <code>...location(int).apply(wf:bloqade.ir.Waveform)</code>: to apply a pre-defined waveform</li> <li>|_ <code>...location(int).piecewise_linear([durations], [values])</code>: to apply a piecewise linear waveform</li> <li>|_ <code>...location(int).piecewise_constant([durations], [values])</code>: to apply a piecewise constant waveform</li> <li>|_ <code>...location(int).fn(f(t,..))</code>: to apply a function as a waveform</li> </ul> </li> </ul> </li> <li>You can also address multiple atoms by chaining:<ul> <li>|_ <code>...location(int).location(int)</code> <ul> <li>The waveform you specify after the last <code>location</code> in the chain will be applied to all atoms in the chain</li> </ul> </li> </ul> </li> <li>And you can scale any waveform by a multiplicative factor on a specific atom via:<ul> <li>|_ <code>...location(int).scale(float)</code></li> <li>You cannot define a scaling across multiple atoms with one method call! They must be specified atom-by-atom.</li> </ul> </li> </ul> <p>Usage Example: <div class="language-text highlight"><pre><span></span><code><span id=__span-0-1><a id=__codelineno-0-1 name=__codelineno-0-1 href=#__codelineno-0-1></a>&gt;&gt;&gt; prog = start.add_position([(0,0),(1,4),(2,8)]).rydberg.rabi
+</span></code></pre></div> <div class="doc doc-contents "> <p>Address all atoms as part of defining the spatial modulation component of a drive.</p> <p>Next steps to build your program include choosing the waveform that will be summed with the spatial modulation to create a drive.</p> <p>The drive by itself, or the sum of subsequent drives (created by just chaining the construction of drives) will become the field (e.g. Detuning Field, Real-Valued Rabi Amplitude/Rabi Phase Field, etc.).</p> <ul> <li>You can now do:<ul> <li>|_ <code>...uniform.linear(start, stop, duration)</code> : to apply a linear waveform</li> <li>|_ <code>...uniform.constant(value, duration)</code> : to apply a constant waveform</li> <li>|_ <code>...uniform.poly([coefficients], duration)</code> : to apply a polynomial waveform</li> <li>|_ <code>...uniform.apply(wf:bloqade.ir.Waveform)</code>: to apply a pre-defined waveform</li> <li>|_ <code>...uniform.piecewise_linear([durations], [values])</code>: to apply a piecewise linear waveform</li> <li>|_ <code>...uniform.piecewise_constant([durations], [values])</code>: to apply a piecewise constant waveform</li> <li>|_ <code>...uniform.fn(f(t,...))</code>: to apply a function as a waveform</li> </ul> </li> </ul> </div> </div> <div class="doc doc-object doc-function"> <h3 id=bloqade.builder.field.Field.location class="doc doc-heading"> <span class="doc doc-object-name doc-function-name">location</span> <a href=#bloqade.builder.field.Field.location class=headerlink title="Permanent link">&para;</a></h3> <div class="doc-signature highlight"><pre><span></span><code><span id=__span-0-1><a id=__codelineno-0-1 name=__codelineno-0-1 href=#__codelineno-0-1></a><span class=n>location</span><span class=p>(</span><span class=n>label</span><span class=p>)</span>
+</span></code></pre></div> <div class="doc doc-contents "> <p>Address a single atom (or multiple via chaining calls, see below) as part of defining the spatial modulation component of a drive.</p> <p>Next steps to build your program include choosing the waveform that will be summed with the spatial modulation to create a drive.</p> <p>The drive by itself, or the sum of subsequent drives (created by just chaining the construction of drives) will become the field. (e.g. Detuning Field, Real-Valued Rabi Amplitude/Rabi Phase Field, etc.)</p> <p>Usage Example: <div class="language-text highlight"><pre><span></span><code><span id=__span-0-1><a id=__codelineno-0-1 name=__codelineno-0-1 href=#__codelineno-0-1></a>&gt;&gt;&gt; prog = start.add_position([(0,0),(1,4),(2,8)]).rydberg.rabi
 </span><span id=__span-0-2><a id=__codelineno-0-2 name=__codelineno-0-2 href=#__codelineno-0-2></a># to target a single atom with a waveform
 </span><span id=__span-0-3><a id=__codelineno-0-3 name=__codelineno-0-3 href=#__codelineno-0-3></a>&gt;&gt;&gt; one_location_prog = prog.location(0)
 </span><span id=__span-0-4><a id=__codelineno-0-4 name=__codelineno-0-4 href=#__codelineno-0-4></a># to target multiple atoms with same waveform
 </span><span id=__span-0-5><a id=__codelineno-0-5 name=__codelineno-0-5 href=#__codelineno-0-5></a>&gt;&gt;&gt; multi_location_prog = prog.location(0).location(2)
-</span></code></pre></div></p> <details class=quote> <summary>Source code in <code>src/bloqade/builder/field.py</code></summary> <div class=highlight><table class=highlighttable><tr><td class=linenos><div class=linenodiv><pre><span></span><span class=normal><a href=#__codelineno-0-27>27</a></span>
-<span class=normal><a href=#__codelineno-0-28>28</a></span>
-<span class=normal><a href=#__codelineno-0-29>29</a></span>
-<span class=normal><a href=#__codelineno-0-30>30</a></span>
+</span></code></pre></div></p> <ul> <li>You can now do:<ul> <li>|_ <code>...location(int).linear(start, stop, duration)</code> : to apply a linear waveform</li> <li>|_ <code>...location(int).constant(value, duration)</code> : to apply a constant waveform</li> <li>|_ <code>...location(int).poly([coefficients], duration)</code> : to apply a polynomial waveform</li> <li>|_ <code>...location(int).apply(wf:bloqade.ir.Waveform)</code>: to apply a pre-defined waveform</li> <li>|_ <code>...location(int).piecewise_linear([durations], [values])</code>: to apply a piecewise linear waveform</li> <li>|_ <code>...location(int).piecewise_constant([durations], [values])</code>: to apply a piecewise constant waveform</li> <li>|_ <code>...location(int).fn(f(t,..))</code>: to apply a function as a waveform</li> </ul> </li> <li>You can also address multiple atoms by chaining:<ul> <li>|_ <code>...location(int).location(int)</code> <ul> <li>The waveform you specify after the last <code>location</code> in the chain will be applied to all atoms in the chain</li> </ul> </li> </ul> </li> <li>And you can scale any waveform by a multiplicative factor on a specific atom via:<ul> <li>|_ <code>...location(int).scale(float)</code></li> <li>You cannot define a scaling across multiple atoms with one method call! They must be specified atom-by-atom.</li> </ul> </li> </ul> <details class=quote> <summary>Source code in <code>src/bloqade/builder/field.py</code></summary> <div class=highlight><table class=highlighttable><tr><td class=linenos><div class=linenodiv><pre><span></span><span class=normal><a href=#__codelineno-0-30>30</a></span>
 <span class=normal><a href=#__codelineno-0-31>31</a></span>
 <span class=normal><a href=#__codelineno-0-32>32</a></span>
 <span class=normal><a href=#__codelineno-0-33>33</a></span>
@@ -50,43 +47,52 @@
 <span class=normal><a href=#__codelineno-0-58>58</a></span>
 <span class=normal><a href=#__codelineno-0-59>59</a></span>
 <span class=normal><a href=#__codelineno-0-60>60</a></span>
-<span class=normal><a href=#__codelineno-0-61>61</a></span></pre></div></td><td class=code><div><pre><span></span><code><span id=__span-0-27><a id=__codelineno-0-27 name=__codelineno-0-27></a><span class=nd>@beartype</span>
-</span><span id=__span-0-28><a id=__codelineno-0-28 name=__codelineno-0-28></a><span class=k>def</span> <span class=nf>location</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=n>label</span><span class=p>:</span> <span class=nb>int</span><span class=p>):</span>
-</span><span id=__span-0-29><a id=__codelineno-0-29 name=__codelineno-0-29></a><span class=w>    </span><span class=sd>&quot;&quot;&quot;</span>
-</span><span id=__span-0-30><a id=__codelineno-0-30 name=__codelineno-0-30></a><span class=sd>    - Address a single atom (or multiple via chaining calls, see below) as part of defining the spatial modulation component of a drive.</span>
-</span><span id=__span-0-31><a id=__codelineno-0-31 name=__codelineno-0-31></a><span class=sd>    - Next steps to build your program include choosing the waveform that will be summed with the spatial modulation to create a drive</span>
-</span><span id=__span-0-32><a id=__codelineno-0-32 name=__codelineno-0-32></a><span class=sd>        - The drive by itself, or the sum of subsequent drives (created by just chaining the construction of drives) will become the field</span>
-</span><span id=__span-0-33><a id=__codelineno-0-33 name=__codelineno-0-33></a><span class=sd>        (e.g. Detuning Field, Real-Valued Rabi Amplitude/Rabi Phase Field, etc.)</span>
-</span><span id=__span-0-34><a id=__codelineno-0-34 name=__codelineno-0-34></a><span class=sd>            - |_ `...location(int).linear(start, stop, duration)` : to apply a linear waveform</span>
-</span><span id=__span-0-35><a id=__codelineno-0-35 name=__codelineno-0-35></a><span class=sd>            - |_ `...location(int).constant(value, duration)` : to apply a constant waveform</span>
-</span><span id=__span-0-36><a id=__codelineno-0-36 name=__codelineno-0-36></a><span class=sd>            - |_ `...location(int).poly([coefficients], duration)` : to apply a polynomial waveform</span>
-</span><span id=__span-0-37><a id=__codelineno-0-37 name=__codelineno-0-37></a><span class=sd>            - |_ `...location(int).apply(wf:bloqade.ir.Waveform)`: to apply a pre-defined waveform</span>
-</span><span id=__span-0-38><a id=__codelineno-0-38 name=__codelineno-0-38></a><span class=sd>            - |_ `...location(int).piecewise_linear([durations], [values])`:  to apply a piecewise linear waveform</span>
-</span><span id=__span-0-39><a id=__codelineno-0-39 name=__codelineno-0-39></a><span class=sd>            - |_ `...location(int).piecewise_constant([durations], [values])`: to apply a piecewise constant waveform</span>
-</span><span id=__span-0-40><a id=__codelineno-0-40 name=__codelineno-0-40></a><span class=sd>            - |_ `...location(int).fn(f(t,..))`: to apply a function as a waveform</span>
-</span><span id=__span-0-41><a id=__codelineno-0-41 name=__codelineno-0-41></a><span class=sd>    - You can also address multiple atoms by chaining:</span>
-</span><span id=__span-0-42><a id=__codelineno-0-42 name=__codelineno-0-42></a><span class=sd>        - |_ `...location(int).location(int)` </span>
-</span><span id=__span-0-43><a id=__codelineno-0-43 name=__codelineno-0-43></a><span class=sd>            - The waveform you specify after the last `location` in the chain will be applied to all atoms in the chain</span>
-</span><span id=__span-0-44><a id=__codelineno-0-44 name=__codelineno-0-44></a><span class=sd>    - And you can scale any waveform by a multiplicative factor on a specific atom via:</span>
-</span><span id=__span-0-45><a id=__codelineno-0-45 name=__codelineno-0-45></a><span class=sd>        - |_ `...location(int).scale(float)`</span>
-</span><span id=__span-0-46><a id=__codelineno-0-46 name=__codelineno-0-46></a><span class=sd>        - You cannot define a scaling across multiple atoms with one method call! They must be specified atom-by-atom.</span>
-</span><span id=__span-0-47><a id=__codelineno-0-47 name=__codelineno-0-47></a>
+<span class=normal><a href=#__codelineno-0-61>61</a></span>
+<span class=normal><a href=#__codelineno-0-62>62</a></span>
+<span class=normal><a href=#__codelineno-0-63>63</a></span>
+<span class=normal><a href=#__codelineno-0-64>64</a></span>
+<span class=normal><a href=#__codelineno-0-65>65</a></span>
+<span class=normal><a href=#__codelineno-0-66>66</a></span>
+<span class=normal><a href=#__codelineno-0-67>67</a></span></pre></div></td><td class=code><div><pre><span></span><code><span id=__span-0-30><a id=__codelineno-0-30 name=__codelineno-0-30></a><span class=nd>@beartype</span>
+</span><span id=__span-0-31><a id=__codelineno-0-31 name=__codelineno-0-31></a><span class=k>def</span> <span class=nf>location</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=n>label</span><span class=p>:</span> <span class=nb>int</span><span class=p>):</span>
+</span><span id=__span-0-32><a id=__codelineno-0-32 name=__codelineno-0-32></a><span class=w>    </span><span class=sd>&quot;&quot;&quot;</span>
+</span><span id=__span-0-33><a id=__codelineno-0-33 name=__codelineno-0-33></a><span class=sd>    Address a single atom (or multiple via chaining calls, see below) as part of defining the spatial modulation component of a drive.</span>
+</span><span id=__span-0-34><a id=__codelineno-0-34 name=__codelineno-0-34></a>
+</span><span id=__span-0-35><a id=__codelineno-0-35 name=__codelineno-0-35></a><span class=sd>    Next steps to build your program include choosing the waveform that will be summed with the spatial modulation to create a drive.</span>
+</span><span id=__span-0-36><a id=__codelineno-0-36 name=__codelineno-0-36></a>
+</span><span id=__span-0-37><a id=__codelineno-0-37 name=__codelineno-0-37></a><span class=sd>    The drive by itself, or the sum of subsequent drives (created by just chaining the construction of drives) will become the field.</span>
+</span><span id=__span-0-38><a id=__codelineno-0-38 name=__codelineno-0-38></a><span class=sd>    (e.g. Detuning Field, Real-Valued Rabi Amplitude/Rabi Phase Field, etc.)</span>
+</span><span id=__span-0-39><a id=__codelineno-0-39 name=__codelineno-0-39></a>
+</span><span id=__span-0-40><a id=__codelineno-0-40 name=__codelineno-0-40></a><span class=sd>    Usage Example:</span>
+</span><span id=__span-0-41><a id=__codelineno-0-41 name=__codelineno-0-41></a><span class=sd>    ```</span>
+</span><span id=__span-0-42><a id=__codelineno-0-42 name=__codelineno-0-42></a><span class=sd>    &gt;&gt;&gt; prog = start.add_position([(0,0),(1,4),(2,8)]).rydberg.rabi</span>
+</span><span id=__span-0-43><a id=__codelineno-0-43 name=__codelineno-0-43></a><span class=sd>    # to target a single atom with a waveform</span>
+</span><span id=__span-0-44><a id=__codelineno-0-44 name=__codelineno-0-44></a><span class=sd>    &gt;&gt;&gt; one_location_prog = prog.location(0)</span>
+</span><span id=__span-0-45><a id=__codelineno-0-45 name=__codelineno-0-45></a><span class=sd>    # to target multiple atoms with same waveform</span>
+</span><span id=__span-0-46><a id=__codelineno-0-46 name=__codelineno-0-46></a><span class=sd>    &gt;&gt;&gt; multi_location_prog = prog.location(0).location(2)</span>
+</span><span id=__span-0-47><a id=__codelineno-0-47 name=__codelineno-0-47></a><span class=sd>    ```</span>
 </span><span id=__span-0-48><a id=__codelineno-0-48 name=__codelineno-0-48></a>
-</span><span id=__span-0-49><a id=__codelineno-0-49 name=__codelineno-0-49></a><span class=sd>    Usage Example:</span>
-</span><span id=__span-0-50><a id=__codelineno-0-50 name=__codelineno-0-50></a><span class=sd>    ```</span>
-</span><span id=__span-0-51><a id=__codelineno-0-51 name=__codelineno-0-51></a><span class=sd>    &gt;&gt;&gt; prog = start.add_position([(0,0),(1,4),(2,8)]).rydberg.rabi</span>
-</span><span id=__span-0-52><a id=__codelineno-0-52 name=__codelineno-0-52></a><span class=sd>    # to target a single atom with a waveform</span>
-</span><span id=__span-0-53><a id=__codelineno-0-53 name=__codelineno-0-53></a><span class=sd>    &gt;&gt;&gt; one_location_prog = prog.location(0)</span>
-</span><span id=__span-0-54><a id=__codelineno-0-54 name=__codelineno-0-54></a><span class=sd>    # to target multiple atoms with same waveform</span>
-</span><span id=__span-0-55><a id=__codelineno-0-55 name=__codelineno-0-55></a><span class=sd>    &gt;&gt;&gt; multi_location_prog = prog.location(0).location(2)</span>
-</span><span id=__span-0-56><a id=__codelineno-0-56 name=__codelineno-0-56></a><span class=sd>    ```</span>
-</span><span id=__span-0-57><a id=__codelineno-0-57 name=__codelineno-0-57></a>
-</span><span id=__span-0-58><a id=__codelineno-0-58 name=__codelineno-0-58></a><span class=sd>    &quot;&quot;&quot;</span>
-</span><span id=__span-0-59><a id=__codelineno-0-59 name=__codelineno-0-59></a>    <span class=kn>from</span> <span class=nn>bloqade.builder.spatial</span> <span class=kn>import</span> <span class=n>Location</span>
-</span><span id=__span-0-60><a id=__codelineno-0-60 name=__codelineno-0-60></a>
-</span><span id=__span-0-61><a id=__codelineno-0-61 name=__codelineno-0-61></a>    <span class=k>return</span> <span class=n>Location</span><span class=p>(</span><span class=n>label</span><span class=p>,</span> <span class=bp>self</span><span class=p>)</span>
+</span><span id=__span-0-49><a id=__codelineno-0-49 name=__codelineno-0-49></a><span class=sd>    - You can now do:</span>
+</span><span id=__span-0-50><a id=__codelineno-0-50 name=__codelineno-0-50></a><span class=sd>        - |_ `...location(int).linear(start, stop, duration)` : to apply a linear waveform</span>
+</span><span id=__span-0-51><a id=__codelineno-0-51 name=__codelineno-0-51></a><span class=sd>        - |_ `...location(int).constant(value, duration)` : to apply a constant waveform</span>
+</span><span id=__span-0-52><a id=__codelineno-0-52 name=__codelineno-0-52></a><span class=sd>        - |_ `...location(int).poly([coefficients], duration)` : to apply a polynomial waveform</span>
+</span><span id=__span-0-53><a id=__codelineno-0-53 name=__codelineno-0-53></a><span class=sd>        - |_ `...location(int).apply(wf:bloqade.ir.Waveform)`: to apply a pre-defined waveform</span>
+</span><span id=__span-0-54><a id=__codelineno-0-54 name=__codelineno-0-54></a><span class=sd>        - |_ `...location(int).piecewise_linear([durations], [values])`:  to apply a piecewise linear waveform</span>
+</span><span id=__span-0-55><a id=__codelineno-0-55 name=__codelineno-0-55></a><span class=sd>        - |_ `...location(int).piecewise_constant([durations], [values])`: to apply a piecewise constant waveform</span>
+</span><span id=__span-0-56><a id=__codelineno-0-56 name=__codelineno-0-56></a><span class=sd>        - |_ `...location(int).fn(f(t,..))`: to apply a function as a waveform</span>
+</span><span id=__span-0-57><a id=__codelineno-0-57 name=__codelineno-0-57></a><span class=sd>    - You can also address multiple atoms by chaining:</span>
+</span><span id=__span-0-58><a id=__codelineno-0-58 name=__codelineno-0-58></a><span class=sd>        - |_ `...location(int).location(int)` </span>
+</span><span id=__span-0-59><a id=__codelineno-0-59 name=__codelineno-0-59></a><span class=sd>            - The waveform you specify after the last `location` in the chain will be applied to all atoms in the chain</span>
+</span><span id=__span-0-60><a id=__codelineno-0-60 name=__codelineno-0-60></a><span class=sd>    - And you can scale any waveform by a multiplicative factor on a specific atom via:</span>
+</span><span id=__span-0-61><a id=__codelineno-0-61 name=__codelineno-0-61></a><span class=sd>        - |_ `...location(int).scale(float)`</span>
+</span><span id=__span-0-62><a id=__codelineno-0-62 name=__codelineno-0-62></a><span class=sd>        - You cannot define a scaling across multiple atoms with one method call! They must be specified atom-by-atom.</span>
+</span><span id=__span-0-63><a id=__codelineno-0-63 name=__codelineno-0-63></a>
+</span><span id=__span-0-64><a id=__codelineno-0-64 name=__codelineno-0-64></a><span class=sd>    &quot;&quot;&quot;</span>
+</span><span id=__span-0-65><a id=__codelineno-0-65 name=__codelineno-0-65></a>    <span class=kn>from</span> <span class=nn>bloqade.builder.spatial</span> <span class=kn>import</span> <span class=n>Location</span>
+</span><span id=__span-0-66><a id=__codelineno-0-66 name=__codelineno-0-66></a>
+</span><span id=__span-0-67><a id=__codelineno-0-67 name=__codelineno-0-67></a>    <span class=k>return</span> <span class=n>Location</span><span class=p>(</span><span class=n>label</span><span class=p>,</span> <span class=bp>self</span><span class=p>)</span>
 </span></code></pre></div></td></tr></table></div> </details> </div> </div> <div class="doc doc-object doc-function"> <h3 id=bloqade.builder.field.Field.var class="doc doc-heading"> <span class="doc doc-object-name doc-function-name">var</span> <a href=#bloqade.builder.field.Field.var class=headerlink title="Permanent link">&para;</a></h3> <div class="doc-signature highlight"><pre><span></span><code><span id=__span-0-1><a id=__codelineno-0-1 name=__codelineno-0-1 href=#__codelineno-0-1></a><span class=n>var</span><span class=p>(</span><span class=n>name</span><span class=p>)</span>
-</span></code></pre></div> <div class="doc doc-contents "> <ul> <li>Address a single atom (or multiple via assigning a list of values) as part of defining the spatial modulation component of a drive.</li> <li>Next steps to build your program include choosing the waveform that will be summed with the spatial modulation to create a drive<ul> <li>The drive by itself, or the sum of subsequent drives (created by just chaining the construction of drives) will become the field (e.g. Detuning Field, Real-Valued Rabi Amplitude/Rabi Phase Field, etc.)<ul> <li>|_ <code>...location(int).linear(start, stop, duration)</code> : to apply a linear waveform</li> <li>|_ <code>...location(int).constant(value, duration)</code> : to apply a constant waveform</li> <li>|_ <code>...location(int).poly([coefficients], duration)</code> : to apply a polynomial waveform</li> <li>|_ <code>...location(int).apply(wf:bloqade.ir.Waveform)</code>: to apply a pre-defined waveform</li> <li>|_ <code>...location(int).piecewise_linear(durations, values)</code>: to apply a piecewise linear waveform</li> <li>|_ <code>...location(int).piecewise_constant(durations, values)</code>: to apply a piecewise constant waveform</li> <li>|_ <code>...location(int).fn(f(t,..))</code>: to apply a function as a waveform</li> </ul> </li> </ul> </li> </ul> <p>Usage Example: <div class="language-text highlight"><pre><span></span><code><span id=__span-0-1><a id=__codelineno-0-1 name=__codelineno-0-1 href=#__codelineno-0-1></a>&gt;&gt;&gt; prog = start.add_position([(0,0),(1,4),(2,8)]).rydberg.rabi
+</span></code></pre></div> <div class="doc doc-contents "> <p>Address a single atom (or multiple via assigning a list of values) as part of defining the spatial modulation component of a drive.</p> <p>Next steps to build your program include choosing the waveform that will be summed with the spatial modulation to create a drive.</p> <p>The drive by itself, or the sum of subsequent drives (created by just chaining the construction of drives) will become the field (e.g. Detuning Field, Real-Valued Rabi Amplitude/Rabi Phase Field, etc.)</p> <p>Usage Example: <div class="language-text highlight"><pre><span></span><code><span id=__span-0-1><a id=__codelineno-0-1 name=__codelineno-0-1 href=#__codelineno-0-1></a>&gt;&gt;&gt; prog = start.add_position([(0,0),(1,4),(2,8)]).rydberg.rabi
 </span><span id=__span-0-2><a id=__codelineno-0-2 name=__codelineno-0-2 href=#__codelineno-0-2></a>&gt;&gt;&gt; one_location_prog = prog.var(&quot;a&quot;)
 </span><span id=__span-0-3><a id=__codelineno-0-3 name=__codelineno-0-3 href=#__codelineno-0-3></a># &quot;a&quot; can be assigned in the END of the program during variable assignment
 </span><span id=__span-0-4><a id=__codelineno-0-4 name=__codelineno-0-4 href=#__codelineno-0-4></a># indicating only a single atom should be targeted OR 
@@ -94,52 +100,49 @@
 </span><span id=__span-0-6><a id=__codelineno-0-6 name=__codelineno-0-6 href=#__codelineno-0-6></a>&gt;&gt;&gt; target_one_atom = ...assign(a = 0)
 </span><span id=__span-0-7><a id=__codelineno-0-7 name=__codelineno-0-7 href=#__codelineno-0-7></a>&gt;&gt;&gt; target_multiple_atoms = ...assign(a = [0, 2])
 </span><span id=__span-0-8><a id=__codelineno-0-8 name=__codelineno-0-8 href=#__codelineno-0-8></a># Note that `assign` is used, you cannot batch_assign variables used in .var() calls
-</span></code></pre></div></p> <details class=quote> <summary>Source code in <code>src/bloqade/builder/field.py</code></summary> <div class=highlight><table class=highlighttable><tr><td class=linenos><div class=linenodiv><pre><span></span><span class=normal><a href=#__codelineno-0-63>63</a></span>
-<span class=normal><a href=#__codelineno-0-64>64</a></span>
-<span class=normal><a href=#__codelineno-0-65>65</a></span>
-<span class=normal><a href=#__codelineno-0-66>66</a></span>
-<span class=normal><a href=#__codelineno-0-67>67</a></span>
-<span class=normal><a href=#__codelineno-0-68>68</a></span>
-<span class=normal><a href=#__codelineno-0-69>69</a></span>
-<span class=normal><a href=#__codelineno-0-70>70</a></span>
-<span class=normal><a href=#__codelineno-0-71>71</a></span>
-<span class=normal><a href=#__codelineno-0-72>72</a></span>
-<span class=normal><a href=#__codelineno-0-73>73</a></span>
-<span class=normal><a href=#__codelineno-0-74>74</a></span>
-<span class=normal><a href=#__codelineno-0-75>75</a></span>
-<span class=normal><a href=#__codelineno-0-76>76</a></span>
-<span class=normal><a href=#__codelineno-0-77>77</a></span>
-<span class=normal><a href=#__codelineno-0-78>78</a></span>
-<span class=normal><a href=#__codelineno-0-79>79</a></span>
-<span class=normal><a href=#__codelineno-0-80>80</a></span>
-<span class=normal><a href=#__codelineno-0-81>81</a></span>
-<span class=normal><a href=#__codelineno-0-82>82</a></span>
-<span class=normal><a href=#__codelineno-0-83>83</a></span>
-<span class=normal><a href=#__codelineno-0-84>84</a></span>
-<span class=normal><a href=#__codelineno-0-85>85</a></span>
-<span class=normal><a href=#__codelineno-0-86>86</a></span>
-<span class=normal><a href=#__codelineno-0-87>87</a></span>
-<span class=normal><a href=#__codelineno-0-88>88</a></span>
-<span class=normal><a href=#__codelineno-0-89>89</a></span>
-<span class=normal><a href=#__codelineno-0-90>90</a></span>
-<span class=normal><a href=#__codelineno-0-91>91</a></span>
-<span class=normal><a href=#__codelineno-0-92>92</a></span>
-<span class=normal><a href=#__codelineno-0-93>93</a></span>
-<span class=normal><a href=#__codelineno-0-94>94</a></span></pre></div></td><td class=code><div><pre><span></span><code><span id=__span-0-63><a id=__codelineno-0-63 name=__codelineno-0-63></a><span class=nd>@beartype</span>
-</span><span id=__span-0-64><a id=__codelineno-0-64 name=__codelineno-0-64></a><span class=k>def</span> <span class=nf>var</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=n>name</span><span class=p>:</span> <span class=nb>str</span><span class=p>):</span>
-</span><span id=__span-0-65><a id=__codelineno-0-65 name=__codelineno-0-65></a><span class=w>    </span><span class=sd>&quot;&quot;&quot;</span>
-</span><span id=__span-0-66><a id=__codelineno-0-66 name=__codelineno-0-66></a><span class=sd>    - Address a single atom (or multiple via assigning a list of values) as part of defining the spatial modulation component of a drive.</span>
-</span><span id=__span-0-67><a id=__codelineno-0-67 name=__codelineno-0-67></a><span class=sd>    - Next steps to build your program include choosing the waveform that will be summed with the spatial modulation to create a drive</span>
-</span><span id=__span-0-68><a id=__codelineno-0-68 name=__codelineno-0-68></a><span class=sd>        - The drive by itself, or the sum of subsequent drives (created by just chaining the construction of drives) will become the field</span>
-</span><span id=__span-0-69><a id=__codelineno-0-69 name=__codelineno-0-69></a><span class=sd>        (e.g. Detuning Field, Real-Valued Rabi Amplitude/Rabi Phase Field, etc.)</span>
-</span><span id=__span-0-70><a id=__codelineno-0-70 name=__codelineno-0-70></a><span class=sd>            - |_ `...location(int).linear(start, stop, duration)` : to apply a linear waveform</span>
-</span><span id=__span-0-71><a id=__codelineno-0-71 name=__codelineno-0-71></a><span class=sd>            - |_ `...location(int).constant(value, duration)` : to apply a constant waveform</span>
-</span><span id=__span-0-72><a id=__codelineno-0-72 name=__codelineno-0-72></a><span class=sd>            - |_ `...location(int).poly([coefficients], duration)` : to apply a polynomial waveform</span>
-</span><span id=__span-0-73><a id=__codelineno-0-73 name=__codelineno-0-73></a><span class=sd>            - |_ `...location(int).apply(wf:bloqade.ir.Waveform)`: to apply a pre-defined waveform</span>
-</span><span id=__span-0-74><a id=__codelineno-0-74 name=__codelineno-0-74></a><span class=sd>            - |_ `...location(int).piecewise_linear(durations, values)`:  to apply a piecewise linear waveform</span>
-</span><span id=__span-0-75><a id=__codelineno-0-75 name=__codelineno-0-75></a><span class=sd>            - |_ `...location(int).piecewise_constant(durations, values)`: to apply a piecewise constant waveform</span>
-</span><span id=__span-0-76><a id=__codelineno-0-76 name=__codelineno-0-76></a><span class=sd>            - |_ `...location(int).fn(f(t,..))`: to apply a function as a waveform</span>
-</span><span id=__span-0-77><a id=__codelineno-0-77 name=__codelineno-0-77></a>
+</span></code></pre></div></p> <ul> <li>You can now do:<ul> <li>|_ <code>...location(int).linear(start, stop, duration)</code> : to apply a linear waveform</li> <li>|_ <code>...location(int).constant(value, duration)</code> : to apply a constant waveform</li> <li>|_ <code>...location(int).poly([coefficients], duration)</code> : to apply a polynomial waveform</li> <li>|_ <code>...location(int).apply(wf:bloqade.ir.Waveform)</code>: to apply a pre-defined waveform</li> <li>|_ <code>...location(int).piecewise_linear(durations, values)</code>: to apply a piecewise linear waveform</li> <li>|_ <code>...location(int).piecewise_constant(durations, values)</code>: to apply a piecewise constant waveform</li> <li>|_ <code>...location(int).fn(f(t,..))</code>: to apply a function as a waveform</li> </ul> </li> </ul> <details class=quote> <summary>Source code in <code>src/bloqade/builder/field.py</code></summary> <div class=highlight><table class=highlighttable><tr><td class=linenos><div class=linenodiv><pre><span></span><span class=normal><a href=#__codelineno-0-69> 69</a></span>
+<span class=normal><a href=#__codelineno-0-70> 70</a></span>
+<span class=normal><a href=#__codelineno-0-71> 71</a></span>
+<span class=normal><a href=#__codelineno-0-72> 72</a></span>
+<span class=normal><a href=#__codelineno-0-73> 73</a></span>
+<span class=normal><a href=#__codelineno-0-74> 74</a></span>
+<span class=normal><a href=#__codelineno-0-75> 75</a></span>
+<span class=normal><a href=#__codelineno-0-76> 76</a></span>
+<span class=normal><a href=#__codelineno-0-77> 77</a></span>
+<span class=normal><a href=#__codelineno-0-78> 78</a></span>
+<span class=normal><a href=#__codelineno-0-79> 79</a></span>
+<span class=normal><a href=#__codelineno-0-80> 80</a></span>
+<span class=normal><a href=#__codelineno-0-81> 81</a></span>
+<span class=normal><a href=#__codelineno-0-82> 82</a></span>
+<span class=normal><a href=#__codelineno-0-83> 83</a></span>
+<span class=normal><a href=#__codelineno-0-84> 84</a></span>
+<span class=normal><a href=#__codelineno-0-85> 85</a></span>
+<span class=normal><a href=#__codelineno-0-86> 86</a></span>
+<span class=normal><a href=#__codelineno-0-87> 87</a></span>
+<span class=normal><a href=#__codelineno-0-88> 88</a></span>
+<span class=normal><a href=#__codelineno-0-89> 89</a></span>
+<span class=normal><a href=#__codelineno-0-90> 90</a></span>
+<span class=normal><a href=#__codelineno-0-91> 91</a></span>
+<span class=normal><a href=#__codelineno-0-92> 92</a></span>
+<span class=normal><a href=#__codelineno-0-93> 93</a></span>
+<span class=normal><a href=#__codelineno-0-94> 94</a></span>
+<span class=normal><a href=#__codelineno-0-95> 95</a></span>
+<span class=normal><a href=#__codelineno-0-96> 96</a></span>
+<span class=normal><a href=#__codelineno-0-97> 97</a></span>
+<span class=normal><a href=#__codelineno-0-98> 98</a></span>
+<span class=normal><a href=#__codelineno-0-99> 99</a></span>
+<span class=normal><a href=#__codelineno-0-100>100</a></span>
+<span class=normal><a href=#__codelineno-0-101>101</a></span>
+<span class=normal><a href=#__codelineno-0-102>102</a></span>
+<span class=normal><a href=#__codelineno-0-103>103</a></span></pre></div></td><td class=code><div><pre><span></span><code><span id=__span-0-69><a id=__codelineno-0-69 name=__codelineno-0-69></a><span class=nd>@beartype</span>
+</span><span id=__span-0-70><a id=__codelineno-0-70 name=__codelineno-0-70></a><span class=k>def</span> <span class=nf>var</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=n>name</span><span class=p>:</span> <span class=nb>str</span><span class=p>):</span>
+</span><span id=__span-0-71><a id=__codelineno-0-71 name=__codelineno-0-71></a><span class=w>    </span><span class=sd>&quot;&quot;&quot;</span>
+</span><span id=__span-0-72><a id=__codelineno-0-72 name=__codelineno-0-72></a><span class=sd>    Address a single atom (or multiple via assigning a list of values) as part of defining the spatial modulation component of a drive.</span>
+</span><span id=__span-0-73><a id=__codelineno-0-73 name=__codelineno-0-73></a>
+</span><span id=__span-0-74><a id=__codelineno-0-74 name=__codelineno-0-74></a><span class=sd>    Next steps to build your program include choosing the waveform that will be summed with the spatial modulation to create a drive.</span>
+</span><span id=__span-0-75><a id=__codelineno-0-75 name=__codelineno-0-75></a>
+</span><span id=__span-0-76><a id=__codelineno-0-76 name=__codelineno-0-76></a><span class=sd>    The drive by itself, or the sum of subsequent drives (created by just chaining the construction of drives) will become the field</span>
+</span><span id=__span-0-77><a id=__codelineno-0-77 name=__codelineno-0-77></a><span class=sd>    (e.g. Detuning Field, Real-Valued Rabi Amplitude/Rabi Phase Field, etc.)</span>
 </span><span id=__span-0-78><a id=__codelineno-0-78 name=__codelineno-0-78></a>
 </span><span id=__span-0-79><a id=__codelineno-0-79 name=__codelineno-0-79></a><span class=sd>    Usage Example:</span>
 </span><span id=__span-0-80><a id=__codelineno-0-80 name=__codelineno-0-80></a><span class=sd>    ```</span>
@@ -151,12 +154,21 @@
 </span><span id=__span-0-86><a id=__codelineno-0-86 name=__codelineno-0-86></a><span class=sd>    &gt;&gt;&gt; target_one_atom = ...assign(a = 0)</span>
 </span><span id=__span-0-87><a id=__codelineno-0-87 name=__codelineno-0-87></a><span class=sd>    &gt;&gt;&gt; target_multiple_atoms = ...assign(a = [0, 2])</span>
 </span><span id=__span-0-88><a id=__codelineno-0-88 name=__codelineno-0-88></a><span class=sd>    # Note that `assign` is used, you cannot batch_assign variables used in .var() calls</span>
-</span><span id=__span-0-89><a id=__codelineno-0-89 name=__codelineno-0-89></a><span class=sd>    ```</span>
+</span><span id=__span-0-89><a id=__codelineno-0-89 name=__codelineno-0-89></a><span class=sd>    ```        </span>
 </span><span id=__span-0-90><a id=__codelineno-0-90 name=__codelineno-0-90></a>
-</span><span id=__span-0-91><a id=__codelineno-0-91 name=__codelineno-0-91></a><span class=sd>    &quot;&quot;&quot;</span>
-</span><span id=__span-0-92><a id=__codelineno-0-92 name=__codelineno-0-92></a>    <span class=kn>from</span> <span class=nn>bloqade.builder.spatial</span> <span class=kn>import</span> <span class=n>Var</span>
-</span><span id=__span-0-93><a id=__codelineno-0-93 name=__codelineno-0-93></a>
-</span><span id=__span-0-94><a id=__codelineno-0-94 name=__codelineno-0-94></a>    <span class=k>return</span> <span class=n>Var</span><span class=p>(</span><span class=n>name</span><span class=p>,</span> <span class=bp>self</span><span class=p>)</span>
+</span><span id=__span-0-91><a id=__codelineno-0-91 name=__codelineno-0-91></a><span class=sd>    - You can now do:</span>
+</span><span id=__span-0-92><a id=__codelineno-0-92 name=__codelineno-0-92></a><span class=sd>        - |_ `...location(int).linear(start, stop, duration)` : to apply a linear waveform</span>
+</span><span id=__span-0-93><a id=__codelineno-0-93 name=__codelineno-0-93></a><span class=sd>        - |_ `...location(int).constant(value, duration)` : to apply a constant waveform</span>
+</span><span id=__span-0-94><a id=__codelineno-0-94 name=__codelineno-0-94></a><span class=sd>        - |_ `...location(int).poly([coefficients], duration)` : to apply a polynomial waveform</span>
+</span><span id=__span-0-95><a id=__codelineno-0-95 name=__codelineno-0-95></a><span class=sd>        - |_ `...location(int).apply(wf:bloqade.ir.Waveform)`: to apply a pre-defined waveform</span>
+</span><span id=__span-0-96><a id=__codelineno-0-96 name=__codelineno-0-96></a><span class=sd>        - |_ `...location(int).piecewise_linear(durations, values)`:  to apply a piecewise linear waveform</span>
+</span><span id=__span-0-97><a id=__codelineno-0-97 name=__codelineno-0-97></a><span class=sd>        - |_ `...location(int).piecewise_constant(durations, values)`: to apply a piecewise constant waveform</span>
+</span><span id=__span-0-98><a id=__codelineno-0-98 name=__codelineno-0-98></a><span class=sd>        - |_ `...location(int).fn(f(t,..))`: to apply a function as a waveform</span>
+</span><span id=__span-0-99><a id=__codelineno-0-99 name=__codelineno-0-99></a>
+</span><span id=__span-0-100><a id=__codelineno-0-100 name=__codelineno-0-100></a><span class=sd>    &quot;&quot;&quot;</span>
+</span><span id=__span-0-101><a id=__codelineno-0-101 name=__codelineno-0-101></a>    <span class=kn>from</span> <span class=nn>bloqade.builder.spatial</span> <span class=kn>import</span> <span class=n>Var</span>
+</span><span id=__span-0-102><a id=__codelineno-0-102 name=__codelineno-0-102></a>
+</span><span id=__span-0-103><a id=__codelineno-0-103 name=__codelineno-0-103></a>    <span class=k>return</span> <span class=n>Var</span><span class=p>(</span><span class=n>name</span><span class=p>,</span> <span class=bp>self</span><span class=p>)</span>
 </span></code></pre></div></td></tr></table></div> </details> </div> </div> </div> </div> </div> <div class="doc doc-object doc-class"> <h2 id=bloqade.builder.field.Rabi class="doc doc-heading"> <span class="doc doc-object-name doc-class-name">Rabi</span> <a href=#bloqade.builder.field.Rabi class=headerlink title="Permanent link">&para;</a></h2> <div class="doc doc-contents "> <p class="doc doc-class-bases"> Bases: <code><span title="bloqade.builder.base.Builder">Builder</span></code></p> <p>This node represent rabi field of a specified level coupling (rydberg or hyperfine) type.</p> <p>Examples:</p> <div class="language-text highlight"><pre><span></span><code>- To specify rabi of rydberg coupling:
 
 &gt;&gt;&gt; node = bloqade.start.rydberg.rabi
