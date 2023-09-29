@@ -22,7 +22,7 @@ class Assignable:
 
         This is reserved for variables that should only take single values OR
         for spatial modulations that were created with `.var` in which case you can
-        pass in a list. This is the ONLY circumstance in which multiple 
+        pass in a list. This is the ONLY circumstance in which multiple
         values are allowed.
 
         Usage Examples:
@@ -38,15 +38,15 @@ class Assignable:
         ```
 
         - You can now:
-            - |_ ...assign(assignments).bloqade: select the bloqade local 
+            - |_ ...assign(assignments).bloqade: select the bloqade local
                 emulator backend
-            - |_ ...assign(assignments).braket: select braket local emulator or 
+            - |_ ...assign(assignments).braket: select braket local emulator or
                 QuEra hardware
-            - |_ ...assign(assignments).device(specifier_string): select backend 
+            - |_ ...assign(assignments).device(specifier_string): select backend
                 by specifying a string
         - Assign multiple values to a single variable for a parameter sweep:
             - |_ ...assign(assignments).batch_assign(assignments):
-        - Parallelize the program register, duplicating the geometry and waveform 
+        - Parallelize the program register, duplicating the geometry and waveform
             sequence to take advantage of all available
           space/qubits on the QPU:
             - |_ ...assign(assignments).parallelize(cluster_spacing)
@@ -69,30 +69,30 @@ class BatchAssignable:
 
         Assign multiple values to a single variable to create a parameter sweep.
 
-        Bloqade automatically handles the multiple programs this would generate 
+        Bloqade automatically handles the multiple programs this would generate
         and treats it as object with unified results for easy post-processing.
 
-        NOTE: if you assign multiple values to multiple variables in your program, 
-        the values must be of the same length. Bloqade will NOT do a Cartesian product 
-        (e.g. if "var1" is assigned [1,2,3] and "var2" is assigned [4,5,6] then the 
+        NOTE: if you assign multiple values to multiple variables in your program,
+        the values must be of the same length. Bloqade will NOT do a Cartesian product
+        (e.g. if "var1" is assigned [1,2,3] and "var2" is assigned [4,5,6] then the
         resulting programs will have assignments [1,4], [2,5], [3,6]).
 
         Usage Example:
         ```
         >>> reg = start.add_position([(0,0), (0, "atom_distance")])
         >>> prog = reg.rydberg.rabi.amplitude.uniform.constant("value", 5.0)
-        >>> var_assigned_prog = prog.batch_assign(value = [1.0, 2.0, 3.0], 
+        >>> var_assigned_prog = prog.batch_assign(value = [1.0, 2.0, 3.0],
         atom_distance = [1.0, 2.0, 3.0])
         ```
 
         - Next steps are:
-            - |_ ...batch_assign(assignments).bloqade: select the bloqade 
+            - |_ ...batch_assign(assignments).bloqade: select the bloqade
                 local emulator backend
-            - |_ ...batch_assign(assignments).braket: select braket local 
+            - |_ ...batch_assign(assignments).braket: select braket local
             emulator or QuEra hardware
-            - |_ ...batch_assign(assignments).device(specifier_string): select 
+            - |_ ...batch_assign(assignments).device(specifier_string): select
             backend by specifying a string
-        - Parallelize the program register, duplicating the geometry and waveform 
+        - Parallelize the program register, duplicating the geometry and waveform
           sequence to take advantage of all available
           space/qubits on the QPU:
             - |_ ...batch_assign(assignments).parallelize(cluster_spacing)
@@ -118,7 +118,7 @@ class Parallelizable:
         Parallelize the current problem (register and sequence) by duplicating
         the geometry to take advantage of all available space/qubits on hardware.
 
-        The singular argument lets you specify how far apart the clusters 
+        The singular argument lets you specify how far apart the clusters
         should be in micrometers.
 
         Usage Example:
@@ -130,11 +130,11 @@ class Parallelizable:
         ```
 
         - Your next steps are:
-            |_ `...parallelize(cluster_spacing).bloqade`: select the bloqade 
+            |_ `...parallelize(cluster_spacing).bloqade`: select the bloqade
                 local emulator backend
-            |_ `...parallelize(cluster_spacing).braket`: select braket 
+            |_ `...parallelize(cluster_spacing).braket`: select braket
                 local emulator or QuEra hardware on the cloud
-            |_ `...parallelize(cluster_spacing).device(specifier_string)`: select 
+            |_ `...parallelize(cluster_spacing).device(specifier_string)`: select
                 backend by specifying a string
 
         """

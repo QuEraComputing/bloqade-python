@@ -6,26 +6,26 @@ class Field(Builder):
     @property
     def uniform(self):
         """
-        Address all atoms as part of defining the spatial modulation component 
+        Address all atoms as part of defining the spatial modulation component
         of a drive.
 
-        Next steps to build your program include choosing the waveform that 
+        Next steps to build your program include choosing the waveform that
         will be summed with the spatial modulation to create a drive.
 
-        The drive by itself, or the sum of subsequent drives (created by just 
+        The drive by itself, or the sum of subsequent drives (created by just
         chaining the construction of drives) will become the field
         (e.g. Detuning Field, Real-Valued Rabi Amplitude/Rabi Phase Field, etc.).
 
         - You can now do:
             - |_ `...uniform.linear(start, stop, duration)` : to apply a linear waveform
             - |_ `...uniform.constant(value, duration)` : to apply a constant waveform
-            - |_ `...uniform.poly([coefficients], duration)` : to apply a 
+            - |_ `...uniform.poly([coefficients], duration)` : to apply a
                 polynomial waveform
-            - |_ `...uniform.apply(wf:bloqade.ir.Waveform)`: to apply a 
+            - |_ `...uniform.apply(wf:bloqade.ir.Waveform)`: to apply a
             pre-defined waveform
-            - |_ `...uniform.piecewise_linear([durations], [values])`:  to apply 
+            - |_ `...uniform.piecewise_linear([durations], [values])`:  to apply
             a piecewise linear waveform
-            - |_ `...uniform.piecewise_constant([durations], [values])`: to apply 
+            - |_ `...uniform.piecewise_constant([durations], [values])`: to apply
             a piecewise constant waveform
             - |_ `...uniform.fn(f(t,...))`: to apply a function as a waveform
 
@@ -37,13 +37,13 @@ class Field(Builder):
     @beartype
     def location(self, label: int):
         """
-        Address a single atom (or multiple via chaining calls, see below) as 
+        Address a single atom (or multiple via chaining calls, see below) as
         part of defining the spatial modulation component of a drive.
 
-        Next steps to build your program include choosing the waveform that 
+        Next steps to build your program include choosing the waveform that
         will be summed with the spatial modulation to create a drive.
 
-        The drive by itself, or the sum of subsequent drives (created by just 
+        The drive by itself, or the sum of subsequent drives (created by just
         chaining the construction of drives) will become the field.
         (e.g. Detuning Field, Real-Valued Rabi Amplitude/Rabi Phase Field, etc.)
 
@@ -57,27 +57,27 @@ class Field(Builder):
         ```
 
         - You can now do:
-            - |_ `...location(int).linear(start, stop, duration)` : to apply 
+            - |_ `...location(int).linear(start, stop, duration)` : to apply
                 a linear waveform
-            - |_ `...location(int).constant(value, duration)` : to apply 
+            - |_ `...location(int).constant(value, duration)` : to apply
                 a constant waveform
-            - |_ `...location(int).poly([coefficients], duration)` : to apply 
+            - |_ `...location(int).poly([coefficients], duration)` : to apply
                 a polynomial waveform
-            - |_ `...location(int).apply(wf:bloqade.ir.Waveform)`: to apply 
+            - |_ `...location(int).apply(wf:bloqade.ir.Waveform)`: to apply
                 a pre-defined waveform
-            - |_ `...location(int).piecewise_linear([durations], [values])`:  to apply 
+            - |_ `...location(int).piecewise_linear([durations], [values])`:  to apply
                 a piecewise linear waveform
-            - |_ `...location(int).piecewise_constant([durations], [values])`: to apply 
+            - |_ `...location(int).piecewise_constant([durations], [values])`: to apply
                 a piecewise constant waveform
             - |_ `...location(int).fn(f(t,..))`: to apply a function as a waveform
         - You can also address multiple atoms by chaining:
             - |_ `...location(int).location(int)`
-                - The waveform you specify after the last `location` in the chain will 
+                - The waveform you specify after the last `location` in the chain will
                   be applied to all atoms in the chain
-        - And you can scale any waveform by a multiplicative factor on a 
+        - And you can scale any waveform by a multiplicative factor on a
             specific atom via:
             - |_ `...location(int).scale(float)`
-            - You cannot define a scaling across multiple atoms with one method call! 
+            - You cannot define a scaling across multiple atoms with one method call!
               They must be specified atom-by-atom.
 
         """
@@ -88,13 +88,13 @@ class Field(Builder):
     @beartype
     def var(self, name: str):
         """
-        Address a single atom (or multiple via assigning a list of values) as 
+        Address a single atom (or multiple via assigning a list of values) as
         part of defining the spatial modulation component of a drive.
 
-        Next steps to build your program include choosing the waveform that 
+        Next steps to build your program include choosing the waveform that
         will be summed with the spatial modulation to create a drive.
 
-        The drive by itself, or the sum of subsequent drives (created by just 
+        The drive by itself, or the sum of subsequent drives (created by just
         chaining the construction of drives) will become the field
         (e.g. Detuning Field, Real-Valued Rabi Amplitude/Rabi Phase Field, etc.)
 
@@ -107,22 +107,22 @@ class Field(Builder):
         # a list of values, indicating a set of atoms should be targeted.
         >>> target_one_atom = ...assign(a = 0)
         >>> target_multiple_atoms = ...assign(a = [0, 2])
-        # Note that `assign` is used, you cannot batch_assign variables used in 
+        # Note that `assign` is used, you cannot batch_assign variables used in
         # .var() calls
         ```
 
         - You can now do:
-            - |_ `...location(int).linear(start, stop, duration)` : to apply 
+            - |_ `...location(int).linear(start, stop, duration)` : to apply
                 a linear waveform
-            - |_ `...location(int).constant(value, duration)` : to apply 
+            - |_ `...location(int).constant(value, duration)` : to apply
                 a constant waveform
-            - |_ `...location(int).poly([coefficients], duration)` : to apply 
+            - |_ `...location(int).poly([coefficients], duration)` : to apply
                 a polynomial waveform
-            - |_ `...location(int).apply(wf:bloqade.ir.Waveform)`: to apply 
+            - |_ `...location(int).apply(wf:bloqade.ir.Waveform)`: to apply
                 a pre-defined waveform
-            - |_ `...location(int).piecewise_linear(durations, values)`:  to 
+            - |_ `...location(int).piecewise_linear(durations, values)`:  to
                 apply a piecewise linear waveform
-            - |_ `...location(int).piecewise_constant(durations, values)`: to 
+            - |_ `...location(int).piecewise_constant(durations, values)`: to
                 apply a piecewise constant waveform
             - |_ `...location(int).fn(f(t,..))`: to apply a function as a waveform
 

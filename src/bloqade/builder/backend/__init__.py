@@ -5,7 +5,7 @@ from bloqade.builder.backend.bloqade import BloqadeService
 
 class BackendRoute(QuEraService, BraketService, BloqadeService):
     """
-    - Specify the backend to run your program on via a string 
+    - Specify the backend to run your program on via a string
       (versus more formal builder syntax)
       of specifying the vendor/product first (Bloqade/Braket) and narrowing it down
         - ...device("quera.aquila") versus ...quera.aquila()
