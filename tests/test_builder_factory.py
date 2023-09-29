@@ -1,11 +1,28 @@
-"""
-from bloqade.builder.factory import (
+from bloqade import (
+    waveform,
+    rydberg_h,
     piecewise_linear,
     piecewise_constant,
     constant,
     linear,
+    var,
+    cast,
+    start,
 )
-from bloqade import cast
+from bloqade.atom_arrangement import Chain
+from bloqade.ir import (
+    AnalogCircuit,
+    Sequence,
+    rydberg,
+    Pulse,
+    rabi,
+    detuning,
+    Field,
+    Uniform,
+)
+from bloqade.ir.routine.params import Params
+from bloqade.ir.routine.base import Routine
+import numpy as np
 
 
 def test_ir_piecewise_linear():
@@ -54,4 +71,77 @@ def test_ir_piecewise_constant():
 
     assert A.waveforms[2].duration == cast(0.2)
     assert A.waveforms[2].value == cast("b")
-"""
+
+
+def test_rydberg_h():
+    run_time = var("run_time")
+
+    @waveform(run_time + 0.2)
+    def delta(t, amp, omega):
+        return np.sin(omega * t) * amp
+
+    delta = delta.sample(0.05, "linear")
+    ampl = piecewise_linear([0.1, run_time, 0.1], [0, 10, 10, 0])
+    phase = piecewise_constant([2, 2], [0, np.pi])
+    register = Chain(11, lattice_spacing=6.1)
+
+    static_params = {"amp": 1.0}
+    batch_params = [{"omega": omega} for omega in [1, 2, 4, 8]]
+    args = ["run_time"]
+
+    prog = rydberg_h(
+        register,
+        detuning=delta,
+        amplitude=ampl,
+        phase=phase,
+        batch_params=batch_params,
+        static_params=static_params,
+        args=args,
+    )
+
+    detuning_field = Field({Uniform: delta})
+    ampl_field = Field({Uniform: ampl})
+    phase_field = Field({Uniform: phase})
+
+    pulse = Pulse(
+        {detuning: detuning_field, rabi.amplitude: ampl_field, rabi.phase: phase_field}
+    )
+    sequence = Sequence({rydberg: pulse})
+
+    routine = prog.parse()
+
+    circuit = AnalogCircuit(register, sequence)
+    params = Params(static_params, batch_params, args)
+
+    assert routine == Routine(prog, circuit, params)
+
+
+def test_rydberg_h_2():
+    run_time = var("run_time")
+
+    @waveform(run_time + 0.2)
+    def delta(t, amp, omega):
+        return np.sin(omega * t) * amp
+
+    delta = delta.sample(0.05, "linear")
+    ampl = piecewise_linear([0.1, run_time, 0.1], [0, 10, 10, 0])
+    phase = piecewise_constant([2, 2], [0, np.pi])
+    register = start.add_position((0, 0))
+
+    prog = rydberg_h(
+        (0, 0), detuning=delta, amplitude=ampl, phase=phase, batch_params={}
+    )
+
+    detuning_field = Field({Uniform: delta})
+    ampl_field = Field({Uniform: ampl})
+    phase_field = Field({Uniform: phase})
+
+    pulse = Pulse(
+        {detuning: detuning_field, rabi.amplitude: ampl_field, rabi.phase: phase_field}
+    )
+    sequence = Sequence({rydberg: pulse})
+
+    print(prog.parse_circuit())
+    print(AnalogCircuit(register, sequence))
+
+    assert prog.parse_circuit() == AnalogCircuit(register, sequence)

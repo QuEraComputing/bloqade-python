@@ -54,6 +54,8 @@ def rydberg_h(
     from bloqade import start
     from bloqade.atom_arrangement import AtomArrangement
 
+    print(type(atoms_positions))
+
     if isinstance(atoms_positions, AtomArrangement):
         prog = atoms_positions
     else:
