@@ -53,7 +53,7 @@
 </span><span id=__span-0-22><a id=__codelineno-0-22 name=__codelineno-0-22></a>
 </span><span id=__span-0-23><a id=__codelineno-0-23 name=__codelineno-0-23></a><span class=sd>    This is reserved for variables that should only take single values OR</span>
 </span><span id=__span-0-24><a id=__codelineno-0-24 name=__codelineno-0-24></a><span class=sd>    for spatial modulations that were created with `.var` in which case you can</span>
-</span><span id=__span-0-25><a id=__codelineno-0-25 name=__codelineno-0-25></a><span class=sd>    pass in a list. This is the ONLY circumstance in which multiple </span>
+</span><span id=__span-0-25><a id=__codelineno-0-25 name=__codelineno-0-25></a><span class=sd>    pass in a list. This is the ONLY circumstance in which multiple</span>
 </span><span id=__span-0-26><a id=__codelineno-0-26 name=__codelineno-0-26></a><span class=sd>    values are allowed.</span>
 </span><span id=__span-0-27><a id=__codelineno-0-27 name=__codelineno-0-27></a>
 </span><span id=__span-0-28><a id=__codelineno-0-28 name=__codelineno-0-28></a><span class=sd>    Usage Examples:</span>
@@ -69,15 +69,15 @@
 </span><span id=__span-0-38><a id=__codelineno-0-38 name=__codelineno-0-38></a><span class=sd>    ```</span>
 </span><span id=__span-0-39><a id=__codelineno-0-39 name=__codelineno-0-39></a>
 </span><span id=__span-0-40><a id=__codelineno-0-40 name=__codelineno-0-40></a><span class=sd>    - You can now:</span>
-</span><span id=__span-0-41><a id=__codelineno-0-41 name=__codelineno-0-41></a><span class=sd>        - |_ ...assign(assignments).bloqade: select the bloqade local </span>
+</span><span id=__span-0-41><a id=__codelineno-0-41 name=__codelineno-0-41></a><span class=sd>        - |_ ...assign(assignments).bloqade: select the bloqade local</span>
 </span><span id=__span-0-42><a id=__codelineno-0-42 name=__codelineno-0-42></a><span class=sd>            emulator backend</span>
-</span><span id=__span-0-43><a id=__codelineno-0-43 name=__codelineno-0-43></a><span class=sd>        - |_ ...assign(assignments).braket: select braket local emulator or </span>
+</span><span id=__span-0-43><a id=__codelineno-0-43 name=__codelineno-0-43></a><span class=sd>        - |_ ...assign(assignments).braket: select braket local emulator or</span>
 </span><span id=__span-0-44><a id=__codelineno-0-44 name=__codelineno-0-44></a><span class=sd>            QuEra hardware</span>
-</span><span id=__span-0-45><a id=__codelineno-0-45 name=__codelineno-0-45></a><span class=sd>        - |_ ...assign(assignments).device(specifier_string): select backend </span>
+</span><span id=__span-0-45><a id=__codelineno-0-45 name=__codelineno-0-45></a><span class=sd>        - |_ ...assign(assignments).device(specifier_string): select backend</span>
 </span><span id=__span-0-46><a id=__codelineno-0-46 name=__codelineno-0-46></a><span class=sd>            by specifying a string</span>
 </span><span id=__span-0-47><a id=__codelineno-0-47 name=__codelineno-0-47></a><span class=sd>    - Assign multiple values to a single variable for a parameter sweep:</span>
 </span><span id=__span-0-48><a id=__codelineno-0-48 name=__codelineno-0-48></a><span class=sd>        - |_ ...assign(assignments).batch_assign(assignments):</span>
-</span><span id=__span-0-49><a id=__codelineno-0-49 name=__codelineno-0-49></a><span class=sd>    - Parallelize the program register, duplicating the geometry and waveform </span>
+</span><span id=__span-0-49><a id=__codelineno-0-49 name=__codelineno-0-49></a><span class=sd>    - Parallelize the program register, duplicating the geometry and waveform</span>
 </span><span id=__span-0-50><a id=__codelineno-0-50 name=__codelineno-0-50></a><span class=sd>        sequence to take advantage of all available</span>
 </span><span id=__span-0-51><a id=__codelineno-0-51 name=__codelineno-0-51></a><span class=sd>      space/qubits on the QPU:</span>
 </span><span id=__span-0-52><a id=__codelineno-0-52 name=__codelineno-0-52></a><span class=sd>        - |_ ...assign(assignments).parallelize(cluster_spacing)</span>
@@ -91,7 +91,7 @@
 </span></code></pre></div></td></tr></table></div> </details> </div> </div> </div> </div> </div> <div class="doc doc-object doc-class"> <h2 id=bloqade.builder.pragmas.BatchAssignable class="doc doc-heading"> <span class="doc doc-object-name doc-class-name">BatchAssignable</span> <a href=#bloqade.builder.pragmas.BatchAssignable class=headerlink title="Permanent link">&para;</a></h2> <div class="doc doc-contents "> <div class="doc doc-children"> <div class="doc doc-object doc-function"> <h3 id=bloqade.builder.pragmas.BatchAssignable.batch_assign class="doc doc-heading"> <span class="doc doc-object-name doc-function-name">batch_assign</span> <a href=#bloqade.builder.pragmas.BatchAssignable.batch_assign class=headerlink title="Permanent link">&para;</a></h3> <div class="doc-signature highlight"><pre><span></span><code><span id=__span-0-1><a id=__codelineno-0-1 name=__codelineno-0-1 href=#__codelineno-0-1></a><span class=n>batch_assign</span><span class=p>(</span><span class=n>__batch_params</span><span class=o>=</span><span class=p>[],</span> <span class=o>**</span><span class=n>assignments</span><span class=p>)</span>
 </span></code></pre></div> <div class="doc doc-contents "> <p>Assign multiple values to a single variable to create a parameter sweep.</p> <p>Bloqade automatically handles the multiple programs this would generate and treats it as object with unified results for easy post-processing.</p> <p>NOTE: if you assign multiple values to multiple variables in your program, the values must be of the same length. Bloqade will NOT do a Cartesian product (e.g. if "var1" is assigned [1,2,3] and "var2" is assigned [4,5,6] then the resulting programs will have assignments [1,4], [2,5], [3,6]).</p> <p>Usage Example: <div class="language-text highlight"><pre><span></span><code><span id=__span-0-1><a id=__codelineno-0-1 name=__codelineno-0-1 href=#__codelineno-0-1></a>&gt;&gt;&gt; reg = start.add_position([(0,0), (0, &quot;atom_distance&quot;)])
 </span><span id=__span-0-2><a id=__codelineno-0-2 name=__codelineno-0-2 href=#__codelineno-0-2></a>&gt;&gt;&gt; prog = reg.rydberg.rabi.amplitude.uniform.constant(&quot;value&quot;, 5.0)
-</span><span id=__span-0-3><a id=__codelineno-0-3 name=__codelineno-0-3 href=#__codelineno-0-3></a>&gt;&gt;&gt; var_assigned_prog = prog.batch_assign(value = [1.0, 2.0, 3.0], 
+</span><span id=__span-0-3><a id=__codelineno-0-3 name=__codelineno-0-3 href=#__codelineno-0-3></a>&gt;&gt;&gt; var_assigned_prog = prog.batch_assign(value = [1.0, 2.0, 3.0],
 </span><span id=__span-0-4><a id=__codelineno-0-4 name=__codelineno-0-4 href=#__codelineno-0-4></a>atom_distance = [1.0, 2.0, 3.0])
 </span></code></pre></div></p> <ul> <li>Next steps are:<ul> <li>|_ ...batch_assign(assignments).bloqade: select the bloqade local emulator backend</li> <li>|_ ...batch_assign(assignments).braket: select braket local emulator or QuEra hardware</li> <li>|_ ...batch_assign(assignments).device(specifier_string): select backend by specifying a string</li> </ul> </li> <li>Parallelize the program register, duplicating the geometry and waveform sequence to take advantage of all available space/qubits on the QPU:<ul> <li>|_ ...batch_assign(assignments).parallelize(cluster_spacing)</li> </ul> </li> <li>Defer value assignment of certain variables to runtime:<ul> <li>|_ ...batch_assign(assignments).args([previously_defined_vars])</li> </ul> </li> </ul> <details class=quote> <summary>Source code in <code>src/bloqade/builder/pragmas.py</code></summary> <div class=highlight><table class=highlighttable><tr><td class=linenos><div class=linenodiv><pre><span></span><span class=normal><a href=#__codelineno-0-63> 63</a></span>
 <span class=normal><a href=#__codelineno-0-64> 64</a></span>
@@ -150,30 +150,30 @@
 </span><span id=__span-0-69><a id=__codelineno-0-69 name=__codelineno-0-69></a>
 </span><span id=__span-0-70><a id=__codelineno-0-70 name=__codelineno-0-70></a><span class=sd>    Assign multiple values to a single variable to create a parameter sweep.</span>
 </span><span id=__span-0-71><a id=__codelineno-0-71 name=__codelineno-0-71></a>
-</span><span id=__span-0-72><a id=__codelineno-0-72 name=__codelineno-0-72></a><span class=sd>    Bloqade automatically handles the multiple programs this would generate </span>
+</span><span id=__span-0-72><a id=__codelineno-0-72 name=__codelineno-0-72></a><span class=sd>    Bloqade automatically handles the multiple programs this would generate</span>
 </span><span id=__span-0-73><a id=__codelineno-0-73 name=__codelineno-0-73></a><span class=sd>    and treats it as object with unified results for easy post-processing.</span>
 </span><span id=__span-0-74><a id=__codelineno-0-74 name=__codelineno-0-74></a>
-</span><span id=__span-0-75><a id=__codelineno-0-75 name=__codelineno-0-75></a><span class=sd>    NOTE: if you assign multiple values to multiple variables in your program, </span>
-</span><span id=__span-0-76><a id=__codelineno-0-76 name=__codelineno-0-76></a><span class=sd>    the values must be of the same length. Bloqade will NOT do a Cartesian product </span>
-</span><span id=__span-0-77><a id=__codelineno-0-77 name=__codelineno-0-77></a><span class=sd>    (e.g. if &quot;var1&quot; is assigned [1,2,3] and &quot;var2&quot; is assigned [4,5,6] then the </span>
+</span><span id=__span-0-75><a id=__codelineno-0-75 name=__codelineno-0-75></a><span class=sd>    NOTE: if you assign multiple values to multiple variables in your program,</span>
+</span><span id=__span-0-76><a id=__codelineno-0-76 name=__codelineno-0-76></a><span class=sd>    the values must be of the same length. Bloqade will NOT do a Cartesian product</span>
+</span><span id=__span-0-77><a id=__codelineno-0-77 name=__codelineno-0-77></a><span class=sd>    (e.g. if &quot;var1&quot; is assigned [1,2,3] and &quot;var2&quot; is assigned [4,5,6] then the</span>
 </span><span id=__span-0-78><a id=__codelineno-0-78 name=__codelineno-0-78></a><span class=sd>    resulting programs will have assignments [1,4], [2,5], [3,6]).</span>
 </span><span id=__span-0-79><a id=__codelineno-0-79 name=__codelineno-0-79></a>
 </span><span id=__span-0-80><a id=__codelineno-0-80 name=__codelineno-0-80></a><span class=sd>    Usage Example:</span>
 </span><span id=__span-0-81><a id=__codelineno-0-81 name=__codelineno-0-81></a><span class=sd>    ```</span>
 </span><span id=__span-0-82><a id=__codelineno-0-82 name=__codelineno-0-82></a><span class=sd>    &gt;&gt;&gt; reg = start.add_position([(0,0), (0, &quot;atom_distance&quot;)])</span>
 </span><span id=__span-0-83><a id=__codelineno-0-83 name=__codelineno-0-83></a><span class=sd>    &gt;&gt;&gt; prog = reg.rydberg.rabi.amplitude.uniform.constant(&quot;value&quot;, 5.0)</span>
-</span><span id=__span-0-84><a id=__codelineno-0-84 name=__codelineno-0-84></a><span class=sd>    &gt;&gt;&gt; var_assigned_prog = prog.batch_assign(value = [1.0, 2.0, 3.0], </span>
+</span><span id=__span-0-84><a id=__codelineno-0-84 name=__codelineno-0-84></a><span class=sd>    &gt;&gt;&gt; var_assigned_prog = prog.batch_assign(value = [1.0, 2.0, 3.0],</span>
 </span><span id=__span-0-85><a id=__codelineno-0-85 name=__codelineno-0-85></a><span class=sd>    atom_distance = [1.0, 2.0, 3.0])</span>
 </span><span id=__span-0-86><a id=__codelineno-0-86 name=__codelineno-0-86></a><span class=sd>    ```</span>
 </span><span id=__span-0-87><a id=__codelineno-0-87 name=__codelineno-0-87></a>
 </span><span id=__span-0-88><a id=__codelineno-0-88 name=__codelineno-0-88></a><span class=sd>    - Next steps are:</span>
-</span><span id=__span-0-89><a id=__codelineno-0-89 name=__codelineno-0-89></a><span class=sd>        - |_ ...batch_assign(assignments).bloqade: select the bloqade </span>
+</span><span id=__span-0-89><a id=__codelineno-0-89 name=__codelineno-0-89></a><span class=sd>        - |_ ...batch_assign(assignments).bloqade: select the bloqade</span>
 </span><span id=__span-0-90><a id=__codelineno-0-90 name=__codelineno-0-90></a><span class=sd>            local emulator backend</span>
-</span><span id=__span-0-91><a id=__codelineno-0-91 name=__codelineno-0-91></a><span class=sd>        - |_ ...batch_assign(assignments).braket: select braket local </span>
+</span><span id=__span-0-91><a id=__codelineno-0-91 name=__codelineno-0-91></a><span class=sd>        - |_ ...batch_assign(assignments).braket: select braket local</span>
 </span><span id=__span-0-92><a id=__codelineno-0-92 name=__codelineno-0-92></a><span class=sd>        emulator or QuEra hardware</span>
-</span><span id=__span-0-93><a id=__codelineno-0-93 name=__codelineno-0-93></a><span class=sd>        - |_ ...batch_assign(assignments).device(specifier_string): select </span>
+</span><span id=__span-0-93><a id=__codelineno-0-93 name=__codelineno-0-93></a><span class=sd>        - |_ ...batch_assign(assignments).device(specifier_string): select</span>
 </span><span id=__span-0-94><a id=__codelineno-0-94 name=__codelineno-0-94></a><span class=sd>        backend by specifying a string</span>
-</span><span id=__span-0-95><a id=__codelineno-0-95 name=__codelineno-0-95></a><span class=sd>    - Parallelize the program register, duplicating the geometry and waveform </span>
+</span><span id=__span-0-95><a id=__codelineno-0-95 name=__codelineno-0-95></a><span class=sd>    - Parallelize the program register, duplicating the geometry and waveform</span>
 </span><span id=__span-0-96><a id=__codelineno-0-96 name=__codelineno-0-96></a><span class=sd>      sequence to take advantage of all available</span>
 </span><span id=__span-0-97><a id=__codelineno-0-97 name=__codelineno-0-97></a><span class=sd>      space/qubits on the QPU:</span>
 </span><span id=__span-0-98><a id=__codelineno-0-98 name=__codelineno-0-98></a><span class=sd>        - |_ ...batch_assign(assignments).parallelize(cluster_spacing)</span>
@@ -229,7 +229,7 @@
 </span><span id=__span-0-118><a id=__codelineno-0-118 name=__codelineno-0-118></a><span class=sd>    Parallelize the current problem (register and sequence) by duplicating</span>
 </span><span id=__span-0-119><a id=__codelineno-0-119 name=__codelineno-0-119></a><span class=sd>    the geometry to take advantage of all available space/qubits on hardware.</span>
 </span><span id=__span-0-120><a id=__codelineno-0-120 name=__codelineno-0-120></a>
-</span><span id=__span-0-121><a id=__codelineno-0-121 name=__codelineno-0-121></a><span class=sd>    The singular argument lets you specify how far apart the clusters </span>
+</span><span id=__span-0-121><a id=__codelineno-0-121 name=__codelineno-0-121></a><span class=sd>    The singular argument lets you specify how far apart the clusters</span>
 </span><span id=__span-0-122><a id=__codelineno-0-122 name=__codelineno-0-122></a><span class=sd>    should be in micrometers.</span>
 </span><span id=__span-0-123><a id=__codelineno-0-123 name=__codelineno-0-123></a>
 </span><span id=__span-0-124><a id=__codelineno-0-124 name=__codelineno-0-124></a><span class=sd>    Usage Example:</span>
@@ -241,11 +241,11 @@
 </span><span id=__span-0-130><a id=__codelineno-0-130 name=__codelineno-0-130></a><span class=sd>    ```</span>
 </span><span id=__span-0-131><a id=__codelineno-0-131 name=__codelineno-0-131></a>
 </span><span id=__span-0-132><a id=__codelineno-0-132 name=__codelineno-0-132></a><span class=sd>    - Your next steps are:</span>
-</span><span id=__span-0-133><a id=__codelineno-0-133 name=__codelineno-0-133></a><span class=sd>        |_ `...parallelize(cluster_spacing).bloqade`: select the bloqade </span>
+</span><span id=__span-0-133><a id=__codelineno-0-133 name=__codelineno-0-133></a><span class=sd>        |_ `...parallelize(cluster_spacing).bloqade`: select the bloqade</span>
 </span><span id=__span-0-134><a id=__codelineno-0-134 name=__codelineno-0-134></a><span class=sd>            local emulator backend</span>
-</span><span id=__span-0-135><a id=__codelineno-0-135 name=__codelineno-0-135></a><span class=sd>        |_ `...parallelize(cluster_spacing).braket`: select braket </span>
+</span><span id=__span-0-135><a id=__codelineno-0-135 name=__codelineno-0-135></a><span class=sd>        |_ `...parallelize(cluster_spacing).braket`: select braket</span>
 </span><span id=__span-0-136><a id=__codelineno-0-136 name=__codelineno-0-136></a><span class=sd>            local emulator or QuEra hardware on the cloud</span>
-</span><span id=__span-0-137><a id=__codelineno-0-137 name=__codelineno-0-137></a><span class=sd>        |_ `...parallelize(cluster_spacing).device(specifier_string)`: select </span>
+</span><span id=__span-0-137><a id=__codelineno-0-137 name=__codelineno-0-137></a><span class=sd>        |_ `...parallelize(cluster_spacing).device(specifier_string)`: select</span>
 </span><span id=__span-0-138><a id=__codelineno-0-138 name=__codelineno-0-138></a><span class=sd>            backend by specifying a string</span>
 </span><span id=__span-0-139><a id=__codelineno-0-139 name=__codelineno-0-139></a>
 </span><span id=__span-0-140><a id=__codelineno-0-140 name=__codelineno-0-140></a><span class=sd>    &quot;&quot;&quot;</span>

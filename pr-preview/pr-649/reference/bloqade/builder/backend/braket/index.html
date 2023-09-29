@@ -22,15 +22,15 @@
 </span><span id=__span-0-23><a id=__codelineno-0-23 name=__codelineno-0-23></a>
 </span><span id=__span-0-24><a id=__codelineno-0-24 name=__codelineno-0-24></a><span class=sd>    The number of shots you specify in the subsequent `.run` method will either:</span>
 </span><span id=__span-0-25><a id=__codelineno-0-25 name=__codelineno-0-25></a><span class=sd>        - dictate the number of times your program is run</span>
-</span><span id=__span-0-26><a id=__codelineno-0-26 name=__codelineno-0-26></a><span class=sd>        - dictate the number of times per parameter your program is run if </span>
-</span><span id=__span-0-27><a id=__codelineno-0-27 name=__codelineno-0-27></a><span class=sd>          you have a variable with batch assignments/intend to conduct </span>
+</span><span id=__span-0-26><a id=__codelineno-0-26 name=__codelineno-0-26></a><span class=sd>        - dictate the number of times per parameter your program is run if</span>
+</span><span id=__span-0-27><a id=__codelineno-0-27 name=__codelineno-0-27></a><span class=sd>          you have a variable with batch assignments/intend to conduct</span>
 </span><span id=__span-0-28><a id=__codelineno-0-28 name=__codelineno-0-28></a><span class=sd>          a parameter sweep</span>
 </span><span id=__span-0-29><a id=__codelineno-0-29 name=__codelineno-0-29></a>
 </span><span id=__span-0-30><a id=__codelineno-0-30 name=__codelineno-0-30></a>
 </span><span id=__span-0-31><a id=__codelineno-0-31 name=__codelineno-0-31></a><span class=sd>    - Possible next steps are:</span>
-</span><span id=__span-0-32><a id=__codelineno-0-32 name=__codelineno-0-32></a><span class=sd>        - |_ `...aquila().run(shots)`: To submit to hardware and WAIT for </span>
+</span><span id=__span-0-32><a id=__codelineno-0-32 name=__codelineno-0-32></a><span class=sd>        - |_ `...aquila().run(shots)`: To submit to hardware and WAIT for</span>
 </span><span id=__span-0-33><a id=__codelineno-0-33 name=__codelineno-0-33></a><span class=sd>            results (blocking)</span>
-</span><span id=__span-0-34><a id=__codelineno-0-34 name=__codelineno-0-34></a><span class=sd>        - |_ `...aquila().run_async(shots)`: To submit to hardware and immediately </span>
+</span><span id=__span-0-34><a id=__codelineno-0-34 name=__codelineno-0-34></a><span class=sd>        - |_ `...aquila().run_async(shots)`: To submit to hardware and immediately</span>
 </span><span id=__span-0-35><a id=__codelineno-0-35 name=__codelineno-0-35></a><span class=sd>            allow for other operations to occur</span>
 </span><span id=__span-0-36><a id=__codelineno-0-36 name=__codelineno-0-36></a><span class=sd>    &quot;&quot;&quot;</span>
 </span><span id=__span-0-37><a id=__codelineno-0-37 name=__codelineno-0-37></a>    <span class=k>return</span> <span class=bp>self</span><span class=o>.</span><span class=n>parse</span><span class=p>()</span><span class=o>.</span><span class=n>braket</span><span class=o>.</span><span class=n>aquila</span><span class=p>()</span>
@@ -55,11 +55,11 @@
 </span><span id=__span-0-42><a id=__codelineno-0-42 name=__codelineno-0-42></a>
 </span><span id=__span-0-43><a id=__codelineno-0-43 name=__codelineno-0-43></a><span class=sd>    - The number of shots you specify in the subsequent `.run` method will either:</span>
 </span><span id=__span-0-44><a id=__codelineno-0-44 name=__codelineno-0-44></a><span class=sd>        - dictate the number of times your program is run</span>
-</span><span id=__span-0-45><a id=__codelineno-0-45 name=__codelineno-0-45></a><span class=sd>        - dictate the number of times per parameter your program is run if </span>
-</span><span id=__span-0-46><a id=__codelineno-0-46 name=__codelineno-0-46></a><span class=sd>          you have a variable with batch assignments/intend to </span>
+</span><span id=__span-0-45><a id=__codelineno-0-45 name=__codelineno-0-45></a><span class=sd>        - dictate the number of times per parameter your program is run if</span>
+</span><span id=__span-0-46><a id=__codelineno-0-46 name=__codelineno-0-46></a><span class=sd>          you have a variable with batch assignments/intend to</span>
 </span><span id=__span-0-47><a id=__codelineno-0-47 name=__codelineno-0-47></a><span class=sd>          conduct a parameter sweep</span>
 </span><span id=__span-0-48><a id=__codelineno-0-48 name=__codelineno-0-48></a><span class=sd>    - Possible next steps are:</span>
-</span><span id=__span-0-49><a id=__codelineno-0-49 name=__codelineno-0-49></a><span class=sd>        - |_ `...local_emulator().run(shots)`: to submit to the emulator </span>
+</span><span id=__span-0-49><a id=__codelineno-0-49 name=__codelineno-0-49></a><span class=sd>        - |_ `...local_emulator().run(shots)`: to submit to the emulator</span>
 </span><span id=__span-0-50><a id=__codelineno-0-50 name=__codelineno-0-50></a><span class=sd>            and await results</span>
 </span><span id=__span-0-51><a id=__codelineno-0-51 name=__codelineno-0-51></a>
 </span><span id=__span-0-52><a id=__codelineno-0-52 name=__codelineno-0-52></a><span class=sd>    &quot;&quot;&quot;</span>
