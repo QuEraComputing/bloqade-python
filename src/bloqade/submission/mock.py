@@ -46,8 +46,12 @@ def simulate_task_results(task: QuEraTaskSpecification, p_full=0.99, p_empty=0.0
 
 class MockBackend(SubmissionBackend):
     state_file: str = ".mock_state.txt"
+    submission_error: bool = False
 
     def submit_task(self, task: QuEraTaskSpecification) -> str:
+        if self.submission_error:
+            raise ValueError("mock submission error")
+
         task_id = str(uuid.uuid4())
         task_results = simulate_task_results(task)
         with open(self.state_file, "a") as IO:

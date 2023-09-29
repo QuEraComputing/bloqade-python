@@ -1,25 +1,16 @@
 from bloqade.atom_arrangement import Chain
-from unittest.mock import patch
-import bloqade.ir.routine.quera
 from bloqade.task.batch import RemoteBatch
 import glob
 import os
-
 import pytest
 
 
-@patch("bloqade.ir.routine.quera.MockBackend")
 def test_batch_error(*args):
-    backend = bloqade.ir.routine.quera.MockBackend()
-
-    backend.submit_task.side_effect = ValueError("some random error")
-    backend.dict.return_value = {"state_file": ".mock_state.txt"}
-
     with pytest.raises(RemoteBatch.SubmissionException):
         (
             Chain(5, 6.1)
             .rydberg.detuning.uniform.linear(-10, 10, 3.0)
-            .quera.mock()
+            .quera.mock(submission_error=True)
             .run_async(100)
         )
 
@@ -34,18 +25,12 @@ def test_batch_error(*args):
     assert len(batch_files) == 1
 
 
-@patch("bloqade.ir.routine.quera.MockBackend")
-def test_batch_warn(*args):
-    backend = bloqade.ir.routine.quera.MockBackend()
-
-    backend.submit_task.side_effect = ValueError("some random error")
-    backend.dict.return_value = {"state_file": ".mock_state.txt"}
-
+def test_batch_warn():
     with pytest.warns():
         (
             Chain(5, 6.1)
             .rydberg.detuning.uniform.linear(-10, 10, 3.0)
-            .quera.mock()
+            .quera.mock(submission_error=True)
             .run_async(100, ignore_submission_error=True)
         )
 

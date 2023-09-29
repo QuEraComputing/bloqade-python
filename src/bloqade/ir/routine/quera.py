@@ -1,9 +1,9 @@
 from collections import OrderedDict
-from dataclasses import dataclass
+from pydantic.dataclasses import dataclass
 import json
 
 from bloqade.builder.typing import LiteralType
-from bloqade.ir.routine.base import RoutineBase
+from bloqade.ir.routine.base import RoutineBase, __pydantic_dataclass_config__
 from bloqade.submission.quera import QuEraBackend
 from bloqade.submission.mock import MockBackend
 from bloqade.submission.quera_api_client.load_config import load_config
@@ -14,7 +14,7 @@ from beartype.typing import Tuple, Union, Optional
 from beartype import beartype
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, config=__pydantic_dataclass_config__)
 class QuEraServiceOptions(RoutineBase):
     @beartype
     def device(self, config_file: Optional[str], **api_config):
@@ -35,12 +35,14 @@ class QuEraServiceOptions(RoutineBase):
         return QuEraHardwareRoutine(self.source, self.circuit, self.params, backend)
 
     @beartype
-    def mock(self, state_file: str = ".mock_state.txt") -> "QuEraHardwareRoutine":
-        backend = MockBackend(state_file=state_file)
+    def mock(
+        self, state_file: str = ".mock_state.txt", submission_error: bool = False
+    ) -> "QuEraHardwareRoutine":
+        backend = MockBackend(state_file=state_file, submission_error=submission_error)
         return QuEraHardwareRoutine(self.source, self.circuit, self.params, backend)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, config=__pydantic_dataclass_config__)
 class QuEraHardwareRoutine(RoutineBase):
     backend: Union[QuEraBackend, MockBackend]
 
