@@ -1,17 +1,17 @@
 from collections import OrderedDict
-from dataclasses import dataclass
+from pydantic.dataclasses import dataclass
 from beartype import beartype
 from beartype.typing import Optional, Tuple
 from bloqade.builder.typing import LiteralType
 
-from bloqade.ir.routine.base import RoutineBase
+from bloqade.ir.routine.base import RoutineBase, __pydantic_dataclass_config__
 from bloqade.submission.braket import BraketBackend
 from bloqade.task.batch import LocalBatch, RemoteBatch
 from bloqade.task.braket_simulator import BraketEmulatorTask
 from bloqade.task.braket import BraketTask
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, config=__pydantic_dataclass_config__)
 class BraketServiceOptions(RoutineBase):
     def aquila(self) -> "BraketHardwareRoutine":
         backend = BraketBackend(
@@ -23,7 +23,7 @@ class BraketServiceOptions(RoutineBase):
         return BraketLocalEmulatorRoutine(self.source, self.circuit, self.params)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, config=__pydantic_dataclass_config__)
 class BraketHardwareRoutine(RoutineBase):
     backend: BraketBackend
 
@@ -163,7 +163,7 @@ class BraketHardwareRoutine(RoutineBase):
         return self.run(shots, args, name, shuffle, **kwargs)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, config=__pydantic_dataclass_config__)
 class BraketLocalEmulatorRoutine(RoutineBase):
     def _compile(
         self, shots: int, args: Tuple[LiteralType, ...] = (), name: Optional[str] = None
