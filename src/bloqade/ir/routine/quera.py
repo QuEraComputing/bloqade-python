@@ -35,8 +35,10 @@ class QuEraServiceOptions(RoutineBase):
         return QuEraHardwareRoutine(self.source, self.circuit, self.params, backend)
 
     @beartype
-    def mock(self, state_file: str = ".mock_state.txt") -> "QuEraHardwareRoutine":
-        backend = MockBackend(state_file=state_file)
+    def mock(
+        self, state_file: str = ".mock_state.txt", submission_error: bool = False
+    ) -> "QuEraHardwareRoutine":
+        backend = MockBackend(state_file=state_file, submission_error=submission_error)
         return QuEraHardwareRoutine(self.source, self.circuit, self.params, backend)
 
 
