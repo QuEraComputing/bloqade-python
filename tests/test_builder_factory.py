@@ -20,8 +20,8 @@ from bloqade.ir import (
     Field,
     Uniform,
 )
-from bloqade.ir.routine.params import Params
 from bloqade.ir.routine.base import Routine
+from bloqade.ir.routine.params import Params
 import numpy as np
 
 
@@ -89,7 +89,7 @@ def test_rydberg_h():
     batch_params = [{"omega": omega} for omega in [1, 2, 4, 8]]
     args = ["run_time"]
 
-    prog = rydberg_h(
+    routine = rydberg_h(
         register,
         detuning=delta,
         amplitude=ampl,
@@ -108,12 +108,23 @@ def test_rydberg_h():
     )
     sequence = Sequence({rydberg: pulse})
 
-    routine = prog.parse()
+    source = (
+        register.rydberg.detuning.uniform.apply(delta)
+        .amplitude.uniform.apply(ampl)
+        .phase.uniform.apply(phase)
+        .assign(**static_params)
+        .batch_assign(batch_params)
+        .args(args)
+    )
 
     circuit = AnalogCircuit(register, sequence)
     params = Params(static_params, batch_params, args)
+    expected_routine = Routine(source, circuit, params)
 
-    assert routine == Routine(prog, circuit, params)
+    # ignore because no equality implemented
+    # assert routine.source == expected_routine.source
+    assert routine.circuit == expected_routine.circuit
+    assert routine.params == expected_routine.params
 
 
 def test_rydberg_h_2():
