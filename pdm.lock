@@ -6,7 +6,7 @@ groups = ["default", "dev", "doc"]
 cross_platform = true
 static_urls = false
 lock_version = "4.3"
-content_hash = "sha256:c2995ea995ac3393ea3e9e41bfe2ecbb41d84836e2f0c6aaa3dc81d93c727adc"
+content_hash = "sha256:e46096370f188b9383b4e9e8c42fa15ba66ff934140d0fb301a6372e5dc7b56e"
 
 [[package]]
 name = "amazon-braket-default-simulator"
