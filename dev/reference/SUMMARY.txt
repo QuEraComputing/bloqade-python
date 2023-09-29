@@ -31,6 +31,7 @@
             * [space](bloqade/emulate/ir/space.md)
             * [state_vector](bloqade/emulate/ir/state_vector.md)
         * [sparse_operator](bloqade/emulate/sparse_operator.md)
+    * [factory](bloqade/factory.md)
     * [ir](bloqade/ir/index.md)
         * [analog_circuit](bloqade/ir/analog_circuit.md)
         * [analysis](bloqade/ir/analysis/index.md)
