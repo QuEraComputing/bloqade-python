@@ -61,15 +61,16 @@ class ListOfLocations(AtomArrangement):
 
 start = ListOfLocations()
 """
-A Program starting point, alias of empty [`ListOfLocations`][bloqade.ir.location.list.ListOfLocations].
+A Program starting point, alias of empty
+[`ListOfLocations`][bloqade.ir.location.list.ListOfLocations].
 
-Next possible steps to build your program are adding atom positions and addressing level couplings.
-
-- Specify which level coupling to address with: 
-    - |_ `start.rydberg`: for [`Rydberg`][bloqade.builder.coupling.Rydberg] Level coupling
-    - |_ `start.hyperfine`: for [`Hyperfine`][bloqade.builder.coupling.Hyperfine] Level coupling
+- Next possible steps to build your program are:
+- Specify which level coupling to address with:
+    - |_ `start.rydberg`: for [`Rydberg`][bloqade.builder.coupling.Rydberg]
+        Level coupling
+    - |_ `start.hyperfine`: for [`Hyperfine`][bloqade.builder.coupling.Hyperfine]
+        Level coupling
     - LOCKOUT: You cannot add atoms to your geometry after specifying level coupling.
-
 - continue/start building your geometry with:
     - |_ `start.add_position()`: to add atom(s) to current register. It will accept:
         - A single coordinate, represented as a tuple (e.g. `(5,6)`) with a value that
@@ -77,8 +78,7 @@ Next possible steps to build your program are adding atom positions and addressi
             - integers: `(5,6)`
             - floats: `(5.1, 2.5)`
             - strings (for later variable assignment): `("x", "y")`
-            - [`Scalar`][bloqade.ir.scalar.Scalar] objects: `(2*cast("x"), 5+cast("y"))`   
+            - [`Scalar`][bloqade.ir.scalar.Scalar] objects: `(2*cast("x"), 5+cast("y"))`
         - A list of coordinates, represented as a list of types mentioned previously.
         - A numpy array with shape (n, 2) where n is the total number of atoms
-    - `.add_position()` will return another `ListOfLocations` you can build on.
 """

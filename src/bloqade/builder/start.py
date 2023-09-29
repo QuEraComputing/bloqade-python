@@ -14,10 +14,10 @@ class ProgramStart(Drive, Builder):
     def apply(self, sequence: Sequence) -> SequenceBuilder:
         """
         Apply a pre-built sequence to a program.
-        
+
         This allows you to build a program independent of any geometry
-        and then `apply` the program to said geometry. Or, if you have a 
-        program you would like to try on multiple geometries you can 
+        and then `apply` the program to said geometry. Or, if you have a
+        program you would like to try on multiple geometries you can
         trivially do so with this.
 
         Example Usage:
@@ -32,12 +32,16 @@ class ProgramStart(Drive, Builder):
         ```
 
         - From here you can now do:
-            - |_ `...assign(assignments).bloqade`: select the bloqade local emulator backend
-            - |_ `...assign(assignments).braket`: select braket local emulator or QuEra hardware
-            - |_ `...assign(assignments).device(specifier_string)`: select backend by specifying a string
+            - |_ `...assign(assignments).bloqade`: select the bloqade 
+                local emulator backend
+            - |_ `...assign(assignments).braket`: select braket 
+                local emulator or QuEra hardware
+            - |_ `...assign(assignments).device(specifier_string)`: select 
+                backend by specifying a string
         - Assign multiple values to a single variable for a parameter sweep:
-            - |_ `...assign(assignments).batch_assign(assignments)`: 
-        - Parallelize the program register, duplicating the geometry and waveform sequence to take advantage of all available
+            - |_ `...assign(assignments).batch_assign(assignments)`:
+        - Parallelize the program register, duplicating the geometry and waveform 
+            sequence to take advantage of all available
           space/qubits on the QPU:
             - |_ `...assign(assignments).parallelize(cluster_spacing)`
         - Defer value assignment of certain variables to runtime:

@@ -33,6 +33,40 @@ BoolArray = Annotated[np.ndarray, Is[check_bool_array]]
 class TransformTrait:
     @beartype
     def scale(self, scale: ScalarType):
+        """
+        Scale the geometry of your atoms.
+
+        Usage Example:
+        ```
+        >>> reg = start.add_position([(0,0), (1,1)])
+        # atom positions are now (0,0), (2,2)
+        >>> new_reg = reg.scale(2)
+        # you may also use scale on pre-defined geometries
+        >>> from bloqade.atom_arrangement import Chain
+        # atoms in the chain will now be 2 um apart versus
+        # the default 1 um
+        >>> Chain(11).scale(2)
+        ```
+
+        - Next possible steps are:
+        - Continuing to build your geometry via:
+            - |_ `...add_position(positions).add_position(positions)`:
+                to add more positions
+            - |_ `...add_position(positions).apply_defect_count(n_defects)`:
+            to randomly drop out n_atoms
+            - |_ `...add_position(positions).apply_defect_density(defect_probability)`:
+            to drop out atoms with a certain probability
+            - |_ `...add_position(positions).scale(scale)`: to scale the geometry
+        - Targeting a level coupling once you're done with the atom geometry:
+            - |_ `...add_position(positions).rydberg`:
+            to specify Rydberg coupling
+            - |_ `...add_position(positions).hyperfine`:
+            to specify Hyperfine coupling
+        - Visualizing your atom geometry:
+            - |_ `...add_position(positions).show()`:
+            shows your geometry in your web browser
+
+        """
         from .list import ListOfLocations
         from .base import LocationInfo
 
@@ -105,21 +139,51 @@ class TransformTrait:
         ],
         filling: Optional[Union[BoolArray, List[bool], bool]] = None,
     ) -> "ListOfLocations":
-        """add a position or list of positions to existing atom arrangement.
+        """
+        Add a position or multiple positions to a pre-existing geometry.
 
-        Args:
-            position (Tuple[ScalarType, ScalarType]
-            | List[Tuple[ScalarType, ScalarType]
-            | numpy.array with shape (n, 2)]):
-                position to add
-            filling (bool | list[bool]
-            | numpy.array with shape (n, ) | None, optional):
-                filling of the added position(s). Defaults to None. if None, all
-                positions are filled.
+        `add_position` is capable of accepting:
+        - A single tuple for one atom coordinate: `(1.0, 2.5)`
+        - A list of tuples: `[(0.0, 1.0), (2.0,1.5), etc.]
+        - A numpy array of shape (N, 2) where N is the number of atoms
 
+        You may also intersperse variables anywhere a value may be present.
 
-        Returns:
-            ListOfLocations: new atom arrangement with added positions
+        You can also pass in an optional argument which determines the atom "filling"
+        (whether or not at a specified coordinate an atom should be present).
+
+        Usage Example:
+        ```
+        # single coordinate
+        >>> reg = start.add_position((0,0))
+        # you may chain add_position calls
+        >>> reg_plus_two = reg.add_position([(2,2),(5.0, 2.1)])
+        # you can add variables anywhere a value may be present
+        >>> reg_with_var = reg_plus_two.add_position(("x", "y"))
+        # and specify your atom fillings
+        >>> reg_with_filling = reg_with_var.add_position([(3.1, 0.0), (4.1, 2.2)],
+        [True, False])
+        # alternatively you could use one boolean to specify
+        # all coordinates should be empty/filled
+        >>> reg_with_more_filling = reg_with_filling.add_positions([(3.1, 2.9),
+        (5.2, 2.2)], False)
+        ```
+
+        - Next possible steps are:
+        - Continuing to build your geometry via:
+            - |_ `...add_position(positions).add_position(positions)`:
+                to add more positions
+            - |_ `...add_position(positions).apply_defect_count(n_defects)`:
+            to randomly drop out n_atoms
+            - |_ `...add_position(positions).apply_defect_density(defect_probability)`:
+            to drop out atoms with a certain probability
+            - |_ `...add_position(positions).scale(scale)`: to scale the geometry
+        - Targeting a level coupling once you're done with the atom geometry:
+            - |_ `...add_position(positions).rydberg`: to specify Rydberg coupling
+            - |_ `...add_position(positions).hyperfine`: to specify Hyperfine coupling
+        - Visualizing your atom geometry:
+            - |_ `...add_position(positions).show()`:
+            shows your geometry in your web browser
 
         """
         return self._add_position(position, filling)
@@ -128,7 +192,50 @@ class TransformTrait:
     def apply_defect_count(
         self, n_defects: int, rng: np.random.Generator = np.random.default_rng()
     ):
-        """apply n_defects randomly to existing atom arrangement."""
+        """
+        Drop `n_defects` atoms from the geometry randomly. Internally this occurs
+        by setting certain sites to have a SiteFilling set to false indicating
+        no atom is present at the coordinate.
+
+        A default numpy-based Random Number Generator is used but you can
+        explicitly override this by passing in your own.
+
+        Usage Example:
+
+        ```
+        >>> from bloqade.atom_arrangement import Chain
+        >>> import numpy as np
+        # set a custom seed for a numpy-based RNG
+        >>> custom_rng = np.random.default_rng(888)
+        # randomly remove two atoms from the geometry
+        >>> reg = Chain(11).apply_defect_count(2, custom_rng)
+        # you may also chain apply_defect_count calls
+        >>> reg.apply_defect_count(2, custom_rng)
+        # you can also use apply_defect_count on custom geometries
+        >>> from bloqade import start
+        >>> start.add_position([(0,0), (1,1)]).apply_defect_count(1, custom_rng)
+        ```
+
+        - Next possible steps are:
+        - Continuing to build your geometry via:
+            - |_ `...apply_defect_count(defect_counts).add_position(positions)`:
+                to add more positions
+            - |_ `...apply_defect_count(defect_counts)
+                .apply_defect_count(n_defects)`: to randomly drop out n_atoms
+            - |_ `...apply_defect_count(defect_counts)
+                .apply_defect_density(defect_probability)`:
+                to drop out atoms with a certain probability
+            - |_ `...apply_defect_count(defect_counts).scale(scale)`:
+                to scale the geometry
+        - Targeting a level coupling once you're done with the atom geometry:
+            - |_ `...apply_defect_count(defect_counts).rydberg`: to specify
+                Rydberg coupling
+            - |_ `...apply_defect_count(defect_counts).hyperfine`:
+                to specify Hyperfine coupling
+        - Visualizing your atom geometry:
+            - |_ `...apply_defect_count(defect_counts).show()`:
+                shows your geometry in your web browser
+        """
         from .list import ListOfLocations
         from .base import LocationInfo, SiteFilling
 
@@ -164,7 +271,51 @@ class TransformTrait:
         defect_probability: float,
         rng: np.random.Generator = np.random.default_rng(),
     ):
-        """apply defect_probability randomly to existing atom arrangement."""
+        """
+        Drop atoms randomly with `defect_probability` probability (range of 0 to 1).
+        Internally this occurs by setting certain sites to have a SiteFilling
+        set to false indicating no atom is present at the coordinate.
+
+        A default numpy-based Random Number Generator is used but you can
+        explicitly override this by passing in your own.
+
+        Usage Example:
+
+        ```
+        >>> from bloqade.atom_arrangement import Chain
+        >>> import numpy as np
+        # set a custom seed for a numpy-based RNG
+        >>> custom_rng = np.random.default_rng(888)
+        # randomly remove two atoms from the geometry
+        >>> reg = Chain(11).apply_defect_density(0.2, custom_rng)
+        # you may also chain apply_defect_density calls
+        >>> reg.apply_defect_count(0.1, custom_rng)
+        # you can also use apply_defect_density on custom geometries
+        >>> from bloqade import start
+        >>> start.add_position([(0,0), (1,1)])
+        .apply_defect_density(0.5, custom_rng)
+        ```
+
+        - Next possible steps are:
+        - Continuing to build your geometry via:
+            - |_ `...apply_defect_count(defect_counts).add_position(positions)`:
+            to add more positions
+            - |_ `...apply_defect_count(defect_counts).apply_defect_count(n_defects)`:
+            to randomly drop out n_atoms
+            - |_ `...apply_defect_count(defect_counts)
+            .apply_defect_density(defect_probability)`:
+            to drop out atoms with a certain probability
+            - |_ `...apply_defect_count(defect_counts).scale(scale)`:
+            to scale the geometry
+        - Targeting a level coupling once you're done with the atom geometry:
+            - |_ `...apply_defect_count(defect_counts).rydberg`:
+            to specify Rydberg coupling
+            - |_ `...apply_defect_count(defect_counts).hyperfine`:
+            to specify Hyperfine coupling
+        - Visualizing your atom geometry:
+            - |_ `...apply_defect_count(defect_counts).show()`:
+            shows your geometry in your web browser
+        """
         from .list import ListOfLocations
         from .base import LocationInfo, SiteFilling
 
@@ -189,7 +340,6 @@ class TransformTrait:
         return ListOfLocations(location_list=location_list)
 
     def remove_vacant_sites(self):
-        """remove all vacant sites from the register."""
         from .base import SiteFilling
         from .list import ListOfLocations
 

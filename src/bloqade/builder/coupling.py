@@ -4,21 +4,31 @@ from bloqade.builder.field import Rabi, Detuning
 
 class LevelCoupling(Builder):
     @property
-    def detuning(self) -> Detuning: # field is summation of one or more drives, waveform + spatial modulation = drive
+    def detuning(
+        self,
+    ) -> (
+        Detuning
+    ):  # field is summation of one or more drives, 
+        # waveform + spatial modulation = drive
         """
-        Specify the [`Detuning`][bloqade.builder.field.Detuning] [`Field`][bloqade.builder.Field] of your program.
+        Specify the [`Detuning`][bloqade.builder.field.Detuning] 
+        [`Field`][bloqade.builder.Field] of your program.
 
-        A "field" is a summation of one or more "drives", with a drive being the sum of a waveform and spatial modulation.
-        
-        You are currently building the spatial modulation component and will be able to specify a waveform.
+        A "field" is a summation of one or more "drives", with a drive being the sum
+        of a waveform and spatial modulation.
+
+        You are currently building the spatial modulation component and will be 
+        able to specify a waveform.
 
         - You can do this by:
             - |_ `...detuning.uniform`: To address all atoms in the field
-            - |_ `...detuning.location(int)`: To address an atom at a specific location via index
+            - |_ `...detuning.location(int)`: To address an atom at a specific 
+                location via index
             - |_ `...detuning.var(str)`
                 - |_ To address an atom at a specific location via variable
-                - |_ To address multiple atoms at specific locations by specifying a single variable and then assigning it a list of coordinates
-        
+                - |_ To address multiple atoms at specific locations by specifying 
+                    a single variable and then assigning it a list of coordinates
+
         """
 
         return Detuning(self)
@@ -26,12 +36,14 @@ class LevelCoupling(Builder):
     @property
     def rabi(self) -> Rabi:
         """
-        Specify the complex-valued [`Rabi`][bloqade.builder.field.Rabi] field of your program.
+        Specify the complex-valued [`Rabi`][bloqade.builder.field.Rabi] 
+        field of your program.
 
         The Rabi field is composed of a real-valued Amplitude and Phase field.
 
-        - Next possible steps to build your program are 
-          creating the [`RabiAmplitude`][bloqade.builder.field.RabiAmplitude] field and [`RabiPhase`][bloqade.builder.field.RabiAmplitude] field of the field:
+        - Next possible steps to build your program are
+          creating the [`RabiAmplitude`][bloqade.builder.field.RabiAmplitude] field 
+          and [`RabiPhase`][bloqade.builder.field.RabiAmplitude] field of the field:
             - |_ `...rabi.amplitude`: To create the Rabi amplitude field
             - |_ `...rabi.phase`: To create the Rabi phase field
 
