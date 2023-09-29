@@ -6,7 +6,7 @@ from bloqade.ir.analysis.scan_variables import (
 )
 import numpy as np
 
-from bloqade.ir.control.waveform import waveform
+from bloqade.ir.control.waveform import to_waveform
 
 
 def test_1():
@@ -42,7 +42,7 @@ def test_2():
     delta = var("delta") / (2 * np.pi)
     omega_max = var("omega_max") * 2 * np.pi
 
-    @waveform(t_2)
+    @to_waveform(t_2)
     def detuning(t, u):
         return np.abs(t) * u
 

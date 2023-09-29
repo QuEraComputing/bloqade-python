@@ -15,7 +15,7 @@ import bloqade.ir.routine.quera as quera
 import bloqade.ir.routine.braket as braket
 from plum import NotFoundLookupError
 
-from bloqade.ir.control.waveform import waveform as waveform_decorator
+from bloqade.ir.control.waveform import to_waveform
 from bloqade.ir import rydberg, detuning, hyperfine, rabi
 from bloqade import start, cast, var
 
@@ -33,7 +33,7 @@ def test_assign_checks():
     delta = var("delta") / (2 * np.pi)
     omega_max = var("omega_max") * 2 * np.pi
 
-    @waveform_decorator(t_2)
+    @to_waveform(t_2)
     def detuning(t, u):
         return np.abs(t) * u
 

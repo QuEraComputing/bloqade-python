@@ -1,4 +1,5 @@
-from bloqade.ir import var, cast, Variable, Literal, start, waveform
+from bloqade.ir import var, cast, Variable, Literal, start
+from bloqade.ir import to_waveform as waveform
 from bloqade.serialize import load, save, loads, dumps
 
 from bloqade.factory import (

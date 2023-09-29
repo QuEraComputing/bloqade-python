@@ -26,7 +26,7 @@ from bloqade.visualization import display_ir
 
 
 @beartype
-def waveform(duration: ScalarType) -> Callable[[Callable], "PythonFn"]:
+def to_waveform(duration: ScalarType) -> Callable[[Callable], "PythonFn"]:
     # turn python function into a waveform instruction."""
 
     def waveform_wrapper(fn: Callable) -> "PythonFn":
