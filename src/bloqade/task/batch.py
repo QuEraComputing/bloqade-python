@@ -1,4 +1,4 @@
-from bloqade.serialize import Serializer, dumps
+from bloqade.serialize import Serializer
 from bloqade.task.base import Report
 from bloqade.task.quera import QuEraTask
 from bloqade.task.braket import BraketTask
@@ -15,11 +15,10 @@ from bloqade.submission.ir.task_results import (
 
 # from bloqade.submission.base import ValidationError
 
-from beartype.typing import Union, Optional, Dict, Any
+from beartype.typing import Union, Optional, Dict, Any, List
 from beartype import beartype
 from collections import OrderedDict
 from itertools import product
-import json
 import traceback
 import datetime
 import sys
@@ -27,7 +26,7 @@ import os
 import warnings
 import pandas as pd
 import numpy as np
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 
 class Serializable:
@@ -39,6 +38,8 @@ class Serializable:
             JSON string
 
         """
+        from bloqade import dumps
+
         return dumps(self, **options)
 
 
@@ -184,6 +185,63 @@ def _deserializer(d: Dict[str, Any]) -> LocalBatch:
     return LocalBatch(**d)
 
 
+@dataclass
+@Serializer.register
+class TaskError(Serializable):
+    exception_type: str
+    stack_trace: str
+
+
+@dataclass
+@Serializer.register
+class BatchErrors(Serializable):
+    task_errors: OrderedDict[int, TaskError] = field(
+        default_factory=lambda: OrderedDict([])
+    )
+
+    @beartype
+    def print_errors(self, task_indices: Union[List[int], int]) -> str:
+        return str(self.get_errors(task_indices))
+
+    @beartype
+    def get_errors(self, task_indices: Union[List[int], int]):
+        return BatchErrors(
+            task_errors=OrderedDict(
+                [
+                    (task_index, self.task_errors[task_index])
+                    for task_index in task_indices
+                    if task_index in self.task_errors
+                ]
+            )
+        )
+
+    def __str__(self) -> str:
+        output = ""
+        for task_index, task_error in self.task_errors.items():
+            output += (
+                f"Task {task_index} failed to submit with error: "
+                f"{task_error.exception_type}\n"
+                f"{task_error.stack_trace}"
+            )
+
+        return output
+
+
+@BatchErrors.set_serializer
+def _serialize(self: BatchErrors) -> Dict[str, List]:
+    return {
+        "task_errors": [
+            (task_number, task_error)
+            for task_number, task_error in self.task_errors.items()
+        ]
+    }
+
+
+@BatchErrors.set_deserializer
+def _deserialize(obj: dict) -> BatchErrors:
+    return BatchErrors(task_errors=OrderedDict(obj["task_errors"]))
+
+
 # this class get collection of tasks
 # basically behaves as a psudo queuing system
 # the user only need to store this objecet
@@ -321,6 +379,8 @@ class RemoteBatch(Serializable):
     def _submit(
         self, shuffle_submit_order: bool = True, ignore_submission_error=False, **kwargs
     ) -> "RemoteBatch":
+        from bloqade import save
+
         # online, non-blocking
         if shuffle_submit_order:
             submission_order = np.random.permutation(list(self.tasks.keys()))
@@ -333,7 +393,7 @@ class RemoteBatch(Serializable):
 
         ## upon submit() should validate for Both backends
         ## and throw errors when fail.
-        errors = OrderedDict()
+        errors = BatchErrors()
         shuffled_tasks = OrderedDict()
         for task_index in submission_order:
             task = self.tasks[task_index]
@@ -342,17 +402,18 @@ class RemoteBatch(Serializable):
                 task.submit(**kwargs)
             except BaseException as error:
                 # record the error in the error dict
-                errors[int(task_index)] = {
-                    "exception_type": error.__class__.__name__,
-                    "stack trace": traceback.format_exc(),
-                }
+                errors.task_errors[int(task_index)] = TaskError(
+                    exception_type=error.__class__.__name__,
+                    stack_trace=traceback.format_exc(),
+                )
+
                 task.task_result_ir = QuEraTaskResults(
                     task_status=QuEraTaskStatusCode.Unaccepted
                 )
 
         self.tasks = shuffled_tasks  # permute order using dump way
 
-        if errors:
+        if len(errors.task_errors) > 0:
             time_stamp = datetime.datetime.now()
 
             if "win" in sys.platform:
@@ -369,8 +430,8 @@ class RemoteBatch(Serializable):
             # cloud_batch_result.save_json(future_file, indent=2)
             # saving ?
 
-            with open(error_file, "w") as f:
-                json.dump(errors, f, indent=2)
+            save(errors, error_file)
+            save(self, future_file)
 
             if ignore_submission_error:
                 warnings.warn(
@@ -382,7 +443,9 @@ class RemoteBatch(Serializable):
                 )
             else:
                 raise RemoteBatch.SubmissionException(
-                    "One or more error(s) occured during submission, please see "
+                    str(errors)
+                    + "\n"
+                    + "One or more error(s) occured during submission, please see "
                     "the following files for more information:\n"
                     f"  - {os.path.join(cwd, future_file)}\n"
                     f"  - {os.path.join(cwd, error_file)}\n"
