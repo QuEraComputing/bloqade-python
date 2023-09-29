@@ -12,6 +12,10 @@ from bloqade.factory import (
 import bloqade.ir as _ir
 from bloqade.constants import RB_C6
 
+import importlib.metadata
+
+__version__ = importlib.metadata.version("bloqade")
+
 
 def tree_depth(depth: int = None):
     """Setting globally maximum depth for tree printing
