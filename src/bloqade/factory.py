@@ -82,12 +82,18 @@ def piecewise_constant(
         durations (List[ScalarType]): The duration of each segment
         values (List[ScalarType]): The values for each segment
 
-    Note:
-        that the length of `values` must be the same as the length of `durations`.
+    Raises:
+        ValueError: If the length of `values` is not the same as the length of
+        `durations`.
 
     Returns:
         Waveform: The piecewise linear waveform.
     """
+    if len(durations) != len(values):
+        raise ValueError(
+            "The length of values must be the same as the length of durations"
+        )
+
     pwc_wf = None
     for duration, value in zip(durations, values):
         if pwc_wf is None:

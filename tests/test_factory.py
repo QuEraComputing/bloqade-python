@@ -1,3 +1,4 @@
+import pytest
 from bloqade import (
     waveform,
     rydberg_h,
@@ -42,6 +43,9 @@ def test_ir_piecewise_linear():
     assert A.waveforms[2].start == cast("a")
     assert A.waveforms[2].stop == cast("b")
 
+    with pytest.raises(ValueError):
+        piecewise_linear([0.1, 3.8, 0.2], [-10, -7, "a", "b", "c"])
+
 
 def test_ir_const():
     A = constant(value=3.415, duration=0.55)
@@ -71,6 +75,9 @@ def test_ir_piecewise_constant():
 
     assert A.waveforms[2].duration == cast(0.2)
     assert A.waveforms[2].value == cast("b")
+
+    with pytest.raises(ValueError):
+        piecewise_constant([0.1, 3.8, 0.2], [-10, -7, "a", "b"])
 
 
 def test_rydberg_h():
