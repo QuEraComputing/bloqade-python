@@ -1,11 +1,14 @@
+from pydantic.dataclasses import dataclass
 from bloqade.ir.location.base import AtomArrangement, LocationInfo, SiteFilling
 from bloqade.builder.typing import ScalarType
 from beartype.typing import List, Tuple, Union
 from beartype import beartype
 
 
+@dataclass(init=False)
 class ListOfLocations(AtomArrangement):
     __match_args__ = ("location_list",)
+    location_list: List[LocationInfo]
 
     @beartype
     def __init__(

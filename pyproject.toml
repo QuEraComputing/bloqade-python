@@ -1,6 +1,6 @@
 [project]
 name = "bloqade"
-version = "0.5.0"
+version = "0.5.1"
 description = "Neutral atom software development kit"
 authors = [
     {name = "QuEra Computing Inc.", email = "info@quera.com"},

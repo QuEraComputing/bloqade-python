@@ -27,7 +27,6 @@ def test_rabi_router():
     R = rabi
 
     assert R.print_node() == "RabiRouter"
-    assert str(R) == "rabi (amplitude, phase)"
     assert R.children() == {
         "Amplitude": RabiFrequencyAmplitude(),
         "Phase": RabiFrequencyPhase(),
@@ -103,18 +102,20 @@ def test_pulse():
     ps1._repr_pretty_(p, 10)
 
     assert (
-        mystdout.getvalue()
-        == "Pulse\n"
-        + "└─ Detuning\n"
-        + "   ⇒ Field\n"
-        + "     └─ UniformModulation\n"
-        + "        ⇒ Linear\n"
-        + "          ├─ start\n"
-        + "          │  ⇒ Literal: 1.0\n"
-        + "          ├─ stop\n"
-        + "          │  ⇒ Variable: x\n"
-        + "          └─ duration\n"
-        + "             ⇒ Literal: 3.0"
+        mystdout.getvalue() == "Pulse\n"
+        "└─ Detuning\n"
+        "   ⇒ Field\n"
+        "     └─ Drive\n"
+        "        ├─ modulation\n"
+        "        │  ⇒ UniformModulation\n"
+        "        └─ waveform\n"
+        "           ⇒ Linear\n"
+        "             ├─ start\n"
+        "             │  ⇒ Literal: 1.0\n"
+        "             ├─ stop\n"
+        "             │  ⇒ Variable: x\n"
+        "             └─ duration\n"
+        "                ⇒ Literal: 3.0"
     )
 
 
@@ -122,8 +123,6 @@ def test_named_pulse():
     f = Field({Uniform: Linear(start=1.0, stop="x", duration=3.0)})
     ps1 = Pulse({detuning: f})
     ps = NamedPulse("qq", ps1)
-
-    assert str(ps) == "NamedPulse(name=qq)"
 
     assert ps.children() == {"Name": "qq", "Pulse": ps1}
 
@@ -135,22 +134,24 @@ def test_named_pulse():
     ps._repr_pretty_(p, 10)
 
     assert (
-        mystdout.getvalue()
-        == "NamedPulse\n"
-        + "├─ Name\n"
-        + "│  ⇒ qq\n"
-        + "└─ Pulse\n"
-        + "   ⇒ Pulse\n"
-        + "     └─ Detuning\n"
-        + "        ⇒ Field\n"
-        + "          └─ UniformModulation\n"
-        + "             ⇒ Linear\n"
-        + "               ├─ start\n"
-        + "               │  ⇒ Literal: 1.0\n"
-        + "               ├─ stop\n"
-        + "               │  ⇒ Variable: x\n"
-        + "               └─ duration\n"
-        + "                  ⇒ Literal: 3.0"
+        mystdout.getvalue() == "NamedPulse\n"
+        "├─ Name\n"
+        "│  ⇒ qq\n"
+        "└─ Pulse\n"
+        "   ⇒ Pulse\n"
+        "     └─ Detuning\n"
+        "        ⇒ Field\n"
+        "          └─ Drive\n"
+        "             ├─ modulation\n"
+        "             │  ⇒ UniformModulation\n"
+        "             └─ waveform\n"
+        "                ⇒ Linear\n"
+        "                  ├─ start\n"
+        "                  │  ⇒ Literal: 1.0\n"
+        "                  ├─ stop\n"
+        "                  │  ⇒ Variable: x\n"
+        "                  └─ duration\n"
+        "                     ⇒ Literal: 3.0"
     )
 
 
@@ -162,7 +163,6 @@ def test_slice_pulse():
     ## invoke slice
     ps = ps1.slice(itvl)
 
-    assert str(ps) == "Pulse[%s]" % (str(itvl))
     assert ps.print_node() == "Slice"
     assert ps.children() == {"Pulse": ps1, "Interval": itvl}
 
@@ -172,26 +172,28 @@ def test_slice_pulse():
     ps._repr_pretty_(p, 10)
 
     assert (
-        mystdout.getvalue()
-        == "Slice\n"
-        + "├─ Pulse\n"
-        + "│  ⇒ Pulse\n"
-        + "│    └─ Detuning\n"
-        + "│       ⇒ Field\n"
-        + "│         └─ UniformModulation\n"
-        + "│            ⇒ Linear\n"
-        + "│              ├─ start\n"
-        + "│              │  ⇒ Literal: 1.0\n"
-        + "│              ├─ stop\n"
-        + "│              │  ⇒ Variable: x\n"
-        + "│              └─ duration\n"
-        + "│                 ⇒ Literal: 3.0\n"
-        + "└─ Interval\n"
-        + "   ⇒ Interval\n"
-        + "     ├─ start\n"
-        + "     │  ⇒ Literal: 0\n"
-        + "     └─ stop\n"
-        + "        ⇒ Literal: 1.5"
+        mystdout.getvalue() == "Slice\n"
+        "├─ Pulse\n"
+        "│  ⇒ Pulse\n"
+        "│    └─ Detuning\n"
+        "│       ⇒ Field\n"
+        "│         └─ Drive\n"
+        "│            ├─ modulation\n"
+        "│            │  ⇒ UniformModulation\n"
+        "│            └─ waveform\n"
+        "│               ⇒ Linear\n"
+        "│                 ├─ start\n"
+        "│                 │  ⇒ Literal: 1.0\n"
+        "│                 ├─ stop\n"
+        "│                 │  ⇒ Variable: x\n"
+        "│                 └─ duration\n"
+        "│                    ⇒ Literal: 3.0\n"
+        "└─ Interval\n"
+        "   ⇒ Interval\n"
+        "     ├─ start\n"
+        "     │  ⇒ Literal: 0\n"
+        "     └─ stop\n"
+        "        ⇒ Literal: 1.5"
     )
 
 
@@ -202,39 +204,43 @@ def test_append_pulse():
     # invoke append:
     ps = ps1.append(ps1)
 
-    assert str(ps) == "pulse.Append(value=['Pulse', 'Pulse'])"
     assert ps.children() == [ps1, ps1]
 
     mystdout = StringIO()
     p = PP(mystdout)
 
     ps._repr_pretty_(p, 10)
-
+    print(repr(mystdout.getvalue()))
     assert (
-        mystdout.getvalue()
-        == "Append\n"
-        + "├─ Pulse\n"
-        + "│  └─ Detuning\n"
-        + "│     ⇒ Field\n"
-        + "│       └─ UniformModulation\n"
-        + "│          ⇒ Linear\n"
-        + "│            ├─ start\n"
-        + "│            │  ⇒ Literal: 1.0\n"
-        + "│            ├─ stop\n"
-        + "│            │  ⇒ Variable: x\n"
-        + "│            └─ duration\n"
-        + "│               ⇒ Literal: 3.0\n"
-        + "└─ Pulse\n"
-        + "   └─ Detuning\n"
-        + "      ⇒ Field\n"
-        + "        └─ UniformModulation\n"
-        + "           ⇒ Linear\n"
-        + "             ├─ start\n"
-        + "             │  ⇒ Literal: 1.0\n"
-        + "             ├─ stop\n"
-        + "             │  ⇒ Variable: x\n"
-        + "             └─ duration\n"
-        + "                ⇒ Literal: 3.0"
+        mystdout.getvalue() == "Append\n"
+        "├─ Pulse\n"
+        "│  └─ Detuning\n"
+        "│     ⇒ Field\n"
+        "│       └─ Drive\n"
+        "│          ├─ modulation\n"
+        "│          │  ⇒ UniformModulation\n"
+        "│          └─ waveform\n"
+        "│             ⇒ Linear\n"
+        "│               ├─ start\n"
+        "│               │  ⇒ Literal: 1.0\n"
+        "│               ├─ stop\n"
+        "│               │  ⇒ Variable: x\n"
+        "│               └─ duration\n"
+        "│                  ⇒ Literal: 3.0\n"
+        "└─ Pulse\n"
+        "   └─ Detuning\n"
+        "      ⇒ Field\n"
+        "        └─ Drive\n"
+        "           ├─ modulation\n"
+        "           │  ⇒ UniformModulation\n"
+        "           └─ waveform\n"
+        "              ⇒ Linear\n"
+        "                ├─ start\n"
+        "                │  ⇒ Literal: 1.0\n"
+        "                ├─ stop\n"
+        "                │  ⇒ Variable: x\n"
+        "                └─ duration\n"
+        "                   ⇒ Literal: 3.0"
     )
 
 

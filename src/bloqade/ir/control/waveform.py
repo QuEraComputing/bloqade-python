@@ -174,6 +174,11 @@ class Waveform:
     def __truediv__(self, other: Any) -> "Waveform":
         return self.scale(1 / cast(other))
 
+    def __str__(self) -> str:
+        ph = Printer()
+        ph.print(self)
+        return ph.get_value()
+
     @staticmethod
     def canonicalize(expr: "Waveform") -> "Waveform":
         if isinstance(expr, Append):
@@ -200,11 +205,6 @@ class Waveform:
         else:
             return expr
 
-    def __repr__(self) -> str:
-        ph = Printer()
-        ph.print(self)
-        return ph.get_value()
-
     def _repr_pretty_(self, p, cycle):
         Printer(p).print(self, cycle)
 
@@ -212,7 +212,7 @@ class Waveform:
         raise NotImplementedError
 
 
-@dataclass(repr=False)
+@dataclass
 class AlignedWaveform(Waveform):
     """
 
@@ -258,7 +258,7 @@ class AlignedWaveform(Waveform):
         return annotated_children
 
 
-@dataclass(repr=False)
+@dataclass()
 class Instruction(Waveform):
     """Instruction node in the IR.
 
@@ -281,7 +281,7 @@ class Instruction(Waveform):
         return self._duration
 
 
-@dataclass(init=False, repr=False)
+@dataclass(init=False)
 class Linear(Instruction):
     """
     ```bnf
@@ -317,12 +317,6 @@ class Linear(Instruction):
                 (stop_value - start_value) / self.duration(**kwargs)
             ) * clock_s + start_value
 
-    def __str__(self):
-        return (
-            f"Linear(start={str(self.start)}, stop={str(self.stop)}, "
-            f"duration={str(self.duration)})"
-        )
-
     def print_node(self):
         return "Linear"
 
@@ -330,7 +324,7 @@ class Linear(Instruction):
         return {"start": self.start, "stop": self.stop, "duration": self.duration}
 
 
-@dataclass(init=False, repr=False)
+@dataclass(init=False)
 class Constant(Instruction):
     """
     ```bnf
@@ -359,9 +353,6 @@ class Constant(Instruction):
         else:
             return constant_value
 
-    def __str__(self):
-        return f"Constant(value={str(self.value)}, duration={str(self.duration)})"
-
     def print_node(self):
         return "Constant"
 
@@ -369,7 +360,7 @@ class Constant(Instruction):
         return {"value": self.value, "duration": self.duration}
 
 
-@dataclass(init=False, repr=False)
+@dataclass(init=False)
 class Poly(Instruction):
     """
     ```bnf
@@ -406,9 +397,6 @@ class Poly(Instruction):
 
             return value
 
-    def __str__(self):
-        return f"Poly({str(self.coeffs)}, {str(self.duration)})"
-
     def print_node(self) -> str:
         return "Poly"
 
@@ -429,7 +417,7 @@ class Poly(Instruction):
         return annotated_coeffs
 
 
-@dataclass(init=False, repr=False)
+@dataclass(init=False)
 class PythonFn(Instruction):
     """
 
@@ -507,7 +495,7 @@ class PythonFn(Instruction):
         return Sample(self, interpolation, cast(dt))
 
 
-@dataclass(init=False)
+@dataclass
 class SmoothingKernel:
     def __call__(self, value: float) -> float:
         raise NotImplementedError
@@ -523,51 +511,61 @@ class InfiniteSmoothingKernel(SmoothingKernel):
     pass
 
 
+@dataclass
 class Gaussian(InfiniteSmoothingKernel):
     def __call__(self, value: float) -> float:
         return np.exp(-(value**2) / 2) / np.sqrt(2 * np.pi)
 
 
+@dataclass
 class Logistic(InfiniteSmoothingKernel):
     def __call__(self, value: float) -> float:
         return np.exp(-(np.logaddexp(0, value) + np.logaddexp(0, -value)))
 
 
+@dataclass
 class Sigmoid(InfiniteSmoothingKernel):
     def __call__(self, value: float) -> float:
         return (2 / np.pi) * np.exp(-np.logaddexp(-value, value))
 
 
+@dataclass
 class Triangle(FiniteSmoothingKernel):
     def __call__(self, value: float) -> float:
         return np.maximum(0, 1 - np.abs(value))
 
 
+@dataclass
 class Uniform(FiniteSmoothingKernel):
     def __call__(self, value: float) -> float:
         return np.asarray(np.abs(value) <= 1, dtype=np.float64).squeeze()
 
 
+@dataclass
 class Parabolic(FiniteSmoothingKernel):
     def __call__(self, value: float) -> float:
         return (3 / 4) * np.maximum(0, 1 - value**2)
 
 
+@dataclass
 class Biweight(FiniteSmoothingKernel):
     def __call__(self, value: float) -> float:
         return (15 / 16) * np.maximum(0, 1 - value**2) ** 2
 
 
+@dataclass
 class Triweight(FiniteSmoothingKernel):
     def __call__(self, value: float) -> float:
         return (35 / 32) * np.maximum(0, 1 - value**2) ** 3
 
 
+@dataclass
 class Tricube(FiniteSmoothingKernel):
     def __call__(self, value: float) -> float:
         return (70 / 81) * np.maximum(0, 1 - np.abs(value) ** 3) ** 3
 
 
+@dataclass
 class Cosine(FiniteSmoothingKernel):
     def __call__(self, value: float) -> float:
         return np.maximum(0, np.pi / 4 * np.cos(np.pi / 2 * value))
@@ -585,7 +583,7 @@ TricubeKernel = Tricube()
 CosineKernel = Cosine()
 
 
-@dataclass(init=False, repr=False)
+@dataclass(init=False)
 class Smooth(Waveform):
     """
     ```bnf
@@ -662,11 +660,8 @@ class Smooth(Waveform):
         else:
             raise ValueError(f"Invalid kernel: {self.kernel}")
 
-    def __str__(self):
-        return f"Smooth(kernel={str(self.kernel)}, waveform={str(self.waveform)})"
 
-
-@dataclass(repr=False)
+@dataclass
 class Slice(Waveform):
     """
     ```
@@ -687,9 +682,6 @@ class Slice(Waveform):
         self._duration = self.waveform.duration[start:stop]
         return self._duration
 
-    def __str__(self):
-        return f"{str(self.waveform)}[{str(self.interval)}]"
-
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
         if clock_s > self.duration(**kwargs):
             return Decimal(0)
@@ -706,7 +698,7 @@ class Slice(Waveform):
         return [self.waveform, self.interval]
 
 
-@dataclass(repr=False)
+@dataclass
 class Append(Waveform):
     """
     ```bnf
@@ -739,9 +731,6 @@ class Append(Waveform):
 
         return Decimal(0)
 
-    def __str__(self):
-        return f"waveform.Append(waveforms={str(self.waveforms)})"
-
     def print_node(self):
         return "Append"
 
@@ -749,7 +738,7 @@ class Append(Waveform):
         return self.waveforms
 
 
-@dataclass(repr=False)
+@dataclass
 class Negative(Waveform):
     """
     ```bnf
@@ -771,9 +760,6 @@ class Negative(Waveform):
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
         return -self.waveform.eval_decimal(clock_s, **kwargs)
 
-    def __str__(self):
-        return f"-({str(self.waveform)})"
-
     def print_node(self):
         return "Negative"
 
@@ -781,7 +767,7 @@ class Negative(Waveform):
         return [self.waveform]
 
 
-@dataclass(init=False, repr=False)
+@dataclass(init=False)
 class Scale(Waveform):
     """
     ```bnf
@@ -808,9 +794,6 @@ class Scale(Waveform):
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
         return self.scalar(**kwargs) * self.waveform.eval_decimal(clock_s, **kwargs)
 
-    def __str__(self):
-        return f"({str(self.scalar)} * {str(self.waveform)})"
-
     def print_node(self):
         return "Scale"
 
@@ -818,7 +801,7 @@ class Scale(Waveform):
         return [self.scalar, self.waveform]
 
 
-@dataclass(repr=False)
+@dataclass
 class Add(Waveform):
     """
     ```bnf
@@ -841,9 +824,6 @@ class Add(Waveform):
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
         return self.left(clock_s, **kwargs) + self.right(clock_s, **kwargs)
 
-    def __str__(self):
-        return f"({str(self.left)} + {str(self.right)})"
-
     def print_node(self):
         return "+"
 
@@ -851,7 +831,7 @@ class Add(Waveform):
         return [self.left, self.right]
 
 
-@dataclass(repr=False)
+@dataclass
 class Record(Waveform):
     """
     ```bnf
@@ -880,16 +860,13 @@ class Record(Waveform):
     def children(self):
         return {"Waveform": self.waveform, "Variable": self.var}
 
-    def __str__(self):
-        return f"Record({str(self.waveform)}, {str(self.var)})"
-
 
 class Interpolation(str, Enum):
     Linear = "linear"
     Constant = "constant"
 
 
-@dataclass(repr=False)
+@dataclass
 class Sample(Waveform):
     """
     ```bnf

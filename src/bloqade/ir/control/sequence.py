@@ -22,7 +22,7 @@ class LevelCoupling:
     def children(self):
         return []
 
-    def __repr__(self) -> str:
+    def __str__(self) -> str:
         ph = Printer()
         ph.print(self)
         return ph.get_value()
@@ -30,23 +30,18 @@ class LevelCoupling:
     def _repr_pretty_(self, p, cycle):
         Printer(p).print(self, cycle)
 
-    pass
+    def __eq__(self, other):
+        return self.__class__ == other.__class__
 
 
 @dataclass(frozen=True)
 class RydbergLevelCoupling(LevelCoupling):
-    def __str__(self):
-        return "rydberg"
-
     def print_node(self):
         return "RydbergLevelCoupling"
 
 
 @dataclass(frozen=True)
 class HyperfineLevelCoupling(LevelCoupling):
-    def __str__(self):
-        return "hyperfine"
-
     def print_node(self):
         return "HyperfineLevelCoupling"
 
@@ -70,7 +65,7 @@ class SequenceExpr:
     def canonicalize(expr: "SequenceExpr") -> "SequenceExpr":
         return expr
 
-    def __repr__(self) -> str:
+    def __str__(self) -> str:
         ph = Printer()
         ph.print(self)
         return ph.get_value()
@@ -90,19 +85,16 @@ class SequenceExpr:
 
 @dataclass
 class Append(SequenceExpr):
-    value: List[SequenceExpr]
-
-    def __str__(self):
-        return f"sequence.Append(value={str(self.value)})"
+    sequences: List[SequenceExpr]
 
     def children(self):
-        return self.value
+        return self.sequences
 
     def print_node(self):
         return "Append"
 
 
-@dataclass(init=False, repr=False)
+@dataclass(init=False)
 class Sequence(SequenceExpr):
     """Sequence of a program, which includes pulses informations."""
 
@@ -129,15 +121,9 @@ class Sequence(SequenceExpr):
     def __call__(self, clock_s: float, level_coupling: LevelCoupling, *args, **kwargs):
         return self.pulses[level_coupling](clock_s, *args, **kwargs)
 
-    def __str__(self):
-        return f"Sequence({str(self.pulses)})"
-
     # return annotated version
     def children(self):
-        return {
-            level_coupling.print_node(): pulse_expr
-            for level_coupling, pulse_expr in self.pulses.items()
-        }
+        return {k.print_node(): v for k, v in self.pulses.items()}
 
     def print_node(self):
         return "Sequence"
@@ -165,9 +151,6 @@ class NamedSequence(SequenceExpr):
     sequence: SequenceExpr
     name: str
 
-    def __str__(self):
-        return f"NamedSequence(sequence, name='{str(self.name)}')"
-
     def children(self):
         return {"sequence": self.sequence, "name": self.name}
 
@@ -184,13 +167,10 @@ class NamedSequence(SequenceExpr):
         display_ir(self, assignments)
 
 
-@dataclass(repr=False)
+@dataclass
 class Slice(SequenceExpr):
     sequence: SequenceExpr
     interval: Interval
-
-    def __str__(self):
-        return f"Sequence[{str(self.interval)}]"
 
     def children(self):
         return {"sequence": self.sequence, "interval": self.interval}

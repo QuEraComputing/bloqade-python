@@ -16,6 +16,9 @@ import pytest
 from bloqade import cast
 from io import StringIO
 from IPython.lib.pretty import PrettyPrinter as PP
+import bloqade.ir.tree_print as trp
+
+trp.color_enabled = False
 
 
 def test_lvlcouple_base():
@@ -27,7 +30,6 @@ def test_lvlcouple_hf():
     lc = hyperfine
 
     assert lc.print_node() == "HyperfineLevelCoupling"
-    assert str(lc) == "hyperfine"
 
     mystdout = StringIO()
     p = PP(mystdout)
@@ -40,7 +42,6 @@ def test_lvlcouple_ryd():
     lc = rydberg
 
     assert lc.print_node() == "RydbergLevelCoupling"
-    assert str(lc) == "rydberg"
 
     mystdout = StringIO()
     p = PP(mystdout)
@@ -49,7 +50,7 @@ def test_lvlcouple_ryd():
     assert mystdout.getvalue() == "RydbergLevelCoupling\n"
 
 
-def test_seqence():
+def test_sequence():
     # seq empty
     seq = Sequence()
     assert seq.pulses == {}
@@ -70,11 +71,68 @@ def test_seqence():
     assert seq_full.children() == {"RydbergLevelCoupling": ps}
     assert seq_full.print_node() == "Sequence"
 
+    mystdout = StringIO()
+    p = PP(mystdout)
+    seq_full._repr_pretty_(p, 10)
+
+    assert (
+        mystdout.getvalue() == "Sequence\n"
+        "└─ RydbergLevelCoupling\n"
+        "   ⇒ Pulse\n"
+        "     └─ Detuning\n"
+        "        ⇒ Field\n"
+        "          └─ Drive\n"
+        "             ├─ modulation\n"
+        "             │  ⇒ UniformModulation\n"
+        "             └─ waveform\n"
+        "                ⇒ Linear\n"
+        "                  ├─ start\n"
+        "                  │  ⇒ Literal: 1.0\n"
+        "                  ├─ stop\n"
+        "                  │  ⇒ Variable: x\n"
+        "                  └─ duration\n"
+        "                     ⇒ Literal: 3.0"
+    )
+
+
+def test_named_sequence():
+    # seq full
+    f = Field({Uniform: Linear(start=1.0, stop="x", duration=3.0)})
+    ps = Pulse({detuning: f})
+    seq_full = Sequence({rydberg: ps})
+
     # named seq:
     named = NamedSequence(seq_full, "qq")
 
     assert named.children() == {"sequence": seq_full, "name": "qq"}
     assert named.print_node() == "NamedSequence"
+
+    mystdout = StringIO()
+    p = PP(mystdout)
+    named._repr_pretty_(p, 10)
+    print(repr(mystdout.getvalue()))
+    assert (
+        mystdout.getvalue() == "NamedSequence\n"
+        "├─ sequence\n"
+        "│  ⇒ Sequence\n"
+        "│    └─ RydbergLevelCoupling\n"
+        "│       ⇒ Pulse\n"
+        "│         └─ Detuning\n"
+        "│            ⇒ Field\n"
+        "│              └─ Drive\n"
+        "│                 ├─ modulation\n"
+        "│                 │  ⇒ UniformModulation\n"
+        "│                 └─ waveform\n"
+        "│                    ⇒ Linear\n"
+        "│                      ├─ start\n"
+        "│                      │  ⇒ Literal: 1.0\n"
+        "│                      ├─ stop\n"
+        "│                      │  ⇒ Variable: x\n"
+        "│                      └─ duration\n"
+        "│                         ⇒ Literal: 3.0\n"
+        "└─ name\n"
+        "   ⇒ qq\n"
+    )
 
 
 def test_slice_sequence():
@@ -94,21 +152,20 @@ def test_slice_sequence():
     slc._repr_pretty_(p, 2)
 
     assert (
-        mystdout.getvalue()
-        == "Slice\n"
-        + "├─ sequence\n"
-        + "│  ⇒ Sequence\n"
-        + "│    └─ RydbergLevelCoupling\n"
-        + "│       ⇒ Pulse\n"
-        + "│         └─ Detuning\n"
-        + "│            ⇒ Field\n"
-        + "⋮\n"
-        + "└─ interval\n"
-        + "   ⇒ Interval\n"
-        + "     ├─ start\n"
-        + "     │  ⇒ Literal: 0\n"
-        + "     └─ stop\n"
-        + "        ⇒ Literal: 1.5"
+        mystdout.getvalue() == "Slice\n"
+        "├─ sequence\n"
+        "│  ⇒ Sequence\n"
+        "│    └─ RydbergLevelCoupling\n"
+        "│       ⇒ Pulse\n"
+        "│         └─ Detuning\n"
+        "│            ⇒ Field\n"
+        "⋮\n"
+        "└─ interval\n"
+        "   ⇒ Interval\n"
+        "     ├─ start\n"
+        "     │  ⇒ Literal: 0\n"
+        "     └─ stop\n"
+        "        ⇒ Literal: 1.5"
     )
 
 
@@ -125,22 +182,22 @@ def test_append_sequence():
     mystdout = StringIO()
     p = PP(mystdout)
     app._repr_pretty_(p, 2)
+    print(repr(mystdout.getvalue()))
 
     assert (
-        mystdout.getvalue()
-        == "Append\n"
-        + "├─ Sequence\n"
-        + "│  └─ RydbergLevelCoupling\n"
-        + "│     ⇒ Pulse\n"
-        + "│       └─ Detuning\n"
-        + "│          ⇒ Field\n"
-        + "⋮\n"
-        + "└─ Sequence\n"
-        + "   └─ RydbergLevelCoupling\n"
-        + "      ⇒ Pulse\n"
-        + "        └─ Detuning\n"
-        + "           ⇒ Field\n"
-        + "⋮\n"
+        mystdout.getvalue() == "Append\n"
+        "├─ Sequence\n"
+        "│  └─ RydbergLevelCoupling\n"
+        "│     ⇒ Pulse\n"
+        "│       └─ Detuning\n"
+        "│          ⇒ Field\n"
+        "⋮\n"
+        "└─ Sequence\n"
+        "   └─ RydbergLevelCoupling\n"
+        "      ⇒ Pulse\n"
+        "        └─ Detuning\n"
+        "           ⇒ Field\n"
+        "⋮\n"
     )
 
 

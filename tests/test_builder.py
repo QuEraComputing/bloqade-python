@@ -133,7 +133,7 @@ def test_scale():
     seq = prog.parse_sequence()
 
     # print(type(list(seq.pulses.keys())[0]))
-    Loc1 = list(seq.pulses[rydberg].fields[detuning].value.keys())[0]
+    Loc1 = list(seq.pulses[rydberg].fields[detuning].drives.keys())[0]
 
     assert type(Loc1) == ir.ScaledLocations
     assert Loc1.value[ir.Location(1)] == cast(1.2)
@@ -159,8 +159,8 @@ def test_build_ast_Scale():
     # compile ast:
     tmp = prog.parse_sequence()
 
-    locs = list(tmp.pulses[rydberg].fields[detuning].value.keys())[0]
-    wvfm = tmp.pulses[rydberg].fields[detuning].value[locs]
+    locs = list(tmp.pulses[rydberg].fields[detuning].drives.keys())[0]
+    wvfm = tmp.pulses[rydberg].fields[detuning].drives[locs]
 
     assert locs == ir.ScaledLocations(
         {ir.Location(2): cast(3.3), ir.Location(1): cast(1.2)}
@@ -178,7 +178,7 @@ def test_spatial_var():
     # test build ast:
     seq = prog.parse_sequence()
 
-    assert seq.pulses[rydberg].fields[detuning].value[
+    assert seq.pulses[rydberg].fields[detuning].drives[
         ir.RunTimeVector("a")
     ] == ir.Constant(value=30, duration=0.1)
 
@@ -261,7 +261,7 @@ def test_record():
     assert type(prog) == waveform.Record
 
     seq = prog.parse_sequence()
-    assert seq.pulses[rydberg].fields[detuning].value[
+    assert seq.pulses[rydberg].fields[detuning].drives[
         ir.ScaledLocations({ir.Location(1): cast(1)})
     ] == ir.Record(waveform=ir.Constant(value=30, duration=0.1), var=cast("detuning"))
 
@@ -271,7 +271,7 @@ def test_hyperfine_phase():
 
     seq = prog.parse_sequence()
 
-    assert seq.pulses[hyperfine].fields[rabi.phase].value[
+    assert seq.pulses[hyperfine].fields[rabi.phase].drives[
         ir.ScaledLocations({ir.Location(1): cast(1)})
     ] == ir.Constant(value=30, duration=0.1)
 
@@ -281,7 +281,7 @@ def test_hyperfine_amplitude():
 
     seq = prog.parse_sequence()
 
-    assert seq.pulses[hyperfine].fields[rabi.amplitude].value[
+    assert seq.pulses[hyperfine].fields[rabi.amplitude].drives[
         ir.ScaledLocations({ir.Location(1): cast(1)})
     ] == ir.Constant(value=30, duration=0.1)
 

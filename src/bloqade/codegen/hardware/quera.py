@@ -418,9 +418,9 @@ class QuEraCodeGen(AnalogCircuitVisitor):
         self.post_visit_spatial_modulation(lattice_site_coefficients)
 
     def visit_detuning(self, ast: field.Field) -> Any:
-        if len(ast.value) == 1 and field.Uniform in ast.value:
+        if len(ast.drives) == 1 and field.Uniform in ast.drives:
             times, values = PiecewiseLinearCodeGen(self.assignments).visit(
-                ast.value[field.Uniform]
+                ast.drives[field.Uniform]
             )
 
             times = QuEraCodeGen.convert_time_to_SI_units(times)
@@ -429,8 +429,8 @@ class QuEraCodeGen(AnalogCircuitVisitor):
             self.detuning = task_spec.Detuning(
                 global_=task_spec.GlobalField(times=times, values=values)
             )
-        elif len(ast.value) == 1:
-            ((spatial_modulation, waveform),) = ast.value.items()
+        elif len(ast.drives) == 1:
+            ((spatial_modulation, waveform),) = ast.drives.items()
 
             times, values = PiecewiseLinearCodeGen(self.assignments).visit(waveform)
 
@@ -446,18 +446,18 @@ class QuEraCodeGen(AnalogCircuitVisitor):
                     lattice_site_coefficients=self.lattice_site_coefficients,
                 ),
             )
-        elif len(ast.value) == 2 and field.Uniform in ast.value:
+        elif len(ast.drives) == 2 and field.Uniform in ast.drives:
             # will only be two keys
-            for k in ast.value.keys():
+            for k in ast.drives.keys():
                 if k == field.Uniform:
                     global_times, global_values = PiecewiseLinearCodeGen(
                         self.assignments
-                    ).visit(ast.value[field.Uniform])
+                    ).visit(ast.drives[field.Uniform])
                 else:  # can be field.RunTimeVector or field.ScaledLocations
                     spatial_modulation = k
                     local_times, local_values = PiecewiseLinearCodeGen(
                         self.assignments
-                    ).visit(ast.value[k])
+                    ).visit(ast.drives[k])
 
             self.visit(spatial_modulation)  # just visit the non-uniform locations
 
@@ -483,9 +483,9 @@ class QuEraCodeGen(AnalogCircuitVisitor):
             )
 
     def visit_rabi_amplitude(self, ast: field.Field) -> Any:
-        if len(ast.value) == 1 and field.Uniform in ast.value:
+        if len(ast.drives) == 1 and field.Uniform in ast.drives:
             times, values = PiecewiseLinearCodeGen(self.assignments).visit(
-                ast.value[field.Uniform]
+                ast.drives[field.Uniform]
             )
 
             times = QuEraCodeGen.convert_time_to_SI_units(times)
@@ -502,9 +502,9 @@ class QuEraCodeGen(AnalogCircuitVisitor):
             )
 
     def visit_rabi_phase(self, ast: field.Field) -> Any:
-        if len(ast.value) == 1 and field.Uniform in ast.value:  # has to be global
+        if len(ast.drives) == 1 and field.Uniform in ast.drives:  # has to be global
             times, values = PiecewiseConstantCodeGen(self.assignments).visit(
-                ast.value[field.Uniform]
+                ast.drives[field.Uniform]
             )
 
             times = QuEraCodeGen.convert_time_to_SI_units(times)

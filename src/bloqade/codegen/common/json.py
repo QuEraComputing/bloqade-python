@@ -387,7 +387,7 @@ class AnalogCircuitSerializer(AnalogCircuitVisitor):
     def visit_field(self, ast: field.Field) -> Any:
         return {
             "field": {
-                "value": [(self.visit(k), self.visit(v)) for k, v in ast.value.items()]
+                "value": [(self.visit(k), self.visit(v)) for k, v in ast.drives.items()]
             }
         }
 

@@ -1,24 +1,20 @@
 # from numbers import Real
-from typing import TYPE_CHECKING, Union
 from bloqade.visualization import display_ir
-
-if TYPE_CHECKING:
-    from bloqade.ir.location.base import AtomArrangement, ParallelRegister
-    from bloqade.ir import Sequence
+from bloqade.ir.control.sequence import SequenceExpr
+from bloqade.ir.location.base import AtomArrangement, ParallelRegister
+from bloqade.ir.tree_print import Printer
+from beartype.typing import Union
+from pydantic.dataclasses import dataclass
 
 
 # NOTE: this is just a dummy type bundle geometry and sequence
 #       information together and forward them to backends.
+@dataclass(frozen=True)
 class AnalogCircuit:
     """AnalogCircuit is a dummy type that bundle register and sequence together."""
 
-    def __init__(
-        self,
-        register: Union["AtomArrangement", "ParallelRegister"],
-        sequence: "Sequence",
-    ):
-        self._sequence = sequence
-        self._register = register
+    atom_arrangement: Union[ParallelRegister, AtomArrangement]
+    sequence: SequenceExpr
 
     @property
     def register(self):
@@ -35,19 +31,7 @@ class AnalogCircuit:
             Otherwise it will be a
             [`AtomArrangement`][bloqade.ir.location.base.AtomArrangement].
         """
-        return self._register
-
-    @property
-    def sequence(self):
-        """Get the sequence of the program.
-
-
-        Returns:
-            Sequence: the sequence of the program.
-                See also [`Sequence`][bloqade.ir.control.sequence.Sequence].
-
-        """
-        return self._sequence
+        return self.atom_arrangement
 
     def __eq__(self, other):
         if isinstance(other, AnalogCircuit):
@@ -57,22 +41,30 @@ class AnalogCircuit:
 
         return False
 
-    def __repr__(self):
-        # TODO: add repr for static_params, batch_params and order
+    def __str__(self):
         out = ""
-        if self._register is not None:
-            out += self._register.__repr__()
+        if self.register is not None:
+            out += self.register.__str__()
 
         out += "\n"
 
-        if self._sequence is not None:
-            out += self._sequence.__repr__()
+        if self.sequence is not None:
+            out += self.sequence.__str__()
 
         return out
 
+    def print_node(self):
+        return "AnalogCircuit"
+
+    def children(self):
+        return {"register": self.atom_arrangement, "sequence": self.sequence}
+
+    def _repr_pretty_(self, p, cycle):
+        Printer(p).print(self, cycle)
+
     def figure(self, **assignments):
-        fig_reg = self._register.figure(**assignments)
-        fig_seq = self._sequence.figure(**assignments)
+        fig_reg = self.register.figure(**assignments)
+        fig_seq = self.sequence.figure(**assignments)
         return fig_seq, fig_reg
 
     def show(self, **assignments):

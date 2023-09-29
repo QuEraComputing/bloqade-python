@@ -3,6 +3,11 @@ from bloqade.ir.location import Square, Rectangular
 import random
 import numpy as np
 import os
+import bloqade.ir.tree_print as trp
+
+
+trp.color_enabled = False
+
 
 PROJECT_RELATIVE_PPRINT_TESTS_OUTPUT_PATH = os.path.join(
     os.getcwd(), "tests/data/expected_pprint_output"
@@ -25,17 +30,31 @@ def test_list_of_locations_pprint():
         list_of_locations_pprint_output_path, "r"
     ).read()
 
-    assert repr(start.add_position(rand_positions)) == list_of_locations_pprint_output
+    assert str(start.add_position(rand_positions)) == list_of_locations_pprint_output
 
     var1 = cast("var1")
     var2 = cast("var2")
     var3 = cast("var3")
 
-    assert repr(start.add_position([(var1, var2), (var3, 5), (0, 9)])) == (
-        "[LocationInfo(position=(var(var1), var(var2)), "
-        "filling=<SiteFilling.filled: 1>), "
-        "LocationInfo(position=(var(var3), 5), filling=<SiteFilling.filled: 1>), "
-        "LocationInfo(position=(0, 9), filling=<SiteFilling.filled: 1>)]"
+    variable_list_of_locations = start.add_position([(var1, var2), (var3, 5), (0, 9)])
+
+    assert str(variable_list_of_locations) == (
+        "AtomArrangement\n"
+        "├─ Location: filled\n"
+        "│  ├─ x\n"
+        "│  │  ⇒ Variable: var1\n"
+        "│  └─ y\n"
+        "│     ⇒ Variable: var2\n"
+        "├─ Location: filled\n"
+        "│  ├─ x\n"
+        "│  │  ⇒ Variable: var3\n"
+        "│  └─ y\n"
+        "│     ⇒ Literal: 5\n"
+        "└─ Location: filled\n"
+        "   ├─ x\n"
+        "   │  ⇒ Literal: 0\n"
+        "   └─ y\n"
+        "      ⇒ Literal: 9"
     )
 
 
@@ -46,7 +65,7 @@ def test_square_pprint():
     )
     square_pprint_output = open(square_pprint_output_path, "r").read()
 
-    assert repr(Square(7)) == square_pprint_output
+    assert str(Square(7)) == square_pprint_output
 
     # apply defect count
     square_pprint_defect_count_output_path = os.path.join(
@@ -57,7 +76,7 @@ def test_square_pprint():
         square_pprint_defect_count_output_path, "r"
     ).read()
     assert (
-        repr(Square(7).apply_defect_count(21, np.random.default_rng(1337)))
+        str(Square(7).apply_defect_count(21, np.random.default_rng(1337)))
         == square_pprint_defect_count_output
     )
 
@@ -71,7 +90,7 @@ def test_square_pprint():
     ).read()
 
     assert (
-        repr(Square(7).apply_defect_density(0.5, np.random.default_rng(1337)))
+        str(Square(7).apply_defect_density(0.5, np.random.default_rng(1337)))
         == square_pprint_defect_density_output
     )
 
@@ -82,7 +101,7 @@ def test_square_pprint():
     square_pprint_var_output = open(square_pprint_var_output_path, "r").read()
 
     bl = cast("bl")
-    assert repr(Square(7, bl)) == square_pprint_var_output
+    assert str(Square(7, bl)) == square_pprint_var_output
 
 
 def test_rectangular_pprint():
@@ -91,7 +110,7 @@ def test_rectangular_pprint():
     )
     rectangular_pprint_output = open(rectangular_pprint_output_path, "r").read()
 
-    assert repr(Rectangular(7, 5)) == rectangular_pprint_output
+    assert str(Rectangular(7, 5)) == rectangular_pprint_output
 
     rectangular_pprint_defect_count_output_path = os.path.join(
         PROJECT_RELATIVE_PPRINT_TESTS_OUTPUT_PATH,
@@ -102,7 +121,7 @@ def test_rectangular_pprint():
     ).read()
 
     assert (
-        repr(Rectangular(7, 5).apply_defect_count(15, np.random.default_rng(1337)))
+        str(Rectangular(7, 5).apply_defect_count(15, np.random.default_rng(1337)))
         == rectangular_pprint_defect_count_output
     )
 
@@ -115,13 +134,6 @@ def test_rectangular_pprint():
     ).read()
 
     assert (
-        repr(Rectangular(7, 5).apply_defect_density(0.5, np.random.default_rng(1337)))
+        str(Rectangular(7, 5).apply_defect_density(0.5, np.random.default_rng(1337)))
         == rectangular_pprint_defect_density_output
-    )
-
-    x_spacing = cast("x_spacing")
-    assert repr(Rectangular(7, 5, x_spacing)) == (
-        "Rectangular(shape=(7, 5), "
-        "lattice_spacing=var(x_spacing), "
-        "ratio=(1.0 / var(x_spacing)))"
     )
