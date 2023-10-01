@@ -2,8 +2,7 @@ import bloqade.ir.control.waveform as waveform
 import bloqade.ir.control.field as field
 import bloqade.ir.control.pulse as pulse
 import bloqade.ir.control.sequence as sequence
-import bloqade.ir.analog_circuit as analog_circuit
-from bloqade.ir.control.waveform import Append, Record, Sample, Scale, Slice, Smooth
+import bloqade.ir.analog_circuit as analog_circuit 
 from bloqade.ir.visitor.waveform import WaveformVisitor
 from bloqade.ir.visitor.analog_circuit import AnalogCircuitVisitor
 from decimal import Decimal
