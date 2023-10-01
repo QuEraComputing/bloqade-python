@@ -5,8 +5,8 @@ from bloqade.ir import AtomArrangement, ParallelRegister, Sequence
 from bloqade.builder.base import Builder
 from bloqade.ir.routine.params import Params
 
-
-from dataclasses import dataclass
+from pydantic import ConfigDict
+from pydantic.dataclasses import dataclass
 from typing import TYPE_CHECKING, Union
 
 if TYPE_CHECKING:
@@ -29,7 +29,10 @@ class RoutineParse:
         return self
 
 
-@dataclass(frozen=True)
+__pydantic_dataclass_config__ = ConfigDict(arbitrary_types_allowed=True)
+
+
+@dataclass(frozen=True, config=__pydantic_dataclass_config__)
 class RoutineBase(RoutineParse):
     source: Builder
     circuit: AnalogCircuit
@@ -43,7 +46,7 @@ class RoutineBase(RoutineParse):
         return out
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, config=__pydantic_dataclass_config__)
 class Routine(RoutineBase):
     """Result of parsing a completed Builder string."""
 

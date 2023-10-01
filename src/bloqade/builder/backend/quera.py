@@ -100,7 +100,7 @@ class QuEraDeviceRoute(Builder):
         """
         return self.parse().quera.cloud_mock()
 
-    def mock(self, state_file: str = ".mock_state.txt"):
+    def mock(self, state_file: str = ".mock_state.txt", submission_error: bool = False):
         """
         Specify mock, testing locally.
 
@@ -123,4 +123,6 @@ class QuEraDeviceRoute(Builder):
 
 
         """
-        return self.parse().quera.mock(state_file)
+        return self.parse().quera.mock(
+            state_file=state_file, submission_error=submission_error
+        )

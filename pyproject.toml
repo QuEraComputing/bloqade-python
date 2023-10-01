@@ -1,6 +1,6 @@
 [project]
 name = "bloqade"
-version = "0.5.1"
+version = "0.6.0"
 description = "Neutral atom software development kit"
 authors = [
     {name = "QuEra Computing Inc.", email = "info@quera.com"},
@@ -17,7 +17,7 @@ classifiers = [
 dependencies = [
     "juliacall>=0.9.14",
     "numpy>=1.25.2",
-    "pydantic>=1.10.12",
+    "pydantic>=1.10.13",
     "scipy>=1.9.3",
     "pandas>=2.1.0",
     "bokeh>=3.2.2",

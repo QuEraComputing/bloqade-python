@@ -1,14 +1,20 @@
 from bloqade.ir import var, cast, Variable, Literal, start
+from bloqade.ir import to_waveform as waveform
 from bloqade.serialize import load, save, loads, dumps
 
-from bloqade.builder.factory import (
+from bloqade.factory import (
     piecewise_linear,
     piecewise_constant,
     linear,
     constant,
+    rydberg_h,
 )
 import bloqade.ir as _ir
 from bloqade.constants import RB_C6
+
+import importlib.metadata
+
+__version__ = importlib.metadata.version("bloqade")
 
 
 def tree_depth(depth: int = None):
@@ -44,4 +50,6 @@ __all__ = [
     "save",
     "loads",
     "dumps",
+    "rydberg_h",
+    "waveform",
 ]
