@@ -197,8 +197,8 @@ class Rabi(Builder):
 
         Next steps to build your program focus on specifying a spatial
         modulation.
-        
-        The spatial modulation, when coupled with a waveform, completes the 
+
+        The spatial modulation, when coupled with a waveform, completes the
         specification of a "Drive". One or more drives can be summed together
         automatically to create a field such as the Rabi Amplitude here.
 
@@ -206,9 +206,9 @@ class Rabi(Builder):
             - |_ `...amplitude.uniform`: address all atoms in the field
             - |_ `...amplitude.location(int)`: address a specific atom by its
                 index
-            - |_ `...amplitude.var(str)`: Address a single atom 
+            - |_ `...amplitude.var(str)`: Address a single atom
                 (or multiple via assigning a list of values)
-        
+
         """
         return RabiAmplitude(self)
 
@@ -219,8 +219,8 @@ class Rabi(Builder):
 
         Next steps to build your program focus on specifying a spatial
         modulation.
-        
-        The spatial modulation, when coupled with a waveform, completes the 
+
+        The spatial modulation, when coupled with a waveform, completes the
         specification of a "Drive". One or more drives can be summed together
         automatically to create a field such as the Rabi Phase here.
 
@@ -228,9 +228,9 @@ class Rabi(Builder):
             - |_ `...amplitude.uniform`: address all atoms in the field
             - |_ `...amplitude.location(int)`: address a specific atom by its
                 index
-            - |_ `...amplitude.var(str)`: Address a single atom 
+            - |_ `...amplitude.var(str)`: Address a single atom
                 (or multiple via assigning a list of values)
-        
+
         """
         return RabiPhase(self)
 
