@@ -610,6 +610,7 @@ class WaveformAttachable(Builder):
         >>> assigned_vars_prog = prog.assign(arg1 = 1.0, arg2 = 2.0)
         # or go for batching!
         >>> assigned_vars_batch_prog = prog.assign(arg1 = 1.0, arg2 = [1.0, 2.0, 3.0])
+        ```
 
         - Your next steps include:
         - Continue building your waveform via:
@@ -820,6 +821,7 @@ class Recordable:
         >>> prog_with_record = prog_with_wf.slice(0.0, 1.0).record("end_of_wf")
         >>> record_applied_prog = prog_with_record.linear(start="end_of_wf"
         , stop=0.0, duration=0.3)
+        ```
 
         - Your next steps include:
         - Continue building your waveform via:
