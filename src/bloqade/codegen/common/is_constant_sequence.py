@@ -8,13 +8,13 @@ from bloqade.ir.visitor.analog_circuit import AnalogCircuitVisitor
 from decimal import Decimal
 from beartype.typing import Any, Dict
 from beartype import beartype
-from pydantic.dataclasses import dataclasss
+from pydantic.dataclasses import dataclass
 
 
-@dataclasss(frozen=True)
+@dataclass(frozen=True)
 class IsConstantWaveformResult:
     is_constant: bool
-    effective_waveform: waveform.Constant
+    constant_waveform: waveform.Constant
 
 
 class IsConstantWaveform(WaveformVisitor):
@@ -66,13 +66,13 @@ class IsConstantWaveform(WaveformVisitor):
 
     def visit_append(self, ast: waveform.Append) -> Any:
         value = None
-        for waveform in ast.waveforms:
-            result = IsConstantWaveform(self.assignments).emit(waveform)
+        for wf in ast.waveforms:
+            result = IsConstantWaveform(self.assignments).emit(wf)
             if value is None:
-                value = result.effective_waveform.value
+                value = result.constant_waveform.value
 
             self.is_constant = (self.is_constant and result.is_constant) and (
-                result.effective_waveform.value == value
+                result.constant_waveform.value == value
             )
 
     def emit(self, ast: waveform.Waveform) -> IsConstantWaveformResult:
@@ -83,3 +83,47 @@ class IsConstantWaveform(WaveformVisitor):
         wf = waveform.Constant(value, duration)
 
         return IsConstantWaveformResult(self.is_constant, wf)
+
+
+@dataclass(frozen=True)
+class IsConstantAnalogCircuitResult:
+    is_constant: bool
+    effective_analog_circuit: analog_circuit.AnalogCircuit
+
+
+class IsConstantAnalogCircuit(AnalogCircuitVisitor):
+    @beartype
+    def __init__(self, assignments: Dict[str, Decimal]) -> None:
+        self.assignments = dict(assignments)
+        self.is_constant = True
+
+    def visit_waveform(self, ast: waveform.Waveform):
+        result = IsConstantWaveform(self.assignments).emit(ast)
+        self.is_constant = self.is_constant and result.is_constant
+        self.waveform = result.constant_waveform
+
+    def visit_field(self, ast: field.Field) -> Any:
+        self.field = field.Field({})
+        for sm, wf in ast.drives.items():
+            self.visit(wf)
+            self.field = self.field.add(field.Field({sm: self.waveform}))
+
+    def visit_pulse(self, ast: pulse.Pulse) -> pulse.Pulse:
+        self.pulse = pulse.Pulse({})
+        for fn, fd in ast.fields.items():
+            self.visit(fd)
+            self.pulse.fields[fn] = self.field
+
+    def visit_sequence(self, ast: sequence.Sequence) -> sequence.Sequence:
+        self.sequence = sequence.Sequence({})
+        for pn, ps in ast.pulses.items():
+            self.visit(ps)
+            self.sequence.pulses[pn] = self.pulse
+
+    def visit_analog_circuit(self, ast: analog_circuit.AnalogCircuit) -> Any:
+        self.visit(ast.sequence)
+        self.analog_circuit = analog_circuit.AnalogCircuit(ast.register, self.sequence)
+
+    def emit(self, ast: analog_circuit.AnalogCircuit) -> IsConstantAnalogCircuitResult:
+        self.visit(ast)
+        return IsConstantAnalogCircuitResult(self.is_constant, self.analog_circuit)
