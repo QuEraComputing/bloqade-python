@@ -112,19 +112,19 @@ class Field(Builder):
         ```
 
         - You can now do:
-            - |_ `...location(int).linear(start, stop, duration)` : to apply
+            - |_ `...var(str).linear(start, stop, duration)` : to apply
                 a linear waveform
-            - |_ `...location(int).constant(value, duration)` : to apply
+            - |_ `...var(str).constant(value, duration)` : to apply
                 a constant waveform
-            - |_ `...location(int).poly([coefficients], duration)` : to apply
+            - |_ `...var(str).poly([coefficients], duration)` : to apply
                 a polynomial waveform
-            - |_ `...location(int).apply(wf:bloqade.ir.Waveform)`: to apply
+            - |_ `...var(str).apply(wf:bloqade.ir.Waveform)`: to apply
                 a pre-defined waveform
-            - |_ `...location(int).piecewise_linear(durations, values)`:  to
+            - |_ `...var(str).piecewise_linear(durations, values)`:  to
                 apply a piecewise linear waveform
-            - |_ `...location(int).piecewise_constant(durations, values)`: to
+            - |_ `...var(str).piecewise_constant(durations, values)`: to
                 apply a piecewise constant waveform
-            - |_ `...location(int).fn(f(t,..))`: to apply a function as a waveform
+            - |_ `...var(str).fn(f(t,..))`: to apply a function as a waveform
 
         """
         from bloqade.builder.spatial import Var
@@ -193,74 +193,44 @@ class Rabi(Builder):
     @property
     def amplitude(self) -> "RabiAmplitude":
         """
-        - Specify the real-valued Rabi Amplitude field.
-        - Next steps
-        """
-        """
-        - Specify the amplitude of the rabi field.
-        - Next-step: <SpacialModulation>
-        - Possible Next:
+        Specify the real-valued Rabi Amplitude field.
 
-            -> `...amplitude.location(int)`
-                :: Address atom at specific location
+        Next steps to build your program focus on specifying a spatial
+        modulation.
+        
+        The spatial modulation, when coupled with a waveform, completes the 
+        specification of a "Drive". One or more drives can be summed together
+        automatically to create a field such as the Rabi Amplitude here.
 
-            -> `...amplitude.uniform`
-                :: Address all atoms in register
-
-            -> `...amplitude.var(str)`
-                :: Address atom at location labeled by variable
-
-
-        Examples:
-
-            - rydberg coupling rabi amplitude
-            (See also [`RabiAmplitude`][bloqade.builder.field.RabiAmplitude])
-
-            >>> ryd_rabi = bloqade.start.rydberg.rabi
-            >>> ryd_rabi_amp = ryd_rabi.amplitude
-
-
-            - hyperfine coupling rabi amplitude
-            (See also [`RabiAmplitude`][bloqade.builder.field.RabiAmplitude])
-
-            >>> hyp_rabi = bloqade.start.hyperfine.rabi
-            >>> hyp_rabi_amp = hyp_rabi.amplitude
-
+        - You can now
+            - |_ `...amplitude.uniform`: address all atoms in the field
+            - |_ `...amplitude.location(int)`: address a specific atom by its
+                index
+            - |_ `...amplitude.var(str)`: Address a single atom 
+                (or multiple via assigning a list of values)
+        
         """
         return RabiAmplitude(self)
 
     @property
     def phase(self) -> "RabiPhase":
         """
-        - Specify the phase of the rabi field.
-        - Next-step: <SpacialModulation>
-        - Possible Next:
+        Specify the real-valued Rabi Phase field.
 
-            -> `...phase.location(int)`
-                :: Address atom at specific location
+        Next steps to build your program focus on specifying a spatial
+        modulation.
+        
+        The spatial modulation, when coupled with a waveform, completes the 
+        specification of a "Drive". One or more drives can be summed together
+        automatically to create a field such as the Rabi Phase here.
 
-            -> `...phase.uniform`
-                :: Address all atoms in register
-
-            -> `...phase.var(str)`
-                :: Address atom at location labeled by variable
-
-
-        Examples:
-
-            - rydberg coupling rabi phase
-            (See also [`RabiPhase`][bloqade.builder.field.RabiPhase])
-
-            >>> ryd_rabi = bloqade.start.rydberg.rabi
-            >>> ryd_rabi_ph = ryd_rabi.phase
-
-
-            - hyperfine coupling rabi phase
-            (See also [`RabiPhase`][bloqade.builder.field.RabiPhase])
-
-            >>> hyp_rabi = bloqade.start.hyperfine.rabi
-            >>> hyp_rabi_ph = hyp_rabi.phase
-
+        - You can now
+            - |_ `...amplitude.uniform`: address all atoms in the field
+            - |_ `...amplitude.location(int)`: address a specific atom by its
+                index
+            - |_ `...amplitude.var(str)`: Address a single atom 
+                (or multiple via assigning a list of values)
+        
         """
         return RabiPhase(self)
 
