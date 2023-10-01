@@ -15,15 +15,25 @@ class WaveformAttachable(Builder):
         self, start: ScalarType, stop: ScalarType, duration: ScalarType
     ) -> "Linear":
         """
-        - Append or assign a linear waveform to the current location(s)
-            - If you specified a spatial modulation (e.g. `uniform`, `location`,
-              `var`) previously without a waveform:
-                - You will now complete the construction of a "drive", one or a sum of
-                  drives creating a "field" (e.g. Real-valued Rabi Amplitude/Phase)
-            - If you have already specified a waveform previously:
-                - You will now be appending this waveform to that previous waveform
-                  or other options below:
-        - You can:
+
+        Append or assign a linear waveform to the current location(s).
+
+        If you specified a spatial modulation (e.g. `uniform`, `location`,`var`)
+        previously without a waveform you will now have completed the construction
+        of a "drive", one or a sum of drives creating a "field"
+        (e.g. Real-valued Rabi Amplitude/Phase).
+
+        If you have already specified a waveform previously you will now be appending
+        this waveform to that previous waveform.
+
+        Usage Example:
+        ```
+        >>> prog = start.add_position((0,0)).rydberg.detuning.uniform
+        # apply a linear waveform that goes from 0 to 1 radians/us in 0.5 us
+        >>> prog.linear(start=0,stop=1,duration=0.5)
+        ```
+
+        - Your next steps include:
         - Continue building your waveform via:
             - |_ `...linear(start, stop, duration).linear(start, stop, duration)`:
                 to append another linear waveform
@@ -47,9 +57,9 @@ class WaveformAttachable(Builder):
             (this drive will be summed to the one you just created):
             - |_ `...linear(start, stop, duration).uniform`:
                 To address all atoms in the field
-            - |_ `...linear(start, stop, duration).var`:
+            - |_ `...linear(start, stop, duration).location(int)`:
                 To address an atom at a specific location via index
-            - |_ `...linear(start, stop, duration).detuning`
+            - |_ `...linear(start, stop, duration).var(str)`
                 - |_ To address an atom at a specific location via variable
                 - |_ To address multiple atoms at specific locations by specifying
                     a single variable and then assigning it a list of coordinates
@@ -86,12 +96,6 @@ class WaveformAttachable(Builder):
                 to target the Detuning field
             - |_ `...linear(start, stop, duration).rabi`:
                 to target the complex-valued Rabi field
-
-
-        Usage Example:
-        >>> prog = start.add_position((0,0)).rydberg.detuning.uniform
-        # apply a linear waveform that goes from 0 to 1 radians/us in 0.5 us
-        >>> prog.linear(start=0,stop=1,duration=0.5)
         """
 
         return Linear(start, stop, duration, self)
@@ -99,16 +103,24 @@ class WaveformAttachable(Builder):
     @beartype
     def constant(self, value: ScalarType, duration: ScalarType) -> "Constant":
         """
-        - Append or assign a constant waveform to the current location(s)
-            - If you specified a spatial modulation (e.g. `uniform`, `location`,
-              `var`) previously without a waveform:
-                - You will now complete the construction of a "drive", one or
-                  a sum of drives creating a "field" (e.g. Real-valued Rabi
-                  Amplitude/Phase)
-            - If you have already specified a waveform previously:
-                - You will now be appending this waveform to that previous
-                  waveform or other options below:
-        - You can:
+        Append or assign a constant waveform to the current location(s).
+
+        If you specified a spatial modulation (e.g. `uniform`, `location`,`var`)
+        previously without a waveform you will now have completed the construction
+        of a "drive", one or a sum of drives creating a "field"
+        (e.g. Real-valued Rabi Amplitude/Phase).
+
+        If you have already specified a waveform previously you will now be appending
+        this waveform to that previous waveform.
+
+        Usage Example:
+        ```
+        >>> prog = start.add_position((0,0)).rydberg.detuning.uniform
+        # apply a constant waveform of 1.9 radians/us for 0.5 us
+        >>> prog.constant(value=1.9,duration=0.5)
+        ```
+
+        - Your next steps include:
         - Continue building your waveform via:
             - |_ `...constant(value, duration).linear(start, stop, duration)`:
                 to append another linear waveform
@@ -172,31 +184,40 @@ class WaveformAttachable(Builder):
             - |_ `...constant(value, duration).rabi`:
                 to target the complex-valued Rabi field
 
-
-        Usage Example:
-        >>> prog = start.add_position((0,0)).rydberg.detuning.uniform
-        # apply a constant waveform of 1.9 radians/us for 0.5 us
-        >>> prog.constant(value=1.9,duration=0.5)
         """
         return Constant(value, duration, self)
 
     @beartype
     def poly(self, coeffs: List[ScalarType], duration: ScalarType) -> "Poly":
         """
-         - Append or assign a waveform with a polynomial profile to current location(s)
-         - You pass in a list of coefficients and a duration to this method
-           which obeys the following expression:
-            `
-            wv(t) = coeffs[0] + coeffs[1]*t + coeffs[2]*t^2 + ... + coeffs[n]*t^n
-            `
-            - If you specified a spatial modulation (e.g. `uniform`, `location`, `var`)
-              previously without a waveform:
-                - You will now complete the construction of a "drive", one or a sum of
-                  drives creating a "field" (e.g. Real-valued Rabi Amplitude/Phase)
-            - If you have already specified a waveform previously:
-                - You will now be appending this waveform to that previous waveform
-                  or other options below:
-        - You can:
+        Append or assign a waveform with a polynomial profile to current location(s).
+
+        You pass in a list of coefficients and a duration to this method which obeys
+        the following expression:
+
+        `
+        wv(t) = coeffs[0] + coeffs[1]*t + coeffs[2]*t^2 + ... + coeffs[n]*t^n
+        `
+
+        If you specified a spatial modulation (e.g. `uniform`, `location`,`var`)
+        previously without a waveform you will now have completed the construction
+        of a "drive", one or a sum of drives creating a "field"
+        (e.g. Real-valued Rabi Amplitude/Phase).
+
+        If you have already specified a waveform previously you will now be appending
+        this waveform to that previous waveform.
+
+        Usage Example:
+        ```
+        >>> prog = start.add_position((0,0)).rydberg.detuning.uniform
+        >>> coeffs = [-1, 0.5, 1.2]
+        # resulting polynomial is:
+        # f(t) = -1 + 0.5*t + 1.2*t^2 with duration of
+        # 0.5 us
+        >>> prog.poly(coeffs, duration=0.5)
+        ```
+
+        - Your next steps include:
         - Continue building your waveform via:
             - |_ `...poly([coeffs], duration).linear(start, stop, duration)`:
                 to append another linear waveform
@@ -220,9 +241,9 @@ class WaveformAttachable(Builder):
           (this drive will be summed to the one you just created):
             -|_ `...poly([coeffs], duration).uniform`:
                 To address all atoms in the field
-            -|_ `...poly([coeffs], duration).var`:
+            -|_ `...poly([coeffs], duration).location(int)`:
                 To address an atom at a specific location via index
-            -|_ `...poly([coeffs], duration).detuning`
+            -|_ `...poly([coeffs], duration).var(str)`
                 - |_ To address an atom at a specific location via variable
                 - |_ To address multiple atoms at specific locations by
                     specifying a single variable and then assigning
@@ -260,34 +281,34 @@ class WaveformAttachable(Builder):
                 to target the Detuning field
             - |_ `...poly([coeffs], duration).rabi`:
                 to target the complex-valued Rabi field
-
-        Usage Example:
-        ```
-        >>> prog = start.add_position((0,0)).rydberg.detuning.uniform
-        >>> coeffs = [-1, 0.5, 1.2]
-        # resulting polynomial is:
-        # f(t) = -1 + 0.5*t + 1.2*t^2 with duration of
-        # 0.5 us
-        >>> prog.poly(coeffs, duration=0.5)
-        ```
         """
         return Poly(coeffs, duration, self)
 
     @beartype
     def apply(self, wf: ir.Waveform) -> "Apply":
         """
-         - Apply a [bloqade.ir.control.Waveform] built previously to
-           current location(s)
-         - You can build waveforms outside of the main program with
-            - If you specified a spatial modulation (e.g. `uniform`,
-              `location`, `var`) previously without a waveform:
-                - You will now complete the construction of a "drive",
-                  one or a sum of drives creating a "field"
-                  (e.g. Real-valued Rabi Amplitude/Phase)
-            - If you have already specified a waveform previously:
-                - You will now be appending this waveform to that previous
-                  waveform or other options below:
-        - You can:
+        Apply a [`Waveform`][bloqade.ir.control.Waveform] built previously to
+        current location(s).
+
+        If you specified a spatial modulation (e.g. `uniform`, `location`,`var`)
+        previously without a waveform you will now have completed the construction
+        of a "drive", one or a sum of drives creating a "field"
+        (e.g. Real-valued Rabi Amplitude/Phase).
+
+        If you have already specified a waveform previously you will now be appending
+        this waveform to that previous waveform.
+
+        Usage Example:
+        ```
+        >>> prog = start.add_position((0,0)).rydberg.detuning.uniform
+        # build our waveform independently of the main program
+        >>> from bloqade import piecewise_linear
+        >>> wf = piecewise_linear(durations=[0.3, 2.5, 0.3],
+        values=[0.0, 2.0, 2.0, 0.0])
+        >>> prog.apply(wf)
+        ```
+
+        - Your next steps include:
         - Continue building your waveform via:
             - |_ `...apply(waveform).linear(start, stop, duration)`:
                 to append another linear waveform
@@ -310,9 +331,9 @@ class WaveformAttachable(Builder):
         - Begin constructing another drive by starting a new spatial modulation
           (this drive will be summed to the one you just created):
             -|_ `...apply(waveform).uniform`: To address all atoms in the field
-            -|_ `...apply(waveform).var`:
+            -|_ `...apply(waveform).location(int)`:
                 To address an atom at a specific location via index
-            -|_ `...apply(waveform).detuning`
+            -|_ `...apply(waveform).var(str)`
                 - |_ To address an atom at a specific location via variable
                 - |_ To address multiple atoms at specific locations by specifying a
                     single variable and then assigning it a list of coordinates
@@ -346,16 +367,6 @@ class WaveformAttachable(Builder):
                 to target the Detuning field
             - |_ `...apply(waveform).rabi`:
                 to target the complex-valued Rabi field
-
-        Usage Example:
-        ```
-        >>> prog = start.add_position((0,0)).rydberg.detuning.uniform
-        # build our waveform independently of the main program
-        >>> from bloqade import piecewise_linear
-        >>> wf = piecewise_linear(durations=[0.3, 2.5, 0.3],
-        values=[0.0, 2.0, 2.0, 0.0])
-        >>> prog.apply(wf)
-        ```
         """
         return Apply(wf, self)
 
@@ -364,21 +375,32 @@ class WaveformAttachable(Builder):
         self, durations: List[ScalarType], values: List[ScalarType]
     ) -> "PiecewiseLinear":
         """
-        - Append or assign a piecewise linear waveform to current location(s),
-          where the waveform is formed by connecting `values[i], values[i+1]`
-          with linear segments.
-        - The `durations` argument should have number of elements = len(values) - 1.
-        - `durations` should be the duration
-          PER section of the waveform, NON-CUMULATIVE.
-        - If you specified a spatial modulation (e.g. `uniform`, `location`, `var`)
-          previously without a waveform:
-            - You will now complete the construction of a "drive",
-              one or a sum of drives creating a "field"
-              (e.g. Real-valued Rabi Amplitude/Phase)
-        - If you have already specified a waveform previously:
-            - You will now be appending this waveform to that previous
-              waveform or other options below:
-        - You can now:
+        Append or assign a piecewise linear waveform to current location(s),
+        where the waveform is formed by connecting `values[i], values[i+1]`
+        with linear segments.
+
+        The `durations` argument should have # of elements = len(values) - 1.
+        `durations` should be the duration PER section of the waveform, NON-CUMULATIVE.
+
+        If you specified a spatial modulation (e.g. `uniform`, `location`,`var`)
+        previously without a waveform you will now have completed the construction
+        of a "drive", one or a sum of drives creating a "field"
+        (e.g. Real-valued Rabi Amplitude/Phase).
+
+        If you have already specified a waveform previously you will now be appending
+        this waveform to that previous waveform.
+
+        Usage Example:
+        ```
+        >>> prog = start.add_position((0,0)).rydberg.detuning.uniform
+        # ramp our waveform up to a certain value, hold it
+        # then ramp down. In this case, we ramp up to 2.0 rad/us in 0.3 us,
+        # then hold it for 1.5 us before ramping down in 0.3 us back to 0.0 rad/us.
+        >>> prog.piecewise_linear(durations=[0.3, 2.0, 0.3],
+        values=[0.0, 2.0, 2.0, 0.0])
+        ```
+
+        - Your next steps include:
         - Continue building your waveform via:
             - |_ `...piecewise_linear(durations, values)
                 .linear(start, stop, duration)`:
@@ -446,16 +468,6 @@ class WaveformAttachable(Builder):
             - |_ `...piecewise_linear(durations, values).detuning`:
                 to target the Detuning field
             - |_ `....rabi`: to target the complex-valued Rabi field
-
-        Usage Example:
-        ```
-        >>> prog = start.add_position((0,0)).rydberg.detuning.uniform
-        # ramp our waveform up to a certain value, hold it
-        # then ramp down. In this case, we ramp up to 2.0 rad/us in 0.3 us,
-        # then hold it for 1.5 us before ramping down in 0.3 us back to 0.0 rad/us.
-        >>> prog.piecewise_linear(durations=[0.3, 2.0, 0.3],
-        values=[0.0, 2.0, 2.0, 0.0])
-        ```
         """
         return PiecewiseLinear(durations, values, self)
 
@@ -464,18 +476,29 @@ class WaveformAttachable(Builder):
         self, durations: List[ScalarType], values: List[ScalarType]
     ) -> "PiecewiseConstant":
         """
-        - Append or assign a piecewise constant waveform to current location(s).
-        - The `durations` argument should have number of elements = len(values).
-        - `durations` should be the duration PER section of the waveform,
-           NON-CUMULATIVE.
-        - If you specified a spatial modulation (e.g. `uniform`, `location`, `var`)
-          previously without a waveform:
-            - You will now complete the construction of a "drive", one or a sum of
-              drives creating a "field" (e.g. Real-valued Rabi Amplitude/Phase)
-        - If you have already specified a waveform previously:
-            - You will now be appending this waveform to that previous
-              waveform or other options below:
-        - You can now:
+        Append or assign a piecewise constant waveform to current location(s).
+
+        The `durations` argument should have number of elements = len(values).
+        `durations` should be the duration PER section of the waveform,
+        NON-CUMULATIVE.
+
+        If you specified a spatial modulation (e.g. `uniform`, `location`,`var`)
+        previously without a waveform you will now have completed the construction
+        of a "drive", one or a sum of drives creating a "field"
+        (e.g. Real-valued Rabi Amplitude/Phase).
+
+        If you have already specified a waveform previously you will now be appending
+        this waveform to that previous waveform.
+
+        Usage Example:
+        ```
+        >>> prog = start.add_position((0,0)).rydberg.rabi.phase.uniform
+        # create a staircase, we hold 0.0 rad/us for 1.0 us, then
+        # to 1.0 rad/us for 0.5 us before stopping at 0.8 rad/us for 0.9 us.
+        >>> prog.piecewise_linear(durations=[0.3, 2.0, 0.3], values=[1.0, 0.5, 0.9])
+        ```
+
+        - Your next steps including:
         - Continue building your waveform via:
             - |_ `...piecewise_linear(durations, values)
                 .linear(start, stop, duration)`: to append another linear waveform
@@ -501,9 +524,9 @@ class WaveformAttachable(Builder):
           (this drive will be summed to the one you just created):
             -|_ `...piecewise_linear(durations, values).uniform`:
                 To address all atoms in the field
-            -|_ `...piecewise_linear(durations, values).var`:
+            -|_ `...piecewise_linear(durations, values).location(int)`:
                 To address an atom at a specific location via index
-            -|_ `...piecewise_linear(durations, values).detuning`
+            -|_ `...piecewise_linear(durations, values).var(str)`
                 - |_ To address an atom at a specific location via variable
                 - |_ To address multiple atoms at specific locations by
                     specifying a single variable and then assigning it a
@@ -541,34 +564,43 @@ class WaveformAttachable(Builder):
             - |_ `...piecewise_linear(durations, values).detuning`:
                 to target the Detuning field
             - |_ `....rabi`: to target the complex-valued Rabi field
-
-        Usage Example:
-        ```
-        >>> prog = start.add_position((0,0)).rydberg.rabi.phase.uniform
-        # create a staircase, we hold 0.0 rad/us for 1.0 us, then
-        # to 1.0 rad/us for 0.5 us before stopping at 0.8 rad/us for 0.9 us.
-        >>> prog.piecewise_linear(durations=[0.3, 2.0, 0.3], values=[1.0, 0.5, 0.9])
         """
         return PiecewiseConstant(durations, values, self)
 
     @beartype
     def fn(self, fn: Callable, duration: ScalarType) -> "Fn":
         """
-        - Append or assign a custom function as a waveform.
-            - The function must have its first argument be that of time but
-              can also have other arguments which are treated as variables
-              you can assign values to later in the program via `.assign`
-              or `.batch_assign`.
-            - The function must return a singular float value
-        - If you specified a spatial modulation (e.g. `uniform`, `location`, `var`)
-          previously without a waveform:
-            - You will now complete the construction of a "drive",
-              one or a sum of drives creating a "field"
-              (e.g. Real-valued Rabi Amplitude/Phase)
-        - If you have already specified a waveform previously:
-            - You will now be appending this waveform to that previous waveform
-              or other options below:
-        - You can now:
+        Append or assign a custom function as a waveform.
+
+        The function must have its first argument be that of time but
+        can also have other arguments which are treated as variables.
+        You can assign values to later in the program via `.assign` or `.batch_assign`.
+
+        The function must also return a singular float value.
+
+        If you specified a spatial modulation (e.g. `uniform`, `location`,`var`)
+        previously without a waveform you will now have completed the construction
+        of a "drive", one or a sum of drives creating a "field"
+        (e.g. Real-valued Rabi Amplitude/Phase).
+
+        If you have already specified a waveform previously you will now be appending
+        this waveform to that previous waveform.
+
+        Usage Examples:
+        ```
+        >>> prog = start.add_position((0,0)).rydberg.detuning.uniform
+        # define our custom waveform. It must have one argument
+        # be time followed by any other number of arguments that can
+        # be assigned a value later in the program via `.assign` or `.batch_assign`
+        >>> def custom_waveform_function(t, arg1, arg2):
+                return arg1*t + arg2
+        >>> prog = prog.fn(custom_waveform_function, duration = 0.5)
+        # assign values
+        >>> assigned_vars_prog = prog.assign(arg1 = 1.0, arg2 = 2.0)
+        # or go for batching!
+        >>> assigned_vars_batch_prog = prog.assign(arg1 = 1.0, arg2 = [1.0, 2.0, 3.0])
+
+        - Your next steps include:
         - Continue building your waveform via:
             - |_ `...piecewise_linear(durations, values)
                 .linear(start, stop, duration)`: to append another linear waveform
@@ -636,19 +668,6 @@ class WaveformAttachable(Builder):
             - |_ `...piecewise_linear(durations, values).rabi`:
                 to target the complex-valued Rabi field
 
-        Usage Example:
-        ```
-        >>> prog = start.add_position((0,0)).rydberg.detuning.uniform
-        # define our custom waveform. It must have one argument
-        # be time followed by any other number of arguments that can
-        # be assigned a value later in the program via `.assign` or `.batch_assign`
-        >>> def custom_waveform_function(t, arg1, arg2):
-                return arg1*t + arg2
-        >>> prog = prog.fn(custom_waveform_function, duration = 0.5)
-        # assign values
-        >>> assigned_vars_prog = prog.assign(arg1 = 1.0, arg2 = 2.0)
-        # or go for batching!
-        >>> assigned_vars_batch_prog = prog.assign(arg1 = 1.0, arg2 = [1.0, 2.0, 3.0])
         """
         return Fn(fn, duration, self)
 
@@ -668,65 +687,90 @@ class Sliceable:
         stop: Optional[ScalarType] = None,
     ) -> "Slice":
         """
-        Slice current waveform
+        Indicate that you only want a portion of your waveform to be used in
+        the program.
 
-        Possible Next:
+        If you specified a spatial modulation (e.g. `uniform`, `location`,`var`)
+        previously without a waveform you will now have completed the construction
+        of a "drive", one or a sum of drives creating a "field"
+        (e.g. Real-valued Rabi Amplitude/Phase).
 
-        - Possible Next <Location>:
-
-            -> `.location(int)`
-                :: creating new channel to address
-                another location(s)
-
-        - Possible Next <WaveForm:: current>:
-
-            -> `.record(str)`
-                :: record the value of waveform at current time
-
-        - Possible Next <WaveForm:: append>:
-
-            :: Append waveform into current channel
-
-            -> `.linear()`
-
-            -> `.constant()`
-
-            -> `.ploy()`
-
-            -> `.apply()`
-
-            -> `.piecewise_linear()`
-
-            -> `.piecewise_constant()`
-
-            -> `.fn()`
-
-        - Possible Next <LevelCoupling>:
-
-            -> `.rydberg`
-                :: Create/Switch to new rydberg level coupling channel
-
-            -> `.hyperfine`
-                :: Create/Switch to new hyperfine level coupling channel
+        If you have already specified a waveform previously you will now be appending
+        this waveform to that previous waveform.
 
 
-        - Possible Next <Emit:: Linking Vars>:
+        Usage Example:
+        ```
+        # define a program with a waveform of interest
+        >>> from bloqade import start
+        >>> prog = start.add_position((0,0)).rydberg.rabi.amplitude.uniform
+        >>> prog_with_wf = prog.piecewise_linear(durations=[0.3, 2.0, 0.3],
+        values=[0.0, 2.0, 2.0, 0.0])
+        # instead of using the full waveform we opt to only take the first 1 us
+        >>> prog_with_slice = prog_with_wf.slice(0.0, 1.0)
+        # you may use variables as well
+        >>> prog_with_slice = prog_with_wf.slice("start", "end")
+        ```
 
-            -> `.assign()`
-                :: assign varialbe an actual value/number
-
-            -> `.batch_assign()`
-                :: create batch job with different sets
-                of values assign to each variable.
-
-
-        - Possible Next <Backend>:
-
-            -> `.quera`
-                :: specify QuEra backend
-
-            -> `.braket`
-                :: specify QuEra backend
+        - Your next steps include:
+        - Continue building your waveform via:
+            - |_ `...slice(start, stop).linear(start, stop, duration)`:
+                to append another linear waveform
+            - |_ `...slice(start, stop).constant(value, duration)`:
+                to append a constant waveform
+            - |_ `...slice(start, stop).piecewise_linear()`:
+                to append a piecewise linear waveform
+            - |_ `...slice(start, stop).piecewise_constant()`:
+                to append a piecewise constant waveform
+            - |_ `...slice(start, stop).poly([coefficients], duration)`:
+                to append a polynomial waveform
+            - |_ `...slice(start, stop).apply(wf:bloqade.ir.Waveform)`:
+                to append a pre-defined waveform
+            - |_ `...slilce(start, stop).fn(f(t,...))`:
+                to append a waveform defined by a python function
+        - Begin constructing another drive by starting a new spatial modulation
+            (this drive will be summed to the one you just created):
+            - |_ `...slice(start, stop).uniform`:
+                To address all atoms in the field
+            - |_ `...slice(start, stop).location(int)`:
+                To address an atom at a specific location via index
+            - |_ `...slice(start, stop).var(str)`
+                - |_ To address an atom at a specific location via variable
+                - |_ To address multiple atoms at specific locations by specifying
+                    a single variable and then assigning it a list of coordinates
+        - Assign values to pre-existing variables via:
+            - |_ `...slice(start, stop).assign(variable_name = value)`:
+                to assign a single value to a variable
+            - |_ `...slice(start, stop)
+                .batch_assign(variable_name = [value1, ...])`:
+                to assign multiple values to a variable
+            - |_ `...slice(start, stop).args(["previously_defined_var"])`:
+                to defer assignment of a variable to execution time
+        - Select the backend you want your program to run on via:
+            - |_ `...slice(start, stop).braket`:
+                to run on Braket local emulator or QuEra hardware remotely
+            - |_ `...slice(start, stop).bloqade`:
+                to run on the Bloqade local emulator
+            - |_ `...slice(start, stop).device`:
+                to specify the backend via string
+        - Choose to parallelize your atom geometry,
+          duplicating it to fill the whole space:
+            - |_ `...slice(start, stop).parallelize(spacing)`
+        - Start targeting another level coupling
+            - |_ `...slice(start, stop).rydberg`:
+                to target the Rydberg level coupling
+            - |_ `...slice(start, stop).hyperfine`:
+                to target the Hyperfine level coupling
+        - Start targeting other fields within your current level coupling
+          (previously selected as `rydberg` or `hyperfine`):
+            - |_ `...slice(start, stop).amplitude`:
+                to target the real-valued Rabi Amplitude field
+            - |_ `...slice(start, stop).phase`:
+                to target the real-valued Rabi Phase field
+            - |_ `...slice(start, stop).detuning`:
+                to target the Detuning field
+            - |_ `...slice(start, stop).rabi`:
+                to target the complex-valued Rabi field
         """
         return Slice(start, stop, self)
 
@@ -735,67 +779,97 @@ class Recordable:
     @beartype
     def record(self, name: str) -> "Record":
         """
-        Record the value of the current waveform to a variable.
+        Copy or "record" the value at the end of the waveform into a variable
+        so that it can be used in another place.
 
-        Possible Next:
+        A common design pattern is to couple this with `.slice()` considering
+        you may not know exactly what the end value of a `.slice()` is,
+        especially in parameter sweeps where it becomes cumbersome to handle.
 
-        - Possible Next <Location>:
+        If you specified a spatial modulation (e.g. `uniform`, `location`,`var`)
+        previously without a waveform you will now have completed the construction
+        of a "drive", one or a sum of drives creating a "field"
+        (e.g. Real-valued Rabi Amplitude/Phase).
 
-            -> `.location(int)`
-                :: creating new channel to address
-                another location(s)
+        If you have already specified a waveform previously you will now be appending
+        this waveform to that previous waveform.
 
-        - Possible Next <WaveForm:: current>:
+        Usage Example:
+        ```
+        # define program of interest
+        >>> from bloqade import start
+        >>> prog = start.rydberg.rabi.amplitude.uniform
+        >>> prog_with_wf = prog.piecewise_linear(durations=[0.3, 2.0, 0.3],
+        values=[0.0, 2.0, 2.0, 0.0])
+        # We now slice the piecewise_linear from above and record the
+        # value at the end of that slice. We then use that value
+        # to construct a new waveform that can be appended to the previous
+        # one without introducing discontinuity (refer to the
+        # "Quantum Scar Dynamics" tutorial for how this could be handy)
+        >>> prog_with_record = prog_with_wf.slice(0.0, 1.0).record("end_of_wf")
+        >>> record_applied_prog = prog_with_record.linear(start="end_of_wf"
+        , stop=0.0, duration=0.3)
 
-            -> `.slice()`
-                :: slice the current waveform
-
-            -> `.record(str)`
-                :: record the value of waveform at current time
-
-        - Possible Next <WaveForm:: append>:
-
-            :: Append waveform into current channel
-
-            -> `.linear()`
-
-            -> `.constant()`
-
-            -> `.ploy()`
-
-            -> `.apply()`
-
-            -> `.piecewise_linear()`
-
-            -> `.piecewise_constant()`
-
-            -> `.fn()`
-
-        - Possible Next <LevelCoupling>:
-
-            -> `.rydberg`
-                :: Create/Switch to new rydberg level coupling channel
-
-            -> `.hyperfine`
-                :: Create/Switch to new hyperfine level coupling channel
-
-        - Possible Next <Emit:: Linking Vars>:
-
-            -> `.assign()`
-                :: assign varialbe an actual value/number
-
-            -> `.batch_assign()`
-                :: create batch job with different sets
-                of values assign to each variable.
-
-        - Possible Next <Backend>:
-
-            -> `.quera`
-                :: specify QuEra backend
-
-            -> `.braket`
-                :: specify QuEra backend
-
+        - Your next steps include:
+        - Continue building your waveform via:
+            - |_ `...slice(start, stop).linear(start, stop, duration)`:
+                to append another linear waveform
+            - |_ `...slice(start, stop).constant(value, duration)`:
+                to append a constant waveform
+            - |_ `...slice(start, stop).piecewise_linear()`:
+                to append a piecewise linear waveform
+            - |_ `...slice(start, stop).piecewise_constant()`:
+                to append a piecewise constant waveform
+            - |_ `...slice(start, stop).poly([coefficients], duration)`:
+                to append a polynomial waveform
+            - |_ `...slice(start, stop).apply(wf:bloqade.ir.Waveform)`:
+                to append a pre-defined waveform
+            - |_ `...slilce(start, stop).fn(f(t,...))`:
+                to append a waveform defined by a python function
+        - Begin constructing another drive by starting a new spatial modulation
+            (this drive will be summed to the one you just created):
+            - |_ `...slice(start, stop).uniform`:
+                To address all atoms in the field
+            - |_ `...slice(start, stop).location(int)`:
+                To address an atom at a specific location via index
+            - |_ `...slice(start, stop).var(str)`
+                - |_ To address an atom at a specific location via variable
+                - |_ To address multiple atoms at specific locations by specifying
+                    a single variable and then assigning it a list of coordinates
+        - Assign values to pre-existing variables via:
+            - |_ `...slice(start, stop).assign(variable_name = value)`:
+                to assign a single value to a variable
+            - |_ `...slice(start, stop)
+                .batch_assign(variable_name = [value1, ...])`:
+                to assign multiple values to a variable
+            - |_ `...slice(start, stop).args(["previously_defined_var"])`:
+                to defer assignment of a variable to execution time
+        - Select the backend you want your program to run on via:
+            - |_ `...slice(start, stop).braket`:
+                to run on Braket local emulator or QuEra hardware remotely
+            - |_ `...slice(start, stop).bloqade`:
+                to run on the Bloqade local emulator
+            - |_ `...slice(start, stop).device`:
+                to specify the backend via string
+        - Choose to parallelize your atom geometry,
+          duplicating it to fill the whole space:
+            - |_ `...slice(start, stop).parallelize(spacing)`
+        - Start targeting another level coupling
+            - |_ `...slice(start, stop).rydberg`:
+                to target the Rydberg level coupling
+            - |_ `...slice(start, stop).hyperfine`:
+                to target the Hyperfine level coupling
+        - Start targeting other fields within your current level coupling
+          (previously selected as `rydberg` or `hyperfine`):
+            - |_ `...slice(start, stop).amplitude`:
+                to target the real-valued Rabi Amplitude field
+            - |_ `...slice(start, stop).phase`:
+                to target the real-valued Rabi Phase field
+            - |_ `...slice(start, stop).detuning`:
+                to target the Detuning field
+            - |_ `...slice(start, stop).rabi`:
+                to target the complex-valued Rabi field
+        ```
         """
         return Record(name, self)
 
