@@ -96,7 +96,7 @@ class Location(SpatialModulation):
     @beartype
     def scale(self, value: ScalarType) -> "Scale":
         """
-        Scale the subsequent waveform to be applied on a certain set of 
+        Scale the subsequent waveform to be applied on a certain set of
         atoms specified by the current spatial modulation.
 
         Usage Examples:
