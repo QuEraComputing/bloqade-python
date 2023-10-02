@@ -6,6 +6,7 @@ from bloqade import (
     piecewise_constant,
     constant,
     linear,
+    atom_list,
     var,
     cast,
     start,
@@ -20,10 +21,14 @@ from bloqade.ir import (
     detuning,
     Field,
     Uniform,
+    ListOfLocations,
+    Literal,
 )
 from bloqade.ir.routine.base import Routine
 from bloqade.ir.routine.params import Params
+from bloqade.ir.location.base import LocationInfo
 import numpy as np
+from decimal import Decimal
 
 
 def test_ir_piecewise_linear():
@@ -163,3 +168,67 @@ def test_rydberg_h_2():
     print(AnalogCircuit(register, sequence))
 
     assert prog.parse_circuit() == AnalogCircuit(register, sequence)
+
+
+def test_atom_list():
+    al = atom_list((0, 0))
+    assert al == ListOfLocations(
+        [LocationInfo((Literal(value=Decimal("0")), Literal(value=Decimal("0"))), True)]
+    )
+
+    al = atom_list((0, 0), False)
+    assert al == ListOfLocations(
+        [
+            LocationInfo(
+                (Literal(value=Decimal("0")), Literal(value=Decimal("0"))), False
+            )
+        ]
+    )
+
+    al = atom_list([(0, 0), (1, 1)])
+    assert al == ListOfLocations(
+        location_list=[
+            LocationInfo(
+                (Literal(value=Decimal("0")), Literal(value=Decimal("0"))), True
+            ),
+            LocationInfo(
+                (Literal(value=Decimal("1")), Literal(value=Decimal("1"))), True
+            ),
+        ]
+    )
+
+    al = atom_list([(0, 0), (1, 1)], [True, False])
+    assert al == ListOfLocations(
+        location_list=[
+            LocationInfo(
+                (Literal(value=Decimal("0")), Literal(value=Decimal("0"))), True
+            ),
+            LocationInfo(
+                (Literal(value=Decimal("1")), Literal(value=Decimal("1"))), False
+            ),
+        ]
+    )
+
+    al = atom_list(np.array([(0, 0), (1, 1)]))
+    assert al == ListOfLocations(
+        location_list=[
+            LocationInfo(
+                (Literal(value=Decimal("0")), Literal(value=Decimal("0"))), True
+            ),
+            LocationInfo(
+                (Literal(value=Decimal("1")), Literal(value=Decimal("1"))), True
+            ),
+        ]
+    )
+
+    al = atom_list(np.array([(0, 0), (1, 1)]), np.array([True, False]))
+    assert al == ListOfLocations(
+        location_list=[
+            LocationInfo(
+                (Literal(value=Decimal("0")), Literal(value=Decimal("0"))), True
+            ),
+            LocationInfo(
+                (Literal(value=Decimal("1")), Literal(value=Decimal("1"))), False
+            ),
+        ]
+    )

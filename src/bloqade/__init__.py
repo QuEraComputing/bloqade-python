@@ -7,6 +7,7 @@ from bloqade.factory import (
     piecewise_constant,
     linear,
     constant,
+    atom_list,
     rydberg_h,
 )
 import bloqade.ir as _ir
@@ -45,6 +46,7 @@ __all__ = [
     "piecewise_constant",
     "linear",
     "constant",
+    "atom_list",
     "set_print_depth",
     "load",
     "save",

@@ -1,8 +1,14 @@
+# Need to do this because `ruff` complains standard
+# `start` import overshadows the `start` var used in
+# piecewise_linear
+from bloqade import start as bloqade_start
+from bloqade.ir import ListOfLocations
 from bloqade.ir.routine.base import Routine
 from bloqade.ir.control.waveform import Waveform, Linear, Constant
+from bloqade.ir.location.transform import PositionArray, BoolArray
 from bloqade.builder.typing import ScalarType
 from beartype import beartype
-from beartype.typing import List, Optional, Union, Dict, Any
+from beartype.typing import List, Tuple, Optional, Union, Dict, Any
 
 
 @beartype
@@ -102,6 +108,36 @@ def piecewise_constant(
             pwc_wf = pwc_wf.append(Constant(value, duration))
 
     return pwc_wf
+
+
+@beartype
+def atom_list(
+    position: Union[
+        PositionArray,
+        List[Tuple[ScalarType, ScalarType]],
+        Tuple[ScalarType, ScalarType],
+    ],
+    filling: Optional[Union[BoolArray, List[bool], bool]] = None,
+) -> ListOfLocations:
+    """Create a `ListOfLocations` object, the standard object
+    Bloqade uses to represent atom positions.
+
+    Args:
+        position: (Tuple[ScalarType, ScalarType]
+        | List[Tuple[ScalarType, ScalarType]
+        | numpy.array with shape (n, 2)]):
+            position(s) to add
+        filling: (bool | list[bool]
+        | numpy.array with shape (n, ) | None, optional):
+            filling of the added position(s). Defaults to None. if None, all
+            positions are filled.
+
+
+    Returns:
+        ListOfLocations: new atom arrangement with positions
+
+    """
+    return bloqade_start.add_position(position, filling)
 
 
 @beartype
