@@ -1,7 +1,3 @@
-# Need to do this because `ruff` complains standard
-# `start` import overshadows the `start` var used in
-# piecewise_linear
-from bloqade import start as bloqade_start
 from bloqade.ir import ListOfLocations
 from bloqade.ir.routine.base import Routine
 from bloqade.ir.control.waveform import Waveform, Linear, Constant
@@ -137,7 +133,7 @@ def atom_list(
         ListOfLocations: new atom arrangement with positions
 
     """
-    return bloqade_start.add_position(position, filling)
+    return ListOfLocations().add_position(position, filling)
 
 
 @beartype
