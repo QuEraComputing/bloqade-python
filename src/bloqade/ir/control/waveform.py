@@ -11,7 +11,6 @@ from bloqade.ir.scalar import (
 )
 
 from bisect import bisect_left
-from dataclasses import InitVar
 from decimal import Decimal
 from pydantic.dataclasses import dataclass
 from beartype.typing import Any, Tuple, Union, List, Callable, Dict
@@ -365,12 +364,12 @@ class Poly(Instruction):
 
     """
 
-    coeffs: List[Scalar]
+    coeffs: Tuple[Scalar, ...]
     duration: Scalar
 
     @beartype
     def __init__(self, coeffs: List[ScalarType], duration: ScalarType):
-        object.__setattr__(self, "coeffs", list(map(cast, coeffs)))
+        object.__setattr__(self, "coeffs", tuple(map(cast, coeffs)))
         object.__setattr__(self, "duration", cast(duration))
 
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
@@ -419,9 +418,8 @@ class PythonFn(Instruction):
 
     fn: Callable  # [[float, ...], float] # f(t) -> value
     parameters: List[Union[Variable, AssignedVariable]]  # come from ast inspect
-    duration: InitVar[Scalar]
+    duration: Scalar
     default_param_values: Dict[str, Decimal]
-    default_arguements: Dict[str, Any]
 
     def __init__(self, fn: Callable, duration: Any):
         signature = inspect.getfullargspec(fn)
@@ -435,14 +433,12 @@ class PythonFn(Instruction):
         # get default kwonly first:
         variables = []
         default_param_values = {}
-        default_arguements = {}
         if signature.kwonlydefaults is not None:
             for name, value in signature.kwonlydefaults.items():
                 if isinstance(value, (Real, Decimal)):
                     variables.append(name)
                     default_param_values[name] = Decimal(str(value))
                 else:
-                    # self.default_arguements[name] = value
                     raise ValueError(
                         f"Default value for parameter {name} is not Real or Decimal, "
                         "cannot convert to Variable."
@@ -455,7 +451,19 @@ class PythonFn(Instruction):
         object.__setattr__(self, "parameters", list(map(var, variables)))
         object.__setattr__(self, "duration", cast(duration))
         object.__setattr__(self, "default_param_values", default_param_values)
-        object.__setattr__(self, "default_arguements", default_arguements)
+
+    @cached_property
+    def _hash_value(self) -> int:
+        return (
+            hash(self.__class__)
+            ^ hash(self.fn)
+            ^ hash(self.duration)
+            ^ hash(tuple(self.parameters))
+            ^ hash(frozenset(self.default_param_values.items()))
+        )
+
+    def __hash__(self) -> int:
+        return self._hash_value
 
     def eval_decimal(self, clock_s: Decimal, **assignments) -> Decimal:
         new_assignments = {**self.default_param_values, **assignments}
@@ -466,7 +474,6 @@ class PythonFn(Instruction):
         kwargs = {
             param.name: float(param(**new_assignments)) for param in self.parameters
         }
-        kwargs = {**self.default_arguements, **kwargs}
         return Decimal(
             str(
                 self.fn(
@@ -693,7 +700,7 @@ class Append(Waveform):
     ```
     """
 
-    waveforms: List[Waveform]
+    waveforms: Tuple[Waveform, ...]
 
     @cached_property
     def duration(self):

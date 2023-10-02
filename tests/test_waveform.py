@@ -148,7 +148,7 @@ def test_wvfm_app():
     wf3 = Append([wf, wf2])
 
     assert wf3.print_node() == "Append"
-    assert wf3.children() == [wf, wf2]
+    assert wf3.children() == (wf, wf2)
     assert wf3.eval_decimal(Decimal(10)) == Decimal(0)
 
     mystdout = StringIO()
