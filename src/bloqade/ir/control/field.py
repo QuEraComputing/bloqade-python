@@ -1,3 +1,4 @@
+from functools import cached_property
 from ..scalar import Scalar, cast
 from ..tree_print import Printer
 from .waveform import Waveform
@@ -107,8 +108,12 @@ class AssignedRunTimeVector(SpatialModulation):
     name: str
     value: List[Decimal]
 
+    @cached_property
+    def _hash_value(self):
+        return hash(self.name) ^ hash(tuple(self.value)) ^ hash(self.__class__)
+
     def __hash__(self) -> int:
-        return hash(self.name) ^ hash(self.__class__) ^ hash(tuple(self.value))
+        return self._hash_value
 
     def print_node(self):
         return "AssgiendRunTimeVector"
@@ -143,8 +148,12 @@ class ScaledLocations(SpatialModulation):
             value[k] = cast(v)
         self.value = value
 
-    def __hash__(self) -> int:
+    @cached_property
+    def _hash_value(self) -> int:
         return hash(frozenset(self.value.items())) ^ hash(self.__class__)
+
+    def __hash__(self) -> int:
+        return self._hash_value
 
     def _get_data(self, **assignments):
         names = []
@@ -209,8 +218,12 @@ class Field(FieldExpr):
 
     drives: Dict[SpatialModulation, Waveform]
 
-    def __hash__(self) -> int:
+    @cached_property
+    def _hash_value(self):
         return hash(frozenset(self.drives.items())) ^ hash(self.__class__)
+
+    def __hash__(self) -> int:
+        return self._hash_value
 
     def canoncialize(self) -> "Field":
         reversed_dirves = {}
