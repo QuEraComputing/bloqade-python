@@ -221,20 +221,10 @@ class Field(FieldExpr):
         drives = {}
 
         for wf, sms in reversed_dirves.items():
-            new_sm = [sm for sm in sms if isinstance(sm, UniformModulation)]
-            new_sm += [sm for sm in sms if isinstance(sm, RunTimeVector)]
-
-            assigned_run_time_vec_sm = [
-                sm for sm in sms if isinstance(sm, AssignedRunTimeVector)
-            ]
-
+            new_sm = [sm for sm in sms if not isinstance(sm, ScaledLocations)]
             scaled_locations_sm = [sm for sm in sms if isinstance(sm, ScaledLocations)]
 
             new_mask = {}
-            for ele in assigned_run_time_vec_sm:
-                for index, scl in enumerate(ele.value):
-                    loc = Location(index)
-                    new_mask[loc] = new_mask.get(loc, 0) + cast(scl)
 
             for ele in scaled_locations_sm:
                 for loc, scl in ele.value.items():
