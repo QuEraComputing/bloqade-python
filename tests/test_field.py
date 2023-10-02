@@ -137,6 +137,8 @@ def test_field_scaled_locations():
     # assert type(hash(f1)) == int
     assert f1.children() == [Drive(k, v) for k, v in f1.drives.items()]
 
+    assert hash(f1)
+
     o3 = f1.add(f4)
     assert o3 == Field(
         {

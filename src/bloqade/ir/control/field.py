@@ -209,8 +209,8 @@ class Field(FieldExpr):
 
     drives: Dict[SpatialModulation, Waveform]
 
-    # def __hash__(self) -> int:
-    #     return hash(frozenset(self.drives.items())) ^ hash(self.__class__)
+    def __hash__(self) -> int:
+        return hash(frozenset(self.drives.items())) ^ hash(self.__class__)
 
     def canoncialize(self) -> "Field":
         reversed_dirves = {}
