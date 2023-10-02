@@ -102,12 +102,12 @@ def test_wvfm_pyfn():
     assert my_func3(3, 2) == 3
 
     with pytest.raises(ValueError):
-        PythonFn(my_func2, duration=1.0)
+        PythonFn.create(my_func2, duration=1.0)
 
     with pytest.raises(ValueError):
-        PythonFn(my_func3, duration=1.0)
+        PythonFn.create(my_func3, duration=1.0)
 
-    wf = PythonFn(my_func, duration=1.0)
+    wf = PythonFn.create(my_func, duration=1.0)
     awf = annot_my_func
 
     assert wf.eval_decimal(Decimal("0.56"), omega=1, amplitude=4) == awf.eval_decimal(
@@ -462,7 +462,7 @@ def test_wvfm_sample():
 
     assert my_cos(1) == np.cos(1)
 
-    wv = PythonFn(my_cos, duration=1.0)
+    wv = PythonFn.create(my_cos, duration=1.0)
     dt = cast(0.1)
 
     wf = Sample(wv, Interpolation.Constant, dt)

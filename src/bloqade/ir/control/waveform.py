@@ -30,7 +30,7 @@ def to_waveform(duration: ScalarType) -> Callable[[Callable], "PythonFn"]:
     # turn python function into a waveform instruction."""
 
     def waveform_wrapper(fn: Callable) -> "PythonFn":
-        return PythonFn(fn, duration)
+        return PythonFn.create(fn, duration)
 
     return waveform_wrapper
 
@@ -407,7 +407,7 @@ class Poly(Instruction):
         return annotated_coeffs
 
 
-@dataclass(init=False, frozen=True)
+@dataclass(frozen=True)
 class PythonFn(Instruction):
     """
 
@@ -417,11 +417,12 @@ class PythonFn(Instruction):
     """
 
     fn: Callable  # [[float, ...], float] # f(t) -> value
-    parameters: List[Union[Variable, AssignedVariable]]  # come from ast inspect
     duration: Scalar
+    parameters: List[Union[Variable, AssignedVariable]]  # come from ast inspect
     default_param_values: Dict[str, Decimal]
 
-    def __init__(self, fn: Callable, duration: Any):
+    @staticmethod
+    def create(fn: Callable, duration: ScalarType) -> "PythonFn":
         signature = inspect.getfullargspec(fn)
 
         if signature.varargs is not None:
@@ -447,10 +448,10 @@ class PythonFn(Instruction):
         variables += signature.args[1:]
         variables += signature.kwonlyargs
 
-        object.__setattr__(self, "fn", fn)
-        object.__setattr__(self, "parameters", list(map(var, variables)))
-        object.__setattr__(self, "duration", cast(duration))
-        object.__setattr__(self, "default_param_values", default_param_values)
+        parameters = list(map(var, variables))
+        duration = cast(duration)
+
+        return PythonFn(fn, duration, parameters, default_param_values)
 
     @cached_property
     def _hash_value(self) -> int:
