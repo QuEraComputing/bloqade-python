@@ -197,7 +197,7 @@ class Drive:
         return {"modulation": self.modulation, "waveform": self.waveform}
 
 
-@dataclass
+@dataclass(frozen=True)
 class Field(FieldExpr):
     """Field node in the IR. Which contains collection(s) of
     [`Waveform`][bloqade.ir.control.waveform.Waveform]
@@ -209,8 +209,44 @@ class Field(FieldExpr):
 
     drives: Dict[SpatialModulation, Waveform]
 
-    def __hash__(self) -> int:
-        return hash(frozenset(self.drives.items())) ^ hash(self.__class__)
+    # def __hash__(self) -> int:
+    #     return hash(frozenset(self.drives.items())) ^ hash(self.__class__)
+
+    def canoncialize(self) -> "Field":
+        reversed_dirves = {}
+
+        for sm, wf in self.drives.items():
+            reversed_dirves[wf] = reversed_dirves.get(wf, []) + [sm]
+
+        drives = {}
+
+        for wf, sms in reversed_dirves.items():
+            new_sm = [sm for sm in sms if isinstance(sm, UniformModulation)]
+            new_sm += [sm for sm in sms if isinstance(sm, RunTimeVector)]
+
+            assigned_run_time_vec_sm = [
+                sm for sm in sms if isinstance(sm, AssignedRunTimeVector)
+            ]
+
+            scaled_locations_sm = [sm for sm in sms if isinstance(sm, ScaledLocations)]
+
+            new_mask = {}
+            for ele in assigned_run_time_vec_sm:
+                for index, scl in enumerate(ele.value):
+                    loc = Location(index)
+                    new_mask[loc] = new_mask.get(loc, 0) + cast(scl)
+
+            for ele in scaled_locations_sm:
+                for loc, scl in ele.value.items():
+                    new_mask[loc] = new_mask.get(loc, 0) + cast(scl)
+
+            if new_mask:
+                new_sm += [ScaledLocations(new_mask)]
+
+            for sm in new_sm:
+                drives[sm] = wf
+
+        return Field(drives)
 
     def add(self, other):
         if not isinstance(other, Field):
@@ -226,7 +262,7 @@ class Field(FieldExpr):
             else:
                 out.drives[spatial_modulation] = waveform
 
-        return out
+        return out.canoncialize()
 
     def print_node(self):
         return "Field"
