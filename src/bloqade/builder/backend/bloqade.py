@@ -5,14 +5,12 @@ class BloqadeService(Builder):
     @property
     def bloqade(self):
         """
-        - Specify bloqade emulator
-        - Possible Next:
+        Specify the Bloqade backend.
 
-            -> `...bloqade.python`
-                :: Bloqade python backend
-
-            -> `...bloqade.julia`
-                :: Bloqade julia backend
+        - Possible Next Steps:
+            - `...bloqade.python()`: target submission to the Bloqade python backend
+            - `...bloqade.julia()`: (CURRENTLY NOT IMPLEMENTED!)target
+                submission to the Bloqade.jl backend
         """
         return BloqadeDeviceRoute(self)
 
@@ -20,11 +18,11 @@ class BloqadeService(Builder):
 class BloqadeDeviceRoute(Builder):
     def python(self):
         """
-        - Specify bloqade python backend
-        - Possible Next:
+        Specify the Bloqade Python backend.
 
-            -> `...python().run(shots, ...)`
-                :: Run the current program using bloqade python backend
+        - Possible Next Steps:
+            - `...python().run(shots)`:
+                to submit to the python emulator and await results
         """
         return self.parse().bloqade.python()
 
