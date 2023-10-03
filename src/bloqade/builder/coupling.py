@@ -20,12 +20,10 @@ class LevelCoupling(Builder):
 
         - You can do this by:
             - `...detuning.uniform`: To address all atoms in the field
-            - `...detuning.location(int)`: To address an atom at a specific
-                location via index
-            - `...detuning.var(str)`
-                - To address an atom at a specific location via variable
-                - To address multiple atoms at specific locations by specifying
-                    a single variable and then assigning it a list of coordinates
+            - `...detuning.location(...)`: To address atoms at specific
+                locations via indices
+            - `...detuning.scale(...)`
+                - To address all atoms with an individual scale factor
 
         """
 

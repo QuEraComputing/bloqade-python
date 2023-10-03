@@ -229,11 +229,10 @@ class Rabi(Builder):
         automatically to create a field such as the Rabi Amplitude here.
 
         - You can now
-            - `...amplitude.uniform`: address all atoms in the field
-            - `...amplitude.location(int)`: address a specific atom by its
-                index
-            - `...amplitude.var(str)`: Address a single atom
-                (or multiple via assigning a list of values)
+            - `...amplitude.uniform`: Address all atoms in the field
+            - `...amplitude.location(...)`: Scale atoms by their indices
+            - `...amplitude.scale(...)`: Scale each atom with a value from a
+                list or assign a variable name to be assigned later
 
         """
         return RabiAmplitude(self)
@@ -251,11 +250,10 @@ class Rabi(Builder):
         automatically to create a field such as the Rabi Phase here.
 
         - You can now
-            - `...amplitude.uniform`: address all atoms in the field
-            - `...amplitude.location(int)`: address a specific atom by its
-                index
-            - `...amplitude.var(str)`: Address a single atom
-                (or multiple via assigning a list of values)
+            - `...amplitude.uniform`: Address all atoms in the field
+            - `...amplitude.location(...)`: Scale atoms by their indices
+            - `...amplitude.scale(...)`: Scale each atom with a value from a
+                list or assign a variable name to be assigned later
 
         """
         return RabiPhase(self)
