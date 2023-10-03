@@ -91,9 +91,22 @@ class AssignWaveform(WaveformVisitor):
         return waveform.Poly(checkpoints, duration)
 
     def visit_python_fn(self, ast: waveform.PythonFn) -> Any:
-        new_ast = waveform.PythonFn(ast.fn, self.scalar_visitor.emit(ast.duration))
-        new_ast.parameters = list(map(self.scalar_visitor.emit, ast.parameters))
-        return new_ast
+        duration = self.scalar_visitor.emit(ast.duration)
+        new_parameters = []
+        default_param_values = dict(ast.default_param_values)
+
+        for param in ast.parameters:
+            if param.name in self.mapping:
+                if param.name in default_param_values:
+                    default_param_values.pop(param.name)
+
+                new_parameters.append(
+                    scalar.AssignedVariable(param.name, self.mapping[param.name])
+                )
+            else:
+                new_parameters.append(param)
+
+        return waveform.PythonFn(ast.fn, duration, new_parameters, default_param_values)
 
     def visit_add(self, ast: waveform.Add) -> Any:
         return waveform.Add(self.visit(ast.left), self.visit(ast.right))

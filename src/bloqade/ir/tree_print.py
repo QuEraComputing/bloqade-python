@@ -161,7 +161,7 @@ class Printer:
             cycle = MAX_TREE_DEPTH
 
         # list of children
-        children = node.children().copy()
+        children = node.children()
         node_str = node.print_node()
 
         if color_enabled:
@@ -184,6 +184,8 @@ class Printer:
 
         if this_print_annotation:
             children = list(children.items())
+        else:
+            children = list(children)
 
         while not len(children) == 0:
             child_prefix = self.state.prefix
