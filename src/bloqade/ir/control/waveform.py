@@ -98,7 +98,6 @@ class Waveform:
         Returns:
             figure: a bokeh figure
         """
-
         return get_ir_figure(self, **assignments)
 
     def _get_data(self, npoints, **assignments):
