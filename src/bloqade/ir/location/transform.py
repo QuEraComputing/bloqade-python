@@ -36,7 +36,7 @@ class TransformTrait:
         """
         Scale the geometry of your atoms.
 
-        Usage Example:
+        ### Usage Example:
         ```
         >>> reg = start.add_position([(0,0), (1,1)])
         # atom positions are now (0,0), (2,2)
@@ -152,7 +152,7 @@ class TransformTrait:
         You can also pass in an optional argument which determines the atom "filling"
         (whether or not at a specified coordinate an atom should be present).
 
-        Usage Example:
+        ### Usage Example:
         ```
         # single coordinate
         >>> reg = start.add_position((0,0))
@@ -200,7 +200,7 @@ class TransformTrait:
         A default numpy-based Random Number Generator is used but you can
         explicitly override this by passing in your own.
 
-        Usage Example:
+        ### Usage Example:
 
         ```
         >>> from bloqade.atom_arrangement import Chain
@@ -279,7 +279,7 @@ class TransformTrait:
         A default numpy-based Random Number Generator is used but you can
         explicitly override this by passing in your own.
 
-        Usage Example:
+        ### Usage Example:
 
         ```
         >>> from bloqade.atom_arrangement import Chain

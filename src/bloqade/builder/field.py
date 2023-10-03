@@ -47,7 +47,7 @@ class Field(Builder):
         chaining the construction of drives) will become the field.
         (e.g. Detuning Field, Real-Valued Rabi Amplitude/Rabi Phase Field, etc.)
 
-        Usage Example:
+        ### Usage Example:
         ```
         >>> prog = start.add_position([(0,0),(1,4),(2,8)]).rydberg.rabi
         # to target a single atom with a waveform
@@ -98,7 +98,7 @@ class Field(Builder):
         chaining the construction of drives) will become the field
         (e.g. Detuning Field, Real-Valued Rabi Amplitude/Rabi Phase Field, etc.)
 
-        Usage Example:
+        ### Usage Example:
         ```
         >>> prog = start.add_position([(0,0),(1,4),(2,8)]).rydberg.rabi
         >>> one_location_prog = prog.var("a")

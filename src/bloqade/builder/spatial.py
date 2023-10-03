@@ -55,7 +55,7 @@ class Location(SpatialModulation):
         Append another `.location` to the current location(s)
         as part of a singular spatial modulation definition.
 
-        Usage Example:
+        ### Usage Example:
         ```
         # definep program
         >>> from bloqade.atom_arrangement import start
@@ -99,7 +99,7 @@ class Location(SpatialModulation):
         Scale the subsequent waveform to be applied on a certain set of
         atoms specified by the current spatial modulation.
 
-        Usage Examples:
+        ### ### Usage Examples:
         ```
         # define program
         >>> reg = bloqade.start.add_position([(0,0),(1,1),(2,2),(3,3)])
@@ -152,7 +152,7 @@ class Scale(WaveformAttachable):
         Append another `.location` to the current location(s)
         as part of a singular spatial modulation definition.
 
-        Usage Example:
+        ### Usage Example:
         ```
         # definep program
         >>> from bloqade.atom_arrangement import start

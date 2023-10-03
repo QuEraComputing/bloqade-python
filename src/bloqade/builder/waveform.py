@@ -26,7 +26,7 @@ class WaveformAttachable(Builder):
         If you have already specified a waveform previously you will now be appending
         this waveform to that previous waveform.
 
-        Usage Example:
+        ### Usage Example:
         ```
         >>> prog = start.add_position((0,0)).rydberg.detuning.uniform
         # apply a linear waveform that goes from 0 to 1 radians/us in 0.5 us
@@ -115,7 +115,7 @@ class WaveformAttachable(Builder):
         If you have already specified a waveform previously you will now be appending
         this waveform to that previous waveform.
 
-        Usage Example:
+        ### Usage Example:
         ```
         >>> prog = start.add_position((0,0)).rydberg.detuning.uniform
         # apply a constant waveform of 1.9 radians/us for 0.5 us
@@ -211,7 +211,7 @@ class WaveformAttachable(Builder):
         If you have already specified a waveform previously you will now be appending
         this waveform to that previous waveform.
 
-        Usage Example:
+        ### Usage Example:
         ```
         >>> prog = start.add_position((0,0)).rydberg.detuning.uniform
         >>> coeffs = [-1, 0.5, 1.2]
@@ -304,7 +304,7 @@ class WaveformAttachable(Builder):
         If you have already specified a waveform previously you will now be appending
         this waveform to that previous waveform.
 
-        Usage Example:
+        ### Usage Example:
         ```
         >>> prog = start.add_position((0,0)).rydberg.detuning.uniform
         # build our waveform independently of the main program
@@ -396,7 +396,7 @@ class WaveformAttachable(Builder):
         If you have already specified a waveform previously you will now be appending
         this waveform to that previous waveform.
 
-        Usage Example:
+        ### Usage Example:
         ```
         >>> prog = start.add_position((0,0)).rydberg.detuning.uniform
         # ramp our waveform up to a certain value, hold it
@@ -498,7 +498,7 @@ class WaveformAttachable(Builder):
         If you have already specified a waveform previously you will now be appending
         this waveform to that previous waveform.
 
-        Usage Example:
+        ### Usage Example:
         ```
         >>> prog = start.add_position((0,0)).rydberg.rabi.phase.uniform
         # create a staircase, we hold 0.0 rad/us for 1.0 us, then
@@ -597,7 +597,7 @@ class WaveformAttachable(Builder):
         If you have already specified a waveform previously you will now be appending
         this waveform to that previous waveform.
 
-        Usage Examples:
+        ### ### Usage Examples:
         ```
         >>> prog = start.add_position((0,0)).rydberg.detuning.uniform
         # define our custom waveform. It must have one argument
@@ -711,7 +711,7 @@ class Sliceable:
         this waveform to that previous waveform.
 
 
-        Usage Example:
+        ### Usage Example:
         ```
         # define a program with a waveform of interest
         >>> from bloqade import start
@@ -806,7 +806,7 @@ class Recordable:
         If you have already specified a waveform previously you will now be appending
         this waveform to that previous waveform.
 
-        Usage Example:
+        ### Usage Example:
         ```
         # define program of interest
         >>> from bloqade import start

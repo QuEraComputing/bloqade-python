@@ -25,7 +25,7 @@ class Assignable:
         pass in a list. This is the ONLY circumstance in which multiple
         values are allowed.
 
-        Usage Examples:
+        ### ### Usage Examples:
         ```
         # define geometry
         >>> reg = bloqade.start
@@ -77,7 +77,7 @@ class BatchAssignable:
         (e.g. if "var1" is assigned [1,2,3] and "var2" is assigned [4,5,6] then the
         resulting programs will have assignments [1,4], [2,5], [3,6]).
 
-        Usage Example:
+        ### Usage Example:
         ```
         >>> reg = start.add_position([(0,0), (0, "atom_distance")])
         >>> prog = reg.rydberg.rabi.amplitude.uniform.constant("value", 5.0)
@@ -121,7 +121,7 @@ class Parallelizable:
         The singular argument lets you specify how far apart the clusters
         should be in micrometers.
 
-        Usage Example:
+        ### Usage Example:
         ```
         >>> reg = start.add_position((0,0)).rydberg.rabi.uniform.amplitude
         .constant(1.0, 1.0)
