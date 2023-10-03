@@ -11,4 +11,4 @@ Bloqade is primarily a language for writing analog quantum programs for neutral 
 
 ## How do I get started?
 
-To get started in more detail check out out [Getting Started](getting-started.md) page.
+To get started in more detail check out out [Getting Started](getting_started/installation.md) page.
