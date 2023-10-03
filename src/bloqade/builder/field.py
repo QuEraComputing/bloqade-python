@@ -1,5 +1,7 @@
 from bloqade.builder.base import Builder
-from beartype import beartype
+from bloqade.builder.typing import ScalarType
+from beartype.typing import Union, List, Optional
+import plum
 
 
 class Field(Builder):
@@ -34,11 +36,38 @@ class Field(Builder):
 
         return Uniform(self)
 
-    @beartype
-    def location(self, label: int):
-        """
-        Address a single atom (or multiple via chaining calls, see below) as
-        part of defining the spatial modulation component of a drive.
+    @plum.dispatch
+    def _location(self, label: int, scale: Optional[ScalarType] = None):  # noqa: F811
+        from bloqade.builder.spatial import Location
+
+        if scale is None:
+            scale = 1
+
+        return Location([label], [scale], self)
+
+    @plum.dispatch
+    def _location(
+        self, labels: List[int], scales: Optional[List[ScalarType]] = None
+    ):  # noqa: F811
+        from bloqade.builder.spatial import Location
+
+        if scales is None:
+            scales = [1] * len(labels)
+
+        return Location(labels, scales, self)
+
+    def location(
+        self,
+        labels: Union[List[int], int],
+        scales: Union[List[ScalarType], ScalarType, None] = None,
+    ):
+        """Address a single atom (or multiple) atoms.
+
+        Address a single atom (or multiple) as part of defining the spatial
+        modulation component of a drive. You can specify the atoms to target
+        as a list of labels and a list of scales. The scales are used to
+        multiply the waveform that is applied to the atom. You can also specify
+        a single label and scale to target a single atom.
 
         Next steps to build your program include choosing the waveform that
         will be summed with the spatial modulation to create a drive.
@@ -52,44 +81,37 @@ class Field(Builder):
         >>> prog = start.add_position([(0,0),(1,4),(2,8)]).rydberg.rabi
         # to target a single atom with a waveform
         >>> one_location_prog = prog.location(0)
+        # to target a single atom with a scale
+        >>> one_location_prog = prog.location(0, 0.5)
         # to target multiple atoms with same waveform
-        >>> multi_location_prog = prog.location(0).location(2)
+        >>> multi_location_prog = prog.location([0, 2])
+        # to target multiple atoms with different scales
+        >>> multi_location_prog = prog.location([0, 2], [0.5, "scale"])
         ```
 
         - You can now do:
-            - `...location(int).linear(start, stop, duration)` : to apply
+            - `...location(...).linear(start, stop, duration)` : to apply
                 a linear waveform
-            - `...location(int).constant(value, duration)` : to apply
+            - `...location(...).constant(value, duration)` : to apply
                 a constant waveform
-            - `...location(int).poly([coefficients], duration)` : to apply
+            - `...location(...).poly([coefficients], duration)` : to apply
                 a polynomial waveform
-            - `...location(int).apply(wf:bloqade.ir.Waveform)`: to apply
+            - `...location(...).apply(wf:bloqade.ir.Waveform)`: to apply
                 a pre-defined waveform
-            - `...location(int).piecewise_linear([durations], [values])`:  to apply
+            - `...location(...).piecewise_linear([durations], [values])`:  to apply
                 a piecewise linear waveform
-            - `...location(int).piecewise_constant([durations], [values])`: to apply
+            - `...location(...).piecewise_constant([durations], [values])`: to apply
                 a piecewise constant waveform
-            - `...location(int).fn(f(t,..))`: to apply a function as a waveform
-        - You can also address multiple atoms by chaining:
-            - `...location(int).location(int)`
-                - The waveform you specify after the last `location` in the chain will
-                  be applied to all atoms in the chain
-        - And you can scale any waveform by a multiplicative factor on a
-            specific atom via:
-            - `...location(int).scale(float)`
-            - You cannot define a scaling across multiple atoms with one method call!
-              They must be specified atom-by-atom.
+            - `...location(...).fn(f(t,..))`: to apply a function as a waveform
 
         """
-        from bloqade.builder.spatial import Location
+        return self._location(labels, scales)
 
-        return Location(label, self)
-
-    @beartype
-    def var(self, name: str):
+    def scale(self, name_or_list: Union[str, List[ScalarType]]):
         """
-        Address a single atom (or multiple via assigning a list of values) as
-        part of defining the spatial modulation component of a drive.
+        Address all the atoms scaling each atom with an element of the list
+        or define a variable name for the scale list to be assigned later by
+        defining a `name` and using `assign` or `batch_assign` later.
 
         Next steps to build your program include choosing the waveform that
         will be summed with the spatial modulation to create a drive.
@@ -101,35 +123,39 @@ class Field(Builder):
         ### Usage Example:
         ```
         >>> prog = start.add_position([(0,0),(1,4),(2,8)]).rydberg.rabi
-        >>> one_location_prog = prog.var("a")
+
+        # assign a literal list of values to scale each atom
+        >>> one_location_prog = prog.scale([0.1, 0.2, 0.3])
+        # assign a variable name to be assigned later
+        >>> one_location_prog = prog.scale("a")
         # "a" can be assigned in the END of the program during variable assignment
-        # indicating only a single atom should be targeted OR
-        # a list of values, indicating a set of atoms should be targeted.
-        >>> target_one_atom = ...assign(a = 0)
-        >>> target_multiple_atoms = ...assign(a = [0, 2])
-        # Note that `assign` is used, you cannot batch_assign variables used in
-        # .var() calls
+        # using a list of values, indicating the scaling for each atom
+        >>> single_assignment = ...assign(a = [0.1, 0.2, 0.3])
+        # a list of lists, indicating a set of atoms should be targeted
+        # for each task in a batch.
+        >>> batch_assignment = ...batch_assign(a = [list_1, list_2, list_3,...])
+
         ```
 
         - You can now do:
-            - `...var(str).linear(start, stop, duration)` : to apply
+            - `...scale(...).linear(start, stop, duration)` : to apply
                 a linear waveform
-            - `...var(str).constant(value, duration)` : to apply
+            - `...scale(...).constant(value, duration)` : to apply
                 a constant waveform
-            - `...var(str).poly([coefficients], duration)` : to apply
+            - `...scale(...).poly([coefficients], duration)` : to apply
                 a polynomial waveform
-            - `...var(str).apply(wf:bloqade.ir.Waveform)`: to apply
+            - `...scale(...).apply(wf:bloqade.ir.Waveform)`: to apply
                 a pre-defined waveform
-            - `...var(str).piecewise_linear(durations, values)`:  to
+            - `...scale(...).piecewise_linear(durations, values)`:  to
                 apply a piecewise linear waveform
-            - `...var(str).piecewise_constant(durations, values)`: to
+            - `...scale(...).piecewise_constant(durations, values)`: to
                 apply a piecewise constant waveform
-            - `...var(str).fn(f(t,..))`: to apply a function as a waveform
+            - `...scale(...).fn(f(t,..))`: to apply a function as a waveform
 
         """
         from bloqade.builder.spatial import Var
 
-        return Var(name, self)
+        return Var(name_or_list, self)
 
 
 class Detuning(Field):
