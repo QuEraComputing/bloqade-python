@@ -7,8 +7,6 @@ from bloqade.builder.backend import BackendRoute
 
 
 class Args(Parallelizable, BackendRoute, Builder):
-    __match_args__ = ("_order", "__parent__")
-
     @beartype
     def __init__(
         self, order: List[Union[str, Variable]], parent: Optional[Builder] = None

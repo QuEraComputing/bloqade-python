@@ -7,8 +7,6 @@ from bloqade.ir import cast
 
 
 class Parallelize(BackendRoute, Builder):
-    __match_args__ = ("_cluster_spacing", "__parent__")
-
     @beartype
     def __init__(
         self, cluster_spacing: LiteralType, parent: Optional[Builder] = None
