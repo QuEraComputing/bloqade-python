@@ -95,16 +95,15 @@ class AssignWaveform(WaveformVisitor):
         new_parameters = []
         default_param_values = dict(ast.default_param_values)
 
-        for param in ast.parameters:
-            if param.name in self.mapping:
-                if param.name in default_param_values:
-                    default_param_values.pop(param.name)
+        new_parameters = list(map(self.scalar_visitor.emit, ast.parameters))
 
-                new_parameters.append(
-                    scalar.AssignedVariable(param.name, self.mapping[param.name])
-                )
-            else:
-                new_parameters.append(param)
+        # remove default parameters that are overwritten by the assignment
+        for param in new_parameters:
+            if (
+                isinstance(param, scalar.AssignedVariable)
+                and param.name in default_param_values
+            ):
+                default_param_values.pop(param.name)
 
         return waveform.PythonFn(ast.fn, duration, new_parameters, default_param_values)
 
