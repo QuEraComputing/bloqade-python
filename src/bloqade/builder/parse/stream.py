@@ -54,7 +54,6 @@ class BuilderStream:
         head = self.read_next(types)
         curr = head
         while curr is not None:
-            print(repr(curr))
             if type(curr.node) not in types:
                 if skips and type(curr.node) not in skips:
                     break
