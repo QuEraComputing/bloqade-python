@@ -1,6 +1,6 @@
 from bloqade.builder.base import Builder
 from bloqade.builder.typing import ScalarType
-from beartype.typing import Union, List, Optional, Tuple
+from beartype.typing import Union, List, Optional
 import plum
 
 
@@ -58,8 +58,8 @@ class Field(Builder):
 
     def location(
         self,
-        labels: Union[Tuple[int], List[int], int],
-        scales: Union[Tuple[ScalarType], List[ScalarType], ScalarType, None] = None,
+        labels: Union[List[int], int],
+        scales: Union[List[ScalarType], ScalarType, None] = None,
     ):
         """Address a single atom (or multiple) atoms.
 
