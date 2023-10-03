@@ -1,5 +1,4 @@
 from beartype.typing import Union, TYPE_CHECKING
-import json
 import bloqade.ir as ir
 from bloqade.visualization import display_builder
 
@@ -9,17 +8,6 @@ if TYPE_CHECKING:
     from bloqade.ir.analog_circuit import AnalogCircuit
     from bloqade.ir.routine.base import Routine
     from bloqade.builder.base import Builder
-
-
-class CompileJSON:
-    def json(self: "Builder", **json_options) -> str:
-        """transform the program to a JSON string."""
-        from bloqade.builder.parse.json import BuilderSerializer
-
-        return json.dumps(self, cls=BuilderSerializer, **json_options)
-
-    # def __repr__(self):
-    #     raise NotImplementedError
 
 
 class ParseRegister:
