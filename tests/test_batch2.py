@@ -20,8 +20,8 @@ prog = (
     .assign(initial_detuning=-10, up_time=0.1, anneal_time=3.8, rabi_amplitude_max=15)
     .batch_assign(final_detuning=np.linspace(0, 10, 5))
 )
-
-task = prog.quera.mock()
+print(prog.parse_circuit())
+# task = prog.quera.mock()
 
 
 # future = task.run_async(shots=100)  ## non0-blk

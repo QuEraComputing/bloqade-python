@@ -1,6 +1,6 @@
 from bloqade.builder.base import Builder
 from bloqade.builder.typing import ScalarType
-from beartype.typing import Union, List, Optional
+from beartype.typing import Union, List, Optional, Tuple
 import plum
 
 
@@ -58,8 +58,8 @@ class Field(Builder):
 
     def location(
         self,
-        labels: Union[List[int], int],
-        scales: Union[List[ScalarType], ScalarType, None] = None,
+        labels: Union[Tuple[int], List[int], int],
+        scales: Union[Tuple[ScalarType], List[ScalarType], ScalarType, None] = None,
     ):
         """Address a single atom (or multiple) atoms.
 
@@ -153,9 +153,9 @@ class Field(Builder):
             - `...scale(...).fn(f(t,..))`: to apply a function as a waveform
 
         """
-        from bloqade.builder.spatial import Var
+        from bloqade.builder.spatial import Scale
 
-        return Var(name_or_list, self)
+        return Scale(name_or_list, self)
 
 
 class Detuning(Field):

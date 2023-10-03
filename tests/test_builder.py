@@ -40,7 +40,7 @@ def test_assign_checks():
     with pytest.raises(ValueError):
         (
             start.add_position(("x", "y"))
-            .rydberg.rabi.amplitude.var("mask")
+            .rydberg.rabi.amplitude.scale("mask")
             .piecewise_linear([0.1, t - 0.2, 0.1], [0, omega_max, omega_max, 0])
             .slice(t_1, t_2)
             .uniform.poly([1, 2, 3, 4], t_1)
@@ -53,7 +53,7 @@ def test_assign_checks():
     with pytest.raises(ValueError):
         (
             start.add_position(("x", "y"))
-            .rydberg.rabi.amplitude.var("mask")
+            .rydberg.rabi.amplitude.scale("mask")
             .piecewise_linear([0.1, t - 0.2, 0.1], [0, omega_max, omega_max, 0])
             .slice(t_1, t_2)
             .uniform.poly([1, 2, 3, 4], t_1)
@@ -169,7 +169,7 @@ def test_build_ast_Scale():
 
 
 def test_spatial_var():
-    prog = start.rydberg.detuning.var("a")
+    prog = start.rydberg.detuning.scale("a")
 
     assert prog._name == "a"
 
@@ -352,14 +352,14 @@ def test_assign_error():
     ]
 
     with pytest.raises(ValueError):
-        start.add_position([(0, 0), (0, 6)]).rydberg.detuning.var("mask").constant(
+        start.add_position([(0, 0), (0, 6)]).rydberg.detuning.scale("mask").constant(
             "c", "t"
         ).batch_assign(list_dict)
 
     # happy path is to have a list of dicts with the same keys
-    start.add_position([(0, 0), (0, 6), (0, 12)]).rydberg.detuning.var("mask").constant(
-        "c", "t"
-    ).batch_assign(list_dict)
+    start.add_position([(0, 0), (0, 6), (0, 12)]).rydberg.detuning.scale(
+        "mask"
+    ).constant("c", "t").batch_assign(list_dict)
 
     list_dict = [
         dict(c=1, t=10, mask=np.array([1, 2, 3])),
@@ -367,7 +367,7 @@ def test_assign_error():
         dict(t=30, c=3, mask=np.array([7, 8, 9])),
     ]
     with pytest.raises(ValueError):
-        start.add_position([(0, 0), (0, 6)]).rydberg.detuning.var("mask").constant(
+        start.add_position([(0, 0), (0, 6)]).rydberg.detuning.scale("mask").constant(
             "c", "t"
         ).batch_assign(list_dict)
 
@@ -395,7 +395,7 @@ def test_assign_error():
             .rydberg.rabi.amplitude.uniform.piecewise_linear(
                 [0.2, "rabi_dur_scanned", 0.2], [0.0, 10, 10, 0.0]
             )
-            .amplitude.var("rabi_mask")
+            .amplitude.scale("rabi_mask")
             .piecewise_linear([0.2, "rabi_dur_scanned", 0.2], [0.0, 10, 10, 0.0])
             .assign(rabi_mask=0.0)
             .batch_assign(rabi_dur_scanned=[1.0])
@@ -407,7 +407,7 @@ def test_flatten_dupicate_error():
         (
             start.add_position((0, 0))
             .rydberg.rabi.amplitude.uniform.constant("a", 1)
-            .detuning.var("vec")
+            .detuning.scale("vec")
             .constant(1, 1)
             .assign(vec=[1])
             .args(["a", "a"])
@@ -421,7 +421,7 @@ def test_flatten_vector_error():
         (
             start.add_position((0, 0))
             .rydberg.rabi.amplitude.uniform.constant(1, 1)
-            .detuning.var("a")
+            .detuning.scale("a")
             .constant(1, 1)
             .args(["a"])
             .braket.local_emulator()

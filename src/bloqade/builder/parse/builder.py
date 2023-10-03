@@ -36,7 +36,7 @@ class Parser:
         self.order = ()
 
     def read_address(self, stream) -> Tuple[LevelCoupling, Field, BuilderNode]:
-        spatial = stream.eat([Location, Uniform, Scale])
+        spatial = stream.read_next([Location, Uniform, Scale])
         curr = spatial
 
         if curr is None:
@@ -107,12 +107,15 @@ class Parser:
     ) -> Tuple[ir.SpatialModulation, BuilderNode]:
         return head.node.__bloqade_ir__(), head.next
 
-    def read_field(self, head) -> ir.Field:
+    def read_drive(self, head) -> ir.Field:
+        if head is None:
+            return ir.Field({})
+
         sm = head.node.__bloqade_ir__()
         wf, _ = self.read_waveform(head.next)
 
-        if wf is None or sm is None:
-            return ir.Field({})
+        # if wf is None or sm is None:
+        #     return ir.Field({})
 
         return ir.Field({sm: wf})
 
@@ -125,6 +128,7 @@ class Parser:
         stream = self.stream.copy()
         while stream.curr is not None:
             coupling_builder, field_builder, spatial_head = self.read_address(stream)
+
             if coupling_builder is not None:
                 # update to new pulse coupling
                 self.coupling_name = coupling_builder.__bloqade_ir__()
@@ -139,8 +143,8 @@ class Parser:
             pulse = self.sequence.pulses.get(self.coupling_name, ir.Pulse({}))
             field = pulse.fields.get(self.field_name, ir.Field({}))
 
-            new_field = self.read_field(spatial_head)
-            field = field.add(new_field)
+            drive = self.read_drive(spatial_head)
+            field = field.add(drive)
 
             pulse.fields[self.field_name] = field
             self.sequence.pulses[self.coupling_name] = pulse

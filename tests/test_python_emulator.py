@@ -57,7 +57,7 @@ def test_integration_3():
         .phase.uniform.piecewise_constant(
             [0.1, ramp_time / 2, ramp_time / 2, 0.1], [0, 0, np.pi, np.pi]
         )
-        .amplitude.var("rabi_mask")
+        .amplitude.scale("rabi_mask")
         .fn(lambda t: 4 * np.sin(3 * t), ramp_time + 0.2)
         .assign(ramp_time=3.0, rabi_mask=[10.0, 0.1], r=6)
         .bloqade.python()
@@ -77,7 +77,7 @@ def test_integration_4():
             [0.1, ramp_time, 0.1], [-100, -100, 100, 100]
         )
         .amplitude.uniform.piecewise_linear([0.1, ramp_time, 0.1], [0, 10, 10, 0])
-        .amplitude.var("rabi_mask")
+        .amplitude.scale("rabi_mask")
         .fn(lambda t: 4 * np.sin(3 * t), ramp_time + 0.2)
         .amplitude.location(1)
         .linear(0.0, 1.0, ramp_time + 0.2)
@@ -143,7 +143,7 @@ def test_serialization():
             [0.1, ramp_time, 0.1], [-100, -100, 100, 100]
         )
         .amplitude.uniform.piecewise_linear([0.1, ramp_time, 0.1], [0, 10, 10, 0])
-        .amplitude.var("rabi_mask")
+        .amplitude.scale("rabi_mask")
         .piecewise_linear([0.1, ramp_time, 0.1], [0, 10, 10, 0])
         .amplitude.location(1)
         .linear(0.0, 1.0, ramp_time + 0.2)

@@ -236,8 +236,7 @@ def test_3_level_uniform_rabi_complex(L):
 def test_2_level_single_atom_detuning(i, L):
     circuit = (
         Chain(L, lattice_spacing=6.1)
-        .rydberg.detuning.location(i)
-        .scale(2.0)
+        .rydberg.detuning.location(i, 2.0)
         .constant(1.0, 1.0)
     ).parse_circuit()
 
@@ -263,8 +262,7 @@ def test_2_level_single_atom_detuning(i, L):
 def test_2_level_single_atom_rabi_real(i, L):
     circuit = (
         Chain(L, lattice_spacing=6.1)
-        .rydberg.rabi.amplitude.location(i)
-        .scale(0.5)
+        .rydberg.rabi.amplitude.location(i, 0.5)
         .constant(1.0, 1.0)
     ).parse_circuit()
 
@@ -290,8 +288,7 @@ def test_2_level_single_atom_rabi_real(i, L):
 def test_2_level_single_atom_complex(i, L):
     circuit = (
         Chain(L, lattice_spacing=6.1)
-        .rydberg.rabi.amplitude.location(i)
-        .scale(0.5)
+        .rydberg.rabi.amplitude.location(i, 0.5)
         .constant(1.0, 1.0)
         .phase.location(i)
         .constant(0.0, 1.0)
@@ -318,8 +315,7 @@ def test_2_level_single_atom_complex(i, L):
 def test_3_level_single_atom_detuning(i, L):
     circuit = (
         Chain(L, lattice_spacing=6.1)
-        .rydberg.detuning.location(i)
-        .scale(2.0)
+        .rydberg.detuning.location(i, 2.0)
         .constant(1.0, 1.0)
     ).parse_circuit()
 
@@ -346,8 +342,7 @@ def test_3_level_single_atom_detuning(i, L):
 
     circuit = (
         Chain(L, lattice_spacing=6.1)
-        .hyperfine.detuning.location(i)
-        .scale(2.0)
+        .hyperfine.detuning.location(i, 2.0)
         .constant(1.0, 1.0)
     ).parse_circuit()
 
@@ -373,8 +368,7 @@ def test_3_level_single_atom_detuning(i, L):
 def test_3_level_single_atom_rabi_real(i, L):
     circuit = (
         Chain(L, lattice_spacing=6.1)
-        .rydberg.rabi.amplitude.location(i)
-        .scale(0.5)
+        .rydberg.rabi.amplitude.location(i, 0.5)
         .constant(1.0, 1.0)
     ).parse_circuit()
 
@@ -401,8 +395,7 @@ def test_3_level_single_atom_rabi_real(i, L):
 
     circuit = (
         Chain(L, lattice_spacing=6.1)
-        .hyperfine.rabi.amplitude.location(i)
-        .scale(0.5)
+        .hyperfine.rabi.amplitude.location(i, 0.5)
         .constant(1.0, 1.0)
     ).parse_circuit()
 
@@ -430,8 +423,7 @@ def test_3_level_single_atom_rabi_real(i, L):
 def test_3_level_single_atom_rabi_complex(i, L):
     circuit = (
         Chain(L, lattice_spacing=6.1)
-        .rydberg.rabi.amplitude.location(i)
-        .scale(0.5)
+        .rydberg.rabi.amplitude.location(i, 0.5)
         .constant(1.0, 1.0)
         .phase.location(i)
         .constant(0.0, 1.0)
@@ -459,8 +451,7 @@ def test_3_level_single_atom_rabi_complex(i, L):
 
     circuit = (
         Chain(L, lattice_spacing=6.1)
-        .hyperfine.rabi.amplitude.location(i)
-        .scale(0.5)
+        .hyperfine.rabi.amplitude.location(i, 0.5)
         .constant(1.0, 1.0)
         .phase.location(i)
         .constant(0.0, 1.0)
@@ -492,7 +483,7 @@ def test_3_level_single_atom_rabi_complex(i, L):
 def test_2_level_mask_detuning(L):
     circuit = (
         Chain(L, lattice_spacing=6.1)
-        .rydberg.detuning.var("detuning_mask")
+        .rydberg.detuning.scale("detuning_mask")
         .constant(1.0, 1.0)
     ).parse_circuit()
 
@@ -526,7 +517,7 @@ def test_2_level_mask_detuning(L):
 def test_2_level_mask_real(L):
     circuit = (
         Chain(L, lattice_spacing=6.1)
-        .rydberg.rabi.amplitude.var("rabi_mask")
+        .rydberg.rabi.amplitude.scale("rabi_mask")
         .constant(1.0, 1.0)
     ).parse_circuit()
 
@@ -563,7 +554,7 @@ def test_2_level_mask_real(L):
 def test_2_level_mask_complex(L):
     circuit = (
         Chain(L, lattice_spacing=6.1)
-        .rydberg.rabi.amplitude.var("rabi_mask")
+        .rydberg.rabi.amplitude.scale("rabi_mask")
         .constant(1.0, 1.0)
         .phase.uniform.constant(0.0, 1.0)
     ).parse_circuit()
@@ -606,7 +597,7 @@ def test_3_level_detuning(L):
 
     circuit = (
         Chain(L, lattice_spacing=6.1)
-        .rydberg.detuning.var("detuning_mask")
+        .rydberg.detuning.scale("detuning_mask")
         .constant(1.0, 1.0)
     ).parse_circuit()
 
@@ -637,7 +628,7 @@ def test_3_level_detuning(L):
 
     circuit = (
         Chain(L, lattice_spacing=6.1)
-        .hyperfine.detuning.var("detuning_mask")
+        .hyperfine.detuning.scale("detuning_mask")
         .constant(1.0, 1.0)
     ).parse_circuit()
 
@@ -670,7 +661,7 @@ def test_3_level_mask_rabi_real(L):
 
     circuit = (
         Chain(L, lattice_spacing=6.1)
-        .rydberg.rabi.amplitude.var("rabi_mask")
+        .rydberg.rabi.amplitude.scale("rabi_mask")
         .constant(1.0, 1.0)
     ).parse_circuit()
 
@@ -705,7 +696,7 @@ def test_3_level_mask_rabi_real(L):
 
     circuit = (
         Chain(L, lattice_spacing=6.1)
-        .hyperfine.rabi.amplitude.var("rabi_mask")
+        .hyperfine.rabi.amplitude.scale("rabi_mask")
         .constant(1.0, 1.0)
     ).parse_circuit()
 
@@ -744,7 +735,7 @@ def test_3_level_mask_complex(L):
 
     circuit = (
         Chain(L, lattice_spacing=6.1)
-        .rydberg.rabi.amplitude.var("rabi_mask")
+        .rydberg.rabi.amplitude.scale("rabi_mask")
         .constant(1.0, 1.0)
         .phase.uniform.constant(0.0, 1.0)
     ).parse_circuit()
@@ -780,7 +771,7 @@ def test_3_level_mask_complex(L):
 
     circuit = (
         Chain(L, lattice_spacing=6.1)
-        .hyperfine.rabi.amplitude.var("rabi_mask")
+        .hyperfine.rabi.amplitude.scale("rabi_mask")
         .constant(1.0, 1.0)
         .phase.uniform.constant(0.0, 1.0)
     ).parse_circuit()
@@ -827,10 +818,9 @@ def test_3_level_mask_complex(L):
 )
 def test_2_level_multi_atom_detuning(sites, L):
     program = Chain(L, lattice_spacing=6.1).rydberg.detuning
-    detuning_coeffs = {site: Decimal(str(np.random.normal(0.0, 1.0))) for site in sites}
+    detuning_coeffs = [Decimal(str(np.random.normal(0.0, 1.0))) for _ in sites]
 
-    for site in sites:
-        program = program.location(site).scale(detuning_coeffs[site])
+    program = program.location(list(sites), detuning_coeffs)
 
     circuit = program.constant(1.0, 1.0).parse_circuit()
 
@@ -842,7 +832,7 @@ def test_2_level_multi_atom_detuning(sites, L):
 
     detuning = sum(
         float(mask) * get_manybody_op(i, L, detuning_op)
-        for i, mask in detuning_coeffs.items()
+        for i, mask in zip(sites, detuning_coeffs)
     )
 
     assert np.all(hamiltonian.detuning_ops[0].get_diagonal(0.0) == detuning)
@@ -866,10 +856,9 @@ def test_2_level_multi_atom_detuning(sites, L):
 )
 def test_2_level_multi_atom_rabi_real(sites, L):
     program = Chain(L, lattice_spacing=6.1).rydberg.rabi.amplitude
-    rabi_coeffs = {site: Decimal(str(np.random.normal(0.0, 1.0))) for site in sites}
+    rabi_coeffs = [Decimal(str(np.random.normal(0.0, 1.0))) for _ in sites]
 
-    for site in sites:
-        program = program.location(site).scale(rabi_coeffs[site])
+    program = program.location(list(sites), rabi_coeffs)
 
     circuit = program.constant(1.0, 1.0).parse_circuit()
 
@@ -880,7 +869,8 @@ def test_2_level_multi_atom_rabi_real(sites, L):
     rabi_op = np.array([[0, 1], [1, 0]], dtype=int)
 
     rabi = sum(
-        float(mask) * get_manybody_op(i, L, rabi_op) for i, mask in rabi_coeffs.items()
+        float(mask) * get_manybody_op(i, L, rabi_op)
+        for i, mask in zip(sites, rabi_coeffs)
     )
 
     assert np.all(hamiltonian.rabi_ops[0].op.tocsr().toarray() == rabi)
@@ -903,15 +893,15 @@ def test_2_level_multi_atom_rabi_real(sites, L):
     ],
 )
 def test_2_level_multi_atom_rabi_complex(sites, L):
-    program = Chain(L, lattice_spacing=6.1).rydberg.rabi.amplitude
-    rabi_coeffs = {site: Decimal(str(np.random.normal(0.0, 1.0))) for site in sites}
-
-    for site in sites:
-        program = program.location(site).scale(rabi_coeffs[site])
+    rabi_coeffs = [Decimal(str(np.random.normal(0.0, 1.0))) for _ in sites]
 
     circuit = (
-        program.constant(1.0, 1.0).phase.uniform.constant(0.0, 1.0)
-    ).parse_circuit()
+        Chain(L, lattice_spacing=6.1)
+        .rydberg.rabi.amplitude.location(list(sites), rabi_coeffs)
+        .constant(1.0, 1.0)
+        .phase.uniform.constant(0.0, 1.0)
+        .parse_circuit()
+    )
 
     cache = CompileCache()
     emu_prog = EmulatorProgramCodeGen().emit(circuit)
@@ -920,7 +910,8 @@ def test_2_level_multi_atom_rabi_complex(sites, L):
     rabi_op = np.array([[0, 0], [1, 0]], dtype=int)
 
     rabi = sum(
-        float(mask) * get_manybody_op(i, L, rabi_op) for i, mask in rabi_coeffs.items()
+        float(mask) * get_manybody_op(i, L, rabi_op)
+        for i, mask in zip(sites, rabi_coeffs)
     )
 
     assert np.all(hamiltonian.rabi_ops[0].op.tocsr().toarray() == rabi)
@@ -943,14 +934,14 @@ def test_2_level_multi_atom_rabi_complex(sites, L):
     ],
 )
 def test_3_level_multi_atom_detuning(sites, L):
-    detuning_coeffs = {site: Decimal(str(np.random.normal(0.0, 1.0))) for site in sites}
+    detuning_coeffs = [Decimal(str(np.random.normal(0.0, 1.0))) for site in sites]
 
-    program = Chain(L, lattice_spacing=6.1).rydberg.detuning
-
-    for site in sites:
-        program = program.location(site).scale(detuning_coeffs[site])
-
-    circuit = program.constant(1.0, 1.0).parse_circuit()
+    circuit = (
+        Chain(L, lattice_spacing=6.1)
+        .rydberg.detuning.location(list(sites), detuning_coeffs)
+        .constant(1.0, 1.0)
+        .parse_circuit()
+    )
 
     cache = CompileCache()
     emu_prog = EmulatorProgramCodeGen(use_hyperfine=True).emit(circuit)
@@ -960,7 +951,7 @@ def test_3_level_multi_atom_detuning(sites, L):
 
     detuning = sum(
         float(mask) * get_manybody_op(i, L, detuning_op)
-        for i, mask in detuning_coeffs.items()
+        for i, mask in zip(sites, detuning_coeffs)
     )
 
     assert np.all(hamiltonian.detuning_ops[0].get_diagonal(0.0) == detuning)
@@ -976,12 +967,12 @@ def test_3_level_multi_atom_detuning(sites, L):
 
     # check hyperfine detuning value
 
-    program = Chain(L, lattice_spacing=6.1).hyperfine.detuning
-
-    for site in sites:
-        program = program.location(site).scale(detuning_coeffs[site])
-
-    circuit = program.constant(1.0, 1.0).parse_circuit()
+    circuit = (
+        Chain(L, lattice_spacing=6.1)
+        .hyperfine.detuning.location(list(sites), detuning_coeffs)
+        .constant(1.0, 1.0)
+        .parse_circuit()
+    )
 
     cache = CompileCache()
     emu_prog = EmulatorProgramCodeGen().emit(circuit)
@@ -991,7 +982,7 @@ def test_3_level_multi_atom_detuning(sites, L):
 
     detuning = sum(
         float(mask) * get_manybody_op(i, L, detuning_op)
-        for i, mask in detuning_coeffs.items()
+        for i, mask in zip(sites, detuning_coeffs)
     )
 
     assert np.all(hamiltonian.detuning_ops[0].get_diagonal(0.0) == detuning)
@@ -1014,14 +1005,14 @@ def test_3_level_multi_atom_detuning(sites, L):
     ],
 )
 def test_3_level_multi_atom_real(sites, L):
-    rabi_coeffs = {site: Decimal(str(np.random.normal(0.0, 1.0))) for site in sites}
+    rabi_coeffs = [Decimal(str(np.random.normal(0.0, 1.0))) for site in sites]
 
-    program = Chain(L, lattice_spacing=6.1).rydberg.rabi.amplitude
-
-    for site in sites:
-        program = program.location(site).scale(rabi_coeffs[site])
-
-    circuit = program.constant(1.0, 1.0).parse_circuit()
+    circuit = (
+        Chain(L, lattice_spacing=6.1)
+        .rydberg.rabi.amplitude.location(list(sites), rabi_coeffs)
+        .constant(1.0, 1.0)
+        .parse_circuit()
+    )
 
     cache = CompileCache()
     emu_prog = EmulatorProgramCodeGen(use_hyperfine=True).emit(circuit)
@@ -1030,7 +1021,8 @@ def test_3_level_multi_atom_real(sites, L):
     rabi_op = np.array([[0, 0, 0], [0, 0, 1], [0, 1, 0]], dtype=int)
 
     rabi = sum(
-        float(mask) * get_manybody_op(i, L, rabi_op) for i, mask in rabi_coeffs.items()
+        float(mask) * get_manybody_op(i, L, rabi_op)
+        for i, mask in zip(sites, rabi_coeffs)
     )
 
     assert np.all(hamiltonian.rabi_ops[0].op.tocsr().toarray() == rabi)
@@ -1046,12 +1038,12 @@ def test_3_level_multi_atom_real(sites, L):
 
     # check hyperfine rabi value
 
-    program = Chain(L, lattice_spacing=6.1).hyperfine.rabi.amplitude
-
-    for site in sites:
-        program = program.location(site).scale(rabi_coeffs[site])
-
-    circuit = program.constant(1.0, 1.0).parse_circuit()
+    circuit = (
+        Chain(L, lattice_spacing=6.1)
+        .hyperfine.rabi.amplitude.location(list(sites), rabi_coeffs)
+        .constant(1.0, 1.0)
+        .parse_circuit()
+    )
 
     cache = CompileCache()
     emu_prog = EmulatorProgramCodeGen().emit(circuit)
@@ -1060,7 +1052,8 @@ def test_3_level_multi_atom_real(sites, L):
     rabi_op = np.array([[0, 1, 0], [1, 0, 0], [0, 0, 0]], dtype=int)
 
     rabi = sum(
-        float(mask) * get_manybody_op(i, L, rabi_op) for i, mask in rabi_coeffs.items()
+        float(mask) * get_manybody_op(i, L, rabi_op)
+        for i, mask in zip(sites, rabi_coeffs)
     )
 
     assert np.all(hamiltonian.rabi_ops[0].op.tocsr().toarray() == rabi)
@@ -1083,16 +1076,15 @@ def test_3_level_multi_atom_real(sites, L):
     ],
 )
 def test_3_level_multi_atom_complex(sites, L):
-    rabi_coeffs = {site: Decimal(str(np.random.normal(0.0, 1.0))) for site in sites}
-
-    program = Chain(L, lattice_spacing=6.1).rydberg.rabi.amplitude
-
-    for site in sites:
-        program = program.location(site).scale(rabi_coeffs[site])
+    rabi_coeffs = [Decimal(str(np.random.normal(0.0, 1.0))) for site in sites]
 
     circuit = (
-        program.constant(1.0, 1.0).phase.uniform.constant(0.0, 1.0)
-    ).parse_circuit()
+        Chain(L, lattice_spacing=6.1)
+        .rydberg.rabi.amplitude.location(list(sites), rabi_coeffs)
+        .constant(1.0, 1.0)
+        .phase.uniform.constant(0.0, 1.0)
+        .parse_circuit()
+    )
 
     cache = CompileCache()
     emu_prog = EmulatorProgramCodeGen(use_hyperfine=True).emit(circuit)
@@ -1101,7 +1093,8 @@ def test_3_level_multi_atom_complex(sites, L):
     rabi_op = np.array([[0, 0, 0], [0, 0, 0], [0, 1, 0]], dtype=int)
 
     rabi = sum(
-        float(mask) * get_manybody_op(i, L, rabi_op) for i, mask in rabi_coeffs.items()
+        float(mask) * get_manybody_op(i, L, rabi_op)
+        for i, mask in zip(sites, rabi_coeffs)
     )
 
     assert np.all(hamiltonian.rabi_ops[0].op.tocsr().toarray() == rabi)
@@ -1117,14 +1110,13 @@ def test_3_level_multi_atom_complex(sites, L):
 
     # check hyperfine rabi value
 
-    program = Chain(L, lattice_spacing=6.1).hyperfine.rabi.amplitude
-
-    for site in sites:
-        program = program.location(site).scale(rabi_coeffs[site])
-
     circuit = (
-        program.constant(1.0, 1.0).phase.uniform.constant(0.0, 1.0)
-    ).parse_circuit()
+        Chain(L, lattice_spacing=6.1)
+        .hyperfine.rabi.amplitude.location(list(sites), rabi_coeffs)
+        .constant(1.0, 1.0)
+        .phase.uniform.constant(0.0, 1.0)
+        .parse_circuit()
+    )
 
     cache = CompileCache()
     emu_prog = EmulatorProgramCodeGen().emit(circuit)
@@ -1133,7 +1125,8 @@ def test_3_level_multi_atom_complex(sites, L):
     rabi_op = np.array([[0, 0, 0], [1, 0, 0], [0, 0, 0]], dtype=int)
 
     rabi = sum(
-        float(mask) * get_manybody_op(i, L, rabi_op) for i, mask in rabi_coeffs.items()
+        float(mask) * get_manybody_op(i, L, rabi_op)
+        for i, mask in zip(sites, rabi_coeffs)
     )
 
     assert np.all(hamiltonian.rabi_ops[0].op.tocsr().toarray() == rabi)
