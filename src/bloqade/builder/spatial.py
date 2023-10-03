@@ -99,7 +99,7 @@ class Location(SpatialModulation):
         Scale the subsequent waveform to be applied on a certain set of
         atoms specified by the current spatial modulation.
 
-        ### ### Usage Examples:
+        ### Usage Examples:
         ```
         # define program
         >>> reg = bloqade.start.add_position([(0,0),(1,1),(2,2),(3,3)])

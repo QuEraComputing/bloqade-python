@@ -10,7 +10,7 @@ class LevelCoupling(Builder):
         # waveform + spatial modulation = drive
         """
         Specify the [`Detuning`][bloqade.builder.field.Detuning]
-        [`Field`][bloqade.builder.Field] of your program.
+         [`Field`][bloqade.builder.Field] of your program.
 
         A "field" is a summation of one or more "drives", with a drive being the sum
         of a waveform and spatial modulation.

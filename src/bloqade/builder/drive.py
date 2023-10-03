@@ -13,8 +13,6 @@ class Drive:
             - `...rydberg.rabi`: for Rabi field
             - `...rydberg.detuning`: for Detuning field
         - In the absence of a field you the value is set to zero by default.
-
-        ```
         """
         return Rydberg(self)
 
@@ -30,6 +28,5 @@ class Drive:
             - `...hyperfine.detuning`: for Detuning field
         - In the absence of a field you the value is set to zero by default.
 
-        ```
         """
         return Hyperfine(self)
