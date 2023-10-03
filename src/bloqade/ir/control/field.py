@@ -3,7 +3,7 @@ from ..tree_print import Printer
 from .waveform import Waveform
 from bloqade.visualization import get_field_figure
 from pydantic.dataclasses import dataclass
-from typing import Dict, List
+from typing import Dict, List, Optional
 from decimal import Decimal
 from bloqade.visualization import display_ir
 from bloqade.visualization import get_ir_figure
@@ -104,7 +104,7 @@ class RunTimeVector(SpatialModulation):
 
 @dataclass
 class AssignedRunTimeVector(SpatialModulation):
-    name: str
+    name: Optional[str]  # name is optional for literal Lists
     value: List[Decimal]
 
     def __hash__(self) -> int:
