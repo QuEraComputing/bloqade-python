@@ -6,7 +6,7 @@
 </span><span id=__span-0-5><a id=__codelineno-0-5 name=__codelineno-0-5 href=#__codelineno-0-5></a>&gt;&gt;&gt; complete_program = Chain(10).apply(seq)
 </span><span id=__span-0-6><a id=__codelineno-0-6 name=__codelineno-0-6 href=#__codelineno-0-6></a># you can .apply to as many geometries as you like
 </span><span id=__span-0-7><a id=__codelineno-0-7 name=__codelineno-0-7 href=#__codelineno-0-7></a>&gt;&gt;&gt; another_complete_program = Kagome(3).apply(seq)
-</span></code></pre></div></p> <ul> <li>From here you can now do:<ul> <li>|_ <code>...assign(assignments).bloqade</code>: select the bloqade local emulator backend</li> <li>|_ <code>...assign(assignments).braket</code>: select braket local emulator or QuEra hardware</li> <li>|_ <code>...assign(assignments).device(specifier_string)</code>: select backend by specifying a string</li> </ul> </li> <li>Assign multiple values to a single variable for a parameter sweep:<ul> <li>|_ <code>...assign(assignments).batch_assign(assignments)</code>:</li> </ul> </li> <li>Parallelize the program register, duplicating the geometry and waveform sequence to take advantage of all available space/qubits on the QPU:<ul> <li>|_ <code>...assign(assignments).parallelize(cluster_spacing)</code></li> </ul> </li> <li>Defer value assignment of certain variables to runtime:<ul> <li>|_ <code>...assign(assignments).args([previously_defined_vars])</code></li> </ul> </li> </ul> <details class=quote> <summary>Source code in <code>src/bloqade/builder/start.py</code></summary> <div class=highlight><table class=highlighttable><tr><td class=linenos><div class=linenodiv><pre><span></span><span class=normal><a href=#__codelineno-0-13>13</a></span>
+</span></code></pre></div></p> <ul> <li>From here you can now do:<ul> <li><code>...assign(assignments).bloqade</code>: select the bloqade local emulator backend</li> <li><code>...assign(assignments).braket</code>: select braket local emulator or QuEra hardware</li> <li><code>...assign(assignments).device(specifier_string)</code>: select backend by specifying a string</li> </ul> </li> <li>Assign multiple values to a single variable for a parameter sweep:<ul> <li><code>...assign(assignments).batch_assign(assignments)</code>:</li> </ul> </li> <li>Parallelize the program register, duplicating the geometry and waveform sequence to take advantage of all available space/qubits on the QPU:<ul> <li><code>...assign(assignments).parallelize(cluster_spacing)</code></li> </ul> </li> <li>Defer value assignment of certain variables to runtime:<ul> <li><code>...assign(assignments).args([previously_defined_vars])</code></li> </ul> </li> </ul> <details class=quote> <summary>Source code in <code>src/bloqade/builder/start.py</code></summary> <div class=highlight><table class=highlighttable><tr><td class=linenos><div class=linenodiv><pre><span></span><span class=normal><a href=#__codelineno-0-13>13</a></span>
 <span class=normal><a href=#__codelineno-0-14>14</a></span>
 <span class=normal><a href=#__codelineno-0-15>15</a></span>
 <span class=normal><a href=#__codelineno-0-16>16</a></span>
@@ -66,20 +66,20 @@
 </span><span id=__span-0-32><a id=__codelineno-0-32 name=__codelineno-0-32></a><span class=sd>    ```</span>
 </span><span id=__span-0-33><a id=__codelineno-0-33 name=__codelineno-0-33></a>
 </span><span id=__span-0-34><a id=__codelineno-0-34 name=__codelineno-0-34></a><span class=sd>    - From here you can now do:</span>
-</span><span id=__span-0-35><a id=__codelineno-0-35 name=__codelineno-0-35></a><span class=sd>        - |_ `...assign(assignments).bloqade`: select the bloqade</span>
+</span><span id=__span-0-35><a id=__codelineno-0-35 name=__codelineno-0-35></a><span class=sd>        - `...assign(assignments).bloqade`: select the bloqade</span>
 </span><span id=__span-0-36><a id=__codelineno-0-36 name=__codelineno-0-36></a><span class=sd>            local emulator backend</span>
-</span><span id=__span-0-37><a id=__codelineno-0-37 name=__codelineno-0-37></a><span class=sd>        - |_ `...assign(assignments).braket`: select braket</span>
+</span><span id=__span-0-37><a id=__codelineno-0-37 name=__codelineno-0-37></a><span class=sd>        - `...assign(assignments).braket`: select braket</span>
 </span><span id=__span-0-38><a id=__codelineno-0-38 name=__codelineno-0-38></a><span class=sd>            local emulator or QuEra hardware</span>
-</span><span id=__span-0-39><a id=__codelineno-0-39 name=__codelineno-0-39></a><span class=sd>        - |_ `...assign(assignments).device(specifier_string)`: select</span>
+</span><span id=__span-0-39><a id=__codelineno-0-39 name=__codelineno-0-39></a><span class=sd>        - `...assign(assignments).device(specifier_string)`: select</span>
 </span><span id=__span-0-40><a id=__codelineno-0-40 name=__codelineno-0-40></a><span class=sd>            backend by specifying a string</span>
 </span><span id=__span-0-41><a id=__codelineno-0-41 name=__codelineno-0-41></a><span class=sd>    - Assign multiple values to a single variable for a parameter sweep:</span>
-</span><span id=__span-0-42><a id=__codelineno-0-42 name=__codelineno-0-42></a><span class=sd>        - |_ `...assign(assignments).batch_assign(assignments)`:</span>
+</span><span id=__span-0-42><a id=__codelineno-0-42 name=__codelineno-0-42></a><span class=sd>        - `...assign(assignments).batch_assign(assignments)`:</span>
 </span><span id=__span-0-43><a id=__codelineno-0-43 name=__codelineno-0-43></a><span class=sd>    - Parallelize the program register, duplicating the geometry and waveform</span>
 </span><span id=__span-0-44><a id=__codelineno-0-44 name=__codelineno-0-44></a><span class=sd>        sequence to take advantage of all available</span>
 </span><span id=__span-0-45><a id=__codelineno-0-45 name=__codelineno-0-45></a><span class=sd>      space/qubits on the QPU:</span>
-</span><span id=__span-0-46><a id=__codelineno-0-46 name=__codelineno-0-46></a><span class=sd>        - |_ `...assign(assignments).parallelize(cluster_spacing)`</span>
+</span><span id=__span-0-46><a id=__codelineno-0-46 name=__codelineno-0-46></a><span class=sd>        - `...assign(assignments).parallelize(cluster_spacing)`</span>
 </span><span id=__span-0-47><a id=__codelineno-0-47 name=__codelineno-0-47></a><span class=sd>    - Defer value assignment of certain variables to runtime:</span>
-</span><span id=__span-0-48><a id=__codelineno-0-48 name=__codelineno-0-48></a><span class=sd>        - |_ `...assign(assignments).args([previously_defined_vars])`</span>
+</span><span id=__span-0-48><a id=__codelineno-0-48 name=__codelineno-0-48></a><span class=sd>        - `...assign(assignments).args([previously_defined_vars])`</span>
 </span><span id=__span-0-49><a id=__codelineno-0-49 name=__codelineno-0-49></a>
 </span><span id=__span-0-50><a id=__codelineno-0-50 name=__codelineno-0-50></a><span class=sd>    &quot;&quot;&quot;</span>
 </span><span id=__span-0-51><a id=__codelineno-0-51 name=__codelineno-0-51></a>    <span class=k>return</span> <span class=n>SequenceBuilder</span><span class=p>(</span><span class=n>sequence</span><span class=p>,</span> <span class=bp>self</span><span class=p>)</span>
