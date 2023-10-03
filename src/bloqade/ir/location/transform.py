@@ -50,20 +50,20 @@ class TransformTrait:
 
         - Next possible steps are:
         - Continuing to build your geometry via:
-            - |_ `...add_position(positions).add_position(positions)`:
+            - `...add_position(positions).add_position(positions)`:
                 to add more positions
-            - |_ `...add_position(positions).apply_defect_count(n_defects)`:
+            - `...add_position(positions).apply_defect_count(n_defects)`:
             to randomly drop out n_atoms
-            - |_ `...add_position(positions).apply_defect_density(defect_probability)`:
+            - `...add_position(positions).apply_defect_density(defect_probability)`:
             to drop out atoms with a certain probability
-            - |_ `...add_position(positions).scale(scale)`: to scale the geometry
+            - `...add_position(positions).scale(scale)`: to scale the geometry
         - Targeting a level coupling once you're done with the atom geometry:
-            - |_ `...add_position(positions).rydberg`:
+            - `...add_position(positions).rydberg`:
             to specify Rydberg coupling
-            - |_ `...add_position(positions).hyperfine`:
+            - `...add_position(positions).hyperfine`:
             to specify Hyperfine coupling
         - Visualizing your atom geometry:
-            - |_ `...add_position(positions).show()`:
+            - `...add_position(positions).show()`:
             shows your geometry in your web browser
 
         """
@@ -171,18 +171,18 @@ class TransformTrait:
 
         - Next possible steps are:
         - Continuing to build your geometry via:
-            - |_ `...add_position(positions).add_position(positions)`:
+            - `...add_position(positions).add_position(positions)`:
                 to add more positions
-            - |_ `...add_position(positions).apply_defect_count(n_defects)`:
+            - `...add_position(positions).apply_defect_count(n_defects)`:
             to randomly drop out n_atoms
-            - |_ `...add_position(positions).apply_defect_density(defect_probability)`:
+            - `...add_position(positions).apply_defect_density(defect_probability)`:
             to drop out atoms with a certain probability
-            - |_ `...add_position(positions).scale(scale)`: to scale the geometry
+            - `...add_position(positions).scale(scale)`: to scale the geometry
         - Targeting a level coupling once you're done with the atom geometry:
-            - |_ `...add_position(positions).rydberg`: to specify Rydberg coupling
-            - |_ `...add_position(positions).hyperfine`: to specify Hyperfine coupling
+            - `...add_position(positions).rydberg`: to specify Rydberg coupling
+            - `...add_position(positions).hyperfine`: to specify Hyperfine coupling
         - Visualizing your atom geometry:
-            - |_ `...add_position(positions).show()`:
+            - `...add_position(positions).show()`:
             shows your geometry in your web browser
 
         """
@@ -218,22 +218,22 @@ class TransformTrait:
 
         - Next possible steps are:
         - Continuing to build your geometry via:
-            - |_ `...apply_defect_count(defect_counts).add_position(positions)`:
+            - `...apply_defect_count(defect_counts).add_position(positions)`:
                 to add more positions
-            - |_ `...apply_defect_count(defect_counts)
+            - `...apply_defect_count(defect_counts)
                 .apply_defect_count(n_defects)`: to randomly drop out n_atoms
-            - |_ `...apply_defect_count(defect_counts)
+            - `...apply_defect_count(defect_counts)
                 .apply_defect_density(defect_probability)`:
                 to drop out atoms with a certain probability
-            - |_ `...apply_defect_count(defect_counts).scale(scale)`:
+            - `...apply_defect_count(defect_counts).scale(scale)`:
                 to scale the geometry
         - Targeting a level coupling once you're done with the atom geometry:
-            - |_ `...apply_defect_count(defect_counts).rydberg`: to specify
+            - `...apply_defect_count(defect_counts).rydberg`: to specify
                 Rydberg coupling
-            - |_ `...apply_defect_count(defect_counts).hyperfine`:
+            - `...apply_defect_count(defect_counts).hyperfine`:
                 to specify Hyperfine coupling
         - Visualizing your atom geometry:
-            - |_ `...apply_defect_count(defect_counts).show()`:
+            - `...apply_defect_count(defect_counts).show()`:
                 shows your geometry in your web browser
         """
         from .list import ListOfLocations
@@ -298,22 +298,22 @@ class TransformTrait:
 
         - Next possible steps are:
         - Continuing to build your geometry via:
-            - |_ `...apply_defect_count(defect_counts).add_position(positions)`:
+            - `...apply_defect_count(defect_counts).add_position(positions)`:
             to add more positions
-            - |_ `...apply_defect_count(defect_counts).apply_defect_count(n_defects)`:
+            - `...apply_defect_count(defect_counts).apply_defect_count(n_defects)`:
             to randomly drop out n_atoms
-            - |_ `...apply_defect_count(defect_counts)
+            - `...apply_defect_count(defect_counts)
             .apply_defect_density(defect_probability)`:
             to drop out atoms with a certain probability
-            - |_ `...apply_defect_count(defect_counts).scale(scale)`:
+            - `...apply_defect_count(defect_counts).scale(scale)`:
             to scale the geometry
         - Targeting a level coupling once you're done with the atom geometry:
-            - |_ `...apply_defect_count(defect_counts).rydberg`:
+            - `...apply_defect_count(defect_counts).rydberg`:
             to specify Rydberg coupling
-            - |_ `...apply_defect_count(defect_counts).hyperfine`:
+            - `...apply_defect_count(defect_counts).hyperfine`:
             to specify Hyperfine coupling
         - Visualizing your atom geometry:
-            - |_ `...apply_defect_count(defect_counts).show()`:
+            - `...apply_defect_count(defect_counts).show()`:
             shows your geometry in your web browser
         """
         from .list import ListOfLocations

@@ -10,8 +10,8 @@ class Drive:
         - Next possible steps to build your program are specifying the
           [`Rabi`][bloqade.builder.field.Rabi] field or
           [`Detuning`][bloqade.builder.field.Detuning] field.
-            - |_ `...rydberg.rabi`: for Rabi field
-            - |_ `...rydberg.detuning`: for Detuning field
+            - `...rydberg.rabi`: for Rabi field
+            - `...rydberg.detuning`: for Detuning field
         - In the absence of a field you the value is set to zero by default.
 
         ```
@@ -26,8 +26,8 @@ class Drive:
         - Next possible steps to build your program are specifying the
           [`Rabi`][bloqade.builder.field.Rabi] field or
           [`Detuning`][bloqade.builder.field.Detuning] field.
-            - |_ `...hyperfine.rabi`: for Rabi field
-            - |_ `...hyperfine.detuning`: for Detuning field
+            - `...hyperfine.rabi`: for Rabi field
+            - `...hyperfine.detuning`: for Detuning field
         - In the absence of a field you the value is set to zero by default.
 
         ```

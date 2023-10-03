@@ -17,17 +17,17 @@ class Field(Builder):
         (e.g. Detuning Field, Real-Valued Rabi Amplitude/Rabi Phase Field, etc.).
 
         - You can now do:
-            - |_ `...uniform.linear(start, stop, duration)` : to apply a linear waveform
-            - |_ `...uniform.constant(value, duration)` : to apply a constant waveform
-            - |_ `...uniform.poly([coefficients], duration)` : to apply a
+            - `...uniform.linear(start, stop, duration)` : to apply a linear waveform
+            - `...uniform.constant(value, duration)` : to apply a constant waveform
+            - `...uniform.poly([coefficients], duration)` : to apply a
                 polynomial waveform
-            - |_ `...uniform.apply(wf:bloqade.ir.Waveform)`: to apply a
+            - `...uniform.apply(wf:bloqade.ir.Waveform)`: to apply a
             pre-defined waveform
-            - |_ `...uniform.piecewise_linear([durations], [values])`:  to apply
+            - `...uniform.piecewise_linear([durations], [values])`:  to apply
             a piecewise linear waveform
-            - |_ `...uniform.piecewise_constant([durations], [values])`: to apply
+            - `...uniform.piecewise_constant([durations], [values])`: to apply
             a piecewise constant waveform
-            - |_ `...uniform.fn(f(t,...))`: to apply a function as a waveform
+            - `...uniform.fn(f(t,...))`: to apply a function as a waveform
 
         """
         from bloqade.builder.spatial import Uniform
@@ -57,26 +57,26 @@ class Field(Builder):
         ```
 
         - You can now do:
-            - |_ `...location(int).linear(start, stop, duration)` : to apply
+            - `...location(int).linear(start, stop, duration)` : to apply
                 a linear waveform
-            - |_ `...location(int).constant(value, duration)` : to apply
+            - `...location(int).constant(value, duration)` : to apply
                 a constant waveform
-            - |_ `...location(int).poly([coefficients], duration)` : to apply
+            - `...location(int).poly([coefficients], duration)` : to apply
                 a polynomial waveform
-            - |_ `...location(int).apply(wf:bloqade.ir.Waveform)`: to apply
+            - `...location(int).apply(wf:bloqade.ir.Waveform)`: to apply
                 a pre-defined waveform
-            - |_ `...location(int).piecewise_linear([durations], [values])`:  to apply
+            - `...location(int).piecewise_linear([durations], [values])`:  to apply
                 a piecewise linear waveform
-            - |_ `...location(int).piecewise_constant([durations], [values])`: to apply
+            - `...location(int).piecewise_constant([durations], [values])`: to apply
                 a piecewise constant waveform
-            - |_ `...location(int).fn(f(t,..))`: to apply a function as a waveform
+            - `...location(int).fn(f(t,..))`: to apply a function as a waveform
         - You can also address multiple atoms by chaining:
-            - |_ `...location(int).location(int)`
+            - `...location(int).location(int)`
                 - The waveform you specify after the last `location` in the chain will
                   be applied to all atoms in the chain
         - And you can scale any waveform by a multiplicative factor on a
             specific atom via:
-            - |_ `...location(int).scale(float)`
+            - `...location(int).scale(float)`
             - You cannot define a scaling across multiple atoms with one method call!
               They must be specified atom-by-atom.
 
@@ -112,19 +112,19 @@ class Field(Builder):
         ```
 
         - You can now do:
-            - |_ `...var(str).linear(start, stop, duration)` : to apply
+            - `...var(str).linear(start, stop, duration)` : to apply
                 a linear waveform
-            - |_ `...var(str).constant(value, duration)` : to apply
+            - `...var(str).constant(value, duration)` : to apply
                 a constant waveform
-            - |_ `...var(str).poly([coefficients], duration)` : to apply
+            - `...var(str).poly([coefficients], duration)` : to apply
                 a polynomial waveform
-            - |_ `...var(str).apply(wf:bloqade.ir.Waveform)`: to apply
+            - `...var(str).apply(wf:bloqade.ir.Waveform)`: to apply
                 a pre-defined waveform
-            - |_ `...var(str).piecewise_linear(durations, values)`:  to
+            - `...var(str).piecewise_linear(durations, values)`:  to
                 apply a piecewise linear waveform
-            - |_ `...var(str).piecewise_constant(durations, values)`: to
+            - `...var(str).piecewise_constant(durations, values)`: to
                 apply a piecewise constant waveform
-            - |_ `...var(str).fn(f(t,..))`: to apply a function as a waveform
+            - `...var(str).fn(f(t,..))`: to apply a function as a waveform
 
         """
         from bloqade.builder.spatial import Var
@@ -203,10 +203,10 @@ class Rabi(Builder):
         automatically to create a field such as the Rabi Amplitude here.
 
         - You can now
-            - |_ `...amplitude.uniform`: address all atoms in the field
-            - |_ `...amplitude.location(int)`: address a specific atom by its
+            - `...amplitude.uniform`: address all atoms in the field
+            - `...amplitude.location(int)`: address a specific atom by its
                 index
-            - |_ `...amplitude.var(str)`: Address a single atom
+            - `...amplitude.var(str)`: Address a single atom
                 (or multiple via assigning a list of values)
 
         """
@@ -225,10 +225,10 @@ class Rabi(Builder):
         automatically to create a field such as the Rabi Phase here.
 
         - You can now
-            - |_ `...amplitude.uniform`: address all atoms in the field
-            - |_ `...amplitude.location(int)`: address a specific atom by its
+            - `...amplitude.uniform`: address all atoms in the field
+            - `...amplitude.location(int)`: address a specific atom by its
                 index
-            - |_ `...amplitude.var(str)`: Address a single atom
+            - `...amplitude.var(str)`: Address a single atom
                 (or multiple via assigning a list of values)
 
         """

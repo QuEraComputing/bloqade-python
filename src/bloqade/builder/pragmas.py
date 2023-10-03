@@ -38,20 +38,20 @@ class Assignable:
         ```
 
         - You can now:
-            - |_ ...assign(assignments).bloqade: select the bloqade local
+            - ...assign(assignments).bloqade: select the bloqade local
                 emulator backend
-            - |_ ...assign(assignments).braket: select braket local emulator or
+            - ...assign(assignments).braket: select braket local emulator or
                 QuEra hardware
-            - |_ ...assign(assignments).device(specifier_string): select backend
+            - ...assign(assignments).device(specifier_string): select backend
                 by specifying a string
         - Assign multiple values to a single variable for a parameter sweep:
-            - |_ ...assign(assignments).batch_assign(assignments):
+            - ...assign(assignments).batch_assign(assignments):
         - Parallelize the program register, duplicating the geometry and waveform
             sequence to take advantage of all available
           space/qubits on the QPU:
-            - |_ ...assign(assignments).parallelize(cluster_spacing)
+            - ...assign(assignments).parallelize(cluster_spacing)
         - Defer value assignment of certain variables to runtime:
-            - |_ ...assign(assignments).args([previously_defined_vars])
+            - ...assign(assignments).args([previously_defined_vars])
 
         """
         from bloqade.builder.assign import Assign
@@ -86,18 +86,18 @@ class BatchAssignable:
         ```
 
         - Next steps are:
-            - |_ ...batch_assign(assignments).bloqade: select the bloqade
+            - ...batch_assign(assignments).bloqade: select the bloqade
                 local emulator backend
-            - |_ ...batch_assign(assignments).braket: select braket local
+            - ...batch_assign(assignments).braket: select braket local
             emulator or QuEra hardware
-            - |_ ...batch_assign(assignments).device(specifier_string): select
+            - ...batch_assign(assignments).device(specifier_string): select
             backend by specifying a string
         - Parallelize the program register, duplicating the geometry and waveform
           sequence to take advantage of all available
           space/qubits on the QPU:
-            - |_ ...batch_assign(assignments).parallelize(cluster_spacing)
+            - ...batch_assign(assignments).parallelize(cluster_spacing)
         - Defer value assignment of certain variables to runtime:
-            - |_ ...batch_assign(assignments).args([previously_defined_vars])
+            - ...batch_assign(assignments).args([previously_defined_vars])
 
         """
         from bloqade.builder.assign import BatchAssign, ListAssign
@@ -130,11 +130,11 @@ class Parallelizable:
         ```
 
         - Your next steps are:
-            |_ `...parallelize(cluster_spacing).bloqade`: select the bloqade
+             `...parallelize(cluster_spacing).bloqade`: select the bloqade
                 local emulator backend
-            |_ `...parallelize(cluster_spacing).braket`: select braket
+             `...parallelize(cluster_spacing).braket`: select braket
                 local emulator or QuEra hardware on the cloud
-            |_ `...parallelize(cluster_spacing).device(specifier_string)`: select
+             `...parallelize(cluster_spacing).device(specifier_string)`: select
                 backend by specifying a string
 
         """

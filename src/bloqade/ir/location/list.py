@@ -66,13 +66,13 @@ A Program starting point, alias of empty
 
 - Next possible steps to build your program are:
 - Specify which level coupling to address with:
-    - |_ `start.rydberg`: for [`Rydberg`][bloqade.builder.coupling.Rydberg]
+    - `start.rydberg`: for [`Rydberg`][bloqade.builder.coupling.Rydberg]
         Level coupling
-    - |_ `start.hyperfine`: for [`Hyperfine`][bloqade.builder.coupling.Hyperfine]
+    - `start.hyperfine`: for [`Hyperfine`][bloqade.builder.coupling.Hyperfine]
         Level coupling
     - LOCKOUT: You cannot add atoms to your geometry after specifying level coupling.
 - continue/start building your geometry with:
-    - |_ `start.add_position()`: to add atom(s) to current register. It will accept:
+    - `start.add_position()`: to add atom(s) to current register. It will accept:
         - A single coordinate, represented as a tuple (e.g. `(5,6)`) with a value that
           can either be:
             - integers: `(5,6)`

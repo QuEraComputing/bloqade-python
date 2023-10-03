@@ -32,20 +32,20 @@ class ProgramStart(Drive, Builder):
         ```
 
         - From here you can now do:
-            - |_ `...assign(assignments).bloqade`: select the bloqade
+            - `...assign(assignments).bloqade`: select the bloqade
                 local emulator backend
-            - |_ `...assign(assignments).braket`: select braket
+            - `...assign(assignments).braket`: select braket
                 local emulator or QuEra hardware
-            - |_ `...assign(assignments).device(specifier_string)`: select
+            - `...assign(assignments).device(specifier_string)`: select
                 backend by specifying a string
         - Assign multiple values to a single variable for a parameter sweep:
-            - |_ `...assign(assignments).batch_assign(assignments)`:
+            - `...assign(assignments).batch_assign(assignments)`:
         - Parallelize the program register, duplicating the geometry and waveform
             sequence to take advantage of all available
           space/qubits on the QPU:
-            - |_ `...assign(assignments).parallelize(cluster_spacing)`
+            - `...assign(assignments).parallelize(cluster_spacing)`
         - Defer value assignment of certain variables to runtime:
-            - |_ `...assign(assignments).args([previously_defined_vars])`
+            - `...assign(assignments).args([previously_defined_vars])`
 
         """
         return SequenceBuilder(sequence, self)

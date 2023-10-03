@@ -19,12 +19,12 @@ class LevelCoupling(Builder):
         able to specify a waveform.
 
         - You can do this by:
-            - |_ `...detuning.uniform`: To address all atoms in the field
-            - |_ `...detuning.location(int)`: To address an atom at a specific
+            - `...detuning.uniform`: To address all atoms in the field
+            - `...detuning.location(int)`: To address an atom at a specific
                 location via index
-            - |_ `...detuning.var(str)`
-                - |_ To address an atom at a specific location via variable
-                - |_ To address multiple atoms at specific locations by specifying
+            - `...detuning.var(str)`
+                - To address an atom at a specific location via variable
+                - To address multiple atoms at specific locations by specifying
                     a single variable and then assigning it a list of coordinates
 
         """
@@ -42,8 +42,8 @@ class LevelCoupling(Builder):
         - Next possible steps to build your program are
           creating the [`RabiAmplitude`][bloqade.builder.field.RabiAmplitude] field
           and [`RabiPhase`][bloqade.builder.field.RabiAmplitude] field of the field:
-            - |_ `...rabi.amplitude`: To create the Rabi amplitude field
-            - |_ `...rabi.phase`: To create the Rabi phase field
+            - `...rabi.amplitude`: To create the Rabi amplitude field
+            - `...rabi.phase`: To create the Rabi phase field
 
         """
 

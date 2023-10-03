@@ -35,68 +35,68 @@ class WaveformAttachable(Builder):
 
         - Your next steps include:
         - Continue building your waveform via:
-            - |_ `...linear(start, stop, duration).linear(start, stop, duration)`:
+            - `...linear(start, stop, duration).linear(start, stop, duration)`:
                 to append another linear waveform
-            - |_ `...linear(start, stop, duration).constant(value, duration)`:
+            - `...linear(start, stop, duration).constant(value, duration)`:
                 to append a constant waveform
-            - |_ `...linear(start, stop, duration)
+            - `...linear(start, stop, duration)
                 .piecewise_linear([durations], [values])`:
                 to append a piecewise linear waveform
-            - |_ `...linear(start, stop, duration)
+            - `...linear(start, stop, duration)
                 .piecewise_constant([durations], [values])`:
                 to append a piecewise constant waveform
-            - |_ `...linear(start, stop, duration).poly([coefficients], duration)`:
+            - `...linear(start, stop, duration).poly([coefficients], duration)`:
                 to append a polynomial waveform
-            - |_ `...linear(start, stop, duration).apply(wf:bloqade.ir.Waveform)`:
+            - `...linear(start, stop, duration).apply(wf:bloqade.ir.Waveform)`:
                 to append a pre-defined waveform
-            - |_ `...linear(start, stop, duration).fn(f(t,...))`:
+            - `...linear(start, stop, duration).fn(f(t,...))`:
                 to append a waveform defined by a python function
         - Slice a portion of the waveform to be used:
-            - |_ `...linear(start, stop, duration).slice(start, stop, duration)`
+            - `...linear(start, stop, duration).slice(start, stop, duration)`
         - Save the ending value of your waveform to be reused elsewhere
-            - |_ `...linear(start, stop, duration).record("you_variable_here")`
+            - `...linear(start, stop, duration).record("you_variable_here")`
         - Begin constructing another drive by starting a new spatial modulation
             (this drive will be summed to the one you just created):
-            - |_ `...linear(start, stop, duration).uniform`:
+            - `...linear(start, stop, duration).uniform`:
                 To address all atoms in the field
-            - |_ `...linear(start, stop, duration).location(int)`:
+            - `...linear(start, stop, duration).location(int)`:
                 To address an atom at a specific location via index
-            - |_ `...linear(start, stop, duration).var(str)`
-                - |_ To address an atom at a specific location via variable
-                - |_ To address multiple atoms at specific locations by specifying
+            - `...linear(start, stop, duration).var(str)`
+                - To address an atom at a specific location via variable
+                - To address multiple atoms at specific locations by specifying
                     a single variable and then assigning it a list of coordinates
         - Assign values to pre-existing variables via:
-            - |_ `...linear(start, stop, duration).assign(variable_name = value)`:
+            - `...linear(start, stop, duration).assign(variable_name = value)`:
                 to assign a single value to a variable
-            - |_ `...linear(start, stop, duration)
+            - `...linear(start, stop, duration)
                 .batch_assign(variable_name = [value1, ...])`:
                 to assign multiple values to a variable
-            - |_ `...linear(start, stop, duration).args(["previously_defined_var"])`:
+            - `...linear(start, stop, duration).args(["previously_defined_var"])`:
                 to defer assignment of a variable to execution time
         - Select the backend you want your program to run on via:
-            - |_ `...linear(start, stop, duration).braket`:
+            - `...linear(start, stop, duration).braket`:
                 to run on Braket local emulator or QuEra hardware remotely
-            - |_ `...linear(start, stop, duration).bloqade`:
+            - `...linear(start, stop, duration).bloqade`:
                 to run on the Bloqade local emulator
-            - |_ `...linear(start, stop, duration).device`:
+            - `...linear(start, stop, duration).device`:
                 to specify the backend via string
         - Choose to parallelize your atom geometry,
           duplicating it to fill the whole space:
-            - |_ `...linear(start, stop, duration).parallelize(spacing)`
+            - `...linear(start, stop, duration).parallelize(spacing)`
         - Start targeting another level coupling
-            - |_ `...linear(start, stop, duration).rydberg`:
+            - `...linear(start, stop, duration).rydberg`:
                 to target the Rydberg level coupling
-            - |_ `...linear(start, stop, duration).hyperfine`:
+            - `...linear(start, stop, duration).hyperfine`:
                 to target the Hyperfine level coupling
         - Start targeting other fields within your current level coupling
           (previously selected as `rydberg` or `hyperfine`):
-            - |_ `...linear(start, stop, duration).amplitude`:
+            - `...linear(start, stop, duration).amplitude`:
                 to target the real-valued Rabi Amplitude field
-            - |_ `...linear(start, stop, duration).phase`:
+            - `...linear(start, stop, duration).phase`:
                 to target the real-valued Rabi Phase field
-            - |_ `...linear(start, stop, duration).detuning`:
+            - `...linear(start, stop, duration).detuning`:
                 to target the Detuning field
-            - |_ `...linear(start, stop, duration).rabi`:
+            - `...linear(start, stop, duration).rabi`:
                 to target the complex-valued Rabi field
         """
 
@@ -124,68 +124,68 @@ class WaveformAttachable(Builder):
 
         - Your next steps include:
         - Continue building your waveform via:
-            - |_ `...constant(value, duration).linear(start, stop, duration)`:
+            - `...constant(value, duration).linear(start, stop, duration)`:
                 to append another linear waveform
-            - |_ `...constant(value, duration).constant(value, duration)`:
+            - `...constant(value, duration).constant(value, duration)`:
                 to append a constant waveform
-            - |_ `...constant(value, duration)
+            - `...constant(value, duration)
                 .piecewise_linear([durations], [values])`:
                 to append a piecewise linear waveform
-            - |_ `...constant(value, duration)
+            - `...constant(value, duration)
                 .piecewise_constant([durations], [values])`:
                 to append a piecewise constant waveform
-            - |_ `...constant(value, duration).poly([coefficients], duration)`:
+            - `...constant(value, duration).poly([coefficients], duration)`:
                 to append a polynomial waveform
-            - |_ `...constant(value, duration).apply(wf:bloqade.ir.Waveform)`:
+            - `...constant(value, duration).apply(wf:bloqade.ir.Waveform)`:
                 to append a pre-defined waveform
-            - |_ `...constant(value, duration).fn(f(t,...))`:
+            - `...constant(value, duration).fn(f(t,...))`:
                 to append a waveform defined by a python function
         - Slice a portion of the waveform to be used:
-            - |_ `...constant(value, duration).slice(start, stop, duration)`
+            - `...constant(value, duration).slice(start, stop, duration)`
         - Save the ending value of your waveform to be reused elsewhere
-            - |_ `...constant(value, duration).record("you_variable_here")`
+            - `...constant(value, duration).record("you_variable_here")`
         - Begin constructing another drive by starting a new spatial modulation
             (this drive will be summed to the one you just created):
-            -|_ `...constant(value, duration).uniform`:
+            - `...constant(value, duration).uniform`:
                 To address all atoms in the field
-            -|_ `...constant(value, duration).var`:
+            - `...constant(value, duration).var`:
                 To address an atom at a specific location via index
-            -|_ `...constant(value, duration).location(int)`
-                - |_ To address an atom at a specific location via variable
-                - |_ To address multiple atoms at specific locations by specifying
+            - `...constant(value, duration).location(int)`
+                - To address an atom at a specific location via variable
+                - To address multiple atoms at specific locations by specifying
                     a single variable and then assigning it a list of coordinates
         - Assign values to pre-existing variables via:
-            - |_ `...constant(value, duration).assign(variable_name = value)`:
+            - `...constant(value, duration).assign(variable_name = value)`:
                 to assign a single value to a variable
-            - |_ `...constant(value, duration)
+            - `...constant(value, duration)
                 .batch_assign(variable_name = [value1, ...])`:
                 to assign multiple values to a variable
-            - |_ `...constant(value, duration).args(["previously_defined_var"])`:
+            - `...constant(value, duration).args(["previously_defined_var"])`:
                 to defer assignment of a variable to execution time
         - Select the backend you want your program to run on via:
-            - |_ `...constant(value, duration).braket`:
+            - `...constant(value, duration).braket`:
                 to run on Braket local emulator or QuEra hardware remotely
-            - |_ `...constant(value, duration).bloqade`:
+            - `...constant(value, duration).bloqade`:
                 to run on the Bloqade local emulator
-            - |_ `...constant(value, duration).device`:
+            - `...constant(value, duration).device`:
                 to specify the backend via string
         - Choose to parallelize your atom geometry,
           duplicating it to fill the whole space:
-            - |_ `...constant(start, stop, duration).parallelize(spacing)`
+            - `...constant(start, stop, duration).parallelize(spacing)`
         - Start targeting another level coupling
-            - |_ `...constant(value, duration).rydberg`:
+            - `...constant(value, duration).rydberg`:
                 to target the Rydberg level coupling
-            - |_ `...constant(value, duration).hyperfine`:
+            - `...constant(value, duration).hyperfine`:
                 to target the Hyperfine level coupling
         - Start targeting other fields within your current
           level coupling (previously selected as `rydberg` or `hyperfine`):
-            - |_ `...constant(value, duration).amplitude`:
+            - `...constant(value, duration).amplitude`:
                 to target the real-valued Rabi Amplitude field
-            - |_ `...constant(value, duration).phase`:
+            - `...constant(value, duration).phase`:
                 to target the real-valued Rabi Phase field
-            - |_ `...constant(value, duration).detuning`:
+            - `...constant(value, duration).detuning`:
                 to target the Detuning field
-            - |_ `...constant(value, duration).rabi`:
+            - `...constant(value, duration).rabi`:
                 to target the complex-valued Rabi field
 
         """
@@ -223,69 +223,69 @@ class WaveformAttachable(Builder):
 
         - Your next steps include:
         - Continue building your waveform via:
-            - |_ `...poly([coeffs], duration).linear(start, stop, duration)`:
+            - `...poly([coeffs], duration).linear(start, stop, duration)`:
                 to append another linear waveform
-            - |_ `...poly([coeffs], duration).constant(value, duration)`:
+            - `...poly([coeffs], duration).constant(value, duration)`:
                 to append a constant waveform
-            - |_ `...poly([coeffs], duration)
+            - `...poly([coeffs], duration)
                 .piecewise_linear([durations], [values])`:
                 to append a piecewise linear waveform
-            - |_ `...poly([coeffs], duration)
+            - `...poly([coeffs], duration)
                 .piecewise_constant([durations],[values])`:
                 to append a piecewise constant waveform
-            - |_ `...poly([coeffs], duration).poly([coefficients], duration)`:
+            - `...poly([coeffs], duration).poly([coefficients], duration)`:
                 to append a polynomial waveform
-            - |_ `...poly([coeffs], duration).apply(waveform)`:
+            - `...poly([coeffs], duration).apply(waveform)`:
                 to append a pre-defined waveform
-            - |_ `...poly([coeffs], duration).fn(f(t,...))`:
+            - `...poly([coeffs], duration).fn(f(t,...))`:
                 to append a waveform defined by a python function
         - Slice a portion of the waveform to be used:
-            - |_ `...poly([coeffs], duration).slice(start, stop, duration)`
+            - `...poly([coeffs], duration).slice(start, stop, duration)`
         - Save the ending value of your waveform to be reused elsewhere
-            - |_ `...poly([coeffs], duration).record("you_variable_here")`
+            - `...poly([coeffs], duration).record("you_variable_here")`
         - Begin constructing another drive by starting a new spatial modulation
           (this drive will be summed to the one you just created):
-            -|_ `...poly([coeffs], duration).uniform`:
+            - `...poly([coeffs], duration).uniform`:
                 To address all atoms in the field
-            -|_ `...poly([coeffs], duration).location(int)`:
+            - `...poly([coeffs], duration).location(int)`:
                 To address an atom at a specific location via index
-            -|_ `...poly([coeffs], duration).var(str)`
-                - |_ To address an atom at a specific location via variable
-                - |_ To address multiple atoms at specific locations by
+            - `...poly([coeffs], duration).var(str)`
+                - To address an atom at a specific location via variable
+                - To address multiple atoms at specific locations by
                     specifying a single variable and then assigning
                     it a list of coordinates
         - Assign values to pre-existing variables via:
-            - |_ `...poly([coeffs], duration).assign(variable_name = value)`:
+            - `...poly([coeffs], duration).assign(variable_name = value)`:
                 to assign a single value to a variable
-            - |_ `...poly([coeffs], duration)
+            - `...poly([coeffs], duration)
                 .batch_assign(variable_name = [value1, ...])`:
                 to assign multiple values to a variable
-            - |_ `...poly([coeffs], duration).args(["previously_defined_var"])`:
+            - `...poly([coeffs], duration).args(["previously_defined_var"])`:
                 to defer assignment of a variable to execution time
         - Select the backend you want your program to run on via:
-            - |_ `...poly([coeffs], duration).braket`:
+            - `...poly([coeffs], duration).braket`:
                 to run on Braket local emulator or QuEra hardware remotely
-            - |_ `...poly([coeffs], duration).bloqade`:
+            - `...poly([coeffs], duration).bloqade`:
                 to run on the Bloqade local emulator
-            - |_ `...poly([coeffs], duration).device`:
+            - `...poly([coeffs], duration).device`:
                 to specify the backend via string
         - Choose to parallelize your atom geometry,
           duplicating it to fill the whole space:
-            - |_ `...poly([coeffs], duration).parallelize(spacing)`
+            - `...poly([coeffs], duration).parallelize(spacing)`
         - Start targeting another level coupling
-            - |_ `...poly([coeffs], duration).rydberg`:
+            - `...poly([coeffs], duration).rydberg`:
                 to target the Rydberg level coupling
-            - |_ `...poly([coeffs], duration).hyperfine`:
+            - `...poly([coeffs], duration).hyperfine`:
                 to target the Hyperfine level coupling
         - Start targeting other fields within your current level
           coupling (previously selected as `rydberg` or `hyperfine`):
-            - |_ `...poly([coeffs], duration).amplitude`:
+            - `...poly([coeffs], duration).amplitude`:
                 to target the real-valued Rabi Amplitude field
-            - |_ `...poly([coeffs], duration).phase`:
+            - `...poly([coeffs], duration).phase`:
                 to target the real-valued Rabi Phase field
-            - |_ `...poly([coeffs], duration).detuning`:
+            - `...poly([coeffs], duration).detuning`:
                 to target the Detuning field
-            - |_ `...poly([coeffs], duration).rabi`:
+            - `...poly([coeffs], duration).rabi`:
                 to target the complex-valued Rabi field
         """
         return Poly(coeffs, duration, self)
@@ -316,62 +316,62 @@ class WaveformAttachable(Builder):
 
         - Your next steps include:
         - Continue building your waveform via:
-            - |_ `...apply(waveform).linear(start, stop, duration)`:
+            - `...apply(waveform).linear(start, stop, duration)`:
                 to append another linear waveform
-            - |_ `...apply(waveform).constant(value, duration)`:
+            - `...apply(waveform).constant(value, duration)`:
                 to append a constant waveform
-            - |_ `...apply(waveform).piecewise_linear([durations], [values])`:
+            - `...apply(waveform).piecewise_linear([durations], [values])`:
                 to append a piecewise linear waveform
-            - |_ `...apply(waveform).piecewise_constant([durations], [values])`:
+            - `...apply(waveform).piecewise_constant([durations], [values])`:
                 to append a piecewise constant waveform
-            - |_ `...apply(waveform).poly([coefficients], duration)`:
+            - `...apply(waveform).poly([coefficients], duration)`:
                 to append a polynomial waveform
-            - |_ `...apply(waveform).apply(waveform)`:
+            - `...apply(waveform).apply(waveform)`:
                 to append a pre-defined waveform
-            - |_ `...apply(waveform).fn(f(t,...))`:
+            - `...apply(waveform).fn(f(t,...))`:
                 to append a waveform defined by a python function
         - Slice a portion of the waveform to be used:
-            - |_ `...apply(waveform).slice(start, stop, duration)`
+            - `...apply(waveform).slice(start, stop, duration)`
         - Save the ending value of your waveform to be reused elsewhere
-            - |_ `...apply(waveform).record("you_variable_here")`
+            - `...apply(waveform).record("you_variable_here")`
         - Begin constructing another drive by starting a new spatial modulation
           (this drive will be summed to the one you just created):
-            -|_ `...apply(waveform).uniform`: To address all atoms in the field
-            -|_ `...apply(waveform).location(int)`:
+            - `...apply(waveform).uniform`: To address all atoms in the field
+            - `...apply(waveform).location(int)`:
                 To address an atom at a specific location via index
-            -|_ `...apply(waveform).var(str)`
-                - |_ To address an atom at a specific location via variable
-                - |_ To address multiple atoms at specific locations by specifying a
+            - `...apply(waveform).var(str)`
+                - To address an atom at a specific location via variable
+                - To address multiple atoms at specific locations by specifying a
                     single variable and then assigning it a list of coordinates
         - Assign values to pre-existing variables via:
-            - |_ `...apply(waveform).assign(variable_name = value)`:
+            - `...apply(waveform).assign(variable_name = value)`:
                 to assign a single value to a variable
-            - |_ `...apply(waveform).batch_assign(variable_name = [value1, ...])`:
+            - `...apply(waveform).batch_assign(variable_name = [value1, ...])`:
                 to assign multiple values to a variable
-            - |_ `...apply(waveform).args(["previously_defined_var"])`:
+            - `...apply(waveform).args(["previously_defined_var"])`:
                 to defer assignment of a variable to execution time
         - Select the backend you want your program to run on via:
-            - |_ `...apply(waveform).braket`:
+            - `...apply(waveform).braket`:
                 to run on Braket local emulator or QuEra hardware remotely
-            - |_ `...apply(waveform).bloqade`:
+            - `...apply(waveform).bloqade`:
                 to run on the Bloqade local emulator
-            - |_ `...apply(waveform).device`:
+            - `...apply(waveform).device`:
                 to specify the backend via string
         - Choose to parallelize your atom geometry,
           duplicating it to fill the whole space:
-            - |_ `...apply(waveform).parallelize(spacing)`
+            - `...apply(waveform).parallelize(spacing)`
         - Start targeting another level coupling
-            - |_ `...apply(waveform).rydberg`: to target the Rydberg level coupling
-            - |_ `...apply(waveform).hyperfine`: to target the Hyperfine level coupling
+            - `...apply(waveform).rydberg`: to target the Rydberg level coupling
+            - `...apply(waveform).hyperfine`: to target the Hyperfine level coupling
         - Start targeting other fields within your current level coupling
           (previously selected as `rydberg` or `hyperfine`):
-            - |_ `...apply(waveform).amplitude`:
+            - `...apply(waveform).amplitude`:
                 to target the real-valued Rabi Amplitude field
-            - |_ `...apply(waveform).phase`:
+            - `...apply(waveform).phase`:
                 to target the real-valued Rabi Phase field
-            - |_ `...apply(waveform).detuning`:
+            - `...apply(waveform).detuning`:
                 to target the Detuning field
-            - |_ `...apply(waveform).rabi`:
+            - `...apply(waveform).rabi`:
                 to target the complex-valued Rabi field
         """
         return Apply(wf, self)
@@ -408,74 +408,74 @@ class WaveformAttachable(Builder):
 
         - Your next steps include:
         - Continue building your waveform via:
-            - |_ `...piecewise_linear([durations], [values])
+            - `...piecewise_linear([durations], [values])
                 .linear(start, stop, duration)`:
                 to append another linear waveform
-            - |_ `...piecewise_linear([durations], [values]).constant(value, duration)`:
+            - `...piecewise_linear([durations], [values]).constant(value, duration)`:
                 to append a constant waveform
-            - |_ `...piecewise_linear([durations], [values])
+            - `...piecewise_linear([durations], [values])
                 .piecewise_linear(durations, values)`:
                 to append a piecewise linear waveform
-            - |_ `...piecewise_linear([durations], [values])
+            - `...piecewise_linear([durations], [values])
                 .piecewise_constant([durations], [values])`:
                 to append a piecewise constant waveform
-            - |_ `...piecewise_linear([durations], [values])
+            - `...piecewise_linear([durations], [values])
                 .poly([coefficients], duration)`: to append a polynomial waveform
-            - |_ `...piecewise_linear([durations], [values]).apply(waveform)`:
+            - `...piecewise_linear([durations], [values]).apply(waveform)`:
                 to append a pre-defined waveform
-            - |_ `...piecewise_linear([durations], [values]).fn(f(t,...))`:
+            - `...piecewise_linear([durations], [values]).fn(f(t,...))`:
                 to append a waveform defined by a python function
         - Slice a portion of the waveform to be used:
-            - |_ `...piecewise_linear([durations], [values])
+            - `...piecewise_linear([durations], [values])
                 .slice(start, stop, duration)`
         - Save the ending value of your waveform to be reused elsewhere
-            - |_ `...piecewise_linear([durations], [values])
+            - `...piecewise_linear([durations], [values])
                 .record("you_variable_here")`
         - Begin constructing another drive by starting a new spatial modulation
           (this drive will be summed to the one you just created):
-            -|_ `...piecewise_linear([durations], [values]).uniform`:
+            - `...piecewise_linear([durations], [values]).uniform`:
                 To address all atoms in the field
-            -|_ `...piecewise_linear([durations], [values]).var`:
+            - `...piecewise_linear([durations], [values]).var`:
                 To address an atom at a specific location via index
-            -|_ `...piecewise_linear([durations], [values]).location(int)`
-                - |_ To address an atom at a specific location via variable
-                - |_ To address multiple atoms at specific locations by
+            - `...piecewise_linear([durations], [values]).location(int)`
+                - To address an atom at a specific location via variable
+                - To address multiple atoms at specific locations by
                     specifying a single variable and then assigning it a
                     list of coordinates
         - Assign values to pre-existing variables via:
-            - |_ `...piecewise_linear([durations], [values])
+            - `...piecewise_linear([durations], [values])
                 .assign(variable_name = value)`:
                 to assign a single value to a variable
-            - |_ `...piecewise_linear([durations], [values])
+            - `...piecewise_linear([durations], [values])
                 .batch_assign(variable_name = [value1, ...])`:
                 to assign multiple values to a variable
-            - |_ `...piecewise_linear([durations], [values])
+            - `...piecewise_linear([durations], [values])
                 .args(["previously_defined_var"])`:
                 to defer assignment of a variable to execution time
         - Select the backend you want your program to run on via:
-            - |_ `...piecewise_linear([durations], [values]).braket`:
+            - `...piecewise_linear([durations], [values]).braket`:
                 to run on Braket local emulator or QuEra hardware remotely
-            - |_ `...piecewise_linear([durations], [values]).bloqade`:
+            - `...piecewise_linear([durations], [values]).bloqade`:
                 to run on the Bloqade local emulator
-            - |_ `...piecewise_linear([durations], [values]).device`:
+            - `...piecewise_linear([durations], [values]).device`:
                 to specify the backend via string
         - Choose to parallelize your atom geometry,
           duplicating it to fill the whole space:
-            - |_ `...piecewise_linear([durations], [values]).parallelize(spacing)`
+            - `...piecewise_linear([durations], [values]).parallelize(spacing)`
         - Start targeting another level coupling
-            - |_ `...piecewise_linear([durations], [values]).rydberg`:
+            - `...piecewise_linear([durations], [values]).rydberg`:
                 to target the Rydberg level coupling
-            - |_ `...piecewise_linear([durations], [values]).hyperfine`:
+            - `...piecewise_linear([durations], [values]).hyperfine`:
                 to target the Hyperfine level coupling
         - Start targeting other fields within your current level coupling
           (previously selected as `rydberg` or `hyperfine`):
-            - |_ `...piecewise_linear([durations], [values]).amplitude`:
+            - `...piecewise_linear([durations], [values]).amplitude`:
                 to target the real-valued Rabi Amplitude field
-            - |_ `...piecewise_linear([durations], [values]).phase`:
+            - `...piecewise_linear([durations], [values]).phase`:
                 to target the real-valued Rabi Phase field
-            - |_ `...piecewise_linear([durations], [values]).detuning`:
+            - `...piecewise_linear([durations], [values]).detuning`:
                 to target the Detuning field
-            - |_ `....rabi`: to target the complex-valued Rabi field
+            - `....rabi`: to target the complex-valued Rabi field
         """
         return PiecewiseLinear(durations, values, self)
 
@@ -508,72 +508,72 @@ class WaveformAttachable(Builder):
 
         - Your next steps including:
         - Continue building your waveform via:
-            - |_ `...piecewise_constant([durations], [values])
+            - `...piecewise_constant([durations], [values])
                 .linear(start, stop, duration)`: to append another linear waveform
-            - |_ `...piecewise_constant([durations], [values])
+            - `...piecewise_constant([durations], [values])
                 .constant(value, duration)`: to append a constant waveform
-            - |_ `...piecewise_constant([durations], [values])
+            - `...piecewise_constant([durations], [values])
                 .piecewise_linear([durations], [values])`:
                 to append a piecewise linear waveform
-            - |_ `...piecewise_constant([durations], [values])
+            - `...piecewise_constant([durations], [values])
                 .piecewise_constant([durations], [values])`:
                 to append a piecewise constant waveform
-            - |_ `...piecewise_constant([durations], [values])
+            - `...piecewise_constant([durations], [values])
                 .poly([coefficients], duration)`: to append a polynomial waveform
-            - |_ `...piecewise_constant([durations], [values])
+            - `...piecewise_constant([durations], [values])
                 .apply(waveform)`: to append a pre-defined waveform
-            - |_ `...piecewise_constant([durations], [values]).fn(f(t,...))`:
+            - `...piecewise_constant([durations], [values]).fn(f(t,...))`:
                 to append a waveform defined by a python function
         - Slice a portion of the waveform to be used:
-            - |_ `...piecewise_constant([durations], [values])
+            - `...piecewise_constant([durations], [values])
                 .slice(start, stop, duration)`
         - Save the ending value of your waveform to be reused elsewhere
-            - |_ `...piecewise_constant([durations], [values])
+            - `...piecewise_constant([durations], [values])
                 .record("you_variable_here")`
         - Begin constructing another drive by starting a new spatial modulation
           (this drive will be summed to the one you just created):
-            -|_ `...piecewise_constant([durations], [values]).uniform`:
+            - `...piecewise_constant([durations], [values]).uniform`:
                 To address all atoms in the field
-            -|_ `...piecewise_constant([durations], [values]).location(int)`:
+            - `...piecewise_constant([durations], [values]).location(int)`:
                 To address an atom at a specific location via index
-            -|_ `...piecewise_constant([durations], [values]).var(str)`
-                - |_ To address an atom at a specific location via variable
-                - |_ To address multiple atoms at specific locations by
+            - `...piecewise_constant([durations], [values]).var(str)`
+                - To address an atom at a specific location via variable
+                - To address multiple atoms at specific locations by
                     specifying a single variable and then assigning it a
                     list of coordinates
         - Assign values to pre-existing variables via:
-            - |_ `...piecewise_constant([durations], [values])
+            - `...piecewise_constant([durations], [values])
                 .assign(variable_name = value)`: to assign a single value to a variable
-            - |_ `...piecewise_constant([durations], [values])
+            - `...piecewise_constant([durations], [values])
                 .batch_assign(variable_name = [value1, ...])`:
                 to assign multiple values to a variable
-            - |_ `...piecewise_constant([durations], [values])
+            - `...piecewise_constant([durations], [values])
                 .args(["previously_defined_var"])`: to defer assignment
                 of a variable to execution time
         - Select the backend you want your program to run on via:
-            - |_ `...piecewise_constant([durations], [values]).braket`:
+            - `...piecewise_constant([durations], [values]).braket`:
                 to run on Braket local emulator or QuEra hardware remotely
-            - |_ `...piecewise_constant([durations], [values]).bloqade`:
+            - `...piecewise_constant([durations], [values]).bloqade`:
                 to run on the Bloqade local emulator
-            - |_ `...piecewise_constant([durations], [values]).device`:
+            - `...piecewise_constant([durations], [values]).device`:
                 to specify the backend via string
         - Choose to parallelize your atom geometry,
           duplicating it to fill the whole space:
-            - |_ `...piecewise_constat([durations], [values]).parallelize(spacing)`
+            - `...piecewise_constat([durations], [values]).parallelize(spacing)`
         - Start targeting another level coupling
-            - |_ `...piecewise_constant([durations], [values]).rydberg`:
+            - `...piecewise_constant([durations], [values]).rydberg`:
                 to target the Rydberg level coupling
-            - |_ `...piecewise_constant([durations], [values]).hyperfine`:
+            - `...piecewise_constant([durations], [values]).hyperfine`:
                 to target the Hyperfine level coupling
         - Start targeting other fields within your current level coupling
           (previously selected as `rydberg` or `hyperfine`):
-            - |_ `...piecewise_constant(durations, values).amplitude`:
+            - `...piecewise_constant(durations, values).amplitude`:
                 to target the real-valued Rabi Amplitude field
-            - |_ `...piecewise_constant([durations], [values]).phase`:
+            - `...piecewise_constant([durations], [values]).phase`:
                 to target the real-valued Rabi Phase field
-            - |_ `...piecewise_constant([durations], [values]).detuning`:
+            - `...piecewise_constant([durations], [values]).detuning`:
                 to target the Detuning field
-            - |_ `...piecewise_constant([durations], [values]).rabi`:
+            - `...piecewise_constant([durations], [values]).rabi`:
                 to target the complex-valued Rabi field
         """
         return PiecewiseConstant(durations, values, self)
@@ -614,70 +614,70 @@ class WaveformAttachable(Builder):
 
         - Your next steps include:
         - Continue building your waveform via:
-            - |_ `...fn(f(t,...))
+            - `...fn(f(t,...))
                 .linear(start, stop, duration)`: to append another linear waveform
-            - |_ `...fn(f(t,...))
+            - `...fn(f(t,...))
                 .constant(value, duration)`: to append a constant waveform
-            - |_ `...fn(f(t,...))
+            - `...fn(f(t,...))
                 .piecewise_linear(durations, values)`:
                 to append a piecewise linear waveform
-            - |_ `...fn(f(t,...))
+            - `...fn(f(t,...))
                 .piecewise_constant(durations, values)`:
                 to append a piecewise constant waveform
-            - |_ `...fn(f(t,...))
+            - `...fn(f(t,...))
                 .poly([coefficients], duration)`: to append a polynomial waveform
-            - |_ `...fn(f(t,...))
+            - `...fn(f(t,...))
                 .apply(waveform)`: to append a pre-defined waveform
-            - |_ `...fn(f(t,...))
+            - `...fn(f(t,...))
                 .fn(f(t,...))`: to append a waveform defined by a python function
         - Slice a portion of the waveform to be used:
-            - |_ `...fn(f(t,...)).slice(start, stop, duration)`
+            - `...fn(f(t,...)).slice(start, stop, duration)`
         - Save the ending value of your waveform to be reused elsewhere
-            - |_ `...fn(f(t,...)).record("you_variable_here")`
+            - `...fn(f(t,...)).record("you_variable_here")`
         - Begin constructing another drive by starting a new spatial modulation
           (this drive will be summed to the one you just created):
-            -|_ `...fn(f(t,...)).uniform`:
+            - `...fn(f(t,...)).uniform`:
                 To address all atoms in the field
-            -|_ `...fn(f(t,...)).var(str)`:
+            - `...fn(f(t,...)).var(str)`:
                 To address an atom at a specific location via index
-            -|_ ...fn(f(t,...)).location(int)`
-                - |_ To address an atom at a specific location via variable
-                - |_ To address multiple atoms at specific locations by
+            - ...fn(f(t,...)).location(int)`
+                - To address an atom at a specific location via variable
+                - To address multiple atoms at specific locations by
                     specifying a single variable and then assigning it a
                     list of coordinates
         - Assign values to pre-existing variables via:
-            - |_ `...fn(f(t,...))
+            - `...fn(f(t,...))
                 .assign(variable_name = value)`: to assign a single value to a variable
-            - |_ `...fn(f(t,...))
+            - `...fn(f(t,...))
                 .batch_assign(variable_name = [value1, ...])`:
                 to assign multiple values to a variable
-            - |_ `...fn(f(t,...))
+            - `...fn(f(t,...))
                 .args(["previously_defined_var"])`:
                 to defer assignment of a variable to execution time
         - Select the backend you want your program to run on via:
-            - |_ `...fn(f(t,...)).braket`:
+            - `...fn(f(t,...)).braket`:
                 to run on Braket local emulator or QuEra hardware remotely
-            - |_ `...fn(f(t,...)).bloqade`:
+            - `...fn(f(t,...)).bloqade`:
                 to run on the Bloqade local emulator
-            - |_ `...fn(f(t,...)).device`:
+            - `...fn(f(t,...)).device`:
                 to specify the backend via string
         - Choose to parallelize your atom geometry,
           duplicating it to fill the whole space:
-            - |_ `...fn(f(t,...)).parallelize(spacing)`
+            - `...fn(f(t,...)).parallelize(spacing)`
         - Start targeting another level coupling
-            - |_ `...fn(f(t,...)).rydberg`:
+            - `...fn(f(t,...)).rydberg`:
                 to target the Rydberg level coupling
-            - |_ `...fn(f(t,...)).hyperfine`:
+            - `...fn(f(t,...)).hyperfine`:
                 to target the Hyperfine level coupling
         - Start targeting other fields within your current level coupling
           (previously selected as `rydberg` or `hyperfine`):
-            - |_ `...fn(f(t,...)).amplitude`:
+            - `...fn(f(t,...)).amplitude`:
                 to target the real-valued Rabi Amplitude field
-            - |_ `...fn(f(t,...)).phase`:
+            - `...fn(f(t,...)).phase`:
                 to target the real-valued Rabi Phase field
-            - |_ `...fn(f(t,...)).detuning`:
+            - `...fn(f(t,...)).detuning`:
                 to target the Detuning field
-            - |_ `...fn(f(t,...)).rabi`:
+            - `...fn(f(t,...)).rabi`:
                 to target the complex-valued Rabi field
 
         """
@@ -726,62 +726,62 @@ class Sliceable:
 
         - Your next steps include:
         - Continue building your waveform via:
-            - |_ `...slice(start, stop).linear(start, stop, duration)`:
+            - `...slice(start, stop).linear(start, stop, duration)`:
                 to append another linear waveform
-            - |_ `...slice(start, stop).constant(value, duration)`:
+            - `...slice(start, stop).constant(value, duration)`:
                 to append a constant waveform
-            - |_ `...slice(start, stop).piecewise_linear()`:
+            - `...slice(start, stop).piecewise_linear()`:
                 to append a piecewise linear waveform
-            - |_ `...slice(start, stop).piecewise_constant()`:
+            - `...slice(start, stop).piecewise_constant()`:
                 to append a piecewise constant waveform
-            - |_ `...slice(start, stop).poly([coefficients], duration)`:
+            - `...slice(start, stop).poly([coefficients], duration)`:
                 to append a polynomial waveform
-            - |_ `...slice(start, stop).apply(wf:bloqade.ir.Waveform)`:
+            - `...slice(start, stop).apply(wf:bloqade.ir.Waveform)`:
                 to append a pre-defined waveform
-            - |_ `...slilce(start, stop).fn(f(t,...))`:
+            - `...slilce(start, stop).fn(f(t,...))`:
                 to append a waveform defined by a python function
         - Begin constructing another drive by starting a new spatial modulation
             (this drive will be summed to the one you just created):
-            - |_ `...slice(start, stop).uniform`:
+            - `...slice(start, stop).uniform`:
                 To address all atoms in the field
-            - |_ `...slice(start, stop).location(int)`:
+            - `...slice(start, stop).location(int)`:
                 To address an atom at a specific location via index
-            - |_ `...slice(start, stop).var(str)`
-                - |_ To address an atom at a specific location via variable
-                - |_ To address multiple atoms at specific locations by specifying
+            - `...slice(start, stop).var(str)`
+                - To address an atom at a specific location via variable
+                - To address multiple atoms at specific locations by specifying
                     a single variable and then assigning it a list of coordinates
         - Assign values to pre-existing variables via:
-            - |_ `...slice(start, stop).assign(variable_name = value)`:
+            - `...slice(start, stop).assign(variable_name = value)`:
                 to assign a single value to a variable
-            - |_ `...slice(start, stop)
+            - `...slice(start, stop)
                 .batch_assign(variable_name = [value1, ...])`:
                 to assign multiple values to a variable
-            - |_ `...slice(start, stop).args(["previously_defined_var"])`:
+            - `...slice(start, stop).args(["previously_defined_var"])`:
                 to defer assignment of a variable to execution time
         - Select the backend you want your program to run on via:
-            - |_ `...slice(start, stop).braket`:
+            - `...slice(start, stop).braket`:
                 to run on Braket local emulator or QuEra hardware remotely
-            - |_ `...slice(start, stop).bloqade`:
+            - `...slice(start, stop).bloqade`:
                 to run on the Bloqade local emulator
-            - |_ `...slice(start, stop).device`:
+            - `...slice(start, stop).device`:
                 to specify the backend via string
         - Choose to parallelize your atom geometry,
           duplicating it to fill the whole space:
-            - |_ `...slice(start, stop).parallelize(spacing)`
+            - `...slice(start, stop).parallelize(spacing)`
         - Start targeting another level coupling
-            - |_ `...slice(start, stop).rydberg`:
+            - `...slice(start, stop).rydberg`:
                 to target the Rydberg level coupling
-            - |_ `...slice(start, stop).hyperfine`:
+            - `...slice(start, stop).hyperfine`:
                 to target the Hyperfine level coupling
         - Start targeting other fields within your current level coupling
           (previously selected as `rydberg` or `hyperfine`):
-            - |_ `...slice(start, stop).amplitude`:
+            - `...slice(start, stop).amplitude`:
                 to target the real-valued Rabi Amplitude field
-            - |_ `...slice(start, stop).phase`:
+            - `...slice(start, stop).phase`:
                 to target the real-valued Rabi Phase field
-            - |_ `...slice(start, stop).detuning`:
+            - `...slice(start, stop).detuning`:
                 to target the Detuning field
-            - |_ `...slice(start, stop).rabi`:
+            - `...slice(start, stop).rabi`:
                 to target the complex-valued Rabi field
         """
         return Slice(start, stop, self)
@@ -825,62 +825,62 @@ class Recordable:
 
         - Your next steps include:
         - Continue building your waveform via:
-            - |_ `...slice(start, stop).linear(start, stop, duration)`:
+            - `...slice(start, stop).linear(start, stop, duration)`:
                 to append another linear waveform
-            - |_ `...slice(start, stop).constant(value, duration)`:
+            - `...slice(start, stop).constant(value, duration)`:
                 to append a constant waveform
-            - |_ `...slice(start, stop).piecewise_linear()`:
+            - `...slice(start, stop).piecewise_linear()`:
                 to append a piecewise linear waveform
-            - |_ `...slice(start, stop).piecewise_constant()`:
+            - `...slice(start, stop).piecewise_constant()`:
                 to append a piecewise constant waveform
-            - |_ `...slice(start, stop).poly([coefficients], duration)`:
+            - `...slice(start, stop).poly([coefficients], duration)`:
                 to append a polynomial waveform
-            - |_ `...slice(start, stop).apply(wf:bloqade.ir.Waveform)`:
+            - `...slice(start, stop).apply(wf:bloqade.ir.Waveform)`:
                 to append a pre-defined waveform
-            - |_ `...slilce(start, stop).fn(f(t,...))`:
+            - `...slilce(start, stop).fn(f(t,...))`:
                 to append a waveform defined by a python function
         - Begin constructing another drive by starting a new spatial modulation
             (this drive will be summed to the one you just created):
-            - |_ `...slice(start, stop).uniform`:
+            - `...slice(start, stop).uniform`:
                 To address all atoms in the field
-            - |_ `...slice(start, stop).location(int)`:
+            - `...slice(start, stop).location(int)`:
                 To address an atom at a specific location via index
-            - |_ `...slice(start, stop).var(str)`
-                - |_ To address an atom at a specific location via variable
-                - |_ To address multiple atoms at specific locations by specifying
+            - `...slice(start, stop).var(str)`
+                - To address an atom at a specific location via variable
+                - To address multiple atoms at specific locations by specifying
                     a single variable and then assigning it a list of coordinates
         - Assign values to pre-existing variables via:
-            - |_ `...slice(start, stop).assign(variable_name = value)`:
+            - `...slice(start, stop).assign(variable_name = value)`:
                 to assign a single value to a variable
-            - |_ `...slice(start, stop)
+            - `...slice(start, stop)
                 .batch_assign(variable_name = [value1, ...])`:
                 to assign multiple values to a variable
-            - |_ `...slice(start, stop).args(["previously_defined_var"])`:
+            - `...slice(start, stop).args(["previously_defined_var"])`:
                 to defer assignment of a variable to execution time
         - Select the backend you want your program to run on via:
-            - |_ `...slice(start, stop).braket`:
+            - `...slice(start, stop).braket`:
                 to run on Braket local emulator or QuEra hardware remotely
-            - |_ `...slice(start, stop).bloqade`:
+            - `...slice(start, stop).bloqade`:
                 to run on the Bloqade local emulator
-            - |_ `...slice(start, stop).device`:
+            - `...slice(start, stop).device`:
                 to specify the backend via string
         - Choose to parallelize your atom geometry,
           duplicating it to fill the whole space:
-            - |_ `...slice(start, stop).parallelize(spacing)`
+            - `...slice(start, stop).parallelize(spacing)`
         - Start targeting another level coupling
-            - |_ `...slice(start, stop).rydberg`:
+            - `...slice(start, stop).rydberg`:
                 to target the Rydberg level coupling
-            - |_ `...slice(start, stop).hyperfine`:
+            - `...slice(start, stop).hyperfine`:
                 to target the Hyperfine level coupling
         - Start targeting other fields within your current level coupling
           (previously selected as `rydberg` or `hyperfine`):
-            - |_ `...slice(start, stop).amplitude`:
+            - `...slice(start, stop).amplitude`:
                 to target the real-valued Rabi Amplitude field
-            - |_ `...slice(start, stop).phase`:
+            - `...slice(start, stop).phase`:
                 to target the real-valued Rabi Phase field
-            - |_ `...slice(start, stop).detuning`:
+            - `...slice(start, stop).detuning`:
                 to target the Detuning field
-            - |_ `...slice(start, stop).rabi`:
+            - `...slice(start, stop).rabi`:
                 to target the complex-valued Rabi field
         ```
         """

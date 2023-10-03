@@ -70,24 +70,24 @@ class Location(SpatialModulation):
 
         - Your next steps include:
         - Continuing to modify your current spatial modulation via:
-            - |_ `...location(int).location(int)`: To add another location
-            - |_ `...location(int).scale(float)`: To scale the upcoming waveform
+            - `...location(int).location(int)`: To add another location
+            - `...location(int).scale(float)`: To scale the upcoming waveform
         - You may also jump directly to specifying a waveform via:
-            - |_ `...location(int).linear(start, stop, duration)`:
+            - `...location(int).linear(start, stop, duration)`:
                 to append a linear waveform
-            - |_ `...location(int).constant(value, duration)`:
+            - `...location(int).constant(value, duration)`:
                 to append a constant waveform
-            - |_ `...location(int)
+            - `...location(int)
                 .piecewise_linear([durations], [values])`:
                 to append a piecewise linear waveform
-            - |_ `...location(int)
+            - `...location(int)
                 .piecewise_constant([durations], [values])`:
                 to append a piecewise constant waveform
-            - |_ `...location(int).poly([coefficients], duration)`:
+            - `...location(int).poly([coefficients], duration)`:
                 to append a polynomial waveform
-            - |_ `...location(int).apply(wf:bloqade.ir.Waveform)`:
+            - `...location(int).apply(wf:bloqade.ir.Waveform)`:
                 to append a pre-defined waveform
-            - |_ `...location(int).fn(f(t,...))`:
+            - `...location(int).fn(f(t,...))`:
                 to append a waveform defined by a python function
 
         """
@@ -114,23 +114,23 @@ class Location(SpatialModulation):
 
         - Your next steps include:
         - Continuing to modify your current spatial modulation via:
-            - |_ `...scale(float).location(int)`: To add another location
+            - `...scale(float).location(int)`: To add another location
         - You may also jump directly to specifying a waveform via:
-            - |_ `...scale(float).linear(start, stop, duration)`:
+            - `...scale(float).linear(start, stop, duration)`:
                 to append a linear waveform
-            - |_ `...scale(float).constant(value, duration)`:
+            - `...scale(float).constant(value, duration)`:
                 to append a constant waveform
-            - |_ `...scale(float)
+            - `...scale(float)
                 .piecewise_linear([durations], [values])`:
                 to append a piecewise linear waveform
-            - |_ `...scale(float)
+            - `...scale(float)
                 .piecewise_constant([durations], [values])`:
                 to append a piecewise constant waveform
-            - |_ `...scale(float).poly([coefficients], duration)`:
+            - `...scale(float).poly([coefficients], duration)`:
                 to append a polynomial waveform
-            - |_ `...scale(float).apply(wf:bloqade.ir.Waveform)`:
+            - `...scale(float).apply(wf:bloqade.ir.Waveform)`:
                 to append a pre-defined waveform
-            - |_ `...scale(float).fn(f(t,...))`:
+            - `...scale(float).fn(f(t,...))`:
                 to append a waveform defined by a python function
         """
         return Scale(value, self)
@@ -167,24 +167,24 @@ class Scale(WaveformAttachable):
 
         - Your next steps include:
         - Continuing to modify your current spatial modulation via:
-            - |_ `...location(int).location(int)`: To add another location
-            - |_ `...location(int).scale(float)`: To scale the upcoming waveform
+            - `...location(int).location(int)`: To add another location
+            - `...location(int).scale(float)`: To scale the upcoming waveform
         - You may also jump directly to specifying a waveform via:
-            - |_ `...location(int).linear(start, stop, duration)`:
+            - `...location(int).linear(start, stop, duration)`:
                 to append a linear waveform
-            - |_ `...location(int).constant(value, duration)`:
+            - `...location(int).constant(value, duration)`:
                 to append a constant waveform
-            - |_ `...location(int)
+            - `...location(int)
                 .piecewise_linear([durations], [values])`:
                 to append a piecewise linear waveform
-            - |_ `...location(int)
+            - `...location(int)
                 .piecewise_constant([durations], [values])`:
                 to append a piecewise constant waveform
-            - |_ `...location(int).poly([coefficients], duration)`:
+            - `...location(int).poly([coefficients], duration)`:
                 to append a polynomial waveform
-            - |_ `...location(int).apply(wf:bloqade.ir.Waveform)`:
+            - `...location(int).apply(wf:bloqade.ir.Waveform)`:
                 to append a pre-defined waveform
-            - |_ `...location(int).fn(f(t,...))`:
+            - `...location(int).fn(f(t,...))`:
                 to append a waveform defined by a python function
 
         """
