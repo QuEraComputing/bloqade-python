@@ -7,7 +7,6 @@
 # prog.linear(start=1.0, stop=2.0, duration="x")
 # import pytest
 import bloqade.ir as ir
-from bloqade.builder import spatial
 from bloqade.builder import waveform
 
 # import bloqade.builder.backend as builder_backend
@@ -123,10 +122,8 @@ def test_registers():
 
 def test_scale():
     prog = start
-    prog = (
-        prog.rydberg.detuning.location(1)
-        .scale(1.2)
-        .piecewise_linear([0.1, 3.8, 0.1], [-10, -10, "a", "b"])
+    prog = prog.rydberg.detuning.location(1, 1.2).piecewise_linear(
+        [0.1, 3.8, 0.1], [-10, -10, "a", "b"]
     )
 
     ## let Emit build ast
@@ -140,20 +137,14 @@ def test_scale():
 
 
 def test_scale_location():
-    prog = start.rydberg.detuning.location(1).scale(1.2).location(2).scale(3.3)
+    prog = start.rydberg.detuning.location([1, 2], [1.2, 3.3])
 
-    assert prog._value == 3.3
-    assert type(prog.__parent__) == spatial.Location
-    assert prog.__parent__.__parent__._value == 1.2
+    assert prog._scaled_locations == {1: cast(1.2), 2: cast(3.3)}
 
 
 def test_build_ast_Scale():
-    prog = (
-        start.rydberg.detuning.location(1)
-        .scale(1.2)
-        .location(2)
-        .scale(3.3)
-        .piecewise_constant(durations=[0.1], values=[1])
+    prog = start.rydberg.detuning.location([1, 2], [1.2, 3.3]).piecewise_constant(
+        durations=[0.1], values=[1]
     )
 
     # compile ast:
@@ -171,7 +162,7 @@ def test_build_ast_Scale():
 def test_spatial_var():
     prog = start.rydberg.detuning.scale("a")
 
-    assert prog._name == "a"
+    assert prog._name_or_list == "a"
 
     prog = prog.piecewise_constant([0.1], [30])
 
