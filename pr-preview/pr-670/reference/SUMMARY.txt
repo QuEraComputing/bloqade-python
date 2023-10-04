@@ -35,6 +35,8 @@
         * [analog_circuit](bloqade/ir/analog_circuit.md)
         * [analysis](bloqade/ir/analysis/index.md)
             * [assignment_scan](bloqade/ir/analysis/assignment_scan.md)
+            * [is_constant](bloqade/ir/analysis/is_constant.md)
+            * [is_hyperfine](bloqade/ir/analysis/is_hyperfine.md)
             * [scan_variables](bloqade/ir/analysis/scan_variables.md)
         * [control](bloqade/ir/control/index.md)
             * [field](bloqade/ir/control/field.md)
