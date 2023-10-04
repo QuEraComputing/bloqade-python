@@ -1,6 +1,10 @@
 from bloqade.emulate.ir.emulator import EmulatorProgram
 from bloqade.emulate.ir.space import Space
-from bloqade.emulate.sparse_operator import IndexMapping, SparseMatrixCSC, SparseMatrixCSR
+from bloqade.emulate.sparse_operator import (
+    IndexMapping,
+    SparseMatrixCSC,
+    SparseMatrixCSR,
+)
 from dataclasses import dataclass, field
 from numpy.typing import NDArray
 from beartype.typing import List, Callable, Union, Optional
@@ -67,11 +71,11 @@ class RydbergHamiltonian:
 
     def _ode_real_kernel(self, time: float, register: NDArray, output: NDArray):
         # this is needed to use solver that only work on real-valued states
-        return self._ode_complex_kernel(time, register.view(np.complex128), output).view(
-            np.float64
-        )
+        return self._ode_complex_kernel(
+            time, register.view(np.complex128), output
+        ).view(np.float64)
 
-    def _ode_complex_kernel_int(self, time: float, register: NDArray):
+    def _ode_complex_kernel_int(self, time: float, register: NDArray, output: NDArray):
         diagonal = sum(
             (detuning.get_diagonal(time) for detuning in self.detuning_ops),
         )
@@ -80,21 +84,21 @@ class RydbergHamiltonian:
 
         int_register = u * register
 
-        result_register = diagonal * int_register
+        np.multiply(diagonal, int_register, out=output)
         for rabi_op in self.rabi_ops:
-            result_register += rabi_op.dot(int_register, time)
+            rabi_op.dot(int_register, output, time)
 
         np.conj(u, out=u)
-        np.multiply(u, result_register, out=result_register)
+        np.multiply(u, output, out=output)
 
-        result_register *= -1j
-        return result_register
+        output *= -1j
+        return output
 
-    def _ode_real_kernel_int(self, time: float, register: NDArray):
+    def _ode_real_kernel_int(self, time: float, register: NDArray, output: NDArray):
         # this is needed to use solver that only work on real-valued states
-        return self._ode_complex_kernel_int(time, register.view(np.complex128)).view(
-            np.float64
-        )
+        return self._ode_complex_kernel_int(
+            time, register.view(np.complex128), output
+        ).view(np.float64)
 
 
 RealArray = Annotated[NDArray[np.floating], IsAttr["ndim", IsEqual[1]]]
@@ -219,7 +223,7 @@ class AnalogGate:
         state = np.asarray(state).astype(np.complex128, copy=False)
 
         solver = ode(self.hamiltonian._ode_real_kernel_int)
-
+        solver.set_f_params(np.zeros_like(state, dtype=np.complex128))
         solver.set_initial_value(state.view(np.float64))
         solver.set_integrator(solver_name, atol=atol, rtol=rtol, nsteps=nsteps)
 
