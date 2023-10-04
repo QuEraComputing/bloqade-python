@@ -271,6 +271,16 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
+         <loc>https://bloqade.quera.com/dev/reference/bloqade/ir/analysis/is_constant/</loc>
+         <lastmod>2023-10-04</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://bloqade.quera.com/dev/reference/bloqade/ir/analysis/is_hyperfine/</loc>
+         <lastmod>2023-10-04</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
          <loc>https://bloqade.quera.com/dev/reference/bloqade/ir/analysis/scan_variables/</loc>
          <lastmod>2023-10-04</lastmod>
          <changefreq>daily</changefreq>
