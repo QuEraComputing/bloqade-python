@@ -21,7 +21,10 @@ from bloqade.emulate.ir.state_vector import (
     DetuningOperator,
     RydbergHamiltonian,
 )
-from bloqade.emulate.sparse_operator import IndexMapping, SparseMatrixCSC, SparseMatrixCSR
+from bloqade.emulate.sparse_operator import (
+    IndexMapping,
+    SparseMatrixCSR,
+)
 from scipy.sparse import csr_matrix
 import numpy as np
 from numpy.typing import NDArray

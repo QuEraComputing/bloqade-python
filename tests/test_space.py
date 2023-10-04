@@ -127,9 +127,9 @@ def test_two_level_transition_indices():
 
     row_indices, col_indices = space.transition_state_at(0, 0, 1)
 
-    row_indices_expected = np.array(
-        [True, False, True, False, True, False, True, False]
-    )
+    row_indices_expected = np.argwhere(
+        np.array([True, False, True, False, True, False, True, False])
+    ).ravel()
     col_indices_expected = np.array([1, 3, 5, 7])
 
     assert np.all(row_indices == row_indices_expected)
@@ -146,9 +146,9 @@ def test_two_level_transition_indices():
 
     row_indices, col_indices = space.transition_state_at(1, 0, 1)
 
-    row_indices_expected = np.array(
-        [True, True, False, False, True, True, False, False]
-    )
+    row_indices_expected = np.argwhere(
+        np.array([True, True, False, False, True, True, False, False])
+    ).ravel()
     col_indices_expected = np.array([2, 3, 6, 7])
 
     assert np.all(row_indices == row_indices_expected)
@@ -165,9 +165,9 @@ def test_two_level_transition_indices():
 
     row_indices, col_indices = space.transition_state_at(2, 0, 1)
 
-    row_indices_expected = np.array(
-        [True, True, True, True, False, False, False, False]
-    )
+    row_indices_expected = np.argwhere(
+        np.array([True, True, True, True, False, False, False, False])
+    ).ravel()
     col_indices_expected = np.array([4, 5, 6, 7])
 
     assert np.all(row_indices == row_indices_expected)
@@ -255,9 +255,9 @@ def test_three_level_transition_indices():
 
     row_indices, col_indices = space.transition_state_at(0, 0, 1)
 
-    row_indices_expected = np.array(
-        [True, False, False, True, False, False, True, False, False]
-    )
+    row_indices_expected = np.argwhere(
+        np.array([True, False, False, True, False, False, True, False, False])
+    ).ravel()
     col_indices_expected = np.array(
         [
             ThreeLevelAtom.string_to_integer("|hg>"),
@@ -281,9 +281,9 @@ def test_three_level_transition_indices():
 
     row_indices, col_indices = space.transition_state_at(0, 1, 2)
 
-    row_indices_expected = np.array(
-        [False, True, False, False, True, False, False, True, False]
-    )
+    row_indices_expected = np.argwhere(
+        np.array([False, True, False, False, True, False, False, True, False])
+    ).ravel()
     col_indices_expected = np.array(
         [
             ThreeLevelAtom.string_to_integer("|rg>"),
@@ -393,7 +393,9 @@ def test_two_level_subspace_swap_indices():
 
     row_indices, col_indices = space.swap_state_at(0, 0, 1)
 
-    row_indices_expected = np.array([True, True, False, False, False])
+    row_indices_expected = np.argwhere(
+        np.array([True, True, False, False, False])
+    ).ravel()
     col_indices_expected = np.array(
         [
             space.fock_state_to_index("|rgg>"),
@@ -412,7 +414,9 @@ def test_two_level_subspace_swap_indices():
 
     row_indices, col_indices = space.swap_state_at(1, 0, 1)
 
-    row_indices_expected = np.array([True, False, True, True, True])
+    row_indices_expected = np.argwhere(
+        np.array([True, False, True, True, True])
+    ).ravel()
     col_indices_expected = np.array(
         [
             space.fock_state_to_index("|grg>"),
@@ -433,7 +437,9 @@ def test_two_level_subspace_swap_indices():
 
     row_indices, col_indices = space.swap_state_at(2, 0, 1)
 
-    row_indices_expected = np.array([True, False, True, True, True])
+    row_indices_expected = np.argwhere(
+        np.array([True, False, True, True, True])
+    ).ravel()
     col_indices_expected = np.array(
         [
             space.fock_state_to_index("|ggr>"),
@@ -465,9 +471,9 @@ def test_three_level_swap_indices():
 
     row_indices, col_indices = space.swap_state_at(0, 0, 1)
 
-    row_indices_expected = np.array(
-        [True, True, False, True, True, False, True, True, False]
-    )
+    row_indices_expected = np.argwhere(
+        np.array([True, True, False, True, True, False, True, True, False])
+    ).ravel()
     col_indices_expected = np.array(
         [
             ThreeLevelAtom.string_to_integer("|hg>"),
@@ -494,9 +500,9 @@ def test_three_level_swap_indices():
 
     row_indices, col_indices = space.swap_state_at(0, 1, 2)
 
-    row_indices_expected = np.array(
-        [False, True, True, False, True, True, False, True, True]
-    )
+    row_indices_expected = np.argwhere(
+        np.array([False, True, True, False, True, True, False, True, True])
+    ).ravel()
     col_indices_expected = np.array(
         [
             ThreeLevelAtom.string_to_integer("|rg>"),
@@ -529,7 +535,9 @@ def test_three_level_subspace_swap_indices():
 
     row_indices, col_indices = space.swap_state_at(0, 0, 1)
 
-    row_indices_expected = np.array([True, True, False, True, True, False, True, True])
+    row_indices_expected = np.argwhere(
+        np.array([True, True, False, True, True, False, True, True])
+    ).ravel()
     col_indices_expected = np.array(
         [
             ThreeLevelAtom.string_to_integer("|hg>"),
