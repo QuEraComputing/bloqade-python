@@ -44,6 +44,7 @@ def test_wvfm_linear():
 
     assert wf.print_node() == "Linear"
     assert wf.eval_decimal(clock_s=Decimal("6.0")) == 0
+    assert isinstance(hash(wf), int)
 
     assert wf.children() == {
         "start": cast(1.0),
@@ -58,6 +59,7 @@ def test_wvfm_constant():
     assert wf.print_node() == "Constant"
     assert wf.eval_decimal(clock_s=Decimal("6.0")) == 0
     assert wf.children() == {"value": cast(1.0), "duration": cast(3.0)}
+    assert isinstance(hash(wf), int)
 
     mystdout = StringIO()
     p = PP(mystdout)
@@ -100,12 +102,12 @@ def test_wvfm_pyfn():
     assert my_func3(3, 2) == 3
 
     with pytest.raises(ValueError):
-        PythonFn(my_func2, duration=1.0)
+        PythonFn.create(my_func2, duration=1.0)
 
     with pytest.raises(ValueError):
-        PythonFn(my_func3, duration=1.0)
+        PythonFn.create(my_func3, duration=1.0)
 
-    wf = PythonFn(my_func, duration=1.0)
+    wf = PythonFn.create(my_func, duration=1.0)
     awf = annot_my_func
 
     assert wf.eval_decimal(Decimal("0.56"), omega=1, amplitude=4) == awf.eval_decimal(
@@ -122,6 +124,7 @@ def test_wvfm_pyfn():
         "amplitude": cast("amplitude"),
     }
     assert wf.duration == cast(1.0)
+    assert isinstance(hash(wf), int)
 
     mystdout = StringIO()
     p = PP(mystdout)
@@ -148,8 +151,9 @@ def test_wvfm_app():
     wf3 = Append([wf, wf2])
 
     assert wf3.print_node() == "Append"
-    assert wf3.children() == [wf, wf2]
+    assert wf3.children() == (wf, wf2)
     assert wf3.eval_decimal(Decimal(10)) == Decimal(0)
+    assert isinstance(hash(wf), int)
 
     mystdout = StringIO()
     p = PP(mystdout)
@@ -168,6 +172,7 @@ def test_wvfm_neg():
 
     assert wf2.print_node() == "Negative"
     assert wf2.children() == [wf]
+    assert isinstance(hash(wf), int)
 
     assert wf2.eval_decimal(Decimal("0.5")) == Decimal("-1.0")
 
@@ -193,6 +198,7 @@ def test_wvfm_scale():
 
     assert wf2.print_node() == "Scale"
     assert wf2.children() == [cast(2.0), wf]
+    assert isinstance(hash(wf), int)
 
     assert wf2.eval_decimal(Decimal("0.5")) == Decimal("2.0")
 
@@ -227,6 +233,7 @@ def test_wvfn_add():
 
     assert wf3.print_node() == "+"
     assert wf3.children() == [wf, wf2]
+    assert isinstance(hash(wf), int)
 
     assert wf3.eval_decimal(Decimal("0")) == Decimal("2.0")
     assert wf3.eval_decimal(Decimal("2.5")) == Decimal("1.0")
@@ -261,6 +268,7 @@ def test_wvfn_rec():
 
     assert re.print_node() == "Record"
     assert re.children() == {"Waveform": wf, "Variable": cast("tst")}
+    assert isinstance(hash(wf), int)
 
     assert re.eval_decimal(Decimal("0")) == Decimal("1.0")
     assert re.duration == cast(3.0)
@@ -298,6 +306,7 @@ def test_wvfn_poly():
     }
     assert wf.eval_decimal(Decimal("0.5")) == (1) + (2) * 0.5 + (3) * 0.5**2
     assert wf.eval_decimal(Decimal("20")) == Decimal("0")
+    assert isinstance(hash(wf), int)
 
 
 ##-----------------------------
@@ -379,6 +388,7 @@ def test_wvfn_slice():
     assert wf.eval_decimal(Decimal("0.4")) == 0
     assert wf.eval_decimal(Decimal("0.2")) == 2.0
     assert wf.children() == [wv, iv]
+    assert isinstance(hash(wf), int)
 
     mystdout = StringIO()
     p = PP(mystdout)
@@ -416,6 +426,7 @@ def test_wvfm_align():
     wf = AlignedWaveform(wv, Alignment.Left, cast(0.2))
     assert wf.print_node() == "AlignedWaveform"
     assert wf.children() == {"Waveform": wv, "Alignment": "Left", "Value": cast(0.2)}
+    assert isinstance(hash(wf), int)
 
     wf2 = AlignedWaveform(wv, Alignment.Left, AlignedValue.Right)
     assert wf2.print_node() == "AlignedWaveform"
@@ -451,7 +462,7 @@ def test_wvfm_sample():
 
     assert my_cos(1) == np.cos(1)
 
-    wv = PythonFn(my_cos, duration=1.0)
+    wv = PythonFn.create(my_cos, duration=1.0)
     dt = cast(0.1)
 
     wf = Sample(wv, Interpolation.Constant, dt)
@@ -460,6 +471,7 @@ def test_wvfm_sample():
     assert wf.children() == {"Waveform": wv, "sample_step": dt}
     assert wf.eval_decimal(Decimal(0.05)) == my_cos(0)
     assert float(wf.eval_decimal(Decimal(0))) == my_cos(0)
+    assert isinstance(hash(wf), int)
 
     wf2 = Sample(wv, Interpolation.Linear, dt)
 
@@ -469,6 +481,7 @@ def test_wvfm_sample():
     assert float(wf2.eval_decimal(Decimal(0.05))) == float(my_cos(0) + slope * 0.05)
     assert float(wf2.eval_decimal(Decimal(3))) == 0
     assert float(wf2.eval_decimal(Decimal(0))) == my_cos(0)
+    assert isinstance(hash(wf), int)
 
     mystdout = StringIO()
     p = PP(mystdout)

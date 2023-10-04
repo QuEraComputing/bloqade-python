@@ -11,7 +11,6 @@ from bloqade.ir.scalar import (
 )
 
 from bisect import bisect_left
-from dataclasses import InitVar
 from decimal import Decimal
 from pydantic.dataclasses import dataclass
 from beartype.typing import Any, Tuple, Union, List, Callable, Dict
@@ -23,6 +22,7 @@ import inspect
 import scipy.integrate as integrate
 from bloqade.visualization import get_ir_figure
 from bloqade.visualization import display_ir
+from functools import cached_property
 
 
 @beartype
@@ -30,7 +30,7 @@ def to_waveform(duration: ScalarType) -> Callable[[Callable], "PythonFn"]:
     # turn python function into a waveform instruction."""
 
     def waveform_wrapper(fn: Callable) -> "PythonFn":
-        return PythonFn(fn, duration)
+        return PythonFn.create(fn, duration)
 
     return waveform_wrapper
 
@@ -45,7 +45,7 @@ class Alignment(str, Enum):
     Right = "right_aligned"
 
 
-@dataclass
+@dataclass(frozen=True)
 class Waveform:
     """
     Waveform node in the IR.
@@ -72,13 +72,6 @@ class Waveform:
         | <sample>
     ```
     """
-
-    # def __post_init__(self):
-    #     self._duration = None
-
-    @property
-    def duration(self):
-        raise NotImplementedError(f"duration not implemented for {type(self).__name__}")
 
     def __call__(self, clock_s: float, **kwargs) -> float:
         return float(self.eval_decimal(Decimal(str(clock_s)), **kwargs))
@@ -216,7 +209,7 @@ class Waveform:
         raise NotImplementedError
 
 
-@dataclass
+@dataclass(frozen=True)
 class AlignedWaveform(Waveform):
     """
 
@@ -234,11 +227,7 @@ class AlignedWaveform(Waveform):
 
     @property
     def duration(self):
-        if hasattr(self, "_duration"):
-            return self._duration
-
-        self._duration = self.waveform.duration
-        return self._duration
+        return self.waveform.duration
 
     def print_node(self):
         return "AlignedWaveform"
@@ -262,7 +251,7 @@ class AlignedWaveform(Waveform):
         return annotated_children
 
 
-@dataclass()
+@dataclass(frozen=True)
 class Instruction(Waveform):
     """Instruction node in the IR.
 
@@ -280,12 +269,10 @@ class Instruction(Waveform):
     ```
     """
 
-    @property
-    def duration(self):
-        return self._duration
+    pass
 
 
-@dataclass(init=False)
+@dataclass(init=False, frozen=True)
 class Linear(Instruction):
     """
     ```bnf
@@ -303,12 +290,13 @@ class Linear(Instruction):
 
     start: Scalar
     stop: Scalar
-    duration: InitVar[Scalar]
+    duration: Scalar
 
-    def __init__(self, start, stop, duration):
-        self.start = cast(start)
-        self.stop = cast(stop)
-        self._duration = cast(duration)
+    @beartype
+    def __init__(self, start: ScalarType, stop: ScalarType, duration: ScalarType):
+        object.__setattr__(self, "start", cast(start))
+        object.__setattr__(self, "stop", cast(stop))
+        object.__setattr__(self, "duration", cast(duration))
 
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
         start_value = self.start(**kwargs)
@@ -328,7 +316,7 @@ class Linear(Instruction):
         return {"start": self.start, "stop": self.stop, "duration": self.duration}
 
 
-@dataclass(init=False)
+@dataclass(init=False, frozen=True)
 class Constant(Instruction):
     """
     ```bnf
@@ -344,11 +332,12 @@ class Constant(Instruction):
     """
 
     value: Scalar
-    duration: InitVar[Scalar]
+    duration: Scalar
 
-    def __init__(self, value, duration):
-        self.value = cast(value)
-        self._duration = cast(duration)
+    @beartype
+    def __init__(self, value: ScalarType, duration: ScalarType):
+        object.__setattr__(self, "value", cast(value))
+        object.__setattr__(self, "duration", cast(duration))
 
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
         constant_value = self.value(**kwargs)
@@ -364,7 +353,7 @@ class Constant(Instruction):
         return {"value": self.value, "duration": self.duration}
 
 
-@dataclass(init=False)
+@dataclass(init=False, frozen=True)
 class Poly(Instruction):
     """
     ```bnf
@@ -379,12 +368,13 @@ class Poly(Instruction):
 
     """
 
-    coeffs: List[Scalar]
-    duration: InitVar[Scalar]
+    coeffs: Tuple[Scalar, ...]
+    duration: Scalar
 
-    def __init__(self, coeffs, duration):
-        self.coeffs = cast(coeffs)
-        self._duration = cast(duration)
+    @beartype
+    def __init__(self, coeffs: List[ScalarType], duration: ScalarType):
+        object.__setattr__(self, "coeffs", tuple(map(cast, coeffs)))
+        object.__setattr__(self, "duration", cast(duration))
 
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
         # b + x + x^2 + ... + x^n-1 + x^n
@@ -417,11 +407,11 @@ class Poly(Instruction):
             else:
                 annotated_coeffs["t^" + str(i)] = coeff
 
-        annotated_coeffs["duration"] = self._duration
+        annotated_coeffs["duration"] = self.duration
         return annotated_coeffs
 
 
-@dataclass(init=False)
+@dataclass(frozen=True)
 class PythonFn(Instruction):
     """
 
@@ -431,15 +421,12 @@ class PythonFn(Instruction):
     """
 
     fn: Callable  # [[float, ...], float] # f(t) -> value
+    duration: Scalar
     parameters: List[Union[Variable, AssignedVariable]]  # come from ast inspect
-    duration: InitVar[Scalar]
     default_param_values: Dict[str, Decimal]
-    default_arguements: Dict[str, Any]
 
-    def __init__(self, fn: Callable, duration: Any):
-        self.fn = fn
-        self._duration = cast(duration)
-
+    @staticmethod
+    def create(fn: Callable, duration: ScalarType) -> "PythonFn":
         signature = inspect.getfullargspec(fn)
 
         if signature.varargs is not None:
@@ -450,15 +437,13 @@ class PythonFn(Instruction):
 
         # get default kwonly first:
         variables = []
-        self.default_param_values = {}
-        self.default_arguements = {}
+        default_param_values = {}
         if signature.kwonlydefaults is not None:
             for name, value in signature.kwonlydefaults.items():
                 if isinstance(value, (Real, Decimal)):
                     variables.append(name)
-                    self.default_param_values[name] = Decimal(str(value))
+                    default_param_values[name] = Decimal(str(value))
                 else:
-                    # self.default_arguements[name] = value
                     raise ValueError(
                         f"Default value for parameter {name} is not Real or Decimal, "
                         "cannot convert to Variable."
@@ -466,7 +451,24 @@ class PythonFn(Instruction):
 
         variables += signature.args[1:]
         variables += signature.kwonlyargs
-        self.parameters = list(map(var, variables))
+
+        parameters = list(map(var, variables))
+        duration = cast(duration)
+
+        return PythonFn(fn, duration, parameters, default_param_values)
+
+    @cached_property
+    def _hash_value(self) -> int:
+        return (
+            hash(self.__class__)
+            ^ hash(self.fn)
+            ^ hash(self.duration)
+            ^ hash(tuple(self.parameters))
+            ^ hash(frozenset(self.default_param_values.items()))
+        )
+
+    def __hash__(self) -> int:
+        return self._hash_value
 
     def eval_decimal(self, clock_s: Decimal, **assignments) -> Decimal:
         new_assignments = {**self.default_param_values, **assignments}
@@ -477,7 +479,6 @@ class PythonFn(Instruction):
         kwargs = {
             param.name: float(param(**new_assignments)) for param in self.parameters
         }
-        kwargs = {**self.default_arguements, **kwargs}
         return Decimal(
             str(
                 self.fn(
@@ -499,7 +500,7 @@ class PythonFn(Instruction):
         return Sample(self, interpolation, cast(dt))
 
 
-@dataclass
+@dataclass(frozen=True)
 class SmoothingKernel:
     def __call__(self, value: float) -> float:
         raise NotImplementedError
@@ -515,61 +516,61 @@ class InfiniteSmoothingKernel(SmoothingKernel):
     pass
 
 
-@dataclass
+@dataclass(frozen=True)
 class Gaussian(InfiniteSmoothingKernel):
     def __call__(self, value: float) -> float:
         return np.exp(-(value**2) / 2) / np.sqrt(2 * np.pi)
 
 
-@dataclass
+@dataclass(frozen=True)
 class Logistic(InfiniteSmoothingKernel):
     def __call__(self, value: float) -> float:
         return np.exp(-(np.logaddexp(0, value) + np.logaddexp(0, -value)))
 
 
-@dataclass
+@dataclass(frozen=True)
 class Sigmoid(InfiniteSmoothingKernel):
     def __call__(self, value: float) -> float:
         return (2 / np.pi) * np.exp(-np.logaddexp(-value, value))
 
 
-@dataclass
+@dataclass(frozen=True)
 class Triangle(FiniteSmoothingKernel):
     def __call__(self, value: float) -> float:
         return np.maximum(0, 1 - np.abs(value))
 
 
-@dataclass
+@dataclass(frozen=True)
 class Uniform(FiniteSmoothingKernel):
     def __call__(self, value: float) -> float:
         return np.asarray(np.abs(value) <= 1, dtype=np.float64).squeeze()
 
 
-@dataclass
+@dataclass(frozen=True)
 class Parabolic(FiniteSmoothingKernel):
     def __call__(self, value: float) -> float:
         return (3 / 4) * np.maximum(0, 1 - value**2)
 
 
-@dataclass
+@dataclass(frozen=True)
 class Biweight(FiniteSmoothingKernel):
     def __call__(self, value: float) -> float:
         return (15 / 16) * np.maximum(0, 1 - value**2) ** 2
 
 
-@dataclass
+@dataclass(frozen=True)
 class Triweight(FiniteSmoothingKernel):
     def __call__(self, value: float) -> float:
         return (35 / 32) * np.maximum(0, 1 - value**2) ** 3
 
 
-@dataclass
+@dataclass(frozen=True)
 class Tricube(FiniteSmoothingKernel):
     def __call__(self, value: float) -> float:
         return (70 / 81) * np.maximum(0, 1 - np.abs(value) ** 3) ** 3
 
 
-@dataclass
+@dataclass(frozen=True)
 class Cosine(FiniteSmoothingKernel):
     def __call__(self, value: float) -> float:
         return np.maximum(0, np.pi / 4 * np.cos(np.pi / 2 * value))
@@ -587,7 +588,7 @@ TricubeKernel = Tricube()
 CosineKernel = Cosine()
 
 
-@dataclass(init=False)
+@dataclass(init=False, frozen=True)
 class Smooth(Waveform):
     """
     ```bnf
@@ -624,18 +625,13 @@ class Smooth(Waveform):
             else:
                 raise ValueError(f"Invalid kernel: {kernel}")
 
-        self.radius = cast(radius)
-        self.kernel = kernel
-        self.waveform = waveform
-        super().__init__()
+        object.__setattr__(self, "radius", cast(radius))
+        object.__setattr__(self, "kernel", kernel)
+        object.__setattr__(self, "waveform", waveform)
 
     @property
     def duration(self):
-        if hasattr(self, "_duration"):
-            return self._duration
-
-        self._duration = self.waveform.duration
-        return self._duration
+        return self.waveform.duration
 
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
         float_clock_s = float(clock_s)
@@ -665,7 +661,7 @@ class Smooth(Waveform):
             raise ValueError(f"Invalid kernel: {self.kernel}")
 
 
-@dataclass
+@dataclass(frozen=True)
 class Slice(Waveform):
     """
     ```
@@ -676,15 +672,14 @@ class Slice(Waveform):
     waveform: Waveform
     interval: Interval
 
-    @property
+    @cached_property
     def duration(self):
-        if hasattr(self, "_duration"):
-            return self._duration
+        from bloqade.ir.scalar import Slice
 
-        start = self.interval.start
-        stop = self.interval.stop
-        self._duration = self.waveform.duration[start:stop]
-        return self._duration
+        if self.interval.start is None and self.interval.stop is None:
+            raise ValueError("Interval must have a start or stop value")
+
+        return Slice(self.waveform.duration, self.interval)
 
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
         if clock_s > self.duration(**kwargs):
@@ -702,7 +697,7 @@ class Slice(Waveform):
         return [self.waveform, self.interval]
 
 
-@dataclass
+@dataclass(frozen=True)
 class Append(Waveform):
     """
     ```bnf
@@ -710,18 +705,15 @@ class Append(Waveform):
     ```
     """
 
-    waveforms: List[Waveform]
+    waveforms: Tuple[Waveform, ...]
 
-    @property
+    @cached_property
     def duration(self):
-        if hasattr(self, "_duration"):
-            return self._duration
-
-        self._duration = cast(0.0)
+        duration = cast(0.0)
         for waveform in self.waveforms:
-            self._duration = self._duration + waveform.duration
+            duration = duration + waveform.duration
 
-        return self._duration
+        return duration
 
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
         append_time = Decimal(0)
@@ -742,7 +734,7 @@ class Append(Waveform):
         return self.waveforms
 
 
-@dataclass
+@dataclass(frozen=True)
 class Negative(Waveform):
     """
     ```bnf
@@ -754,12 +746,7 @@ class Negative(Waveform):
 
     @property
     def duration(self):
-        if hasattr(self, "_duration"):
-            return self._duration
-
-        self._duration = self.waveform.duration
-
-        return self._duration
+        return self.waveform.duration
 
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
         return -self.waveform.eval_decimal(clock_s, **kwargs)
@@ -771,7 +758,7 @@ class Negative(Waveform):
         return [self.waveform]
 
 
-@dataclass(init=False)
+@dataclass(init=False, frozen=True)
 class Scale(Waveform):
     """
     ```bnf
@@ -783,17 +770,12 @@ class Scale(Waveform):
     waveform: Waveform
 
     def __init__(self, scalar, waveform: Waveform):
-        self.scalar = cast(scalar)
-        self.waveform = waveform
+        object.__setattr__(self, "scalar", cast(scalar))
+        object.__setattr__(self, "waveform", waveform)
 
     @property
     def duration(self):
-        if hasattr(self, "_duration"):
-            return self._duration
-
-        self._duration = self.waveform.duration
-
-        return self._duration
+        return self.waveform.duration
 
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
         return self.scalar(**kwargs) * self.waveform.eval_decimal(clock_s, **kwargs)
@@ -805,7 +787,7 @@ class Scale(Waveform):
         return [self.scalar, self.waveform]
 
 
-@dataclass
+@dataclass(frozen=True)
 class Add(Waveform):
     """
     ```bnf
@@ -816,14 +798,9 @@ class Add(Waveform):
     left: Waveform
     right: Waveform
 
-    @property
+    @cached_property
     def duration(self):
-        if hasattr(self, "_duration"):
-            return self._duration
-
-        self._duration = self.left.duration.max(self.right.duration)
-
-        return self._duration
+        return self.left.duration.max(self.right.duration)
 
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
         return self.left(clock_s, **kwargs) + self.right(clock_s, **kwargs)
@@ -835,7 +812,7 @@ class Add(Waveform):
         return [self.left, self.right]
 
 
-@dataclass
+@dataclass(frozen=True)
 class Record(Waveform):
     """
     ```bnf
@@ -848,12 +825,7 @@ class Record(Waveform):
 
     @property
     def duration(self):
-        if hasattr(self, "_duration"):
-            return self._duration
-
-        self._duration = self.waveform.duration
-
-        return self._duration
+        return self.waveform.duration
 
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
         return self.waveform(clock_s, **kwargs)
@@ -870,7 +842,7 @@ class Interpolation(str, Enum):
     Constant = "constant"
 
 
-@dataclass
+@dataclass(frozen=True)
 class Sample(Waveform):
     """
     ```bnf
@@ -884,12 +856,7 @@ class Sample(Waveform):
 
     @property
     def duration(self):
-        if hasattr(self, "_duration"):
-            return self._duration
-
-        self._duration = self.waveform.duration
-
-        return self._duration
+        return self.waveform.duration
 
     def samples(self, **kwargs) -> Tuple[List[Decimal], List[Decimal]]:
         duration = self.duration(**kwargs)

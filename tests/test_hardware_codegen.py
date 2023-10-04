@@ -180,7 +180,7 @@ def test_integration_linear_sampl_const_err():
 
     assert my_cos(1) == np.cos(1)
 
-    wv = PythonFn(my_cos, duration=1.0)
+    wv = PythonFn.create(my_cos, duration=1.0)
     dt = cast(0.1)
 
     wf = Sample(wv, Interpolation.Constant, dt)
@@ -584,7 +584,7 @@ def test_integration_phase_sampl_linear_err():
 
     assert my_cos(1) == np.cos(1)
 
-    wv = PythonFn(my_cos, duration=1.0)
+    wv = PythonFn.create(my_cos, duration=1.0)
     dt = cast(0.1)
 
     wf = Sample(wv, Interpolation.Linear, dt)
