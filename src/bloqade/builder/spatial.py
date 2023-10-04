@@ -52,57 +52,43 @@ class Location(SpatialModulation):
     @beartype
     def location(self, label: int) -> "Location":
         """
-        Append another location to the current location(s)
+        Append another `.location` to the current location(s)
+        as part of a singular spatial modulation definition.
 
-        Args:
-            label (int): The label of the location
+        ### Usage Example:
+        ```
+        # definep program
+        >>> from bloqade.atom_arrangement import start
+        >>> geometry = start.add_position([(0,0),(1,1),(3,3)])
+        >>> prog = start.rydberg.rabi.amplitude.location(0)
+        >>> chain_loc_prog = prog.location(1).location(2)
+        # Atoms at indices 0, 1, and 2 will now be subject
+        # to the upcoming waveform definition. Thus, the
+        # multiple locations are part of a singular
+        # spatial modulation.
+        ```
 
-        Examples:
-
-            - Append location 1 to the current location 0.
-
-            >>> reg = bloqade.start.add_position([(0,0),(1,1),(2,2),(3,3)])
-            >>> loc = reg.rydberg.detuning.location(0)
-            >>> loc = loc.location(1)
-
-            - One can keep appending by concatenating location()
-
-            >>> reg = bloqade.start.add_position([(0,0),(1,1),(2,2),(3,3)])
-            >>> loc = reg.rydberg.detuning.location(0)
-            >>> loc = loc.location(1).location(2)
-
-        - Possible Next <Location>:
-
-            -> `...location(int).location(int)`
-                :: keep adding location into current list
-
-            -> `...location(int).scale(float)`
-                :: specify scaling factor to current location
-                for the preceeding waveform
-
-        - Possible Next <WaveForm>:
-
-            -> `...location(int).linear()`
-                :: apply linear waveform
-
-            -> `...location(int).constant()`
-                :: apply constant waveform
-
-            -> `...location(int).ploy()`
-                :: apply polynomial waveform
-
-            -> `...location(int).apply()`
-                :: apply pre-constructed waveform
-
-            -> `...location(int).piecewise_linear()`
-                :: apply piecewise linear waveform
-
-            -> `...location(int).piecewise_constant()`
-                :: apply piecewise constant waveform
-
-            -> `...location(int).fn()`
-                :: apply callable as waveform.
-
+        - Your next steps include:
+        - Continuing to modify your current spatial modulation via:
+            - `...location(int).location(int)`: To add another location
+            - `...location(int).scale(float)`: To scale the upcoming waveform
+        - You may also jump directly to specifying a waveform via:
+            - `...location(int).linear(start, stop, duration)`:
+                to append a linear waveform
+            - `...location(int).constant(value, duration)`:
+                to append a constant waveform
+            - `...location(int)
+                .piecewise_linear([durations], [values])`:
+                to append a piecewise linear waveform
+            - `...location(int)
+                .piecewise_constant([durations], [values])`:
+                to append a piecewise constant waveform
+            - `...location(int).poly([coefficients], duration)`:
+                to append a polynomial waveform
+            - `...location(int).apply(wf:bloqade.ir.Waveform)`:
+                to append a pre-defined waveform
+            - `...location(int).fn(f(t,...))`:
+                to append a waveform defined by a python function
 
         """
         return Location(label, self)
@@ -110,62 +96,42 @@ class Location(SpatialModulation):
     @beartype
     def scale(self, value: ScalarType) -> "Scale":
         """
-        Scale the preceeding waveform by the specified factor.
+        Scale the subsequent waveform to be applied on a certain set of
+        atoms specified by the current spatial modulation.
 
-        Args:
-            scale (float): The factor to scale (amplitude of)
-            the preceeding waveform.
+        ### Usage Examples:
+        ```
+        # define program
+        >>> reg = bloqade.start.add_position([(0,0),(1,1),(2,2),(3,3)])
+        # scale the subsequent waveform to be applied on atom 0 by 1.2
+        >>> scaled = reg.rydberg.detuning.location(0).scale(1.2)
+        # scale the waveform on multiple locations by different factors
+        >>> loc = reg.rydberg.detuning.location(0)
+        >>> loc = loc.scale(1.2).location(1).scale(0.5)
+        # scale multiple locations with the same factor
+        >>> scaled = reg.rydberg.detuning.location(0).location(1).scale(1.2)
+        ```
 
-        Examples:
-
-            - Scale the preceeding waveform that addressing location(0) by 1.2.
-
-            >>> reg = bloqade.start.add_position([(0,0),(1,1),(2,2),(3,3)])
-            >>> scaled = reg.rydberg.detuning.location(0).scale(1.2)
-
-            - Scale multiple locations with different factors.
-            (ex. loc 0 by 1.2, loc 1 by 0.5)
-
-            >>> reg = bloqade.start.add_position([(0,0),(1,1),(2,2),(3,3)])
-            >>> loc = reg.rydberg.detuning.location(0)
-            >>> loc = loc.scale(1.2).location(1).scale(0.5)
-
-            - Scale multiple locations with the same factor. (ex. loc 0 and 1 by 1.2)
-
-            >>> reg = bloqade.start.add_position([(0,0),(1,1),(2,2),(3,3)])
-            >>> scaled = reg.rydberg.detuning.location(0).location(1).scale(1.2)
-
-
-        - Possible Next <Location>:
-
-            -> `...scale(float).location(int)`
-                :: keep adding location into current list
-
-        - Possible Next <WaveForm>:
-
-            -> `...scale(float).linear()`
-                :: apply linear waveform
-
-            -> `...scale(float).constant()`
-                :: apply constant waveform
-
-            -> `...scale(float).ploy()`
-                :: apply polynomial waveform
-
-            -> `...scale(float).apply()`
-                :: apply pre-constructed waveform(s)
-
-            -> `...scale(float).piecewise_linear()`
-                :: apply piecewise linear waveform
-
-            -> `...scale(float).piecewise_constant()`
-                :: apply piecewise constant waveform
-
-            -> `...scale(float).fn()`
-                :: apply callable as waveform.
-
-
-
+        - Your next steps include:
+        - Continuing to modify your current spatial modulation via:
+            - `...scale(float).location(int)`: To add another location
+        - You may also jump directly to specifying a waveform via:
+            - `...scale(float).linear(start, stop, duration)`:
+                to append a linear waveform
+            - `...scale(float).constant(value, duration)`:
+                to append a constant waveform
+            - `...scale(float)
+                .piecewise_linear([durations], [values])`:
+                to append a piecewise linear waveform
+            - `...scale(float)
+                .piecewise_constant([durations], [values])`:
+                to append a piecewise constant waveform
+            - `...scale(float).poly([coefficients], duration)`:
+                to append a polynomial waveform
+            - `...scale(float).apply(wf:bloqade.ir.Waveform)`:
+                to append a pre-defined waveform
+            - `...scale(float).fn(f(t,...))`:
+                to append a waveform defined by a python function
         """
         return Scale(value, self)
 
@@ -183,50 +149,44 @@ class Scale(WaveformAttachable):
     @beartype
     def location(self, label: int) -> "Location":
         """
-        - Append another location to the current location after scale the previous one
+        Append another `.location` to the current location(s)
+        as part of a singular spatial modulation definition.
 
-        Args:
-            label (int): The label of the location
+        ### Usage Example:
+        ```
+        # definep program
+        >>> from bloqade.atom_arrangement import start
+        >>> geometry = start.add_position([(0,0),(1,1),(3,3)])
+        >>> prog = start.rydberg.rabi.amplitude.location(0)
+        >>> chain_loc_prog = prog.location(1).location(2)
+        # Atoms at indices 0, 1, and 2 will now be subject
+        # to the upcoming waveform definition. Thus, the
+        # multiple locations are part of a singular
+        # spatial modulation.
+        ```
 
-        Examples:
+        - Your next steps include:
+        - Continuing to modify your current spatial modulation via:
+            - `...location(int).location(int)`: To add another location
+            - `...location(int).scale(float)`: To scale the upcoming waveform
+        - You may also jump directly to specifying a waveform via:
+            - `...location(int).linear(start, stop, duration)`:
+                to append a linear waveform
+            - `...location(int).constant(value, duration)`:
+                to append a constant waveform
+            - `...location(int)
+                .piecewise_linear([durations], [values])`:
+                to append a piecewise linear waveform
+            - `...location(int)
+                .piecewise_constant([durations], [values])`:
+                to append a piecewise constant waveform
+            - `...location(int).poly([coefficients], duration)`:
+                to append a polynomial waveform
+            - `...location(int).apply(wf:bloqade.ir.Waveform)`:
+                to append a pre-defined waveform
+            - `...location(int).fn(f(t,...))`:
+                to append a waveform defined by a python function
 
-            - Append location 1 after scale location 0 by 1.2.
-
-            >>> reg = bloqade.start.add_position([(0,0),(1,1),(2,2),(3,3)])
-            >>> loc = reg.rydberg.detuning.location(0).scale(1.2)
-            >>> loc = loc.location(1)
-
-        - Possible Next <Location>:
-
-            -> `...location(int).location(int)`
-                :: keep adding location into current list
-
-            -> `...location(int).scale(float)`
-                :: specify scaling factor to current location
-                for the preceeding waveform
-
-        - Possible Next <WaveForm>:
-
-            -> `...location(int).linear()`
-                :: apply linear waveform
-
-            -> `...location(int).constant()`
-                :: apply constant waveform
-
-            -> `...location(int).ploy()`
-                :: apply polynomial waveform
-
-            -> `...location(int).apply()`
-                :: apply pre-constructed waveform
-
-            -> `...location(int).piecewise_linear()`
-                :: apply piecewise linear waveform
-
-            -> `...location(int).piecewise_constant()`
-                :: apply piecewise constant waveform
-
-            -> `...location(int).fn()`
-                :: apply callable as waveform.
         """
         return Location(label, self)
 
