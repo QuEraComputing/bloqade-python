@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from functools import cached_property
 from scipy.sparse import csr_matrix, csc_matrix
 import numpy as np
 from numpy.typing import NDArray
@@ -94,23 +95,31 @@ class SparseMatrixCSR:
 
 
 @njit(cache=True)
-def _index_mapping_slice_row(nrow, col_indices, scale, input, output):
-    for i in range(nrow):
+def _index_mapping_row_col_sliced(scale, input, output):
+    for i in range(output.size):
+        output[i] += scale * input[i]
+
+    return output
+
+
+@njit(cache=True)
+def _index_mapping_row_sliced(col_indices, scale, input, output):
+    for i in range(col_indices.size):
         output[i] += scale * input[col_indices[i]]
 
     return output
 
 
 @njit(cache=True)
-def _index_mapping_slice_col(nrow, row_indices, scale, input, output):
-    for i in range(nrow):
+def _index_mapping_col_sliced(row_indices, scale, input, output):
+    for i in range(row_indices.size):
         output[row_indices[i]] += scale * input[i]
 
     return output
 
 
 @njit(cache=True)
-def _index_mapping_impl(nrow, col_indices, row_indices, scale, input, output):
+def _index_mapping_impl(col_indices, row_indices, scale, input, output):
     for i in range(row_indices.size):
         output[row_indices[i]] += scale * input[col_indices[i]]
 
@@ -122,34 +131,52 @@ def _index_mapping_impl(nrow, col_indices, row_indices, scale, input, output):
 @dataclass(frozen=True)
 class IndexMapping:
     n_row: int
-    row_indices: Union[slice, NDArray]
-    col_indices: Union[slice, NDArray]
+    row_indices: Union[NDArray, slice]
+    col_indices: Union[NDArray, slice]
 
     @property
     def T(self) -> "IndexMapping":
         return IndexMapping(self.n_row, self.col_indices, self.row_indices)
 
+    @cached_property
+    def _matvec_dispatcher(self):
+        if isinstance(self.col_indices, slice) and isinstance(self.row_indices, slice):
+
+            def _matvec_imp(col_indices, row_indices, scale, input, output):
+                return _index_mapping_row_col_sliced(
+                    scale, input[col_indices], output[row_indices]
+                )
+
+        elif isinstance(self.col_indices, slice):
+
+            def _matvec_imp(col_indices, row_indices, scale, input, output):
+                return _index_mapping_col_sliced(
+                    row_indices, scale, input[col_indices], output
+                )
+
+        elif isinstance(self.row_indices, slice):
+
+            def _matvec_imp(col_indices, row_indices, scale, input, output):
+                return _index_mapping_row_sliced(
+                    col_indices, scale, input, output[row_indices]
+                )
+
+        else:
+
+            def _matvec_imp(col_indices, row_indices, scale, input, output):
+                return _index_mapping_impl(
+                    col_indices, row_indices, scale, input, output
+                )
+
+        return _matvec_imp
+
     def matvec(self, other, out=None, scale=1):
         if out is None:
             out = np.zeros_like(other, dtype=np.result_type(scale, other))
 
-        if isinstance(self.col_indices, slice):
-            return _index_mapping_slice_row(
-                self.n_row, self.row_indices, scale, other, out
-            )
-        elif isinstance(self.row_indices, slice):
-            return _index_mapping_slice_col(
-                self.n_row, self.col_indices, scale, other, out
-            )
-        elif isinstance(self.row_indices, slice) and isinstance(
-            self.col_indices, slice
-        ):
-            out += scale * other
-            return out
-        else:
-            return _index_mapping_impl(
-                self.n_row, self.col_indices, self.row_indices, scale, other, out
-            )
+        return self._matvec_dispatcher(
+            self.col_indices, self.row_indices, scale, other, out
+        )
 
     def tocsr(self):
         indptr = np.zeros(self.n_row + 1, dtype=np.int64)
