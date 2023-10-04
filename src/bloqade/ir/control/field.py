@@ -225,7 +225,10 @@ class Field(FieldExpr):
     def __hash__(self) -> int:
         return self._hash_value
 
-    def canoncialize(self) -> "Field":
+    def canonicalize(self) -> "Field":
+        """
+        Canonicalize the Field by merging `ScaledLocation` nodes with the same waveform.
+        """
         reversed_dirves = {}
 
         for sm, wf in self.drives.items():
@@ -265,7 +268,7 @@ class Field(FieldExpr):
             else:
                 out.drives[spatial_modulation] = waveform
 
-        return out.canoncialize()
+        return out.canonicalize()
 
     def print_node(self):
         return "Field"
