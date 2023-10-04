@@ -1005,7 +1005,7 @@ class Fn(WaveformPrimitive):
         return Sample(dt, interpolation, self)
 
     def __bloqade_ir__(self):
-        return ir.PythonFn(self._fn, self._duration)
+        return ir.PythonFn.create(self._fn, self._duration)
 
 
 # NOTE: no double-slice or double-record
