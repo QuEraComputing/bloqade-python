@@ -5,14 +5,13 @@ class BraketService(Builder):
     @property
     def braket(self):
         """
-        - Specify braket service
-        - Possible Next:
+        Specify the Braket backend. This allows you to access the AWS Braket local
+        emulator OR go submit things to QuEra hardware on AWS Braket service.
 
-            -> `...braket.aquila`
-                :: Aquila QPU, via braket service
-
-            -> `...braket.local_emulator`
-                :: braket local emulator backend
+        - Possible Next Steps are:
+            - `...braket.aquila()`: target submission to the QuEra Aquila QPU
+            - `...braket.local_emulator()`: target submission to the Braket
+            local emulator
         """
         return BraketDeviceRoute(self)
 
@@ -20,39 +19,35 @@ class BraketService(Builder):
 class BraketDeviceRoute(Builder):
     def aquila(self):
         """
-        Specify QuEra's Aquila QPU
+        Specify QuEra's Aquila QPU on Braket to submit your program to.
 
-        Return:
-            BraketHardwareRoutine
+        The number of shots you specify in the subsequent `.run` method will either:
+            - dictate the number of times your program is run
+            - dictate the number of times per parameter your program is run if
+              you have a variable with batch assignments/intend to conduct
+              a parameter sweep
 
-        - Possible Next:
 
-            -> `...aquila().submit`
-                :: submit aync remote job
-
-            -> `...aquila().run`
-                :: submit job and wait until job finished
-                and results returned
-
-            -> `...aquila().__callable__`
-                :: submit job and wait until job finished
-                and results returned
-
+        - Possible next steps are:
+            - `...aquila().run(shots)`: To submit to hardware and WAIT for
+                results (blocking)
+            - `...aquila().run_async(shots)`: To submit to hardware and immediately
+                allow for other operations to occur
         """
         return self.parse().braket.aquila()
 
     def local_emulator(self):
         """
-        Using Braket local emulator
+        Specify the Braket local emulator to submit your program to.
 
-        Return:
-            BraketLocalEmulatorRoutine
-
-
-        - Possible Next:
-
-            -> `...local_emulator().run`
-                :: run on local emulator
+        - The number of shots you specify in the subsequent `.run` method will either:
+            - dictate the number of times your program is run
+            - dictate the number of times per parameter your program is run if
+              you have a variable with batch assignments/intend to
+              conduct a parameter sweep
+        - Possible next steps are:
+            - `...local_emulator().run(shots)`: to submit to the emulator
+                and await results
 
         """
         return self.parse().braket.local_emulator()

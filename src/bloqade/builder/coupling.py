@@ -4,20 +4,28 @@ from bloqade.builder.field import Rabi, Detuning
 
 class LevelCoupling(Builder):
     @property
-    def detuning(self) -> Detuning:
+    def detuning(
+        self,
+    ) -> Detuning:  # field is summation of one or more drives,
+        # waveform + spatial modulation = drive
         """
-        - Specify the Detuning field
-        - Next-step: <SpacialModulation>
-        - Possible Next:
+        Specify the [`Detuning`][bloqade.builder.field.Detuning]
+         [`Field`][bloqade.builder.Field] of your program.
 
-            -> `...detuning.location(int)`
-                :: Address atom at specific location
+        A "field" is a summation of one or more "drives", with a drive being the sum
+        of a waveform and spatial modulation.
 
-            -> `...detuning.uniform`
-                :: Address all atoms in register
+        You are currently building the spatial modulation component and will be
+        able to specify a waveform.
 
-            -> `...detuning.var(str)`
-                :: Address atom at location labeled by variable
+        - You can do this by:
+            - `...detuning.uniform`: To address all atoms in the field
+            - `...detuning.location(int)`: To address an atom at a specific
+                location via index
+            - `...detuning.var(str)`
+                - To address an atom at a specific location via variable
+                - To address multiple atoms at specific locations by specifying
+                    a single variable and then assigning it a list of coordinates
 
         """
 
@@ -26,15 +34,16 @@ class LevelCoupling(Builder):
     @property
     def rabi(self) -> Rabi:
         """
-        - Specify the Rabi term/field.
-        - Possible Next:
+        Specify the complex-valued [`Rabi`][bloqade.builder.field.Rabi]
+        field of your program.
 
-            -> `...rabi.amplitude`
-                :: address rabi amplitude
+        The Rabi field is composed of a real-valued Amplitude and Phase field.
 
-            -> `...rabi.phase`
-                :: address rabi phase
-
+        - Next possible steps to build your program are
+          creating the [`RabiAmplitude`][bloqade.builder.field.RabiAmplitude] field
+          and [`RabiPhase`][bloqade.builder.field.RabiAmplitude] field of the field:
+            - `...rabi.amplitude`: To create the Rabi amplitude field
+            - `...rabi.phase`: To create the Rabi phase field
 
         """
 
