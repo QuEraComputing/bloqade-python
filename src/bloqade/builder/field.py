@@ -90,24 +90,27 @@ class Field(Builder):
         ```
 
         - You can now do:
-            - `...location(...).linear(start, stop, duration)` : to apply
+            - `...location(labels, scales).linear(start, stop, duration)` : to apply
                 a linear waveform
-            - `...location(...).constant(value, duration)` : to apply
+            - `...location(labels, scales).constant(value, duration)` : to apply
                 a constant waveform
-            - `...location(...).poly([coefficients], duration)` : to apply
+            - `...location(labels, scales).poly([coefficients], duration)` : to apply
                 a polynomial waveform
-            - `...location(...).apply(wf:bloqade.ir.Waveform)`: to apply
+            - `...location(labels, scales).apply(wf:bloqade.ir.Waveform)`: to apply
                 a pre-defined waveform
-            - `...location(...).piecewise_linear([durations], [values])`:  to apply
+            - `...location(labels, scales).piecewise_linear([durations], [values])`:
+                to apply
                 a piecewise linear waveform
-            - `...location(...).piecewise_constant([durations], [values])`: to apply
+            - `...location(labels, scales).piecewise_constant([durations], [values])`:
+                to apply
                 a piecewise constant waveform
-            - `...location(...).fn(f(t,..))`: to apply a function as a waveform
+            - `...location(labels, scales).fn(f(t,..))`: to apply a function as a
+                waveform
 
         """
         return self._location(labels, scales)
 
-    def scale(self, name_or_list: Union[str, List[ScalarType]]):
+    def scale(self, coeffs: Union[str, List[ScalarType]]):
         """
         Address all the atoms scaling each atom with an element of the list
         or define a variable name for the scale list to be assigned later by
@@ -138,24 +141,24 @@ class Field(Builder):
         ```
 
         - You can now do:
-            - `...scale(...).linear(start, stop, duration)` : to apply
+            - `...scale(coeffs).linear(start, stop, duration)` : to apply
                 a linear waveform
-            - `...scale(...).constant(value, duration)` : to apply
+            - `...scale(coeffs).constant(value, duration)` : to apply
                 a constant waveform
-            - `...scale(...).poly([coefficients], duration)` : to apply
+            - `...scale(coeffs).poly([coefficients], duration)` : to apply
                 a polynomial waveform
-            - `...scale(...).apply(wf:bloqade.ir.Waveform)`: to apply
+            - `...scale(coeffs).apply(wf:bloqade.ir.Waveform)`: to apply
                 a pre-defined waveform
-            - `...scale(...).piecewise_linear(durations, values)`:  to
+            - `...scale(coeffs).piecewise_linear(durations, values)`:  to
                 apply a piecewise linear waveform
-            - `...scale(...).piecewise_constant(durations, values)`: to
+            - `...scale(coeffs).piecewise_constant(durations, values)`: to
                 apply a piecewise constant waveform
-            - `...scale(...).fn(f(t,..))`: to apply a function as a waveform
+            - `...scale(coeffs).fn(f(t,..))`: to apply a function as a waveform
 
         """
         from bloqade.builder.spatial import Scale
 
-        return Scale(name_or_list, self)
+        return Scale(coeffs, self)
 
 
 class Detuning(Field):

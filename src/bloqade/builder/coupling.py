@@ -20,9 +20,9 @@ class LevelCoupling(Builder):
 
         - You can do this by:
             - `...detuning.uniform`: To address all atoms in the field
-            - `...detuning.location(...)`: To address atoms at specific
+            - `...detuning.location(locations, scales)`: To address atoms at specific
                 locations via indices
-            - `...detuning.scale(...)`
+            - `...detuning.scale(coeffs)`
                 - To address all atoms with an individual scale factor
 
         """
