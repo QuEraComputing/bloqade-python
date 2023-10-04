@@ -102,20 +102,12 @@ class Parser:
 
         return waveform, curr
 
-    def read_spatial_modulation(
-        self, head: BuilderNode
-    ) -> Tuple[ir.SpatialModulation, BuilderNode]:
-        return head.node.__bloqade_ir__(), head.next
-
     def read_drive(self, head) -> ir.Field:
         if head is None:
             return ir.Field({})
 
         sm = head.node.__bloqade_ir__()
         wf, _ = self.read_waveform(head.next)
-
-        # if wf is None or sm is None:
-        #     return ir.Field({})
 
         return ir.Field({sm: wf})
 
