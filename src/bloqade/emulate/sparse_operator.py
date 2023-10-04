@@ -20,12 +20,11 @@ def _csc_matvec_impl(ncol, data, indices, indptr, scale, input, output):
 @njit(cache=True)
 def _csr_matvec_impl(nrow, data, indices, indptr, scale, input, output):
     for i in range(nrow):
-        row_out = output[i]
-        row_out = 0.0
+        row_out = np.zeros_like(output[i])
         for j in range(indptr[i], indptr[i + 1]):
-            row_out += data[j] * input[indices[j]]
+             row_out += data[j] * input[indices[j]]
 
-        output[i] = scale * row_out
+        output[i] += scale * row_out
 
     return output
 
@@ -72,9 +71,6 @@ class SparseMatrixCSR:
 
     def tocsr(self):
         return csr_matrix((self.data, self.indices, self.indptr), self.shape)
-
-    def toarray(self):
-        return csr_matrix((self.data, self.indices, self.indptr), self.shape).toarray()
 
     @property
     def T(self):

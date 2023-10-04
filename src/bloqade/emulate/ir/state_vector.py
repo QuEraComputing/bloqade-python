@@ -39,11 +39,11 @@ class RabiOperator:
     def dot(self, register: NDArray, output: NDArray, time: float):
         amplitude = self.amplitude(time) / 2
         if self.phase is None:
-            return self.op.matvec(register, output, scale=amplitude)
+            return self.op.matvec(register, out=output, scale=amplitude)
 
         amplitude *= np.exp(1j * self.phase(time))
-        self.op.matvec(register, output, scale=amplitude)
-        self.op.T.matvec(register, scale=np.conj(amplitude))
+        self.op.matvec(register, out=output, scale=amplitude)
+        self.op.T.matvec(register, out=output, scale=np.conj(amplitude))
 
         return output
 
