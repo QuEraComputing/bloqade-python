@@ -95,6 +95,7 @@ dev = [
     "jupytext>=1.14.5",
     "pytest-recording>=0.12.2",
     "vcrpy==4.4.0",
+    "pyinstrument>=4.5.3",
 ]
 
 [tool.pdm.scripts]
