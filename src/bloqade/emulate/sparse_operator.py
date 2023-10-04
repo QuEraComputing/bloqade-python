@@ -2,11 +2,12 @@ from dataclasses import dataclass
 from scipy.sparse import csr_matrix, csc_matrix
 import numpy as np
 from numpy.typing import NDArray
-from beartype.typing import Any, Union
-from beartype.vale import IsAttr, IsEqual
-from beartype import beartype
-from typing import Annotated
+from beartype.typing import Union
 from numba import njit
+
+# from beartype.vale import IsAttr, IsEqual
+# from beartype import beartype
+# from typing import Annotated
 
 
 @njit(cache=True)
@@ -17,12 +18,13 @@ def _csc_matvec_impl(ncol, data, indices, indptr, scale, input, output):
 
     return output
 
+
 @njit(cache=True)
 def _csr_matvec_impl(nrow, data, indices, indptr, scale, input, output):
     for i in range(nrow):
         row_out = np.zeros_like(output[i])
         for j in range(indptr[i], indptr[i + 1]):
-             row_out += data[j] * input[indices[j]]
+            row_out += data[j] * input[indices[j]]
 
         output[i] += scale * row_out
 
@@ -43,6 +45,9 @@ class SparseMatrixCSC:
 
     def tocsr(self):
         return csc_matrix((self.data, self.indices, self.indptr), self.shape).tocsr()
+
+    def toarray(self):
+        return self.tocsr().toarray()
 
     @property
     def T(self):
@@ -72,6 +77,9 @@ class SparseMatrixCSR:
     def tocsr(self):
         return csr_matrix((self.data, self.indices, self.indptr), self.shape)
 
+    def toarray(self):
+        return self.tocsr().toarray()
+
     @property
     def T(self):
         return SparseMatrixCSC(self.data, self.indices, self.indptr, self.shape[::-1])
@@ -92,6 +100,7 @@ def _index_mapping_slice_row(nrow, col_indices, scale, input, output):
 
     return output
 
+
 @njit(cache=True)
 def _index_mapping_slice_col(nrow, row_indices, scale, input, output):
     for i in range(nrow):
@@ -99,13 +108,14 @@ def _index_mapping_slice_col(nrow, row_indices, scale, input, output):
 
     return output
 
+
 @njit(cache=True)
 def _index_mapping_impl(nrow, col_indices, row_indices, scale, input, output):
-
     for i in range(row_indices.size):
         output[row_indices[i]] += scale * input[col_indices[i]]
 
     return output
+
 
 # use csr_matrix/csc_matrix for rabi-terms that span multiple sites.
 # use IndexMapping for local rabi-terms
@@ -123,22 +133,23 @@ class IndexMapping:
         if out is None:
             out = np.zeros_like(other, dtype=np.result_type(scale, other))
 
-        if isinstance(self.col_indices,slice):
+        if isinstance(self.col_indices, slice):
             return _index_mapping_slice_row(
                 self.n_row, self.row_indices, scale, other, out
             )
-        elif isinstance(self.row_indices,slice):
+        elif isinstance(self.row_indices, slice):
             return _index_mapping_slice_col(
                 self.n_row, self.col_indices, scale, other, out
             )
-        elif isinstance(self.row_indices, slice) and isinstance(self.col_indices, slice):
+        elif isinstance(self.row_indices, slice) and isinstance(
+            self.col_indices, slice
+        ):
             out += scale * other
             return out
         else:
             return _index_mapping_impl(
                 self.n_row, self.col_indices, self.row_indices, scale, other, out
             )
-
 
     def tocsr(self):
         indptr = np.zeros(self.n_row + 1, dtype=np.int64)
