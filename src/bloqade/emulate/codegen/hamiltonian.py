@@ -21,7 +21,7 @@ from bloqade.emulate.ir.state_vector import (
     DetuningOperator,
     RydbergHamiltonian,
 )
-from bloqade.emulate.sparse_operator import IndexMapping
+from bloqade.emulate.sparse_operator import IndexMapping, SparseMatrixCSR
 from scipy.sparse import csr_matrix
 import numpy as np
 from numpy.typing import NDArray
@@ -169,10 +169,14 @@ class RydbergHamiltonianCodeGen(Visitor):
             indptr[1:] = indptr[:-1]
             indptr[0] = 0
 
-            operator = csr_matrix(
+            operator = SparseMatrixCSR.create(
                 (data, indices, indptr),
                 shape=(self.space.size, self.space.size),
             )
+            # operator = csr_matrix(
+            #     (data, indices, indptr),
+            #     shape=(self.space.size, self.space.size),
+            # )
 
         self.compile_cache.operator_cache[
             (self.register, rabi_operator_data)

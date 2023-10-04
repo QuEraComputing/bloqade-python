@@ -33,6 +33,17 @@ def tree_depth(depth: int = None):
         _ir.tree_print.max_tree_depth = depth
     return _ir.tree_print.max_tree_depth
 
+# precompile numba
+(
+    start.add_position((0,0))
+    .rydberg.detuning.uniform.piecewise_linear(
+        [0.1,3.8,0.1],[-20,-20,20,20,]
+    )
+    .amplitude.uniform.piecewise_linear(
+        [0.1,3.8,0.1],[0,15.7,15.7,0]
+    )
+    .bloqade.python().run(100)
+)
 
 __all__ = [
     "RB_C6",
