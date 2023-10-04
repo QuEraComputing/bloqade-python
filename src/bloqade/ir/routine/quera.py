@@ -71,8 +71,9 @@ class QuEraHardwareRoutine(RoutineBase):
             )
 
             task_ir = task_ir.discretize(capabilities)
+            metadata = {**params.static_params, **record_params}
             tasks[task_number] = QuEraTask(
-                None, self.backend, task_ir, batch_params, parallel_decoder
+                None, self.backend, task_ir, metadata, parallel_decoder
             )
 
         batch = RemoteBatch(source=self.source, tasks=tasks, name=name)

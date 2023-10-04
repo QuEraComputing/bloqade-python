@@ -45,9 +45,8 @@ class BloqadePythonRoutine(RoutineBase):
             emulator_ir = EmulatorProgramCodeGen(blockade_radius=blockade_radius).emit(
                 final_circuit
             )
-            tasks[task_number] = BloqadeTask(
-                shots, emulator_ir, batch_param, matrix_cache
-            )
+            metadata = {**params.static_params, **record_params}
+            tasks[task_number] = BloqadeTask(shots, emulator_ir, metadata, matrix_cache)
 
         return LocalBatch(self.source, tasks, name)
 
