@@ -1,0 +1,405 @@
+---
+markmap:
+  colorFreezeLevel: 1
+  initialExpandLevel: 1
+  maxWidth: 300
+  color: '#6437FF'
+---
+
+- Atom Geometry
+  - `Chain`, `Kagome`,
+    - Level Coupling: `.rydberg`
+        - Field: `.rabi`
+            - Field: `.amplitude`
+                - Spatial Modulation: `.uniform`
+                    - Waveform: `.linear`
+                    - Waveform: `.constant`
+                    - Waveform: `.piecewise_linear`
+                    - Waveform: `.piecewise_constant`
+                    - Waveform: `.fn`
+                    - Waveform: `.poly`
+                    - Waveform: `.apply`
+                    - New Spatial Modulation (summed with previous)
+                    - New Field
+                    - New Level Coupling
+                - Spatial Modulation: `.location`
+                    - Waveform: `.linear`
+                    - Waveform: `.constant`
+                    - Waveform: `.piecewise_linear`
+                    - Waveform: `.piecewise_constant`
+                    - Waveform: `.fn`
+                    - Waveform: `.poly`
+                    - Waveform: `.apply`
+                    - New Spatial Modulation (summed with previous)
+                    - New Field
+                    - New Level Coupling
+                - Spatial Modulation: `.scale`
+                    - Waveform: `.linear`
+                    - Waveform: `.constant`
+                    - Waveform: `.piecewise_linear`
+                    - Waveform: `.piecewise_constant`
+                    - Waveform: `.fn`
+                    - Waveform: `.poly`
+                    - Waveform: `.apply`
+                    - New Spatial Modulation (summed with previous)
+                    - New Field
+                    - New Level Coupling
+            - Field: `.phase`
+                - Spatial Modulation: `.uniform`
+                    - Waveform: `.linear`
+                    - Waveform: `.constant`
+                    - Waveform: `.piecewise_linear`
+                    - Waveform: `.piecewise_constant`
+                    - Waveform: `.fn`
+                    - Waveform: `.poly`
+                    - Waveform: `.apply`
+                    - New Spatial Modulation (summed with previous)
+                    - New Field
+                    - New Level Coupling
+                - Spatial Modulation: `.location`
+                    - Waveform: `.linear`
+                    - Waveform: `.constant`
+                    - Waveform: `.piecewise_linear`
+                    - Waveform: `.piecewise_constant`
+                    - Waveform: `.fn`
+                    - Waveform: `.poly`
+                    - Waveform: `.apply`
+                    - New Spatial Modulation (summed with previous)
+                    - New Field
+                    - New Level Coupling
+                - Spatial Modulation: `.scale`
+                    - Waveform: `.linear`
+                    - Waveform: `.constant`
+                    - Waveform: `.piecewise_linear`
+                    - Waveform: `.piecewise_constant`
+                    - Waveform: `.fn`
+                    - Waveform: `.poly`
+                    - Waveform: `.apply`
+                    - New Spatial Modulation (summed with previous)
+                    - New Field
+                    - New Level Coupling
+        - Field: `.detuning`
+            - Spatial Modulation: `.uniform`
+                - Waveform: `.linear`
+                - Waveform: `.constant`
+                - Waveform: `.piecewise_linear`
+                - Waveform: `.piecewise_constant`
+                - Waveform: `.fn`
+                - Waveform: `.poly`
+                - Waveform: `.apply`
+                - New Spatial Modulation (summed with previous)
+                - New Field
+                - New Level Coupling
+            - Spatial Modulation: `.location`
+                - Waveform: `.linear`
+                - Waveform: `.constant`
+                - Waveform: `.piecewise_linear`
+                - Waveform: `.piecewise_constant`
+                - Waveform: `.fn`
+                - Waveform: `.poly`
+                - Waveform: `.apply`
+                - New Spatial Modulation (summed with previous)
+                - New Field
+                - New Level Coupling
+            - Spatial Modulation: `.scale`
+                - Waveform: `.linear`
+                - Waveform: `.constant`
+                - Waveform: `.piecewise_linear`
+                - Waveform: `.piecewise_constant`
+                - Waveform: `.fn`
+                - Waveform: `.poly`
+                - Waveform: `.apply`
+                - New Spatial Modulation (summed with previous)
+                - New Field
+                - New Level Coupling
+    - Level Coupling: `.hyperfine`
+        - Field: `.rabi`
+            - Field: `.amplitude`
+                - Spatial Modulation: `.uniform`
+                    - Waveform: `.linear`
+                    - Waveform: `.constant`
+                    - Waveform: `.piecewise_linear`
+                    - Waveform: `.piecewise_constant`
+                    - Waveform: `.fn`
+                    - Waveform: `.poly`
+                    - Waveform: `.apply`
+                    - New Spatial Modulation (summed with previous)
+                    - New Field
+                    - New Level Coupling
+                - Spatial Modulation: `.location`
+                    - Waveform: `.linear`
+                    - Waveform: `.constant`
+                    - Waveform: `.piecewise_linear`
+                    - Waveform: `.piecewise_constant`
+                    - Waveform: `.fn`
+                    - Waveform: `.poly`
+                    - Waveform: `.apply`
+                    - New Spatial Modulation (summed with previous)
+                    - New Field
+                    - New Level Coupling
+                - Spatial Modulation: `.scale`
+                    - Waveform: `.linear`
+                    - Waveform: `.constant`
+                    - Waveform: `.piecewise_linear`
+                    - Waveform: `.piecewise_constant`
+                    - Waveform: `.fn`
+                    - Waveform: `.poly`
+                    - Waveform: `.apply`
+                    - New Spatial Modulation (summed with previous)
+                    - New Field
+                    - New Level Coupling
+            - Field: `.phase`
+                - Spatial Modulation: `.uniform`
+                    - Waveform: `.linear`
+                    - Waveform: `.constant`
+                    - Waveform: `.piecewise_linear`
+                    - Waveform: `.piecewise_constant`
+                    - Waveform: `.fn`
+                    - Waveform: `.poly`
+                    - Waveform: `.apply`
+                    - New Spatial Modulation (summed with previous)
+                    - New Field
+                    - New Level Coupling
+                - Spatial Modulation: `.location`
+                    - Waveform: `.linear`
+                    - Waveform: `.constant`
+                    - Waveform: `.piecewise_linear`
+                    - Waveform: `.piecewise_constant`
+                    - Waveform: `.fn`
+                    - Waveform: `.poly`
+                    - Waveform: `.apply`
+                    - New Spatial Modulation (summed with previous)
+                    - New Field
+                    - New Level Coupling
+                - Spatial Modulation: `.scale`
+                    - Waveform: `.linear`
+                    - Waveform: `.constant`
+                    - Waveform: `.piecewise_linear`
+                    - Waveform: `.piecewise_constant`
+                    - Waveform: `.fn`
+                    - Waveform: `.poly`
+                    - Waveform: `.apply`
+                    - New Spatial Modulation (summed with previous)
+                    - New Field
+                    - New Level Coupling
+        - Field: `.detuning`
+            - Spatial Modulation: `.uniform`
+                - Waveform: `.linear`
+                - Waveform: `.constant`
+                - Waveform: `.piecewise_linear`
+                - Waveform: `.piecewise_constant`
+                - Waveform: `.fn`
+                - Waveform: `.poly`
+                - Waveform: `.apply`
+                - New Spatial Modulation (summed with previous)
+                - New Field
+                - New Level Coupling
+            - Spatial Modulation: `.location`
+                - Waveform: `.linear`
+                - Waveform: `.constant`
+                - Waveform: `.piecewise_linear`
+                - Waveform: `.piecewise_constant`
+                - Waveform: `.fn`
+                - Waveform: `.poly`
+                - Waveform: `.apply`
+                - New Spatial Modulation (summed with previous)
+                - New Field
+                - New Level Coupling
+            - Spatial Modulation: `.scale`
+                - Waveform: `.linear`
+                - Waveform: `.constant`
+                - Waveform: `.piecewise_linear`
+                - Waveform: `.piecewise_constant`
+                - Waveform: `.fn`
+                - Waveform: `.poly`
+                - Waveform: `.apply`
+                - New Spatial Modulation (summed with previous)
+                - New Field
+                - New Level Coupling
+  - `.add_position`
+    - Level Coupling: `.rydberg`
+        - Field: `.rabi`
+            - Field: `.amplitude`
+                - Spatial Modulation: `.uniform`
+                    - Waveform: `.linear`
+                    - Waveform: `.constant`
+                    - Waveform: `.piecewise_linear`
+                    - Waveform: `.piecewise_constant`
+                    - Waveform: `.fn`
+                    - Waveform: `.poly`
+                    - Waveform: `.apply`
+                    - New Spatial Modulation (summed with previous)
+                    - New Field
+                    - New Level Coupling
+                - Spatial Modulation: `.location`
+                    - Waveform: `.linear`
+                    - Waveform: `.constant`
+                    - Waveform: `.piecewise_linear`
+                    - Waveform: `.piecewise_constant`
+                    - Waveform: `.fn`
+                    - Waveform: `.poly`
+                    - Waveform: `.apply`
+                    - New Spatial Modulation (summed with previous)
+                    - New Field
+                    - New Level Coupling
+                - Spatial Modulation: `.scale`
+                    - Waveform: `.linear`
+                    - Waveform: `.constant`
+                    - Waveform: `.piecewise_linear`
+                    - Waveform: `.piecewise_constant`
+                    - Waveform: `.fn`
+                    - Waveform: `.poly`
+                    - Waveform: `.apply`
+                    - New Spatial Modulation (summed with previous)
+                    - New Field
+                    - New Level Coupling
+            - Field: `.phase`
+                - Spatial Modulation: `.uniform`
+                    - Waveform: `.linear`
+                    - Waveform: `.constant`
+                    - Waveform: `.piecewise_linear`
+                    - Waveform: `.piecewise_constant`
+                    - Waveform: `.fn`
+                    - Waveform: `.poly`
+                    - Waveform: `.apply`
+                    - New Spatial Modulation (summed with previous)
+                    - New Field
+                    - New Level Coupling
+                - Spatial Modulation: `.location`
+                    - Waveform: `.linear`
+                    - Waveform: `.constant`
+                    - Waveform: `.piecewise_linear`
+                    - Waveform: `.piecewise_constant`
+                    - Waveform: `.fn`
+                    - Waveform: `.poly`
+                    - Waveform: `.apply`
+                    - New Spatial Modulation (summed with previous)
+                    - New Field
+                    - New Level Coupling
+                - Spatial Modulation: `.scale`
+                    - Waveform: `.linear`
+                    - Waveform: `.constant`
+                    - Waveform: `.piecewise_linear`
+                    - Waveform: `.piecewise_constant`
+                    - Waveform: `.fn`
+                    - Waveform: `.poly`
+                    - Waveform: `.apply`
+                    - New Spatial Modulation (summed with previous)
+                    - New Field
+                    - New Level Coupling
+        - Field: `.detuning`
+            - Spatial Modulation: `.uniform`
+                - Waveform: `.linear`
+                - Waveform: `.constant`
+                - Waveform: `.piecewise_linear`
+                - Waveform: `.piecewise_constant`
+                - Waveform: `.fn`
+                - Waveform: `.poly`
+                - Waveform: `.apply`
+                - New Spatial Modulation (summed with previous)
+                - New Field
+                - New Level Coupling
+    - Level Coupling: `.hyperfine`
+        - Field: `.rabi`
+            - Field: `.amplitude`
+                - Spatial Modulation: `.uniform`
+                    - Waveform: `.linear`
+                    - Waveform: `.constant`
+                    - Waveform: `.piecewise_linear`
+                    - Waveform: `.piecewise_constant`
+                    - Waveform: `.fn`
+                    - Waveform: `.poly`
+                    - Waveform: `.apply`
+                    - New Spatial Modulation (summed with previous)
+                    - New Field
+                    - New Level Coupling
+                - Spatial Modulation: `.location`
+                    - Waveform: `.linear`
+                    - Waveform: `.constant`
+                    - Waveform: `.piecewise_linear`
+                    - Waveform: `.piecewise_constant`
+                    - Waveform: `.fn`
+                    - Waveform: `.poly`
+                    - Waveform: `.apply`
+                    - New Spatial Modulation (summed with previous)
+                    - New Field
+                    - New Level Coupling
+                - Spatial Modulation: `.scale`
+                    - Waveform: `.linear`
+                    - Waveform: `.constant`
+                    - Waveform: `.piecewise_linear`
+                    - Waveform: `.piecewise_constant`
+                    - Waveform: `.fn`
+                    - Waveform: `.poly`
+                    - Waveform: `.apply`
+                    - New Spatial Modulation (summed with previous)
+                    - New Field
+                    - New Level Coupling
+            - Field: `.phase`
+                - Spatial Modulation: `.uniform`
+                    - Waveform: `.linear`
+                    - Waveform: `.constant`
+                    - Waveform: `.piecewise_linear`
+                    - Waveform: `.piecewise_constant`
+                    - Waveform: `.fn`
+                    - Waveform: `.poly`
+                    - Waveform: `.apply`
+                    - New Spatial Modulation (summed with previous)
+                    - New Field
+                    - New Level Coupling
+                - Spatial Modulation: `.location`
+                    - Waveform: `.linear`
+                    - Waveform: `.constant`
+                    - Waveform: `.piecewise_linear`
+                    - Waveform: `.piecewise_constant`
+                    - Waveform: `.fn`
+                    - Waveform: `.poly`
+                    - Waveform: `.apply`
+                    - New Spatial Modulation (summed with previous)
+                    - New Field
+                    - New Level Coupling
+                - Spatial Modulation: `.scale`
+                    - Waveform: `.linear`
+                    - Waveform: `.constant`
+                    - Waveform: `.piecewise_linear`
+                    - Waveform: `.piecewise_constant`
+                    - Waveform: `.fn`
+                    - Waveform: `.poly`
+                    - Waveform: `.apply`
+                    - New Spatial Modulation (summed with previous)
+                    - New Field
+                    - New Level Coupling
+        - Field: `.detuning`
+            - Spatial Modulation: `.uniform`
+                - Waveform: `.linear`
+                - Waveform: `.constant`
+                - Waveform: `.piecewise_linear`
+                - Waveform: `.piecewise_constant`
+                - Waveform: `.fn`
+                - Waveform: `.poly`
+                - Waveform: `.apply`
+                - New Spatial Modulation (summed with previous)
+                - New Field
+                - New Level Coupling
+            - Spatial Modulation: `.location`
+                - Waveform: `.linear`
+                - Waveform: `.constant`
+                - Waveform: `.piecewise_linear`
+                - Waveform: `.piecewise_constant`
+                - Waveform: `.fn`
+                - Waveform: `.poly`
+                - Waveform: `.apply`
+                - New Spatial Modulation (summed with previous)
+                - New Field
+                - New Level Coupling
+            - Spatial Modulation: `.scale`
+                - Waveform: `.linear`
+                - Waveform: `.constant`
+                - Waveform: `.piecewise_linear`
+                - Waveform: `.piecewise_constant`
+                - Waveform: `.fn`
+                - Waveform: `.poly`
+                - Waveform: `.apply`
+                - New Spatial Modulation (summed with previous)
+                - New Field
+                - New Level Coupling
