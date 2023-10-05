@@ -11,4 +11,4 @@ Thank you for your interest in contributing to the project! We welcome all contr
 - [Developing Bloqade](developing-bloqade.md)
 - [Design Philosophy and Architecture](design-philosophy-and-architecture.md)
 - [Community Slack](community-slack.md)
-- [Ask a Question](https://github.com/QuEraComputing/bloqade-python/discussions)
+- [Ask a Question](asking-a-question.md)
