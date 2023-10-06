@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from functools import cached_property
-from scipy.sparse import csr_matrix, csc_matrix
+from scipy.sparse import csr_matrix, csc_matrix, coo_matrix
 import numpy as np
 from numpy.typing import NDArray
 from beartype.typing import Union
@@ -148,6 +148,7 @@ class IndexMapping:
                 )
 
         elif isinstance(self.col_indices, slice):
+            print(self.col_indices, self.row_indices)
 
             def _matvec_imp(col_indices, row_indices, scale, input, output):
                 return _index_mapping_col_sliced(
@@ -178,34 +179,40 @@ class IndexMapping:
             self.col_indices, self.row_indices, scale, other, out
         )
 
-    def tocsr(self):
-        indptr = np.zeros(self.n_row + 1, dtype=np.int64)
-        indptr[1:][self.row_indices] = 1
-        np.cumsum(indptr, out=indptr)
+    def tocoo(self) -> coo_matrix:
+        if isinstance(self.row_indices, slice):
+            row_slice = self.row_indices
+            start = row_slice.start if row_slice.start is not None else 0
+            stop = row_slice.stop if row_slice.stop is not None else self.n_row
+            step = row_slice.step if row_slice.step is not None else 1
+            rows = np.arange(start, stop, step)
+        elif (
+            isinstance(self.row_indices, np.ndarray) and self.row_indices.dtype == bool
+        ):
+            rows = np.where(self.row_indices)[0]
+        else:
+            rows = self.row_indices
 
         if isinstance(self.col_indices, slice):
-            start = self.col_indices.start
-            stop = self.col_indices.stop
-            step = self.col_indices.step
+            col_slice = self.col_indices
+            start = col_slice.start if col_slice.start is not None else 0
+            stop = col_slice.stop if col_slice.stop is not None else self.n_row
+            step = col_slice.step if col_slice.step is not None else 1
 
-            if start is None:
-                start = 0
-
-            if stop is None:
-                stop = self.n_row
-
-            if step is None:
-                step = 1
-
-            indices = np.arange(start, stop, step)
+            cols = np.arange(start, stop, step)
+        elif (
+            isinstance(self.col_indices, np.ndarray) and self.col_indices.dtype == bool
+        ):
+            cols = np.where(self.col_indices)[0]
         else:
-            indices = self.col_indices
+            cols = self.col_indices
 
-        data = np.ones_like(indices)
+        data = np.ones(rows.size)
 
-        return SparseMatrixCSR.create(
-            (data, indices, indptr), shape=(self.n_row, self.n_row)
-        )
+        return coo_matrix((data, (rows, cols)), shape=(self.n_row, self.n_row))
 
     def tocsc(self):
-        return self.T.tocsr().T
+        return self.tocoo().tocsc()
+
+    def tocsr(self):
+        return self.tocoo().tocsr()
