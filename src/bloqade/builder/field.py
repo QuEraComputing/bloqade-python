@@ -1,12 +1,15 @@
 from bloqade.builder.base import Builder
 from bloqade.builder.typing import ScalarType
-from beartype.typing import Union, List, Optional
+from beartype.typing import Union, List, Optional, TYPE_CHECKING
 import plum
+
+if TYPE_CHECKING:
+    from bloqade.builder.spatial import Uniform, Location, Scale
 
 
 class Field(Builder):
     @property
-    def uniform(self):
+    def uniform(self) -> "Uniform":
         """
         Address all atoms as part of defining the spatial modulation component
         of a drive.
@@ -60,7 +63,7 @@ class Field(Builder):
         self,
         labels: Union[List[int], int],
         scales: Union[List[ScalarType], ScalarType, None] = None,
-    ):
+    ) -> "Location":
         """Address a single atom (or multiple) atoms.
 
         Address a single atom (or multiple) as part of defining the spatial
@@ -110,7 +113,7 @@ class Field(Builder):
         """
         return self._location(labels, scales)
 
-    def scale(self, coeffs: Union[str, List[ScalarType]]):
+    def scale(self, coeffs: Union[str, List[ScalarType]]) -> "Scale":
         """
         Address all the atoms scaling each atom with an element of the list
         or define a variable name for the scale list to be assigned later by
