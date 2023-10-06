@@ -22,8 +22,9 @@ def _csc_matvec_impl(ncol, data, indices, indptr, scale, input, output):
 
 @njit(cache=True)
 def _csr_matvec_impl(nrow, data, indices, indptr, scale, input, output):
+    zero = type(output[0])(0)
     for i in range(nrow):
-        row_out = np.zeros_like(output[i])
+        row_out = zero
         for j in range(indptr[i], indptr[i + 1]):
             row_out += data[j] * input[indices[j]]
 
