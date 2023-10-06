@@ -1,3 +1,4 @@
+from functools import cached_property
 from ..scalar import Scalar, cast
 from ..tree_print import Printer
 from .waveform import Waveform
@@ -107,8 +108,12 @@ class AssignedRunTimeVector(SpatialModulation):
     name: str
     value: List[Decimal]
 
+    @cached_property
+    def _hash_value(self):
+        return hash(self.name) ^ hash(tuple(self.value)) ^ hash(self.__class__)
+
     def __hash__(self) -> int:
-        return hash(self.name) ^ hash(self.__class__) ^ hash(tuple(self.value))
+        return self._hash_value
 
     def print_node(self):
         return "AssgiendRunTimeVector"
@@ -143,8 +148,12 @@ class ScaledLocations(SpatialModulation):
             value[k] = cast(v)
         self.value = value
 
-    def __hash__(self) -> int:
+    @cached_property
+    def _hash_value(self) -> int:
         return hash(frozenset(self.value.items())) ^ hash(self.__class__)
+
+    def __hash__(self) -> int:
+        return self._hash_value
 
     def _get_data(self, **assignments):
         names = []
@@ -197,7 +206,7 @@ class Drive:
         return {"modulation": self.modulation, "waveform": self.waveform}
 
 
-@dataclass
+@dataclass(frozen=True)
 class Field(FieldExpr):
     """Field node in the IR. Which contains collection(s) of
     [`Waveform`][bloqade.ir.control.waveform.Waveform]
@@ -209,8 +218,41 @@ class Field(FieldExpr):
 
     drives: Dict[SpatialModulation, Waveform]
 
-    def __hash__(self) -> int:
+    @cached_property
+    def _hash_value(self):
         return hash(frozenset(self.drives.items())) ^ hash(self.__class__)
+
+    def __hash__(self) -> int:
+        return self._hash_value
+
+    def canonicalize(self) -> "Field":
+        """
+        Canonicalize the Field by merging `ScaledLocation` nodes with the same waveform.
+        """
+        reversed_dirves = {}
+
+        for sm, wf in self.drives.items():
+            reversed_dirves[wf] = reversed_dirves.get(wf, []) + [sm]
+
+        drives = {}
+
+        for wf, sms in reversed_dirves.items():
+            new_sm = [sm for sm in sms if not isinstance(sm, ScaledLocations)]
+            scaled_locations_sm = [sm for sm in sms if isinstance(sm, ScaledLocations)]
+
+            new_mask = {}
+
+            for ele in scaled_locations_sm:
+                for loc, scl in ele.value.items():
+                    new_mask[loc] = new_mask.get(loc, 0) + cast(scl)
+
+            if new_mask:
+                new_sm += [ScaledLocations(new_mask)]
+
+            for sm in new_sm:
+                drives[sm] = wf
+
+        return Field(drives)
 
     def add(self, other):
         if not isinstance(other, Field):
@@ -226,7 +268,7 @@ class Field(FieldExpr):
             else:
                 out.drives[spatial_modulation] = waveform
 
-        return out
+        return out.canonicalize()
 
     def print_node(self):
         return "Field"

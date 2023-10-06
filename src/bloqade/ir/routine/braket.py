@@ -53,13 +53,13 @@ class BraketHardwareRoutine(RoutineBase):
             task_ir, parallel_decoder = QuEraCodeGen(capabilities=capabilities).emit(
                 shots, final_circuit
             )
-
+            metadata = {**params.static_params, **record_params}
             task_ir = task_ir.discretize(capabilities)
             tasks[task_number] = BraketTask(
                 None,
                 self.backend,
                 task_ir,
-                batch_params,
+                metadata,
                 parallel_decoder,
                 None,
             )
@@ -194,10 +194,10 @@ class BraketLocalEmulatorRoutine(RoutineBase):
             quera_task_ir, _ = QuEraCodeGen().emit(shots, final_circuit)
 
             task_ir = to_braket_task_ir(quera_task_ir)
-
+            metadata = {**params.static_params, **record_params}
             tasks[task_number] = BraketEmulatorTask(
                 task_ir,
-                batch_params,
+                metadata,
                 None,
             )
 
