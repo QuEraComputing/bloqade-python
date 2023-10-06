@@ -201,11 +201,6 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://bloqade.quera.com/reference/bloqade/builder/parse/json/</loc>
-         <lastmod>2023-10-06</lastmod>
-         <changefreq>daily</changefreq>
-    </url>
-    <url>
          <loc>https://bloqade.quera.com/reference/bloqade/builder/parse/stream/</loc>
          <lastmod>2023-10-06</lastmod>
          <changefreq>daily</changefreq>

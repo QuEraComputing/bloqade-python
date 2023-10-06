@@ -13,7 +13,6 @@
         * [parallelize](bloqade/builder/parallelize.md)
         * [parse](bloqade/builder/parse/index.md)
             * [builder](bloqade/builder/parse/builder.md)
-            * [json](bloqade/builder/parse/json.md)
             * [stream](bloqade/builder/parse/stream.md)
             * [trait](bloqade/builder/parse/trait.md)
         * [pragmas](bloqade/builder/pragmas.md)
