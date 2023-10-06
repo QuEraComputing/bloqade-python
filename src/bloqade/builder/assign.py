@@ -66,8 +66,6 @@ class AssignBase(Builder):
 
 
 class Assign(BatchAssignable, AddArgs, Parallelizable, BackendRoute, AssignBase):
-    __match_args__ = ("_assignments", "__parent__")
-
     def __init__(
         self, assignments: Dict[str, ParamType], parent: Optional[Builder] = None
     ) -> None:
@@ -84,8 +82,6 @@ class Assign(BatchAssignable, AddArgs, Parallelizable, BackendRoute, AssignBase)
 
 
 class BatchAssign(AddArgs, Parallelizable, BackendRoute, AssignBase):
-    __match_args__ = ("_assignments", "__parent__")
-
     def __init__(
         self, assignments: Dict[str, List[ParamType]], parent: Optional[Builder] = None
     ) -> None:

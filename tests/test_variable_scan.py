@@ -15,12 +15,11 @@ def test_1():
 
     circuit = (
         Chain(15, "lattice_spacing")
-        .rydberg.detuning.var("mask")
+        .rydberg.detuning.scale("mask")
         .fn(detuning_wf, "t")
         .amplitude.uniform.constant(15, "t")
         .record("m")
-        .phase.location(1)
-        .scale("a")
+        .phase.location(1, "a")
         .piecewise_linear([0.1, 0.5], [0, 1, 1])
         .parse_circuit()
     )
@@ -49,7 +48,7 @@ def test_2():
     circuit = (
         start.add_position(("x", "y"))
         .add_position(("a", "b"))
-        .rydberg.rabi.amplitude.var("mask")
+        .rydberg.rabi.amplitude.scale("mask")
         .piecewise_linear([0.1, t - 0.2, 0.1], [0, omega_max, omega_max, 0])
         .slice(t_1, t_2)
         .uniform.poly([1, 2, 3, 4], t_1)

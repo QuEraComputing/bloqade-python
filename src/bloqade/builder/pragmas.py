@@ -21,8 +21,8 @@ class Assignable:
         Assign values to variables declared previously in the program.
 
         This is reserved for variables that should only take single values OR
-        for spatial modulations that were created with `.var` in which case you can
-        pass in a list. This is the ONLY circumstance in which multiple
+        for spatial modulations that were created with `.scale(str)` in which case
+        you can pass in a list. This is the ONLY circumstance in which multiple
         values are allowed.
 
         ### Usage Examples:

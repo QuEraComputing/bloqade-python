@@ -18,7 +18,7 @@ class WaveformAttachable(Builder):
 
         Append or assign a linear waveform to the current location(s).
 
-        If you specified a spatial modulation (e.g. `uniform`, `location`,`var`)
+        If you specified a spatial modulation (e.g. `uniform`, `location`,`scale`)
         previously without a waveform you will now have completed the construction
         of a "drive", one or a sum of drives creating a "field"
         (e.g. Real-valued Rabi Amplitude/Phase).
@@ -60,9 +60,9 @@ class WaveformAttachable(Builder):
             - `...linear(start, stop, duration).uniform`:
                 To address all atoms in the field
             - `...linear(start, stop, duration).location(int)`:
-                To address an atom at a specific location via index
-            - `...linear(start, stop, duration).var(str)`
-                - To address an atom at a specific location via variable
+                To address atoms at specific location with scaling
+            - `...linear(start, stop, duration).scale(...)`
+                - To address atoms at specific location with scaling
                 - To address multiple atoms at specific locations by specifying
                     a single variable and then assigning it a list of coordinates
         - Assign values to pre-existing variables via:
@@ -107,7 +107,7 @@ class WaveformAttachable(Builder):
         """
         Append or assign a constant waveform to the current location(s).
 
-        If you specified a spatial modulation (e.g. `uniform`, `location`,`var`)
+        If you specified a spatial modulation (e.g. `uniform`, `location`,`scale`)
         previously without a waveform you will now have completed the construction
         of a "drive", one or a sum of drives creating a "field"
         (e.g. Real-valued Rabi Amplitude/Phase).
@@ -148,7 +148,7 @@ class WaveformAttachable(Builder):
             (this drive will be summed to the one you just created):
             - `...constant(value, duration).uniform`:
                 To address all atoms in the field
-            - `...constant(value, duration).var`:
+            - `...constant(value, duration).scale(...)`:
                 To address an atom at a specific location via index
             - `...constant(value, duration).location(int)`
                 - To address an atom at a specific location via variable
@@ -203,7 +203,7 @@ class WaveformAttachable(Builder):
         wv(t) = coeffs[0] + coeffs[1]*t + coeffs[2]*t^2 + ... + coeffs[n]*t^n
         `
 
-        If you specified a spatial modulation (e.g. `uniform`, `location`,`var`)
+        If you specified a spatial modulation (e.g. `uniform`, `location`,`scale`)
         previously without a waveform you will now have completed the construction
         of a "drive", one or a sum of drives creating a "field"
         (e.g. Real-valued Rabi Amplitude/Phase).
@@ -249,7 +249,7 @@ class WaveformAttachable(Builder):
                 To address all atoms in the field
             - `...poly([coeffs], duration).location(int)`:
                 To address an atom at a specific location via index
-            - `...poly([coeffs], duration).var(str)`
+            - `...poly([coeffs], duration).scale(...)`
                 - To address an atom at a specific location via variable
                 - To address multiple atoms at specific locations by
                     specifying a single variable and then assigning
@@ -296,7 +296,7 @@ class WaveformAttachable(Builder):
         Apply a [`Waveform`][bloqade.ir.control.Waveform] built previously to
         current location(s).
 
-        If you specified a spatial modulation (e.g. `uniform`, `location`,`var`)
+        If you specified a spatial modulation (e.g. `uniform`, `location`,`scale`)
         previously without a waveform you will now have completed the construction
         of a "drive", one or a sum of drives creating a "field"
         (e.g. Real-valued Rabi Amplitude/Phase).
@@ -339,7 +339,7 @@ class WaveformAttachable(Builder):
             - `...apply(waveform).uniform`: To address all atoms in the field
             - `...apply(waveform).location(int)`:
                 To address an atom at a specific location via index
-            - `...apply(waveform).var(str)`
+            - `...apply(waveform).scale(...)`
                 - To address an atom at a specific location via variable
                 - To address multiple atoms at specific locations by specifying a
                     single variable and then assigning it a list of coordinates
@@ -388,7 +388,7 @@ class WaveformAttachable(Builder):
         The `durations` argument should have # of elements = len(values) - 1.
         `durations` should be the duration PER section of the waveform, NON-CUMULATIVE.
 
-        If you specified a spatial modulation (e.g. `uniform`, `location`,`var`)
+        If you specified a spatial modulation (e.g. `uniform`, `location`,`scale`)
         previously without a waveform you will now have completed the construction
         of a "drive", one or a sum of drives creating a "field"
         (e.g. Real-valued Rabi Amplitude/Phase).
@@ -435,7 +435,7 @@ class WaveformAttachable(Builder):
           (this drive will be summed to the one you just created):
             - `...piecewise_linear([durations], [values]).uniform`:
                 To address all atoms in the field
-            - `...piecewise_linear([durations], [values]).var`:
+            - `...piecewise_linear([durations], [values]).scale(...)`:
                 To address an atom at a specific location via index
             - `...piecewise_linear([durations], [values]).location(int)`
                 - To address an atom at a specific location via variable
@@ -490,7 +490,7 @@ class WaveformAttachable(Builder):
         `durations` should be the duration PER section of the waveform,
         NON-CUMULATIVE.
 
-        If you specified a spatial modulation (e.g. `uniform`, `location`,`var`)
+        If you specified a spatial modulation (e.g. `uniform`, `location`,`scale`)
         previously without a waveform you will now have completed the construction
         of a "drive", one or a sum of drives creating a "field"
         (e.g. Real-valued Rabi Amplitude/Phase).
@@ -536,7 +536,7 @@ class WaveformAttachable(Builder):
                 To address all atoms in the field
             - `...piecewise_constant([durations], [values]).location(int)`:
                 To address an atom at a specific location via index
-            - `...piecewise_constant([durations], [values]).var(str)`
+            - `...piecewise_constant([durations], [values]).scale(...)`
                 - To address an atom at a specific location via variable
                 - To address multiple atoms at specific locations by
                     specifying a single variable and then assigning it a
@@ -589,7 +589,7 @@ class WaveformAttachable(Builder):
 
         The function must also return a singular float value.
 
-        If you specified a spatial modulation (e.g. `uniform`, `location`,`var`)
+        If you specified a spatial modulation (e.g. `uniform`, `location`,`scale`)
         previously without a waveform you will now have completed the construction
         of a "drive", one or a sum of drives creating a "field"
         (e.g. Real-valued Rabi Amplitude/Phase).
@@ -638,7 +638,7 @@ class WaveformAttachable(Builder):
           (this drive will be summed to the one you just created):
             - `...fn(f(t,...)).uniform`:
                 To address all atoms in the field
-            - `...fn(f(t,...)).var(str)`:
+            - `...fn(f(t,...)).scale(...)`:
                 To address an atom at a specific location via index
             - ...fn(f(t,...)).location(int)`
                 - To address an atom at a specific location via variable
@@ -702,7 +702,7 @@ class Sliceable:
         Indicate that you only want a portion of your waveform to be used in
         the program.
 
-        If you specified a spatial modulation (e.g. `uniform`, `location`,`var`)
+        If you specified a spatial modulation (e.g. `uniform`, `location`,`scale`)
         previously without a waveform you will now have completed the construction
         of a "drive", one or a sum of drives creating a "field"
         (e.g. Real-valued Rabi Amplitude/Phase).
@@ -746,7 +746,7 @@ class Sliceable:
                 To address all atoms in the field
             - `...slice(start, stop).location(int)`:
                 To address an atom at a specific location via index
-            - `...slice(start, stop).var(str)`
+            - `...slice(start, stop).scale(...)`
                 - To address an atom at a specific location via variable
                 - To address multiple atoms at specific locations by specifying
                     a single variable and then assigning it a list of coordinates
@@ -798,7 +798,7 @@ class Recordable:
         you may not know exactly what the end value of a `.slice()` is,
         especially in parameter sweeps where it becomes cumbersome to handle.
 
-        If you specified a spatial modulation (e.g. `uniform`, `location`,`var`)
+        If you specified a spatial modulation (e.g. `uniform`, `location`,`scale`)
         previously without a waveform you will now have completed the construction
         of a "drive", one or a sum of drives creating a "field"
         (e.g. Real-valued Rabi Amplitude/Phase).
@@ -845,7 +845,7 @@ class Recordable:
                 To address all atoms in the field
             - `...slice(start, stop).location(int)`:
                 To address an atom at a specific location via index
-            - `...slice(start, stop).var(str)`
+            - `...slice(start, stop).scale(str)`
                 - To address an atom at a specific location via variable
                 - To address multiple atoms at specific locations by specifying
                     a single variable and then assigning it a list of coordinates
@@ -893,8 +893,6 @@ class WaveformPrimitive(Waveform, Sliceable, Recordable):
 
 
 class Linear(WaveformPrimitive):
-    __match_args__ = ("_start", "_stop", "_duration", "__parent__")
-
     def __init__(
         self,
         start: ScalarType,
@@ -912,8 +910,6 @@ class Linear(WaveformPrimitive):
 
 
 class Constant(WaveformPrimitive):
-    __match_args__ = ("_value", "_duration", "__parent__")
-
     def __init__(
         self, value: ScalarType, duration: ScalarType, parent: Optional[Builder] = None
     ) -> None:
@@ -926,8 +922,6 @@ class Constant(WaveformPrimitive):
 
 
 class Poly(WaveformPrimitive):
-    __match_args__ = ("_coeffs", "_duration", "__parent__")
-
     def __init__(
         self,
         coeffs: List[ScalarType],
@@ -943,8 +937,6 @@ class Poly(WaveformPrimitive):
 
 
 class Apply(WaveformPrimitive):
-    __match_args__ = ("_wf", "__parent__")
-
     def __init__(self, wf: ir.Waveform, parent: Optional[Builder] = None):
         super().__init__(parent)
         self._wf = wf
@@ -954,8 +946,6 @@ class Apply(WaveformPrimitive):
 
 
 class PiecewiseLinear(WaveformPrimitive):
-    __match_args__ = ("_durations", "_values", "__parent__")
-
     def __init__(
         self,
         durations: List[ScalarType],
@@ -978,8 +968,6 @@ class PiecewiseLinear(WaveformPrimitive):
 
 
 class PiecewiseConstant(WaveformPrimitive):
-    __match_args__ = ("_durations", "_values", "__parent__")
-
     def __init__(
         self,
         durations: List[ScalarType],
@@ -1000,8 +988,6 @@ class PiecewiseConstant(WaveformPrimitive):
 
 
 class Fn(WaveformPrimitive):
-    __match_args__ = ("_fn", "_duration", "__parent__")
-
     def __init__(
         self,
         fn: Callable,
@@ -1019,13 +1005,11 @@ class Fn(WaveformPrimitive):
         return Sample(dt, interpolation, self)
 
     def __bloqade_ir__(self):
-        return ir.PythonFn(self._fn, self._duration)
+        return ir.PythonFn.create(self._fn, self._duration)
 
 
 # NOTE: no double-slice or double-record
 class Slice(Waveform, Recordable):
-    __match_args__ = ("_start", "_stop", "__parent__")
-
     def __init__(
         self,
         start: Optional[ScalarType] = None,
@@ -1039,8 +1023,6 @@ class Slice(Waveform, Recordable):
 
 
 class Record(Waveform, Sliceable):  # record should not be sliceable
-    __match_args__ = ("_name", "__parent__")
-
     def __init__(
         self,
         name: str,
@@ -1051,8 +1033,6 @@ class Record(Waveform, Sliceable):  # record should not be sliceable
 
 
 class Sample(Sliceable, Recordable, WaveformRoute):
-    __match_args__ = ("_dt", "_interpolation", "__parent__")
-
     def __init__(
         self,
         dt: ScalarType,

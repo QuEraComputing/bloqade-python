@@ -124,10 +124,9 @@ def test_codegen_detuning_max_terms():
         start.add_position((0, 0))
         .add_position((0, 5))
         .rydberg.detuning.uniform.piecewise_linear([0.1, 0.8, 0.1], [-10, -10, 10, 10])
-        .var("mask_1")
+        .scale("mask_1")
         .piecewise_linear([0.1, 0.8, 0.1], [-20, -20, 10, 10])
-        .location(0)
-        .scale(0.4)
+        .location(0, 0.4)
         .piecewise_linear([0.1, 0.8, 0.1], [-10, -10, 20, 20])
         .parse_circuit()
     )
@@ -185,10 +184,9 @@ def test_codegen_rabi_max_terms():
         .rydberg.rabi.amplitude.uniform.piecewise_linear(
             [0.1, 0.8, 0.1], [-10, -10, 10, 10]
         )
-        .var("mask_1")
+        .scale("mask_1")
         .piecewise_linear([0.1, 0.8, 0.1], [-20, -20, 10, 10])
-        .location(0)
-        .scale(0.4)
+        .location(0, 0.4)
         .piecewise_linear([0.1, 0.8, 0.1], [-10, -10, 20, 20])
         .parse_circuit()
     )
@@ -311,10 +309,9 @@ def test_codegen_uniform_phase_rabi_max_terms():
         .rydberg.rabi.amplitude.uniform.piecewise_linear(
             [0.1, 0.8, 0.1], [-10, -10, 10, 10]
         )
-        .var("mask_1")
+        .scale("mask_1")
         .piecewise_linear([0.1, 0.8, 0.1], [-20, -20, 10, 10])
-        .location(0)
-        .scale(0.4)
+        .location(0, 0.4)
         .piecewise_linear([0.1, 0.8, 0.1], [-10, -10, 20, 20])
         .phase.uniform.piecewise_linear([0.1, 0.8, 0.1], [-10, -10, 10, 10])
         .parse_circuit()

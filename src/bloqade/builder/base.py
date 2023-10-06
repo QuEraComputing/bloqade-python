@@ -7,8 +7,6 @@ ParamType = Union[Real, List[Real]]
 
 
 class Builder(Parse, Show):
-    __match_args__ = ("__parent__",)
-
     def __init__(
         self,
         parent: Optional["Builder"] = None,

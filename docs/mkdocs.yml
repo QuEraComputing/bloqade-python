@@ -20,7 +20,7 @@ nav:
     - Developing Bloqade: contributing/developing-bloqade.md
     - Design Philosophy and Architecture: contributing/design-philosophy-and-architecture.md
     - Community Slack: contributing/community-slack.md
-    - Asking a Question: 'https://github.com/QuEraComputing/bloqade-python/discussions'
+    - Asking a Question: 'contributing/asking-a-question.md'
   - Tutorials: 'https://queracomputing.github.io/bloqade-python-examples/latest/'
   - Reference:
     - Builder workflow : tree/builder.md

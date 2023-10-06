@@ -2,7 +2,7 @@ from bloqade.builder.base import Builder
 from bloqade.builder.coupling import LevelCoupling, Rydberg, Hyperfine
 from bloqade.builder.sequence_builder import SequenceBuilder
 from bloqade.builder.field import Field, Detuning, RabiAmplitude, RabiPhase
-from bloqade.builder.spatial import SpatialModulation, Location, Uniform, Var, Scale
+from bloqade.builder.spatial import SpatialModulation, Location, Uniform, Scale
 from bloqade.builder.waveform import WaveformPrimitive, Slice, Record, Sample, Fn
 from bloqade.builder.assign import Assign, BatchAssign, ListAssign
 from bloqade.builder.args import Args
@@ -36,7 +36,7 @@ class Parser:
         self.order = ()
 
     def read_address(self, stream) -> Tuple[LevelCoupling, Field, BuilderNode]:
-        spatial = stream.eat([Location, Uniform, Var], [Scale])
+        spatial = stream.read_next([Location, Uniform, Scale])
         curr = spatial
 
         if curr is None:
@@ -102,43 +102,12 @@ class Parser:
 
         return waveform, curr
 
-    def read_spatial_modulation(
-        self, head: BuilderNode
-    ) -> Tuple[ir.SpatialModulation, BuilderNode]:
-        curr = head
-        spatial_modulation = None
-        scaled_locations = ir.ScaledLocations({})
-
-        while curr is not None:
-            node = curr.node
-
-            if isinstance(node, Location):
-                scaled_locations[ir.Location(node._label)] = 1.0
-            elif isinstance(node, Scale):
-                scaled_locations[ir.Location(node.__parent__._label)] = ir.cast(
-                    node._value
-                )
-            elif isinstance(node, Uniform):
-                spatial_modulation = ir.Uniform
-            elif isinstance(node, Var):
-                spatial_modulation = ir.RunTimeVector(node._name)
-                self.vector_node_names.add(node._name)
-            else:
-                break
-
-            curr = curr.next
-
-        if scaled_locations:
-            return scaled_locations, curr
-        else:
-            return spatial_modulation, curr
-
-    def read_field(self, head) -> ir.Field:
-        sm, curr = self.read_spatial_modulation(head)
-        wf, _ = self.read_waveform(curr)
-
-        if wf is None or sm is None:
+    def read_drive(self, head) -> ir.Field:
+        if head is None:
             return ir.Field({})
+
+        sm = head.node.__bloqade_ir__()
+        wf, _ = self.read_waveform(head.next)
 
         return ir.Field({sm: wf})
 
@@ -151,6 +120,7 @@ class Parser:
         stream = self.stream.copy()
         while stream.curr is not None:
             coupling_builder, field_builder, spatial_head = self.read_address(stream)
+
             if coupling_builder is not None:
                 # update to new pulse coupling
                 self.coupling_name = coupling_builder.__bloqade_ir__()
@@ -165,8 +135,8 @@ class Parser:
             pulse = self.sequence.pulses.get(self.coupling_name, ir.Pulse({}))
             field = pulse.fields.get(self.field_name, ir.Field({}))
 
-            new_field = self.read_field(spatial_head)
-            field = field.add(new_field)
+            drive = self.read_drive(spatial_head)
+            field = field.add(drive)
 
             pulse.fields[self.field_name] = field
             self.sequence.pulses[self.coupling_name] = pulse
