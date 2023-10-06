@@ -7,7 +7,6 @@
 # prog.linear(start=1.0, stop=2.0, duration="x")
 # import pytest
 import bloqade.ir as ir
-from bloqade.builder import spatial
 from bloqade.builder import waveform
 
 # import bloqade.builder.backend as builder_backend
@@ -40,7 +39,7 @@ def test_assign_checks():
     with pytest.raises(ValueError):
         (
             start.add_position(("x", "y"))
-            .rydberg.rabi.amplitude.var("mask")
+            .rydberg.rabi.amplitude.scale("mask")
             .piecewise_linear([0.1, t - 0.2, 0.1], [0, omega_max, omega_max, 0])
             .slice(t_1, t_2)
             .uniform.poly([1, 2, 3, 4], t_1)
@@ -53,7 +52,7 @@ def test_assign_checks():
     with pytest.raises(ValueError):
         (
             start.add_position(("x", "y"))
-            .rydberg.rabi.amplitude.var("mask")
+            .rydberg.rabi.amplitude.scale("mask")
             .piecewise_linear([0.1, t - 0.2, 0.1], [0, omega_max, omega_max, 0])
             .slice(t_1, t_2)
             .uniform.poly([1, 2, 3, 4], t_1)
@@ -123,10 +122,8 @@ def test_registers():
 
 def test_scale():
     prog = start
-    prog = (
-        prog.rydberg.detuning.location(1)
-        .scale(1.2)
-        .piecewise_linear([0.1, 3.8, 0.1], [-10, -10, "a", "b"])
+    prog = prog.rydberg.detuning.location(1, 1.2).piecewise_linear(
+        [0.1, 3.8, 0.1], [-10, -10, "a", "b"]
     )
 
     ## let Emit build ast
@@ -140,20 +137,14 @@ def test_scale():
 
 
 def test_scale_location():
-    prog = start.rydberg.detuning.location(1).scale(1.2).location(2).scale(3.3)
+    prog = start.rydberg.detuning.location([1, 2], [1.2, 3.3])
 
-    assert prog._value == 3.3
-    assert type(prog.__parent__) == spatial.Location
-    assert prog.__parent__.__parent__._value == 1.2
+    assert prog._scaled_locations == {1: cast(1.2), 2: cast(3.3)}
 
 
 def test_build_ast_Scale():
-    prog = (
-        start.rydberg.detuning.location(1)
-        .scale(1.2)
-        .location(2)
-        .scale(3.3)
-        .piecewise_constant(durations=[0.1], values=[1])
+    prog = start.rydberg.detuning.location([1, 2], [1.2, 3.3]).piecewise_constant(
+        durations=[0.1], values=[1]
     )
 
     # compile ast:
@@ -169,9 +160,9 @@ def test_build_ast_Scale():
 
 
 def test_spatial_var():
-    prog = start.rydberg.detuning.var("a")
+    prog = start.rydberg.detuning.scale("a")
 
-    assert prog._name == "a"
+    assert prog._name_or_list == "a"
 
     prog = prog.piecewise_constant([0.1], [30])
 
@@ -352,14 +343,14 @@ def test_assign_error():
     ]
 
     with pytest.raises(ValueError):
-        start.add_position([(0, 0), (0, 6)]).rydberg.detuning.var("mask").constant(
+        start.add_position([(0, 0), (0, 6)]).rydberg.detuning.scale("mask").constant(
             "c", "t"
         ).batch_assign(list_dict)
 
     # happy path is to have a list of dicts with the same keys
-    start.add_position([(0, 0), (0, 6), (0, 12)]).rydberg.detuning.var("mask").constant(
-        "c", "t"
-    ).batch_assign(list_dict)
+    start.add_position([(0, 0), (0, 6), (0, 12)]).rydberg.detuning.scale(
+        "mask"
+    ).constant("c", "t").batch_assign(list_dict)
 
     list_dict = [
         dict(c=1, t=10, mask=np.array([1, 2, 3])),
@@ -367,7 +358,7 @@ def test_assign_error():
         dict(t=30, c=3, mask=np.array([7, 8, 9])),
     ]
     with pytest.raises(ValueError):
-        start.add_position([(0, 0), (0, 6)]).rydberg.detuning.var("mask").constant(
+        start.add_position([(0, 0), (0, 6)]).rydberg.detuning.scale("mask").constant(
             "c", "t"
         ).batch_assign(list_dict)
 
@@ -395,7 +386,7 @@ def test_assign_error():
             .rydberg.rabi.amplitude.uniform.piecewise_linear(
                 [0.2, "rabi_dur_scanned", 0.2], [0.0, 10, 10, 0.0]
             )
-            .amplitude.var("rabi_mask")
+            .amplitude.scale("rabi_mask")
             .piecewise_linear([0.2, "rabi_dur_scanned", 0.2], [0.0, 10, 10, 0.0])
             .assign(rabi_mask=0.0)
             .batch_assign(rabi_dur_scanned=[1.0])
@@ -407,7 +398,7 @@ def test_flatten_dupicate_error():
         (
             start.add_position((0, 0))
             .rydberg.rabi.amplitude.uniform.constant("a", 1)
-            .detuning.var("vec")
+            .detuning.scale("vec")
             .constant(1, 1)
             .assign(vec=[1])
             .args(["a", "a"])
@@ -421,7 +412,7 @@ def test_flatten_vector_error():
         (
             start.add_position((0, 0))
             .rydberg.rabi.amplitude.uniform.constant(1, 1)
-            .detuning.var("a")
+            .detuning.scale("a")
             .constant(1, 1)
             .args(["a"])
             .braket.local_emulator()

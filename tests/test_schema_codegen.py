@@ -38,8 +38,7 @@ def test_local_no_global():
     )
     batch = (
         Square(1)
-        .rydberg.detuning.location(0)
-        .scale(0.5)
+        .rydberg.detuning.location(0, 0.5)
         .apply(seq)
         .quera.mock()
         ._compile(shots=10)
@@ -77,8 +76,7 @@ def test_local_global():
     job = (
         Square(1)
         .rydberg.detuning.uniform.apply(seq_global)
-        .location(0)
-        .scale(0.5)
+        .location(0, 0.5)
         .apply(seq)
         .quera.mock()
         ._compile(shots=10)
