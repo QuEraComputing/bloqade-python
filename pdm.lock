@@ -42,7 +42,7 @@ files = [
 
 [[package]]
 name = "amazon-braket-sdk"
-version = "1.57.0"
+version = "1.57.1"
 requires_python = ">= 3.8.2"
 summary = "An open source library for interacting with quantum computing devices on Amazon Braket"
 dependencies = [
@@ -61,8 +61,8 @@ dependencies = [
     "sympy",
 ]
 files = [
-    {file = "amazon-braket-sdk-1.57.0.tar.gz", hash = "sha256:38d8ad2dc432c0ed121027d2f1da616c9e902c60fa0b487884ebb8073b275945"},
-    {file = "amazon_braket_sdk-1.57.0-py3-none-any.whl", hash = "sha256:7b4680a9ba13fa88abb7e5bdbc4b706f19b27294428d89e44974ae77394a55ad"},
+    {file = "amazon-braket-sdk-1.57.1.tar.gz", hash = "sha256:976e44e280bf95aa027dd2a91fca40de985d542152e594c4e1a1a6321458d3f6"},
+    {file = "amazon_braket_sdk-1.57.1-py3-none-any.whl", hash = "sha256:e102249d612bd8f1d340a0dd55e8043105dcd45ffba1f5836ccdf5e623a4566b"},
 ]
 
 [[package]]
@@ -1558,7 +1558,7 @@ files = [
 
 [[package]]
 name = "mkdocs-material"
-version = "9.4.3"
+version = "9.4.4"
 requires_python = ">=3.8"
 summary = "Documentation that simply works"
 dependencies = [
@@ -1575,8 +1575,8 @@ dependencies = [
     "requests~=2.26",
 ]
 files = [
-    {file = "mkdocs_material-9.4.3-py3-none-any.whl", hash = "sha256:3274a47a4e55a541b25bd8fa4937cf3f3c82a51763453511661e0052062758b9"},
-    {file = "mkdocs_material-9.4.3.tar.gz", hash = "sha256:5c9abc3f6ba8f88be1f9f13df23d695ca4dddbdd8a3538e4e6279c055c3936bc"},
+    {file = "mkdocs_material-9.4.4-py3-none-any.whl", hash = "sha256:86fe79253afccc7f085f89a2d8e9e3300f82c4813d9b910d9081ce57a7e68380"},
+    {file = "mkdocs_material-9.4.4.tar.gz", hash = "sha256:ab84a7cfaf009c47cd2926cdd7e6040b8cc12c3806cc533e8b16d57bd16d9c47"},
 ]
 
 [[package]]
