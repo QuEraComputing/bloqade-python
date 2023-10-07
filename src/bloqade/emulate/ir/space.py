@@ -24,57 +24,6 @@ class Space:
     configurations: NDArray
 
     @classmethod
-    def create_old(cls, register: "Register"):
-        sites = register.sites
-        n_atom = len(sites)
-        atom_type = register.atom_type
-        blockade_radius = register.blockade_radius
-        Ns = atom_type.n_level**n_atom
-
-        check_atoms = []
-
-        for index_1, site_1 in enumerate(sites):
-            site_1 = np.asarray(site_1)
-            atoms = []
-            for index_2, site_2 in enumerate(sites[index_1 + 1 :], index_1 + 1):
-                site_2 = np.asarray(site_2)
-                if np.linalg.norm(site_1 - site_2) <= blockade_radius:
-                    atoms.append(index_2)
-
-            check_atoms.append(atoms)
-
-        configurations = np.arange(Ns, dtype=np.min_scalar_type(Ns - 1))
-
-        if all(len(sub_list) == 0 for sub_list in check_atoms):
-            min_int_type = np.min_scalar_type(configurations[-1])
-            # defauly to 32 bit if smaller than 32 bit
-            config_type = np.result_type(min_int_type, np.uint32)
-            configurations = configurations.astype(config_type)
-
-            return Space(SpaceType.FullSpace, atom_type, sites, configurations)
-
-        for index_1, indices in enumerate(check_atoms):
-            # get which configurations are in rydberg state for the current index.
-            rydberg_configs_1 = atom_type.is_rydberg_at(configurations, index_1)
-            for index_2 in indices:  # loop over neighbors within blockade radius
-                # get which configus have the neighbor with a rydberg excitation
-                rydberg_configs_2 = atom_type.is_rydberg_at(configurations, index_2)
-                # get which states do not violate constraint
-                mask = np.logical_not(
-                    np.logical_and(rydberg_configs_1, rydberg_configs_2)
-                )
-                # remove states that violate blockade constraint
-                configurations = configurations[mask]
-                rydberg_configs_1 = rydberg_configs_1[mask]
-
-        min_int_type = np.min_scalar_type(configurations[-1])
-        # defauly to 32 bit if smaller than 32 bit
-        config_type = np.result_type(min_int_type, np.uint32)
-        configurations = configurations.astype(config_type)
-
-        return cls(SpaceType.SubSpace, atom_type, sites, configurations)
-
-    @classmethod
     def create(cls, register: "Register"):
         sites = register.sites
         n_atom = len(sites)
@@ -93,8 +42,6 @@ class Space:
                     atoms.append(index_2)
 
             check_atoms.append(atoms)
-
-        print(check_atoms)
 
         min_int_type = np.min_scalar_type(Ns - 1)
         config_type = np.result_type(min_int_type, np.uint32)
