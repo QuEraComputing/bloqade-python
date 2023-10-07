@@ -24,7 +24,7 @@ class Space:
     configurations: NDArray
 
     @classmethod
-    def create(cls, register: "Register"):
+    def create_old(cls, register: "Register"):
         sites = register.sites
         n_atom = len(sites)
         atom_type = register.atom_type
@@ -71,6 +71,72 @@ class Space:
         # defauly to 32 bit if smaller than 32 bit
         config_type = np.result_type(min_int_type, np.uint32)
         configurations = configurations.astype(config_type)
+
+        return cls(SpaceType.SubSpace, atom_type, sites, configurations)
+
+    @classmethod
+    def create(cls, register: "Register"):
+        sites = register.sites
+        n_atom = len(sites)
+        atom_type = register.atom_type
+        blockade_radius = register.blockade_radius
+        Ns = atom_type.n_level**n_atom
+
+        check_atoms = []
+
+        for index_1, site_1 in enumerate(sites[1:], 1):
+            site_1 = np.asarray(site_1)
+            atoms = []
+            for index_2, site_2 in enumerate(sites[:index_1]):
+                site_2 = np.asarray(site_2)
+                if np.linalg.norm(site_1 - site_2) <= blockade_radius:
+                    atoms.append(index_2)
+
+            check_atoms.append(atoms)
+
+        print(check_atoms)
+
+        min_int_type = np.min_scalar_type(Ns - 1)
+        config_type = np.result_type(min_int_type, np.uint32)
+
+        if all(len(sub_list) == 0 for sub_list in check_atoms):
+            # default to 32 bit if smaller than 32 bit
+            configurations = np.arange(Ns, dtype=config_type)
+            return Space(SpaceType.FullSpace, atom_type, sites, configurations)
+
+        states = np.arange(atom_type.n_level, dtype=config_type)
+        configurations = states.copy()
+
+        for index_1, indices in enumerate(check_atoms, 1):
+            if len(indices) == 0:
+                continue
+
+            # loop over neighbors within blockade radius
+            # find all non-blockaded configurations
+            mask = np.logical_not(atom_type.is_rydberg_at(configurations, indices[0]))
+            for index_2 in indices[1:]:
+                is_not_rydberg = np.logical_not(
+                    atom_type.is_rydberg_at(configurations, index_2)
+                )
+                np.logical_and(is_not_rydberg, mask, out=mask)
+
+            non_blockaded = configurations[mask]
+            np.logical_not(mask, out=mask)
+            blockaded = configurations[mask]
+
+            # add new configurations
+            # add all configurations because none of the configs are blockading
+            new_non_blockaded = np.kron(non_blockaded, np.ones_like(states)) + np.kron(
+                np.ones_like(non_blockaded), states * atom_type.n_level**index_1
+            )
+            # add all but the rydberg state because some at least one is blockading
+            new_blockaded = np.kron(blockaded, np.ones_like(states[:-1])) + np.kron(
+                np.ones_like(blockaded), states[:-1] * atom_type.n_level**index_1
+            )
+
+            configurations = np.hstack((new_blockaded, new_non_blockaded))
+
+        configurations.sort()
 
         return cls(SpaceType.SubSpace, atom_type, sites, configurations)
 
