@@ -22,7 +22,8 @@ from bloqade.ir import (
     Uniform,
 )
 from bloqade.ir.routine.base import Routine
-from bloqade.ir.routine.params import Params
+from bloqade.ir.routine.params import Params, ScalarArg
+
 import numpy as np
 
 
@@ -125,7 +126,8 @@ def test_rydberg_h():
     )
 
     circuit = AnalogCircuit(register, sequence)
-    params = Params(static_params, batch_params, args)
+    args_list = tuple([ScalarArg(arg) for arg in args])
+    params = Params(register.n_sites, static_params, batch_params, args_list)
     expected_routine = Routine(source, circuit, params)
 
     # ignore because no equality implemented
