@@ -46,8 +46,11 @@ class ScanVariablesScalar(ScalarVisitor):
         self.visit(ast.rhs)
 
     def visit_interval(self, ast: scalar.Interval) -> Any:
-        self.visit(ast.start)
-        self.visit(ast.stop)
+        if ast.start is not None:
+            self.visit(ast.start)
+
+        if ast.stop is not None:
+            self.visit(ast.stop)
 
     def visit_slice(self, ast: scalar.Slice) -> Any:
         self.visit(ast.expr)
