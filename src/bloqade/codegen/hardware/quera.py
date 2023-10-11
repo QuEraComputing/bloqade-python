@@ -1,357 +1,145 @@
+from functools import cached_property
 from bloqade.ir.analog_circuit import AnalogCircuit
 from bloqade.ir.scalar import Literal
-import bloqade.ir.control.waveform as waveform
 import bloqade.ir.control.field as field
 import bloqade.ir.control.pulse as pulse
 import bloqade.ir.control.sequence as sequence
 
 from bloqade.ir.location.base import AtomArrangement, ParallelRegister
-from bloqade.ir.control.waveform import Record
-
 from bloqade.ir.visitor.analog_circuit import AnalogCircuitVisitor
-from bloqade.ir.visitor.waveform import WaveformVisitor
 
 import bloqade.submission.ir.task_specification as task_spec
+from bloqade.submission.ir.braket import BraketTaskSpecification
+from bloqade.submission.ir.task_specification import QuEraTaskSpecification
 from bloqade.submission.ir.parallel import ParallelDecoder, ClusterLocationInfo
 from bloqade.submission.ir.capabilities import QuEraCapabilities
+from bloqade.codegen.hardware.piecewise_linear import (
+    PiecewiseLinearCodeGen,
+    PiecewiseLinear,
+)
+from bloqade.codegen.hardware.piecewise_constant import (
+    PiecewiseConstantCodeGen,
+    PiecewiseConstant,
+)
 
 from typing import Any, Dict, Tuple, List, Union, Optional
 from pydantic.dataclasses import dataclass
-from bisect import bisect_left
 import numbers
 from decimal import Decimal
 import numpy as np
 
 
-class PiecewiseLinearCodeGen(WaveformVisitor):
-    def __init__(self, assignments: Dict[str, Union[numbers.Real, List[numbers.Real]]]):
-        self.assignments = assignments
-
-    def visit_negative(
-        self, ast: waveform.Negative
-    ) -> Tuple[List[Decimal], List[Decimal]]:
-        times, values = self.visit(ast.waveform)
-        return times, [-value for value in values]
-
-    def visit_scale(self, ast: waveform.Scale) -> Tuple[List[Decimal], List[Decimal]]:
-        times, values = self.visit(ast.waveform)
-        scaler = ast.scalar(**self.assignments)
-        return times, [scaler * value for value in values]
-
-    def visit_linear(self, ast: waveform.Linear) -> Tuple[List[Decimal], List[Decimal]]:
-        duration = ast.duration(**self.assignments)
-        start = ast.start(**self.assignments)
-        stop = ast.stop(**self.assignments)
-
-        return [Decimal(0), duration], [start, stop]
-
-    def visit_constant(
-        self, ast: waveform.Constant
-    ) -> Tuple[List[Decimal], List[Decimal]]:
-        duration = ast.duration(**self.assignments)
-        value = ast.value(**self.assignments)
-
-        return [Decimal(0), duration], [value, value]
-
-    def visit_poly(self, ast: waveform.Poly) -> Tuple[List[Decimal], List[Decimal]]:
-        if len(ast.coeffs) == 1:
-            duration = ast.duration(**self.assignments)
-            value = ast.coeffs[0](**self.assignments)
-            return [Decimal(0), duration], [value, value]
-
-        if len(ast.coeffs) == 2:
-            duration = ast.duration(**self.assignments)
-            start = ast.coeffs[0](**self.assignments)
-            stop = start + ast.coeffs[1](**self.assignments) * duration
-
-            return [Decimal(0), duration], [start, stop]
-
-        order = len(ast.coeffs) - 1
-
-        raise ValueError(
-            "Failed to compile Waveform to piecewise linear,"
-            f"found Polynomial of order {order}."
-        )
-
-    def visit_slice(self, ast: waveform.Slice) -> Tuple[List[Decimal], List[Decimal]]:
-        duration = ast.waveform.duration(**self.assignments)
-        if ast.interval.start is None:
-            start_time = Decimal(0)
-        else:
-            start_time = ast.interval.start(**self.assignments)
-
-        if ast.interval.stop is None:
-            stop_time = duration
-        else:
-            stop_time = ast.interval.stop(**self.assignments)
-
-        if start_time < 0:
-            raise ValueError((f"start time for slice {start_time} is smaller than 0."))
-
-        if stop_time > duration:
-            raise ValueError(
-                (f"end time for slice {stop_time} is larger than duration {duration}.")
-            )
-
-        if stop_time < start_time:
-            raise ValueError(
-                (
-                    f"end time for slice {stop_time} is smaller than "
-                    f"starting value for slice {start_time}."
-                )
-            )
-
-        if start_time == stop_time:
-            return [Decimal(0.0), Decimal(0.0)], [Decimal(0.0), Decimal(0.0)]
-
-        times, values = self.visit(ast.waveform)
-
-        start_index = bisect_left(times, start_time)
-        stop_index = bisect_left(times, stop_time)
-        start_value = ast.waveform.eval_decimal(start_time, **self.assignments)
-        stop_value = ast.waveform.eval_decimal(stop_time, **self.assignments)
-
-        if start_index == 0:
-            if stop_time == duration:
-                absolute_times = times
-                values = values
-            else:
-                absolute_times = times[:stop_index] + [stop_time]
-                values = values[:stop_index] + [stop_value]
-        elif start_time == times[start_index]:
-            if stop_time == duration:
-                absolute_times = times[start_index:]
-                values = values[start_index:]
-            else:
-                absolute_times = times[start_index:stop_index] + [stop_time]
-                values = values[start_index:stop_index] + [stop_value]
-        else:
-            if stop_time == duration:
-                absolute_times = [start_time] + times[start_index:]
-                values = [start_value] + values[start_index:]
-            else:
-                absolute_times = (
-                    [start_time] + times[start_index:stop_index] + [stop_time]
-                )
-                values = [start_value] + values[start_index:stop_index] + [stop_value]
-
-        times = [time - start_time for time in absolute_times]
-
-        return times, values
-
-    def visit_append(self, ast: waveform.Append) -> Tuple[List[Decimal], List[Decimal]]:
-        times, values = self.visit(ast.waveforms[0])
-
-        for sub_expr in ast.waveforms[1:]:
-            new_times, new_values = self.visit(sub_expr)
-
-            # skip instructions with duration=0
-            if new_times[-1] == Decimal(0):
-                continue
-            if values[-1] != new_values[0]:
-                diff = abs(new_values[0] - values[-1])
-                raise ValueError(
-                    f"discontinuity with a jump of {diff} found when compiling to "
-                    "piecewise linear."
-                )
-
-            shifted_times = [time + times[-1] for time in new_times[1:]]
-            times.extend(shifted_times)
-            values.extend(new_values[1:])
-
-        return times, values
-
-    def visit_sample(self, ast: waveform.Sample) -> Tuple[List[Decimal], List[Decimal]]:
-        if ast.interpolation is not waveform.Interpolation.Linear:
-            raise ValueError(
-                "Failed to compile waveform to piecewise linear, "
-                f"found piecewise {ast.interpolation.value} interpolation."
-            )
-        return ast.samples(**self.assignments)
-
-    def visit_record(self, ast: Record) -> Tuple[List[Decimal], List[Decimal]]:
-        return self.visit(ast.waveform)
-
-
-class PiecewiseConstantCodeGen(WaveformVisitor):
-    def __init__(self, assignments: Dict[str, Union[numbers.Real, List[numbers.Real]]]):
-        self.assignments = assignments
-
-    def visit_negative(
-        self, ast: waveform.Negative
-    ) -> Tuple[List[Decimal], List[Decimal]]:
-        times, values = self.visit(ast.waveform)
-        return times, [-value for value in values]
-
-    def visit_scale(self, ast: waveform.Scale) -> Tuple[List[Decimal], List[Decimal]]:
-        times, values = self.visit(ast.waveform)
-        scaler = ast.scalar(**self.assignments)
-        return times, [scaler * value for value in values]
-
-    def visit_linear(self, ast: waveform.Linear) -> Tuple[List[Decimal], List[Decimal]]:
-        duration = ast.duration(**self.assignments)
-        start = ast.start(**self.assignments)
-        stop = ast.stop(**self.assignments)
-
-        if start != stop:
-            raise ValueError(
-                "Failed to compile Waveform to piecewise constant, "
-                "found non-constant Linear piecce."
-            )
-
-        return [0, duration], [start, stop]
-
-    def visit_constant(
-        self, ast: waveform.Constant
-    ) -> Tuple[List[Decimal], List[Decimal]]:
-        duration = ast.duration(**self.assignments)
-        value = ast.value(**self.assignments)
-
-        return [Decimal(0), duration], [value, value]
-
-    def visit_poly(self, ast: waveform.Poly) -> Tuple[List[Decimal], List[Decimal]]:
-        if len(ast.coeffs) == 1:
-            duration = ast.duration(**self.assignments)
-            value = ast.coeffs[0](**self.assignments)
-            return [Decimal(0), duration], [value, value]
-
-        if len(ast.coeffs) == 2:
-            duration = ast.duration(**self.assignments)
-            start = ast.coeffs[0](**self.assignments)
-            stop = start + ast.coeffs[1](**self.assignments) * duration
-
-            if start != stop:
-                raise ValueError(
-                    "Failed to compile Waveform to piecewise constant, "
-                    "found non-constant Polynomial piece."
-                )
-
-            return [Decimal(0), duration], [start, stop]
-
-        order = len(ast.coeffs) - 1
-
-        raise ValueError(
-            "Failed to compile Waveform to piecewise constant,"
-            f"found Polynomial of order {order}."
-        )
-
-    def visit_slice(self, ast: waveform.Slice) -> Tuple[List[Decimal], List[Decimal]]:
-        duration = ast.waveform.duration(**self.assignments)
-        if ast.interval.start is None:
-            start_time = Decimal(0)
-        else:
-            start_time = ast.interval.start(**self.assignments)
-
-        if ast.interval.stop is None:
-            stop_time = duration
-        else:
-            stop_time = ast.interval.stop(**self.assignments)
-
-        if start_time < 0:
-            raise ValueError((f"start time for slice {start_time} is smaller than 0."))
-
-        if stop_time > duration:
-            raise ValueError(
-                (f"end time for slice {stop_time} is larger than duration {duration}.")
-            )
-
-        if stop_time < start_time:
-            raise ValueError(
-                (
-                    f"end time for slice {stop_time} is smaller than "
-                    f"starting value for slice {start_time}."
-                )
-            )
-
-        if start_time == stop_time:
-            return [Decimal(0.0), Decimal(0.0)], [Decimal(0.0), Decimal(0.0)]
-
-        times, values = self.visit(ast.waveform)
-
-        start_index = bisect_left(times, start_time)
-        stop_index = bisect_left(times, stop_time)
-
-        if start_index == 0:
-            if stop_time == duration:
-                absolute_times = times
-                values = values
-            else:
-                absolute_times = times[:stop_index] + [stop_time]
-                values = values[:stop_index] + [values[stop_index - 1]]
-        elif start_time == times[start_index]:
-            if stop_time == duration:
-                absolute_times = times[start_index:]
-                values = values[start_index:]
-            else:
-                absolute_times = times[start_index:stop_index] + [stop_time]
-                values = values[start_index:stop_index] + [values[stop_index - 1]]
-        else:
-            if stop_time == duration:
-                absolute_times = [start_time] + times[start_index:]
-                values = [values[start_index - 1]] + values[start_index:]
-            else:
-                absolute_times = (
-                    [start_time] + times[start_index:stop_index] + [stop_time]
-                )
-                values = (
-                    [values[start_index - 1]]
-                    + values[start_index:stop_index]
-                    + [values[stop_index - 1]]
-                )
-
-        times = [time - start_time for time in absolute_times]
-
-        return times, values
-
-    def visit_append(self, ast: waveform.Append) -> Tuple[List[Decimal], List[Decimal]]:
-        times, values = self.visit(ast.waveforms[0])
-
-        for sub_expr in ast.waveforms[1:]:
-            new_times, new_values = self.visit(sub_expr)
-
-            # skip instructions with duration=0
-            if new_times[-1] == Decimal(0):
-                continue
-
-            shifted_times = [time + times[-1] for time in new_times[1:]]
-            times.extend(shifted_times)
-            values[-1] = new_values[0]
-            values.extend(new_values[1:])
-
-        return times, values
-
-    def visit_sample(self, ast: waveform.Sample) -> Tuple[List[Decimal], List[Decimal]]:
-        if ast.interpolation is not waveform.Interpolation.Constant:
-            raise ValueError(
-                "Failed to compile waveform to piecewise constant, "
-                f"found piecewise {ast.interpolation.value} interpolation."
-            )
-        times, values = ast.samples(**self.assignments)
-
-        values[-1] = values[-2]
-        return times, values
-
-    def visit_record(self, ast: Record) -> Tuple[List[Decimal], List[Decimal]]:
-        return self.visit(ast.waveform)
-
-
-@dataclass
-class QuEraCodeGenResults:
+@dataclass(frozen=True)
+class AHSCodegenResult:
     nshots: int
-    parallel_decoder: Optional[ParallelDecoder] = None
-    sites: List[Tuple[Decimal, Decimal]] = []
-    filling: List[bool] = []
-    global_detuning_times: List[Decimal] = []
-    global_detuning_values: List[Decimal] = []
-    global_rabi_amplitude_times: List[Decimal] = []
-    global_rabi_amplitude_values: List[Decimal] = []
-    global_rabi_phase_times: List[Decimal] = []
-    global_rabi_phase_values: List[Decimal] = []
+    parallel_decoder: Optional[ParallelDecoder]
+    sites: List[Tuple[Decimal, Decimal]]
+    filling: List[bool]
+    global_detuning: PiecewiseLinear
+    global_rabi_amplitude: PiecewiseLinear
+    global_rabi_phase: PiecewiseConstant
     lattice_site_coefficients: Optional[List[Decimal]]
-    local_detuning_times: List[Decimal] = []
-    local_detuning_values: List[Decimal] = []
+    local_detuning: Optional[PiecewiseLinear]
 
-    def emit_schema(self) -> task_spec.QuEraTaskSpecification:
+    def slice(self, start_time: Decimal, stop_time: Decimal) -> "AHSCodegenResult":
+        return AHSCodegenResult(
+            self.nshots,
+            self.parallel_decoder,
+            self.sites,
+            self.filling,
+            self.global_detuning.slice(start_time, stop_time),
+            self.global_rabi_amplitude.slice(start_time, stop_time),
+            self.global_rabi_phase.slice(start_time, stop_time),
+            self.lattice_site_coefficients,
+            self.local_detuning.slice(start_time, stop_time),
+        )
+
+    def append(self, other: "AHSCodegenResult") -> "AHSCodegenResult":
+        assert self.nshots == other.nshots
+        assert self.parallel_decoder == other.parallel_decoder
+        assert self.sites == other.sites
+        assert self.filling == other.filling
+        assert self.lattice_site_coefficients == other.lattice_site_coefficients
+
+        return AHSCodegenResult(
+            self.nshots,
+            self.parallel_decoder,
+            self.sites,
+            self.filling,
+            self.global_detuning.append(other.global_detuning),
+            self.global_rabi_amplitude.append(other.global_rabi_amplitude),
+            self.global_rabi_phase.append(other.global_rabi_phase),
+            self.lattice_site_coefficients,
+            self.local_detuning.append(other.local_detuning),
+        )
+
+    @cached_property
+    def braket_task_ir(self) -> BraketTaskSpecification:
+        import braket.ir.ahs as ir
+
+        return BraketTaskSpecification(
+            nshots=self.nshots,
+            program=ir.Program(
+                setup=ir.Setup(
+                    ahs_register=ir.AtomArrangement(
+                        sites=self.sites, filling=self.filling
+                    )
+                ),
+                hamiltonian=ir.Hamiltonian(
+                    drivingFields=[
+                        ir.DrivingField(
+                            amplitude=ir.PhysicalField(
+                                time_series=ir.TimeSeries(
+                                    times=self.global_rabi_amplitude.times,
+                                    values=self.global_rabi_amplitude.values,
+                                ),
+                                pattern="uniform",
+                            ),
+                            phase=ir.PhysicalField(
+                                time_series=ir.TimeSeries(
+                                    times=self.global_rabi_phase.times,
+                                    values=self.global_rabi_phase.values,
+                                ),
+                                pattern="uniform",
+                            ),
+                            detuning=ir.PhysicalField(
+                                time_series=ir.TimeSeries(
+                                    times=self.global_detuning.times,
+                                    values=self.global_detuning.values,
+                                ),
+                                pattern="uniform",
+                            ),
+                        )
+                    ],
+                    shiftingFields=(
+                        []
+                        if self.lattice_site_coefficients is None
+                        else [
+                            ir.ShiftingField(
+                                amplitude=ir.PhysicalField(
+                                    time_series=ir.TimeSeries(
+                                        times=self.local_detuning.times,
+                                        values=self.local_detuning.values,
+                                    ),
+                                    pattern=self.lattice_site_coefficients,
+                                )
+                            )
+                        ]
+                    ),
+                ),
+            ),
+        )
+
+    @cached_property
+    def quera_task_ir(self) -> QuEraTaskSpecification:
+        import bloqade.submission.ir.task_specification as task_spec
+
+        def convert_time_units(time):
+            return Decimal("1e-6") * time
+
+        def convert_energy_units(energy):
+            return Decimal("1e6") * energy
+
         return task_spec.QuEraTaskSpecification(
             nshots=self.nshots,
             lattice=task_spec.Lattice(sites=self.sites, filling=self.filling),
@@ -359,27 +147,48 @@ class QuEraCodeGenResults:
                 rydberg=task_spec.RydbergHamiltonian(
                     rabi_frequency_amplitude=task_spec.RabiFrequencyAmplitude(
                         global_=task_spec.GlobalField(
-                            times=self.global_rabi_amplitude_times,
-                            values=self.global_rabi_amplitude_values,
+                            times=list(
+                                map(
+                                    convert_time_units, self.global_rabi_amplitude.times
+                                )
+                            ),
+                            values=list(
+                                map(
+                                    convert_energy_units,
+                                    self.global_rabi_amplitude.values,
+                                )
+                            ),
                         )
                     ),
                     rabi_frequency_phase=task_spec.RabiFrequencyPhase(
                         global_=task_spec.GlobalField(
-                            times=self.global_rabi_phase_times,
-                            values=self.global_rabi_phase_values,
+                            times=list(
+                                map(convert_time_units, self.global_rabi_phase.times)
+                            ),
+                            values=self.global_rabi_phase.values,
                         )
                     ),
                     detuning=task_spec.Detuning(
                         global_=task_spec.GlobalField(
-                            times=self.global_detuning_times,
-                            values=self.global_detuning_values,
+                            times=list(
+                                map(convert_time_units, self.global_detuning.times)
+                            ),
+                            values=list(
+                                map(convert_energy_units, self.global_detuning.values)
+                            ),
                         ),
                         local=(
                             None
                             if self.lattice_site_coefficients is None
                             else task_spec.LocalField(
-                                times=self.local_detuning_times,
-                                values=self.local_detuning_values,
+                                times=list(
+                                    map(convert_time_units, self.local_detuning.times)
+                                ),
+                                values=list(
+                                    map(
+                                        convert_energy_units, self.local_detuning.values
+                                    )
+                                ),
                                 lattice_site_coefficients=self.lattice_site_coefficients,
                             )
                         ),
@@ -389,31 +198,23 @@ class QuEraCodeGenResults:
         )
 
 
-class QuEraCodeGen(AnalogCircuitVisitor):
+class AHSCodegen(AnalogCircuitVisitor):
     def __init__(
         self,
+        shots: int,
         assignments: Dict[str, Union[numbers.Real, List[numbers.Real]]] = {},
         capabilities: Optional[QuEraCapabilities] = None,
     ):
         self.capabilities = capabilities
         self.assignments = assignments
         self.parallel_decoder = None
-        self.lattice = None
-        self.effective_hamiltonian = None
-        self.rydberg = None
-        self.field_name = None
-        self.rabi_frequency_amplitude = None
-        self.rabi_frequency_phase = None
-        self.detuning = None
+        self.sites = []
+        self.filling = []
+        self.global_detuning = None
+        self.local_detuning = None
         self.lattice_site_coefficients = None
-
-    @staticmethod
-    def convert_time_to_SI_units(times: List[Decimal]):
-        return [time * Decimal("1e-6") for time in times]
-
-    @staticmethod
-    def convert_energy_to_SI_units(values: List[Decimal]):
-        return [value * Decimal("1e6") for value in values]
+        self.global_rabi_amplitude = None
+        self.global_rabi_phase = None
 
     @staticmethod
     def convert_position_to_SI_units(position: Tuple[Decimal]):
@@ -474,62 +275,38 @@ class QuEraCodeGen(AnalogCircuitVisitor):
 
     def calculate_detuning(self, ast: field.Field) -> Any:
         if len(ast.drives) == 1 and field.Uniform in ast.drives:
-            times, values = PiecewiseLinearCodeGen(self.assignments).visit(
+            self.global_detuning = PiecewiseLinearCodeGen(self.assignments).emit(
                 ast.drives[field.Uniform]
             )
 
-            times = QuEraCodeGen.convert_time_to_SI_units(times)
-            values = QuEraCodeGen.convert_energy_to_SI_units(values)
-
-            self.detuning = task_spec.Detuning(
-                global_=task_spec.GlobalField(times=times, values=values)
-            )
         elif len(ast.drives) == 1:
             ((spatial_modulation, waveform),) = ast.drives.items()
 
-            times, values = PiecewiseLinearCodeGen(self.assignments).visit(waveform)
+            self.local_detuning = PiecewiseLinearCodeGen(self.assignments).emit(
+                waveform
+            )
 
-            times = QuEraCodeGen.convert_time_to_SI_units(times)
-            values = QuEraCodeGen.convert_energy_to_SI_units(values)
+            self.global_detuning = PiecewiseLinear(
+                [Decimal(0), self.local_detuning.times[-1]], [Decimal(0), Decimal(0)]
+            )
 
             self.visit(spatial_modulation)
-            self.detuning = task_spec.Detuning(
-                global_=task_spec.GlobalField(times=[0, times[-1]], values=[0.0, 0.0]),
-                local=task_spec.LocalField(
-                    times=times,
-                    values=values,
-                    lattice_site_coefficients=self.lattice_site_coefficients,
-                ),
-            )
+
         elif len(ast.drives) == 2 and field.Uniform in ast.drives:
             # will only be two keys
             for k in ast.drives.keys():
                 if k == field.Uniform:
-                    global_times, global_values = PiecewiseLinearCodeGen(
+                    self.global_detuning = PiecewiseLinearCodeGen(
                         self.assignments
-                    ).visit(ast.drives[field.Uniform])
+                    ).emit(ast.drives[field.Uniform])
                 else:  # can be field.RunTimeVector or field.ScaledLocations
                     spatial_modulation = k
-                    local_times, local_values = PiecewiseLinearCodeGen(
-                        self.assignments
-                    ).visit(ast.drives[k])
+                    self.local_detuning = PiecewiseLinearCodeGen(self.assignments).emit(
+                        ast.drives[k]
+                    )
 
             self.visit(spatial_modulation)  # just visit the non-uniform locations
 
-            global_times = QuEraCodeGen.convert_time_to_SI_units(global_times)
-            local_times = QuEraCodeGen.convert_time_to_SI_units(local_times)
-
-            global_values = QuEraCodeGen.convert_energy_to_SI_units(global_values)
-            local_values = QuEraCodeGen.convert_energy_to_SI_units(local_values)
-
-            self.detuning = task_spec.Detuning(
-                local=task_spec.LocalField(
-                    times=local_times,
-                    values=local_values,
-                    lattice_site_coefficients=self.lattice_site_coefficients,
-                ),
-                global_=task_spec.GlobalField(times=global_times, values=global_values),
-            )
         else:
             raise ValueError(
                 "Failed to compile Detuning to QuEra task, "
@@ -539,16 +316,10 @@ class QuEraCodeGen(AnalogCircuitVisitor):
 
     def calculate_rabi_amplitude(self, ast: field.Field) -> Any:
         if len(ast.drives) == 1 and field.Uniform in ast.drives:
-            times, values = PiecewiseLinearCodeGen(self.assignments).visit(
+            self.global_rabi_amplitude = PiecewiseLinearCodeGen(self.assignments).visit(
                 ast.drives[field.Uniform]
             )
 
-            times = QuEraCodeGen.convert_time_to_SI_units(times)
-            values = QuEraCodeGen.convert_energy_to_SI_units(values)
-
-            self.rabi_frequency_amplitude = task_spec.RabiFrequencyAmplitude(
-                global_=task_spec.GlobalField(times=times, values=values)
-            )
         else:
             raise ValueError(
                 "Failed to compile Rabi Amplitude to QuEra task, "
@@ -558,15 +329,10 @@ class QuEraCodeGen(AnalogCircuitVisitor):
 
     def calculate_rabi_phase(self, ast: field.Field) -> Any:
         if len(ast.drives) == 1 and field.Uniform in ast.drives:  # has to be global
-            times, values = PiecewiseConstantCodeGen(self.assignments).visit(
+            self.global_rabi_phase = PiecewiseConstantCodeGen(self.assignments).visit(
                 ast.drives[field.Uniform]
             )
 
-            times = QuEraCodeGen.convert_time_to_SI_units(times)
-
-            self.rabi_frequency_phase = task_spec.RabiFrequencyAmplitude(
-                global_=task_spec.GlobalField(times=times, values=values)
-            )
         else:
             raise ValueError(
                 "Failed to compile Rabi Phase to QuEra task, "
@@ -590,38 +356,38 @@ class QuEraCodeGen(AnalogCircuitVisitor):
         # fix-up any missing fields
         duration = 0.0
 
-        if self.rabi_frequency_amplitude is not None:
-            duration = max(duration, self.rabi_frequency_amplitude.global_.times[-1])
+        if self.global_rabi_amplitude:
+            duration = max(duration, self.global_rabi_amplitude.times[-1])
 
-        if self.rabi_frequency_phase is not None:
-            duration = max(duration, self.rabi_frequency_phase.global_.times[-1])
+        if self.global_rabi_phase:
+            duration = max(duration, self.global_rabi_phase.times[-1])
 
-        if self.detuning is not None:
-            duration = max(duration, self.detuning.global_.times[-1])
+        if self.global_detuning:
+            duration = max(duration, self.global_detuning.times[-1])
+
+        if self.local_detuning:
+            duration = max(duration, self.local_detuning.times[-1])
 
         if duration == 0.0:
             raise ValueError("No Fields found in pulse.")
 
-        if self.rabi_frequency_amplitude is None:
-            self.rabi_frequency_amplitude = task_spec.RabiFrequencyAmplitude(
-                global_=task_spec.GlobalField(times=[0, duration], values=[0.0, 0.0])
+        if self.global_rabi_amplitude is None:
+            self.global_rabi_amplitude = PiecewiseLinear(
+                [Decimal(0), duration], [Decimal(0), Decimal(0)]
             )
 
-        if self.rabi_frequency_phase is None:
-            self.rabi_frequency_phase = task_spec.RabiFrequencyPhase(
-                global_=task_spec.GlobalField(times=[0, duration], values=[0.0, 0.0])
+        if self.global_rabi_phase is None:
+            self.global_rabi_phase = PiecewiseConstant(
+                [Decimal(0), duration], [Decimal(0), Decimal(0)]
             )
 
-        if self.detuning is None:
-            self.detuning = task_spec.Detuning(
-                global_=task_spec.GlobalField(times=[0, duration], values=[0.0, 0.0])
+        if self.global_detuning is None:
+            self.global_detuning = PiecewiseLinear(
+                [Decimal(0), duration], [Decimal(0), Decimal(0)]
             )
 
-        self.rydberg = task_spec.RydbergHamiltonian(
-            rabi_frequency_amplitude=self.rabi_frequency_amplitude,
-            rabi_frequency_phase=self.rabi_frequency_phase,
-            detuning=self.detuning,
-        )
+        if self.local_detuning is None:
+            pass
 
     def visit_named_pulse(self, ast: pulse.NamedPulse):
         self.visit(ast.pulse)
@@ -645,9 +411,6 @@ class QuEraCodeGen(AnalogCircuitVisitor):
             raise ValueError("QuEra tasks does not support Hyperfine coupling.")
 
         self.visit(ast.pulses.get(sequence.RydbergLevelCoupling(), pulse.Pulse({})))
-        self.effective_hamiltonian = task_spec.EffectiveHamiltonian(
-            rydberg=self.rydberg
-        )
 
     def visit_named_sequence(self, ast: sequence.NamedSequence):
         self.visit(ast.sequence)
@@ -667,17 +430,15 @@ class QuEraCodeGen(AnalogCircuitVisitor):
         )
 
     def visit_register(self, ast: AtomArrangement):
-        sites = []
-        filling = []
+        self.sites = []
+        self.filling = []
 
         for location_info in ast.enumerate():
             site = tuple(ele(**self.assignments) for ele in location_info.position)
-            sites.append(QuEraCodeGen.convert_position_to_SI_units(site))
-            filling.append(location_info.filling.value)
+            self.sites.append(AHSCodegen.convert_position_to_SI_units(site))
+            self.filling.append(location_info.filling.value)
 
-        self.n_atoms = len(sites)
-
-        self.lattice = task_spec.Lattice(sites=sites, filling=filling)
+        self.n_atoms = len(self.sites)
 
     def visit_parallel_register(self, ast: ParallelRegister) -> Any:
         if self.capabilities is None:
@@ -752,7 +513,7 @@ class QuEraCodeGen(AnalogCircuitVisitor):
             for cluster_location_index, (location, filled) in enumerate(
                 zip(new_register_locations[:], register_filling)
             ):
-                site = QuEraCodeGen.convert_position_to_SI_units(tuple(location))
+                site = AHSCodegen.convert_position_to_SI_units(tuple(location))
                 sites.append(site)
                 filling.append(filled)
 
@@ -774,15 +535,17 @@ class QuEraCodeGen(AnalogCircuitVisitor):
         self.visit(ast.register)
         self.visit(ast.sequence)
 
-    def emit(
-        self, nshots: int, analog_circuit: AnalogCircuit
-    ) -> Tuple[task_spec.QuEraTaskSpecification, Optional[ParallelDecoder]]:
+    def emit(self, nshots: int, analog_circuit: AnalogCircuit) -> AHSCodegenResult:
         self.visit(analog_circuit)
 
-        task_ir = task_spec.QuEraTaskSpecification(
+        return AHSCodegenResult(
             nshots=nshots,
-            lattice=self.lattice,
-            effective_hamiltonian=self.effective_hamiltonian,
+            parallel_decoder=self.parallel_decoder,
+            sites=self.sites,
+            filling=self.filling,
+            global_detuning=self.global_detuning,
+            global_rabi_amplitude=self.global_rabi_amplitude,
+            global_rabi_phase=self.global_rabi_phase,
+            lattice_site_coefficients=self.lattice_site_coefficients,
+            local_detuning=self.local_detuning,
         )
-
-        return task_ir, self.parallel_decoder
