@@ -1,3 +1,4 @@
+from functools import cached_property
 from pydantic.dataclasses import dataclass
 from typing import Dict, List, Tuple, Union
 from decimal import Decimal
@@ -7,19 +8,55 @@ ParamType = Union[Decimal, List[Decimal]]
 
 
 @dataclass(frozen=True)
+class ScalarArg:
+    name: str
+
+
+@dataclass(frozen=True)
+class VectorArg:
+    name: str
+
+
+@dataclass(frozen=True)
 class Params:
+    n_sites: int
     static_params: Dict[str, ParamType]
     batch_params: List[Dict[str, ParamType]]
-    args_list: Tuple[str, ...]
+    args_list: Tuple[Union[ScalarArg, VectorArg], ...]
 
-    def parse_args(self, *args) -> Dict[str, Decimal]:
-        if len(args) != len(self.args_list):
+    @cached_property
+    def num_args(self) -> int:
+        num_args = 0
+        for arg in self.args_list:
+            if isinstance(arg, VectorArg):
+                num_args += self.n_sites
+            else:
+                num_args += 1
+
+        return num_args
+
+    @cached_property
+    def arg_names(self) -> Tuple[str]:
+        return tuple([arg.name for arg in self.args_list])
+
+    def parse_args(self, *flattened_args) -> Dict[str, Decimal]:
+        if len(flattened_args) != self.num_args:
             raise ValueError(
-                f"Expected {len(self.args_list)} arguments, got {len(args)}."
+                f"Expected {self.num_args} arguments, got {len(flattened_args)}."
             )
 
-        args = tuple(map(Decimal, map(str, args)))
-        return dict(zip(self.args_list, args))
+        args = []
+        i = 0
+        for arg in self.args_list:
+            if isinstance(arg, VectorArg):
+                vec = list(map(Decimal, map(str, flattened_args[i : i + self.n_sites])))
+                args.append(vec)
+                i += self.n_sites
+            else:
+                args.append(Decimal(str(flattened_args[i])))
+                i += 1
+
+        return dict(zip(self.arg_names, args))
 
     def batch_assignments(self, *args) -> List[Dict[str, ParamType]]:
         flattened_args = self.parse_args(*args)
