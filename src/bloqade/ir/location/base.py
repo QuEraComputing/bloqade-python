@@ -143,6 +143,22 @@ class ParallelRegister(ProgramStart):
     register_filling: List[int]
     shift_vectors: List[List[Scalar]]
 
+    @property
+    def n_atoms(self):
+        return self._register.n_atoms
+
+    @property
+    def n_sites(self):
+        return self._register.n_sites
+
+    @property
+    def n_vacant(self):
+        return self._register.n_vacant
+
+    @property
+    def n_dims(self):
+        return self._register.n_dims
+
     @beartype
     def __init__(self, register: AtomArrangement, cluster_spacing: ScalarType):
         self._register = register
