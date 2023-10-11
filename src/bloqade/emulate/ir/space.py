@@ -52,7 +52,7 @@ class Space:
             return Space(SpaceType.FullSpace, atom_type, sites, configurations)
 
         states = np.arange(atom_type.n_level, dtype=config_type)
-        configurations = states.copy()
+        configurations = states
 
         for index_1, indices in enumerate(check_atoms, 1):
             if len(indices) == 0:
