@@ -103,6 +103,10 @@ class Space:
         row_indices, col_config = self.atom_type.swap_state_at(
             self.configurations, index, state_1, state_2
         )
+
+        if not isinstance(row_indices, slice):
+            row_indices = np.argwhere(row_indices).ravel()
+
         if self.space_type is SpaceType.FullSpace:
             return (row_indices, col_config)
         else:
@@ -112,10 +116,9 @@ class Space:
 
             if not np.all(mask):
                 if isinstance(row_indices, slice):
-                    return mask, col_indices[mask]
-                else:
-                    row_indices = np.argwhere(row_indices).ravel()
-                    return row_indices[mask], col_indices[mask]
+                    row_indices = np.arange(self.size)
+
+                return row_indices[mask], col_indices[mask]
             else:
                 return row_indices, col_indices
 
@@ -123,11 +126,14 @@ class Space:
         row_indices, col_config = self.atom_type.transition_state_at(
             self.configurations, index, fro, to
         )
+
+        if not isinstance(row_indices, slice):
+            row_indices = np.argwhere(row_indices).ravel()
+
         if self.space_type is SpaceType.FullSpace:
             return (row_indices, col_config)
         else:
             col_indices = np.searchsorted(self.configurations, col_config)
-            row_indices = np.argwhere(row_indices).ravel()
 
             mask = col_indices < self.size
             col_indices = col_indices[mask]

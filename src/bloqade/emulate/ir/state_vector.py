@@ -1,7 +1,10 @@
 from bloqade.emulate.ir.emulator import EmulatorProgram
 from bloqade.emulate.ir.space import Space
-from bloqade.emulate.sparse_operator import IndexMapping
-from scipy.sparse import csr_matrix
+from bloqade.emulate.sparse_operator import (
+    IndexMapping,
+    SparseMatrixCSC,
+    SparseMatrixCSR,
+)
 from dataclasses import dataclass, field
 from numpy.typing import NDArray
 from beartype.typing import List, Callable, Union, Optional
@@ -12,7 +15,7 @@ import numpy as np
 from scipy.integrate import ode
 
 
-SparseOperator = Union[IndexMapping, csr_matrix]
+SparseOperator = Union[IndexMapping, SparseMatrixCSR, SparseMatrixCSC]
 
 
 @dataclass(frozen=True)
@@ -33,14 +36,14 @@ class RabiOperator:
     amplitude: Callable[[float], float]
     phase: Optional[Callable[[float], float]] = None
 
-    def dot(self, register: NDArray, time: float):
+    def dot(self, register: NDArray, output: NDArray, time: float):
         amplitude = self.amplitude(time) / 2
         if self.phase is None:
-            return self.op.dot(register) * amplitude
+            return self.op.matvec(register, out=output, scale=amplitude)
 
         amplitude *= np.exp(1j * self.phase(time))
-        output = self.op.dot(register) * amplitude
-        output += self.op.T.dot(register) * np.conj(amplitude)
+        self.op.matvec(register, out=output, scale=amplitude)
+        self.op.T.matvec(register, out=output, scale=np.conj(amplitude))
 
         return output
 
@@ -53,26 +56,26 @@ class RydbergHamiltonian:
     detuning_ops: List[DetuningOperator] = field(default_factory=list)
     rabi_ops: List[RabiOperator] = field(default_factory=list)
 
-    def _ode_complex_kernel(self, time: float, register: NDArray):
+    def _ode_complex_kernel(self, time: float, register: NDArray, output: NDArray):
         diagonal = sum(
             (detuning.get_diagonal(time) for detuning in self.detuning_ops),
             start=self.rydberg,
         )
 
-        result_register = diagonal * register
+        np.multiply(diagonal, register, out=output)
         for rabi_op in self.rabi_ops:
-            result_register += rabi_op.dot(register, time)
+            rabi_op.dot(register, output, time)
 
-        result_register *= -1j
-        return result_register
+        output *= -1j
+        return output
 
-    def _ode_real_kernel(self, time: float, register: NDArray):
+    def _ode_real_kernel(self, time: float, register: NDArray, output: NDArray):
         # this is needed to use solver that only work on real-valued states
-        return self._ode_complex_kernel(time, register.view(np.complex128)).view(
-            np.float64
-        )
+        return self._ode_complex_kernel(
+            time, register.view(np.complex128), output
+        ).view(np.float64)
 
-    def _ode_complex_kernel_int(self, time: float, register: NDArray):
+    def _ode_complex_kernel_int(self, time: float, register: NDArray, output: NDArray):
         diagonal = sum(
             (detuning.get_diagonal(time) for detuning in self.detuning_ops),
         )
@@ -81,21 +84,21 @@ class RydbergHamiltonian:
 
         int_register = u * register
 
-        result_register = diagonal * int_register
+        np.multiply(diagonal, int_register, out=output)
         for rabi_op in self.rabi_ops:
-            result_register += rabi_op.dot(int_register, time)
+            rabi_op.dot(int_register, output, time)
 
         np.conj(u, out=u)
-        np.multiply(u, result_register, out=result_register)
+        np.multiply(u, output, out=output)
 
-        result_register *= -1j
-        return result_register
+        output *= -1j
+        return output
 
-    def _ode_real_kernel_int(self, time: float, register: NDArray):
+    def _ode_real_kernel_int(self, time: float, register: NDArray, output: NDArray):
         # this is needed to use solver that only work on real-valued states
-        return self._ode_complex_kernel_int(time, register.view(np.complex128)).view(
-            np.float64
-        )
+        return self._ode_complex_kernel_int(
+            time, register.view(np.complex128), output
+        ).view(np.float64)
 
 
 RealArray = Annotated[NDArray[np.floating], IsAttr["ndim", IsEqual[1]]]
@@ -183,7 +186,7 @@ class AnalogGate:
         state = np.asarray(state).astype(np.complex128, copy=False)
 
         solver = ode(self.hamiltonian._ode_real_kernel)
-
+        solver.set_f_params(np.zeros_like(state, dtype=np.complex128))
         solver.set_initial_value(state.view(np.float64))
         solver.set_integrator(solver_name, atol=atol, rtol=rtol, nsteps=nsteps)
 
@@ -220,7 +223,7 @@ class AnalogGate:
         state = np.asarray(state).astype(np.complex128, copy=False)
 
         solver = ode(self.hamiltonian._ode_real_kernel_int)
-
+        solver.set_f_params(np.zeros_like(state, dtype=np.complex128))
         solver.set_initial_value(state.view(np.float64))
         solver.set_integrator(solver_name, atol=atol, rtol=rtol, nsteps=nsteps)
 
