@@ -16,6 +16,7 @@ from bloqade.submission.ir.parallel import ParallelDecoder, ClusterLocationInfo
 from bloqade.submission.ir.capabilities import QuEraCapabilities
 
 from typing import Any, Dict, Tuple, List, Union, Optional
+from pydantic.dataclasses import dataclass
 from bisect import bisect_left
 import numbers
 from decimal import Decimal
@@ -334,6 +335,60 @@ class PiecewiseConstantCodeGen(WaveformVisitor):
         return self.visit(ast.waveform)
 
 
+@dataclass
+class QuEraCodeGenResults:
+    nshots: int
+    parallel_decoder: Optional[ParallelDecoder] = None
+    sites: List[Tuple[Decimal, Decimal]] = []
+    filling: List[bool] = []
+    global_detuning_times: List[Decimal] = []
+    global_detuning_values: List[Decimal] = []
+    global_rabi_amplitude_times: List[Decimal] = []
+    global_rabi_amplitude_values: List[Decimal] = []
+    global_rabi_phase_times: List[Decimal] = []
+    global_rabi_phase_values: List[Decimal] = []
+    lattice_site_coefficients: Optional[List[Decimal]]
+    local_detuning_times: List[Decimal] = []
+    local_detuning_values: List[Decimal] = []
+
+    def emit_schema(self) -> task_spec.QuEraTaskSpecification:
+        return task_spec.QuEraTaskSpecification(
+            nshots=self.nshots,
+            lattice=task_spec.Lattice(sites=self.sites, filling=self.filling),
+            effective_hamiltonian=task_spec.EffectiveHamiltonian(
+                rydberg=task_spec.RydbergHamiltonian(
+                    rabi_frequency_amplitude=task_spec.RabiFrequencyAmplitude(
+                        global_=task_spec.GlobalField(
+                            times=self.global_rabi_amplitude_times,
+                            values=self.global_rabi_amplitude_values,
+                        )
+                    ),
+                    rabi_frequency_phase=task_spec.RabiFrequencyPhase(
+                        global_=task_spec.GlobalField(
+                            times=self.global_rabi_phase_times,
+                            values=self.global_rabi_phase_values,
+                        )
+                    ),
+                    detuning=task_spec.Detuning(
+                        global_=task_spec.GlobalField(
+                            times=self.global_detuning_times,
+                            values=self.global_detuning_values,
+                        ),
+                        local=(
+                            None
+                            if self.lattice_site_coefficients is None
+                            else task_spec.LocalField(
+                                times=self.local_detuning_times,
+                                values=self.local_detuning_values,
+                                lattice_site_coefficients=self.lattice_site_coefficients,
+                            )
+                        ),
+                    ),
+                )
+            ),
+        )
+
+
 class QuEraCodeGen(AnalogCircuitVisitor):
     def __init__(
         self,
@@ -417,7 +472,7 @@ class QuEraCodeGen(AnalogCircuitVisitor):
         lattice_site_coefficients = ast.value
         self.post_visit_spatial_modulation(lattice_site_coefficients)
 
-    def visit_detuning(self, ast: field.Field) -> Any:
+    def calculate_detuning(self, ast: field.Field) -> Any:
         if len(ast.drives) == 1 and field.Uniform in ast.drives:
             times, values = PiecewiseLinearCodeGen(self.assignments).visit(
                 ast.drives[field.Uniform]
@@ -482,7 +537,7 @@ class QuEraCodeGen(AnalogCircuitVisitor):
                 f"{repr(ast)}."
             )
 
-    def visit_rabi_amplitude(self, ast: field.Field) -> Any:
+    def calculate_rabi_amplitude(self, ast: field.Field) -> Any:
         if len(ast.drives) == 1 and field.Uniform in ast.drives:
             times, values = PiecewiseLinearCodeGen(self.assignments).visit(
                 ast.drives[field.Uniform]
@@ -501,7 +556,7 @@ class QuEraCodeGen(AnalogCircuitVisitor):
                 f"{repr(ast)}."
             )
 
-    def visit_rabi_phase(self, ast: field.Field) -> Any:
+    def calculate_rabi_phase(self, ast: field.Field) -> Any:
         if len(ast.drives) == 1 and field.Uniform in ast.drives:  # has to be global
             times, values = PiecewiseConstantCodeGen(self.assignments).visit(
                 ast.drives[field.Uniform]
@@ -521,11 +576,11 @@ class QuEraCodeGen(AnalogCircuitVisitor):
 
     def visit_field(self, ast: field.Field):
         if self.field_name == pulse.detuning:
-            self.visit_detuning(ast)
+            self.calculate_detuning(ast)
         elif self.field_name == pulse.rabi.amplitude:
-            self.visit_rabi_amplitude(ast)
+            self.calculate_rabi_amplitude(ast)
         elif self.field_name == pulse.rabi.phase:
-            self.visit_rabi_phase(ast)
+            self.calculate_rabi_phase(ast)
 
     def visit_pulse(self, ast: pulse.Pulse):
         for field_name in ast.fields.keys():
