@@ -23,7 +23,7 @@ class PiecewiseLinear:
         else:
             index = bisect_right(self.times, time) - 1
 
-            m = (self.values[index + 1] - self.values[index])(
+            m = (self.values[index + 1] - self.values[index]) / (
                 self.times[index + 1] - self.times[index]
             )
             t = time - self.times[index]

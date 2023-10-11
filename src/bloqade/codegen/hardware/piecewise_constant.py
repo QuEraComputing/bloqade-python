@@ -22,6 +22,9 @@ class PiecewiseConstant:
         else:
             index = bisect_left(self.times, time)
 
+            if self.times[index] == time:
+                index += 1
+
             return self.values[index]
 
     def slice(self, start_time, stop_time) -> "PiecewiseConstant":
@@ -34,7 +37,7 @@ class PiecewiseConstant:
         stop_value = self.eval(stop_time)
 
         absolute_times = [start_time] + self.times[start_index:stop_index] + [stop_time]
-        values = [start_value] + self.values[start_index:stop_index] + stop_value
+        values = [start_value] + self.values[start_index:stop_index] + [stop_value]
 
         return PiecewiseConstant([time - start_time for time in absolute_times], values)
 
@@ -51,6 +54,15 @@ class PiecewiseConstantCodeGen(WaveformVisitor):
         self.times = []
         self.values = []
 
+    def append_timeseries(self, value, duration):
+        if len(self.times) > 0:
+            self.times.append(duration + self.times[-1])
+            self.values[-1] = value
+            self.values.append(value)
+        else:
+            self.times = [Decimal(0), duration]
+            self.values = [value, value]
+
     def visit_linear(self, ast: waveform.Linear) -> Tuple[List[Decimal], List[Decimal]]:
         duration = ast.duration(**self.assignments)
         start = ast.start(**self.assignments)
@@ -62,9 +74,7 @@ class PiecewiseConstantCodeGen(WaveformVisitor):
                 "found non-constant Linear piecce."
             )
 
-        self.times.append(duration + self.times[-1])
-        self.values[-1] = start
-        self.values.append(stop)
+        self.append_timeseries(start, duration)
 
     def visit_constant(
         self, ast: waveform.Constant
@@ -72,14 +82,11 @@ class PiecewiseConstantCodeGen(WaveformVisitor):
         duration = ast.duration(**self.assignments)
         value = ast.value(**self.assignments)
 
-        self.times.append(duration + self.times[-1])
-        self.values[-1] = value
-        self.values.append(value)
+        self.append_timeseries(value, duration)
 
     def visit_poly(self, ast: waveform.Poly) -> Tuple[List[Decimal], List[Decimal]]:
         order = len(ast.coeffs) - 1
         duration = ast.duration(**self.assignments)
-        self.times.append(duration + self.times[-1])
 
         if order == 0:
             value = Decimal(0)
@@ -107,8 +114,7 @@ class PiecewiseConstantCodeGen(WaveformVisitor):
                 f"found Polynomial of order {order}."
             )
 
-        self.values[-1] = value
-        self.values.append(value)
+        self.append_timeseries(value, duration)
 
     def visit_negative(
         self, ast: waveform.Negative
@@ -164,7 +170,7 @@ class PiecewiseConstantCodeGen(WaveformVisitor):
         pwc = PiecewiseConstantCodeGen(self.assignments).emit(ast.waveforms[0])
 
         for sub_expr in ast.waveforms[1:]:
-            new_pwc = PiecewiseConstantCodeGen(self.assignments).emit(ast.waveform)
+            new_pwc = PiecewiseConstantCodeGen(self.assignments).emit(sub_expr)
 
             # skip instructions with duration=0
             if new_pwc.times[-1] == Decimal(0):

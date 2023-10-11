@@ -316,7 +316,7 @@ class AHSCodegen(AnalogCircuitVisitor):
 
     def calculate_rabi_amplitude(self, ast: field.Field) -> Any:
         if len(ast.drives) == 1 and field.Uniform in ast.drives:
-            self.global_rabi_amplitude = PiecewiseLinearCodeGen(self.assignments).visit(
+            self.global_rabi_amplitude = PiecewiseLinearCodeGen(self.assignments).emit(
                 ast.drives[field.Uniform]
             )
 
@@ -329,7 +329,7 @@ class AHSCodegen(AnalogCircuitVisitor):
 
     def calculate_rabi_phase(self, ast: field.Field) -> Any:
         if len(ast.drives) == 1 and field.Uniform in ast.drives:  # has to be global
-            self.global_rabi_phase = PiecewiseConstantCodeGen(self.assignments).visit(
+            self.global_rabi_phase = PiecewiseConstantCodeGen(self.assignments).emit(
                 ast.drives[field.Uniform]
             )
 
@@ -368,7 +368,7 @@ class AHSCodegen(AnalogCircuitVisitor):
         if self.local_detuning:
             duration = max(duration, self.local_detuning.times[-1])
 
-        if duration == 0.0:
+        if duration == Decimal(0):
             raise ValueError("No Fields found in pulse.")
 
         if self.global_rabi_amplitude is None:
