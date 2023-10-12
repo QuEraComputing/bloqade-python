@@ -1,0 +1,1 @@
+::: bloqade.emulate.ir.atom_type
