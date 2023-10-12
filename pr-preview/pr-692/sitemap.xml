@@ -16,16 +16,6 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://bloqade.quera.com/builder-workflow/overview/</loc>
-         <lastmod>2023-10-12</lastmod>
-         <changefreq>daily</changefreq>
-    </url>
-    <url>
-         <loc>https://bloqade.quera.com/builder-workflow/standard/</loc>
-         <lastmod>2023-10-12</lastmod>
-         <changefreq>daily</changefreq>
-    </url>
-    <url>
          <loc>https://bloqade.quera.com/contributing/</loc>
          <lastmod>2023-10-12</lastmod>
          <changefreq>daily</changefreq>
@@ -67,6 +57,16 @@
     </url>
     <url>
          <loc>https://bloqade.quera.com/contributing/reporting-a-bug/</loc>
+         <lastmod>2023-10-12</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://bloqade.quera.com/docs/builder-workflow/overview/</loc>
+         <lastmod>2023-10-12</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://bloqade.quera.com/docs/builder-workflow/standard/</loc>
          <lastmod>2023-10-12</lastmod>
          <changefreq>daily</changefreq>
     </url>
@@ -472,6 +472,11 @@
     </url>
     <url>
          <loc>https://bloqade.quera.com/reference/bloqade/task/quera/</loc>
+         <lastmod>2023-10-12</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://bloqade.quera.com/scripts/gen_ref_nav/</loc>
          <lastmod>2023-10-12</lastmod>
          <changefreq>daily</changefreq>
     </url>
