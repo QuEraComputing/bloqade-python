@@ -6,7 +6,7 @@ groups = ["default", "dev", "doc"]
 cross_platform = true
 static_urls = false
 lock_version = "4.3"
-content_hash = "sha256:428972325c49192b00bdded35e1d4ec1eb0ddc62c9dee1df5c4f3e424bb3fa59"
+content_hash = "sha256:a4159a924c15f43cd79f084dc2697b02726f5bccf0b979200d832d5b80f23979"
 
 [[package]]
 name = "amazon-braket-default-simulator"
@@ -3340,6 +3340,18 @@ summary = "Traitlets Python configuration system"
 files = [
     {file = "traitlets-5.9.0-py3-none-any.whl", hash = "sha256:9e6ec080259b9a5940c797d58b613b5e31441c2257b87c2e795c5228ae80d2d8"},
     {file = "traitlets-5.9.0.tar.gz", hash = "sha256:f6cde21a9c68cf756af02035f72d5a723bf607e862e7be33ece505abf4a3bad9"},
+]
+
+[[package]]
+name = "treelib"
+version = "1.7.0"
+summary = "A Python implementation of tree structure."
+dependencies = [
+    "six",
+]
+files = [
+    {file = "treelib-1.7.0-py3-none-any.whl", hash = "sha256:c37795eaba19f73f3e1a905ef3f4f0cab660dc7617126e8ae99391e25c755416"},
+    {file = "treelib-1.7.0.tar.gz", hash = "sha256:9bff1af416b9e642a6cd0e0431d15edf26a24b8d0c8ae68afbd3801b5e30fb61"},
 ]
 
 [[package]]
