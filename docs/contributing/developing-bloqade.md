@@ -2,9 +2,9 @@
 
 !!! tip "Before You Get Started"
 
-    Depending on the complexity of the contribution you'd like to make to 
+    Depending on the complexity of the contribution you'd like to make to
     Bloqade, it may be worth reading the [Design Philosophy and Architecture](design-philosophy-and-architecture.md)
-    section to get an idea of why Bloqade is structured the way that it is and 
+    section to get an idea of why Bloqade is structured the way that it is and
     how to make your contribution adhere to this philosophy.
 
 Our development environment contains a set of tools we use
