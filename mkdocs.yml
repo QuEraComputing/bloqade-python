@@ -24,7 +24,8 @@ nav:
     - Asking a Question: 'contributing/asking-a-question.md'
   - Tutorials: 'https://queracomputing.github.io/bloqade-python-examples/latest/'
   - Reference:
-    - Builder workflow : tree/builder.md
+    - Builder Overview: docs/builder-workflow/overview.md
+    - Builder Standard Diagram: docs/builder-workflow/standard.md 
     - API References : reference/bloqade/
   - Blog:
     - 2023:
