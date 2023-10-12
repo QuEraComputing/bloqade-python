@@ -1,6 +1,6 @@
 from functools import cached_property
 from pydantic.dataclasses import dataclass
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List, Tuple, Union, FrozenSet
 from decimal import Decimal
 
 
@@ -23,6 +23,7 @@ class Params:
     static_params: Dict[str, ParamType]
     batch_params: List[Dict[str, ParamType]]
     args_list: Tuple[Union[ScalarArg, VectorArg], ...]
+    dict_args: FrozenSet[str]
 
     @cached_property
     def num_args(self) -> int:
@@ -39,7 +40,7 @@ class Params:
     def arg_names(self) -> Tuple[str]:
         return tuple([arg.name for arg in self.args_list])
 
-    def parse_args(self, *flattened_args) -> Dict[str, Decimal]:
+    def parse_args(self, *flattened_args, **kwargs) -> Dict[str, Decimal]:
         if len(flattened_args) != self.num_args:
             raise ValueError(
                 f"Expected {self.num_args} arguments, got {len(flattened_args)}."
@@ -56,7 +57,11 @@ class Params:
                 args.append(Decimal(str(flattened_args[i])))
                 i += 1
 
-        return dict(zip(self.arg_names, args))
+        for name in kwargs:
+            if name not in self.dict_args:
+                raise ValueError(f"Unknown parameter: '{name}'")
+
+        return {**dict(zip(self.arg_names, args)), **kwargs}
 
     def batch_assignments(self, *args) -> List[Dict[str, ParamType]]:
         flattened_args = self.parse_args(*args)
