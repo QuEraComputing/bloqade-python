@@ -77,6 +77,12 @@ class AHSCodegenResult:
     def braket_task_ir(self) -> BraketTaskSpecification:
         import braket.ir.ahs as ir
 
+        def convert_time_units(time):
+            return Decimal("1e-6") * time
+
+        def convert_energy_units(energy):
+            return Decimal("1e6") * energy
+
         return BraketTaskSpecification(
             nshots=self.nshots,
             program=ir.Program(
@@ -90,22 +96,47 @@ class AHSCodegenResult:
                         ir.DrivingField(
                             amplitude=ir.PhysicalField(
                                 time_series=ir.TimeSeries(
-                                    times=self.global_rabi_amplitude.times,
-                                    values=self.global_rabi_amplitude.values,
+                                    times=list(
+                                        map(
+                                            convert_time_units,
+                                            self.global_rabi_amplitude.times,
+                                        )
+                                    ),
+                                    values=list(
+                                        map(
+                                            convert_energy_units,
+                                            self.global_rabi_amplitude.values,
+                                        )
+                                    ),
                                 ),
                                 pattern="uniform",
                             ),
                             phase=ir.PhysicalField(
                                 time_series=ir.TimeSeries(
-                                    times=self.global_rabi_phase.times,
+                                    times=list(
+                                        map(
+                                            convert_time_units,
+                                            self.global_rabi_phase.times,
+                                        )
+                                    ),
                                     values=self.global_rabi_phase.values,
                                 ),
                                 pattern="uniform",
                             ),
                             detuning=ir.PhysicalField(
                                 time_series=ir.TimeSeries(
-                                    times=self.global_detuning.times,
-                                    values=self.global_detuning.values,
+                                    times=list(
+                                        map(
+                                            convert_time_units,
+                                            self.global_detuning.times,
+                                        )
+                                    ),
+                                    values=list(
+                                        map(
+                                            convert_energy_units,
+                                            self.global_detuning.values,
+                                        )
+                                    ),
                                 ),
                                 pattern="uniform",
                             ),
@@ -118,8 +149,18 @@ class AHSCodegenResult:
                             ir.ShiftingField(
                                 amplitude=ir.PhysicalField(
                                     time_series=ir.TimeSeries(
-                                        times=self.local_detuning.times,
-                                        values=self.local_detuning.values,
+                                        times=list(
+                                            map(
+                                                convert_time_units,
+                                                self.local_detuning.times,
+                                            )
+                                        ),
+                                        values=list(
+                                            map(
+                                                convert_energy_units,
+                                                self.local_detuning.values,
+                                            )
+                                        ),
                                     ),
                                     pattern=self.lattice_site_coefficients,
                                 )
