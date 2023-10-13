@@ -80,8 +80,8 @@ instance/
 docs/_build/
 
 # mkdocs
-docs/site
-docs/docs/reference
+site/
+docs/reference/
 
 # PyBuilder
 .pybuilder/

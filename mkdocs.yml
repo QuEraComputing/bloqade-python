@@ -5,6 +5,7 @@ site_description: >-
 
 repo_name: bloqade-python
 repo_url: https://github.com/QuEraComputing/bloqade-python
+edit_uri: 'edit/main/docs/'
 
 # Page tree
 nav:
@@ -23,7 +24,8 @@ nav:
     - Asking a Question: 'contributing/asking-a-question.md'
   - Tutorials: 'https://queracomputing.github.io/bloqade-python-examples/latest/'
   - Reference:
-    - Builder workflow : tree/builder.md
+    - Builder Overview: docs/builder-workflow/overview.md
+    - Builder Standard Diagram: docs/builder-workflow/standard.md 
     - API References : reference/bloqade/
   - Blog:
     - 2023:
@@ -36,7 +38,7 @@ nav:
 copyright: Copyright &copy; 2023 - QuEra Computing Inc.
 theme:
   name: material
-  custom_dir: overrides
+  custom_dir: docs/overrides
   features:
     - announce.dismiss
     - content.action.edit
@@ -85,7 +87,7 @@ plugins:
       separator: '[\s\-,:!=\[\]()"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
   - gen-files:
       scripts:
-      - scripts/gen_ref_nav.py
+      - docs/scripts/gen_ref_nav.py
   - literate-nav:
       nav_file: SUMMARY.txt
   - mkdocstrings:

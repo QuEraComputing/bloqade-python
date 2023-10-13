@@ -1,5 +1,5 @@
 
-# Build workflow:
+# Build Workflow
 
 ``` mermaid
 graph TD
