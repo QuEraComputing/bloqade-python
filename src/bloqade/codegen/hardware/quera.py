@@ -599,7 +599,7 @@ class AHSCodegen(AnalogCircuitVisitor):
         self.visit(ast)
         self.fix_up_missing_fields()
 
-        if all(
+        if all(  # TODO: move this into analysis portion.
             [
                 self.global_detuning is None,
                 self.global_rabi_amplitude is None,
