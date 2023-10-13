@@ -11,7 +11,7 @@ from bloqade.ir import (
     NamedPulse,
 )
 from bloqade import cast
-import bloqade.ir.analysis.assignment_scan as asn
+import bloqade.ir.analysis.common.assignment_scan as asn
 import bloqade.codegen.hardware.quera as quer
 from bloqade.ir.control.sequence import NamedSequence
 from bloqade.ir.control.pulse import Slice

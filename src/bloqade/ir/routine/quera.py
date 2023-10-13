@@ -54,7 +54,7 @@ class QuEraHardwareRoutine(RoutineBase):
     ) -> RemoteBatch:
         from bloqade.codegen.common.assign_variables import AssignAnalogCircuit
 
-        from bloqade.ir.analysis.assignment_scan import AssignmentScan
+        from bloqade.ir.analysis.common.assignment_scan import AssignmentScan
         from bloqade.codegen.hardware.quera import QuEraCodeGen
 
         circuit, params = self.circuit, self.params
