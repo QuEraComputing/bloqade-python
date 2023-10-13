@@ -1,5 +1,4 @@
 import bloqade.ir.control.waveform as waveform
-from bloqade.ir.control.waveform import Record
 from bloqade.ir.visitor.waveform import WaveformVisitor
 
 from typing import Dict, Tuple, List, Union
@@ -48,21 +47,17 @@ class PiecewiseConstant:
                 values = self.values[start_index:stop_index] + [self.values[stop_index]]
         else:
             if stop_time == self.times[stop_index]:
-                absolute_times = [start_time] + self.times[
-                    start_index + 1 : stop_index + 1
-                ]
+                absolute_times = [start_time] + self.times[start_index : stop_index + 1]
                 values = [self.values[start_index]] + self.values[
-                    start_index + 1 : stop_index + 1
+                    start_index : stop_index + 1
                 ]
             else:
                 absolute_times = (
-                    [start_time]
-                    + self.times[start_index + 1 : stop_index]
-                    + [stop_time]
+                    [start_time] + self.times[start_index:stop_index] + [stop_time]
                 )
                 values = (
                     [self.values[start_index]]
-                    + self.values[start_index + 1 : stop_index]
+                    + self.values[start_index:stop_index]
                     + [self.values[stop_index]]
                 )
 
@@ -71,7 +66,7 @@ class PiecewiseConstant:
     def append(self, other: "PiecewiseConstant"):
         return PiecewiseConstant(
             times=self.times + [time + self.times[-1] for time in other.times[1:]],
-            values=self.values + other.values[1:],
+            values=self.values[:-1] + other.values,
         )
 
 
@@ -216,7 +211,7 @@ class PiecewiseConstantCodeGen(WaveformVisitor):
         values[-1] = values[-2]
         self.values = values
 
-    def visit_record(self, ast: Record) -> Tuple[List[Decimal], List[Decimal]]:
+    def visit_record(self, ast: waveform.Record) -> Tuple[List[Decimal], List[Decimal]]:
         self.visit(ast.waveform)
 
     def emit(self, ast: waveform.Waveform) -> PiecewiseConstant:
