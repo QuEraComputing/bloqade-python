@@ -41,14 +41,14 @@ class PiecewiseConstant:
         if start_time == self.times[start_index]:
             if stop_time == self.times[stop_index]:
                 absolute_times = list(self.times[start_index : stop_index + 1])
-                values = list(self.values)
+                values = list(self.values[start_index : stop_index + 1])
             else:
                 absolute_times = self.times[start_index:stop_index] + [stop_time]
                 values = self.values[start_index:stop_index] + [self.values[stop_index]]
         else:
             if stop_time == self.times[stop_index]:
                 absolute_times = [start_time] + self.times[start_index : stop_index + 1]
-                values = [self.values[start_index]] + self.values[
+                values = [self.values[start_index - 1]] + self.values[
                     start_index : stop_index + 1
                 ]
             else:
@@ -56,10 +56,12 @@ class PiecewiseConstant:
                     [start_time] + self.times[start_index:stop_index] + [stop_time]
                 )
                 values = (
-                    [self.values[start_index]]
+                    [self.values[start_index - 1]]
                     + self.values[start_index:stop_index]
                     + [self.values[stop_index]]
                 )
+
+        values[-1] = values[-2]
 
         return PiecewiseConstant([time - start_time for time in absolute_times], values)
 
