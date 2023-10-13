@@ -246,6 +246,7 @@ class AHSCodegen(AnalogCircuitVisitor):
         assignments: Dict[str, Union[numbers.Real, List[numbers.Real]]] = {},
         capabilities: Optional[QuEraCapabilities] = None,
     ):
+        self.nshots = shots
         self.capabilities = capabilities
         self.assignments = assignments
         self.parallel_decoder = None
@@ -256,6 +257,16 @@ class AHSCodegen(AnalogCircuitVisitor):
         self.lattice_site_coefficients = None
         self.global_rabi_amplitude = None
         self.global_rabi_phase = None
+
+    def extract_fields(self, ahs_result: AHSCodegenResult) -> None:
+        self.nshots = ahs_result.nshots
+        self.sites = ahs_result.sites
+        self.filling = ahs_result.filling
+        self.global_detuning = ahs_result.global_detuning
+        self.global_rabi_amplitude = ahs_result.global_rabi_amplitude
+        self.global_rabi_phase = ahs_result.global_rabi_phase
+        self.lattice_site_coefficients = ahs_result.lattice_site_coefficients
+        self.local_detuning = ahs_result.local_detuning
 
     @staticmethod
     def convert_position_to_SI_units(position: Tuple[Decimal]):
@@ -434,18 +445,23 @@ class AHSCodegen(AnalogCircuitVisitor):
         self.visit(ast.pulse)
 
     def visit_append_pulse(self, ast: pulse.Append):
-        raise NotImplementedError(
-            "Failed to compile Append to QuEra task, "
-            "found non-atomic pulse expression: "
-            f"{repr(ast)}."
-        )
+        subexpr_compiler = AHSCodegen(self.nshots, self.assignments)
+        ahs_result = subexpr_compiler.emit(ast.pulses)
 
-    def visit_slice_pulse(self, ast: pulse.Append):
-        raise NotImplementedError(
-            "Failed to compile Append to QuEra task, "
-            "found non-atomic pulse expression: "
-            f"{repr(ast)}."
-        )
+        for seq in ast.sequences:
+            new_ahs_result = subexpr_compiler.emit(seq)
+            ahs_result = ahs_result.append(new_ahs_result)
+
+        self.extract_fields(ahs_result)
+
+    def visit_slice_pulse(self, ast: pulse.Slice):
+        start_time = ast.interval.start(**self.assignments)
+        stop_time = ast.interval.stop(**self.assignments)
+
+        ahs_result = AHSCodegen(self.nshots, self.assignments).emit(ast.pulse)
+        ahs_result = ahs_result.slice(start_time, stop_time)
+
+        self.extract_fields(ahs_result)
 
     def visit_sequence(self, ast: sequence.Sequence):
         if sequence.HyperfineLevelCoupling() in ast.pulses:
@@ -457,18 +473,22 @@ class AHSCodegen(AnalogCircuitVisitor):
         self.visit(ast.sequence)
 
     def visit_append_sequence(self, ast: sequence.Append):
-        raise NotImplementedError(
-            "Failed to compile Append to QuEra task, "
-            "found non-atomic sequence expression: "
-            f"{repr(ast)}."
-        )
+        subexpr_compiler = AHSCodegen(self.nshots, self.assignments)
+        ahs_result = subexpr_compiler.emit(ast.sequences[0])
+
+        for sub_sequence in ast.sequences[1:]:
+            new_ahs_result = subexpr_compiler.emit(sub_sequence)
+            ahs_result = ahs_result.append(new_ahs_result)
+
+        self.extract_fields(ahs_result)
 
     def visit_slice_sequence(self, ast: sequence.Slice):
-        raise NotImplementedError(
-            "Failed to compile Slice to QuEra task, "
-            "found non-atomic sequence expression: "
-            f"{repr(ast)}."
-        )
+        start_time = ast.interval.start(**self.assignments)
+        stop_time = ast.interval.stop(**self.assignments)
+
+        ahs_result = AHSCodegen(self.nshots, self.assignments).emit(ast.sequence)
+        ahs_result = ahs_result.slice(start_time, stop_time)
+        self.extract_fields(ahs_result)
 
     def visit_register(self, ast: AtomArrangement):
         self.sites = []
@@ -576,11 +596,11 @@ class AHSCodegen(AnalogCircuitVisitor):
         self.visit(ast.register)
         self.visit(ast.sequence)
 
-    def emit(self, nshots: int, analog_circuit: AnalogCircuit) -> AHSCodegenResult:
-        self.visit(analog_circuit)
+    def emit(self, ast) -> AHSCodegenResult:
+        self.visit(ast)
 
         return AHSCodegenResult(
-            nshots=nshots,
+            nshots=self.nshots,
             parallel_decoder=self.parallel_decoder,
             sites=self.sites,
             filling=self.filling,

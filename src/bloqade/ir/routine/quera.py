@@ -66,9 +66,7 @@ class QuEraHardwareRoutine(RoutineBase):
         for task_number, batch_params in enumerate(params.batch_assignments(*args)):
             record_params = AssignmentScan(batch_params).emit(circuit)
             final_circuit = AssignAnalogCircuit(record_params).visit(circuit)
-            result = AHSCodegen(shots, capabilities=capabilities).emit(
-                shots, final_circuit
-            )
+            result = AHSCodegen(shots, capabilities=capabilities).emit(final_circuit)
             task_ir = result.quera_task_ir.discretize(capabilities)
             metadata = {**params.static_params, **record_params}
             tasks[task_number] = QuEraTask(
