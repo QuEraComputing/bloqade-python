@@ -32,16 +32,43 @@ class PiecewiseLinear:
             return m * t + b
 
     def slice(self, start_time: Decimal, stop_time: Decimal) -> "PiecewiseLinear":
-        if start_time == stop_time:
-            return [Decimal(0.0), Decimal(0.0)], [Decimal(0.0), Decimal(0.0)]
+        start_time = (
+            Decimal(str(start_time))
+            if not isinstance(start_time, Decimal)
+            else start_time
+        )
+        stop_time = (
+            Decimal(str(stop_time)) if not isinstance(stop_time, Decimal) else stop_time
+        )
 
-        start_index = bisect_right(self.times, start_time)
+        if start_time == stop_time:
+            return PiecewiseLinear(
+                [Decimal(0.0), Decimal(0.0)], [Decimal(0.0), Decimal(0.0)]
+            )
+
+        start_index = bisect_left(self.times, start_time)
         stop_index = bisect_left(self.times, stop_time)
         start_value = self.eval(start_time)
         stop_value = self.eval(stop_time)
 
-        absolute_times = [start_time] + self.times[start_index:stop_index] + [stop_time]
-        values = [start_value] + self.values[start_index:stop_index] + [stop_value]
+        if start_time == self.times[start_index]:
+            if stop_time == self.times[start_index]:
+                absolute_times = list(self.times[start_index : stop_index + 1])
+                values = list(self.values[start_index : stop_index + 1])
+            else:
+                absolute_times = self.times[start_index:stop_index] + [stop_time]
+                values = self.values[start_index:stop_index] + [stop_value]
+        else:
+            if stop_time == self.times[stop_index]:
+                absolute_times = [start_time] + self.times[start_index : stop_index + 1]
+                values = [start_value] + self.values[start_index : stop_index + 1]
+            else:
+                absolute_times = (
+                    [start_time] + self.times[start_index:stop_index] + [stop_time]
+                )
+                values = (
+                    [start_value] + self.values[start_index:stop_index] + [stop_value]
+                )
 
         return PiecewiseLinear([time - start_time for time in absolute_times], values)
 

@@ -4,7 +4,7 @@ from bloqade.ir.visitor.waveform import WaveformVisitor
 
 from typing import Dict, Tuple, List, Union
 from pydantic.dataclasses import dataclass
-from bisect import bisect_left, bisect_right
+from bisect import bisect_left
 import numbers
 from decimal import Decimal
 
@@ -28,16 +28,43 @@ class PiecewiseConstant:
             return self.values[index]
 
     def slice(self, start_time, stop_time) -> "PiecewiseConstant":
+        start_time = Decimal(str(start_time))
+        stop_time = Decimal(str(stop_time))
+
         if start_time == stop_time:
-            return [Decimal(0.0), Decimal(0.0)], [Decimal(0.0), Decimal(0.0)]
+            return PiecewiseConstant(
+                [Decimal(0.0), Decimal(0.0)], [Decimal(0.0), Decimal(0.0)]
+            )
 
         start_index = bisect_left(self.times, start_time)
-        stop_index = bisect_right(self.times, stop_time)
-        start_value = self.eval(start_time)
-        stop_value = self.eval(stop_time)
+        stop_index = bisect_left(self.times, stop_time)
 
-        absolute_times = [start_time] + self.times[start_index:stop_index] + [stop_time]
-        values = [start_value] + self.values[start_index:stop_index] + [stop_value]
+        if start_time == self.times[start_index]:
+            if stop_time == self.times[stop_index]:
+                absolute_times = list(self.times[start_index : stop_index + 1])
+                values = list(self.values)
+            else:
+                absolute_times = self.times[start_index:stop_index] + [stop_time]
+                values = self.values[start_index:stop_index] + [self.values[stop_index]]
+        else:
+            if stop_time == self.times[stop_index]:
+                absolute_times = [start_time] + self.times[
+                    start_index + 1 : stop_index + 1
+                ]
+                values = [self.values[start_index]] + self.values[
+                    start_index + 1 : stop_index + 1
+                ]
+            else:
+                absolute_times = (
+                    [start_time]
+                    + self.times[start_index + 1 : stop_index]
+                    + [stop_time]
+                )
+                values = (
+                    [self.values[start_index]]
+                    + self.values[start_index + 1 : stop_index]
+                    + [self.values[stop_index]]
+                )
 
         return PiecewiseConstant([time - start_time for time in absolute_times], values)
 
@@ -85,7 +112,7 @@ class PiecewiseConstantCodeGen(WaveformVisitor):
         self.append_timeseries(value, duration)
 
     def visit_poly(self, ast: waveform.Poly) -> Tuple[List[Decimal], List[Decimal]]:
-        order = len(ast.coeffs) - 1
+        order = len(ast.coeffs)
         duration = ast.duration(**self.assignments)
 
         if order == 0:
@@ -93,8 +120,6 @@ class PiecewiseConstantCodeGen(WaveformVisitor):
 
         elif order == 1:
             value = ast.coeffs[0](**self.assignments)
-
-            self.values.append(value)
 
         elif order == 2:
             start = ast.coeffs[0](**self.assignments)
