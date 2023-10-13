@@ -268,6 +268,41 @@ class AHSCodegen(AnalogCircuitVisitor):
         self.lattice_site_coefficients = ahs_result.lattice_site_coefficients
         self.local_detuning = ahs_result.local_detuning
 
+    def fix_up_missing_fields(self) -> None:
+        # fix-up any missing fields
+        duration = 0.0
+
+        if self.global_rabi_amplitude:
+            duration = max(duration, self.global_rabi_amplitude.times[-1])
+
+        if self.global_rabi_phase:
+            duration = max(duration, self.global_rabi_phase.times[-1])
+
+        if self.global_detuning:
+            duration = max(duration, self.global_detuning.times[-1])
+
+        if self.local_detuning:
+            duration = max(duration, self.local_detuning.times[-1])
+
+        if duration > 0:
+            if self.global_rabi_amplitude is None:
+                self.global_rabi_amplitude = PiecewiseLinear(
+                    [Decimal(0), duration], [Decimal(0), Decimal(0)]
+                )
+
+            if self.global_rabi_phase is None:
+                self.global_rabi_phase = PiecewiseConstant(
+                    [Decimal(0), duration], [Decimal(0), Decimal(0)]
+                )
+
+            if self.global_detuning is None:
+                self.global_detuning = PiecewiseLinear(
+                    [Decimal(0), duration], [Decimal(0), Decimal(0)]
+                )
+
+        if self.local_detuning is None:
+            pass
+
     @staticmethod
     def convert_position_to_SI_units(position: Tuple[Decimal]):
         return tuple(coordinate * Decimal("1e-6") for coordinate in position)
@@ -404,42 +439,6 @@ class AHSCodegen(AnalogCircuitVisitor):
         for field_name in ast.fields.keys():
             self.field_name = field_name
             self.visit(ast.fields[field_name])
-
-        # fix-up any missing fields
-        duration = 0.0
-
-        if self.global_rabi_amplitude:
-            duration = max(duration, self.global_rabi_amplitude.times[-1])
-
-        if self.global_rabi_phase:
-            duration = max(duration, self.global_rabi_phase.times[-1])
-
-        if self.global_detuning:
-            duration = max(duration, self.global_detuning.times[-1])
-
-        if self.local_detuning:
-            duration = max(duration, self.local_detuning.times[-1])
-
-        if duration == Decimal(0):
-            raise ValueError("No Fields found in pulse.")
-
-        if self.global_rabi_amplitude is None:
-            self.global_rabi_amplitude = PiecewiseLinear(
-                [Decimal(0), duration], [Decimal(0), Decimal(0)]
-            )
-
-        if self.global_rabi_phase is None:
-            self.global_rabi_phase = PiecewiseConstant(
-                [Decimal(0), duration], [Decimal(0), Decimal(0)]
-            )
-
-        if self.global_detuning is None:
-            self.global_detuning = PiecewiseLinear(
-                [Decimal(0), duration], [Decimal(0), Decimal(0)]
-            )
-
-        if self.local_detuning is None:
-            pass
 
     def visit_named_pulse(self, ast: pulse.NamedPulse):
         self.visit(ast.pulse)
@@ -598,6 +597,17 @@ class AHSCodegen(AnalogCircuitVisitor):
 
     def emit(self, ast) -> AHSCodegenResult:
         self.visit(ast)
+        self.fix_up_missing_fields()
+
+        if all(
+            [
+                self.global_detuning is None,
+                self.global_rabi_amplitude is None,
+                self.global_rabi_phase is None,
+                self.local_detuning is None,
+            ]
+        ):
+            raise ValueError("No fields were specified.")
 
         return AHSCodegenResult(
             nshots=self.nshots,
