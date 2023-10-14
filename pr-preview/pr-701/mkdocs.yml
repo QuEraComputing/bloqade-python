@@ -1,0 +1,169 @@
+site_name: The Neutral Atom SDK
+site_url: https://bloqade.quera.com
+site_description: >-
+  The neutral atom computing software development kit.
+
+repo_name: bloqade-python
+repo_url: https://github.com/QuEraComputing/bloqade-python
+
+# Page tree
+nav:
+  - Home: index.md
+  - Getting started:
+    - Installation: getting_started/installation.md
+    - Usage: getting_started/philosophy.md
+  - Contributing:
+    - contributing/index.md
+    - Reporting Bugs: contributing/reporting-a-bug.md
+    - Reporting Documentation Issues: contributing/documentation-issues.md
+    - Feature Requests: contributing/feature-requests.md
+    - Developing Bloqade: contributing/developing-bloqade.md
+    - Design Philosophy and Architecture: contributing/design-philosophy-and-architecture.md
+    - Community Slack: contributing/community-slack.md
+    - Asking a Question: 'contributing/asking-a-question.md'
+  - Tutorials: 'https://queracomputing.github.io/bloqade-python-examples/latest/'
+  - Reference:
+    - Builder workflow : tree/builder.md
+    - API References : reference/bloqade/
+  - Blog:
+    - 2023:
+      - blog/2023/index.md
+      - Introducing Bloqade SDK for Python: blog/2023/posts/bloqade-release.md
+
+
+  - License: https://github.com/QuEraComputing/bloqade-python/blob/main/LICENSE
+
+copyright: Copyright &copy; 2023 - QuEra Computing Inc.
+theme:
+  name: material
+  custom_dir: overrides
+  features:
+    - announce.dismiss
+    - content.action.edit
+    - content.action.view
+    - content.code.annotate
+    - content.code.copy
+    # - content.tabs.link
+    - content.tooltips
+    # - header.autohide
+    # - navigation.expand
+    - navigation.footer
+    - navigation.indexes
+    # - navigation.instant
+    # - navigation.prune
+    - navigation.sections
+    - navigation.tabs
+    # - navigation.tabs.sticky
+    - navigation.top
+    - navigation.tracking
+    - search.highlight
+    - search.share
+    - search.suggest
+    - toc.follow
+  palette:
+    - scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  favicon: assets/favicon.ico
+  logo: assets/logo-dark.png
+  font:
+    text: Lato
+extra_css:
+  - stylesheets/extra.css
+
+plugins:
+  - search:
+      separator: '[\s\-,:!=\[\]()"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
+  - gen-files:
+      scripts:
+      - scripts/gen_ref_nav.py
+  - literate-nav:
+      nav_file: SUMMARY.txt
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [../src]
+          options:
+            show_if_no_docstring: false
+            separate_signature: true
+            merge_init_into_class: true
+            docstring_options:
+              ignore_init_summary: true
+  - minify:
+      minify_html: true
+  - mkdocs-jupyter:
+      include: ["*.py"] # only include scripts
+      ignore: ["*.ipynb"]
+      execute: true # always execute
+      include_source: True
+  - mike
+
+extra:
+  version:
+    provider: mike
+  annotate:
+    json: [.s2]
+  analytics:
+    provider: google
+    property: G-N62T9XL07S
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/QuEraComputing/bloqade-python
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/bloqade/
+    # TODO: make a mastodon account!
+    # - icon: fontawesome/brands/mastodon
+    #   link: https://fosstodon.org/@squidfunk
+    - icon: fontawesome/brands/twitter
+      link: https://twitter.com/QueraComputing
+
+# Extensions
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - toc:
+      permalink: true
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_generator: !!python/name:materialx.emoji.to_svg
+      emoji_index: !!python/name:materialx.emoji.twemoji
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.magiclink:
+      repo_url_shorthand: true
+      user: squidfunk
+      repo: mkdocs-material
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
