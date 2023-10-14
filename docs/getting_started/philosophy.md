@@ -36,9 +36,9 @@ calculation = (
     .rydberg
 )
 ```
-Note that from here on out, you can no longer add to your geometry as the `rydberg` property is terminal.
+Note that from here on out, you can no longer add to your geometry as the `rydberg` property is terminal. Note if you want to see what the next options are, you can use an IDE like PyCharm to see the available options or use the tab completion feature in Jupyter notebooks! In an IDE you will not only see hints for the next options but also the documentation for that option as well.
 
-From here, you can select the different parts of the Rydberg drive. For example, if you want to build the detuning part of the drive, you can choose the `detuning` property.
+Continuing with our example, you can select the different parts of the Rydberg drive. For example, if you want to build the detuning part of the drive, you can choose the `detuning` property.
 
 ```python
 from bloqade import start
@@ -80,7 +80,7 @@ calculation = (
     .add_position([(6.8, 0), (6.8, 6.8)])
     .rydberg.detuning.uniform.
     piecewise_linear(
-        durations = [0.1, 1.0 0.1],
+        durations = [0.1, 1.0, 0.1],
         values = [-10, -10, 10, 10]
     )
 )
@@ -98,22 +98,22 @@ calculation = (
     .add_position([(6.8, 0), (6.8, 6.8)])
     .rydberg.detuning.uniform.
     piecewise_linear(
-        durations = [0.1, 1.0 0.1],
+        durations = [0.1, 1.0, 0.1],
         values = [-10, -10, 10, 10]
     )
     .amplitude.uniform.
     piecewise_linear(
-        durations = [0.1, 1.0 0.1],
+        durations = [0.1, 1.0, 0.1],
         values = [0, 10, 10, 0]
     )
 )
 ```
 
 If the next property is:
-1. `hyperfine` will start to build the Hyperfine driving transition
+1. `hyperfine` will switch the build context to build the Hyperfine driving transition
 2. `amplitude` or `rabi.amplitude` will start to build the rabi amplitude in the current context, e.g. rydberg
-3. `phase` or `rabi.phase` will start to build the rabi phase in the current context
-4. A spatial modulation will add a new channel to the current field, e.g. detuning
+3. `phase` or `rabi.phase` will start to build the rabi phase in the current context e.g. rydberg
+4. Selecting a new spatial modulation will add a new channel to the current field, e.g. detuning
 5. Repeating the previously specified spatial modulations will add that waveform with the previously defined waveform in that spatial modulation.
 
 ```python
@@ -126,12 +126,12 @@ calculation = (
     .add_position([(6.8, 0), (6.8, 6.8)])
     .rydberg.detuning.uniform.
     piecewise_linear(
-        durations = [0.1, 1.0 0.1],
+        durations = [0.1, 1.0, 0.1],
         values = [-10, -10, "final_detuning", "final_detuning"]
     )
     .amplitude.uniform.
     piecewise_linear(
-        durations = [0.1, 1.0 0.1],
+        durations = [0.1, 1.0, 0.1],
         values = [0, 10, 10, 0]
     )
 )
@@ -153,19 +153,19 @@ calculation = (
     .add_position([(6.8, 0), (6.8, 6.8)])
     .rydberg.detuning.uniform.
     piecewise_linear(
-        durations = [0.1, 1.0 0.1],
+        durations = [0.1, 1.0, 0.1],
         values = [-10, -10, "final_detuning", "final_detuning"]
     )
     .amplitude.uniform.
     piecewise_linear(
-        durations = [0.1, 1.0 0.1],
+        durations = [0.1, 1.0, 0.1],
         values = [0, 10, 10, 0]
     )
-    .batch_assign(detuning_final=[0,1,2,3,4])
+    .batch_assign(final_detuning=[0,1,2,3,4])
     .braket.aquila()
 )
 ```
-For tasks executed through a remote API, there are three options to run your job. The first is an asynchronous call via `submit`, which will return a `RemoteBatch` object. This object has various methods to `fetch` and or `pull` results from the remote API, along with some other tools that can query the status of the task(s) in this batch. `run` is another method that blocks the script waiting for all the tasks to finish, susequently returning the `RemoteBatch`. The final option is to use the `__call__` method of the `calculation` object for hybrid workflows. The call object is effectively the same as calling `run`. However, specifying the `args` option will allow you to call `__call__` with arguments corresponding to the list of strings provided by `args`.
+For tasks executed through a remote API, there are three options to run your job. The first is an asynchronous call via `submit`, which will return a `RemoteBatch` object. This object has various methods to `fetch` and or `pull` results from the remote API, along with some other tools that can query the status of the task(s) in this batch. `run` is another method that blocks the script waiting for all the tasks to finish, subsequently returning the `RemoteBatch`. The final option is to use the `__call__` method of the `calculation` object for hybrid workflows. The call object is effectively the same as calling `run`. However, specifying the `args` option will allow you to call `__call__` with arguments corresponding to the list of strings provided by `args`.
 
 The `RemoteBatch` object can be saved in JSON format using the `save` and reloaded back into Python using the `load` functions. This capability is useful for the asynchronous case, where you can save the batch and load it back later to retrieve the results.
 
@@ -193,15 +193,15 @@ program = (
         durations = [0.1, 1.0, 0.1],
         values = [0, 10, 10, 0]
     )
-    .batch_assign(detuning_final=[0,1,2,3,4])
+    .batch_assign(final_detuning=[0,1,2,3,4])
 )
 
 emulator_batch = program.braket.local_emulator().run(1000)
 
 hardware_batch = program.parallelize(20).braket.aquila().submit(1000)
 
-save("emulator_results.json", emulator_batch)
-save("hardware_results.json", hardware_batch)
+save(emulator_batch, "emulator_results.json")
+save(hardware_batch, "hardware_results.json")
 
 # Analysis script
 
