@@ -48,7 +48,7 @@ graph TD
   "])
 
   Submit("[Submission]
-  submit()
+  run_async()
   run()
   __call__")
 
@@ -76,4 +76,5 @@ graph TD
   QuEraBackends --> Submit;
   BraketBackends --> Submit;
   BloqadeBackends --> Submit;
+
 ```

@@ -19,7 +19,7 @@ circuit = init_qubits(n_qubits)
 circuit.x(0).z(1).cnot(0, 1)...
 ```
 
-What's the deal with that? 
+What's the deal with that?
 
 ## Syntax Motivations
 
