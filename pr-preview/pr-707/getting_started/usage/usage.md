@@ -78,8 +78,8 @@ calculation = (
     .add_position((0, 0))
     .add_position((0, 6.8))
     .add_position([(6.8, 0), (6.8, 6.8)])
-    .rydberg.detuning.uniform.
-    piecewise_linear(
+    .rydberg.detuning.uniform
+    .piecewise_linear(
         durations = [0.1, 1.0, 0.1],
         values = [-10, -10, 10, 10]
     )
@@ -96,13 +96,13 @@ calculation = (
     .add_position((0, 0))
     .add_position((0, 6.8))
     .add_position([(6.8, 0), (6.8, 6.8)])
-    .rydberg.detuning.uniform.
-    piecewise_linear(
+    .rydberg.detuning.uniform
+    .piecewise_linear(
         durations = [0.1, 1.0, 0.1],
         values = [-10, -10, 10, 10]
     )
-    .amplitude.uniform.
-    piecewise_linear(
+    .amplitude.uniform
+    .piecewise_linear(
         durations = [0.1, 1.0, 0.1],
         values = [0, 10, 10, 0]
     )
@@ -124,13 +124,13 @@ calculation = (
     .add_position((0, 0))
     .add_position((0, 6.8))
     .add_position([(6.8, 0), (6.8, 6.8)])
-    .rydberg.detuning.uniform.
-    piecewise_linear(
+    .rydberg.detuning.uniform
+    .piecewise_linear(
         durations = [0.1, 1.0, 0.1],
         values = [-10, -10, "final_detuning", "final_detuning"]
     )
-    .amplitude.uniform.
-    piecewise_linear(
+    .amplitude.uniform
+    .piecewise_linear(
         durations = [0.1, 1.0, 0.1],
         values = [0, 10, 10, 0]
     )
@@ -151,13 +151,13 @@ calculation = (
     .add_position((0, 0))
     .add_position((0, 6.8))
     .add_position([(6.8, 0), (6.8, 6.8)])
-    .rydberg.detuning.uniform.
-    piecewise_linear(
+    .rydberg.detuning.uniform
+    .piecewise_linear(
         durations = [0.1, 1.0, 0.1],
         values = [-10, -10, "final_detuning", "final_detuning"]
     )
-    .amplitude.uniform.
-    piecewise_linear(
+    .amplitude.uniform
+    .piecewise_linear(
         durations = [0.1, 1.0, 0.1],
         values = [0, 10, 10, 0]
     )
@@ -183,13 +183,13 @@ program = (
     .add_position((0, 0))
     .add_position((0, 6.8))
     .add_position([(6.8, 0), (6.8, 6.8)])
-    .rydberg.detuning.uniform.
-    piecewise_linear(
+    .rydberg.detuning.uniform
+    .piecewise_linear(
         durations = [0.1, 1.0, 0.1],
         values = [-10, -10, "final_detuning", "final_detuning"]
     )
-    .amplitude.uniform.
-    piecewise_linear(
+    .amplitude.uniform
+    .piecewise_linear(
         durations = [0.1, 1.0, 0.1],
         values = [0, 10, 10, 0]
     )
