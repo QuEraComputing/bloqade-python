@@ -50,4 +50,4 @@ jobs:
           GOOGLE_ANALYTICS_KEY: ${{ secrets.GOOGLE_ANALYTICS_KEY }}
         run: |
           git fetch origin gh-pages --depth=1
-          pdm run mike deploy --rebase --push -F ${GITHUB_WORKSPACE}/docs/mkdocs.yml dev
+          pdm run mike deploy --rebase --push -F ${GITHUB_WORKSPACE}/mkdocs.yml dev
