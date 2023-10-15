@@ -1,4 +1,4 @@
-In bloqade we use the `.` to separate the different parts of your quantum program. The most basic starting point for your program will be the `bloqade.start` object.
+In bloqade we use the `.` to separate the different parts of your quantum program.  The reason for this is to guide you through how to build a neutral atom simulation. If you are using an IDE like PyCharm or VS code you can see the available options for building your program along with the documentation associated with each option. Similarly in Jupyter notebook environments you can also access this information via tab completion feature in Jupyter notebooks! That being said, we will go through a simple example of how to build a program in bloqade. We will start with a simple program that does nothing.
 
 ```python
 from bloqade import start
@@ -23,7 +23,7 @@ calculation = (
 )
 ```
 
-If you want to start to build the Rydberg drive you can select the `rydberg` property.
+You can also start from a predefined geometry in the `bloqade.atom_arrangements` submodule. If you want to start to build the Rydberg drive you can select the `rydberg` property.
 
 ```python
 from bloqade import start
@@ -36,7 +36,7 @@ calculation = (
     .rydberg
 )
 ```
-Note that from here on out, you can no longer add to your geometry as the `rydberg` property is terminal. Note if you want to see what the next options are, you can use an IDE like PyCharm to see the available options or use the tab completion feature in Jupyter notebooks! In an IDE you will not only see hints for the next options but also the documentation for that option as well.
+Note that from here on out, you can no longer add to your geometry as the `rydberg` property is terminal. This is another advantage of using the `.` to separate the different parts of your program and guide you through the build process.
 
 Continuing with our example, you can select the different parts of the Rydberg drive. For example, if you want to build the detuning part of the drive, you can choose the `detuning` property.
 
@@ -67,8 +67,7 @@ calculation = (
 )
 ```
 
-Here, we selected the `uniform` property, indicating that the detuning will be uniform across the atoms. You can also select `var(name)` where `name` is the name of the variable
-defined using a string. Having variables will allow you to define a spatially varying detuning as a list of real numbers. You can also select individual atoms using the `location(index)` method, where `index` is the integer associated with the lattice. Now that we have the drive's spatial modulation, we can start to build the time dependence of the detuning field. Continuing with the example, we can add individual segments to the time function using `linear` or `constant` methods, or we have shortcuts to common waveforms like `piecewise_linear` or `piecewise_constant`. We use a piecewise linear function to define the Detuning waveform on Aquila.
+Here, we selected the `uniform` property, indicating that the detuning will be uniform across the atoms. You can also select `scale(value)` where `value` is a string to indicate a that you want to specify the value later or a list for the lattice site scaling. Having variables will allow you to define a spatially varying detuning as a list of real numbers. You can also select individual atoms using the `location(index, scale)` method, where `index` is the integer associated with the lattice. Now that we have the drive's spatial modulation, we can start to build the time dependence of the detuning field. Continuing with the example, we can add individual segments to the time function using `linear` or `constant` methods, or we have shortcuts to common waveforms like `piecewise_linear` or `piecewise_constant`. We use a piecewise linear function to define the Detuning waveform on Aquila.
 
 ```python
 from bloqade import start
@@ -196,7 +195,7 @@ program = (
     .batch_assign(final_detuning=[0,1,2,3,4])
 )
 
-emulator_batch = program.braket.local_emulator().run(1000)
+emulator_batch = program.bloqade.python().run(1000)
 
 hardware_batch = program.parallelize(20).braket.aquila().submit(1000)
 
