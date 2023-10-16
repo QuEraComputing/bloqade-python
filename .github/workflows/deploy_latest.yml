@@ -17,7 +17,7 @@ jobs:
     name: Deploy release documentation
     runs-on: ubuntu-latest
     steps:
-      - name: Wait for Dev documentation to deploy
+      - name: Wait for dev documentation to deploy
         uses: lewagon/wait-on-check-action@v1.3.1
         with:
           ref: main
