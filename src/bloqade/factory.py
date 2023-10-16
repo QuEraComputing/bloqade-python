@@ -10,9 +10,9 @@ def linear(duration: ScalarType, start: ScalarType, stop: ScalarType) -> Linear:
     """Create a Linear waveform.
 
     Args:
-        duration (ScalarType): duration of linear waveform
-        start (ScalarType): starting value of linear waveform
-        stop (ScalarType): ending value of linear waveform
+        duration (ScalarType): Duration of linear waveform
+        start (ScalarType): Starting value of linear waveform
+        stop (ScalarType): Ending value of linear waveform
 
     Returns:
         Linear: Linear waveform
@@ -25,8 +25,8 @@ def constant(duration: ScalarType, value: ScalarType) -> Constant:
     """Create a Constant waveform.
 
     Args:
-        duration (ScalarType): _description_
-        value (ScalarType): _description_
+        duration (ScalarType): Duration of the Constant waveform.
+        value (ScalarType): Value of the Constant waveform.s
 
     Returns:
         Constant: A Constant waveform.
