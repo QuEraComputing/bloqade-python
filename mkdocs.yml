@@ -5,13 +5,14 @@ site_description: >-
 
 repo_name: bloqade-python
 repo_url: https://github.com/QuEraComputing/bloqade-python
+edit_uri: 'edit/main/docs/'
 
 # Page tree
 nav:
   - Home: index.md
   - Getting started:
     - Installation: getting_started/installation.md
-    - Usage: getting_started/philosophy.md
+    - Usage: getting_started/usage.md
   - Contributing:
     - contributing/index.md
     - Reporting Bugs: contributing/reporting-a-bug.md
@@ -23,20 +24,20 @@ nav:
     - Asking a Question: 'contributing/asking-a-question.md'
   - Tutorials: 'https://queracomputing.github.io/bloqade-python-examples/latest/'
   - Reference:
-    - Builder workflow : tree/builder.md
+    - Builder Overview: builder-workflow/overview.md
+    - Builder Standard Diagram: builder-workflow/standard.md
     - API References : reference/bloqade/
   - Blog:
     - 2023:
       - blog/2023/index.md
       - Introducing Bloqade SDK for Python: blog/2023/posts/bloqade-release.md
 
-
   - License: https://github.com/QuEraComputing/bloqade-python/blob/main/LICENSE
 
 copyright: Copyright &copy; 2023 - QuEra Computing Inc.
 theme:
   name: material
-  custom_dir: overrides
+  custom_dir: docs/overrides
   features:
     - announce.dismiss
     - content.action.edit
@@ -85,7 +86,7 @@ plugins:
       separator: '[\s\-,:!=\[\]()"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
   - gen-files:
       scripts:
-      - scripts/gen_ref_nav.py
+      - docs/scripts/gen_ref_nav.py
   - literate-nav:
       nav_file: SUMMARY.txt
   - mkdocstrings:
@@ -100,11 +101,6 @@ plugins:
               ignore_init_summary: true
   - minify:
       minify_html: true
-  - mkdocs-jupyter:
-      include: ["*.py"] # only include scripts
-      ignore: ["*.ipynb"]
-      execute: true # always execute
-      include_source: True
   - mike
 
 extra:
