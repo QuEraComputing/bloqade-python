@@ -20,8 +20,8 @@ jobs:
       - name: Wait for any preview documentation to deploy
         uses: lewagon/wait-on-check-action@v1.3.1
         with:
-          ref: main
-          check-name: 'Deploy preview documentation'
+          ref: "**"
+          check-name: 'Deploy dev documentation'
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           wait-interval: 10
       - uses: actions/checkout@v4
