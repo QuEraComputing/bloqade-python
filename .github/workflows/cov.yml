@@ -1,12 +1,11 @@
-name: CI
+name: Coverage
 
 on:
   pull_request:
   push:
     branches:
       - main
-  schedule:
-  - cron: '00 01 * * *'
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
@@ -16,22 +15,18 @@ env:
   PDM_DEPS: 'urllib3<2'
 
 jobs:
-  build:
+  coverage:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.9", "3.10", "3.11"]
-
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: Set up Python 3.9
         uses: actions/setup-python@v4
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: 3.9
       - uses: pdm-project/setup-pdm@v3
         name: Setup PDM
         with:
-          python-version: ${{ matrix.python-version }}  # Version range or exact version of a Python version to use, the same as actions/setup-python
+          python-version: 3.9  # Version range or exact version of a Python version to use, the same as actions/setup-python
           # well we use virtualenv here
           # prerelease: true     # Allow prerelease versions to be installed
           # enable-pep582: true  # Enable PEP 582 package loading globally
@@ -39,4 +34,11 @@ jobs:
         run: pdm install       # Then you can use pdm in the following steps.
       - name: Test with pytest & generate coverage
         run: |
-          pdm test
+          pdm run coverage
+      - name: Upload Coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage.xml # optional
+          fail_ci_if_error: true # optional (default = false)
+          verbose: true # optional (default = false)
