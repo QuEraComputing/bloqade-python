@@ -66,6 +66,11 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
+         <loc>https://bloqade.quera.com/contributing/providing-feedback/</loc>
+         <lastmod>2023-10-16</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
          <loc>https://bloqade.quera.com/contributing/reporting-a-bug/</loc>
          <lastmod>2023-10-16</lastmod>
          <changefreq>daily</changefreq>
@@ -472,11 +477,6 @@
     </url>
     <url>
          <loc>https://bloqade.quera.com/reference/bloqade/task/quera/</loc>
-         <lastmod>2023-10-16</lastmod>
-         <changefreq>daily</changefreq>
-    </url>
-    <url>
-         <loc>https://bloqade.quera.com/tutorials/</loc>
          <lastmod>2023-10-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
