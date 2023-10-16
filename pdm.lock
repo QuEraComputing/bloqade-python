@@ -1553,7 +1553,7 @@ files = [
 
 [[package]]
 name = "mkdocs-jupyter"
-version = "0.24.5"
+version = "0.24.6"
 requires_python = ">=3.9"
 summary = "Use Jupyter in mkdocs websites"
 dependencies = [
@@ -1565,8 +1565,8 @@ dependencies = [
     "pygments>2.12.0",
 ]
 files = [
-    {file = "mkdocs_jupyter-0.24.5-py3-none-any.whl", hash = "sha256:e8b9c5f3988004372ba2f95c4a70e2125f9c85b1e8ee2b2afc7879f7b3632c88"},
-    {file = "mkdocs_jupyter-0.24.5.tar.gz", hash = "sha256:fa7804879a627702497e2afaea40a3db1cbdd2a3aba0e4417782dd24ca899bb3"},
+    {file = "mkdocs_jupyter-0.24.6-py3-none-any.whl", hash = "sha256:56fb7ad796f2414a4143d54a966b805caf315c32413e97f85591623fa87dceca"},
+    {file = "mkdocs_jupyter-0.24.6.tar.gz", hash = "sha256:89fcbe8a9523864d5416de1a60711640b6bc2972279d2adf46ed2776c2d9ff7c"},
 ]
 
 [[package]]
