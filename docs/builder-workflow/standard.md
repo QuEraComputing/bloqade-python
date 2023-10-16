@@ -2,82 +2,76 @@
 # Build Workflow
 
 ``` mermaid
-%%{init: {"flowchart": {"htmlLabels": false}} }%%
+
 flowchart TD
 
-  ProgramStart(["`start`"])
+  ProgramStart(["start"])
 
-  Geometry("`
-  **Geometry**
+  Geometry("Geometry")
 
-  ListOfLocations
-  Chain
-  Square
-  Rectangular
-  Honeycomb
-  Triangular
-  Lieb
-  Kagome
-  `")
-
-  Coupling["`**Coupling**
-
+  Coupling["Coupling
+  -----------
   rydberg
-  hyperfine
-  `"]
+  hyperfine"]
 
-  Detuning["`detuning`"]
-  Rabi["`rabi`"]
+  Detuning["detuning"]
+  Rabi["rabi"]
 
-  Amplitude["`amplitude`"]
-  Phase["`phase`"]
+  Amplitude["amplitude"]
+  Phase["phase"]
 
-  SpaceModulation("`**SpatialModulation**
-
+  SpaceModulation("SpatialModulation
+  ----------------------
   uniform
   scale
   location
-  `")
-  Waveform{"`**Waveform**
-
+  ")
+  Waveform{"Waveform
+  ------------
   piecewise_linear
   piecewise_constant
   constant
   linear
   poly
   fn
-  `"}
+  "}
 
-  Options(["`**Options**
+  Options(["Options
+  ---------
   assign
   batch_assign
   args
   parallelize
-  `"])
+  "])
 
-  Services(["`**Services**
+  Services(["Services
+  ----------
   bloqade
   quera
-  braket`"])
+  braket"])
 
-  QuEraBackends(["`**Backends**
+  QuEraBackends(["Backends
+  ------------
   mock
   cloud_mock
   aquila
-  device`"])
+  device"])
 
-  BraketBackends(["`**Backends**
+  BraketBackends(["Backends
+  ------------
   aquila
-  local_emulator`"])
+  local_emulator"])
 
-  BloqadeBackends(["`**Backends**
+  BloqadeBackends(["Backends
+  ------------
   python
-  julia`"])
+  julia"])
 
-  Submit("`**Execution**
+  Submit("Execution
+  ------------
   run_async()
   run()
-  __call__`")
+  __call__")
 
   ProgramStart -->|add_position| Geometry;
   Geometry --> Coupling;
