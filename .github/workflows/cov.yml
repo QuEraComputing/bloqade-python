@@ -17,10 +17,6 @@ env:
 jobs:
   coverage:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: []
-
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python 3.9
