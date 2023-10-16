@@ -17,6 +17,13 @@ jobs:
     name: Deploy dev documentation
     runs-on: ubuntu-latest
     steps:
+      - name: Wait for any preview documentation to deploy
+        uses: lewagon/wait-on-check-action@v1.3.1
+        with:
+          ref: main
+          check-name: 'Deploy preview documentation'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          wait-interval: 10
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
