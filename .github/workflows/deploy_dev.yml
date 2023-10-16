@@ -20,10 +20,10 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: Set up Python 3.11
         uses: actions/setup-python@v4
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: 3.11
       - uses: pdm-project/setup-pdm@v3
         name: Setup PDM
         with:
@@ -49,5 +49,5 @@ jobs:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
           GOOGLE_ANALYTICS_KEY: ${{ secrets.GOOGLE_ANALYTICS_KEY }}
         run: |
-          git fetch origin gh-pages --depth=1
-          pdm run mike deploy --rebase --push -F ${GITHUB_WORKSPACE}/mkdocs.yml dev
+          git fetch origin gh-pages --depth=0
+          pdm run mike deploy --push dev dev
