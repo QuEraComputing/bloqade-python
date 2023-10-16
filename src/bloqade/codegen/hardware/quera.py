@@ -73,22 +73,29 @@ class AHSCodegenResult:
             self.local_detuning.append(other.local_detuning),
         )
 
+    @staticmethod
+    def convert_position_units(position):
+        return tuple(coordinate * Decimal("1e-6") for coordinate in position)
+
+    @staticmethod
+    def convert_time_units(time):
+        return Decimal("1e-6") * time
+
+    @staticmethod
+    def convert_energy_units(energy):
+        return Decimal("1e6") * energy
+
     @cached_property
     def braket_task_ir(self) -> BraketTaskSpecification:
         import braket.ir.ahs as ir
-
-        def convert_time_units(time):
-            return Decimal("1e-6") * time
-
-        def convert_energy_units(energy):
-            return Decimal("1e6") * energy
 
         return BraketTaskSpecification(
             nshots=self.nshots,
             program=ir.Program(
                 setup=ir.Setup(
                     ahs_register=ir.AtomArrangement(
-                        sites=self.sites, filling=self.filling
+                        sites=list(map(self.convert_position_units, self.sites)),
+                        filling=self.filling,
                     )
                 ),
                 hamiltonian=ir.Hamiltonian(
@@ -98,13 +105,13 @@ class AHSCodegenResult:
                                 time_series=ir.TimeSeries(
                                     times=list(
                                         map(
-                                            convert_time_units,
+                                            self.convert_time_units,
                                             self.global_rabi_amplitude.times,
                                         )
                                     ),
                                     values=list(
                                         map(
-                                            convert_energy_units,
+                                            self.convert_energy_units,
                                             self.global_rabi_amplitude.values,
                                         )
                                     ),
@@ -115,7 +122,7 @@ class AHSCodegenResult:
                                 time_series=ir.TimeSeries(
                                     times=list(
                                         map(
-                                            convert_time_units,
+                                            self.convert_time_units,
                                             self.global_rabi_phase.times,
                                         )
                                     ),
@@ -127,13 +134,13 @@ class AHSCodegenResult:
                                 time_series=ir.TimeSeries(
                                     times=list(
                                         map(
-                                            convert_time_units,
+                                            self.convert_time_units,
                                             self.global_detuning.times,
                                         )
                                     ),
                                     values=list(
                                         map(
-                                            convert_energy_units,
+                                            self.convert_energy_units,
                                             self.global_detuning.values,
                                         )
                                     ),
@@ -151,13 +158,13 @@ class AHSCodegenResult:
                                     time_series=ir.TimeSeries(
                                         times=list(
                                             map(
-                                                convert_time_units,
+                                                self.convert_time_units,
                                                 self.local_detuning.times,
                                             )
                                         ),
                                         values=list(
                                             map(
-                                                convert_energy_units,
+                                                self.convert_energy_units,
                                                 self.local_detuning.values,
                                             )
                                         ),
@@ -175,27 +182,25 @@ class AHSCodegenResult:
     def quera_task_ir(self) -> QuEraTaskSpecification:
         import bloqade.submission.ir.task_specification as task_spec
 
-        def convert_time_units(time):
-            return Decimal("1e-6") * time
-
-        def convert_energy_units(energy):
-            return Decimal("1e6") * energy
-
         return task_spec.QuEraTaskSpecification(
             nshots=self.nshots,
-            lattice=task_spec.Lattice(sites=self.sites, filling=self.filling),
+            lattice=task_spec.Lattice(
+                sites=list(map(self.convert_position_units, self.sites)),
+                filling=self.filling,
+            ),
             effective_hamiltonian=task_spec.EffectiveHamiltonian(
                 rydberg=task_spec.RydbergHamiltonian(
                     rabi_frequency_amplitude=task_spec.RabiFrequencyAmplitude(
                         global_=task_spec.GlobalField(
                             times=list(
                                 map(
-                                    convert_time_units, self.global_rabi_amplitude.times
+                                    self.convert_time_units,
+                                    self.global_rabi_amplitude.times,
                                 )
                             ),
                             values=list(
                                 map(
-                                    convert_energy_units,
+                                    self.convert_energy_units,
                                     self.global_rabi_amplitude.values,
                                 )
                             ),
@@ -204,7 +209,10 @@ class AHSCodegenResult:
                     rabi_frequency_phase=task_spec.RabiFrequencyPhase(
                         global_=task_spec.GlobalField(
                             times=list(
-                                map(convert_time_units, self.global_rabi_phase.times)
+                                map(
+                                    self.convert_time_units,
+                                    self.global_rabi_phase.times,
+                                )
                             ),
                             values=self.global_rabi_phase.values,
                         )
@@ -212,10 +220,13 @@ class AHSCodegenResult:
                     detuning=task_spec.Detuning(
                         global_=task_spec.GlobalField(
                             times=list(
-                                map(convert_time_units, self.global_detuning.times)
+                                map(self.convert_time_units, self.global_detuning.times)
                             ),
                             values=list(
-                                map(convert_energy_units, self.global_detuning.values)
+                                map(
+                                    self.convert_energy_units,
+                                    self.global_detuning.values,
+                                )
                             ),
                         ),
                         local=(
@@ -223,11 +234,15 @@ class AHSCodegenResult:
                             if self.lattice_site_coefficients is None
                             else task_spec.LocalField(
                                 times=list(
-                                    map(convert_time_units, self.local_detuning.times)
+                                    map(
+                                        self.convert_time_units,
+                                        self.local_detuning.times,
+                                    )
                                 ),
                                 values=list(
                                     map(
-                                        convert_energy_units, self.local_detuning.values
+                                        self.convert_energy_units,
+                                        self.local_detuning.values,
                                     )
                                 ),
                                 lattice_site_coefficients=self.lattice_site_coefficients,
@@ -302,10 +317,6 @@ class AHSCodegen(AnalogCircuitVisitor):
 
         if self.local_detuning is None:
             pass
-
-    @staticmethod
-    def convert_position_to_SI_units(position: Tuple[Decimal]):
-        return tuple(coordinate * Decimal("1e-6") for coordinate in position)
 
     def post_visit_spatial_modulation(self, lattice_site_coefficients):
         self.lattice_site_coefficients = []
@@ -495,7 +506,7 @@ class AHSCodegen(AnalogCircuitVisitor):
 
         for location_info in ast.enumerate():
             site = tuple(ele(**self.assignments) for ele in location_info.position)
-            self.sites.append(AHSCodegen.convert_position_to_SI_units(site))
+            self.sites.append(site)
             self.filling.append(location_info.filling.value)
 
         self.n_atoms = len(self.sites)
@@ -573,7 +584,7 @@ class AHSCodegen(AnalogCircuitVisitor):
             for cluster_location_index, (location, filled) in enumerate(
                 zip(new_register_locations[:], register_filling)
             ):
-                site = AHSCodegen.convert_position_to_SI_units(tuple(location))
+                site = tuple(location)
                 sites.append(site)
                 filling.append(filled)
 

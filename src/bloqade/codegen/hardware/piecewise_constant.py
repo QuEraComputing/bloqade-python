@@ -95,7 +95,7 @@ class PiecewiseConstantCodeGen(WaveformVisitor):
         if start != stop:
             raise ValueError(
                 "Failed to compile Waveform to piecewise constant, "
-                "found non-constant Linear piecce."
+                "found non-constant Linear piece."
             )
 
         self.append_timeseries(start, duration)
@@ -109,16 +109,16 @@ class PiecewiseConstantCodeGen(WaveformVisitor):
         self.append_timeseries(value, duration)
 
     def visit_poly(self, ast: waveform.Poly) -> Tuple[List[Decimal], List[Decimal]]:
-        order = len(ast.coeffs)
+        order = len(ast.coeffs) - 1
         duration = ast.duration(**self.assignments)
 
-        if order == 0:
+        if len(ast.coeffs) == 0:
             value = Decimal(0)
 
-        elif order == 1:
+        elif len(ast.coeffs) == 1:
             value = ast.coeffs[0](**self.assignments)
 
-        elif order == 2:
+        elif len(ast.coeffs) == 2:
             start = ast.coeffs[0](**self.assignments)
             stop = start + ast.coeffs[1](**self.assignments) * duration
 

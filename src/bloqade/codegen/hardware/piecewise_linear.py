@@ -81,27 +81,27 @@ class PiecewiseLinear:
         )
 
 
-def check_continiuity(left, right):
-    if left != right:
-        diff = abs(left - right)
-        raise ValueError(
-            f"discontinuity with a jump of {diff} found when compiling to "
-            "piecewise linear."
-        )
-
-
 class PiecewiseLinearCodeGen(WaveformVisitor):
     def __init__(self, assignments: Dict[str, Union[numbers.Real, List[numbers.Real]]]):
         self.assignments = assignments
         self.times = []
         self.values = []
 
+    @staticmethod
+    def check_continiuity(left, right):
+        if left != right:
+            diff = abs(left - right)
+            raise ValueError(
+                f"discontinuity with a jump of {diff} found when compiling to "
+                "piecewise linear."
+            )
+
     def append_timeseries(self, start, stop, duration):
         if len(self.times) == 0:
             self.times = [Decimal(0), duration]
             self.values = [start, stop]
         else:
-            check_continiuity(self.values[-1], start)
+            self.check_continiuity(self.values[-1], start)
 
             self.times.append(duration + self.times[-1])
             self.values.append(stop)
@@ -130,7 +130,6 @@ class PiecewiseLinearCodeGen(WaveformVisitor):
             start = ast.coeffs[0](**self.assignments)
             stop = start
         elif len(ast.coeffs) == 2:
-            duration = ast.duration(**self.assignments)
             start = ast.coeffs[0](**self.assignments)
             stop = start + ast.coeffs[1](**self.assignments) * duration
         else:
@@ -196,7 +195,7 @@ class PiecewiseLinearCodeGen(WaveformVisitor):
             if new_pwl.times[-1] == Decimal(0):
                 continue
 
-            check_continiuity(pwl.values[-1], new_pwl.values[0])
+            self.check_continiuity(pwl.values[-1], new_pwl.values[0])
             pwl = pwl.append(new_pwl)
 
         self.times = pwl.times
