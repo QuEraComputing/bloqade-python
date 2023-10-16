@@ -60,6 +60,5 @@ jobs:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
           GOOGLE_ANALYTICS_KEY: ${{ secrets.GOOGLE_ANALYTICS_KEY }}
         run: |
-          git fetch origin gh-pages --depth=1
-          pdm run mike deploy --rebase --push -F ${GITHUB_WORKSPACE}/mkdocs.yml  --update-aliases latest ${RELEASE_TAG_VERSION}
-          pdm run mike set-default --rebase --push -F ${GITHUB_WORKSPACE}/mkdocs.yml latest
+          git fetch origin gh-pages --depth=0
+          pdm run mike deploy --push ${RELEASE_TAG_VERSION} latest
