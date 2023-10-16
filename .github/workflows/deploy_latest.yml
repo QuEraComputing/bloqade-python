@@ -55,11 +55,10 @@ jobs:
         run: |
           export RELEASE_TAG_VERSION=${{ github.event.release.tag_name }}
           echo "RELEASE_TAG_VERSION=${RELEASE_TAG_VERSION::3}" >> $GITHUB_ENV
-      - name: Depoly documentation
+      - name: Deploy documentation
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
           GOOGLE_ANALYTICS_KEY: ${{ secrets.GOOGLE_ANALYTICS_KEY }}
         run: |
           git fetch origin gh-pages --depth=1
-          pdm run mike deploy --rebase --push -F ${GITHUB_WORKSPACE}/mkdocs.yml  --update-aliases latest ${RELEASE_TAG_VERSION}
-          pdm run mike set-default --rebase --push -F ${GITHUB_WORKSPACE}/mkdocs.yml latest
+          pdm run mike deploy --push --update-alias ${RELEASE_TAG_VERSION} latest

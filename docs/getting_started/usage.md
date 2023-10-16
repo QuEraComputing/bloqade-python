@@ -23,7 +23,7 @@ calculation = (
 )
 ```
 
-You can also start from a predefined geometry in the `bloqade.atom_arrangements` submodule. If you want to start to build the Rydberg drive you can select the `rydberg` property.
+You can also start from a predefined geometry in the `bloqade.atom_arrangements` submodule. If you want to start to build the Rydberg drive you can select the `rydberg` property. You can also skip creating a geometry and just build a rydberg pulse as well, in more advanced use cases you can extract the given drive and apply it to a different geometry.
 
 ```python
 from bloqade import start
