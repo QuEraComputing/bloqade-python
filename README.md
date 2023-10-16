@@ -187,4 +187,6 @@ Bloqade wouldn't exist if we weren't fortunate enough to obtain feedback from aw
 
 If you find a bug, have an idea, or find an issue with our documentation, please feel free to file an issue on the [Github repo itself](https://github.com/QuEraComputing/bloqade-python/issues/new/choose).
 
+After using/experimenting/tinkering/hacking with Bloqade it would also be helpful to us for you to fill out [this form](https://share.hsforms.com/1FJjYan2VQC6NfrQ5IPAcewdrwvd) which allows us to get some more detailed feedback.
+
 *May the van der Waals force be with you!*
