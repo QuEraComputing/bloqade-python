@@ -4,6 +4,7 @@ out.txt
 .DS_Store
 tests/data/jobs/
 main.html
+main*.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
