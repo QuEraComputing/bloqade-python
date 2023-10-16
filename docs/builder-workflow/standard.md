@@ -7,7 +7,7 @@ flowchart TD
 
   ProgramStart(["start"])
 
-  Geometry("Geometry")
+  Geometry("Geometry or Lattice")
 
   Coupling["Coupling
   -----------
