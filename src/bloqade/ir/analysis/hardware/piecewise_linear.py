@@ -81,10 +81,6 @@ class PiecewiseLinearValidator(WaveformVisitor):
             self.result.check_continuity(new_result)
             self.result = new_result
 
-            
-            
-        
-
     def visit_constant(self, ast: waveform.Constant) -> Any:
         self.check(ast.value, ast.value, ast.duration)
 

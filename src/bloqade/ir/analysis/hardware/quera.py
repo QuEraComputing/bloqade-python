@@ -1,7 +1,7 @@
 from typing import Any
 import bloqade.ir.analog_circuit as analog_circuit
 from bloqade.ir.analysis.hardware.piecewise_linear import PiecewiseLinearValidator, PiecewiseLinearValidatorResults
-from bloqade.ir.analysis.hardware.piecewise_constant import PiecewiseConstantValidator, PiecewiseConstantValidatorResults
+from bloqade.ir.analysis.hardware.piecewise_constant import PiecewiseConstantValidator
 import bloqade.ir.location.base as location
 from bloqade.ir.visitor.analog_circuit import AnalogCircuitVisitor
 import bloqade.ir.control.sequence as sequence
@@ -16,7 +16,7 @@ from pydantic.dataclasses import dataclass
 
 @dataclass
 class AHSValidatorResult:
-    detuning_value: 
+    detuning_value: PiecewiseLinearValidatorResults
 
 
 class AHSValidator(AnalogCircuitVisitor):
