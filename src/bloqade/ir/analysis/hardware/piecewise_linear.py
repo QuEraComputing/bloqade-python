@@ -14,11 +14,9 @@ from typing import Any, Dict, Union
 class PiecewiseLinearValidatorResults:
     start_expr: Union[waveform.Waveform, scalar.Scalar]
     stop_expr: Union[waveform.Waveform, scalar.Scalar]
-    duration_expr: scalar.Scalar
     stop_value: Decimal
     start_value: Decimal
-    duration: Decimal
-    time: Decimal
+    time: scalar.Scalar
 
 
 class PiecewiseLinearValidator(WaveformVisitor):
@@ -26,58 +24,52 @@ class PiecewiseLinearValidator(WaveformVisitor):
         self.assignments = dict(assignments)
         self.start_expr = None
         self.stop_expr = None
-        self.duration_expr = None
         self.time = Decimal(0)
+
+    def eval_stop_expr(self, expr):
+        if isinstance(expr, waveform.Waveform):
+            duration = expr.duration(**self.assignments)
+            return expr.eval_decimal(duration, **self.assignments)
+        else:
+            return expr(**self.assignments)
+
+    def eval_start_expr(self, expr):
+        if isinstance(expr, waveform.Waveform):
+            return expr.eval_decimal(Decimal("0"), **self.assignments)
+        else:
+            return expr(**self.assignments)
 
     def check_continuity(self, start_expr, stop_expr, duration_expr):
         if self.start_expr is None:
             self.start_expr = start_expr
             self.stop_expr = stop_expr
-            self.duration_expr = duration_expr
-            duration = duration_expr(**self.assignments)
-            if isinstance(start_expr, waveform.Waveform):
-                self.start_value = start_expr.eval_decimal(
-                    Decimal("0"), **self.assignments
-                )
-            else:
-                self.start_value = start_expr(**self.assignments)
-
-            if isinstance(stop_expr, waveform.Waveform):
-                self.stop_value = stop_expr.eval_decimal(duration, **self.assignments)
-            else:
-                self.stop_value = stop_expr(**self.assignments)
-
-            self.time = duration
+            self.start_value = self.eval_expr(start_expr)
+            self.stop_value = self.eval_expr(stop_expr)
+            self.time = duration_expr
             return
 
-        duration = duration_expr(**self.assignments)
-
-        if isinstance(start_expr, waveform.Waveform):
-            start_value = start_expr.eval_decimal(duration, **self.assignments)
-        else:
-            start_value = start_expr(**self.assignments)
-
-        if isinstance(stop_expr, waveform.Waveform):
-            stop_value = stop_expr.eval_decimal(duration, **self.assignments)
-        else:
-            stop_value = stop_expr(**self.assignments)
+        start_value = self.eval_start_expr(start_expr)
+        stop_value = self.eval_stop_expr(stop_expr)
 
         if start_value != self.stop_value:
             var_result = ScanVariablesWaveform().emit(self.stop_expr)
             var_result = var_result.union(ScanVariablesWaveform().emit(start_expr))
+            var_result = var_result.union(ScanVariablesWaveform().emit(self.time))
 
             assignments = "\n    ".join(
-                [f"{k} -> {self.assignments[k]}" for k in var_result]
+                [f"{k} -> {self.assignments.get(k, 'Not Defined')}" for k in var_result]
             )
-            left_str = "\n    ".join(str(self.stop_expr).split("\n"))
-            right_Str = "\n    ".join(str(start_expr).split("\n"))
+            time_str = str(self.time).replace("\n", "\n    ")
+            left_str = str(self.stop_expr).replace("\n", "\n    ")
+            right_str = str(start_expr).replace("\n", "\n    ")
             raise ValueError(
                 "failed to compile waveform to piecewise linear. "
-                f"found discontinuity at time={self.time}\n"
+                f"found discontinuity at time={self.time(**self.assignments)}\n"
                 f"with left value {self.stop_value} "
                 f"and right value {start_value}:\n"
+                f"time expression:\n    {time_str}\n"
                 f"left expression:\n    {left_str}\n"
-                f"right expression:\n    {right_Str} \n"
+                f"right expression:\n    {right_str} \n"
                 f"with assignments:\n    {assignments}"
             )
 
@@ -129,7 +121,11 @@ class PiecewiseLinearValidator(WaveformVisitor):
         self.check_continuity(ast, ast, ast.duration)
 
     def visit_python_fn(self, ast: PythonFn) -> Any:
-        self.check_continuity(ast, ast, ast.duration)
+        raise ValueError(
+            "PythonFn Waveforms cannot be compiled to piecewise linear. "
+            "Try using the `sample` method to sample the waveform and "
+            "interpolate it linearly."
+        )
 
     def visit_alligned(self, ast: waveform.AlignedWaveform) -> Any:
         self.visit(ast.waveform)
@@ -139,7 +135,9 @@ class PiecewiseLinearValidator(WaveformVisitor):
             self.visit(wf)
 
     def visit_slice(self, ast: waveform.Slice):
+        # make sure waveform being sliced is piecewise linear
         PiecewiseLinearValidator(self.assignments).scan(ast.waveform)
+        # make sure slice is is piecewise linear
         self.check_continuity(ast, ast, ast.duration)
 
     def visit_add(self, ast: waveform.Add):
@@ -157,3 +155,11 @@ class PiecewiseLinearValidator(WaveformVisitor):
 
     def scan(self, ast: waveform.Waveform) -> PiecewiseLinearValidatorResults:
         self.visit(ast)
+
+        return PiecewiseLinearValidatorResults(
+            self.start_expr,
+            self.stop_expr,
+            self.stop_value,
+            self.start_value,
+            self.time,
+        )
