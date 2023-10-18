@@ -1,5 +1,11 @@
-from bloqade.ir.analysis.hardware.piecewise_linear import PiecewiseLinearValidator
-from bloqade.ir.analysis.hardware.piecewise_constant import PiecewiseConstantValidator
+from bloqade.ir.analysis.hardware.piecewise_linear import (
+    PiecewiseLinearValidator,
+    PiecewiseLinearValidatorResults,
+)
+from bloqade.ir.analysis.hardware.piecewise_constant import (
+    PiecewiseConstantValidator,
+    PiecewiseConstantValidatorResults,
+)
 from bloqade.ir.visitor.analog_circuit import AnalogCircuitVisitor
 import bloqade.ir.control.sequence as sequence
 import bloqade.ir.control.pulse as pulse
@@ -7,6 +13,14 @@ import bloqade.ir.control.field as field
 import bloqade.ir.control.waveform as waveform
 from bloqade.builder.typing import LiteralType
 from beartype.typing import Dict
+from pydantic.dataclasses import dataclass
+
+
+@dataclass
+class AHSValidatorResult:
+    detuning: PiecewiseLinearValidatorResults
+    rabi_amp: PiecewiseConstantValidatorResults
+    rabi_freq: PiecewiseConstantValidatorResults
 
 
 class AHSValidator(AnalogCircuitVisitor):
