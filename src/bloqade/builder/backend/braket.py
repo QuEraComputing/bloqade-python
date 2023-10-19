@@ -1,5 +1,12 @@
+from beartype.typing import TYPE_CHECKING
 from bloqade.builder.base import Builder
-from bloqade.ir.routine.braket import BraketHardwareRoutine, BraketLocalEmulatorRoutine
+
+
+if TYPE_CHECKING:
+    from bloqade.ir.routine.braket import (
+        BraketHardwareRoutine,
+        BraketLocalEmulatorRoutine,
+    )
 
 
 class BraketService(Builder):
@@ -18,7 +25,7 @@ class BraketService(Builder):
 
 
 class BraketDeviceRoute(Builder):
-    def device(self, device_arn) -> BraketHardwareRoutine:
+    def device(self, device_arn) -> "BraketHardwareRoutine":
         """
         Specify QPU based on the device ARN on Braket to submit your program to.
 
@@ -37,7 +44,7 @@ class BraketDeviceRoute(Builder):
         """
         return self.parse().braket.device(device_arn)
 
-    def aquila(self) -> BraketHardwareRoutine:
+    def aquila(self) -> "BraketHardwareRoutine":
         """
         Specify QuEra's Aquila QPU on Braket to submit your program to.
 
@@ -56,7 +63,7 @@ class BraketDeviceRoute(Builder):
         """
         return self.parse().braket.aquila()
 
-    def local_emulator(self) -> BraketLocalEmulatorRoutine:
+    def local_emulator(self) -> "BraketLocalEmulatorRoutine":
         """
         Specify the Braket local emulator to submit your program to.
 
