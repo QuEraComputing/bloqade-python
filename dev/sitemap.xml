@@ -76,21 +76,6 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://bloqade.quera.com/dev/getting_started/</loc>
-         <lastmod>2023-10-19</lastmod>
-         <changefreq>daily</changefreq>
-    </url>
-    <url>
-         <loc>https://bloqade.quera.com/dev/getting_started/installation/</loc>
-         <lastmod>2023-10-19</lastmod>
-         <changefreq>daily</changefreq>
-    </url>
-    <url>
-         <loc>https://bloqade.quera.com/dev/getting_started/usage/</loc>
-         <lastmod>2023-10-19</lastmod>
-         <changefreq>daily</changefreq>
-    </url>
-    <url>
          <loc>https://bloqade.quera.com/dev/reference/bloqade/</loc>
          <lastmod>2023-10-19</lastmod>
          <changefreq>daily</changefreq>
