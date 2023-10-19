@@ -1,13 +1,12 @@
-from bloqade import start, var, cast
+from bloqade import start, var, cast, dumps, loads
 from bloqade.atom_arrangement import Chain
-from bloqade.serialize import dumps, loads
 import numpy as np
 from beartype.typing import Dict
 from scipy.stats import ks_2samp
 
 
 def test_integration_1():
-    (
+    batch = (
         start.add_position((0, 0))
         .add_position((0, 5.0))
         .scale("r")
@@ -18,9 +17,12 @@ def test_integration_1():
         .assign(ramp_time=3.0, r=8)
         .bloqade.python()
         .run(10000, cache_matrices=True, blockade_radius=6.0, interaction_picture=True)
-        .report()
-        .bitstrings()
     )
+
+    batch_str = dumps(batch)
+    batch2 = loads(batch_str)
+    assert isinstance(batch2, type(batch))
+    batch2.report().bitstrings()
 
 
 def test_integration_2():
