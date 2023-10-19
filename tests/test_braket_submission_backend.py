@@ -49,6 +49,16 @@ def test_braket_submit(*args, **kwargs):
     mock_aws_device.run.assert_called_once()
 
 
+@patch("bloqade.submission.braket.AwsDevice")
+def test_add_braket_user_agent_invoked(*args, **kwargs):
+    backend = bloqade.submission.braket.BraketBackend()
+    expected_user_agent = f"Bloqade/{bloqade.__version__}"
+
+    backend.device.aws_session.add_braket_user_agent.assert_called_with(
+        expected_user_agent
+    )
+
+
 @pytest.mark.skip(
     reason="removed implementation for validation because of issue with empty queue."
 )

@@ -10,6 +10,7 @@ from bloqade.submission.ir.task_results import (
 )
 from bloqade.submission.ir.task_specification import QuEraTaskSpecification
 from braket.aws import AwsDevice, AwsQuantumTask
+import bloqade
 
 
 class BraketBackend(SubmissionBackend):
@@ -17,7 +18,10 @@ class BraketBackend(SubmissionBackend):
 
     @property
     def device(self) -> AwsDevice:
-        return AwsDevice(self.device_arn)
+        device = AwsDevice(self.device_arn)
+        user_agent = f"Bloqade/{bloqade.__version__}"
+        device.aws_session.add_braket_user_agent(user_agent)
+        return device
 
     def submit_task(self, task_ir: QuEraTaskSpecification) -> str:
         shots, ahs_program = to_braket_task(task_ir)
