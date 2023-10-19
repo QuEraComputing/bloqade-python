@@ -12,7 +12,7 @@ from bloqade.ir import (
 )
 import bloqade.ir.control.waveform as waveform
 import bloqade.ir.scalar as scalar
-from bloqade.codegen.common.assign_variables import AssignAnalogCircuit
+from bloqade.ir.transform.assign_variables import AssignAnalogCircuit
 from bloqade.ir.analysis.common.assignment_scan import AssignmentScan
 from decimal import Decimal
 import pytest

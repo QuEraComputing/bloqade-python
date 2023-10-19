@@ -24,7 +24,7 @@ class BloqadePythonRoutine(RoutineBase):
         cache_matrices: bool = False,
     ) -> LocalBatch:
         from bloqade.ir.analysis.common.assignment_scan import AssignmentScan
-        from bloqade.codegen.common.assign_variables import AssignAnalogCircuit
+        from bloqade.ir.transform.assign_variables import AssignAnalogCircuit
         from bloqade.codegen.emulator_ir import EmulatorProgramCodeGen
         from bloqade.emulate.codegen.hamiltonian import CompileCache
         from bloqade.task.bloqade import BloqadeTask
