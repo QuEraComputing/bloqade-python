@@ -13,6 +13,10 @@ from bloqade.task.braket import BraketTask
 
 @dataclass(frozen=True, config=__pydantic_dataclass_config__)
 class BraketServiceOptions(RoutineBase):
+    def device(self, device_arn: str) -> "BraketHardwareRoutine":
+        backend = BraketBackend(device_arn=device_arn)
+        return BraketHardwareRoutine(self.source, self.circuit, self.params, backend)
+
     def aquila(self) -> "BraketHardwareRoutine":
         backend = BraketBackend(
             device_arn="arn:aws:braket:us-east-1::device/qpu/quera/Aquila"
