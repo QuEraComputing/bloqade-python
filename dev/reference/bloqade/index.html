@@ -173,7 +173,7 @@
 </span><span id=__span-0-121><a id=__codelineno-0-121 name=__codelineno-0-121></a><span class=sd>    Returns:</span>
 </span><span id=__span-0-122><a id=__codelineno-0-122 name=__codelineno-0-122></a><span class=sd>        Any: the deserialized object</span>
 </span><span id=__span-0-123><a id=__codelineno-0-123 name=__codelineno-0-123></a><span class=sd>    &quot;&quot;&quot;</span>
-</span><span id=__span-0-124><a id=__codelineno-0-124 name=__codelineno-0-124></a>    <span class=n>load_patchage</span><span class=p>()</span>
+</span><span id=__span-0-124><a id=__codelineno-0-124 name=__codelineno-0-124></a>    <span class=n>load_bloqade</span><span class=p>()</span>
 </span><span id=__span-0-125><a id=__codelineno-0-125 name=__codelineno-0-125></a>    <span class=k>if</span> <span class=nb>isinstance</span><span class=p>(</span><span class=n>fp</span><span class=p>,</span> <span class=nb>str</span><span class=p>):</span>
 </span><span id=__span-0-126><a id=__codelineno-0-126 name=__codelineno-0-126></a>        <span class=k>with</span> <span class=nb>open</span><span class=p>(</span><span class=n>fp</span><span class=p>,</span> <span class=s2>&quot;r&quot;</span><span class=p>)</span> <span class=k>as</span> <span class=n>f</span><span class=p>:</span>
 </span><span id=__span-0-127><a id=__codelineno-0-127 name=__codelineno-0-127></a>            <span class=k>return</span> <span class=n>json</span><span class=o>.</span><span class=n>load</span><span class=p>(</span>
@@ -217,7 +217,7 @@
 </span><span id=__span-0-103><a id=__codelineno-0-103 name=__codelineno-0-103></a><span class=sd>    Returns:</span>
 </span><span id=__span-0-104><a id=__codelineno-0-104 name=__codelineno-0-104></a><span class=sd>        Any: the deserialized object</span>
 </span><span id=__span-0-105><a id=__codelineno-0-105 name=__codelineno-0-105></a><span class=sd>    &quot;&quot;&quot;</span>
-</span><span id=__span-0-106><a id=__codelineno-0-106 name=__codelineno-0-106></a>    <span class=n>load_patchage</span><span class=p>()</span>
+</span><span id=__span-0-106><a id=__codelineno-0-106 name=__codelineno-0-106></a>    <span class=n>load_bloqade</span><span class=p>()</span>
 </span><span id=__span-0-107><a id=__codelineno-0-107 name=__codelineno-0-107></a>    <span class=k>return</span> <span class=n>json</span><span class=o>.</span><span class=n>loads</span><span class=p>(</span>
 </span><span id=__span-0-108><a id=__codelineno-0-108 name=__codelineno-0-108></a>        <span class=n>s</span><span class=p>,</span> <span class=n>object_hook</span><span class=o>=</span><span class=n>Serializer</span><span class=o>.</span><span class=n>object_hook</span><span class=p>,</span> <span class=n>use_decimal</span><span class=o>=</span><span class=n>use_decimal</span><span class=p>,</span> <span class=o>**</span><span class=n>json_kwargs</span>
 </span><span id=__span-0-109><a id=__codelineno-0-109 name=__codelineno-0-109></a>    <span class=p>)</span>
