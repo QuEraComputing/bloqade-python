@@ -1,3 +1,4 @@
+from functools import cached_property
 from bloqade.submission.base import SubmissionBackend
 from bloqade.submission.ir.braket import (
     from_braket_task_results,
@@ -16,7 +17,7 @@ import bloqade
 class BraketBackend(SubmissionBackend):
     device_arn: str = "arn:aws:braket:us-east-1::device/qpu/quera/Aquila"
 
-    @property
+    @cached_property
     def device(self) -> AwsDevice:
         device = AwsDevice(self.device_arn)
         user_agent = f"Bloqade/{bloqade.__version__}"
