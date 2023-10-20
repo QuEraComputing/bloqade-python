@@ -130,9 +130,6 @@ class AtomArrangement(ProgramStart, TransformTrait):
         # calculate the Interaction matrix
         V_ij = np.zeros((self.n_sites, self.n_sites))
         for i, site_i in enumerate(self.enumerate()):
-            if site_i.filling == SiteFilling.vacant:
-                continue
-
             pos_i = np.array([float(ele(**assignments)) for ele in site_i.position])
 
             for j, site_j in enumerate(self.enumerate()):
