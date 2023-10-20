@@ -19,13 +19,6 @@ jobs:
     name: Deploy preview documentation
     runs-on: ubuntu-latest
     steps:
-      - name: Wait for dev documentation to deploy
-        uses: lewagon/wait-on-check-action@v1.3.1
-        with:
-          ref: main
-          check-name: 'Deploy dev documentation'
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          wait-interval: 10
       - uses: actions/checkout@v4
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
@@ -55,3 +48,4 @@ jobs:
         uses: rossjrw/pr-preview-action@v1
         with:
           source-dir: ./site
+          token: ${{ secrets.PREVIEW_TOKEN }}
