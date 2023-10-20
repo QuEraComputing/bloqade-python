@@ -137,7 +137,7 @@ class AtomArrangement(ProgramStart, TransformTrait):
 
             for j, site_j in enumerate(self.enumerate()):
                 if j >= i:
-                    continue
+                    break  # enforce lower triangular form
 
                 pos_j = np.array([float(ele(**assignments)) for ele in site_j.position])
                 r_ij = np.linalg.norm(pos_i - pos_j)
