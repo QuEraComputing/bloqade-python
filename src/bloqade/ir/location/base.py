@@ -10,6 +10,8 @@ from beartype import beartype
 from enum import Enum
 import plotext as pltxt
 import sys
+import numpy as np
+from numpy.typing import NDArray
 from bloqade.visualization import get_atom_arrangement_figure
 from bloqade.visualization import display_ir
 
@@ -111,6 +113,38 @@ class AtomArrangement(ProgramStart, TransformTrait):
 
     def show(self, **assignments) -> None:
         display_ir(self, assignments)
+
+    def rydberg_interaction(self, **assignments) -> NDArray:
+        """calculate the Rydberg interaction matrix.
+
+        Args:
+            **assignments: the values to assign to the variables in the register.
+
+        Returns:
+            NDArray: the Rydberg interaction matrix.
+
+        """
+
+        from bloqade.constants import RB_C6
+
+        # calculate the Interaction matrix
+        V_ij = np.zeros((self.n_sites, self.n_sites))
+        for i, site_i in enumerate(self.enumerate()):
+            if site_i.filling == SiteFilling.vacant:
+                continue
+
+            pos_i = np.array([float(ele(**assignments)) for ele in site_i.position])
+
+            for j, site_j in enumerate(self.enumerate()):
+                if j >= i:
+                    continue
+
+                pos_j = np.array([float(ele(**assignments)) for ele in site_j.position])
+                r_ij = np.linalg.norm(pos_i - pos_j)
+
+                V_ij[i, j] = RB_C6 / r_ij**6
+
+        return V_ij
 
     @property
     def n_atoms(self) -> int:
