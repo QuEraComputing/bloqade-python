@@ -61,4 +61,5 @@ jobs:
           GOOGLE_ANALYTICS_KEY: ${{ secrets.GOOGLE_ANALYTICS_KEY }}
         run: |
           git fetch origin gh-pages --depth=1
+          echo "deploy documentation for version ${RELEASE_TAG_VERSION}"
           pdm run mike deploy --update-alias --push ${RELEASE_TAG_VERSION} latest
