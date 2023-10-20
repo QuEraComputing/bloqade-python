@@ -121,7 +121,7 @@ class AtomArrangement(ProgramStart, TransformTrait):
             **assignments: the values to assign to the variables in the register.
 
         Returns:
-            NDArray: the Rydberg interaction matrix.
+            NDArray: the Rydberg interaction matrix in the lower triangular form.
 
         """
 
