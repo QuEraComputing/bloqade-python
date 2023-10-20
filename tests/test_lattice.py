@@ -12,10 +12,10 @@ def test_rydberg_interactions():
 
     V_ij = geometry.rydberg_interaction()
 
-    # 1  3
+    # 2  3
     #  \/
     #  /\
-    # 0  2
+    # 0  1
 
     d_01 = 5.0
     d_02 = 5.0
