@@ -1,8 +1,8 @@
 from typing import Any
 import bloqade.ir.control.waveform as waveform
 from bloqade.ir.visitor.waveform import WaveformVisitor
-from bloqade.ir.analysis.common.scan_variables import ScanVariablesWaveform
-from bloqade.ir.analysis.common.is_constant import IsConstantWaveform
+from bloqade.analysis.common.scan_variables import ScanVariablesWaveform
+from bloqade.analysis.common.is_constant import IsConstantWaveform
 
 
 class PiecewiseConstantValidator(WaveformVisitor):

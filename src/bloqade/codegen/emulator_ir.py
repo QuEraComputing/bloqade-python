@@ -1,4 +1,4 @@
-from bloqade.ir.analysis.common.assignment_scan import AssignmentScan
+from bloqade.analysis.common.assignment_scan import AssignmentScan
 from bloqade.ir.location.base import AtomArrangement, SiteFilling
 from bloqade.ir.visitor.analog_circuit import AnalogCircuitVisitor
 from bloqade.ir.visitor.waveform import WaveformVisitor
@@ -14,7 +14,7 @@ import bloqade.ir.control.pulse as pulse
 import bloqade.ir.control.waveform as waveform
 import bloqade.ir.control.field as field
 import bloqade.ir as ir
-from bloqade.ir.analysis.common.is_hyperfine import IsHyperfineSequence
+from bloqade.analysis.common.is_hyperfine import IsHyperfineSequence
 from bloqade.emulate.ir.atom_type import ThreeLevelAtom, TwoLevelAtom
 from bloqade.emulate.ir.emulator import (
     DetuningOperatorData,

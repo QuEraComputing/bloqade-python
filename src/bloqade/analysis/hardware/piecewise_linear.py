@@ -2,7 +2,7 @@ import bloqade.ir.control.waveform as waveform
 import bloqade.ir.scalar as scalar
 from bloqade.ir.control.waveform import PythonFn
 from bloqade.ir.visitor.waveform import WaveformVisitor
-from bloqade.ir.analysis.common.scan_variables import ScanVariablesWaveform
+from bloqade.analysis.common.scan_variables import ScanVariablesWaveform
 from bloqade.builder.typing import LiteralType
 
 from decimal import Decimal
