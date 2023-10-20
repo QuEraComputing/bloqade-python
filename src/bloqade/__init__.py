@@ -11,6 +11,7 @@ from bloqade.factory import (
 )
 import bloqade.ir as _ir
 from bloqade.constants import RB_C6
+from bloqade.submission.capabilities import get_capabilities
 
 import importlib.metadata
 
@@ -52,4 +53,5 @@ __all__ = [
     "dumps",
     "rydberg_h",
     "waveform",
+    "get_capabilities",
 ]
