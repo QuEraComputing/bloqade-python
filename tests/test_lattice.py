@@ -1,8 +1,41 @@
 import bloqade.ir as ir
 from bloqade.ir.location import ListOfLocations, AtomArrangement
 from bloqade.ir.location import Square
+from bloqade.constants import RB_C6
 from bloqade import cast
 import pytest
+import numpy as np
+
+
+def test_rydberg_interactions():
+    geometry = ListOfLocations([(0, 0), (1, 0), (0, 1), (1, 1)]).scale(5.0)
+
+    V_ij = geometry.rydberg_interaction()
+
+    # 1  3
+    #  \/
+    #  /\
+    # 0  2
+
+    d_01 = 5.0
+    d_02 = 5.0
+    d_03 = np.sqrt(2) * 5.0
+    d_12 = np.sqrt(2) * 5.0
+    d_13 = 5.0
+    d_23 = 5.0
+
+    V_01 = RB_C6 / d_01**6
+    V_02 = RB_C6 / d_02**6
+    V_03 = RB_C6 / d_03**6
+    V_12 = RB_C6 / d_12**6
+    V_13 = RB_C6 / d_13**6
+    V_23 = RB_C6 / d_23**6
+
+    V_ij_expected = np.array(
+        [[0, 0, 0, 0], [V_01, 0, 0, 0], [V_02, V_12, 0, 0], [V_03, V_13, V_23, 0]]
+    )
+
+    assert np.allclose(V_ij, V_ij_expected)
 
 
 def test_listOfLocations():
