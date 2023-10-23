@@ -154,7 +154,7 @@ class AHSCodegenResult:
                         if self.lattice_site_coefficients is None
                         else [
                             ir.ShiftingField(
-                                amplitude=ir.PhysicalField(
+                                magnitude=ir.PhysicalField(
                                     time_series=ir.TimeSeries(
                                         times=list(
                                             map(
