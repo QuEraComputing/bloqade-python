@@ -175,7 +175,6 @@ class CodegenPythonWaveform(WaveformVisitor):
                 f"{imports}"
                 f"\nfrom numba import njit, float64"
                 f"\n"
-                f"\n"
                 f"@njit(float64(float64))"
                 f"\n{func}"
             )
