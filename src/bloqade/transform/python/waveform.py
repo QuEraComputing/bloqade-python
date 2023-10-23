@@ -1,19 +1,4 @@
-from decimal import Decimal
 from functools import reduce
-from typing import Any
-from bloqade.ir.control.waveform import (
-    Add,
-    AlignedWaveform,
-    Append,
-    Linear,
-    Negative,
-    Poly,
-    PythonFn,
-    Record,
-    Sample,
-    Scale,
-    Slice,
-)
 from bloqade.ir.visitor.waveform import WaveformVisitor
 import bloqade.ir.control.waveform as waveform
 import numpy as np
@@ -24,67 +9,35 @@ def concat(lhs: waveform.Waveform, rhs: waveform.Waveform) -> waveform.Waveform:
 
 
 class NormalizeWaveformPython(WaveformVisitor):
-    def visit_constant(self, ast: waveform.Constant) -> Any:
+    def visit_constant(self, ast: waveform.Constant):
         return ast
 
-    def visit_linear(self, ast: Linear) -> Any:
+    def visit_linear(self, ast: waveform.Linear):
         return ast
 
-    def visit_poly(self, ast: Poly) -> Any:
+    def visit_poly(self, ast: waveform.Poly):
         return ast
 
-    def visit_python_fn(self, ast: PythonFn) -> Any:
+    def visit_python_fn(self, ast: waveform.PythonFn):
         return ast
 
-    def visit_add(self, ast: Add) -> Any:
-        return self.visit(ast.left) + self.visit(ast.right)
+    def visit_add(self, ast: waveform.Add):
+        return self.visit(ast.left).append(self.visit(ast.right))
 
-    def visit_append(self, ast: Append) -> Any:
+    def visit_append(self, ast: waveform.Append):
         return reduce(concat, map(self.visit, ast.waveforms))
 
-    def visit_negative(self, ast: Negative) -> Any:
+    def visit_negative(self, ast: waveform.Negative):
         return -self.visit(ast.waveform)
 
-    def visit_scale(self, ast: Scale) -> Any:
+    def visit_scale(self, ast: waveform.Scale):
         return self.visit(ast.waveform) * ast.scalar
 
-    def visit_slice(self, ast: Slice) -> Any:
+    def visit_slice(self, ast: waveform.Slice):
         wf = self.visit(ast.waveform)
+        return wf[ast.interval.start : ast.interval.stop]
 
-        if not isinstance(wf, waveform.Append):
-            start = ast.interval.start() if ast.interval.start is not None else Decimal(0)
-            stop = ast.interval.stop() if ast.interval.stop is not None else wf.duration()
-
-            durations = np.cumsum([0] + [wf.duration() for wf in wf.waveforms])
-
-            i = np.searchsorted(durations, start)
-            j = np.searchsorted(durations, stop)
-
-            start = start - durations[i - 1]
-            stop = stop - durations[j - 1]
-
-            if i == j:
-                return self.visit(wf.waveforms[i][start:stop])
-            else:
-                segments = [
-                    self.visit(wf.waveforms[i][start:]),
-                    *wf.waveforms[i + 1 : j],
-                    self.visit(wf.waveforms[j][:stop]),
-                ]
-
-                return reduce(concat, segments)
-        elif isinstance(wf, waveform.Slice):
-            start = ast.interval.start() + wf.interval.start()
-            stop = ast.interval.stop() + start
-            
-            return self.visit(wf.waveform[start:stop])
-            
-        else:
-            return wf[ast.interval.start() : ast.interval.stop()]
-
-
-
-    def visit_sample(self, ast: Sample) -> Any:
+    def visit_sample(self, ast: waveform.Sample):
         times, values = ast.samples()
 
         durations = np.diff(times)
@@ -98,4 +51,3 @@ class NormalizeWaveformPython(WaveformVisitor):
             ]
 
         return reduce(concat, segments)
-    
