@@ -69,12 +69,12 @@ class Assign(BatchAssignable, AddArgs, Parallelizable, BackendRoute, AssignBase)
     def __init__(
         self, assignments: Dict[str, ParamType], parent: Optional[Builder] = None
     ) -> None:
-        from bloqade.ir.analysis.scan_variables import ScanVariablesAnalogCircuit
+        from bloqade.analysis.common.scan_variables import ScanVariablesAnalogCircuit
 
         super().__init__(parent)
 
         circuit = self.parse_circuit()
-        variables = ScanVariablesAnalogCircuit().emit(circuit)
+        variables = ScanVariablesAnalogCircuit().scan(circuit)
 
         self._static_params = CastParams(
             circuit.register.n_sites, variables.scalar_vars, variables.vector_vars
@@ -85,7 +85,7 @@ class BatchAssign(AddArgs, Parallelizable, BackendRoute, AssignBase):
     def __init__(
         self, assignments: Dict[str, List[ParamType]], parent: Optional[Builder] = None
     ) -> None:
-        from bloqade.ir.analysis.scan_variables import ScanVariablesAnalogCircuit
+        from bloqade.analysis.common.scan_variables import ScanVariablesAnalogCircuit
 
         super().__init__(parent)
 
@@ -94,7 +94,7 @@ class BatchAssign(AddArgs, Parallelizable, BackendRoute, AssignBase):
             return
 
         circuit = self.parse_circuit()
-        variables = ScanVariablesAnalogCircuit().emit(circuit)
+        variables = ScanVariablesAnalogCircuit().scan(circuit)
 
         if not len(np.unique(list(map(len, assignments.values())))) == 1:
             raise ValueError(
@@ -120,12 +120,12 @@ class ListAssign(AddArgs, Parallelizable, BackendRoute, AssignBase):
         batch_params: Sequence[Dict[str, ParamType]],
         parent: Optional[Builder] = None,
     ) -> None:
-        from bloqade.ir.analysis.scan_variables import ScanVariablesAnalogCircuit
+        from bloqade.analysis.common.scan_variables import ScanVariablesAnalogCircuit
 
         super().__init__(parent)
 
         circuit = self.parse_circuit()
-        variables = ScanVariablesAnalogCircuit().emit(circuit)
+        variables = ScanVariablesAnalogCircuit().scan(circuit)
         caster = CastParams(
             circuit.register.n_sites, variables.scalar_vars, variables.vector_vars
         )

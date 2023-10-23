@@ -38,8 +38,8 @@ class BraketHardwareRoutine(RoutineBase):
         name: Optional[str] = None,
     ) -> RemoteBatch:
         ## fall passes here ###
-        from bloqade.codegen.common.assign_variables import AssignAnalogCircuit
-        from bloqade.ir.analysis.assignment_scan import AssignmentScan
+        from bloqade.transform.common.assign_variables import AssignAnalogCircuit
+        from bloqade.analysis.common.assignment_scan import AssignmentScan
         from bloqade.codegen.hardware.quera import AHSCodegen
 
         capabilities = self.backend.get_capabilities()
@@ -172,9 +172,9 @@ class BraketLocalEmulatorRoutine(RoutineBase):
     ) -> LocalBatch:
         ## fall passes here ###
         from bloqade.ir import ParallelRegister
-        from bloqade.codegen.common.assign_variables import AssignAnalogCircuit
+        from bloqade.transform.common.assign_variables import AssignAnalogCircuit
+        from bloqade.analysis.common.assignment_scan import AssignmentScan
         from bloqade.codegen.hardware.quera import AHSCodegen
-        from bloqade.ir.analysis.assignment_scan import AssignmentScan
 
         circuit, params = self.circuit, self.params
         circuit = AssignAnalogCircuit(params.static_params).visit(circuit)
