@@ -74,7 +74,7 @@ class Assign(BatchAssignable, AddArgs, Parallelizable, BackendRoute, AssignBase)
         super().__init__(parent)
 
         circuit = self.parse_circuit()
-        variables = ScanVariablesAnalogCircuit().emit(circuit)
+        variables = ScanVariablesAnalogCircuit().scan(circuit)
 
         self._static_params = CastParams(
             circuit.register.n_sites, variables.scalar_vars, variables.vector_vars
@@ -94,7 +94,7 @@ class BatchAssign(AddArgs, Parallelizable, BackendRoute, AssignBase):
             return
 
         circuit = self.parse_circuit()
-        variables = ScanVariablesAnalogCircuit().emit(circuit)
+        variables = ScanVariablesAnalogCircuit().scan(circuit)
 
         if not len(np.unique(list(map(len, assignments.values())))) == 1:
             raise ValueError(
@@ -125,7 +125,7 @@ class ListAssign(AddArgs, Parallelizable, BackendRoute, AssignBase):
         super().__init__(parent)
 
         circuit = self.parse_circuit()
-        variables = ScanVariablesAnalogCircuit().emit(circuit)
+        variables = ScanVariablesAnalogCircuit().scan(circuit)
         caster = CastParams(
             circuit.register.n_sites, variables.scalar_vars, variables.vector_vars
         )

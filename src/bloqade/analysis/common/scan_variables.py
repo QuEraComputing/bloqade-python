@@ -11,27 +11,34 @@ from bloqade.ir.visitor.analog_circuit import AnalogCircuitVisitor
 from bloqade.ir.visitor.location import LocationVisitor
 from bloqade.ir.visitor.waveform import WaveformVisitor
 from bloqade.ir.visitor.scalar import ScalarVisitor
-from beartype.typing import Set, Any, FrozenSet
+from beartype.typing import Any, FrozenSet
 
 
 @dataclass(frozen=True)
 class ScanVariableResults:
     scalar_vars: FrozenSet[str]
     vector_vars: FrozenSet[str]
+    assigned_scalar_vars: FrozenSet[str]
+    assigned_vector_vars: FrozenSet[str]
+
+    @property
+    def is_assigned(self) -> bool:
+        return len(self.scalar_vars) == 0 or len(self.vector_vars) == 0
 
 
 class ScanVariablesScalar(ScalarVisitor):
     def __init__(self):
-        self.vars = set()
+        self.scalar_vars = set()
+        self.assigned_scalar_vars = set()
 
     def visit_literal(self, ast: scalar.Literal) -> Any:
         pass
 
     def visit_assigned_variable(self, ast: scalar.AssignedVariable) -> Any:
-        self.vars.add(ast.name)
+        self.assigned_scalar_vars.add(ast.name)
 
     def visit_variable(self, ast: scalar.Variable) -> Any:
-        self.vars.add(ast.name)
+        self.scalar_vars.add(ast.name)
 
     def visit_add(self, ast: scalar.Add) -> Any:
         self.visit(ast.lhs)
@@ -65,41 +72,50 @@ class ScanVariablesScalar(ScalarVisitor):
     def visit_negative(self, ast: scalar.Negative) -> Any:
         self.visit(ast.expr)
 
-    def emit(self, ast: scalar.Scalar) -> Set[str]:
+    def scan(self, ast: scalar.Scalar) -> ScanVariableResults:
         self.visit(ast)
-        return self.vars
+        return ScanVariableResults(
+            self.scalar_vars, self.assigned_scalar_vars, set(), set()
+        )
 
 
 class ScanVariablesWaveform(WaveformVisitor):
     def __init__(self):
-        self.vars = set()
+        self.scalar_vars = set()
+        self.assigned_scalar_vars = set()
         self.scalar_visitor = ScanVariablesScalar()
 
+    def update(self, other: ScanVariableResults):
+        self.scalar_vars = self.scalar_vars.union(other.scalar_vars)
+        self.assigned_scalar_vars = self.assigned_scalar_vars.union(
+            other.assigned_scalar_vars
+        )
+
     def visit_constant(self, ast: waveform.Constant) -> Any:
-        self.vars = self.vars.union(self.scalar_visitor.emit(ast.value))
-        self.vars = self.vars.union(self.scalar_visitor.emit(ast.duration))
+        self.update(self.scalar_visitor.scan(ast.value))
+        self.update(self.scalar_visitor.scan(ast.duration))
 
     def visit_linear(self, ast: waveform.Linear) -> Any:
-        self.vars = self.vars.union(self.scalar_visitor.emit(ast.start))
-        self.vars = self.vars.union(self.scalar_visitor.emit(ast.stop))
-        self.vars = self.vars.union(self.scalar_visitor.emit(ast.duration))
+        self.update(self.scalar_visitor.scan(ast.start))
+        self.update(self.scalar_visitor.scan(ast.stop))
+        self.update(self.scalar_visitor.scan(ast.duration))
 
     def visit_poly(self, ast: waveform.Poly) -> Any:
         for coeff in ast.coeffs:
-            self.vars = self.vars.union(self.scalar_visitor.emit(coeff))
-        self.vars = self.vars.union(self.scalar_visitor.emit(ast.duration))
+            self.update(self.scalar_visitor.scan(coeff))
+        self.update(self.scalar_visitor.scan(ast.duration))
 
     def visit_python_fn(self, ast: waveform.PythonFn) -> Any:
-        self.vars = self.vars.union(self.scalar_visitor.emit(ast.duration))
+        self.update(self.scalar_visitor.scan(ast.duration))
         for parameter in ast.parameters:
-            self.vars = self.vars.union(self.scalar_visitor.emit(parameter))
+            self.update(self.scalar_visitor.scan(parameter))
 
     def visit_negative(self, ast: waveform.Negative) -> Any:
         self.visit(ast.waveform)
 
     def visit_record(self, ast: waveform.Record):
         self.visit(ast.waveform)
-        self.vars.add(ast.var.name)
+        self.scalar_vars.add(ast.var.name)
 
     def visit_add(self, ast: waveform.Add) -> Any:
         self.visit(ast.left)
@@ -107,40 +123,49 @@ class ScanVariablesWaveform(WaveformVisitor):
 
     def visit_scale(self, ast: waveform.Scale) -> Any:
         self.visit(ast.waveform)
-        self.vars = self.vars.union(self.scalar_visitor.emit(ast.scalar))
+        self.update(self.scalar_visitor.scan(ast.scalar))
 
     def visit_alligned(self, ast: waveform.AlignedWaveform) -> Any:
         self.visit(ast.waveform)
         if isinstance(ast.value, scalar.Scalar):
-            self.vars = self.vars.union(self.scalar_visitor.emit(ast.value))
+            self.update(self.scalar_visitor.scan(ast.value))
 
     def visit_sample(self, ast: waveform.Sample) -> Any:
-        self.vars = self.vars.union(self.scalar_visitor.emit(ast.dt))
+        self.update(self.scalar_visitor.scan(ast.dt))
         self.visit(ast.waveform)
 
     def visit_append(self, ast: waveform.Append) -> Any:
         list(map(self.visit, ast.waveforms))
 
     def visit_slice(self, ast: waveform.Slice) -> Any:
-        self.vars = self.vars.union(self.scalar_visitor.emit(ast.interval))
+        self.update(self.scalar_visitor.scan(ast.interval))
         self.visit(ast.waveform)
 
     def visit_smooth(self, ast: waveform.Smooth) -> Any:
         self.visit(ast.waveform)
-        self.vars = self.vars.union(self.scalar_visitor.emit(ast.radius))
+        self.update(self.scalar_visitor.scan(ast.radius))
 
-    def emit(self, ast: waveform.Waveform) -> Set[str]:
+    def emit(self, ast: waveform.Waveform) -> ScanVariableResults:
         self.visit(ast)
-        return self.vars
+        return ScanVariableResults(
+            self.scalar_vars, set(), self.assigned_scalar_vars, set()
+        )
 
 
 class ScanVariablesLocation(LocationVisitor):
     def __init__(self):
-        self.vars = set()
+        self.scalar_vars = set()
+        self.assigned_scalar_vars = set()
         self.scalar_visitor = ScanVariablesScalar()
 
+    def update(self, results: ScanVariableResults):
+        self.scalar_vars = self.scalar_vars.union(results.scalar_vars)
+        self.assigned_scalar_vars = self.assigned_scalar_vars.union(
+            results.assigned_scalar_vars
+        )
+
     def visit_bravais(self, ast: location.BoundedBravais) -> Any:
-        self.vars = self.vars.union(self.scalar_visitor.emit(ast.lattice_spacing))
+        self.update(self.scalar_visitor.scan(ast.lattice_spacing))
 
     def visit_chain(self, ast: location.Chain) -> Any:
         self.visit_bravais(ast)
@@ -161,8 +186,8 @@ class ScanVariablesLocation(LocationVisitor):
         self.visit_bravais(ast)
 
     def visit_rectangular(self, ast: location.Rectangular) -> Any:
-        self.scalar_visitor.emit(ast.lattice_spacing_x)
-        self.scalar_visitor.emit(ast.lattice_spacing_y)
+        self.update(self.scalar_visitor.scan(ast.lattice_spacing_x))
+        self.update(self.scalar_visitor.scan(ast.lattice_spacing_y))
 
     def visit_list_of_locations(self, ast: location.ListOfLocations) -> Any:
         for loc in ast.location_list:
@@ -170,42 +195,55 @@ class ScanVariablesLocation(LocationVisitor):
 
     def visit_location_info(self, ast: location.LocationInfo) -> Any:
         for coord in ast.position:
-            self.vars = self.vars.union(self.scalar_visitor.emit(coord))
+            self.update(self.scalar_visitor.scan(coord))
 
     def visit_parallel_register(self, ast: location.ParallelRegister) -> Any:
         self.visit(ast._register)
-        self.vars = self.vars.union(self.scalar_visitor.emit(ast._cluster_spacing))
+        self.update(self.scalar_visitor.scan(ast._cluster_spacing))
 
-    def emit(self, ast: location.AtomArrangement) -> Set[str]:
+    def scan(self, ast: location.AtomArrangement) -> ScanVariableResults:
         self.visit(ast)
-        return self.vars
+        return ScanVariableResults(
+            self.scalar_vars, set(), self.assigned_scalar_vars, set()
+        )
 
 
 class ScanVariablesAnalogCircuit(AnalogCircuitVisitor):
     def __init__(self):
         self.scalar_vars = set()
         self.vector_vars = set()
+        self.assigned_scalar_vars = set()
+        self.assigned_vector_vars = set()
         self.waveform_visitor = ScanVariablesWaveform()
         self.scalar_visitor = ScanVariablesScalar()
         self.location_visitor = ScanVariablesLocation()
+
+    def update(self, other: ScanVariableResults):
+        self.scalar_vars = self.scalar_vars.union(other.scalar_vars)
+        self.vector_vars = self.vector_vars.union(other.vector_vars)
+        self.assigned_scalar_vars = self.assigned_scalar_vars.union(
+            other.assigned_scalar_vars
+        )
+        self.assigned_vector_vars = self.assigned_vector_vars.union(
+            other.assigned_vector_vars
+        )
 
     def visit_uniform_modulation(self, ast: field.UniformModulation) -> Any:
         pass
 
     def visit_scaled_locations(self, ast: field.ScaledLocations) -> Any:
         for value in ast.value.values():
-            self.scalar_vars = self.scalar_vars.union(self.scalar_visitor.emit(value))
+            self.update(self.scalar_visitor.scan(value))
 
     def visit_run_time_vector(self, ast: field.RunTimeVector) -> Any:
         self.vector_vars.add(ast.name)
 
     def visit_assigned_run_time_vector(self, ast: field.AssignedRunTimeVector) -> Any:
-        self.vector_vars.add(ast.name)
+        self.assigned_vector_vars.add(ast.name)
 
     def visit_field(self, ast: field.Field) -> Any:
         list(map(self.visit, ast.drives.keys()))
-        for value in ast.drives.values():
-            self.visit(value)
+        list(map(self.visit, ast.drives.values()))
 
     def visit_pulse(self, ast: pulse.Pulse) -> Any:
         list(map(self.visit, ast.fields.values()))
@@ -214,9 +252,7 @@ class ScanVariablesAnalogCircuit(AnalogCircuitVisitor):
         list(map(self.visit, ast.pulses))
 
     def visit_slice_pulse(self, ast: pulse.Slice) -> Any:
-        self.scalar_vars = self.scalar_vars.union(
-            self.scalar_visitor.emit(ast.interval)
-        )
+        self.update(self.scalar_visitor.scan(ast.interval))
         self.visit(ast.pulse)
 
     def visit_named_pulse(self, ast: pulse.NamedPulse) -> Any:
@@ -229,27 +265,30 @@ class ScanVariablesAnalogCircuit(AnalogCircuitVisitor):
         list(map(self.visit, ast.sequences))
 
     def visit_slice_sequence(self, ast: sequence.Slice) -> Any:
-        self.scalar_vars = self.scalar_vars.union(
-            self.scalar_visitor.emit(ast.interval)
-        )
+        self.update(self.scalar_visitor.scan(ast.interval))
         self.visit(ast.sequence)
 
     def visit_named_sequence(self, ast: sequence.NamedSequence) -> Any:
         self.visit(ast.sequence)
 
     def visit_waveform(self, ast: waveform.Waveform) -> Any:
-        self.scalar_vars = self.scalar_vars.union(self.waveform_visitor.emit(ast))
+        self.update(self.waveform_visitor.emit(ast))
 
     def visit_register(self, ast: location.AtomArrangement) -> Any:
-        self.scalar_vars = self.scalar_vars.union(self.location_visitor.emit(ast))
+        self.update(self.location_visitor.scan(ast))
 
     def visit_parallel_register(self, ast: location.ParallelRegister) -> Any:
-        self.scalar_vars = self.scalar_vars.union(self.location_visitor.emit(ast))
+        self.update(self.location_visitor.scan(ast))
 
     def visit_analog_circuit(self, ast: analog_circuit.AnalogCircuit) -> Any:
         self.visit(ast.register)
         self.visit(ast.sequence)
 
-    def emit(self, ast: analog_circuit.AnalogCircuit) -> ScanVariableResults:
+    def scan(self, ast: analog_circuit.AnalogCircuit) -> ScanVariableResults:
         self.visit(ast)
-        return ScanVariableResults(self.scalar_vars, self.vector_vars)
+        return ScanVariableResults(
+            self.scalar_vars,
+            self.vector_vars,
+            self.assigned_scalar_vars,
+            self.assigned_vector_vars,
+        )

@@ -27,9 +27,12 @@ def test_1():
     scalar_vars = ["t", "omega", "delta", "m", "lattice_spacing", "a"]
     vector_vars = ["mask"]
     expected_result = ScanVariableResults(
-        scalar_vars=scalar_vars, vector_vars=vector_vars
+        scalar_vars=scalar_vars,
+        vector_vars=vector_vars,
+        assigned_scalar_vars=set(),
+        assigned_vector_vars=set(),
     )
-    assert expected_result == ScanVariablesAnalogCircuit().emit(circuit)
+    assert expected_result == ScanVariablesAnalogCircuit().scan(circuit)
 
 
 def test_2():
@@ -62,6 +65,9 @@ def test_2():
     scalar_vars = ["t", "x", "y", "delta", "T", "omega_max", "a", "u", "b"]
     vector_vars = ["mask"]
     expected_result = ScanVariableResults(
-        scalar_vars=scalar_vars, vector_vars=vector_vars
+        scalar_vars=scalar_vars,
+        vector_vars=vector_vars,
+        assigned_scalar_vars=set(),
+        assigned_vector_vars=set(),
     )
-    assert expected_result == ScanVariablesAnalogCircuit().emit(circuit)
+    assert expected_result == ScanVariablesAnalogCircuit().scan(circuit)
