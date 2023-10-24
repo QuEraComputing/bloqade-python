@@ -149,7 +149,6 @@ class IndexMapping:
                 )
 
         elif isinstance(self.col_indices, slice):
-            print(self.col_indices, self.row_indices)
 
             def _matvec_imp(col_indices, row_indices, scale, input, output):
                 return _index_mapping_col_sliced(
