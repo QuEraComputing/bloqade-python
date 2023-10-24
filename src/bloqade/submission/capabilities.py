@@ -1,4 +1,4 @@
-import json
+import simplejson as json
 import os
 from bloqade.submission.ir.capabilities import QuEraCapabilities
 
