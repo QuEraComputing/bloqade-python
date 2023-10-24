@@ -223,13 +223,29 @@ def get_waveform_figure(wvfm_ir, **assignments):
     duration = float(wvfm_ir.duration(**assignments))
     times = np.linspace(0, duration, 1001)
     values = [wvfm_ir.__call__(time, **assignments) for time in times]
+
+    data_source = ColumnDataSource(data=dict(wvfm_x=times, wvfm_y=values))
+
     fig = figure(
-        sizing_mode="stretch_both",
-        x_axis_label="Time (s)",
-        y_axis_label="Waveform(t)",
-        tools="hover",
+        x_axis_label="Time (us)",
+        y_axis_label="Waveform",
+        aspect_ratio=(800 / 170),
+        sizing_mode="scale_both",
     )
-    fig.line(times, values)
+
+    fig.line(
+        x="wvfm_x",
+        y="wvfm_y",
+        source=data_source,
+        line_width=2,
+    )
+    hov_tool = HoverTool(mode="vline")
+    hov_tool.tooltips = [("(x,y)", "(@wvfm_x, @wvfm_y)")]
+
+    crx_hair = CrosshairTool(dimensions="height")
+
+    fig.add_tools(hov_tool)
+    fig.add_tools(crx_hair)
 
     return fig
 
