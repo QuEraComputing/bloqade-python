@@ -3,8 +3,16 @@ import bloqade.ir.scalar as scalar
 from bloqade.ir.control.waveform import PythonFn
 from bloqade.ir.visitor.waveform import WaveformVisitor
 
+from pydantic.dataclasses import dataclass
 from decimal import Decimal
-from typing import Any
+from beartype.typing import Any, Union
+
+
+@dataclass(frozen=True)
+class PiecewiseLinearResult:
+    start_expr: Union[waveform.Waveform, scalar.Scalar]
+    stop_expr: Union[waveform.Waveform, scalar.Scalar]
+    duration_expr: scalar.Scalar
 
 
 class PiecewiseLinearValidator(WaveformVisitor):
@@ -126,12 +134,14 @@ class PiecewiseLinearValidator(WaveformVisitor):
     def visit_scale(self, ast: waveform.Scale):
         self.visit(ast.waveform)
 
-    def visit_smooth(self, ast: waveform.Smooth):
-        raise ValueError("Smoothed Waveforms cannot be compiled to piecewise linear.")
-
-    def scan(self, ast: waveform.Waveform):
+    def scan(self, ast: waveform.Waveform) -> PiecewiseLinearResult:
         self.start_expr = None
         self.stop_expr = None
         self.duration_expr = None
 
         self.visit(ast)
+        return PiecewiseLinearResult(
+            start_expr=self.start_expr,
+            stop_expr=self.stop_expr,
+            duration_expr=self.duration_expr,
+        )
