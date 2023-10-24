@@ -517,8 +517,10 @@ class AHSCodegen(AnalogCircuitVisitor):
                 "Cannot parallelize register without device capabilities."
             )
 
-        height_max = self.capabilities.capabilities.lattice.area.height / 1e-6
-        width_max = self.capabilities.capabilities.lattice.area.width / 1e-6
+        height_max = self.capabilities.capabilities.lattice.area.height / Decimal(
+            "1e-6"
+        )
+        width_max = self.capabilities.capabilities.lattice.area.width / Decimal("1e-6")
         number_sites_max = (
             self.capabilities.capabilities.lattice.geometry.number_sites_max
         )

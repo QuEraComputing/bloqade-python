@@ -3,7 +3,7 @@ import bloqade.submission.quera_api_client.api
 from bloqade.submission.base import get_capabilities
 from unittest.mock import patch
 from requests import Response
-import json
+import simplejson as json
 from typing import Dict
 
 from bloqade import start
