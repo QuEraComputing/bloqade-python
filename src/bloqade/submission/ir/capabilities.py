@@ -1,40 +1,41 @@
 from pydantic import BaseModel
+from decimal import Decimal
 
 __all__ = ["QuEraCapabilities"]
 
 
 class RydbergGlobalCapabilities(BaseModel):
-    rabi_frequency_min: float
-    rabi_frequency_max: float
-    rabi_frequency_resolution: float
-    rabi_frequency_slew_rate_max: float
-    detuning_min: float
-    detuning_max: float
-    detuning_resolution: float
-    detuning_slew_rate_max: float
-    phase_min: float
-    phase_max: float
-    phase_resolution: float
-    time_min: float
-    time_max: float
-    time_resolution: float
-    time_delta_min: float
+    rabi_frequency_min: Decimal
+    rabi_frequency_max: Decimal
+    rabi_frequency_resolution: Decimal
+    rabi_frequency_slew_rate_max: Decimal
+    detuning_min: Decimal
+    detuning_max: Decimal
+    detuning_resolution: Decimal
+    detuning_slew_rate_max: Decimal
+    phase_min: Decimal
+    phase_max: Decimal
+    phase_resolution: Decimal
+    time_min: Decimal
+    time_max: Decimal
+    time_resolution: Decimal
+    time_delta_min: Decimal
 
 
 class RydbergLocalCapabilities(BaseModel):
-    detuning_min: float
-    detuning_max: float
-    detuning_slew_rate_max: float
-    site_coefficient_min: float
-    site_coefficient_max: float
+    detuning_min: Decimal
+    detuning_max: Decimal
+    detuning_slew_rate_max: Decimal
+    site_coefficient_min: Decimal
+    site_coefficient_max: Decimal
     number_local_detuning_sites: int
-    spacing_radial_min: float
-    time_resolution: float
-    time_delta_min: float
+    spacing_radial_min: Decimal
+    time_resolution: Decimal
+    time_delta_min: Decimal
 
 
 class RydbergCapabilities(BaseModel):
-    c6_coefficient: float
+    c6_coefficient: Decimal
     global_: RydbergGlobalCapabilities
     local: RydbergLocalCapabilities
 
@@ -44,15 +45,15 @@ class RydbergCapabilities(BaseModel):
 
 
 class LatticeGeometryCapabilities(BaseModel):
-    spacing_radial_min: float
-    spacing_vertical_min: float
-    position_resolution: float
+    spacing_radial_min: Decimal
+    spacing_vertical_min: Decimal
+    position_resolution: Decimal
     number_sites_max: int
 
 
 class LatticeAreaCapabilities(BaseModel):
-    width: float
-    height: float
+    width: Decimal
+    height: Decimal
 
 
 class LatticeCapabilities(BaseModel):

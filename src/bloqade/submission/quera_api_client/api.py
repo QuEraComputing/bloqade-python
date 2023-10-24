@@ -1,4 +1,4 @@
-import json
+import simplejson as json
 import logging
 import uuid
 from typing import Optional, Union, Dict, Tuple
@@ -49,7 +49,7 @@ class ApiRequest:
         self.logger = logging.getLogger(self.__class__.__name__)
 
     @staticmethod
-    def _result_as_json(result: requests.Response) -> Dict:
+    def _result_as_json(result: requests.Response, **options) -> Dict:
         content_type = result.headers["Content-Type"]
         if content_type != "application/json":
             raise ApiRequest.InvalidResponseError(
@@ -59,7 +59,7 @@ class ApiRequest:
         if len(result.content) == 0:
             return {}
 
-        return json.loads(result.content)
+        return json.loads(result.content, **options)
 
     def _generate_headers(self, base: Optional[dict] = None) -> Dict:
         if base is None:
@@ -375,7 +375,7 @@ class QueueApi:
             self.logger.error(message)
             raise QueueApi.QueueApiError(message)
 
-        return ApiRequest._result_as_json(result)
+        return ApiRequest._result_as_json(result, use_decimal=True)
 
     def validate_task(self, task_json: Union[str, dict]) -> None:
         result = self.api_http_request.post("task", "validate", content=task_json)
