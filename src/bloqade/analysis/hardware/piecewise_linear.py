@@ -2,33 +2,28 @@ import bloqade.ir.control.waveform as waveform
 import bloqade.ir.scalar as scalar
 from bloqade.ir.control.waveform import PythonFn
 from bloqade.ir.visitor.waveform import WaveformVisitor
-from bloqade.analysis.common.scan_variables import ScanVariablesWaveform
-from bloqade.builder.typing import LiteralType
 
 from decimal import Decimal
-from typing import Any, Dict
+from typing import Any
 
 
 class PiecewiseLinearValidator(WaveformVisitor):
-    def __init__(self, assignments: Dict[str, LiteralType] = {}):
-        self.assignments = dict(assignments)
+    def __init__(self):
         self.start_expr = None
         self.stop_expr = None
         self.duration_expr = None
 
     def eval_start_value(self, expr):
         if isinstance(expr, waveform.Waveform):
-            return expr.eval_decimal(Decimal(0), **self.assignments)
+            return expr.eval_decimal(Decimal(0))
         else:
-            return expr(**self.assignments)
+            return expr()
 
     def eval_stop_value(self, expr):
         if isinstance(expr, waveform.Waveform):
-            return expr.eval_decimal(
-                expr.duration(**self.assignments), **self.assignments
-            )
+            return expr.eval_decimal(expr.duration())
         else:
-            return expr(**self.assignments)
+            return expr()
 
     def check(self, start_expr, stop_expr, duration_expr):
         if self.start_expr is None:
@@ -39,21 +34,9 @@ class PiecewiseLinearValidator(WaveformVisitor):
         else:
             stop_value = self.eval_stop_value(self.stop_expr)
             start_value = self.eval_start_value(start_expr)
-            time_value = self.duration_expr(**self.assignments)
+            time_value = self.duration_expr()
 
             if start_value != stop_value:
-                var_result = ScanVariablesWaveform().emit(self.stop_expr)
-                var_result = var_result.union(ScanVariablesWaveform().emit(start_expr))
-                var_result = var_result.union(
-                    ScanVariablesWaveform().emit(self.duration_expr)
-                )
-
-                assignments = "\n    ".join(
-                    [
-                        f"{k} -> {self.assignments.get(k, 'Not Defined')}"
-                        for k in var_result
-                    ]
-                )
                 time_str = str(self.time_expr).replace("\n", "\n    ")
                 left_str = str(self.stop_expr).replace("\n", "\n    ")
                 right_str = str(start_expr).replace("\n", "\n    ")
@@ -65,7 +48,6 @@ class PiecewiseLinearValidator(WaveformVisitor):
                     f"time expression:\n    {time_str}\n"
                     f"left expression:\n    {left_str}\n"
                     f"right expression:\n    {right_str} \n"
-                    f"with assignments:\n    {assignments}"
                 )
 
             self.stop_expr = stop_expr
@@ -99,8 +81,10 @@ class PiecewiseLinearValidator(WaveformVisitor):
         self.check(start_expr, stop_expr, duration_expr)
 
     def visit_record(self, ast: waveform.Record):
-        duration = ast.waveform.duration(**self.assignments)
-        value = ast.waveform.eval_decimal(duration, **self.assignments)
+        duration = ast.waveform.duration()
+        value = ast.waveform.eval_decimal(
+            duration,
+        )
         self.assignments[ast.var.name] = value
         self.visit(ast.waveform)
 
