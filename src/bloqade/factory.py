@@ -21,7 +21,7 @@ def get_capabilities() -> "QuEraCapabilities":
         micrometers (um), and rad / us, respectively.
 
         For a comprehensive list of capabilities,
-        see the [Hardware Reference](../../hardware-reference/hardware-capabilities.md) 
+        see the [Hardware Reference](../../hardware-reference/hardware-capabilities.md)
         page
     """
 
