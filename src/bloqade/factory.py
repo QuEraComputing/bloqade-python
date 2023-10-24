@@ -9,6 +9,17 @@ if TYPE_CHECKING:
 
 
 def get_capabilities() -> "QuEraCapabilities":
+    """Get the device capabilities for Aquila
+
+    Returns:
+        QuEraCapabilities: capabilities object for Aquila device.
+
+
+    Note:
+        Units of time, distance, and energy are microseconds (us),
+        micrometers (um), and rad / us, respectively.
+    """
+
     from bloqade.submission.capabilities import get_capabilities
     import bloqade.submission.ir.capabilities as cp
 
