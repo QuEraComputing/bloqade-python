@@ -1,3 +1,4 @@
+from functools import cached_property
 import bloqade.ir.control.waveform as waveform
 import bloqade.ir.scalar as scalar
 from bloqade.ir.control.waveform import PythonFn
@@ -14,43 +15,51 @@ class PiecewiseLinearResult:
     stop_expr: Union[waveform.Waveform, scalar.Scalar]
     duration_expr: scalar.Scalar
 
+    @cached_property
+    def start(self):
+        if isinstance(self.start_expr, waveform.Waveform):
+            return self.start_expr.eval_decimal(Decimal(0))
+        else:
+            return self.start_expr()
+
+    @cached_property
+    def stop(self):
+        if isinstance(self.stop_expr, waveform.Waveform):
+            return self.stop_expr.eval_decimal(self.stop_expr.duration())
+        else:
+            return self.stop_expr()
+
+    @cached_property
+    def duration(self):
+        return self.duration_expr()
+
 
 class PiecewiseLinearValidator(WaveformVisitor):
     def __init__(self):
-        self.start_expr = None
-        self.stop_expr = None
-        self.duration_expr = None
-
-    def eval_start_value(self, expr):
-        if isinstance(expr, waveform.Waveform):
-            return expr.eval_decimal(Decimal(0))
-        else:
-            return expr()
-
-    def eval_stop_value(self, expr):
-        if isinstance(expr, waveform.Waveform):
-            return expr.eval_decimal(expr.duration())
-        else:
-            return expr()
+        self.result = None
 
     def check(self, start_expr, stop_expr, duration_expr):
-        if self.start_expr is None:
-            self.start_expr = start_expr
-            self.stop_expr = stop_expr
-            self.duration_expr = duration_expr
+        if self.result is None:
+            self.result = PiecewiseLinearResult(
+                start_expr=start_expr,
+                stop_expr=stop_expr,
+                duration_expr=duration_expr,
+            )
 
         else:
-            stop_value = self.eval_stop_value(self.stop_expr)
-            start_value = self.eval_start_value(start_expr)
-            time_value = self.duration_expr()
+            other = PiecewiseLinearResult(
+                start_expr=start_expr,
+                stop_expr=stop_expr,
+                duration_expr=duration_expr,
+            )
 
-            if start_value != stop_value:
-                time_str = str(self.time_expr).replace("\n", "\n    ")
-                left_str = str(self.stop_expr).replace("\n", "\n    ")
-                right_str = str(start_expr).replace("\n", "\n    ")
+            if self.result.stop != other.start:
+                time_str = str(self.result.duration_expr).replace("\n", "\n    ")
+                left_str = str(self.result.stop_expr).replace("\n", "\n    ")
+                right_str = str(other.start_expr).replace("\n", "\n    ")
                 raise ValueError(
                     "failed to compile waveform to piecewise linear. "
-                    f"found discontinuity at time={time_value}\n"
+                    f"found discontinuity at time={self.result.duration}\n"
                     f"with left value {self.result.stop_value} "
                     f"and right value {self.result.start_value}:\n"
                     f"time expression:\n    {time_str}\n"
@@ -58,8 +67,11 @@ class PiecewiseLinearValidator(WaveformVisitor):
                     f"right expression:\n    {right_str} \n"
                 )
 
-            self.stop_expr = stop_expr
-            self.duration_expr = self.duration_expr + duration_expr
+            self.result = PiecewiseLinearResult(
+                start_expr=self.result.start_expr,
+                stop_expr=other.stop_expr,
+                duration_expr=self.result.duration_expr + other.duration_expr,
+            )
 
     def visit_constant(self, ast: waveform.Constant) -> Any:
         self.check(ast.value, ast.value, ast.duration)
@@ -120,13 +132,16 @@ class PiecewiseLinearValidator(WaveformVisitor):
 
     def visit_slice(self, ast: waveform.Slice):
         # make sure waveform being sliced is piecewise linear
-        PiecewiseLinearValidator(self.assignments).scan(ast.waveform)
+        PiecewiseLinearValidator().scan(ast.waveform)
         # make sure slice is is piecewise linear
-        self.check_continuity(ast, ast, ast.duration)
+        self.check(ast, ast, ast.duration)
 
     def visit_add(self, ast: waveform.Add):
-        self.visit(ast.left)
-        self.visit(ast.right)
+        scanner = PiecewiseLinearValidator()
+        scanner.scan(ast.left)
+        scanner.scan(ast.right)
+
+        self.check(ast, ast, ast.duration)
 
     def visit_negative(self, ast: waveform.Negative):
         self.visit(ast.waveform)
@@ -135,13 +150,6 @@ class PiecewiseLinearValidator(WaveformVisitor):
         self.visit(ast.waveform)
 
     def scan(self, ast: waveform.Waveform) -> PiecewiseLinearResult:
-        self.start_expr = None
-        self.stop_expr = None
-        self.duration_expr = None
-
+        self.result = None
         self.visit(ast)
-        return PiecewiseLinearResult(
-            start_expr=self.start_expr,
-            stop_expr=self.stop_expr,
-            duration_expr=self.duration_expr,
-        )
+        return self.result
