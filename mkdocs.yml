@@ -14,6 +14,7 @@ nav:
   - Reference:
     - Builder Overview: builder-workflow/overview.md
     - Builder Standard Diagram: builder-workflow/standard.md
+    - Hardware Reference: hardware-reference/hardware-capabilities.md
     - API References : reference/bloqade/
   - Blog:
     - 2023:
