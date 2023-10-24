@@ -3,6 +3,7 @@ from bloqade.ir.analog_circuit import AnalogCircuit
 from bloqade.ir import AtomArrangement, ParallelRegister, Sequence
 
 from bloqade.builder.base import Builder
+from bloqade.builder.parse.trait import Parse, Show
 from bloqade.ir.routine.params import Params
 
 from pydantic import ConfigDict
@@ -15,7 +16,7 @@ if TYPE_CHECKING:
     from bloqade.ir.routine.bloqade import BloqadeServiceOptions
 
 
-class RoutineParse:
+class RoutineParse(Parse):
     def parse_register(self: "RoutineBase") -> Union[AtomArrangement, ParallelRegister]:
         return self.circuit.register
 
@@ -29,11 +30,16 @@ class RoutineParse:
         return self
 
 
+class RoutineShow(Show):
+    def show(self: "RoutineBase", batch_index: int = 0):
+        return self.source.show(batch_index)
+
+
 __pydantic_dataclass_config__ = ConfigDict(arbitrary_types_allowed=True)
 
 
 @dataclass(frozen=True, config=__pydantic_dataclass_config__)
-class RoutineBase(RoutineParse):
+class RoutineBase(RoutineParse, RoutineShow):
     source: Builder
     circuit: AnalogCircuit
     params: Params
