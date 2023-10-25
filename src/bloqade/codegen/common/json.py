@@ -216,7 +216,8 @@ class LocationSerializer(LocationVisitor):
         return {
             "honeycomb": {
                 "lattice_spacing": self.scalar_serializer.visit(ast.lattice_spacing),
-                "L": ast.shape[0],
+                "L1": ast.shape[0],
+                "L2": ast.shape[1],
             }
         }
 
@@ -224,7 +225,8 @@ class LocationSerializer(LocationVisitor):
         return {
             "kagome": {
                 "lattice_spacing": self.scalar_serializer.visit(ast.lattice_spacing),
-                "L": ast.shape[0],
+                "L1": ast.shape[0],
+                "L2": ast.shape[1],
             }
         }
 
@@ -232,7 +234,8 @@ class LocationSerializer(LocationVisitor):
         return {
             "lieb": {
                 "lattice_spacing": self.scalar_serializer.visit(ast.lattice_spacing),
-                "L": ast.shape[0],
+                "L1": ast.shape[0],
+                "L2": ast.shape[1],
             }
         }
 
@@ -263,7 +266,8 @@ class LocationSerializer(LocationVisitor):
                 "lattice_spacing": self.visit(
                     self.scalar_serializer.visit(ast.lattice_spacing)
                 ),
-                "L": ast.shape[0],
+                "L1": ast.shape[0],
+                "L2": ast.shape[1],
             }
         }
 
@@ -271,7 +275,8 @@ class LocationSerializer(LocationVisitor):
         return {
             "triangular": {
                 "lattice_spacing": self.scalar_serializer.visit(ast.lattice_spacing),
-                "L": ast.shape[0],
+                "L1": ast.shape[0],
+                "L2": ast.shape[1],
             }
         }
 
