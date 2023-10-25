@@ -12,9 +12,8 @@ nav:
   - Home: index.md
   - Tutorials: 'https://queracomputing.github.io/bloqade-python-examples/latest/'
   - Reference:
-    - Builder Overview: builder-workflow/overview.md
-    - Builder Standard Diagram: builder-workflow/standard.md
-    - Hardware Reference: hardware-reference/hardware-capabilities.md
+    - Builder Overview: reference/overview.md
+    - Builder Standard Diagram: reference/standard.md
     - API References : reference/bloqade/
   - Blog:
     - 2023:
