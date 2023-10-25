@@ -16,16 +16,6 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://bloqade.quera.com/builder-workflow/overview/</loc>
-         <lastmod>2023-10-25</lastmod>
-         <changefreq>daily</changefreq>
-    </url>
-    <url>
-         <loc>https://bloqade.quera.com/builder-workflow/standard/</loc>
-         <lastmod>2023-10-25</lastmod>
-         <changefreq>daily</changefreq>
-    </url>
-    <url>
          <loc>https://bloqade.quera.com/contributing/</loc>
          <lastmod>2023-10-25</lastmod>
          <changefreq>daily</changefreq>
@@ -76,7 +66,17 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://bloqade.quera.com/hardware-reference/hardware-capabilities/</loc>
+         <loc>https://bloqade.quera.com/reference/hardware-capabilities/</loc>
+         <lastmod>2023-10-25</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://bloqade.quera.com/reference/overview/</loc>
+         <lastmod>2023-10-25</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://bloqade.quera.com/reference/standard/</loc>
          <lastmod>2023-10-25</lastmod>
          <changefreq>daily</changefreq>
     </url>
