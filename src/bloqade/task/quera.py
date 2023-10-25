@@ -157,10 +157,10 @@ def _deserializer(d: Dict[str, Any]) -> QuEraTask:
     d["task_result_ir"] = (
         QuEraTaskResults(**d["task_result_ir"]) if d["task_result_ir"] else None
     )
+    d["backend"] = QuEraBackend(**d["backend"])
     d["parallel_decoder"] = (
         ParallelDecoder(**d["parallel_decoder"]) if d["parallel_decoder"] else None
     )
-
     return QuEraTask(**d)
 
 
