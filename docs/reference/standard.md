@@ -1,10 +1,8 @@
 
 # Build Workflow
-
-``` mermaid
+```mermaid
 
 flowchart TD
-
   ProgramStart(["start"])
 
   Geometry("Geometry or Lattice")
@@ -67,7 +65,7 @@ flowchart TD
   python
   julia"])
 
-  Submit("Execution
+  Execution("Execution
   ------------
   run_async()
   run()
@@ -97,7 +95,31 @@ flowchart TD
   Services -->|quera| QuEraBackends;
   Services -->|braket| BraketBackends;
   Services -->|bloqade| BloqadeBackends;
-  QuEraBackends --> Submit;
-  BraketBackends --> Submit;
-  BloqadeBackends --> Submit;
+  QuEraBackends --> Execution;
+  BraketBackends --> Execution;
+  BloqadeBackends --> Execution;
+
+  click ProgramStart "../reference/bloqade/builder/start/";
+
 ```
+
+  <!--  -->
+
+<!--
+<body>
+  <pre class="mermaid">
+
+  </pre>
+
+  <script>
+    const callback = function () {
+      alert('A callback was triggered');
+    };
+    const config = {
+      startOnLoad: true,
+      flowchart: { useMaxWidth: true, htmlLabels: true, curve: 'cardinal' },
+      securityLevel: 'loose',
+    };
+    mermaid.initialize(config);
+  </script>
+</body> -->
