@@ -222,7 +222,9 @@ class Square(BoundedBravais):
         - loc (0,0)
 
     Args:
-        L (int): number of sites in linear direction. n_atoms = L * L.
+        L1 (int): number of sites in linear direction. n_atoms = L1 * L1.
+        L2 (Optional[int]): number of sites in direction a2.
+            n_atoms = L1 * L2, default is L1
         lattice_spacing (Scalar, Real): lattice spacing. Defaults to 1.0.
 
 
@@ -233,8 +235,12 @@ class Square(BoundedBravais):
     """
 
     @beartype
-    def __init__(self, L: int, lattice_spacing: ScalarType = 1.0):
-        super().__init__(L, L, lattice_spacing=lattice_spacing)
+    def __init__(
+        self, L1: int, L2: Optional[int] = None, lattice_spacing: ScalarType = 1.0
+    ):
+        if L2 is None:
+            L2 = L1
+        super().__init__(L1, L2, lattice_spacing=lattice_spacing)
 
     def __repr__(self):
         return super().__repr__()
@@ -367,7 +373,10 @@ class Honeycomb(BoundedBravais):
 
 
     Args:
-        L (int): number of sites in linear direction. n_atoms = L * L * 2.
+        L1 (int): number of unit cells in linear direction. n_atoms = L1 * L1 * 2.
+        L2 (Optional[int]): number of unit cells in direction a2.
+            n_atoms = L1 * L2 * 2, default is L1.
+
         lattice_spacing (Scalar, Real):
             lattice spacing. Defaults to 1.0.
 
@@ -379,8 +388,12 @@ class Honeycomb(BoundedBravais):
     """
 
     @beartype
-    def __init__(self, L: int, lattice_spacing: ScalarType = 1.0):
-        super().__init__(L, L, lattice_spacing=lattice_spacing)
+    def __init__(
+        self, L1: int, L2: Optional[int] = None, lattice_spacing: ScalarType = 1.0
+    ):
+        if L2 is None:
+            L2 = L1
+        super().__init__(L1, L2, lattice_spacing=lattice_spacing)
 
     def __repr__(self):
         return super().__repr__()
@@ -406,6 +419,8 @@ class Triangular(BoundedBravais):
 
     Args:
         L (int): number of sites in linear direction. n_atoms = L * L.
+        L2 (Optional[int]): number of sites along a2 direction,
+            n_atoms = L1 * L2, default is L1.
         lattice_spacing (Scalar, Real):
             lattice spacing. Defaults to 1.0.
 
@@ -417,8 +432,12 @@ class Triangular(BoundedBravais):
     """
 
     @beartype
-    def __init__(self, L: int, lattice_spacing: ScalarType = 1.0):
-        super().__init__(L, L, lattice_spacing=lattice_spacing)
+    def __init__(
+        self, L1: int, L2: Optional[int] = None, lattice_spacing: ScalarType = 1.0
+    ):
+        if L2 is None:
+            L2 = L1
+        super().__init__(L1, L2, lattice_spacing=lattice_spacing)
 
     def __repr__(self):
         return super().__repr__()
@@ -444,7 +463,9 @@ class Lieb(BoundedBravais):
         - loc3 (0 ,0.5)
 
     Args:
-        L (int): number of sites in linear direction. n_atoms = L * L.
+        L1 (int): number of unit cells in linear direction. n_atoms = 3* L1 * L1.
+        L2 (Optional[int]): number of unit cells along a2 direction,
+            n_atoms = 3 * L1 * L2, default is L1.
         lattice_spacing (Scalar, Real):
             lattice spacing. Defaults to 1.0.
 
@@ -456,8 +477,12 @@ class Lieb(BoundedBravais):
     """
 
     @beartype
-    def __init__(self, L: int, lattice_spacing: ScalarType = 1.0):
-        super().__init__(L, L, lattice_spacing=lattice_spacing)
+    def __init__(
+        self, L1: int, L2: Optional[int] = None, lattice_spacing: ScalarType = 1.0
+    ):
+        if L2 is None:
+            L2 = L1
+        super().__init__(L1, L2, lattice_spacing=lattice_spacing)
 
     def __repr__(self):
         return super().__repr__()
@@ -483,7 +508,9 @@ class Kagome(BoundedBravais):
         - loc3 (0.25 ,0.25sqrt(3))
 
     Args:
-        L (int): number of sites in linear direction. n_atoms = L * L.
+        L1 (int): number of sites in linear direction. n_atoms = 3 * L1 * L1.
+        L2 (Optional[int]): number of unit cells along a2 direction,
+            n_atoms = 3 * L1 * L2, default is L1.
         lattice_spacing (Scalar, Real):
             lattice spacing. Defaults to 1.0.
 
@@ -495,8 +522,12 @@ class Kagome(BoundedBravais):
     """
 
     @beartype
-    def __init__(self, L: int, lattice_spacing: ScalarType = 1.0):
-        super().__init__(L, L, lattice_spacing=lattice_spacing)
+    def __init__(
+        self, L1: int, L2: Optional[int] = None, lattice_spacing: ScalarType = 1.0
+    ):
+        if L2 is None:
+            L2 = L1
+        super().__init__(L1, L2, lattice_spacing=lattice_spacing)
 
     def __repr__(self):
         return super().__repr__()
