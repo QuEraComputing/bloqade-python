@@ -6,7 +6,7 @@ groups = ["default", "dev", "doc"]
 cross_platform = true
 static_urls = false
 lock_version = "4.3"
-content_hash = "sha256:a0644e47357c1b20b2d67de6b12da6e247e1caff980f230ffbad0d0302597c99"
+content_hash = "sha256:b10873ac06ca296f087d586da45b97b30fd697a364d72736fc1be32424b5ce46"
 
 [[package]]
 name = "amazon-braket-default-simulator"
@@ -42,7 +42,7 @@ files = [
 
 [[package]]
 name = "amazon-braket-sdk"
-version = "1.59.1.post0"
+version = "1.59.2"
 requires_python = ">= 3.9"
 summary = "An open source library for interacting with quantum computing devices on Amazon Braket"
 dependencies = [
@@ -62,8 +62,8 @@ dependencies = [
     "sympy",
 ]
 files = [
-    {file = "amazon-braket-sdk-1.59.1.post0.tar.gz", hash = "sha256:b4f118eac18a47a1d1a0f250e292b6629651252c596058283cd7d5ac2249e320"},
-    {file = "amazon_braket_sdk-1.59.1.post0-py3-none-any.whl", hash = "sha256:d409ff4275efb268fdacafab052632991ee243f4406eb85a6677b09e7f171670"},
+    {file = "amazon-braket-sdk-1.59.2.tar.gz", hash = "sha256:0fc31deb5e0ca489bfb2b31fa7ce7c568e34534330846c3dafdcd64f292865e4"},
+    {file = "amazon_braket_sdk-1.59.2-py3-none-any.whl", hash = "sha256:8acd273f74d0cc70f8b87d4305d3cdf76167968ba18b9129a36a8b7f46f7f39e"},
 ]
 
 [[package]]
@@ -792,6 +792,21 @@ files = [
 ]
 
 [[package]]
+name = "icecream"
+version = "2.1.3"
+summary = "Never use print() to debug again; inspect variables, expressions, and program execution with a single, simple function call."
+dependencies = [
+    "asttokens>=2.0.1",
+    "colorama>=0.3.9",
+    "executing>=0.3.1",
+    "pygments>=2.2.0",
+]
+files = [
+    {file = "icecream-2.1.3-py2.py3-none-any.whl", hash = "sha256:757aec31ad4488b949bc4f499d18e6e5973c40cc4d4fc607229e78cfaec94c34"},
+    {file = "icecream-2.1.3.tar.gz", hash = "sha256:0aa4a7c3374ec36153a1d08f81e3080e83d8ac1eefd97d2f4fe9544e8f9b49de"},
+]
+
+[[package]]
 name = "identify"
 version = "2.5.28"
 requires_python = ">=3.8"
@@ -1073,15 +1088,15 @@ files = [
 
 [[package]]
 name = "juliacall"
-version = "0.9.14"
+version = "0.9.15"
 requires_python = "~=3.7"
 summary = "Julia and Python in seamless harmony"
 dependencies = [
     "juliapkg~=0.1.8",
 ]
 files = [
-    {file = "juliacall-0.9.14-py3-none-any.whl", hash = "sha256:663339bfca454fe02aa8024f918db4e24007bb4d583cad371ace78baff39c4b3"},
-    {file = "juliacall-0.9.14.tar.gz", hash = "sha256:65aa489280ac7e92f4e309cccec1994bdcffbb37f423d1b351f3f52bb35d5514"},
+    {file = "juliacall-0.9.15-py3-none-any.whl", hash = "sha256:b60e1225755455b8f0eff572cc7509b7220478e8b5e55b938c07321b8b0a7704"},
+    {file = "juliacall-0.9.15.tar.gz", hash = "sha256:08163ae1290dda155cdabdccc4035a4cf0c8e361522a5b3f8e6532401b4f29cc"},
 ]
 
 [[package]]
