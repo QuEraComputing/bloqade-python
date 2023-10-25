@@ -141,7 +141,11 @@ def _serialze(obj: QuEraTask) -> Dict[str, ParamType]:
         "task_id": obj.task_id if obj.task_id is not None else None,
         "task_ir": obj.task_ir.dict(by_alias=True, exclude_none=True),
         "metadata": obj.metadata,
-        "backend": {f"{obj.backend.__class__.__name__}": obj.backend.dict()},
+        "backend": {
+            f"{obj.backend.__class__.__name__}": obj.backend.dict(
+                exclude=set(["access_key", "secret_key", "session_token"])
+            )
+        },
         "parallel_decoder": obj.parallel_decoder.dict()
         if obj.parallel_decoder
         else None,
