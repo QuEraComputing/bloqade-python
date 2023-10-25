@@ -19,6 +19,10 @@ def get_capabilities() -> "QuEraCapabilities":
     Note:
         Units of time, distance, and energy are microseconds (us),
         micrometers (um), and rad / us, respectively.
+
+        For a comprehensive list of capabilities,
+        see the [Hardware Reference](../../hardware-reference/hardware-capabilities.md)
+        page
     """
 
     from bloqade.submission.capabilities import get_capabilities
