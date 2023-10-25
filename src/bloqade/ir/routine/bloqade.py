@@ -5,7 +5,7 @@ from bloqade.ir.routine.base import RoutineBase, __pydantic_dataclass_config__
 from bloqade.builder.typing import LiteralType
 from bloqade.task.batch import LocalBatch
 from beartype import beartype
-from beartype.typing import Optional, Tuple, Callable, Dict, Any, VarArg
+from beartype.typing import Optional, Tuple, Callable, Dict, Any
 from pydantic.dataclasses import dataclass
 import numpy as np
 
@@ -30,7 +30,7 @@ class BloqadePythonRoutine(RoutineBase):
 
     @dataclass(config=__pydantic_dataclass_config__)
     class EmuRunner:
-        compile_cache: CompileCache
+        compile_cache: Optional[CompileCache]
         solver_args: Dict
         callback: Callable
         callback_args: Tuple
@@ -41,7 +41,7 @@ class BloqadePythonRoutine(RoutineBase):
             ).emit(emulator_ir)
 
             zero_state = hamiltonian.space.zero_state(np.complex128)
-            result = AnalogGate(hamiltonian).apply(zero_state, **self.solver_args)
+            (result,) = AnalogGate(hamiltonian).apply(zero_state, **self.solver_args)
 
             return self.callback(result, metadata, *self.callback_args)
 
@@ -71,7 +71,6 @@ class BloqadePythonRoutine(RoutineBase):
         blockade_radius: LiteralType = 0.0,
         cache_matrices: bool = False,
     ) -> LocalBatch:
-        from bloqade.emulate.codegen.hamiltonian import CompileCache
         from bloqade.task.bloqade import BloqadeTask
 
         if cache_matrices:
@@ -81,7 +80,7 @@ class BloqadePythonRoutine(RoutineBase):
 
         tasks = OrderedDict()
         it_iter = self._generate_ir(args, blockade_radius)
-        for task_number, metadata, emulator_ir in it_iter:
+        for task_number, emulator_ir, metadata in it_iter:
             tasks[task_number] = BloqadeTask(shots, emulator_ir, metadata, matrix_cache)
 
         return LocalBatch(self.source, tasks, name)
@@ -197,7 +196,7 @@ class BloqadePythonRoutine(RoutineBase):
     @beartype
     def run_callback(
         self,
-        callback: Callable[[np.ndarray, Dict[str, Decimal], VarArg], Any],
+        callback: Callable[[np.ndarray, Dict[str, Decimal], Any], Any],
         program_args: Tuple[LiteralType, ...] = (),
         callback_args: Tuple = (),
         blockade_radius: float = 0.0,
@@ -210,7 +209,6 @@ class BloqadePythonRoutine(RoutineBase):
         rtol: float = 1e-7,
         nsteps: int = 2_147_483_647,
     ):
-        from bloqade.emulate.codegen.hamiltonian import CompileCache
         from multiprocessing import Process, Queue, cpu_count
 
         if cache_matrices:
@@ -237,7 +235,7 @@ class BloqadePythonRoutine(RoutineBase):
         results = Queue()
 
         it_iter = self._generate_ir(program_args, blockade_radius)
-        for task_number, metadata, emulator_ir in it_iter:
+        for task_number, emulator_ir, metadata in it_iter:
             tasks.put((task_number, (emulator_ir, metadata)))
 
         if multiprocessing:
