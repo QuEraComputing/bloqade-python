@@ -46,9 +46,8 @@ class Parse(ParseRegister, ParseSequence, ParseCircuit, ParseRoutine):
     @property
     def n_atoms(self: "Builder"):
         """Return the number of atoms in the program."""
-        from .builder import Parser
 
-        register = Parser().parse_register(self)
+        register = self.parse_register()
 
         if isinstance(register, ir.location.ParallelRegister):
             return register._register.n_atoms
