@@ -155,9 +155,7 @@ def _serialze(obj: QuEraTask) -> Dict[str, ParamType]:
 
 @QuEraTask.set_deserializer
 def _deserializer(d: Dict[str, Any]) -> QuEraTask:
-    d["task_ir"] = (
-        QuEraTaskSpecification(**d["task_ir"]) if d["task_ir"] is not None else None
-    )
+    d["task_ir"] = QuEraTaskSpecification(**d["task_ir"])
     d["task_result_ir"] = (
         QuEraTaskResults(**d["task_result_ir"]) if d["task_result_ir"] else None
     )
