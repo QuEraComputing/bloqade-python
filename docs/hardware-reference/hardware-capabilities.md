@@ -9,13 +9,13 @@ During program development, it can be quite handy to know what true hardware cap
 An example of using `get_capabilities()` is presented below:
 
 ```python
-from bloqade import get_capabilities
+from bloqade import get_capabilities, piecewise_linear
 
 # get capabilities for Aquila
 aquila_capabilities = get_capabilities()
 
 # obtain maximum Rabi frequency as Decimal
-max_rabi = aquila_capabilities.rydberg.global_.rabi_freqeuncy_max
+max_rabi = aquila_capabilities.capabilities.rydberg.global_.rabi_frequency_max
 
 # use that value in constructing a neat Rabi waveform 
 rabi_wf = piecewise_linear(durations = [0.5, 1.0, 0.5], values = [0, max_rabi, max_rabi, 0])
