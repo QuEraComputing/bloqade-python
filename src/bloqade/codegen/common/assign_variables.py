@@ -164,13 +164,11 @@ class AssignLocation(LocationVisitor):
         self.scalar_visitor = AssignScalar(mapping)
 
     def visit_chain(self, ast: location.Chain) -> location.Chain:
-        return location.Chain(
-            ast.shape[0], self.scalar_visitor.emit(ast.lattice_spacing)
-        )
+        return location.Chain(*ast.shape, self.scalar_visitor.emit(ast.lattice_spacing))
 
     def visit_square(self, ast: location.Square) -> location.Square:
         return location.Square(
-            ast.shape[0], self.scalar_visitor.emit(ast.lattice_spacing)
+            *ast.shape, self.scalar_visitor.emit(ast.lattice_spacing)
         )
 
     def visit_rectangular(self, ast: location.Rectangular) -> location.Rectangular:
@@ -183,23 +181,21 @@ class AssignLocation(LocationVisitor):
 
     def visit_triangular(self, ast: location.Triangular) -> location.Triangular:
         return location.Triangular(
-            ast.shape[0], self.scalar_visitor.emit(ast.lattice_spacing)
+            *ast.shape, self.scalar_visitor.emit(ast.lattice_spacing)
         )
 
     def visit_honeycomb(self, ast: location.Honeycomb) -> location.Honeycomb:
         return location.Honeycomb(
-            ast.shape[0], self.scalar_visitor.emit(ast.lattice_spacing)
+            *ast.shape, self.scalar_visitor.emit(ast.lattice_spacing)
         )
 
     def visit_kagome(self, ast: location.Kagome) -> location.Kagome:
         return location.Kagome(
-            ast.shape[0], self.scalar_visitor.emit(ast.lattice_spacing)
+            *ast.shape, self.scalar_visitor.emit(ast.lattice_spacing)
         )
 
     def visit_lieb(self, ast: location.Lieb) -> location.Lieb:
-        return location.Lieb(
-            ast.shape[0], self.scalar_visitor.emit(ast.lattice_spacing)
-        )
+        return location.Lieb(*ast.shape, self.scalar_visitor.emit(ast.lattice_spacing))
 
     def visit_list_of_locations(
         self, ast: location.ListOfLocations
