@@ -12,6 +12,8 @@ import numpy as np
 from bloqade.emulate.codegen.hamiltonian import CompileCache, RydbergHamiltonianCodeGen
 from bloqade.emulate.ir.state_vector import AnalogGate
 
+from multiprocessing import Process, Queue, cpu_count
+
 
 @dataclass(frozen=True, config=__pydantic_dataclass_config__)
 class BloqadeServiceOptions(RoutineBase):
@@ -41,9 +43,9 @@ class BloqadePythonRoutine(RoutineBase):
             ).emit(emulator_ir)
 
             zero_state = hamiltonian.space.zero_state(np.complex128)
-            (result,) = AnalogGate(hamiltonian).apply(zero_state, **self.solver_args)
+            (register,) = AnalogGate(hamiltonian).apply(zero_state, **self.solver_args)
 
-            return self.callback(result, metadata, *self.callback_args)
+            return self.callback(register, metadata, hamiltonian, *self.callback_args)
 
     def _generate_ir(self, args, blockade_radius):
         from bloqade.ir.analysis.assignment_scan import AssignmentScan
@@ -209,8 +211,6 @@ class BloqadePythonRoutine(RoutineBase):
         rtol: float = 1e-7,
         nsteps: int = 2_147_483_647,
     ):
-        from multiprocessing import Process, Queue, cpu_count
-
         if cache_matrices:
             compile_cache = CompileCache()
         else:
@@ -234,36 +234,42 @@ class BloqadePythonRoutine(RoutineBase):
         tasks = Queue()
         results = Queue()
 
+        total_tasks = 0
         it_iter = self._generate_ir(program_args, blockade_radius)
         for task_number, emulator_ir, metadata in it_iter:
+            total_tasks += 1
             tasks.put((task_number, (emulator_ir, metadata)))
 
+        workers = []
         if multiprocessing:
-            num_workers = int(num_workers or cpu_count())
+            num_workers = max(int(num_workers or cpu_count()), 1)
 
-            workers = [
-                Process(
+            for _ in range(num_workers):
+                worker = Process(
                     target=BloqadePythonRoutine.process_tasks,
                     args=(tasks, results, runner),
                 )
-                for i in range(num_workers)
-            ]
-
-            for worker in workers:
                 worker.start()
 
-            for worker in workers:
-                worker.join()
-
+                workers.append(worker)
         else:
             while not tasks.empty():
                 task_id, (emulator_ir, metadata) = tasks.get()
                 result = runner.run_task(emulator_ir, metadata)
                 results.put((task_id, result))
 
+        # blocks until all
+        # results have been fetched
+        # from the id_results Queue
         id_results = []
-        while not results.empty():
+        for i in range(total_tasks):
             id_results.append(results.get())
+
+        for worker in workers:
+            worker.join()
+
+        tasks.close()
+        results.close()
 
         id_results.sort(key=lambda x: x[0])
         results = [result for _, result in id_results]
