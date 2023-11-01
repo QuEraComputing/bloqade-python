@@ -12,8 +12,6 @@ import numpy as np
 from bloqade.emulate.codegen.hamiltonian import CompileCache, RydbergHamiltonianCodeGen
 from bloqade.emulate.ir.state_vector import AnalogGate
 
-from multiprocessing import Process, Queue, cpu_count
-
 
 @dataclass(frozen=True, config=__pydantic_dataclass_config__)
 class BloqadeServiceOptions(RoutineBase):
@@ -215,6 +213,11 @@ class BloqadePythonRoutine(RoutineBase):
         rtol: float = 1e-7,
         nsteps: int = 2_147_483_647,
     ) -> List:
+        if multiprocessing:
+            from multiprocessing import Process, Queue, cpu_count
+        else:
+            from queue import Queue
+
         if cache_matrices:
             compile_cache = CompileCache()
         else:
@@ -269,11 +272,11 @@ class BloqadePythonRoutine(RoutineBase):
         for i in range(total_tasks):
             id_results.append(results.get())
 
-        for worker in workers:
-            worker.join()
-
-        tasks.close()
-        results.close()
+        if workers:
+            for worker in workers:
+                worker.join()
+            tasks.close()
+            results.close()
 
         id_results.sort(key=lambda x: x[0])
         results = [result for _, result in id_results]
