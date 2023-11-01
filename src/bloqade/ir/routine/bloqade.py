@@ -10,7 +10,7 @@ from pydantic.dataclasses import dataclass
 import numpy as np
 
 from bloqade.emulate.codegen.hamiltonian import CompileCache, RydbergHamiltonianCodeGen
-from bloqade.emulate.ir.state_vector import AnalogGate
+from bloqade.emulate.ir.state_vector import AnalogGate, RydbergHamiltonian
 
 
 @dataclass(frozen=True, config=__pydantic_dataclass_config__)
@@ -109,7 +109,7 @@ class BloqadePythonRoutine(RoutineBase):
 
         Args:
             shots (int): number of shots after running state vector simulation
-            args (Tuple[Real, ...], optional): The values for parameters defined
+            args (Tuple[LiteralType, ...], optional): The values for parameters defined
             in `args`. Defaults to ().
             name (Optional[str], optional): Name to give this run. Defaults to None.
             blockade_radius (float, optional): Use the Blockade subspace given a
@@ -200,7 +200,9 @@ class BloqadePythonRoutine(RoutineBase):
     @beartype
     def run_callback(
         self,
-        callback: Callable[[np.ndarray, Dict[str, Decimal], Any], Any],
+        callback: Callable[
+            [np.ndarray, Dict[str, Decimal], RydbergHamiltonian, Any], Any
+        ],
         program_args: Tuple[LiteralType, ...] = (),
         callback_args: Tuple = (),
         blockade_radius: float = 0.0,
@@ -213,6 +215,50 @@ class BloqadePythonRoutine(RoutineBase):
         rtol: float = 1e-7,
         nsteps: int = 2_147_483_647,
     ) -> List:
+        """Run state-vector simulation with a callback to access full state-vector from
+        emulator
+
+        Args:
+            callback (Callable[[np.ndarray, Metadata, RydbergHamiltonian, Any], Any]):
+            The callback function to run for each task in batch. See note below for more
+            details about the signature of the function.
+            program_args (Tuple[LiteralType, ...], optional): The values for parameters
+            defined in `args`. Defaults to ().
+            callback_args (Tuple[Any,...], optional): Extra arguments to pass into
+            callback name (Optional[str], optional): Name to give this run.
+            Defaults to None.
+            blockade_radius (float, optional): Use the Blockade subspace given a
+            particular radius. Defaults to 0.0.
+            interaction_picture (bool, optional): Use the interaction picture when
+            solving schrodinger equation. Defaults to False.
+            cache_matrices (bool, optional): Reuse previously evaluated matrcies when
+            possible. Defaults to False.
+            multiprocessing (bool, optional): Use multiple processes to process the
+            batches. Defaults to False.
+            num_workers (Optional[int], optional): Number of processes to run with
+            multiprocessing. Defaults to None.
+            solver_name (str, optional): Which SciPy Solver to use. Defaults to
+            "dop853".
+            atol (float, optional): Absolute tolerance for ODE solver. Defaults to
+            1e-14.
+            rtol (float, optional): Relative tolerance for adaptive step in ODE solver.
+            Defaults to 1e-7.
+            nsteps (int, optional): Maximum number of steps allowed per integration
+            step. Defaults to 2_147_483_647, the maximum value.
+
+        Returns:
+            List: List of resulting outputs from the callbacks
+
+        Note:
+            For the `callback` function, first argument is the many-body wavefunction
+            as a 1D complex numpy array, the second argument is of type `Metadata` which
+            is a Named Tuple where the fields correspond to the parameters of that given
+            task, RydbergHamiltonian is the object that contains the Hamiltonian used to
+            generate the evolution for that task, Finally any optional positional
+            arguments are allowed after that. You can use the `.space` attribute
+
+
+        """
         if multiprocessing:
             from multiprocessing import Process, Queue, cpu_count
         else:
@@ -272,6 +318,7 @@ class BloqadePythonRoutine(RoutineBase):
         if workers:
             for worker in workers:
                 worker.join()
+
             tasks.close()
             results.close()
 

@@ -1,63 +1,14 @@
 from dataclasses import dataclass
 from numpy.typing import NDArray
-from beartype.typing import TYPE_CHECKING, Tuple
+from beartype.typing import TYPE_CHECKING
 import numpy as np
 from enum import Enum
-import plum
-from numba import njit
 
 if TYPE_CHECKING:
     from .emulator import Register
     from .atom_type import AtomType
 
 MAX_PRINT_SIZE = 30
-
-
-@njit
-def _expt_one_body_op(configs, n_level, psi, site, op):
-    res = np.zeros(psi.shape[1:], dtype=np.complex128)
-
-    divisor = n_level**site
-
-    for i, config in enumerate(configs):
-        col = (config // divisor) % n_level
-        for row, ele in enumerate(op[:, col]):
-            j = config - (col * divisor) + (row * divisor)
-
-            res += ele * psi[i, ...] * np.conj(psi[j, ...])
-
-    return res
-
-
-@njit
-def _expt_two_body_op(configs, n_level, psi, sites, data, indices, indptr):
-    res = np.zeros(psi.shape[1:], dtype=np.complex128)
-
-    divisor_1 = n_level ** sites[0]
-    divisor_2 = n_level ** sites[1]
-
-    for i, config in enumerate(configs):
-        col_1 = (config // divisor_1) % n_level
-        col_2 = (config // divisor_2) % n_level
-        col = col_1 + (col_2 * n_level)
-
-        start = indptr[col]
-        end = indptr[col + 1]
-
-        for ele, row in zip(data[start:end], indices[start:end]):
-            row_2, row_1 = divmod(row, n_level)
-
-            j = (
-                config
-                - (col_1 * divisor_1)
-                - (col_2 * divisor_2)
-                + (row_1 * divisor_1)
-                + (row_2 * divisor_2)
-            )
-
-            res += ele * psi[i, ...] * np.conj(psi[j, ...])
-
-    return res
 
 
 class SpaceType(str, Enum):
@@ -235,63 +186,6 @@ class Space:
         state = np.zeros(self.size, dtype=dtype)
         state[0] = 1.0
         return state
-
-    @plum.dispatch
-    def expectation_value(
-        self,
-        state_or_states: np.ndarray,
-        operator: np.ndarray,
-        sites: Tuple[int, int],
-    ):
-        from scipy.sparse import csc_array
-
-        shape = (self.atom_type.n_level**2, self.atom_type.n_level**2)
-        if operator.shape != shape:
-            raise ValueError(
-                f"expecting operator to be size {shape}, got site {operator.shape}"
-            )
-
-        if state_or_states.shape[0] != self.size:
-            raise ValueError(
-                "Expecting `state_or_states` to have first dimension with size "
-                f"{self.size}, got shape {state_or_states.shape}"
-            )
-
-        csc_operator = csc_array(operator)
-
-        return _expt_two_body_op(
-            configs=self.configurations,
-            n_level=self.atom_type.n_level,
-            psi=state_or_states,
-            sites=sites,
-            data=csc_operator.data,
-            indices=csc_operator.indices,
-            indptr=csc_operator.indptr,
-        )
-
-    @plum.dispatch
-    def expectation_value(  # noqa: F811
-        self, state_or_states: np.ndarray, operator: np.ndarray, site: int
-    ):
-        shape = (self.atom_type.n_level, self.atom_type.n_level)
-        if operator.shape != shape:
-            raise ValueError(
-                f"expecting operator to be size {shape}, got {operator.shape}"
-            )
-
-        if state_or_states.shape[0] != self.size:
-            raise ValueError(
-                "Expecting `state_or_states` to have first dimension with size "
-                f"{self.size}, got shape {state_or_states.shape}"
-            )
-
-        return _expt_one_body_op(
-            configs=self.configurations,
-            n_level=self.atom_type.n_level,
-            psi=state_or_states,
-            site=site,
-            op=operator,
-        )
 
     def sample_state_vector(
         self, state_vector: NDArray, n_samples: int, project_hyperfine: bool = True
