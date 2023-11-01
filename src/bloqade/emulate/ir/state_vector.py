@@ -72,6 +72,71 @@ def _expt_two_body_op(configs, n_level, psi, sites, data, indices, indptr):
 
 
 @dataclass(frozen=True)
+class StateVector:
+    data: NDArray
+    space: Space
+
+    @plum.dispatch
+    def _trace(self, matrix: np.ndarray, site_indices: Tuple[int, int]) -> complex:
+        from scipy.sparse import csc_array
+
+        shape = (self.space.atom_type.n_level**2, self.space.atom_type.n_level**2)
+
+        if matrix.shape != shape:
+            raise ValueError(
+                f"expecting operator to be size {shape}, got site {matrix.shape}"
+            )
+
+        csc = csc_array(matrix)
+
+        value = _expt_two_body_op(
+            configs=self.space.configurations,
+            n_level=self.space.atom_type.n_level,
+            psi=self.data,
+            sites=site_indices,
+            data=csc.data,
+            indices=csc.indices,
+            indptr=csc.indptr,
+        )
+
+        return complex(value.real, value.imag)
+
+    @plum.dispatch
+    def _trace(self, matrix: np.ndarray, site_index: int) -> complex:
+        shape = (self.space.atom_type.n_level, self.space.atom_type.n_level)
+
+        if matrix.shape != shape:
+            raise ValueError(
+                f"expecting operator to be size {shape}, got {matrix.shape}"
+            )
+
+        value = _expt_one_body_op(
+            configs=self.space.configurations,
+            n_level=self.space.atom_type.n_level,
+            psi=self.data,
+            site=site_index,
+            op=matrix,
+        )
+
+        return complex(value.real, value.imag)
+
+    def local_trace(
+        self, matrix: np.ndarray, site_indices: Union[int, Tuple[int, int]]
+    ) -> complex:
+        """return trace of an operator over the StateVector.
+
+        Args:
+            matrix (np.ndarray): Square matrix representing operator in the local
+                hilbert space.
+            site_indices (Union[int, Tuple[int, int]]): sites to apply operator to.
+
+        Returns:
+            complex: the trace of the operator over the state-vector.
+        """
+        return self._trace(matrix, site_indices)
+
+
+@dataclass(frozen=True)
 class DetuningOperator:
     diagonal: NDArray
     amplitude: Optional[Callable[[float], float]] = None
@@ -163,47 +228,47 @@ class RydbergHamiltonian:
 
     def _apply(
         self,
-        register: np.ndarray,
+        register_data: np.ndarray,
         time: Optional[float] = None,
         output: Optional[NDArray] = None,
     ) -> np.ndarray:
-        self._check_register(register)
+        self._check_register(register_data)
 
         if time is None:
             time = self.emulator_ir.duration
 
         if output is None:
-            output = np.zeros_like(register, dtype=np.complex128)
+            output = np.zeros_like(register_data, dtype=np.complex128)
 
         diagonal = sum(
             (detuning.get_diagonal(time) for detuning in self.detuning_ops),
         )
 
-        np.multiply(diagonal, register, out=output)
+        np.multiply(diagonal, register_data, out=output)
 
         for rabi_op in self.rabi_ops:
-            rabi_op.dot(register, output, time)
+            rabi_op.dot(register_data, output, time)
 
         return output
 
     @beartype
     def average(
         self,
-        register: np.ndarray,
+        register: StateVector,
         time: Optional[float] = None,
     ) -> float:
         """Get energy average from RydbergHamiltonian object at time `time` with
         register `register`
 
         Args:
-            register (np.ndarray): Register as 1D array
+            register (StateVector): The state vector to take average with
             time (Optional[float], optional): Time value to evaluate average at.
             Defaults to duration of RydbergHamiltonian.
 
         Returns:
             float: average energy at time `time`
         """
-        return np.vdot(register, self._apply(register, time)).real
+        return np.vdot(register.data, self._apply(register.data, time)).real
 
     @beartype
     def average_and_variance(
@@ -215,7 +280,7 @@ class RydbergHamiltonian:
         with register `register`
 
         Args:
-            register (np.ndarray): Register as 1D array
+            register (StateVector): The state vector to take average and variance with
             time (Optional[float], optional): Time value to evaluate average at.
             Defaults to duration of RydbergHamiltonian.
 
@@ -223,23 +288,24 @@ class RydbergHamiltonian:
             Tuple[float, float]: average and variance of energy at time `time`
             respectively.
         """
-        H_register = self._apply(register, time)
+        H_register_data = self._apply(register.data, time)
 
-        average = np.vdot(register, H_register).real
-        square_average = np.vdot(H_register, H_register).real
+        average = np.vdot(register.data, H_register_data).real
+        square_average = np.vdot(H_register_data, H_register_data).real
 
         return average, square_average - average**2
 
+    @beartype
     def variance(
         self,
-        register: np.ndarray,
+        register: StateVector,
         time: Optional[float] = None,
     ) -> float:
         """Get the energy variance from RydbergHamiltonian object at
         time `time` with register `register`
 
         Args:
-            register (np.ndarray): Register as 1D array
+            register (StateVector): The state vector to take variance with
             time (Optional[float], optional): Time value to evaluate average at.
             Defaults to duration of RydbergHamiltonian.
 
@@ -249,35 +315,6 @@ class RydbergHamiltonian:
 
         _, var = self.average_and_variance(register, time)
         return var
-
-    @plum.dispatch
-    def expectation_value(
-        self,
-        register: np.ndarray,
-        operator: np.ndarray,
-        site_indices: Tuple[int, int],
-    ) -> complex:
-        from scipy.sparse import csc_array
-
-        shape = (self.space.atom_type.n_level**2, self.space.atom_type.n_level**2)
-        if operator.shape != shape:
-            raise ValueError(
-                f"expecting operator to be size {shape}, got site {operator.shape}"
-            )
-
-        csc_operator = csc_array(operator)
-
-        value = _expt_two_body_op(
-            configs=self.space.configurations,
-            n_level=self.space.atom_type.n_level,
-            psi=register,
-            sites=site_indices,
-            data=csc_operator.data,
-            indices=csc_operator.indices,
-            indptr=csc_operator.indptr,
-        )
-
-        return complex(value.real, value.imag)
 
     @plum.dispatch
     def expectation_value(  # noqa: F811
@@ -303,22 +340,6 @@ class RydbergHamiltonian:
             complex: The expectation value.
         """
         self._check_register(register)
-
-        shape = (self.space.atom_type.n_level, self.space.atom_type.n_level)
-        if operator.shape != shape:
-            raise ValueError(
-                f"expecting operator to be size {shape}, got {operator.shape}"
-            )
-
-        value = _expt_one_body_op(
-            configs=self.space.configurations,
-            n_level=self.space.atom_type.n_level,
-            psi=register,
-            site=site_indices,
-            op=operator,
-        )
-
-        return complex(value.real, value.imag)
 
 
 @dataclass(frozen=True)

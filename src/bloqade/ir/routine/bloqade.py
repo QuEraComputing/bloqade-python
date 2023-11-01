@@ -10,7 +10,7 @@ from pydantic.dataclasses import dataclass
 import numpy as np
 
 from bloqade.emulate.codegen.hamiltonian import CompileCache, RydbergHamiltonianCodeGen
-from bloqade.emulate.ir.state_vector import AnalogGate, RydbergHamiltonian
+from bloqade.emulate.ir.state_vector import AnalogGate, RydbergHamiltonian, StateVector
 import traceback
 
 
@@ -45,13 +45,17 @@ class BloqadePythonRoutine(RoutineBase):
             ).emit(emulator_ir)
 
             MetaData = namedtuple("MetaData", metadata_dict.keys())
-
             metadata = MetaData(**{k: float(v) for k, v in metadata_dict.items()})
 
             zero_state = hamiltonian.space.zero_state(np.complex128)
-            (register,) = AnalogGate(hamiltonian).apply(zero_state, **self.solver_args)
+            (register_data,) = AnalogGate(hamiltonian).apply(
+                zero_state, **self.solver_args
+            )
+            wrapped_register = StateVector(register_data, hamiltonian.space)
 
-            return self.callback(register, metadata, hamiltonian, *self.callback_args)
+            return self.callback(
+                wrapped_register, metadata, hamiltonian, *self.callback_args
+            )
 
     def _generate_ir(self, args, blockade_radius):
         from bloqade.ir.analysis.assignment_scan import AssignmentScan
@@ -205,7 +209,7 @@ class BloqadePythonRoutine(RoutineBase):
     def run_callback(
         self,
         callback: Callable[
-            [np.ndarray, Dict[str, Decimal], RydbergHamiltonian, Any], Any
+            [StateVector, Dict[str, Decimal], RydbergHamiltonian, Any], Any
         ],
         program_args: Tuple[LiteralType, ...] = (),
         callback_args: Tuple = (),
@@ -224,7 +228,7 @@ class BloqadePythonRoutine(RoutineBase):
         emulator
 
         Args:
-            callback (Callable[[np.ndarray, Metadata, RydbergHamiltonian, Any], Any]):
+            callback (Callable[[StateVector, Metadata, RydbergHamiltonian, Any], Any]):
             The callback function to run for each task in batch. See note below for more
             details about the signature of the function.
             program_args (Tuple[LiteralType, ...], optional): The values for parameters
