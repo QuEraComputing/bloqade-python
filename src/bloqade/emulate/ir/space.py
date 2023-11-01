@@ -15,7 +15,7 @@ MAX_PRINT_SIZE = 30
 
 @njit
 def _expt_one_body_op(configs, n_level, psi, site, op):
-    res = np.zeros(psi.shape[1:], dtype=np.result_type(psi.dtype, op.dtype))
+    res = np.zeros(psi.shape[1:], dtype=np.complex128)
 
     divisor = n_level**site
 
@@ -24,14 +24,14 @@ def _expt_one_body_op(configs, n_level, psi, site, op):
         for row, ele in enumerate(op[:, col]):
             j = config - (col * divisor) + (row * divisor)
 
-            res += ele * np.conj(psi[i, ...]) * psi[j, ...]
+            res += ele * psi[i, ...] * np.conj(psi[j, ...])
 
     return res
 
 
 @njit
 def _expt_two_body_op(configs, n_level, psi, sites, data, indices, indptr):
-    res = np.zeros(psi.shape[1:], dtype=np.result_type(psi.dtype, data.dtype))
+    res = np.zeros(psi.shape[1:], dtype=np.complex128)
 
     divisor_1 = n_level ** sites[0]
     divisor_2 = n_level ** sites[1]
@@ -55,7 +55,7 @@ def _expt_two_body_op(configs, n_level, psi, sites, data, indices, indptr):
                 + (row_2 * divisor_2)
             )
 
-            res += ele * np.conj(psi[i, ...]) * psi[j, ...]
+            res += ele * psi[i, ...] * np.conj(psi[j, ...])
 
     return res
 
@@ -237,10 +237,10 @@ class Space:
         return state
 
     @plum.dispatch
-    def excpetation_value(
+    def expectation_value(
         self,
-        state_or_states: NDArray,
-        operator: NDArray,
+        state_or_states: np.ndarray,
+        operator: np.ndarray,
         sites: Tuple[int, int],
     ):
         from scipy.sparse import csc_array
@@ -270,8 +270,8 @@ class Space:
         )
 
     @plum.dispatch
-    def excpetation_value(  # noqa: F811
-        self, state_or_states: NDArray, operator: NDArray, site: int
+    def expectation_value(  # noqa: F811
+        self, state_or_states: np.ndarray, operator: np.ndarray, site: int
     ):
         shape = (self.atom_type.n_level, self.atom_type.n_level)
         if operator.shape != shape:
@@ -290,7 +290,7 @@ class Space:
             n_level=self.atom_type.n_level,
             psi=state_or_states,
             site=site,
-            operator=operator,
+            op=operator,
         )
 
     def sample_state_vector(
