@@ -88,6 +88,9 @@ def test_three_level_subspace_2():
 
 
 def test_three_level_subspace_3():
+    space = Space.create(Register(TwoLevelAtom, [(0, 0), (0, 4), (0, 5)], 1.1))
+    assert np.all(space.configurations == np.array([0, 1, 2, 3, 4, 5]))
+
     space_part = Space.create(Register(ThreeLevelAtom, [(0, 0), (0, 1)], 1.1))
 
     space = Space.create(
