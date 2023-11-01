@@ -7,7 +7,7 @@ import pytest
 
 
 def callback(register, *_):
-    return register
+    return register.data
 
 
 def test_run_callback():

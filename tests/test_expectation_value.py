@@ -3,8 +3,8 @@ import numpy as np
 
 
 def callback_single_atom(register, *_):
-    density_op = np.array([[0, 0], [0, 1]])
-    rabi_op = np.array([[0, -1j], [+1j, 0]])
+    density_op = np.array([[0.0, 0.0], [0, 1]])
+    rabi_op = np.array([[0.0, -1.0j], [+1.0j, 0.0]])
 
     density = register.local_trace(density_op, 0)
     rabi_expt = register.local_trace(rabi_op, 0)
@@ -31,8 +31,8 @@ def test_expectation_value_single_atom():
 
 
 def callback_two_atom(register, *_):
-    density_op = np.array([[0, 0], [0, 1]])
-    rabi_op = np.array([[0, -1j], [+1j, 0]])
+    density_op = np.array([[0.0, 0.0], [0.0, 1.0]])
+    rabi_op = np.array([[0.0, -1.0j], [0.0j, 0.0]])
 
     full_density_op_0 = np.kron(np.eye(2), density_op)
     full_density_op_1 = np.kron(density_op, np.eye(2))
@@ -71,4 +71,4 @@ def test_expection_value_two_atom():
 
 if __name__ == "__main__":
     test_expectation_value_single_atom()
-    # test_expection_value_two_atom()
+    test_expection_value_two_atom()
