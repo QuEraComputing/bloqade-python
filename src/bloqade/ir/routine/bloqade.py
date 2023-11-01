@@ -101,8 +101,8 @@ class BloqadePythonRoutine(RoutineBase):
         multiprocessing: bool = False,
         num_workers: Optional[int] = None,
         solver_name: str = "dop853",
-        atol: float = 1e-14,
-        rtol: float = 1e-7,
+        atol: float = 1e-7,
+        rtol: float = 1e-14,
         nsteps: int = 2_147_483_647,
     ) -> LocalBatch:
         """Run the current program using bloqade python backend
@@ -211,8 +211,8 @@ class BloqadePythonRoutine(RoutineBase):
         multiprocessing: bool = False,
         num_workers: Optional[int] = None,
         solver_name: str = "dop853",
-        atol: float = 1e-14,
-        rtol: float = 1e-7,
+        atol: float = 1e-7,
+        rtol: float = 1e-14,
         nsteps: int = 2_147_483_647,
     ) -> List:
         """Run state-vector simulation with a callback to access full state-vector from
