@@ -36,7 +36,7 @@ class Space:
         for index_1, site_1 in enumerate(sites[1:], 1):
             site_1 = np.asarray(site_1)
             atoms = []
-            for index_2, site_2 in enumerate(sites[:index_1]):
+            for index_2, site_2 in enumerate(sites[: index_1 + 1]):
                 site_2 = np.asarray(site_2)
                 if np.linalg.norm(site_1 - site_2) <= blockade_radius:
                     atoms.append(index_2)
