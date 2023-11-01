@@ -24,9 +24,7 @@ def test_expectation_value_single_atom():
         .assign(omega=omega)
         .batch_assign(run_time=np.linspace(0, 2 * np.pi / omega, 101))
         .bloqade.python()
-        .run_callback(
-            callback=callback_single_atom, multiprocessing=True, num_workers=2
-        )
+        .run_callback(callback=callback_single_atom)
     )
 
 
@@ -65,10 +63,42 @@ def test_expection_value_two_atom():
         .assign(omega=omega)
         .batch_assign(run_time=np.linspace(0, 2 * np.pi / omega, 11))
         .bloqade.python()
-        .run_callback(callback=callback_two_atom, multiprocessing=True, num_workers=2)
+        .run_callback(callback=callback_two_atom)
+    )
+
+
+def callback_two_body(register, *_):
+    from functools import reduce
+
+    plus_op = np.array([[0.0, 1.0], [0.0, 0.0]])
+    minus_op = np.array([[0.0, 0.0], [1.0, 0.0]])
+
+    two_body_operator = np.kron(minus_op, plus_op)
+    # reverse order
+    full_body_operator = reduce(np.kron, [plus_op, np.eye(2), minus_op])
+
+    corr = register.local_trace(two_body_operator, (0, 2))
+
+    expected_corr = np.vdot(register.data, full_body_operator.dot(register.data))
+
+    np.testing.assert_almost_equal(corr, expected_corr)
+
+
+def test_expectation_value_two_body():
+    omega = 2 * np.pi
+    (
+        start.add_position((0, 0))
+        .add_position((0, 6.1))
+        .add_position((6.1, 6.1))
+        .rydberg.rabi.amplitude.uniform.constant("omega", "run_time")
+        .assign(omega=omega)
+        .batch_assign(run_time=np.linspace(0, 2 * np.pi / omega, 11))
+        .bloqade.python()
+        .run_callback(callback=callback_two_body)
     )
 
 
 if __name__ == "__main__":
     test_expectation_value_single_atom()
     test_expection_value_two_atom()
+    test_expectation_value_two_body()
