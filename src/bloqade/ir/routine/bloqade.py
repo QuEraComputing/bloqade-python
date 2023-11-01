@@ -11,6 +11,7 @@ import numpy as np
 
 from bloqade.emulate.codegen.hamiltonian import CompileCache, RydbergHamiltonianCodeGen
 from bloqade.emulate.ir.state_vector import AnalogGate, RydbergHamiltonian
+import traceback
 
 
 @dataclass(frozen=True, config=__pydantic_dataclass_config__)
@@ -24,9 +25,12 @@ class BloqadePythonRoutine(RoutineBase):
     @staticmethod
     def process_tasks(runner, tasks, results):
         while not tasks.empty():
-            task_id, (emulator_ir, metadata) = tasks.get()
-            result = runner.run_task(emulator_ir, metadata)
-            results.put((task_id, result))
+            try:
+                task_id, (emulator_ir, metadata) = tasks.get()
+                result = runner.run_task(emulator_ir, metadata)
+                results.put((task_id, result))
+            except BaseException as e:
+                results.put((task_id, e))
 
     @dataclass(config=__pydantic_dataclass_config__)
     class EmuRunner:
@@ -205,6 +209,8 @@ class BloqadePythonRoutine(RoutineBase):
         ],
         program_args: Tuple[LiteralType, ...] = (),
         callback_args: Tuple = (),
+        name: Optional[str] = None,
+        ignore_exceptions: bool = False,
         blockade_radius: float = 0.0,
         interaction_picture: bool = False,
         cache_matrices: bool = False,
@@ -225,8 +231,10 @@ class BloqadePythonRoutine(RoutineBase):
             program_args (Tuple[LiteralType, ...], optional): The values for parameters
             defined in `args`. Defaults to ().
             callback_args (Tuple[Any,...], optional): Extra arguments to pass into
-            callback name (Optional[str], optional): Name to give this run.
-            Defaults to None.
+            ignore_exceptions: (bool, optional) If `True` any exception raised during
+            a task will be saved instead of the resulting output of the callback,
+            otherwise the first exception by task number will be raised after *all*
+            tasks have executed. Defaults to False.
             blockade_radius (float, optional): Use the Blockade subspace given a
             particular radius. Defaults to 0.0.
             interaction_picture (bool, optional): Use the interaction picture when
@@ -249,13 +257,18 @@ class BloqadePythonRoutine(RoutineBase):
         Returns:
             List: List of resulting outputs from the callbacks
 
+        Raises:
+            RuntimeError: Raises the first error that occurs, only if
+            `ignore_exceptions=False`.
+
         Note:
             For the `callback` function, first argument is the many-body wavefunction
             as a 1D complex numpy array, the second argument is of type `Metadata` which
             is a Named Tuple where the fields correspond to the parameters of that given
             task, RydbergHamiltonian is the object that contains the Hamiltonian used to
             generate the evolution for that task, Finally any optional positional
-            arguments are allowed after that. You can use the `.space` attribute
+            arguments are allowed after that. The return value can be anything, the
+            results will be collected in a list for each task in the batch.
 
 
         """
@@ -323,6 +336,18 @@ class BloqadePythonRoutine(RoutineBase):
             results.close()
 
         id_results.sort(key=lambda x: x[0])
-        results = [result for _, result in id_results]
+        results = []
+
+        for task_id, result in id_results:
+            if not ignore_exceptions and isinstance(result, BaseException):
+                try:
+                    raise result
+                except BaseException:
+                    raise RuntimeError(
+                        f"{result.__class__.__name__} occured during child process "
+                        f"running for task number {task_id}:\n{traceback.format_exc()}"
+                    )
+
+            results.append(result)
 
         return results

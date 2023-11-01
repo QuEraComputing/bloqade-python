@@ -24,7 +24,7 @@ Complexarray = Annotated[NDArray[np.complexfloating], IsAttr["ndim", IsEqual[1]]
 StateArray = Union[RealArray, Complexarray]
 
 
-@njit
+@njit(cache=True)
 def _expt_one_body_op(configs, n_level, psi, site, op):
     res = np.zeros(psi.shape[1:], dtype=np.complex128)
 
@@ -40,7 +40,7 @@ def _expt_one_body_op(configs, n_level, psi, site, op):
     return res
 
 
-@njit
+@njit(cache=True)
 def _expt_two_body_op(configs, n_level, psi, sites, data, indices, indptr):
     res = np.zeros(psi.shape[1:], dtype=np.complex128)
 
