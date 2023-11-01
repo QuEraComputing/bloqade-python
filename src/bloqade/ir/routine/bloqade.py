@@ -1,4 +1,4 @@
-from collections import OrderedDict
+from collections import OrderedDict, namedtuple
 from decimal import Decimal
 
 from bloqade.ir.routine.base import RoutineBase, __pydantic_dataclass_config__
@@ -37,10 +37,14 @@ class BloqadePythonRoutine(RoutineBase):
         callback: Callable
         callback_args: Tuple
 
-        def run_task(self, emulator_ir, metadata):
+        def run_task(self, emulator_ir, metadata_dict):
             hamiltonian = RydbergHamiltonianCodeGen(
                 compile_cache=self.compile_cache
             ).emit(emulator_ir)
+
+            MetaData = namedtuple("MetaData", metadata_dict.keys())
+
+            metadata = MetaData(**{k: float(v) for k, v in metadata_dict.items()})
 
             zero_state = hamiltonian.space.zero_state(np.complex128)
             (register,) = AnalogGate(hamiltonian).apply(zero_state, **self.solver_args)
