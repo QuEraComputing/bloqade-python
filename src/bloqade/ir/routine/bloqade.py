@@ -209,7 +209,6 @@ class BloqadePythonRoutine(RoutineBase):
         ],
         program_args: Tuple[LiteralType, ...] = (),
         callback_args: Tuple = (),
-        name: Optional[str] = None,
         ignore_exceptions: bool = False,
         blockade_radius: float = 0.0,
         interaction_picture: bool = False,
