@@ -5,7 +5,7 @@ from bloqade.ir.routine.base import RoutineBase, __pydantic_dataclass_config__
 from bloqade.builder.typing import LiteralType
 from bloqade.task.batch import LocalBatch
 from beartype import beartype
-from beartype.typing import Optional, Tuple, Callable, Dict, Any
+from beartype.typing import Optional, Tuple, Callable, Dict, Any, List
 from pydantic.dataclasses import dataclass
 import numpy as np
 
@@ -178,7 +178,7 @@ class BloqadePythonRoutine(RoutineBase):
         atol: float = 1e-7,
         rtol: float = 1e-14,
         nsteps: int = 2_147_483_647,
-    ):
+    ) -> LocalBatch:
         options = dict(
             shots=shots,
             args=args,
@@ -210,7 +210,7 @@ class BloqadePythonRoutine(RoutineBase):
         atol: float = 1e-14,
         rtol: float = 1e-7,
         nsteps: int = 2_147_483_647,
-    ):
+    ) -> List:
         if cache_matrices:
             compile_cache = CompileCache()
         else:
