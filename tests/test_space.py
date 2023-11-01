@@ -37,6 +37,21 @@ def test_two_level_subspace_2():
     assert np.all(space.configurations == np.array([0, 1, 2, 4, 8]))
 
 
+def test_two_level_subspace_3():
+    space_part = Space.create(Register(TwoLevelAtom, [(0, 0), (0, 1)], 1.1))
+
+    space = Space.create(Register(TwoLevelAtom, [(0, 0), (0, 1), (0, 5), (0, 6)], 1.1))
+
+    config = space_part.configurations
+    actual_configs = np.kron(config, np.ones_like(config, dtype=np.uint8)) + np.kron(
+        np.ones_like(config) * 2**2, config
+    )
+
+    actual_configs.sort()
+
+    np.testing.assert_equal(space.configurations, actual_configs)
+
+
 def test_three_level_space():
     positions = [(0, 0), (0, 1)]
     register = Register(ThreeLevelAtom, positions, 0)
@@ -70,6 +85,23 @@ def test_three_level_subspace_2():
             [0, 1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15, 16, 18, 19, 21, 22]
         )
     )
+
+
+def test_three_level_subspace_3():
+    space_part = Space.create(Register(ThreeLevelAtom, [(0, 0), (0, 1)], 1.1))
+
+    space = Space.create(
+        Register(ThreeLevelAtom, [(0, 0), (0, 1), (0, 5), (0, 6)], 1.1)
+    )
+
+    config = space_part.configurations
+    actual_configs = np.kron(config, np.ones_like(config, dtype=np.uint8)) + np.kron(
+        np.ones_like(config) * 3**2, config
+    )
+
+    actual_configs.sort()
+
+    np.testing.assert_equal(space.configurations, actual_configs)
 
 
 def test_two_level_integer_to_string():
