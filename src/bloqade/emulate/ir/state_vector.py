@@ -33,9 +33,12 @@ def _expt_one_body_op(configs, n_level, psi, site, op):
     for i, config in enumerate(configs):
         col = (config // divisor) % n_level
         for row, ele in enumerate(op[:, col]):
-            j = config - (col * divisor) + (row * divisor)
+            new_config = config - (col * divisor) + (row * divisor)
 
-            res += ele * psi[i, ...] * np.conj(psi[j, ...])
+            j = np.searchsorted(configs, new_config)
+
+            if j < configs.size and configs[j] == new_config:
+                res += ele * psi[i, ...] * np.conj(psi[j, ...])
 
     return res
 
@@ -58,7 +61,7 @@ def _expt_two_body_op(configs, n_level, psi, sites, data, indices, indptr):
         for ele, row in zip(data[start:end], indices[start:end]):
             row_2, row_1 = divmod(row, n_level)
 
-            j = (
+            new_config = (
                 config
                 - (col_1 * divisor_1)
                 - (col_2 * divisor_2)
@@ -66,7 +69,10 @@ def _expt_two_body_op(configs, n_level, psi, sites, data, indices, indptr):
                 + (row_2 * divisor_2)
             )
 
-            res += ele * psi[i, ...] * np.conj(psi[j, ...])
+            j = np.searchsorted(configs, new_config)
+
+            if j < configs.size and configs[j] == new_config:
+                res += ele * psi[i, ...] * np.conj(psi[j, ...])
 
     return res
 

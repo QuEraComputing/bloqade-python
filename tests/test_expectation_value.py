@@ -98,7 +98,53 @@ def test_expectation_value_two_body():
     )
 
 
+def project_to_subspace(operator, configurations):
+    from scipy.sparse import csr_matrix
+
+    proj_shape = (configurations.size, operator.shape[0])
+    data = np.ones_like(configurations)
+    rows = np.arange(configurations.size)
+    cols = configurations
+    proj = csr_matrix((data, (rows, cols)), shape=proj_shape)
+
+    if operator.ndim == 1:
+        return proj @ operator
+    else:
+        return proj @ operator @ proj.T
+
+
+def test_internals_single_body():
+    from bloqade.emulate.ir.space import Space
+    from bloqade.emulate.ir.emulator import Register
+    from bloqade.emulate.ir.atom_type import TwoLevelAtom, ThreeLevelAtom
+    from bloqade.emulate.ir.state_vector import _expt_one_body_op
+    from decimal import Decimal
+
+    sites = [(0.0, 0.0), (0.0, 1.0), (0.0, 5.0)]
+
+    for atom_type in [TwoLevelAtom, ThreeLevelAtom]:
+        space = Space.create(Register(atom_type, sites, Decimal("1.0")))
+
+        op = np.random.normal(size=(atom_type.n_level, atom_type.n_level))
+
+        density_op_full = np.kron(np.eye(atom_type.n_level**2), op)
+
+        density_op_space = project_to_subspace(density_op_full, space.configurations)
+        print(space)
+        psi = np.random.normal(0, 1, size=space.size)
+        psi /= np.linalg.norm(psi)
+
+        # _expt_one_body_op()
+        result = _expt_one_body_op.py_func(
+            space.configurations, space.atom_type.n_level, psi, 0, op
+        )
+
+        exact_result = np.vdot(psi, density_op_space.dot(psi))
+        np.testing.assert_almost_equal(exact_result, result)
+
+
 if __name__ == "__main__":
-    test_expectation_value_single_atom()
-    test_expection_value_two_atom()
-    test_expectation_value_two_body()
+    # test_expectation_value_single_atom()
+    # test_expection_value_two_atom()
+    # test_expectation_value_two_body()
+    test_internals_single_body()
