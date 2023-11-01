@@ -18,6 +18,11 @@ from scipy.integrate import ode
 SparseOperator = Union[IndexMapping, SparseMatrixCSR, SparseMatrixCSC]
 
 
+RealArray = Annotated[NDArray[np.floating], IsAttr["ndim", IsEqual[1]]]
+Complexarray = Annotated[NDArray[np.complexfloating], IsAttr["ndim", IsEqual[1]]]
+StateArray = Union[RealArray, Complexarray]
+
+
 @dataclass(frozen=True)
 class DetuningOperator:
     diagonal: NDArray
@@ -100,10 +105,30 @@ class RydbergHamiltonian:
             time, register.view(np.complex128), output
         ).view(np.float64)
 
+    @beartype
+    def expectation_value(
+        self,
+        register: Complexarray,
+        time: Optional[float] = None,
+        output: Optional[NDArray] = None,
+    ) -> float:
+        if time is None:
+            time = self.emulator_ir.duration
 
-RealArray = Annotated[NDArray[np.floating], IsAttr["ndim", IsEqual[1]]]
-Complexarray = Annotated[NDArray[np.complexfloating], IsAttr["ndim", IsEqual[1]]]
-StateArray = Union[RealArray, Complexarray]
+        if output is None:
+            output = np.zeros_like(register, dtype=np.complex128)
+
+        diagonal = sum(
+            (detuning.get_diagonal(time) for detuning in self.detuning_ops),
+        )
+
+        result = np.einsum("i,i,i->", register.conj(), register, diagonal).real
+
+        for rabi_op in self.rabi_ops:
+            rabi_op.dot(register, output, time)
+            result += np.vdot(register, output).real
+
+        return result
 
 
 @dataclass(frozen=True)
