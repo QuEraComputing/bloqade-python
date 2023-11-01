@@ -2,15 +2,15 @@ from bloqade import start
 import numpy as np
 
 
-def callback_single_atom(register, metadata, hamiltonian):
+def callback_single_atom(register, *_):
     density_op = np.array([[0, 0], [0, 1]])
     rabi_op = np.array([[0, -1j], [+1j, 0]])
 
-    density = hamiltonian.expectation_value(register, density_op, 0)
-    rabi_expt = hamiltonian.expectation_value(register, rabi_op, 0)
+    density = register.local_trace(density_op, 0)
+    rabi_expt = register.local_trace(rabi_op, 0)
 
-    exact_density = np.vdot(register, density_op.dot(register))
-    exact_rabi_expt = np.vdot(register, rabi_op.dot(register))
+    exact_density = np.vdot(register.data, density_op.dot(register.data))
+    exact_rabi_expt = np.vdot(register.data, rabi_op.dot(register.data))
 
     np.testing.assert_almost_equal(exact_density, density)
     np.testing.assert_almost_equal(exact_rabi_expt, rabi_expt)
@@ -30,7 +30,7 @@ def test_expectation_value_single_atom():
     )
 
 
-def callback_two_atom(register, metadata, hamiltonian):
+def callback_two_atom(register, *_):
     density_op = np.array([[0, 0], [0, 1]])
     rabi_op = np.array([[0, -1j], [+1j, 0]])
 
@@ -39,15 +39,15 @@ def callback_two_atom(register, metadata, hamiltonian):
     full_rabi_op_0 = np.kron(np.eye(2), rabi_op)
     full_rabi_op_1 = np.kron(rabi_op, np.eye(2))
 
-    density_0 = hamiltonian.expectation_value(register, density_op, 0)
-    density_1 = hamiltonian.expectation_value(register, density_op, 1)
-    rabi_expt_0 = hamiltonian.expectation_value(register, rabi_op, 0)
-    rabi_expt_1 = hamiltonian.expectation_value(register, rabi_op, 1)
+    density_0 = register.local_trace(density_op, 0)
+    density_1 = register.local_trace(density_op, 1)
+    rabi_expt_0 = register.local_trace(rabi_op, 0)
+    rabi_expt_1 = register.local_trace(rabi_op, 1)
 
-    exact_density_0 = np.vdot(register, full_density_op_0.dot(register))
-    exact_density_1 = np.vdot(register, full_density_op_1.dot(register))
-    exact_rabi_expt_0 = np.vdot(register, full_rabi_op_0.dot(register))
-    exact_rabi_expt_1 = np.vdot(register, full_rabi_op_1.dot(register))
+    exact_density_0 = np.vdot(register.data, full_density_op_0.dot(register.data))
+    exact_density_1 = np.vdot(register.data, full_density_op_1.dot(register.data))
+    exact_rabi_expt_0 = np.vdot(register.data, full_rabi_op_0.dot(register.data))
+    exact_rabi_expt_1 = np.vdot(register.data, full_rabi_op_1.dot(register.data))
 
     np.testing.assert_almost_equal(exact_density_0, density_0)
     np.testing.assert_almost_equal(exact_density_1, density_1)
