@@ -22,7 +22,7 @@ class BloqadeServiceOptions(RoutineBase):
 @dataclass(frozen=True, config=__pydantic_dataclass_config__)
 class BloqadePythonRoutine(RoutineBase):
     @staticmethod
-    def process_tasks(tasks, results, runner):
+    def process_tasks(runner, tasks, results):
         while not tasks.empty():
             task_id, (emulator_ir, metadata) = tasks.get()
             result = runner.run_task(emulator_ir, metadata)
@@ -254,16 +254,13 @@ class BloqadePythonRoutine(RoutineBase):
             for _ in range(num_workers):
                 worker = Process(
                     target=BloqadePythonRoutine.process_tasks,
-                    args=(tasks, results, runner),
+                    args=(runner, tasks, results),
                 )
                 worker.start()
 
                 workers.append(worker)
         else:
-            while not tasks.empty():
-                task_id, (emulator_ir, metadata) = tasks.get()
-                result = runner.run_task(emulator_ir, metadata)
-                results.put((task_id, result))
+            self.process_tasks(runner, tasks, results)
 
         # blocks until all
         # results have been fetched

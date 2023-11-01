@@ -25,7 +25,7 @@ def test_expectation_value_single_atom():
         .batch_assign(run_time=np.linspace(0, 2 * np.pi / omega, 101))
         .bloqade.python()
         .run_callback(
-            callback=callback_single_atom, multiprocessing=True, num_workers=2
+            callback=callback_single_atom, multiprocessing=True, num_workers=1
         )
     )
 
@@ -65,7 +65,7 @@ def test_expection_value_two_atom():
         .assign(omega=omega)
         .batch_assign(run_time=np.linspace(0, 2 * np.pi / omega, 11))
         .bloqade.python()
-        .run_callback(callback=callback_two_atom, multiprocessing=True, num_workers=2)
+        .run_callback(callback=callback_two_atom, multiprocessing=True, num_workers=1)
     )
 
 
