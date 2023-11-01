@@ -16,7 +16,7 @@ def callback_single_atom(register, metadata, hamiltonian):
     np.testing.assert_almost_equal(exact_rabi_expt, rabi_expt)
 
 
-def test_state_vector_interface_1():
+def test_expectation_value_single_atom():
     omega = 2 * np.pi
     (
         start.add_position((0, 0))
@@ -56,7 +56,7 @@ def callback_two_atom(register, metadata, hamiltonian):
     np.testing.assert_almost_equal(exact_rabi_expt_1, rabi_expt_1)
 
 
-def test_state_vector_interface_2():
+def test_expection_value_two_atom():
     omega = 2 * np.pi
     (
         start.add_position((0, 0))
@@ -70,5 +70,5 @@ def test_state_vector_interface_2():
 
 
 if __name__ == "__main__":
-    test_state_vector_interface_1()
-    test_state_vector_interface_2()
+    test_expectation_value_single_atom()
+    test_expection_value_two_atom()
