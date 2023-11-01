@@ -36,7 +36,7 @@ class Space:
         for index_1, site_1 in enumerate(sites[1:], 1):
             site_1 = np.asarray(site_1)
             atoms = []
-            for index_2, site_2 in enumerate(sites[: index_1 + 1]):
+            for index_2, site_2 in enumerate(sites[:index_1]):
                 site_2 = np.asarray(site_2)
                 if np.linalg.norm(site_1 - site_2) <= blockade_radius:
                     atoms.append(index_2)
@@ -55,17 +55,19 @@ class Space:
         configurations = states
 
         for index_1, indices in enumerate(check_atoms, 1):
-            if len(indices) == 0:
-                continue
+            # assume no configurations are blocked
+            mask = np.ones_like(configurations, dtype=bool)
 
             # loop over neighbors within blockade radius
-            # find all non-blockaded configurations
-            mask = np.logical_not(atom_type.is_rydberg_at(configurations, indices[0]))
-            for index_2 in indices[1:]:
-                is_not_rydberg = np.logical_not(
+            # find all non-blockaded configurations, e.g.
+            # places where neighbors are in the ground state.
+            # if the list if empty all configruations are
+            # valid and should be included.
+            for index_2 in indices:
+                is_ground = np.logical_not(
                     atom_type.is_rydberg_at(configurations, index_2)
                 )
-                np.logical_and(is_not_rydberg, mask, out=mask)
+                np.logical_and(is_ground, mask, out=mask)
 
             non_blockaded = configurations[mask]
             np.logical_not(mask, out=mask)
