@@ -139,11 +139,13 @@ class QuEraTask(RemoteTask):
 def _serialze(obj: QuEraTask) -> Dict[str, ParamType]:
     return {
         "task_id": obj.task_id if obj.task_id is not None else None,
-        "backend": obj.backend.dict(
-            exclude=set(["access_key", "secret_key", "session_token"])
-        ),
         "task_ir": obj.task_ir.dict(by_alias=True, exclude_none=True),
         "metadata": obj.metadata,
+        "backend": {
+            f"{obj.backend.__class__.__name__}": obj.backend.dict(
+                exclude=set(["access_key", "secret_key", "session_token"])
+            )
+        },
         "parallel_decoder": obj.parallel_decoder.dict()
         if obj.parallel_decoder
         else None,
@@ -157,10 +159,14 @@ def _deserializer(d: Dict[str, Any]) -> QuEraTask:
     d["task_result_ir"] = (
         QuEraTaskResults(**d["task_result_ir"]) if d["task_result_ir"] else None
     )
+    d["backend"] = (
+        QuEraBackend(**d["backend"]["QuEraBackend"])
+        if "QuEraBackend" in d["backend"]
+        else MockBackend(**d["backend"]["MockBackend"])
+    )
     d["parallel_decoder"] = (
         ParallelDecoder(**d["parallel_decoder"]) if d["parallel_decoder"] else None
     )
-
     return QuEraTask(**d)
 
 

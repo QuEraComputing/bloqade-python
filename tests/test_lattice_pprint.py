@@ -101,7 +101,7 @@ def test_square_pprint():
     square_pprint_var_output = open(square_pprint_var_output_path, "r").read()
 
     bl = cast("bl")
-    assert str(Square(7, bl)) == square_pprint_var_output
+    assert str(Square(7, lattice_spacing=bl)) == square_pprint_var_output
 
 
 def test_rectangular_pprint():
