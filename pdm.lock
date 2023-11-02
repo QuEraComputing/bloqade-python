@@ -41,7 +41,7 @@ files = [
 
 [[package]]
 name = "amazon-braket-sdk"
-version = "1.59.2"
+version = "1.60.2"
 requires_python = ">= 3.9"
 summary = "An open source library for interacting with quantum computing devices on Amazon Braket"
 dependencies = [
@@ -61,8 +61,8 @@ dependencies = [
     "sympy",
 ]
 files = [
-    {file = "amazon-braket-sdk-1.59.2.tar.gz", hash = "sha256:0fc31deb5e0ca489bfb2b31fa7ce7c568e34534330846c3dafdcd64f292865e4"},
-    {file = "amazon_braket_sdk-1.59.2-py3-none-any.whl", hash = "sha256:8acd273f74d0cc70f8b87d4305d3cdf76167968ba18b9129a36a8b7f46f7f39e"},
+    {file = "amazon-braket-sdk-1.60.2.tar.gz", hash = "sha256:1c4f531cc3bec3019cee66bacbbc6e7ac4b44a535ee771751eca8bfaf23c4d58"},
+    {file = "amazon_braket_sdk-1.60.2-py3-none-any.whl", hash = "sha256:07c0b714902974a5192636e9bb095eb8610271a4e7bcdfa3e772646225511bcf"},
 ]
 
 [[package]]
