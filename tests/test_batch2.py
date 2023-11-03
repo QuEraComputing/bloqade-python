@@ -1,35 +1,45 @@
-import bloqade.ir.location as location
 from bloqade import start, load, save
-
-from bloqade.ir import Linear, Constant
 import numpy as np
+from unittest.mock import patch
+import bloqade.ir.routine.braket
+
+# import numpy as np
 
 
-prog = (
-    location.Square(6)
-    .rydberg.detuning.uniform.apply(
-        Constant("initial_detuning", "up_time")
-        .append(Linear("initial_detuning", "final_detuning", "anneal_time"))
-        .append(Constant("final_detuning", "up_time"))
+@patch("bloqade.ir.routine.braket.BraketBackend")
+def test_remote_batch_task_metric(*args):
+    backend = bloqade.ir.routine.braket.BraketBackend(
+        device_arn="arn:aws:braket:us-east-1::device/qpu/quera/Aquila"
     )
-    .rabi.amplitude.uniform.apply(
-        Linear(0.0, "rabi_amplitude_max", "up_time")
-        .append(Constant("rabi_amplitude_max", "anneal_time"))
-        .append(Linear("rabi_amplitude_max", 0.0, "up_time"))
+
+    backend.submit_task.side_effect = list(map(str, range(6)))
+
+    batch = (
+        start.add_position([(0, i * 6.1) for i in range(14)])
+        .rydberg.detuning.uniform.piecewise_linear(
+            [0.1, 3.8, 0.1], [-20, -20, "d", "d"]
+        )
+        .amplitude.uniform.piecewise_linear([0.1, 3.8, 0.1], [0, 15, 15, 0])
+        .phase.uniform.constant(np.pi / 2, 4)
+        .batch_assign(d=[1, 2, 4, 8, 16, 32])
+        .braket.aquila()
+        ._compile(10)
     )
-    .assign(initial_detuning=-10, up_time=0.1, anneal_time=3.8, rabi_amplitude_max=15)
-    .batch_assign(final_detuning=np.linspace(0, 10, 5))
-)
-task = prog.quera.mock()
 
+    for k, task in batch.tasks.items():
+        task.backend = backend
 
-# future = task.run_async(shots=100)  ## non0-blk
+    batch._submit(ignore_submission_error=True, shuffle_submit_order=False)
 
-# future.fetch()
-
-# assert len(future.tasks) == 5
-
-# print(future.report())
+    assert str(batch) == (
+        "  task ID    status  shots\n"
+        "0       0  Enqueued     10\n"
+        "1       1  Enqueued     10\n"
+        "2       2  Enqueued     10\n"
+        "3       3  Enqueued     10\n"
+        "4       4  Enqueued     10\n"
+        "5       5  Enqueued     10"
+    )
 
 
 def test_serializer():
