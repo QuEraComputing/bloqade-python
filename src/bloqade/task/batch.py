@@ -344,7 +344,7 @@ class RemoteBatch(Serializable):
             dat[0] = task.task_id
             if task.task_result_ir is not None:
                 dat[1] = task.task_result_ir.task_status.name
-                dat[2] = task.task_ir.nshots
+            dat[2] = task.task_ir.nshots
             data.append(dat)
 
         return pd.DataFrame(data, index=tid, columns=["task ID", "status", "shots"])
