@@ -1,16 +1,11 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>Redirecting</title>
-  <noscript>
-    <meta http-equiv="refresh" content="1; url=../../0.9.0/overrides/main.html" />
-  </noscript>
-  <script>
-    window.location.replace("../../0.9.0/overrides/main.html" + window.location.hash);
-  </script>
-</head>
-<body>
-  Redirecting to <a href="../../0.9.0/overrides/main.html">../../0.9.0/overrides/main.html</a>...
-</body>
-</html>
+{% extends "base.html" %}
+
+{% block content %}
+{% if page.nb_url %}
+    <a href="{{ page.nb_url }}" title="Download Notebook" class="md-content__button md-icon">
+        {% include ".icons/material/download.svg" %}
+    </a>
+{% endif %}
+
+{{ super() }}
+{% endblock content %}
