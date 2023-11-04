@@ -1,49 +1,78 @@
 from bloqade.emulate.ir.emulator import EmulatorProgram
 from bloqade.emulate.ir.space import Space
-from bloqade.emulate.sparse_operator import (
-    IndexMapping,
-    SparseMatrixCSC,
-    SparseMatrixCSR,
-)
-from dataclasses import dataclass, field
 from numpy.typing import NDArray
 from beartype.typing import List, Callable, Union, Optional
 from beartype.vale import IsAttr, IsEqual
 from typing import Annotated
 from beartype import beartype
+from dataclasses import dataclass
 import numpy as np
 from scipy.integrate import ode
-
-
-SparseOperator = Union[IndexMapping, SparseMatrixCSR, SparseMatrixCSC]
+import jax.numpy as jnp
+import jax
 
 
 @dataclass(frozen=True)
 class DetuningOperator:
-    diagonal: NDArray
-    amplitude: Optional[Callable[[float], float]] = None
+    diagonal: jnp.ndarray
+    amplitudes: Optional[Callable[[float], jnp.ndarray]] = None
 
     def get_diagonal(self, time: float):
-        if self.amplitude:
-            return self.diagonal * self.amplitude(time)
+        if self.amplitudes:
+            return self.diagonal.dot(self.amplitudes(time))
         else:
-            return self.diagonal
+            return self.diagonal.sum(axis=1)
 
 
 @dataclass(frozen=True)
 class RabiOperator:
-    op: SparseOperator
-    amplitude: Callable[[float], float]
-    phase: Optional[Callable[[float], float]] = None
+    row_indices: jnp.ndarray
+    col_indices: jnp.ndarray
+    amplitudes: Callable[[float], jnp.ndarray]
 
-    def dot(self, register: NDArray, output: NDArray, time: float):
-        amplitude = self.amplitude(time) / 2
-        if self.phase is None:
-            return self.op.matvec(register, out=output, scale=amplitude)
+    @staticmethod
+    @jax.jit
+    def _dot_impl(out, other, row_indices_list, col_indices_list, scales):
+        def _local_dot_impl(out, other, row_indices, col_indices, scale):
+            jax.lax.fori_loop(
+                0,
+                len(row_indices),
+                lambda j, out: out.at[row_indices[j]].add(
+                    scale * other[col_indices[j]]
+                ),
+                out,
+            )
+            return out
 
-        amplitude *= np.exp(1j * self.phase(time))
-        self.op.matvec(register, out=output, scale=amplitude)
-        self.op.T.matvec(register, out=output, scale=np.conj(amplitude))
+        jax.lax.fori_loop(
+            0,
+            row_indices_list.shape[0],
+            lambda i, out: _local_dot_impl(
+                out, other, row_indices_list[i], col_indices_list[i], scales[i]
+            ),
+            out,
+        )
+        return out
+
+    def dot(self, register: jnp.ndarray, output: jnp.ndarray, time: float):
+        amplitude = self.amplitudes(time) / 2
+
+        if jnp.iscomplexobj(amplitude):
+            self._dot_impl(
+                output, register, self.row_indices, self.col_indices, amplitude
+            )
+            self._dot_impl(
+                output,
+                register,
+                self.col_indices,
+                self.row_indices,
+                jnp.conj(amplitude),
+            )
+
+        else:
+            self._dot_impl(
+                output, register, self.row_indices, self.col_indices, amplitude
+            )
 
         return output
 
@@ -52,9 +81,9 @@ class RabiOperator:
 class RydbergHamiltonian:
     emulator_ir: EmulatorProgram
     space: Space
-    rydberg: NDArray
-    detuning_ops: List[DetuningOperator] = field(default_factory=list)
-    rabi_ops: List[RabiOperator] = field(default_factory=list)
+    rydberg: jnp.ndarray
+    detuning_ops: Optional[DetuningOperator] = None
+    rabi_ops: Optional[RabiOperator] = None
 
     def _ode_complex_kernel(self, time: float, register: NDArray, output: NDArray):
         diagonal = sum(
