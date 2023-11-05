@@ -39,9 +39,9 @@ MatrixTypes = Union[csr_matrix, IndexMapping, NDArray]
 class CompileCache:
     """This class is used to cache the results of the code generation."""
 
-    operator_cache: Dict[Tuple[Register, OperatorData], MatrixTypes] = field(
-        default_factory=dict
-    )
+    operator_cache: Dict[
+        Tuple[Register, LevelCoupling, OperatorData], MatrixTypes
+    ] = field(default_factory=dict)
     space_cache: Dict[Register, Tuple[Space, NDArray]] = field(default_factory=dict)
 
 
@@ -100,7 +100,11 @@ class RydbergHamiltonianCodeGen(Visitor):
             self.visit(term)
 
     def visit_detuning_operator_data(self, detuning_data: DetuningOperatorData):
-        if (self.register, detuning_data) in self.compile_cache.operator_cache:
+        if (
+            self.register,
+            self.level_coupling,
+            detuning_data,
+        ) in self.compile_cache.operator_cache:
             return self.compile_cache.operator_cache[(self.register, detuning_data)]
 
         diagonal = np.zeros(self.space.size, dtype=np.float64)
@@ -115,11 +119,17 @@ class RydbergHamiltonianCodeGen(Visitor):
         for atom_index, value in detuning_data.target_atoms.items():
             diagonal[self.space.is_state_at(atom_index, state)] -= float(value)
 
-        self.compile_cache.operator_cache[(self.register, detuning_data)] = diagonal
+        self.compile_cache.operator_cache[
+            (self.register, self.level_coupling, detuning_data)
+        ] = diagonal
         return diagonal
 
     def visit_rabi_operator_data(self, rabi_operator_data: RabiOperatorData):
-        if (self.register, rabi_operator_data) in self.compile_cache.operator_cache:
+        if (
+            self.register,
+            self.level_coupling,
+            rabi_operator_data,
+        ) in self.compile_cache.operator_cache:
             return self.compile_cache.operator_cache[
                 (self.register, rabi_operator_data)
             ]
@@ -182,7 +192,7 @@ class RydbergHamiltonianCodeGen(Visitor):
             # )
 
         self.compile_cache.operator_cache[
-            (self.register, rabi_operator_data)
+            (self.register, self.level_coupling, rabi_operator_data)
         ] = operator
         return operator
 
