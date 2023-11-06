@@ -177,3 +177,14 @@ def test_quera_backend_get_capabilities():
 
     assert backend.get_capabilities() == QuEraCapabilities(**get_capabilities().dict())
     queue.get_capabilities.assert_called_once()
+
+
+def test_run_time_error():
+    api_config = dict(
+        api_hostname="https://api.que-ee.com", qpu_id="qpu-1", api_stage="v0"
+    )
+
+    backend = bloqade.submission.quera.QuEraBackend(**api_config)
+
+    with pytest.raises(RuntimeError):
+        backend.queue_api
