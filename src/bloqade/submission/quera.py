@@ -1,6 +1,5 @@
 from pydantic import PrivateAttr
 from bloqade.submission.base import SubmissionBackend, ValidationError
-from bloqade.submission.quera_api_client.api import QueueApi
 from bloqade.submission.ir.task_specification import (
     QuEraTaskSpecification,
 )
@@ -27,11 +26,16 @@ class QuEraBackend(SubmissionBackend):
     role_arn: Optional[str] = None
     role_session_name: Optional[str] = None
     profile: Optional[str] = None
-    _queue_api: Optional[QueueApi] = PrivateAttr(None)
+    _queue_api: Optional[object] = PrivateAttr(None)
 
     @property
     def queue_api(self):
         if self._queue_api is None:
+            try:
+                from qcs.api_client.api import QueueApi
+            except ImportError:
+                raise RuntimeError("Must install QuEra-QCS-client to use QuEraBackend")
+
             kwargs = {k: v for k, v in self.__dict__.items() if v is not None}
             self._queue_api = QueueApi(**kwargs)
 
@@ -63,7 +67,7 @@ class QuEraBackend(SubmissionBackend):
             self.queue_api.validate_task(
                 task_ir.json(by_alias=True, exclude_none=True, exclude_unset=True)
             )
-        except QueueApi.ValidationError as e:
+        except self.queue_api.ValidationError as e:
             raise ValidationError(str(e))
 
     def update_credential(
