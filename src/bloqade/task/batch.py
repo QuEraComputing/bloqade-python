@@ -344,7 +344,7 @@ class RemoteBatch(Serializable):
             dat[0] = task.task_id
             if task.task_result_ir is not None:
                 dat[1] = task.task_result_ir.task_status.name
-                dat[2] = task.task_ir.nshots
+            dat[2] = task.task_ir.nshots
             data.append(dat)
 
         return pd.DataFrame(data, index=tid, columns=["task ID", "status", "shots"])
@@ -556,7 +556,7 @@ class RemoteBatch(Serializable):
         # statuses that are in a state that will
         # not run going forward for any reason
         statuses = ["Completed", "Failed", "Unaccepted", "Partial", "Cancelled"]
-        return self.remove_tasks(*statuses)
+        return self.get_tasks(*statuses)
 
     def get_completed_tasks(self) -> "RemoteBatch":
         """
@@ -600,7 +600,10 @@ class RemoteBatch(Serializable):
                 continue
 
             ## filter has result but is not correctly completed.
-            if not task.task_result_ir.task_status == QuEraTaskStatusCode.Completed:
+            if task.task_result_ir.task_status not in [
+                QuEraTaskStatusCode.Completed,
+                QuEraTaskStatusCode.Partial,
+            ]:
                 continue
 
             geometry = task.geometry

@@ -50,6 +50,12 @@ class RabiOperatorData:
         return hash(self.operator_type) ^ hash(frozenset(self.target_atoms.items()))
 
 
+@RabiOperatorData.set_deserializer
+def _deserializer(d: Dict[str, Any]) -> RabiOperatorData:
+    d["target_atoms"] = {int(k): v for k, v in d["target_atoms"].items()}
+    return RabiOperatorData(**d)
+
+
 @dataclass(frozen=True)
 @Serializer.register
 class RabiTerm:
@@ -65,6 +71,12 @@ class DetuningOperatorData:
 
     def __hash__(self) -> int:
         return hash(frozenset(self.target_atoms.items()))
+
+
+@DetuningOperatorData.set_deserializer
+def _deserializer(d: Dict[str, Any]) -> DetuningOperatorData:
+    d["target_atoms"] = {int(k): v for k, v in d["target_atoms"].items()}
+    return DetuningOperatorData(**d)
 
 
 @dataclass(frozen=True)
@@ -120,6 +132,13 @@ class Register:
             )
 
 
+@Register.set_deserializer
+def _deserializer(d: Dict[str, Any]) -> Register:
+    d["sites"] = [tuple(map(Decimal, map(str, site))) for site in d["sites"]]
+
+    return Register(**d)
+
+
 class LevelCoupling(str, Enum):
     Rydberg = "rydberg"
     Hyperfine = "hyperfine"
@@ -131,6 +150,12 @@ class EmulatorProgram:
     register: Register
     duration: float
     pulses: Dict[LevelCoupling, Fields]
+
+
+@EmulatorProgram.set_deserializer
+def _deserializer(d: Dict[str, Any]) -> EmulatorProgram:
+    d["duration"] = float(d["duration"])
+    return EmulatorProgram(**d)
 
 
 class Visitor:
