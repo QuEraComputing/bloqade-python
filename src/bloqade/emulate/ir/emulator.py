@@ -2,7 +2,7 @@ from bloqade.codegen.common.json import WaveformSerializer, BloqadeIRDeserialize
 from bloqade.serialize import Serializer
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Any, Dict, List, Tuple, Optional
+from typing import Any, Dict, List, Tuple, Optional, Callable
 from enum import Enum
 from bloqade.ir.control.waveform import Waveform
 from bloqade.emulate.ir.atom_type import AtomType
@@ -10,29 +10,49 @@ from bloqade.emulate.ir.atom_type import AtomType
 
 @dataclass(frozen=True)
 @Serializer.register
-class CompiledWaveform:
+class JITWaveform:
     assignments: Dict[str, Decimal]
     source: Waveform
 
     def __call__(self, t: float) -> float:
-        return self.source(t, **self.assignments)
+        return self.stub(t)
+
+    @property
+    def stub(self) -> Callable[[float], float]:
+        if not hasattr(self, "_stub"):
+            object.__setattr__(self, "_stub", self._jit())
+
+        return self._stub
+
+    def _jit(self) -> Callable[[float], float]:
+        from bloqade.transform.common.assign_variables import AssignWaveform
+        from bloqade.transform.python.waveform import NormalizeWaveformPython
+        from bloqade.analysis.python.waveform import WaveformScan
+        from bloqade.codegen.python.waveform import CodegenPythonWaveform
+
+        ast_assigned = AssignWaveform(self.assignments).emit(self.source)
+        ast_normalized = NormalizeWaveformPython().visit(ast_assigned)
+        scan_results = WaveformScan().scan(ast_normalized)
+        stub = CodegenPythonWaveform(scan_results).compile(ast_normalized)
+
+        return stub
 
 
-@CompiledWaveform.set_serializer
-def _serialize(obj: CompiledWaveform) -> Dict[str, Any]:
+@JITWaveform.set_serializer
+def _serialize(obj: JITWaveform) -> Dict[str, Any]:
     return {
         "assignments": obj.assignments,
         "source": WaveformSerializer().default(obj.source),
     }
 
 
-@CompiledWaveform.set_deserializer
-def _deserializer(d: Dict[str, Any]) -> CompiledWaveform:
+@JITWaveform.set_deserializer
+def _deserializer(d: Dict[str, Any]) -> JITWaveform:
     from json import loads, dumps
 
     source_str = dumps(d["source"])
     d["source"] = loads(source_str, object_hook=BloqadeIRDeserializer.object_hook)
-    return CompiledWaveform(**d)
+    return JITWaveform(**d)
 
 
 class RabiOperatorType(int, Enum):
@@ -60,8 +80,8 @@ def _deserializer(d: Dict[str, Any]) -> RabiOperatorData:
 @Serializer.register
 class RabiTerm:
     operator_data: RabiOperatorData
-    amplitude: CompiledWaveform
-    phase: Optional[CompiledWaveform] = None
+    amplitude: JITWaveform
+    phase: Optional[JITWaveform] = None
 
 
 @dataclass(frozen=True)
@@ -83,7 +103,7 @@ def _deserializer(d: Dict[str, Any]) -> DetuningOperatorData:
 @Serializer.register
 class DetuningTerm:
     operator_data: DetuningOperatorData
-    amplitude: CompiledWaveform
+    amplitude: JITWaveform
 
 
 @dataclass(frozen=True)
@@ -162,7 +182,7 @@ class Visitor:
     def visit_emulator_program(self, ast: EmulatorProgram) -> Any:
         raise NotImplementedError
 
-    def visit_compiled_waveform(self, ast: CompiledWaveform) -> Any:
+    def visit_compiled_waveform(self, ast: JITWaveform) -> Any:
         raise NotImplementedError
 
     def visit_fields(self, ast: Fields) -> Any:
@@ -198,7 +218,7 @@ class Visitor:
             return self.visit_rabi_operator_data(ast)
         elif isinstance(ast, DetuningOperatorData):
             return self.visit_detuning_operator_data(ast)
-        elif isinstance(ast, CompiledWaveform):
+        elif isinstance(ast, JITWaveform):
             return self.visit_compiled_waveform(ast)
         else:
             raise NotImplementedError(f"Unknown AST node type {type(ast)}: {ast!r}")

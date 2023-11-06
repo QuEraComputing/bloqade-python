@@ -1,7 +1,6 @@
 from bloqade.analysis.common.assignment_scan import AssignmentScan
 from bloqade.ir.location.base import AtomArrangement, SiteFilling
 from bloqade.ir.visitor.analog_circuit import AnalogCircuitVisitor
-from bloqade.ir.visitor.waveform import WaveformVisitor
 from bloqade.ir.control.field import (
     AssignedRunTimeVector,
     Field,
@@ -22,7 +21,7 @@ from bloqade.emulate.ir.emulator import (
     RabiOperatorData,
     RabiOperatorType,
     DetuningTerm,
-    CompiledWaveform,
+    JITWaveform,
     EmulatorProgram,
     Register,
     Fields,
@@ -36,15 +35,6 @@ from decimal import Decimal
 ParamType = Union[Real, List[Real]]
 
 
-class WaveformCompiler(WaveformVisitor):
-    # TODO: implement AST generator for waveforms.
-    def __init__(self, assignments: Dict[str, Number] = {}):
-        self.assignments = assignments
-
-    def emit(self, ast: waveform.Waveform) -> CompiledWaveform:
-        return CompiledWaveform(self.assignments, ast)
-
-
 class EmulatorProgramCodeGen(AnalogCircuitVisitor):
     def __init__(
         self,
@@ -54,13 +44,15 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
     ):
         self.blockade_radius = Decimal(str(blockade_radius))
         self.assignments = assignments
-        self.waveform_compiler = WaveformCompiler(assignments)
         self.register = None
         self.duration = 0.0
         self.pulses = {}
         self.level_couplings = set()
         self.original_index = []
         self.is_hyperfine = use_hyperfine
+
+    def visit_waveform(self, ast: waveform.Waveform) -> Any:
+        return JITWaveform(self.assignments, ast)
 
     def visit_analog_circuit(self, ast: ir.AnalogCircuit):
         self.visit(ast.register)
@@ -177,7 +169,7 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
                 terms.append(
                     DetuningTerm(
                         operator_data=DetuningOperatorData(target_atoms=self.visit(sm)),
-                        amplitude=self.waveform_compiler.emit(wf),
+                        amplitude=self.visit(wf),
                     )
                 )
         else:
@@ -205,7 +197,7 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
                         operator_data=DetuningOperatorData(
                             target_atoms={atom: Decimal("1.0")}
                         ),
-                        amplitude=self.waveform_compiler.emit(wf),
+                        amplitude=self.visit(wf),
                     )
                 )
 
@@ -238,7 +230,7 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
                             target_atoms=target_atoms,
                             operator_type=RabiOperatorType.RabiSymmetric,
                         ),
-                        amplitude=self.waveform_compiler.emit(wf),
+                        amplitude=self.visit(wf),
                     )
                 )
         elif phase is None:  # fully local real rabi fields
@@ -270,7 +262,7 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
                             target_atoms={atom: Decimal("1.0")},
                             operator_type=RabiOperatorType.RabiSymmetric,
                         ),
-                        amplitude=self.waveform_compiler.emit(amplitude_wf),
+                        amplitude=self.visit(amplitude_wf),
                     )
                 )
         elif (
@@ -279,7 +271,7 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
             and len(amplitude.drives) <= self.n_atoms
         ):
             (phase_waveform,) = phase.drives.values()
-            rabi_phase = self.waveform_compiler.emit(phase_waveform)
+            rabi_phase = self.visit(phase_waveform)
             self.duration = max(
                 float(phase_waveform.duration(**self.assignments)), self.duration
             )
@@ -303,7 +295,7 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
                             target_atoms=target_atoms,
                             operator_type=RabiOperatorType.RabiAsymmetric,
                         ),
-                        amplitude=self.waveform_compiler.emit(wf),
+                        amplitude=self.visit(wf),
                         phase=rabi_phase,
                     )
                 )
@@ -351,8 +343,8 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
                             target_atoms={atom: 1},
                             operator_type=RabiOperatorType.RabiAsymmetric,
                         ),
-                        amplitude=self.waveform_compiler.emit(amplitude_wf),
-                        phase=self.waveform_compiler.emit(phase_wf),
+                        amplitude=self.visit(amplitude_wf),
+                        phase=self.visit(phase_wf),
                     )
                 )
 
