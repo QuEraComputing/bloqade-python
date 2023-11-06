@@ -1,10 +1,8 @@
 from collections import OrderedDict
 
-import json
-from typing import List, TextIO, Type, TypeVar, Union, Dict, Optional, Tuple
+from typing import List, Union, Dict, Optional, Tuple
 from numbers import Number
 
-from pydantic import BaseModel
 from bloqade.submission.ir.task_results import (
     QuEraTaskResults,
     QuEraTaskStatusCode,
@@ -17,42 +15,12 @@ from bloqade.submission.ir.parallel import ParallelDecoder
 import datetime
 from bloqade.visualization import display_report
 
-JSONSubType = TypeVar("JSONSubType", bound="JSONInterface")
-
 
 @dataclass(frozen=True)
 class Geometry:
     sites: List[Tuple[float, float]]
     filling: List[int]
     parallel_decoder: Optional[ParallelDecoder] = None
-
-
-class JSONInterface(BaseModel):
-    def json(self, exclude_none=True, by_alias=True, **json_options) -> str:
-        return super().json(
-            exclude_none=exclude_none, by_alias=by_alias, **json_options
-        )
-
-    def save_json(
-        self, filename_or_io: Union[str, TextIO], mode="w", **json_options
-    ) -> None:
-        if isinstance(filename_or_io, str):
-            with open(filename_or_io, mode) as f:
-                f.write(self.json(**json_options))
-        else:
-            filename_or_io.write(self.json(**json_options))
-
-    @classmethod
-    def load_json(
-        cls: Type[JSONSubType], filename_or_io: Union[str, TextIO]
-    ) -> JSONSubType:
-        if isinstance(filename_or_io, str):
-            with open(filename_or_io, "r") as f:
-                params = json.load(f)
-        else:
-            params = json.load(filename_or_io)
-
-        return cls(**params)
 
 
 class Task:
@@ -141,10 +109,12 @@ class Report:
         """
 
         def cast(x):
-            try:
+            if x is None:
+                return None
+            elif isinstance(x, (list, tuple, np.ndarray)):
+                return list(map(cast, x))
+            else:
                 return float(x)
-            except ValueError:
-                return x
 
         return list(map(cast, (meta.get(field_name) for meta in self.metas)))
 

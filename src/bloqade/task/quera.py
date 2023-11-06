@@ -168,8 +168,3 @@ def _deserializer(d: Dict[str, Any]) -> QuEraTask:
         ParallelDecoder(**d["parallel_decoder"]) if d["parallel_decoder"] else None
     )
     return QuEraTask(**d)
-
-
-# class QuEraBatch(Batch, JSONInterface):
-#    #futures: List[QuEraTask]
-#    pass
