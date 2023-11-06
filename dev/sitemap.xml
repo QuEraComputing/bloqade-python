@@ -461,11 +461,6 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://bloqade.quera.com/dev/reference/bloqade/task/json/</loc>
-         <lastmod>2023-11-06</lastmod>
-         <changefreq>daily</changefreq>
-    </url>
-    <url>
          <loc>https://bloqade.quera.com/dev/reference/bloqade/task/quera/</loc>
          <lastmod>2023-11-06</lastmod>
          <changefreq>daily</changefreq>

@@ -74,5 +74,4 @@
         * [bloqade](bloqade/task/bloqade.md)
         * [braket](bloqade/task/braket.md)
         * [braket_simulator](bloqade/task/braket_simulator.md)
-        * [json](bloqade/task/json.md)
         * [quera](bloqade/task/quera.md)
