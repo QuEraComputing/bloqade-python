@@ -34,7 +34,7 @@ class QuEraBackend(SubmissionBackend):
             try:
                 from qcs.api_client.api import QueueApi
             except ImportError:
-                raise RuntimeError("Must install QuEra-QCS-client to use QuEraBackend")
+                raise RuntimeError("Must install QuEra-QCS-client to use QuEra Cloud")
 
             kwargs = {k: v for k, v in self.__dict__.items() if v is not None}
             self._queue_api = QueueApi(**kwargs)
