@@ -153,7 +153,7 @@ class CodegenPythonWaveform(WaveformVisitor):
 
         func = (
             f"def {self.head_binding}(time):\n"
-            f"    if time < {ast.duration()}:"
+            f"    if time > {ast.duration()}:"
             f"\n        return 0"
             f"\n{body}"
             f"\n    return {self.head_binding}"
