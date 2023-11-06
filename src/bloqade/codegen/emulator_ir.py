@@ -25,7 +25,7 @@ from bloqade.emulate.ir.emulator import (
     CompiledWaveform,
     EmulatorProgram,
     Register,
-    Fields,
+    Pulses,
     RabiTerm,
 )
 
@@ -59,6 +59,7 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
         self.duration = 0.0
         self.pulses = {}
         self.level_couplings = set()
+        self.level_coupling = None
         self.original_index = []
         self.is_hyperfine = use_hyperfine
 
@@ -93,11 +94,13 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
             sequence.rydberg: LevelCoupling.Rydberg,
         }
         for level_coupling, sub_pulse in ast.pulses.items():
+            self.emu_level_coupling = level_coupling_mapping[level_coupling]
             self.visit(sub_pulse)
-            self.pulses[level_coupling_mapping[level_coupling]] = Fields(
-                detuning=self.detuning_terms,
-                rabi=self.rabi_terms,
-            )
+
+        self.pulses = Pulses(
+            detuning=self.detuning_terms,
+            rabi=self.rabi_terms,
+        )
 
     def visit_named_sequence(self, ast: sequence.NamedSequence) -> None:
         self.vicit(ast.sequence)
@@ -176,7 +179,10 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
 
                 terms.append(
                     DetuningTerm(
-                        operator_data=DetuningOperatorData(target_atoms=self.visit(sm)),
+                        operator_data=DetuningOperatorData(
+                            level_coupling=self.level_coupling,
+                            target_atoms=self.visit(sm),
+                        ),
                         amplitude=self.waveform_compiler.emit(wf),
                     )
                 )
@@ -203,7 +209,8 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
                 terms.append(
                     DetuningTerm(
                         operator_data=DetuningOperatorData(
-                            target_atoms={atom: Decimal("1.0")}
+                            level_coupling=self.level_coupling,
+                            target_atoms={atom: Decimal("1.0")},
                         ),
                         amplitude=self.waveform_compiler.emit(wf),
                     )
@@ -235,6 +242,7 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
                 terms.append(
                     RabiTerm(
                         operator_data=RabiOperatorData(
+                            level_coupling=self.level_coupling,
                             target_atoms=target_atoms,
                             operator_type=RabiOperatorType.RabiSymmetric,
                         ),
@@ -267,6 +275,7 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
                 terms.append(
                     RabiTerm(
                         operator_data=RabiOperatorData(
+                            level_coupling=self.level_coupling,
                             target_atoms={atom: Decimal("1.0")},
                             operator_type=RabiOperatorType.RabiSymmetric,
                         ),
@@ -300,6 +309,7 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
                 terms.append(
                     RabiTerm(
                         operator_data=RabiOperatorData(
+                            level_coupling=self.level_coupling,
                             target_atoms=target_atoms,
                             operator_type=RabiOperatorType.RabiAsymmetric,
                         ),
@@ -348,6 +358,7 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
                 terms.append(
                     RabiTerm(
                         operator_data=RabiOperatorData(
+                            level_coupling=self.level_coupling,
                             target_atoms={atom: 1},
                             operator_type=RabiOperatorType.RabiAsymmetric,
                         ),

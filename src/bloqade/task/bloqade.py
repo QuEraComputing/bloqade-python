@@ -2,7 +2,7 @@ from bloqade.serialize import Serializer
 from bloqade.task.base import Geometry, LocalTask
 from bloqade.emulate.ir.emulator import EmulatorProgram
 from bloqade.emulate.codegen.hamiltonian import (
-    RydbergHamiltonianCodeGen,
+    RydbergHamiltonianScan,
     CompileCache,
 )
 from bloqade.emulate.ir.state_vector import AnalogGate
@@ -44,9 +44,7 @@ class BloqadeTask(LocalTask):
         nsteps: int = 2_147_483_647,
         interaction_picture: bool = False,
     ) -> "BloqadeTask":
-        hamiltonian = RydbergHamiltonianCodeGen(self.compile_cache).emit(
-            self.emulator_ir
-        )
+        hamiltonian = RydbergHamiltonianScan(self.compile_cache).emit(self.emulator_ir)
         options = dict(
             solver_name=solver_name,
             atol=atol,

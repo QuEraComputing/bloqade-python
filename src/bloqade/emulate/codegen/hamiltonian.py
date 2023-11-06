@@ -60,9 +60,8 @@ class RydbergHamiltonianCodeGen(Visitor):
         self.level_couplings = set(list(emulator_program.pulses.keys()))
 
         self.visit(emulator_program.register)
-        for level_coupling, laser_coupling in emulator_program.pulses.items():
-            self.level_coupling = level_coupling
-            self.visit(laser_coupling)
+        list(map(self.visit, emulator_program.detuning_terms))
+        list(map(self.visit, emulator_program.rabi_terms))
 
     def visit_register(self, register: Register):
         self.register = register
@@ -93,11 +92,6 @@ class RydbergHamiltonianCodeGen(Visitor):
                 self.rydberg[mask] += rydberg_interaction
 
         self.compile_cache.space_cache[register] = (self.space, self.rydberg)
-
-    def visit_fields(self, fields: Fields):
-        terms = fields.detuning + fields.rabi
-        for term in terms:
-            self.visit(term)
 
     def visit_detuning_operator_data(self, detuning_data: DetuningOperatorData):
         if (self.register, detuning_data) in self.compile_cache.operator_cache:
@@ -176,10 +170,6 @@ class RydbergHamiltonianCodeGen(Visitor):
                 (data, indices, indptr),
                 shape=(self.space.size, self.space.size),
             )
-            # operator = csr_matrix(
-            #     (data, indices, indptr),
-            #     shape=(self.space.size, self.space.size),
-            # )
 
         self.compile_cache.operator_cache[
             (self.register, rabi_operator_data)
@@ -213,3 +203,76 @@ class RydbergHamiltonianCodeGen(Visitor):
             rabi_ops=self.rabi_ops,
         )
         return hamiltonian
+
+
+@dataclass(frozen=True)
+class RydbergHamiltonianScanResults:
+    detuned_sites: frozenset
+    rabi_sites: frozenset
+
+
+class RydbergHamiltonianScan(Visitor):
+    def __init__(self):
+        self.detuning_atoms = set()
+        self.rabi_atoms = set()
+
+    def visit_emulator_program(self, emulator_program: EmulatorProgram):
+        self.level_couplings = set(list(emulator_program.pulses.keys()))
+
+        self.visit(emulator_program.register)
+
+        for detuning_term in emulator_program.detuning_terms:
+            self.visit(detuning_term)
+
+        for rabi_term in emulator_program.rabi_terms:
+            self.visit(rabi_term)
+
+    def visit_register(self, register: Register):
+        self.register = register
+
+        if register in self.compile_cache.space_cache:
+            self.space, self.rydberg = self.compile_cache.space_cache[register]
+            return
+
+        self.space = Space.create(register)
+        sites = register.sites
+
+        # generate rydberg interaction elements
+        self.rydberg = np.zeros(self.space.size, dtype=np.float64)
+
+        for index_1, site_1 in enumerate(sites):
+            site_1 = np.asarray(list(map(float, site_1)))
+            is_rydberg_1 = self.space.is_rydberg_at(index_1)
+            for index_2, sites_2 in enumerate(sites[index_1 + 1 :], index_1 + 1):
+                sites_2 = np.asarray(list(map(float, sites_2)))
+                distance = np.linalg.norm(site_1 - sites_2)
+
+                rydberg_interaction = RB_C6 / (distance**6)
+
+                if rydberg_interaction <= np.finfo(np.float64).eps:
+                    continue
+
+                mask = np.logical_and(is_rydberg_1, self.space.is_rydberg_at(index_2))
+                self.rydberg[mask] += rydberg_interaction
+
+        self.compile_cache.space_cache[register] = (self.space, self.rydberg)
+
+    def visit_detuning_operator_data(self, op_data: DetuningOperatorData):
+        self.detuning_atoms.union(*op_data.target_atoms.keys())
+
+    def visit_rabi_operator_data(self, op_data: RabiOperatorData):
+        self.detuning_atoms.union(*op_data.target_atoms.keys())
+
+    def visit_detuning_term(self, detuning_term: DetuningTerm):
+        self.visit(detuning_term.operator_data)
+
+    def visit_rabi_term(self, rabi_term: RabiTerm):
+        self.visit(rabi_term.operator_data)
+
+    def scan(self, emulator_program: EmulatorProgram) -> RydbergHamiltonianScanResults:
+        self.visit(emulator_program)
+
+        return RydbergHamiltonianScanResults(
+            frozenset(self.detuning_atoms),
+            frozenset(self.rabi_atoms),
+        )

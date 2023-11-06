@@ -40,14 +40,24 @@ class RabiOperatorType(int, Enum):
     RabiSymmetric = 1
 
 
+class LevelCoupling(str, Enum):
+    Rydberg = "rydberg"
+    Hyperfine = "hyperfine"
+
+
 @dataclass(frozen=True)
 @Serializer.register
 class RabiOperatorData:
+    level_coupling: LevelCoupling
     operator_type: RabiOperatorType
     target_atoms: Dict[int, Decimal]
 
     def __hash__(self):
-        return hash(self.operator_type) ^ hash(frozenset(self.target_atoms.items()))
+        return (
+            hash(self.level_coupling)
+            ^ hash(self.operator_type)
+            ^ hash(frozenset(self.target_atoms.items()))
+        )
 
 
 @dataclass(frozen=True)
@@ -61,10 +71,11 @@ class RabiTerm:
 @dataclass(frozen=True)
 @Serializer.register
 class DetuningOperatorData:
+    level_coupling: LevelCoupling
     target_atoms: Dict[int, Decimal]
 
     def __hash__(self) -> int:
-        return hash(frozenset(self.target_atoms.items()))
+        return hash(self.level_coupling) ^ hash(frozenset(self.target_atoms.items()))
 
 
 @dataclass(frozen=True)
@@ -72,13 +83,6 @@ class DetuningOperatorData:
 class DetuningTerm:
     operator_data: DetuningOperatorData
     amplitude: CompiledWaveform
-
-
-@dataclass(frozen=True)
-@Serializer.register
-class Fields:
-    detuning: List[DetuningTerm]
-    rabi: List[RabiTerm]
 
 
 @dataclass(frozen=True)
@@ -120,17 +124,13 @@ class Register:
             )
 
 
-class LevelCoupling(str, Enum):
-    Rydberg = "rydberg"
-    Hyperfine = "hyperfine"
-
-
 @dataclass(frozen=True)
 @Serializer.register
 class EmulatorProgram:
     register: Register
     duration: float
-    pulses: Dict[LevelCoupling, Fields]
+    detuning_terms: List[DetuningTerm]
+    rabi_terms: List[RabiTerm]
 
 
 class Visitor:
@@ -138,9 +138,6 @@ class Visitor:
         raise NotImplementedError
 
     def visit_compiled_waveform(self, ast: CompiledWaveform) -> Any:
-        raise NotImplementedError
-
-    def visit_fields(self, ast: Fields) -> Any:
         raise NotImplementedError
 
     def visit_detuning_operator_data(self, ast: DetuningOperatorData) -> Any:
@@ -163,7 +160,7 @@ class Visitor:
             return self.visit_emulator_program(ast)
         elif isinstance(ast, Register):
             return self.visit_register(ast)
-        elif isinstance(ast, Fields):
+        elif isinstance(ast, Pulses):
             return self.visit_fields(ast)
         elif isinstance(ast, RabiTerm):
             return self.visit_rabi_term(ast)

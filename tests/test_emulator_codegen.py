@@ -4,7 +4,7 @@ from bloqade.emulate.ir.emulator import (
     Register,
     RabiOperatorData,
     RabiTerm,
-    Fields,
+    Pulses,
     DetuningTerm,
     DetuningOperatorData,
     RabiOperatorType,
@@ -48,7 +48,7 @@ def test_codegen_global_detuning():
         compiled_waveform,
     )
 
-    rydberg_drive = Fields(detuning=[detuning_term], rabi=[])
+    rydberg_drive = Pulses(detuning=[detuning_term], rabi=[])
 
     drives = {LevelCoupling.Rydberg: rydberg_drive}
 
@@ -103,7 +103,7 @@ def test_codegen_global_detuning_and_rabi():
         None,
     )
 
-    rydberg_drive = Fields(detuning=[detuning_term], rabi=[rabi_term])
+    rydberg_drive = Pulses(detuning=[detuning_term], rabi=[rabi_term])
 
     drives = {LevelCoupling.Rydberg: rydberg_drive}
 
@@ -162,7 +162,7 @@ def test_codegen_detuning_max_terms():
         compiled_wf_1,
     )
 
-    rydberg_drive = Fields(detuning=[detuning_term_0, detuning_term_1], rabi=[])
+    rydberg_drive = Pulses(detuning=[detuning_term_0, detuning_term_1], rabi=[])
     drives = {LevelCoupling.Rydberg: rydberg_drive}
 
     expected_emulator_ir = EmulatorProgram(
@@ -232,7 +232,7 @@ def test_codegen_rabi_max_terms():
         None,
     )
 
-    rydberg_drive = Fields(detuning=[], rabi=[rabi_term_0, rabi_term_1])
+    rydberg_drive = Pulses(detuning=[], rabi=[rabi_term_0, rabi_term_1])
 
     drives = {LevelCoupling.Rydberg: rydberg_drive}
 
@@ -286,7 +286,7 @@ def test_codegen_rabi_uniform_phase():
         compiled_phase,
     )
 
-    rydberg_drive = Fields(detuning=[], rabi=[rabi_term])
+    rydberg_drive = Pulses(detuning=[], rabi=[rabi_term])
 
     drives = {LevelCoupling.Rydberg: rydberg_drive}
 
@@ -366,7 +366,7 @@ def test_codegen_uniform_phase_rabi_max_terms():
         compiled_wf_1_phase,
     )
 
-    rydberg_drive = Fields(detuning=[], rabi=[rabi_term_0, rabi_term_1])
+    rydberg_drive = Pulses(detuning=[], rabi=[rabi_term_0, rabi_term_1])
 
     drives = {LevelCoupling.Rydberg: rydberg_drive}
 

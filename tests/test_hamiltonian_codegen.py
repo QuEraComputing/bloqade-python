@@ -2,7 +2,7 @@ from decimal import Decimal
 from itertools import combinations
 from bloqade.atom_arrangement import Chain
 from bloqade.codegen.emulator_ir import EmulatorProgramCodeGen
-from bloqade.emulate.codegen.hamiltonian import CompileCache, RydbergHamiltonianCodeGen
+from bloqade.emulate.codegen.hamiltonian import CompileCache, RydbergHamiltonianScan
 from functools import reduce
 import numpy as np
 import pytest
@@ -64,7 +64,7 @@ def test_2_level_uniform_detuningl(L):
     ).parse_circuit()
 
     emu_prog = EmulatorProgramCodeGen().emit(circuit)
-    hamiltonian = RydbergHamiltonianCodeGen().emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan().emit(emu_prog)
     detuning_op = np.array([0, -1], dtype=int)
 
     detuning = sum([get_manybody_op(i, L, detuning_op) for i in range(L)])
@@ -72,7 +72,7 @@ def test_2_level_uniform_detuningl(L):
     assert np.all(hamiltonian.detuning_ops[0].diagonal == detuning)
 
     emu_prog = EmulatorProgramCodeGen(blockade_radius=6.2).emit(circuit)
-    hamiltonian = RydbergHamiltonianCodeGen().emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan().emit(emu_prog)
 
     detuning_op_proj = project_to_subspace(detuning, hamiltonian.space.configurations)
 
@@ -86,7 +86,7 @@ def test_2_level_uniform_rabi_real(L):
     ).parse_circuit()
 
     emu_prog = EmulatorProgramCodeGen().emit(circuit)
-    hamiltonian = RydbergHamiltonianCodeGen().emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan().emit(emu_prog)
     rabi_op = np.array([[0, 1], [1, 0]], dtype=int)
 
     rabi = sum([get_manybody_op(i, L, rabi_op) for i in range(L)])
@@ -94,7 +94,7 @@ def test_2_level_uniform_rabi_real(L):
     assert np.all(hamiltonian.rabi_ops[0].op.tocsr().toarray() == rabi)
 
     emu_prog = EmulatorProgramCodeGen(blockade_radius=6.2).emit(circuit)
-    hamiltonian = RydbergHamiltonianCodeGen().emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan().emit(emu_prog)
 
     rabi_op_proj = project_to_subspace(rabi, hamiltonian.space.configurations)
 
@@ -110,7 +110,7 @@ def test_2_level_uniform_complex(L):
     ).parse_circuit()
 
     emu_prog = EmulatorProgramCodeGen().emit(circuit)
-    hamiltonian = RydbergHamiltonianCodeGen().emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan().emit(emu_prog)
     rabi_op = np.array([[0, 0], [1, 0]], dtype=int)
 
     rabi = sum([get_manybody_op(i, L, rabi_op) for i in range(L)])
@@ -118,7 +118,7 @@ def test_2_level_uniform_complex(L):
     assert np.all(hamiltonian.rabi_ops[0].op.tocsr().toarray() == rabi)
 
     emu_prog = EmulatorProgramCodeGen(blockade_radius=6.2).emit(circuit)
-    hamiltonian = RydbergHamiltonianCodeGen().emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan().emit(emu_prog)
 
     rabi_op_proj = project_to_subspace(rabi, hamiltonian.space.configurations)
 
@@ -132,7 +132,7 @@ def test_3_level_uniform_detuning(L):
     ).parse_circuit()
 
     emu_prog = EmulatorProgramCodeGen(use_hyperfine=True).emit(circuit)
-    hamiltonian = RydbergHamiltonianCodeGen().emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan().emit(emu_prog)
     detuning_op = np.array([0, 0, -1], dtype=int)
 
     detuning = sum([get_manybody_op(i, L, detuning_op) for i in range(L)])
@@ -142,7 +142,7 @@ def test_3_level_uniform_detuning(L):
     emu_prog = EmulatorProgramCodeGen(blockade_radius=6.2, use_hyperfine=True).emit(
         circuit
     )
-    hamiltonian = RydbergHamiltonianCodeGen().emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan().emit(emu_prog)
 
     detuning_op_proj = project_to_subspace(detuning, hamiltonian.space.configurations)
 
@@ -155,7 +155,7 @@ def test_3_level_uniform_detuning(L):
     ).parse_circuit()
 
     emu_prog = EmulatorProgramCodeGen(use_hyperfine=True).emit(circuit)
-    hamiltonian = RydbergHamiltonianCodeGen().emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan().emit(emu_prog)
     detuning_op = np.array([0, -1, 0], dtype=int)
 
     detuning = sum([get_manybody_op(i, L, detuning_op) for i in range(L)])
@@ -163,7 +163,7 @@ def test_3_level_uniform_detuning(L):
     assert np.all(hamiltonian.detuning_ops[0].diagonal == detuning)
 
     emu_prog = EmulatorProgramCodeGen(blockade_radius=6.2).emit(circuit)
-    hamiltonian = RydbergHamiltonianCodeGen().emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan().emit(emu_prog)
 
     detuning_op_proj = project_to_subspace(detuning, hamiltonian.space.configurations)
 
@@ -179,7 +179,7 @@ def test_3_level_uniform_rabi_complex(L):
     ).parse_circuit()
     cache = CompileCache()
     emu_prog = EmulatorProgramCodeGen(use_hyperfine=True).emit(circuit)
-    hamiltonian = RydbergHamiltonianCodeGen(cache).emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan(cache).emit(emu_prog)
 
     rabi_op = np.array([[0, 0, 0], [0, 0, 0], [0, 1, 0]], dtype=int)
 
@@ -193,7 +193,7 @@ def test_3_level_uniform_rabi_complex(L):
     emu_prog = EmulatorProgramCodeGen(blockade_radius=6.2, use_hyperfine=True).emit(
         circuit
     )
-    hamiltonian = RydbergHamiltonianCodeGen().emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan().emit(emu_prog)
 
     rabi_op_proj = project_to_subspace(rabi, hamiltonian.space.configurations)
 
@@ -208,7 +208,7 @@ def test_3_level_uniform_rabi_complex(L):
     ).parse_circuit()
     cache = CompileCache()
     emu_prog = EmulatorProgramCodeGen().emit(circuit)
-    hamiltonian = RydbergHamiltonianCodeGen(cache).emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan(cache).emit(emu_prog)
 
     rabi_op = np.array([[0, 0, 0], [1, 0, 0], [0, 0, 0]], dtype=int)
 
@@ -220,7 +220,7 @@ def test_3_level_uniform_rabi_complex(L):
     assert np.all(hamiltonian.rabi_ops[0].op.tocsr().toarray() == rabi)
 
     emu_prog = EmulatorProgramCodeGen(blockade_radius=6.2).emit(circuit)
-    hamiltonian = RydbergHamiltonianCodeGen().emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan().emit(emu_prog)
 
     rabi_op_proj = project_to_subspace(rabi, hamiltonian.space.configurations)
 
@@ -242,7 +242,7 @@ def test_2_level_single_atom_detuning(i, L):
 
     cache = CompileCache()
     emu_prog = EmulatorProgramCodeGen().emit(circuit)
-    hamiltonian = RydbergHamiltonianCodeGen(cache).emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan(cache).emit(emu_prog)
 
     detuning_op = np.array([0, -1], dtype=int)
 
@@ -251,7 +251,7 @@ def test_2_level_single_atom_detuning(i, L):
     assert np.all(hamiltonian.detuning_ops[0].get_diagonal(0.0) == detuning)
 
     emu_prog = EmulatorProgramCodeGen(blockade_radius=6.2).emit(circuit)
-    hamiltonian = RydbergHamiltonianCodeGen().emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan().emit(emu_prog)
 
     detuning_op_proj = project_to_subspace(detuning, hamiltonian.space.configurations)
 
@@ -268,7 +268,7 @@ def test_2_level_single_atom_rabi_real(i, L):
 
     cache = CompileCache()
     emu_prog = EmulatorProgramCodeGen().emit(circuit)
-    hamiltonian = RydbergHamiltonianCodeGen(cache).emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan(cache).emit(emu_prog)
 
     rabi_op = np.array([[0, 1], [1, 0]], dtype=int)
 
@@ -277,7 +277,7 @@ def test_2_level_single_atom_rabi_real(i, L):
     assert np.all(hamiltonian.rabi_ops[0].op.tocsr().toarray() == rabi)
 
     emu_prog = EmulatorProgramCodeGen(blockade_radius=6.2).emit(circuit)
-    hamiltonian = RydbergHamiltonianCodeGen().emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan().emit(emu_prog)
 
     rabi_op_proj = project_to_subspace(rabi, hamiltonian.space.configurations)
 
@@ -296,7 +296,7 @@ def test_2_level_single_atom_complex(i, L):
 
     cache = CompileCache()
     emu_prog = EmulatorProgramCodeGen().emit(circuit)
-    hamiltonian = RydbergHamiltonianCodeGen(cache).emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan(cache).emit(emu_prog)
 
     rabi_op = np.array([[0, 0], [1, 0]], dtype=int)
     rabi = get_manybody_op(i, L, rabi_op)
@@ -304,7 +304,7 @@ def test_2_level_single_atom_complex(i, L):
     assert np.all(hamiltonian.rabi_ops[0].op.tocsr().toarray() == rabi)
 
     emu_prog = EmulatorProgramCodeGen(blockade_radius=6.2).emit(circuit)
-    hamiltonian = RydbergHamiltonianCodeGen().emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan().emit(emu_prog)
 
     rabi_op_proj = project_to_subspace(rabi, hamiltonian.space.configurations)
 
@@ -321,7 +321,7 @@ def test_3_level_single_atom_detuning(i, L):
 
     cache = CompileCache()
     emu_prog = EmulatorProgramCodeGen(use_hyperfine=True).emit(circuit)
-    hamiltonian = RydbergHamiltonianCodeGen(cache).emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan(cache).emit(emu_prog)
 
     detuning_op = np.array([0, 0, -1], dtype=int)
 
@@ -332,7 +332,7 @@ def test_3_level_single_atom_detuning(i, L):
     emu_prog = EmulatorProgramCodeGen(blockade_radius=6.2, use_hyperfine=True).emit(
         circuit
     )
-    hamiltonian = RydbergHamiltonianCodeGen().emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan().emit(emu_prog)
 
     detuning_op_proj = project_to_subspace(detuning, hamiltonian.space.configurations)
 
@@ -348,7 +348,7 @@ def test_3_level_single_atom_detuning(i, L):
 
     cache = CompileCache()
     emu_prog = EmulatorProgramCodeGen().emit(circuit)
-    hamiltonian = RydbergHamiltonianCodeGen(cache).emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan(cache).emit(emu_prog)
 
     detuning_op = np.array([0, -1, 0], dtype=int)
 
@@ -357,7 +357,7 @@ def test_3_level_single_atom_detuning(i, L):
     assert np.all(hamiltonian.detuning_ops[0].get_diagonal(0.0) == detuning)
 
     emu_prog = EmulatorProgramCodeGen(blockade_radius=6.2).emit(circuit)
-    hamiltonian = RydbergHamiltonianCodeGen().emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan().emit(emu_prog)
 
     detuning_op_proj = project_to_subspace(detuning, hamiltonian.space.configurations)
 
@@ -374,7 +374,7 @@ def test_3_level_single_atom_rabi_real(i, L):
 
     cache = CompileCache()
     emu_prog = EmulatorProgramCodeGen(use_hyperfine=True).emit(circuit)
-    hamiltonian = RydbergHamiltonianCodeGen(cache).emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan(cache).emit(emu_prog)
 
     rabi_op = np.array([[0, 0, 0], [0, 0, 1], [0, 1, 0]], dtype=int)
 
@@ -385,7 +385,7 @@ def test_3_level_single_atom_rabi_real(i, L):
     emu_prog = EmulatorProgramCodeGen(blockade_radius=6.2, use_hyperfine=True).emit(
         circuit
     )
-    hamiltonian = RydbergHamiltonianCodeGen().emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan().emit(emu_prog)
 
     rabi_op_proj = project_to_subspace(rabi, hamiltonian.space.configurations)
 
@@ -401,7 +401,7 @@ def test_3_level_single_atom_rabi_real(i, L):
 
     cache = CompileCache()
     emu_prog = EmulatorProgramCodeGen().emit(circuit)
-    hamiltonian = RydbergHamiltonianCodeGen(cache).emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan(cache).emit(emu_prog)
 
     rabi_op = np.array([[0, 1, 0], [1, 0, 0], [0, 0, 0]], dtype=int)
 
@@ -410,7 +410,7 @@ def test_3_level_single_atom_rabi_real(i, L):
     assert np.all(hamiltonian.rabi_ops[0].op.tocsr().toarray() == rabi)
 
     emu_prog = EmulatorProgramCodeGen(blockade_radius=6.2).emit(circuit)
-    hamiltonian = RydbergHamiltonianCodeGen().emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan().emit(emu_prog)
 
     rabi_op_proj = project_to_subspace(rabi, hamiltonian.space.configurations)
 
@@ -431,7 +431,7 @@ def test_3_level_single_atom_rabi_complex(i, L):
 
     cache = CompileCache()
     emu_prog = EmulatorProgramCodeGen(use_hyperfine=True).emit(circuit)
-    hamiltonian = RydbergHamiltonianCodeGen(cache).emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan(cache).emit(emu_prog)
 
     rabi_op = np.array([[0, 0, 0], [0, 0, 0], [0, 1, 0]], dtype=int)
     rabi = get_manybody_op(i, L, rabi_op)
@@ -441,7 +441,7 @@ def test_3_level_single_atom_rabi_complex(i, L):
     emu_prog = EmulatorProgramCodeGen(blockade_radius=6.2, use_hyperfine=True).emit(
         circuit
     )
-    hamiltonian = RydbergHamiltonianCodeGen().emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan().emit(emu_prog)
 
     rabi_op_proj = project_to_subspace(rabi, hamiltonian.space.configurations)
 
@@ -459,7 +459,7 @@ def test_3_level_single_atom_rabi_complex(i, L):
 
     cache = CompileCache()
     emu_prog = EmulatorProgramCodeGen().emit(circuit)
-    hamiltonian = RydbergHamiltonianCodeGen(cache).emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan(cache).emit(emu_prog)
 
     rabi_op = np.array([[0, 0, 0], [1, 0, 0], [0, 0, 0]], dtype=int)
     rabi = get_manybody_op(i, L, rabi_op)
@@ -467,7 +467,7 @@ def test_3_level_single_atom_rabi_complex(i, L):
     assert np.all(hamiltonian.rabi_ops[0].op.tocsr().toarray() == rabi)
 
     emu_prog = EmulatorProgramCodeGen(blockade_radius=6.2).emit(circuit)
-    hamiltonian = RydbergHamiltonianCodeGen().emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan().emit(emu_prog)
 
     rabi_op_proj = project_to_subspace(rabi, hamiltonian.space.configurations)
 
@@ -492,7 +492,7 @@ def test_2_level_mask_detuning(L):
 
     cache = CompileCache()
     emu_prog = EmulatorProgramCodeGen(mask_assignments).emit(circuit)
-    hamiltonian = RydbergHamiltonianCodeGen(cache).emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan(cache).emit(emu_prog)
 
     detuning_op = np.array([0, -1], dtype=int)
 
@@ -506,7 +506,7 @@ def test_2_level_mask_detuning(L):
     emu_prog = EmulatorProgramCodeGen(mask_assignments, blockade_radius=6.2).emit(
         circuit
     )
-    hamiltonian = RydbergHamiltonianCodeGen().emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan().emit(emu_prog)
 
     detuning_op_proj = project_to_subspace(detuning, hamiltonian.space.configurations)
 
@@ -526,7 +526,7 @@ def test_2_level_mask_real(L):
 
     cache = CompileCache()
     emu_prog = EmulatorProgramCodeGen(mask_assignments).emit(circuit)
-    hamiltonian = RydbergHamiltonianCodeGen(cache).emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan(cache).emit(emu_prog)
 
     rabi_op = np.array([[0, 1], [1, 0]], dtype=int)
 
@@ -543,7 +543,7 @@ def test_2_level_mask_real(L):
     emu_prog = EmulatorProgramCodeGen(mask_assignments, blockade_radius=6.2).emit(
         circuit
     )
-    hamiltonian = RydbergHamiltonianCodeGen().emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan().emit(emu_prog)
 
     rabi_op_proj = project_to_subspace(rabi, hamiltonian.space.configurations)
 
@@ -566,7 +566,7 @@ def test_2_level_mask_complex(L):
 
     cache = CompileCache()
     emu_prog = EmulatorProgramCodeGen(mask_assignments).emit(circuit)
-    hamiltonian = RydbergHamiltonianCodeGen(cache).emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan(cache).emit(emu_prog)
 
     rabi_op = np.array([[0, 0], [1, 0]], dtype=int)
 
@@ -583,7 +583,7 @@ def test_2_level_mask_complex(L):
     emu_prog = EmulatorProgramCodeGen(mask_assignments, blockade_radius=6.2).emit(
         circuit
     )
-    hamiltonian = RydbergHamiltonianCodeGen().emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan().emit(emu_prog)
 
     rabi_op_proj = project_to_subspace(rabi, hamiltonian.space.configurations)
 
@@ -605,7 +605,7 @@ def test_3_level_detuning(L):
     emu_prog = EmulatorProgramCodeGen(mask_assignments, use_hyperfine=True).emit(
         circuit
     )
-    hamiltonian = RydbergHamiltonianCodeGen(cache).emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan(cache).emit(emu_prog)
 
     detuning_op = np.array([0, 0, -1], dtype=int)
     detuning = sum(
@@ -618,7 +618,7 @@ def test_3_level_detuning(L):
     emu_prog = EmulatorProgramCodeGen(
         mask_assignments, blockade_radius=6.2, use_hyperfine=True
     ).emit(circuit)
-    hamiltonian = RydbergHamiltonianCodeGen().emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan().emit(emu_prog)
 
     detuning_op_proj = project_to_subspace(detuning, hamiltonian.space.configurations)
 
@@ -634,7 +634,7 @@ def test_3_level_detuning(L):
 
     cache = CompileCache()
     emu_prog = EmulatorProgramCodeGen(mask_assignments).emit(circuit)
-    hamiltonian = RydbergHamiltonianCodeGen(cache).emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan(cache).emit(emu_prog)
 
     detuning_op = np.array([0, -1, 0], dtype=int)
     detuning = sum(
@@ -647,7 +647,7 @@ def test_3_level_detuning(L):
     emu_prog = EmulatorProgramCodeGen(mask_assignments, blockade_radius=6.2).emit(
         circuit
     )
-    hamiltonian = RydbergHamiltonianCodeGen().emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan().emit(emu_prog)
 
     detuning_op_proj = project_to_subspace(detuning, hamiltonian.space.configurations)
 
@@ -669,7 +669,7 @@ def test_3_level_mask_rabi_real(L):
     emu_prog = EmulatorProgramCodeGen(mask_assignments, use_hyperfine=True).emit(
         circuit
     )
-    hamiltonian = RydbergHamiltonianCodeGen(cache).emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan(cache).emit(emu_prog)
 
     rabi_op = np.array([[0, 0, 0], [0, 0, 1], [0, 1, 0]], dtype=int)
 
@@ -686,7 +686,7 @@ def test_3_level_mask_rabi_real(L):
     emu_prog = EmulatorProgramCodeGen(
         mask_assignments, blockade_radius=6.2, use_hyperfine=True
     ).emit(circuit)
-    hamiltonian = RydbergHamiltonianCodeGen().emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan().emit(emu_prog)
 
     rabi_op_proj = project_to_subspace(rabi, hamiltonian.space.configurations)
 
@@ -702,7 +702,7 @@ def test_3_level_mask_rabi_real(L):
 
     cache = CompileCache()
     emu_prog = EmulatorProgramCodeGen(mask_assignments).emit(circuit)
-    hamiltonian = RydbergHamiltonianCodeGen(cache).emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan(cache).emit(emu_prog)
 
     rabi_op = np.array([[0, 1, 0], [1, 0, 0], [0, 0, 0]], dtype=int)
 
@@ -719,7 +719,7 @@ def test_3_level_mask_rabi_real(L):
     emu_prog = EmulatorProgramCodeGen(mask_assignments, blockade_radius=6.2).emit(
         circuit
     )
-    hamiltonian = RydbergHamiltonianCodeGen().emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan().emit(emu_prog)
 
     rabi_op_proj = project_to_subspace(rabi, hamiltonian.space.configurations)
 
@@ -744,7 +744,7 @@ def test_3_level_mask_complex(L):
     emu_prog = EmulatorProgramCodeGen(mask_assignments, use_hyperfine=True).emit(
         circuit
     )
-    hamiltonian = RydbergHamiltonianCodeGen(cache).emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan(cache).emit(emu_prog)
 
     rabi_op = np.array([[0, 0, 0], [0, 0, 0], [0, 1, 0]], dtype=int)
 
@@ -761,7 +761,7 @@ def test_3_level_mask_complex(L):
     emu_prog = EmulatorProgramCodeGen(
         mask_assignments, blockade_radius=6.2, use_hyperfine=True
     ).emit(circuit)
-    hamiltonian = RydbergHamiltonianCodeGen().emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan().emit(emu_prog)
 
     rabi_op_proj = project_to_subspace(rabi, hamiltonian.space.configurations)
 
@@ -778,7 +778,7 @@ def test_3_level_mask_complex(L):
 
     cache = CompileCache()
     emu_prog = EmulatorProgramCodeGen(mask_assignments).emit(circuit)
-    hamiltonian = RydbergHamiltonianCodeGen(cache).emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan(cache).emit(emu_prog)
 
     rabi_op = np.array([[0, 0, 0], [1, 0, 0], [0, 0, 0]], dtype=int)
 
@@ -795,7 +795,7 @@ def test_3_level_mask_complex(L):
     emu_prog = EmulatorProgramCodeGen(mask_assignments, blockade_radius=6.2).emit(
         circuit
     )
-    hamiltonian = RydbergHamiltonianCodeGen().emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan().emit(emu_prog)
 
     rabi_op_proj = project_to_subspace(rabi, hamiltonian.space.configurations)
 
@@ -826,7 +826,7 @@ def test_2_level_multi_atom_detuning(sites, L):
 
     cache = CompileCache()
     emu_prog = EmulatorProgramCodeGen().emit(circuit)
-    hamiltonian = RydbergHamiltonianCodeGen(cache).emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan(cache).emit(emu_prog)
 
     detuning_op = np.array([0, -1], dtype=int)
 
@@ -838,7 +838,7 @@ def test_2_level_multi_atom_detuning(sites, L):
     assert np.all(hamiltonian.detuning_ops[0].get_diagonal(0.0) == detuning)
 
     emu_prog = EmulatorProgramCodeGen(blockade_radius=6.2).emit(circuit)
-    hamiltonian = RydbergHamiltonianCodeGen().emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan().emit(emu_prog)
 
     detuning_op_proj = project_to_subspace(detuning, hamiltonian.space.configurations)
 
@@ -864,7 +864,7 @@ def test_2_level_multi_atom_rabi_real(sites, L):
 
     cache = CompileCache()
     emu_prog = EmulatorProgramCodeGen().emit(circuit)
-    hamiltonian = RydbergHamiltonianCodeGen(cache).emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan(cache).emit(emu_prog)
 
     rabi_op = np.array([[0, 1], [1, 0]], dtype=int)
 
@@ -876,7 +876,7 @@ def test_2_level_multi_atom_rabi_real(sites, L):
     assert np.all(hamiltonian.rabi_ops[0].op.tocsr().toarray() == rabi)
 
     emu_prog = EmulatorProgramCodeGen(blockade_radius=6.2).emit(circuit)
-    hamiltonian = RydbergHamiltonianCodeGen().emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan().emit(emu_prog)
 
     rabi_op_proj = project_to_subspace(rabi, hamiltonian.space.configurations)
 
@@ -905,7 +905,7 @@ def test_2_level_multi_atom_rabi_complex(sites, L):
 
     cache = CompileCache()
     emu_prog = EmulatorProgramCodeGen().emit(circuit)
-    hamiltonian = RydbergHamiltonianCodeGen(cache).emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan(cache).emit(emu_prog)
 
     rabi_op = np.array([[0, 0], [1, 0]], dtype=int)
 
@@ -917,7 +917,7 @@ def test_2_level_multi_atom_rabi_complex(sites, L):
     assert np.all(hamiltonian.rabi_ops[0].op.tocsr().toarray() == rabi)
 
     emu_prog = EmulatorProgramCodeGen(blockade_radius=6.2).emit(circuit)
-    hamiltonian = RydbergHamiltonianCodeGen().emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan().emit(emu_prog)
 
     rabi_op_proj = project_to_subspace(rabi, hamiltonian.space.configurations)
 
@@ -945,7 +945,7 @@ def test_3_level_multi_atom_detuning(sites, L):
 
     cache = CompileCache()
     emu_prog = EmulatorProgramCodeGen(use_hyperfine=True).emit(circuit)
-    hamiltonian = RydbergHamiltonianCodeGen(cache).emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan(cache).emit(emu_prog)
 
     detuning_op = np.array([0, 0, -1], dtype=int)
 
@@ -959,7 +959,7 @@ def test_3_level_multi_atom_detuning(sites, L):
     emu_prog = EmulatorProgramCodeGen(blockade_radius=6.2, use_hyperfine=True).emit(
         circuit
     )
-    hamiltonian = RydbergHamiltonianCodeGen().emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan().emit(emu_prog)
 
     detuning_op_proj = project_to_subspace(detuning, hamiltonian.space.configurations)
 
@@ -976,7 +976,7 @@ def test_3_level_multi_atom_detuning(sites, L):
 
     cache = CompileCache()
     emu_prog = EmulatorProgramCodeGen().emit(circuit)
-    hamiltonian = RydbergHamiltonianCodeGen(cache).emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan(cache).emit(emu_prog)
 
     detuning_op = np.array([0, -1, 0], dtype=int)
 
@@ -988,7 +988,7 @@ def test_3_level_multi_atom_detuning(sites, L):
     assert np.all(hamiltonian.detuning_ops[0].get_diagonal(0.0) == detuning)
 
     emu_prog = EmulatorProgramCodeGen(blockade_radius=6.2).emit(circuit)
-    hamiltonian = RydbergHamiltonianCodeGen().emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan().emit(emu_prog)
 
     detuning_op_proj = project_to_subspace(detuning, hamiltonian.space.configurations)
 
@@ -1016,7 +1016,7 @@ def test_3_level_multi_atom_real(sites, L):
 
     cache = CompileCache()
     emu_prog = EmulatorProgramCodeGen(use_hyperfine=True).emit(circuit)
-    hamiltonian = RydbergHamiltonianCodeGen(cache).emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan(cache).emit(emu_prog)
 
     rabi_op = np.array([[0, 0, 0], [0, 0, 1], [0, 1, 0]], dtype=int)
 
@@ -1030,7 +1030,7 @@ def test_3_level_multi_atom_real(sites, L):
     emu_prog = EmulatorProgramCodeGen(blockade_radius=6.2, use_hyperfine=True).emit(
         circuit
     )
-    hamiltonian = RydbergHamiltonianCodeGen().emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan().emit(emu_prog)
 
     rabi_op_proj = project_to_subspace(rabi, hamiltonian.space.configurations)
 
@@ -1047,7 +1047,7 @@ def test_3_level_multi_atom_real(sites, L):
 
     cache = CompileCache()
     emu_prog = EmulatorProgramCodeGen().emit(circuit)
-    hamiltonian = RydbergHamiltonianCodeGen(cache).emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan(cache).emit(emu_prog)
 
     rabi_op = np.array([[0, 1, 0], [1, 0, 0], [0, 0, 0]], dtype=int)
 
@@ -1059,7 +1059,7 @@ def test_3_level_multi_atom_real(sites, L):
     assert np.all(hamiltonian.rabi_ops[0].op.tocsr().toarray() == rabi)
 
     emu_prog = EmulatorProgramCodeGen(blockade_radius=6.2).emit(circuit)
-    hamiltonian = RydbergHamiltonianCodeGen().emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan().emit(emu_prog)
 
     rabi_op_proj = project_to_subspace(rabi, hamiltonian.space.configurations)
 
@@ -1088,7 +1088,7 @@ def test_3_level_multi_atom_complex(sites, L):
 
     cache = CompileCache()
     emu_prog = EmulatorProgramCodeGen(use_hyperfine=True).emit(circuit)
-    hamiltonian = RydbergHamiltonianCodeGen(cache).emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan(cache).emit(emu_prog)
 
     rabi_op = np.array([[0, 0, 0], [0, 0, 0], [0, 1, 0]], dtype=int)
 
@@ -1102,7 +1102,7 @@ def test_3_level_multi_atom_complex(sites, L):
     emu_prog = EmulatorProgramCodeGen(blockade_radius=6.2, use_hyperfine=True).emit(
         circuit
     )
-    hamiltonian = RydbergHamiltonianCodeGen().emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan().emit(emu_prog)
 
     rabi_op_proj = project_to_subspace(rabi, hamiltonian.space.configurations)
 
@@ -1120,7 +1120,7 @@ def test_3_level_multi_atom_complex(sites, L):
 
     cache = CompileCache()
     emu_prog = EmulatorProgramCodeGen().emit(circuit)
-    hamiltonian = RydbergHamiltonianCodeGen(cache).emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan(cache).emit(emu_prog)
 
     rabi_op = np.array([[0, 0, 0], [1, 0, 0], [0, 0, 0]], dtype=int)
 
@@ -1132,7 +1132,7 @@ def test_3_level_multi_atom_complex(sites, L):
     assert np.all(hamiltonian.rabi_ops[0].op.tocsr().toarray() == rabi)
 
     emu_prog = EmulatorProgramCodeGen(blockade_radius=6.2).emit(circuit)
-    hamiltonian = RydbergHamiltonianCodeGen().emit(emu_prog)
+    hamiltonian = RydbergHamiltonianScan().emit(emu_prog)
 
     rabi_op_proj = project_to_subspace(rabi, hamiltonian.space.configurations)
 
