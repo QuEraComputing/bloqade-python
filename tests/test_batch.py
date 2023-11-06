@@ -1,9 +1,13 @@
 import pytest
-from bloqade import start, load, save
+from bloqade import start
 import numpy as np
 from unittest.mock import patch
 from bloqade.submission.ir.task_results import QuEraTaskStatusCode, QuEraTaskResults
 from bloqade.submission.ir.task_specification import QuEraTaskSpecification
+from bloqade.task.base import Geometry
+from bloqade.task.quera import QuEraTask
+from bloqade.submission.base import ValidationError
+from bloqade import dumps, loads
 
 # import numpy as np
 
@@ -380,17 +384,88 @@ def test_report(BraketBackend):
     assert all([len(ele) == 0 for ele in report.counts])
 
 
+@patch("bloqade.task.quera.QuEraBackend")
+def test_quera_task(QuEraBackend):
+    backend = QuEraBackend()
+
+    task = QuEraTask(
+        task_id=None,
+        backend=backend,
+        task_ir=mock_task(14),
+        metadata={},
+    )
+
+    assert task.nshots == 10
+    assert task.geometry == Geometry([(0, 0)] * 14, [1] * 14)
+    assert task.status() == QuEraTaskStatusCode.Unsubmitted
+    assert not task._result_exists()
+
+    with pytest.warns(Warning):
+        task.cancel()
+
+    with pytest.raises(ValueError):
+        task.fetch()
+
+    with pytest.raises(ValueError):
+        task.pull()
+
+    backend.submit_task.side_effect = ["1", "2"]
+
+    task.submit()
+    assert task.task_id == "1"
+
+    with pytest.raises(ValueError):
+        task.submit()
+
+    task.submit(True)
+    assert task.task_id == "2"
+
+    backend.validate_task.return_value = None
+
+    assert task.validate() == ""
+
+    backend.validate_task.side_effect = ValidationError("test")
+    assert task.validate() == "test"
+
+    backend.task_status.return_value = QuEraTaskStatusCode.Completed
+    mock_result = mock_results(14)
+    backend.task_results.return_value = mock_result
+    task.fetch()
+
+    assert task.status() == QuEraTaskStatusCode.Completed
+    assert task.result() == mock_result
+    assert task._result_exists()
+    assert task == task.fetch()
+
+    task.cancel()
+    assert backend.cancel_task.call_count == 1
+
+
 def test_serializer():
-    batch = (
+    prog = (
         start.add_position((0, 0))
         .rydberg.detuning.uniform.piecewise_linear(
             [0.1, 0.5, 0.1], [1.0, 2.0, 3.0, 4.0]
         )
         .constant(4.0, 1)
-        .braket.local_emulator()
-        .run(1)
     )
 
-    save(batch, "test.json")
-    new_batch = load("test.json")
-    assert batch.tasks == new_batch.tasks
+    for backend in [
+        "braket.aquila",
+        "braket.local_emulator",
+        "bloqade.python",
+        "quera.aquila",
+    ]:
+        print(backend)
+        batch = prog.device(backend)._compile(10)
+
+        json_str = dumps(batch, use_decimal=True)
+        new_batch = loads(json_str, use_decimal=True)
+        for task_num, task in batch.tasks.items():
+            if hasattr(task, "emulator_ir"):
+                assert task.emulator_ir == new_batch.tasks[task_num].emulator_ir
+            else:
+                assert task.task_ir == new_batch.tasks[task_num].task_ir
+            assert task.metadata == new_batch.tasks[task_num].metadata
+            assert task.task_result_ir == new_batch.tasks[task_num].task_result_ir
+            assert task.nshots == new_batch.tasks[task_num].nshots
