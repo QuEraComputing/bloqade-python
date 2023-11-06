@@ -97,7 +97,7 @@ class QuEraTask(RemoteTask):
 
     def status(self) -> QuEraTaskStatusCode:
         if self.task_id is None:
-            return QuEraTaskStatusCode.Unaccepted
+            return QuEraTaskStatusCode.Unsubmitted
 
         return self.backend.task_status(self.task_id)
 
@@ -168,8 +168,3 @@ def _deserializer(d: Dict[str, Any]) -> QuEraTask:
         ParallelDecoder(**d["parallel_decoder"]) if d["parallel_decoder"] else None
     )
     return QuEraTask(**d)
-
-
-# class QuEraBatch(Batch, JSONInterface):
-#    #futures: List[QuEraTask]
-#    pass

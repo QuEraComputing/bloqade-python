@@ -39,9 +39,9 @@ MatrixTypes = Union[csr_matrix, IndexMapping, NDArray]
 class CompileCache:
     """This class is used to cache the results of the code generation."""
 
-    operator_cache: Dict[Tuple[Register, OperatorData], MatrixTypes] = field(
-        default_factory=dict
-    )
+    operator_cache: Dict[
+        Tuple[Register, LevelCoupling, OperatorData], MatrixTypes
+    ] = field(default_factory=dict)
     space_cache: Dict[Register, Tuple[Space, NDArray]] = field(default_factory=dict)
 
 
@@ -93,9 +93,15 @@ class RydbergHamiltonianCodeGen(Visitor):
 
         self.compile_cache.space_cache[register] = (self.space, self.rydberg)
 
-    def visit_detuning_operator_data(self, detuning_data: DetuningOperatorData):
-        if (self.register, detuning_data) in self.compile_cache.operator_cache:
-            return self.compile_cache.operator_cache[(self.register, detuning_data)]
+    def visit_fields(self, fields: Fields):
+        terms = fields.detuning + fields.rabi
+        for term in terms:
+            self.visit(term)
+
+    def visit_detuning_operator_data(self, op_data: DetuningOperatorData):
+        key = (self.register, self.level_coupling, op_data)
+        if key in self.compile_cache.operator_cache:
+            return self.compile_cache.operator_cache[key]
 
         diagonal = np.zeros(self.space.size, dtype=np.float64)
         if self.space.atom_type == TwoLevelAtomType():
@@ -106,17 +112,18 @@ class RydbergHamiltonianCodeGen(Visitor):
             elif self.level_coupling is LevelCoupling.Hyperfine:
                 state = ThreeLevelAtomType.State.Hyperfine
 
-        for atom_index, value in detuning_data.target_atoms.items():
+        for atom_index, value in op_data.target_atoms.items():
             diagonal[self.space.is_state_at(atom_index, state)] -= float(value)
 
-        self.compile_cache.operator_cache[(self.register, detuning_data)] = diagonal
+        self.compile_cache.operator_cache[
+            (self.register, self.level_coupling, op_data)
+        ] = diagonal
         return diagonal
 
-    def visit_rabi_operator_data(self, rabi_operator_data: RabiOperatorData):
-        if (self.register, rabi_operator_data) in self.compile_cache.operator_cache:
-            return self.compile_cache.operator_cache[
-                (self.register, rabi_operator_data)
-            ]
+    def visit_rabi_operator_data(self, op_data: RabiOperatorData):
+        key = (self.register, self.level_coupling, op_data)
+        if key in self.compile_cache.operator_cache:
+            return self.compile_cache.operator_cache[key]
 
         # get the form `to` and `from` states for the rabi term
         if self.space.atom_type == TwoLevelAtomType():
@@ -132,24 +139,24 @@ class RydbergHamiltonianCodeGen(Visitor):
                 fro = ThreeLevelAtomType.State.Hyperfine
 
         # get matrix element generating function
-        if rabi_operator_data.operator_type is RabiOperatorType.RabiSymmetric:
+        if op_data.operator_type is RabiOperatorType.RabiSymmetric:
 
             def matrix_ele(atom_index):
                 return self.space.swap_state_at(atom_index, fro, to)
 
-        elif rabi_operator_data.operator_type is RabiOperatorType.RabiAsymmetric:
+        elif op_data.operator_type is RabiOperatorType.RabiAsymmetric:
 
             def matrix_ele(atom_index):
                 return self.space.transition_state_at(atom_index, fro, to)
 
         # generate rabi operator
-        if len(rabi_operator_data.target_atoms) == 1:
-            ((atom_index, _),) = rabi_operator_data.target_atoms.items()
+        if len(op_data.target_atoms) == 1:
+            ((atom_index, _),) = op_data.target_atoms.items()
             operator = IndexMapping(self.space.size, *matrix_ele(atom_index))
         else:
             indptr = np.zeros(self.space.size + 1, dtype=self.space.index_type)
 
-            for atom_index in rabi_operator_data.target_atoms:
+            for atom_index in op_data.target_atoms:
                 row_indices, col_indices = matrix_ele(atom_index)
                 indptr[1:][row_indices] += 1
             np.cumsum(indptr, out=indptr)
@@ -157,7 +164,7 @@ class RydbergHamiltonianCodeGen(Visitor):
             indices = np.zeros(indptr[-1], dtype=self.space.index_type)
             data = np.zeros(indptr[-1], dtype=np.float64)
 
-            for atom_index, value in rabi_operator_data.target_atoms.items():
+            for atom_index, value in op_data.target_atoms.items():
                 row_indices, col_indices = matrix_ele(atom_index)
                 indices[indptr[:-1][row_indices]] = col_indices
                 data[indptr[:-1][row_indices]] = value
@@ -172,7 +179,7 @@ class RydbergHamiltonianCodeGen(Visitor):
             )
 
         self.compile_cache.operator_cache[
-            (self.register, rabi_operator_data)
+            (self.register, self.level_coupling, op_data)
         ] = operator
         return operator
 
