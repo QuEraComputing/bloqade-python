@@ -391,6 +391,11 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
+         <loc>https://bloqade.quera.com/dev/reference/bloqade/submission/load_config/</loc>
+         <lastmod>2023-11-06</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
          <loc>https://bloqade.quera.com/dev/reference/bloqade/submission/mock/</loc>
          <lastmod>2023-11-06</lastmod>
          <changefreq>daily</changefreq>
