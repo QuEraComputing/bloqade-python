@@ -6,7 +6,7 @@ from bloqade.builder.typing import LiteralType
 from bloqade.ir.routine.base import RoutineBase, __pydantic_dataclass_config__
 from bloqade.submission.quera import QuEraBackend
 from bloqade.submission.mock import MockBackend
-from bloqade.submission.quera_api_client.load_config import load_config
+from bloqade.submission.load_config import load_config
 from bloqade.task.batch import RemoteBatch
 from bloqade.task.quera import QuEraTask
 
