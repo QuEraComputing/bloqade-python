@@ -9,7 +9,11 @@ edit_uri: 'edit/main/docs/'
 
 # Page tree
 nav:
-  - Home: index.md
+  - Home: 
+    - home/index.md
+    - Bloqade 101: home/bloqade_101.md
+    - Getting Started: home/getting_started.md
+    - Advanced Usage: home/advanced_usage.md
   - Tutorials: 'https://queracomputing.github.io/bloqade-python-examples/latest/'
   - Reference:
     - Builder Overview: reference/overview.md
