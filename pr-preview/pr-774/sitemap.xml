@@ -136,26 +136,6 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://bloqade.quera.com/reference/bloqade/analysis/hardware/</loc>
-         <lastmod>2023-11-07</lastmod>
-         <changefreq>daily</changefreq>
-    </url>
-    <url>
-         <loc>https://bloqade.quera.com/reference/bloqade/analysis/hardware/piecewise_constant/</loc>
-         <lastmod>2023-11-07</lastmod>
-         <changefreq>daily</changefreq>
-    </url>
-    <url>
-         <loc>https://bloqade.quera.com/reference/bloqade/analysis/hardware/piecewise_linear/</loc>
-         <lastmod>2023-11-07</lastmod>
-         <changefreq>daily</changefreq>
-    </url>
-    <url>
-         <loc>https://bloqade.quera.com/reference/bloqade/analysis/hardware/quera/</loc>
-         <lastmod>2023-11-07</lastmod>
-         <changefreq>daily</changefreq>
-    </url>
-    <url>
          <loc>https://bloqade.quera.com/reference/bloqade/analysis/python/</loc>
          <lastmod>2023-11-07</lastmod>
          <changefreq>daily</changefreq>
