@@ -184,8 +184,8 @@ class CodegenPythonWaveform(WaveformVisitor):
             f"\n{body}"
             f"\n    return {self.head_binding}"
         )
-
-        return self.indent_func + func.replace("\n", "\n" + self.indent_func)
+        func_code = self.indent_func + func.replace("\n", "\n" + self.indent_func)
+        return func_binding, func_code
 
     def compile(self, ast):
         func_binding, func = self.emit_func(ast)

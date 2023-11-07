@@ -44,7 +44,7 @@ class BloqadePythonRoutine(RoutineBase):
             record_params = AssignmentScan(batch_param).emit(circuit)
             final_circuit = AssignAnalogCircuit(record_params).visit(circuit)
             emulator_ir = EmulatorProgramCodeGen(
-                blockade_radius=blockade_radius, jit_compiledd=jit_compiled
+                blockade_radius=blockade_radius, jit_compiled=jit_compiled
             ).emit(final_circuit)
             metadata = {**params.static_params, **record_params}
             tasks[task_number] = BloqadeTask(shots, emulator_ir, metadata, matrix_cache)
