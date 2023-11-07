@@ -2,4 +2,4 @@
 omit = */tests/*
 
 [report]
-omit = */tests/*, */visualization/*
+omit = */tests/*
