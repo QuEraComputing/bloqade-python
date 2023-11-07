@@ -53,6 +53,7 @@ class QuEraHardwareRoutine(RoutineBase):
         name: Optional[str] = None,
     ) -> RemoteBatch:
         from bloqade.transform.common.assign_variables import AssignAnalogCircuit
+        from bloqade.analysis.common.scan_variables import ScanVariablesAnalogCircuit
         from bloqade.analysis.common.assignment_scan import AssignmentScan
         from bloqade.codegen.hardware.quera import AHSCodegen
 
@@ -65,6 +66,14 @@ class QuEraHardwareRoutine(RoutineBase):
         for task_number, batch_params in enumerate(params.batch_assignments(*args)):
             record_params = AssignmentScan(batch_params).emit(circuit)
             final_circuit = AssignAnalogCircuit(record_params).visit(circuit)
+            variables = ScanVariablesAnalogCircuit().emit(final_circuit)
+
+            if not variables.is_assigned:
+                raise ValueError(
+                    "Not all variables are assigned, missing variables:\n"
+                    f"{variables.scalar_vars.union(variables.vector_vars)}"
+                )
+
             result = AHSCodegen(shots, capabilities=capabilities).emit(final_circuit)
             task_ir = result.quera_task_ir.discretize(capabilities)
             metadata = {**params.static_params, **record_params}

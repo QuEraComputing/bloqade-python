@@ -39,6 +39,7 @@ class BraketHardwareRoutine(RoutineBase):
     ) -> RemoteBatch:
         ## fall passes here ###
         from bloqade.transform.common.assign_variables import AssignAnalogCircuit
+        from bloqade.analysis.common.scan_variables import ScanVariablesAnalogCircuit
         from bloqade.analysis.common.assignment_scan import AssignmentScan
         from bloqade.codegen.hardware.quera import AHSCodegen
 
@@ -52,6 +53,13 @@ class BraketHardwareRoutine(RoutineBase):
         for task_number, batch_params in enumerate(params.batch_assignments(*args)):
             record_params = AssignmentScan(batch_params).emit(circuit)
             final_circuit = AssignAnalogCircuit(record_params).visit(circuit)
+            variables = ScanVariablesAnalogCircuit().emit(final_circuit)
+
+            if not variables.is_assigned:
+                raise ValueError(
+                    "Not all variables are assigned, missing variables:\n"
+                    f"{variables.scalar_vars.union(variables.vector_vars)}"
+                )
             # TODO: Replace these two steps with:
             # task_ir, parallel_decoder = BraketCodeGen().emit(shots, final_circuit)
             result = AHSCodegen(shots, capabilities=capabilities).emit(final_circuit)
@@ -173,6 +181,7 @@ class BraketLocalEmulatorRoutine(RoutineBase):
         ## fall passes here ###
         from bloqade.ir import ParallelRegister
         from bloqade.transform.common.assign_variables import AssignAnalogCircuit
+        from bloqade.analysis.common.scan_variables import ScanVariablesAnalogCircuit
         from bloqade.analysis.common.assignment_scan import AssignmentScan
         from bloqade.codegen.hardware.quera import AHSCodegen
 
@@ -190,6 +199,13 @@ class BraketLocalEmulatorRoutine(RoutineBase):
         for task_number, batch_params in enumerate(params.batch_assignments(*args)):
             record_params = AssignmentScan(batch_params).emit(circuit)
             final_circuit = AssignAnalogCircuit(record_params).visit(circuit)
+            variables = ScanVariablesAnalogCircuit().emit(final_circuit)
+
+            if not variables.is_assigned:
+                raise ValueError(
+                    "Not all variables are assigned, missing variables:\n"
+                    f"{variables.scalar_vars.union(variables.vector_vars)}"
+                )
             # TODO: Replace these two steps with:
             # task_ir, _ = BraketCodeGen().emit(shots, final_circuit)
             result = AHSCodegen(shots).emit(final_circuit)

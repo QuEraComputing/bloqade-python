@@ -25,6 +25,7 @@ class BloqadePythonRoutine(RoutineBase):
         jit_compiled: bool = True,
     ) -> LocalBatch:
         from bloqade.analysis.common.assignment_scan import AssignmentScan
+        from bloqade.analysis.common.scan_variables import ScanVariablesAnalogCircuit
         from bloqade.transform.common.assign_variables import AssignAnalogCircuit
         from bloqade.codegen.python.emulator_ir import EmulatorProgramCodeGen
         from bloqade.emulate.codegen.hamiltonian import CompileCache
@@ -43,6 +44,14 @@ class BloqadePythonRoutine(RoutineBase):
         for task_number, batch_param in enumerate(params.batch_assignments(*args)):
             record_params = AssignmentScan(batch_param).emit(circuit)
             final_circuit = AssignAnalogCircuit(record_params).visit(circuit)
+            variables = ScanVariablesAnalogCircuit().emit(final_circuit)
+
+            if not variables.is_assigned:
+                raise ValueError(
+                    "Not all variables are assigned, missing variables:\n"
+                    f"{variables.scalar_vars.union(variables.vector_vars)}"
+                )
+
             emulator_ir = EmulatorProgramCodeGen(
                 blockade_radius=blockade_radius, jit_compiled=jit_compiled
             ).emit(final_circuit)
