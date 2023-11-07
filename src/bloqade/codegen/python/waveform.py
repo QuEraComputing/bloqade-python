@@ -2,6 +2,7 @@ from decimal import Decimal
 from bloqade.ir.visitor.waveform import WaveformVisitor
 import bloqade.ir.control.waveform as waveform
 from bloqade.analysis.python.waveform import WaveformScanResult
+from beartype.typing import Optional
 
 
 class CodegenPythonWaveform(WaveformVisitor):
@@ -10,7 +11,9 @@ class CodegenPythonWaveform(WaveformVisitor):
         scan_result: WaveformScanResult,
         time_str: str = "time",
         indent_level: int = 0,
+        jit_compiled: bool = True,
     ):
+        self.jit_compiled = jit_compiled
         self.time_str = time_str
         self.bindings = scan_result.bindings
         self.imports = scan_result.imports
@@ -20,15 +23,25 @@ class CodegenPythonWaveform(WaveformVisitor):
         self.indent_expr = "    " * (self.indent_level + 1)
         self.indent_func = "    " * self.indent_level
 
+    @staticmethod
+    def gen_func_binding():
+        import random
+
+        func_binding = f"__bloqade_waveform_{random.randint(0, 2**32)}"
+        while func_binding in globals():
+            func_binding = f"__bloqade_waveform_{random.randint(0, 2**32)}"
+
+        return func_binding
+
     def visit(self, ast: waveform.Waveform):
         super().visit(ast)
         self.head_binding = self.bindings[ast]
 
     def visit_constant(self, ast: waveform.Constant):
-        self.exprs.append(f"{self.indent_expr}{self.bindings[ast]} = {ast.value}")
+        self.exprs.append(f"{self.indent_expr}{self.bindings[ast]} = {ast.value()}")
 
     def visit_linear(self, ast: waveform.Linear):
-        slope = ast.stop - ast.start / ast.duration
+        slope = (ast.stop - ast.start) / ast.duration
 
         self.exprs.append(
             f"{self.indent_expr}{self.bindings[ast]} = "
@@ -47,11 +60,23 @@ class CodegenPythonWaveform(WaveformVisitor):
         self.exprs.append(f"{self.indent_expr}{binding} = {term_sum}")
 
     def visit_python_fn(self, ast: waveform.PythonFn):
+        from numba import njit
+
         args = ", ".join([f"{param.name} = {param.value}" for param in ast.parameters])
-        self.exprs.append(
-            f"{self.indent_expr}{self.bindings[ast]} = "
-            f"{ast.name}({self.time_str}, {args})"
-        )
+        func_binding = self.gen_func_binding()
+
+        globals()[func_binding] = njit(ast.fn) if self.jit_compiled else ast.fn
+
+        if args:
+            self.exprs.append(
+                f"{self.indent_expr}{self.bindings[ast]} = "
+                f"{func_binding}({self.time_str}, {args})"
+            )
+        else:
+            self.exprs.append(
+                f"{self.indent_expr}{self.bindings[ast]} = "
+                f"{func_binding}({self.time_str})"
+            )
 
     def visit_add(self, ast: waveform.Add):
         self.visit(ast.left)
@@ -147,12 +172,13 @@ class CodegenPythonWaveform(WaveformVisitor):
         self.exprs.append(f"{self.indent_expr}else:")
         self.exprs.append(f"{compiler.indent_expr}{self.bindings[ast]} = 0")
 
-    def emit_func(self, ast) -> str:
+    def emit_func(self, ast, func_binding: Optional[str] = None) -> str:
+        func_binding = self.gen_func_binding() if func_binding is None else func_binding
         self.visit(ast)
         body = "\n".join(self.exprs)
 
         func = (
-            f"def {self.head_binding}(time):\n"
+            f"def {func_binding}(time):\n"
             f"    if time > {ast.duration()}:"
             f"\n        return 0"
             f"\n{body}"
@@ -161,8 +187,8 @@ class CodegenPythonWaveform(WaveformVisitor):
 
         return self.indent_func + func.replace("\n", "\n" + self.indent_func)
 
-    def compile(self, ast, numba_compile: bool = True):
-        func = self.emit_func(ast)
+    def compile(self, ast):
+        func_binding, func = self.emit_func(ast)
         imports = "\n".join(
             [
                 f"from {module} import {', '.join(funcs)}"
@@ -170,11 +196,11 @@ class CodegenPythonWaveform(WaveformVisitor):
             ]
         )
 
-        if numba_compile:
+        if self.jit_compiled:
             func = (
                 f"{imports}"
                 f"\nfrom numba import njit, float64"
-                f"\n"
+                f"\n\n"
                 f"@njit(float64(float64))"
                 f"\n{func}"
             )
@@ -183,4 +209,4 @@ class CodegenPythonWaveform(WaveformVisitor):
 
         exec(func, globals())
 
-        return globals()[self.head_binding]
+        return globals()[func_binding]

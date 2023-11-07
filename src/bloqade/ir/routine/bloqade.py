@@ -22,6 +22,7 @@ class BloqadePythonRoutine(RoutineBase):
         name: Optional[str] = None,
         blockade_radius: LiteralType = 0.0,
         cache_matrices: bool = False,
+        jit_compiled: bool = True,
     ) -> LocalBatch:
         from bloqade.analysis.common.assignment_scan import AssignmentScan
         from bloqade.transform.common.assign_variables import AssignAnalogCircuit
@@ -42,9 +43,9 @@ class BloqadePythonRoutine(RoutineBase):
         for task_number, batch_param in enumerate(params.batch_assignments(*args)):
             record_params = AssignmentScan(batch_param).emit(circuit)
             final_circuit = AssignAnalogCircuit(record_params).visit(circuit)
-            emulator_ir = EmulatorProgramCodeGen(blockade_radius=blockade_radius).emit(
-                final_circuit
-            )
+            emulator_ir = EmulatorProgramCodeGen(
+                blockade_radius=blockade_radius, jit_compiledd=jit_compiled
+            ).emit(final_circuit)
             metadata = {**params.static_params, **record_params}
             tasks[task_number] = BloqadeTask(shots, emulator_ir, metadata, matrix_cache)
 
@@ -57,6 +58,7 @@ class BloqadePythonRoutine(RoutineBase):
         args: Tuple[LiteralType, ...] = (),
         name: Optional[str] = None,
         blockade_radius: float = 0.0,
+        jit_compiled: bool = True,
         interaction_picture: bool = False,
         cache_matrices: bool = False,
         multiprocessing: bool = False,
@@ -75,6 +77,8 @@ class BloqadePythonRoutine(RoutineBase):
             name (Optional[str], optional): Name to give this run. Defaults to None.
             blockade_radius (float, optional): Use the Blockade subspace given a
             particular radius. Defaults to 0.0.
+            jit_compiled: (bool, optional): Use Numba to compile the waveforms,
+            Defaults to True.
             interaction_picture (bool, optional): Use the interaction picture when
             solving schrodinger equation. Defaults to False.
             cache_matrices (bool, optional): Reuse previously evaluated matrcies when
@@ -109,6 +113,7 @@ class BloqadePythonRoutine(RoutineBase):
             name=name,
             blockade_radius=blockade_radius,
             cache_matrices=cache_matrices,
+            jit_compiled=jit_compiled,
         )
 
         solver_options = dict(
@@ -133,6 +138,7 @@ class BloqadePythonRoutine(RoutineBase):
         shots: int = 1,
         name: Optional[str] = None,
         blockade_radius: float = 0.0,
+        jit_compiled: bool = True,
         interaction_picture: bool = False,
         multiprocessing: bool = False,
         num_workers: Optional[int] = None,
@@ -147,6 +153,7 @@ class BloqadePythonRoutine(RoutineBase):
             args=args,
             name=name,
             blockade_radius=blockade_radius,
+            jit_compiled=jit_compiled,
             multiprocessing=multiprocessing,
             num_workers=num_workers,
             cache_matrices=cache_matrices,

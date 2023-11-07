@@ -41,6 +41,7 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
         assignments: Dict[str, Number] = {},
         blockade_radius: Real = 0.0,
         use_hyperfine: bool = False,
+        jit_compiled: bool = True,
     ):
         self.blockade_radius = Decimal(str(blockade_radius))
         self.assignments = assignments
@@ -50,9 +51,10 @@ class EmulatorProgramCodeGen(AnalogCircuitVisitor):
         self.level_couplings = set()
         self.original_index = []
         self.is_hyperfine = use_hyperfine
+        self.jit_compiled = jit_compiled
 
     def visit_waveform(self, ast: waveform.Waveform) -> Any:
-        return JITWaveform(self.assignments, ast)
+        return JITWaveform(self.assignments, ast, self.jit_compiled)
 
     def visit_analog_circuit(self, ast: ir.AnalogCircuit):
         self.visit(ast.register)

@@ -13,6 +13,7 @@ from bloqade.emulate.ir.atom_type import AtomType
 class JITWaveform:
     assignments: Dict[str, Decimal]
     source: Waveform
+    jit_compiled: bool
 
     def __call__(self, t: float) -> float:
         return self.stub(t)
@@ -33,7 +34,9 @@ class JITWaveform:
         ast_assigned = AssignWaveform(self.assignments).emit(self.source)
         ast_normalized = NormalizeWaveformPython().visit(ast_assigned)
         scan_results = WaveformScan().scan(ast_normalized)
-        stub = CodegenPythonWaveform(scan_results).compile(ast_normalized)
+        stub = CodegenPythonWaveform(
+            scan_results, jit_compiled=self.jit_compiled
+        ).compile(ast_normalized)
 
         return stub
 
@@ -43,6 +46,7 @@ def _serialize(obj: JITWaveform) -> Dict[str, Any]:
     return {
         "assignments": obj.assignments,
         "source": WaveformSerializer().default(obj.source),
+        "jit_compiled": obj.jit_compiled,
     }
 
 
