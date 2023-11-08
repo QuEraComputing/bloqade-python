@@ -3,6 +3,7 @@ from bloqade.ir.visitor.waveform import WaveformVisitor
 import bloqade.ir.control.waveform as waveform
 from bloqade.analysis.python.waveform import WaveformScanResult
 from beartype.typing import Optional
+from random import randint
 
 
 class CodegenPythonWaveform(WaveformVisitor):
@@ -25,11 +26,9 @@ class CodegenPythonWaveform(WaveformVisitor):
 
     @staticmethod
     def gen_func_binding():
-        import random
-
-        func_binding = f"__bloqade_waveform_{random.randint(0, 2**32)}"
+        func_binding = f"__bloqade_waveform_{randint(0, 2**32)}"
         while func_binding in globals():
-            func_binding = f"__bloqade_waveform_{random.randint(0, 2**32)}"
+            func_binding = f"__bloqade_waveform_{randint(0, 2**32)}"
 
         return func_binding
 
@@ -62,7 +61,11 @@ class CodegenPythonWaveform(WaveformVisitor):
     def visit_python_fn(self, ast: waveform.PythonFn):
         from numba import njit
 
-        args = ", ".join([f"{param.name} = {param.value}" for param in ast.parameters])
+        sorted_parameters = sorted(ast.parameters, key=lambda p: p.name)
+
+        args = ", ".join(
+            [f"{param.name} = {param.value}" for param in sorted_parameters]
+        )
         func_binding = self.gen_func_binding()
 
         globals()[func_binding] = njit(ast.fn) if self.jit_compiled else ast.fn
