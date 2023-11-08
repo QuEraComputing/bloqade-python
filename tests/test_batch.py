@@ -382,7 +382,7 @@ def test_report(BraketBackend):
 
     assert all([len(ele) == 0 for ele in report.bitstrings(True)])
     assert all([len(ele) == 10 for ele in report.bitstrings(False)])
-    assert all([len(ele) == 0 for ele in report.counts])
+    assert all([len(ele) == 0 for ele in report.counts()])
 
 
 @patch("bloqade.task.quera.QuEraBackend")
