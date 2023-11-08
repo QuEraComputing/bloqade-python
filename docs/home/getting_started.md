@@ -100,7 +100,37 @@ report.rydberg_densities(filter_perfect_filling=True)
 report.counts(filter_perfect_filling=True)
 ```
 
+During the program execution on the hardware sometimes, atoms may not end up in every site that is specified, as such, each shot as a pre and post sequence measurement of the atoms. In certain applications, having a missing atom can mean your computation will not give the correct results so it is useful to filter out shots that are not perfectly filled using the boolean option in all three methods. Below we summarize the different methods and what they return:
 
+1. `bitstrings` is a method that returns a list of numpy arrays where each array is a (shots, num_sites) array of 0 or 1. Note that 0 corresponds to the Rydberg state while 1 corresponds to the ground state
+2. `rydberg_densities` is a method that returns a Pandas Series object that is an average over the shots and gives the probability of each atom being in the rydberg state over every single task in the report.
+3. `counts` is a method that returns a list of ordered dictionaries where the keys are the bitstrings as a string and the values are the number of times that bitstring was observed in the shots.
 
+Another useful method is `report.list_param(param_string)` which returns a list of values for the particular parameter given as a string in the input of the function. This is useful for plotting parameter scans. For example, if we want to plot the rydberg density as a function of the rabi drive time we can do the following:
+
+```python
+from bloqade import start
+import matplotlib.pyplot as plt
+import numpy as np
+
+run_times = np.linspace(0,1,51)
+
+report = (
+    start.add_position((0, 0))
+    .add_position((0, 5.0))
+    .rydberg.detuning.uniform.constant(10, "run_time")
+    .amplitude.uniform.constant(15, "run_time")
+    .batch_assign(run_time=run_times)
+    .bloqade.python().run(1000).report()
+)
+
+times = report.list_param("run_time")
+densities = report.rydberg_densities(filter_perfect_filling=True)
+
+plt.plot(times, densities)
+plt.xlabel("Rabi Drive Time (us)")
+plt.ylabel("Rydberg Density")
+plt.show()
+```
 
 This concludes the intermediate tutorial, for more advanced usage see our [Advanced Usage](advanced_usage.md) tutorial.
