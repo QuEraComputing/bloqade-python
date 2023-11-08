@@ -22,7 +22,7 @@ class NormalizeWaveformPython(WaveformVisitor):
         return ast
 
     def visit_add(self, ast: waveform.Add):
-        return self.visit(ast.left).append(self.visit(ast.right))
+        return self.visit(ast.left) + self.visit(ast.right)
 
     def visit_append(self, ast: waveform.Append):
         return reduce(concat, map(self.visit, ast.waveforms))
