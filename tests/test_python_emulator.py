@@ -190,7 +190,7 @@ def test_bloqade_against_braket():
     )
 
     nshots = 1000
-    a = prog.bloqade.python().run(nshots, cache_matrices=True).report().counts
+    a = prog.bloqade.python().run(nshots, cache_matrices=True).report().counts()
     b = prog.braket.local_emulator().run(nshots).report().counts()
 
     for lhs, rhs in zip(a, b):
