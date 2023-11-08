@@ -15,8 +15,8 @@ class CodegenPythonWaveform(WaveformVisitor):
     ):
         self.jit_compiled = jit_compiled
         self.time_str = time_str
-        self.bindings = scan_result.bindings
-        self.imports = scan_result.imports
+        self.bindings = dict(scan_result.bindings)
+        self.imports = dict(scan_result.imports)
         self.exprs = []
         self.head_binding = None
         self.indent_level = indent_level

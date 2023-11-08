@@ -16,17 +16,17 @@ class WaveformScan(WaveformVisitor):
         bindings: Dict[waveform.Waveform, str] = {},
         imports: Dict[str, Set[str]] = {},
     ):
-        self.bindings = bindings
-        self.imports = imports
+        self.bindings = dict(bindings)
+        self.imports = dict(imports)
         self.i = 0
 
     def add_binding(self, expr: waveform.Waveform):
         if expr in self.bindings:
-            pass
+            return
 
         symbol = f"__bloqade_var{self.i}"
 
-        while symbol in self.imports.values() in globals():
+        while symbol in self.imports.values():
             self.i += 1
             symbol = f"__bloqade_var{self.i}"
 
@@ -58,16 +58,6 @@ class WaveformScan(WaveformVisitor):
 
     def visit_slice(self, ast: waveform.Slice):
         self.visit(ast.waveform)
-
-    def visit_smooth(self, ast: waveform.Smooth):
-        raise NotImplementedError(
-            "Smooth is not yet implemented in the waveform compiler"
-        )
-
-    def visit_alligned(self, ast: waveform.AlignedWaveform) -> Any:
-        raise NotImplementedError(
-            "AlignedWaveform is not yet implemented in the waveform compiler"
-        )
 
     def visit_append(self, ast: waveform.Append) -> Any:
         list(map(self.visit, ast.waveforms))
