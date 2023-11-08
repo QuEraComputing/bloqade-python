@@ -123,12 +123,21 @@ class Report:
         return self.dataframe.to_markdown()
 
     def bitstrings(self, filter_perfect_filling: bool = True) -> List[NDArray]:
-        """
-        Get the bitstrings from the data.
+        """Get the bitstrings from the data.
 
         Args:
             filter_perfect_filling (bool): whether return will
-            only contain perfect filling shots.
+            only contain perfect filling shots. Defaults to True.
+
+        Returns:
+            bitstrings (list of ndarray): list corresponding to each
+            task in the report. Each element is an ndarray of shape
+            (nshots, nsites) where nshots is the number of shots for
+            the task and nsites is the number of sites in the task.
+
+        Note:
+            Note that nshots may vary between tasks if filter_perfect_filling
+            is set to True.
 
         """
         perfect_sorting = self.dataframe.index.get_level_values("perfect_sorting")
@@ -146,23 +155,28 @@ class Report:
 
         return bitstrings
 
-    @property
-    def counts(self) -> List[OrderedDict[str, int]]:
+    def counts(
+        self, filter_perfect_filling: bool = True
+    ) -> List[OrderedDict[str, int]]:
+        """Get the counts of unique bit strings.
+
+        Args:
+            filter_perfect_filling (bool): whether return will
+            only contain perfect filling shots. Defaults to True.
+
+        Returns:
+            bitstrings (list of ndarray): list corresponding to each
+            task in the report. Each element is an ndarray of shape
+            (nshots, nsites) where nshots is the number of shots for
+            the task and nsites is the number of sites in the task.
+
+        Note:
+            Note that nshots may vary between tasks if filter_perfect_filling
+            is set to True.
+
         """
-        Get the statistic for the counts for each configuration(s)
-
-        Return:
-            statistic of configuration (str): counts (int) for each task
-
-        """
-        if self._counts is not None:
-            return self._counts
-        self._counts = self._construct_counts()
-        return self._counts
-
-    def _construct_counts(self) -> List[OrderedDict[str, int]]:
         counts = []
-        for bitstring in self.bitstrings():
+        for bitstring in self.bitstrings(filter_perfect_filling):
             output = np.unique(bitstring, axis=0, return_counts=True)
 
             count_list = [
@@ -177,15 +191,14 @@ class Report:
         return counts
 
     def rydberg_densities(self, filter_perfect_filling: bool = True) -> pd.Series:
-        """
-        Get rydberg density for each task.
+        """Get rydberg density for each task.
 
         Args:
-            filter_perfect_filling (bool):  whether return will
-            only contain perfect filling shots.
+            filter_perfect_filling (bool, optional): whether return will
+            only contain perfect filling shots. Defaults to True.
 
         Return:
-            per-site rydberg density for each task
+            per-site rydberg density for each task as a pandas DataFrame or Series.
 
         """
         # TODO: implement nan for missing task numbers
