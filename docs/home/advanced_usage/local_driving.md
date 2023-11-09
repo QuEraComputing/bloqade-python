@@ -37,7 +37,9 @@ program = (
     start.add_position([(0, 0), (0, 5)])
     .rydberg.detuning.location([0, 1], ["detuning_0", "detuning_1"])
     .piecewise_linear([0.1, 1.0, 0.1], [0, "detuning", "detuning", 0])
-    .amplitude.location(0).piecewise_linear([0.1, 1.0, 0.1], [0, 15, 15, 0])
-    .location(0,"rabi_scale").piecewise_linear([0.1, 1.0], [0, 15, 0])
+    .amplitude.location(0)
+    .piecewise_linear([0.1, 1.0, 0.1], [0, 15, 15, 0])
+    .location(0, "rabi_scale")
+    .piecewise_linear([0.1, 1.0], [0, 15, 0])
 )
 ```
