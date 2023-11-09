@@ -66,6 +66,11 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
+         <loc>https://bloqade.quera.com/drafts/aws_hybrid_execution/</loc>
+         <lastmod>2023-11-09</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
          <loc>https://bloqade.quera.com/home/bloqade_101/</loc>
          <lastmod>2023-11-09</lastmod>
          <changefreq>daily</changefreq>
@@ -87,11 +92,6 @@
     </url>
     <url>
          <loc>https://bloqade.quera.com/home/advanced_usage/geometry/</loc>
-         <lastmod>2023-11-09</lastmod>
-         <changefreq>daily</changefreq>
-    </url>
-    <url>
-         <loc>https://bloqade.quera.com/home/advanced_usage/hybrid_execution/</loc>
          <lastmod>2023-11-09</lastmod>
          <changefreq>daily</changefreq>
     </url>
