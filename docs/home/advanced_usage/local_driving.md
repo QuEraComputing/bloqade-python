@@ -30,4 +30,14 @@ program.run(100, args=(*local_detuning, 30))
 
 # `location` Method
 
-The `location` method takes two arguments with the second argument being optional. The first argument is an integer or a list of integers corresponding to the site(s) you want to apply the spatial modulation to. The second argument is the value you want to apply to the site(s). If you pass a list of integers then you must pass a list of values for the second argument. If you pass a single integer then you must a single value. The interpretation is that for any sites not specified in the first argument, the spatial modulation is `0.0`. Note that the values you pass in can be a real value, a string (for a variable), or a scalar expression.
+The `location` method takes two arguments with the second argument being optional. The first argument is an integer or a list of integers corresponding to the site(s) you want to apply the spatial modulation to. The second argument is the value you want to apply to the site(s). If you pass a list of integers then you must pass a list of values for the second argument. If you pass a single integer then you must a single value. The interpretation is that for any sites not specified in the first argument, the spatial modulation is `0.0`. Note that the values you pass in can be a real value, a string (for a variable), or a scalar expression. Below is an example using `location`:
+
+```python
+program = (
+    start.add_position([(0, 0), (0, 5)])
+    .rydberg.detuning.location([0, 1], ["detuning_0", "detuning_1"])
+    .piecewise_linear([0.1, 1.0, 0.1], [0, "detuning", "detuning", 0])
+    .amplitude.location(0).piecewise_linear([0.1, 1.0, 0.1], [0, 15, 15, 0])
+    .location(0,"rabi_scale").piecewise_linear([0.1, 1.0], [0, 15, 0])
+)
+```
