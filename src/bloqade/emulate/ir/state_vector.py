@@ -26,8 +26,8 @@ class DetuningOperator:
 
 @dataclass(frozen=True)
 class RabiOperator:
-    row_indices: jnp.ndarray
-    col_indices: jnp.ndarray
+    row_indices: List[jnp.ndarray]
+    col_indices: List[jnp.ndarray]
     amplitudes: Callable[[float], jnp.ndarray]
 
     @staticmethod
