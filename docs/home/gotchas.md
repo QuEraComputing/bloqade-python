@@ -9,10 +9,12 @@ This page is dedicated to cataloguing those anti-patterns and what you can do in
 You might be tempted to define lattice-based geometries through the following means:
 
 ```python
-from bloqade import start 
+from bloqade import start
 
 spacing = 4.0
-geometry = start.add_positions([(i * spacing, j * spacing) for i in range(4) for j in range(4)])
+geometry = start.add_positions(
+    [(i * spacing, j * spacing) for i in range(4) for j in range(4)]
+)
 ```
 
 This is quite redundant and verbose, especially considering Bloqade offers a large number of pre-defined lattices you can customize the spacing of in `bloqade.atom_arrangement`.
@@ -44,14 +46,16 @@ custom_circuit_2 = copy(base_circuit)
 custom_circuit_2.y(5).cz(0,2)...
 ```
 
-In Bloqade Python this is unnecessary because at every step of your program an immutable object is returned which means you can save it and not have to worry about mutating any internal state. 
+In Bloqade Python this is unnecessary because at every step of your program an immutable object is returned which means you can save it and not have to worry about mutating any internal state.
 
 ```python
 from bloqade import start
 base_program = start.add_position((0,0)).rydberg.rabi.amplitude.uniform
 # Just recycle your base program! No `copy` needed!
 new_program_1 = base_program.constant(duration=5.0, value=5.0)
-new_program_2 = base_program.piecewise_linear(durations=[5.0], values = [0.0, 5.0] )
+new_program_2 = base_program.piecewise_linear(
+    durations=[5.0], values = [0.0, 5.0]
+)
 ```
 
 ## Creating New Programs Instead of Using `.batch_assign`
@@ -63,7 +67,9 @@ rabi_values = [2.0, 4.7, 6.1]
 programs_with_different_rabi_values = []
 
 for rabi_value in rabi_values:
-    program = start.add_position((0,0)).rydberg.rabi.amplitude.uniform.constant(duration=5.0, value=rabi_value)
+    program = start.add_position((0, 0)).rydberg.rabi.amplitude.uniform.constant(
+        duration=5.0, value=rabi_value
+    )
     programs_with_different_rabi_values.append(program)
 
 results = []
@@ -78,10 +84,15 @@ Instead take advantage of the fact Bloqade has facilities *specifically designed
 ```python
 rabi_values = [2.0, 4.7, 6.1]
 # place a variable for the Rabi Value and then batch assign values to it
-program_with_rabi_values = start.add_position(0,0).rydberg.rabi.amplitude.uniform.constant(duration=5.0, value="rabi_value")
-program_with_assignments = program_with_rabi_values.batch_assign(rabi_value=rabi_values)
+program_with_rabi_values = start.add_position(
+    0, 0
+).rydberg.rabi.amplitude.uniform.constant(duration=5.0, value="rabi_value")
+program_with_assignments = program_with_rabi_values.batch_assign(
+    rabi_value=rabi_values
+)
 
-# get your results in one dataframe versus having to keep track of a bunch of individual programs and their individual results
+# get your results in one dataframe versus having to keep track of a
+# bunch of individual programs and their individual results
 batch = program_with_assignments.bloqade.python().run(100)
 results_dataframe = batch.report().dataframe
 ```
