@@ -2,7 +2,7 @@ You might have noticed in the [Getting Started](../getting_started.md) section t
 
 Intuitively, `uniform` spatial modulation simply means that regardless of the atom, the waveform value is always the same. The other two options for defining spatial modulations are: `scale` and `location`. They have two distinct use cases:
 
-# `scale` Method
+## `scale` Method
 
 For the `scale` you can pass either a list of real values or a string. The list of values defines the scaling for every single atom in the system, so the number of elements must be equal to the number of sites in your geometry. the string is is a place-holder which allows you to define that mask as a list of values by passing them in through `assign`, `batch_assign`, or `args`. For `assign` and `batch_assign` you can simply past a list or a list of list respectively but with `args` is that the list of values must be inserted into the `args` tuple when calling `run` or `run_async`, for example lets take a two atom program:
 
@@ -28,7 +28,7 @@ local_detuning = [0.4, 0.1]
 program.run(100, args=(*local_detuning, 30))
 ```
 
-# `location` Method
+## `location` Method
 
 The `location` method takes two arguments with the second argument being optional. The first argument is an integer or a list of integers corresponding to the site(s) you want to apply the spatial modulation to. The second argument is the value you want to apply to the site(s). If you pass a list of integers then you must pass a list of values for the second argument. If you pass a single integer then you must a single value. The interpretation is that for any sites not specified in the first argument, the spatial modulation is `0.0`. Note that the values you pass in can be a real value, a string (for a variable), or a scalar expression. Below is an example using `location`:
 
