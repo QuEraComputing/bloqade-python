@@ -13,7 +13,12 @@ nav:
     - index.md
     - Bloqade 101: home/bloqade_101.md
     - Getting Started: home/getting_started.md
-    - Advanced Usage: home/advanced_usage.md
+    - Parameterized Positions: home/advanced_usage/parameterized_positions.md
+    - Local Driving: home/advanced_usage/local_driving.md
+    - Parallelize Over Space: home/advanced_usage/parallelize_over_space.md
+    - Slicing Waveforms: home/advanced_usage/slicing_waveforms.md
+    - Python Functions as Waveforms: home/advanced_usage/python_functions_as_waveforms.md
+    - Hybrid Workflows with Braket Hybrid Jobs: home/advanced_usage/hybrid_execution.md
     - Gotchas: home/gotchas.md
   - Tutorials: 'https://queracomputing.github.io/bloqade-python-examples/latest/'
   - Reference:
@@ -86,7 +91,7 @@ extra_css:
 
 plugins:
   - search:
-      separator: '[\s\-,:!=\[\]()"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
+      separator: '[\s\-,:!=\[\: )"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
   - gen-files:
       scripts:
       - docs/scripts/gen_ref_nav.py
