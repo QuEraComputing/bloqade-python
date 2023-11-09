@@ -9,8 +9,8 @@ edit_uri: 'edit/main/docs/'
 
 # Page tree
 nav:
-  - Home: 
-    - home/index.md
+  - Home:
+    - index.md
     - Bloqade 101: home/bloqade_101.md
     - Getting Started: home/getting_started.md
     - Advanced Usage: home/advanced_usage.md
