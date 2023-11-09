@@ -86,6 +86,11 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
+         <loc>https://bloqade.quera.com/home/advanced_usage/geometry/</loc>
+         <lastmod>2023-11-09</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
          <loc>https://bloqade.quera.com/home/advanced_usage/hybrid_execution/</loc>
          <lastmod>2023-11-09</lastmod>
          <changefreq>daily</changefreq>
@@ -96,17 +101,7 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://bloqade.quera.com/home/advanced_usage/parallelize_over_soace/</loc>
-         <lastmod>2023-11-09</lastmod>
-         <changefreq>daily</changefreq>
-    </url>
-    <url>
          <loc>https://bloqade.quera.com/home/advanced_usage/parallelize_over_space/</loc>
-         <lastmod>2023-11-09</lastmod>
-         <changefreq>daily</changefreq>
-    </url>
-    <url>
-         <loc>https://bloqade.quera.com/home/advanced_usage/parameterized_positions/</loc>
          <lastmod>2023-11-09</lastmod>
          <changefreq>daily</changefreq>
     </url>
