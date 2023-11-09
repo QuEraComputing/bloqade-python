@@ -17,6 +17,6 @@
 }
 
 [data-md-color-scheme="default"] {
-    --md-footer-logo-dark-mode:         none;
+    --md-footer-logo-dark-mode:           none;
     --md-footer-logo-light-mode:         block;
 }
