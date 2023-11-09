@@ -8,20 +8,21 @@ from bloqade.ir.control.waveform import Waveform
 from bloqade.emulate.ir.atom_type import AtomType
 
 
-@dataclass(frozen=True)
+@dataclass
 @Serializer.register
 class JITWaveform:
     assignments: Dict[str, Decimal]
     source: Waveform
     jit_compiled: bool
+    _stub: Optional[Callable[[float], float]] = None
 
     def __call__(self, t: float) -> float:
         return self.stub(t)
 
     @property
     def stub(self) -> Callable[[float], float]:
-        if not hasattr(self, "_stub"):
-            object.__setattr__(self, "_stub", self._jit())
+        if self._stub is None:
+            self._stub = self._jit()
 
         return self._stub
 
@@ -80,7 +81,7 @@ def _deserializer(d: Dict[str, Any]) -> RabiOperatorData:
     return RabiOperatorData(**d)
 
 
-@dataclass(frozen=True)
+@dataclass
 @Serializer.register
 class RabiTerm:
     operator_data: RabiOperatorData
@@ -103,14 +104,14 @@ def _deserializer(d: Dict[str, Any]) -> DetuningOperatorData:
     return DetuningOperatorData(**d)
 
 
-@dataclass(frozen=True)
+@dataclass
 @Serializer.register
 class DetuningTerm:
     operator_data: DetuningOperatorData
     amplitude: JITWaveform
 
 
-@dataclass(frozen=True)
+@dataclass
 @Serializer.register
 class Fields:
     detuning: List[DetuningTerm]
@@ -168,7 +169,7 @@ class LevelCoupling(str, Enum):
     Hyperfine = "hyperfine"
 
 
-@dataclass(frozen=True)
+@dataclass
 @Serializer.register
 class EmulatorProgram:
     register: Register
