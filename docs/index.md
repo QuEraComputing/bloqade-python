@@ -41,6 +41,6 @@ You can install the package with `pip` in your Python environment of choice via:
 pip install bloqade
 ```
 
-## Developing your Bloqade Program
+### Developing your Bloqade Program
 
 If you are unfamiliar with Neutral Atom Analog Hamiltonian Simulation (AHS), we recommend you read our [Bloqade 101](home/bloqade_101.md) tutorial where we will give you a in depth introduction to AHS. If you are familiar with AHS, you can skip to the [Getting Started](home/getting_started.md) tutorial, and finally for more advanced usage of Bloqade you can read our [Advanced Usage](home/advanced_usage.md) tutorial.
