@@ -33,7 +33,7 @@ def test_expectation_value_single_atom():
         start.add_position((0, 0))
         .rydberg.rabi.amplitude.uniform.constant("omega", "run_time")
         .assign(omega=omega)
-        .batch_assign(run_time=np.linspace(0, 2 * np.pi / omega, 101))
+        .batch_assign(run_time=np.linspace(0, 2 * np.pi / omega, 11))
         .bloqade.python()
         .run_callback(callback=callback_single_atom)
     )

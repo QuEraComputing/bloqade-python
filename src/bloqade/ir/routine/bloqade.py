@@ -312,6 +312,7 @@ class BloqadePythonRoutine(RoutineBase):
         workers = []
         if multiprocessing:
             num_workers = max(int(num_workers or cpu_count()), 1)
+            num_workers = min(total_tasks, num_workers)
 
             for _ in range(num_workers):
                 worker = Process(
