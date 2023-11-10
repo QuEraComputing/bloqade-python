@@ -67,7 +67,7 @@ class BloqadePythonRoutine(RoutineBase):
         args: Tuple[LiteralType, ...] = (),
         name: Optional[str] = None,
         blockade_radius: float = 0.0,
-        jit_compiled: bool = True,
+        jit_compiled: bool = False,
         interaction_picture: bool = False,
         cache_matrices: bool = False,
         multiprocessing: bool = False,
@@ -87,7 +87,7 @@ class BloqadePythonRoutine(RoutineBase):
             blockade_radius (float, optional): Use the Blockade subspace given a
             particular radius. Defaults to 0.0.
             jit_compiled: (bool, optional): Use Numba to compile the waveforms,
-            Defaults to True.
+            Defaults to False.
             interaction_picture (bool, optional): Use the interaction picture when
             solving schrodinger equation. Defaults to False.
             cache_matrices (bool, optional): Reuse previously evaluated matrcies when
@@ -147,7 +147,7 @@ class BloqadePythonRoutine(RoutineBase):
         shots: int = 1,
         name: Optional[str] = None,
         blockade_radius: float = 0.0,
-        jit_compiled: bool = True,
+        jit_compiled: bool = False,
         interaction_picture: bool = False,
         multiprocessing: bool = False,
         num_workers: Optional[int] = None,
