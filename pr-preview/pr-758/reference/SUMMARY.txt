@@ -66,6 +66,7 @@
             * [parallel](bloqade/submission/ir/parallel.md)
             * [task_results](bloqade/submission/ir/task_results.md)
             * [task_specification](bloqade/submission/ir/task_specification.md)
+        * [load_config](bloqade/submission/load_config.md)
         * [mock](bloqade/submission/mock.md)
         * [quera](bloqade/submission/quera.md)
     * [task](bloqade/task/index.md)
@@ -74,5 +75,4 @@
         * [bloqade](bloqade/task/bloqade.md)
         * [braket](bloqade/task/braket.md)
         * [braket_simulator](bloqade/task/braket_simulator.md)
-        * [json](bloqade/task/json.md)
         * [quera](bloqade/task/quera.md)
