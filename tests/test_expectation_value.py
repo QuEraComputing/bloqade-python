@@ -11,7 +11,7 @@ from functools import reduce
 import pytest
 
 
-def callback_single_atom(register, *_):
+def callback_single_atom(register, metadata, ham):
     density_op = np.array([[0.0, 0.0], [0, 1]])
     rabi_op = np.array([[0.0, -1.0j], [+1.0j, 0.0]])
 
@@ -20,6 +20,8 @@ def callback_single_atom(register, *_):
 
     exact_density = np.vdot(register.data, density_op.dot(register.data))
     exact_rabi_expt = np.vdot(register.data, rabi_op.dot(register.data))
+
+    avg, std = ham.average_and_variance(register)
 
     np.testing.assert_almost_equal(exact_density, density)
     np.testing.assert_almost_equal(exact_rabi_expt, rabi_expt)

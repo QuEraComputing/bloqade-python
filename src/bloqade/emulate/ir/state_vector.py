@@ -279,7 +279,7 @@ class RydbergHamiltonian:
     @beartype
     def average_and_variance(
         self,
-        register: np.ndarray,
+        register: StateVector,
         time: Optional[float] = None,
     ) -> Tuple[float, float]:
         """Get energy average and variance from RydbergHamiltonian object at time `time`
