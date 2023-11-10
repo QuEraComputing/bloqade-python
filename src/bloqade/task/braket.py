@@ -96,7 +96,7 @@ class BraketTask(RemoteTask):
 
     def status(self) -> QuEraTaskStatusCode:
         if self.task_id is None:
-            return QuEraTaskStatusCode.Unaccepted
+            return QuEraTaskStatusCode.Unsubmitted
 
         return self.backend.task_status(self.task_id)
 

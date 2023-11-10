@@ -7,7 +7,7 @@ from bloqade.submission.base import ValidationError
 from bloqade.submission.capabilities import get_capabilities
 from bloqade.submission.ir.capabilities import QuEraCapabilities
 
-from unittest.mock import patch
+from unittest.mock import MagicMock
 
 
 def get_task_ir():
@@ -57,34 +57,33 @@ def mock_results():
     }
 
 
-@patch("bloqade.submission.quera.QueueApi")
-def test_quera_backend_submit(*args):
+def test_quera_backend_submit():
     api_config = dict(
         api_hostname="https://api.que-ee.com", qpu_id="qpu-1", api_stage="v0"
     )
 
-    queue = bloqade.submission.quera.QueueApi(**api_config)
+    queue = MagicMock()
 
     queue.post_task.return_value = "task_id"
 
     backend = bloqade.submission.quera.QuEraBackend(**api_config)
+    backend._queue_api = queue
 
     assert backend.submit_task(get_task_ir()) == "task_id"
     queue.post_task.assert_called_once()
 
 
-@patch("bloqade.submission.quera.QueueApi")
-def test_quera_backend_validate_fail(QueueApi):
+def test_quera_backend_validate_fail():
     api_config = dict(
         api_hostname="https://api.que-ee.com", qpu_id="qpu-1", api_stage="v0"
     )
 
-    bloqade.submission.quera.QueueApi.ValidationError = RuntimeError
-    queue = bloqade.submission.quera.QueueApi(**api_config)
-
+    queue = MagicMock()
+    queue.ValidationError = RuntimeError
     queue.validate_task.side_effect = RuntimeError("error")
 
     backend = bloqade.submission.quera.QuEraBackend(**api_config)
+    backend._queue_api = queue
 
     with pytest.raises(ValidationError):
         backend.validate_task(get_task_ir())
@@ -92,83 +91,80 @@ def test_quera_backend_validate_fail(QueueApi):
     queue.validate_task.assert_called_once()
 
 
-@patch("bloqade.submission.quera.QueueApi")
-def test_quera_backend_validate_pass(QueueApi):
+def test_quera_backend_validate_pass():
     api_config = dict(
         api_hostname="https://api.que-ee.com", qpu_id="qpu-1", api_stage="v0"
     )
 
-    queue = bloqade.submission.quera.QueueApi(**api_config)
-
+    queue = MagicMock()
     queue.validate_task.return_value = None
-
     backend = bloqade.submission.quera.QuEraBackend(**api_config)
+    backend._queue_api = queue
 
     assert backend.validate_task(get_task_ir()) is None
 
     queue.validate_task.assert_called_once()
 
 
-@patch("bloqade.submission.quera.QueueApi")
-def test_quera_backend_cancel(QueueApi):
+def test_quera_backend_cancel():
     api_config = dict(
         api_hostname="https://api.que-ee.com", qpu_id="qpu-1", api_stage="v0"
     )
 
-    queue = bloqade.submission.quera.QueueApi(**api_config)
+    queue = MagicMock()
 
     backend = bloqade.submission.quera.QuEraBackend(**api_config)
+    backend._queue_api = queue
 
     backend.cancel_task("task_id")
 
     queue.cancel_task_in_queue.assert_called_once_with("task_id")
 
 
-@patch("bloqade.submission.quera.QueueApi")
-def test_quera_backend_status(QueueApi):
+def test_quera_backend_status():
     api_config = dict(
         api_hostname="https://api.que-ee.com", qpu_id="qpu-1", api_stage="v0"
     )
 
-    queue = bloqade.submission.quera.QueueApi(**api_config)
+    queue = MagicMock()
 
     queue.get_task_status_in_queue.return_value = "Completed"
 
     backend = bloqade.submission.quera.QuEraBackend(**api_config)
+    backend._queue_api = queue
 
     assert backend.task_status("task_id") == QuEraTaskStatusCode.Completed
 
     queue.get_task_status_in_queue.assert_called_once_with("task_id")
 
 
-@patch("bloqade.submission.quera.QueueApi")
-def teest_quera_backend_task_results(QueueApi):
+def teest_quera_backend_task_results():
     api_config = dict(
         api_hostname="https://api.que-ee.com", qpu_id="qpu-1", api_stage="v0"
     )
 
-    queue = bloqade.submission.quera.QueueApi(**api_config)
-
+    queue = MagicMock()
     queue.poll_task_results.return_value = mock_results()
 
     backend = bloqade.submission.quera.QuEraBackend(**api_config)
+    backend._queue_api = queue
 
     assert backend.task_results("task_id") == QuEraTaskResults(**mock_results())
 
     queue.poll_task_results.assert_called_once_with("task_id")
 
 
-@patch("bloqade.submission.quera.QueueApi")
-def test_quera_backend_get_capabilities(QueueApi):
+def test_quera_backend_get_capabilities():
     api_config = dict(
         api_hostname="https://api.que-ee.com", qpu_id="qpu-1", api_stage="v0"
     )
     capabilities_dict = get_capabilities().dict()
 
-    queue = bloqade.submission.quera.QueueApi(**api_config)
+    queue = MagicMock()
     queue.get_capabilities.return_value = capabilities_dict
 
     backend = bloqade.submission.quera.QuEraBackend(**api_config)
+    backend._queue_api = queue
 
     assert backend.get_capabilities() == QuEraCapabilities(**capabilities_dict)
     queue.get_capabilities.assert_called_once()
@@ -177,10 +173,18 @@ def test_quera_backend_get_capabilities(QueueApi):
 
     queue.get_capabilities.return_value = Exception("error")
     backend = bloqade.submission.quera.QuEraBackend(**api_config)
+    backend._queue_api = queue
 
     assert backend.get_capabilities() == QuEraCapabilities(**get_capabilities().dict())
     queue.get_capabilities.assert_called_once()
 
 
-test_quera_backend_validate_fail()
-test_quera_backend_validate_pass()
+def test_run_time_error():
+    api_config = dict(
+        api_hostname="https://api.que-ee.com", qpu_id="qpu-1", api_stage="v0"
+    )
+
+    backend = bloqade.submission.quera.QuEraBackend(**api_config)
+
+    with pytest.raises(RuntimeError):
+        backend.queue_api
