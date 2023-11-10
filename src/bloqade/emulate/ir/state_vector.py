@@ -47,8 +47,8 @@ def _expt_one_body_op(configs, n_level, psi, site, op):
 def _expt_two_body_op(configs, n_level, psi, sites, data, indices, indptr):
     res = np.zeros(psi.shape[1:], dtype=np.complex128)
 
-    divisor_1 = n_level ** sites[0]
-    divisor_2 = n_level ** sites[1]
+    divisor_1 = n_level ** sites[1]
+    divisor_2 = n_level ** sites[0]
 
     for i, config in enumerate(configs):
         col_1 = (config // divisor_1) % n_level
@@ -64,8 +64,8 @@ def _expt_two_body_op(configs, n_level, psi, sites, data, indices, indptr):
             new_config = (
                 config
                 - (col_1 * divisor_1)
-                - (col_2 * divisor_2)
                 + (row_1 * divisor_1)
+                - (col_2 * divisor_2)
                 + (row_2 * divisor_2)
             )
 

@@ -1,5 +1,14 @@
 from bloqade import start
 import numpy as np
+from bloqade.emulate.ir.space import Space
+from bloqade.emulate.ir.emulator import Register
+from bloqade.emulate.ir.atom_type import TwoLevelAtom, ThreeLevelAtom
+from bloqade.emulate.ir.state_vector import _expt_two_body_op, _expt_one_body_op
+from scipy.sparse import csc_array
+from decimal import Decimal
+from itertools import product
+from functools import reduce
+import pytest
 
 
 def callback_single_atom(register, *_):
@@ -68,8 +77,6 @@ def test_expection_value_two_atom():
 
 
 def callback_two_body(register, *_):
-    from functools import reduce
-
     plus_op = np.array([[0.0, 1.0], [0.0, 0.0]])
     minus_op = np.array([[0.0, 0.0], [1.0, 0.0]])
 
@@ -113,38 +120,77 @@ def project_to_subspace(operator, configurations):
         return proj @ operator @ proj.T
 
 
-def test_internals_single_body():
-    from bloqade.emulate.ir.space import Space
-    from bloqade.emulate.ir.emulator import Register
-    from bloqade.emulate.ir.atom_type import TwoLevelAtom, ThreeLevelAtom
-    from bloqade.emulate.ir.state_vector import _expt_one_body_op
-    from decimal import Decimal
-
+@pytest.mark.parametrize(
+    "atom_type, i", product([TwoLevelAtom, ThreeLevelAtom], [0, 1, 2])
+)
+def test_internals_single_body(atom_type, i):
     sites = [(0.0, 0.0), (0.0, 1.0), (0.0, 5.0)]
 
-    for atom_type in [TwoLevelAtom, ThreeLevelAtom]:
-        space = Space.create(Register(atom_type, sites, Decimal("1.0")))
+    space = Space.create(Register(atom_type, sites, Decimal("1.0")))
 
-        op = np.random.normal(size=(atom_type.n_level, atom_type.n_level))
+    op = np.random.normal(size=(atom_type.n_level, atom_type.n_level))
+    ops_dict = {}
+    ops_dict[space.n_atoms - i - 1] = op
 
-        density_op_full = np.kron(np.eye(atom_type.n_level**2), op)
+    Id = np.eye(atom_type.n_level)
+    op_full = reduce(np.kron, (ops_dict.get(site, Id) for site in range(space.n_atoms)))
 
-        density_op_space = project_to_subspace(density_op_full, space.configurations)
-        print(space)
-        psi = np.random.normal(0, 1, size=space.size)
-        psi /= np.linalg.norm(psi)
+    density_op_space = project_to_subspace(op_full, space.configurations)
 
-        # _expt_one_body_op()
-        result = _expt_one_body_op.py_func(
-            space.configurations, space.atom_type.n_level, psi, 0, op
-        )
+    psi = np.random.normal(0, 1, size=space.size)
+    psi /= np.linalg.norm(psi)
 
-        exact_result = np.vdot(psi, density_op_space.dot(psi))
-        np.testing.assert_almost_equal(exact_result, result)
+    # _expt_one_body_op()
+    result = _expt_one_body_op.py_func(
+        space.configurations, space.atom_type.n_level, psi, i, op
+    )
+
+    exact_result = np.vdot(psi, density_op_space.dot(psi))
+    np.testing.assert_almost_equal(exact_result, result)
 
 
-if __name__ == "__main__":
-    # test_expectation_value_single_atom()
-    # test_expection_value_two_atom()
-    # test_expectation_value_two_body()
-    test_internals_single_body()
+param_iter = (
+    (atom_type, i, j)
+    for atom_type, i, j in product([TwoLevelAtom, ThreeLevelAtom], range(4), range(4))
+    if i != j
+)
+
+
+@pytest.mark.parametrize("atom_type, i, j", param_iter)
+def test_internals_two_body(atom_type, i, j):
+    sites = [(0.0, 0.0), (0.0, 1.0), (0.0, 5.0), (4.0, 0.0)]
+
+    space = Space.create(Register(atom_type, sites, Decimal("1.0")))
+
+    ops_dict = {}
+
+    op_i = np.random.normal(size=(atom_type.n_level, atom_type.n_level))
+    op_j = np.random.normal(size=(atom_type.n_level, atom_type.n_level))
+    Id = np.eye(atom_type.n_level)
+
+    ops_dict[space.n_atoms - i - 1] = op_i
+    ops_dict[space.n_atoms - j - 1] = op_j
+
+    sp_op = csc_array(np.kron(op_i, op_j))
+
+    density_corr_full = reduce(
+        np.kron, (ops_dict.get(site, Id) for site in range(space.n_atoms))
+    )
+
+    density_op_space = project_to_subspace(density_corr_full, space.configurations)
+
+    psi = np.random.normal(0, 1, size=space.size)
+    psi /= np.linalg.norm(psi)
+
+    result = _expt_two_body_op.py_func(
+        space.configurations,
+        space.atom_type.n_level,
+        psi,
+        (i, j),
+        sp_op.data,
+        sp_op.indices,
+        sp_op.indptr,
+    )
+
+    exact_result = np.vdot(psi, density_op_space.dot(psi))
+    np.testing.assert_almost_equal(exact_result, result)
