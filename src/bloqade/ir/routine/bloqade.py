@@ -1,11 +1,10 @@
 from collections import OrderedDict, namedtuple
-from decimal import Decimal
 
 from bloqade.ir.routine.base import RoutineBase, __pydantic_dataclass_config__
 from bloqade.builder.typing import LiteralType
 from bloqade.task.batch import LocalBatch
 from beartype import beartype
-from beartype.typing import Optional, Tuple, Callable, Dict, Any, List
+from beartype.typing import Optional, Tuple, Callable, Dict, Any, List, NamedTuple
 from pydantic.dataclasses import dataclass
 import numpy as np
 
@@ -208,9 +207,7 @@ class BloqadePythonRoutine(RoutineBase):
     @beartype
     def run_callback(
         self,
-        callback: Callable[
-            [StateVector, Dict[str, Decimal], RydbergHamiltonian, Any], Any
-        ],
+        callback: Callable[[StateVector, NamedTuple, RydbergHamiltonian, Any], Any],
         program_args: Tuple[LiteralType, ...] = (),
         callback_args: Tuple = (),
         ignore_exceptions: bool = False,
