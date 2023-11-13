@@ -215,4 +215,4 @@ hardware_batch.fetch().report().show()
 
 ```
 
-An excellent place to start for examples is the Aquila whitepaper examples found [here](https://queracomputing.github.io/bloqade-python-examples/). Also, a flow diagram can be found [here](builder-workflow/standard.md) that discusses the entire build process.
+An excellent place to start for examples is the Aquila whitepaper examples found [here](https://queracomputing.github.io/bloqade-python-examples/). Also, a flow diagram can be found [here](reference/standard.md) that discusses the entire build process.
