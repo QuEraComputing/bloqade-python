@@ -1,7 +1,8 @@
+import plum
 from bloqade.emulate.ir.emulator import EmulatorProgram
 from bloqade.emulate.ir.space import Space
 from numpy.typing import NDArray
-from beartype.typing import List, Callable, Union, Optional
+from beartype.typing import List, Callable, Union, Optional, Tuple
 from beartype.vale import IsAttr, IsEqual
 from typing import Annotated
 from beartype import beartype
@@ -10,6 +11,128 @@ import numpy as np
 from scipy.integrate import ode
 import jax.numpy as jnp
 import jax
+
+RealArray = Annotated[NDArray[np.floating], IsAttr["ndim", IsEqual[1]]]
+Complexarray = Annotated[NDArray[np.complexfloating], IsAttr["ndim", IsEqual[1]]]
+StateArray = Union[RealArray, Complexarray]
+
+
+@njit(cache=True)
+def _expt_one_body_op(configs, n_level, psi, site, op):
+    res = np.zeros(psi.shape[1:], dtype=np.complex128)
+
+    divisor = n_level**site
+
+    for i, config in enumerate(configs):
+        col = (config // divisor) % n_level
+        for row, ele in enumerate(op[:, col]):
+            new_config = config - (col * divisor) + (row * divisor)
+
+            j = np.searchsorted(configs, new_config)
+
+            if j < configs.size and configs[j] == new_config:
+                res += ele * psi[i, ...] * np.conj(psi[j, ...])
+
+    return res
+
+
+@njit(cache=True)
+def _expt_two_body_op(configs, n_level, psi, sites, data, indices, indptr):
+    res = np.zeros(psi.shape[1:], dtype=np.complex128)
+
+    divisor_1 = n_level ** sites[1]
+    divisor_2 = n_level ** sites[0]
+
+    for i, config in enumerate(configs):
+        col_1 = (config // divisor_1) % n_level
+        col_2 = (config // divisor_2) % n_level
+        col = col_1 + (col_2 * n_level)
+
+        start = indptr[col]
+        end = indptr[col + 1]
+
+        for ele, row in zip(data[start:end], indices[start:end]):
+            row_2, row_1 = divmod(row, n_level)
+
+            new_config = (
+                config
+                - (col_1 * divisor_1)
+                + (row_1 * divisor_1)
+                - (col_2 * divisor_2)
+                + (row_2 * divisor_2)
+            )
+
+            j = np.searchsorted(configs, new_config)
+
+            if j < configs.size and configs[j] == new_config:
+                res += ele * psi[i, ...] * np.conj(psi[j, ...])
+
+    return res
+
+
+@dataclass(frozen=True)
+class StateVector:
+    data: NDArray
+    space: Space
+
+    @plum.dispatch
+    def _trace(self, matrix: np.ndarray, site_indices: Tuple[int, int]) -> complex:
+        from scipy.sparse import csc_array
+
+        shape = (self.space.atom_type.n_level**2, self.space.atom_type.n_level**2)
+
+        if matrix.shape != shape:
+            raise ValueError(
+                f"expecting operator to be size {shape}, got site {matrix.shape}"
+            )
+
+        csc = csc_array(matrix)
+
+        value = _expt_two_body_op(
+            configs=self.space.configurations,
+            n_level=self.space.atom_type.n_level,
+            psi=self.data,
+            sites=site_indices,
+            data=csc.data,
+            indices=csc.indices,
+            indptr=csc.indptr,
+        )
+
+        return complex(value.real, value.imag)
+
+    @plum.dispatch
+    def _trace(self, matrix: np.ndarray, site_index: int) -> complex:
+        shape = (self.space.atom_type.n_level, self.space.atom_type.n_level)
+
+        if matrix.shape != shape:
+            raise ValueError(
+                f"expecting operator to be size {shape}, got {matrix.shape}"
+            )
+
+        value = _expt_one_body_op(
+            configs=self.space.configurations,
+            n_level=self.space.atom_type.n_level,
+            psi=self.data,
+            site=site_index,
+            op=matrix,
+        )
+
+        return complex(value.real, value.imag)
+
+    def local_trace(
+        self, matrix: np.ndarray, site_indices: Union[int, Tuple[int, int]]
+    ) -> complex:
+        """return trace of an operator over the StateVector.
+
+        Args:
+            matrix (np.ndarray): Square matrix representing operator in the local
+                hilbert space.
+            site_indices (Union[int, Tuple[int, int]]): sites to apply operator to.
+
+        Returns:
+            complex: the trace of the operator over the state-vector.
+        """
+        return self._trace(matrix, site_indices)
 
 
 @dataclass(frozen=True)
@@ -129,10 +252,128 @@ class RydbergHamiltonian:
             time, register.view(np.complex128), output
         ).view(np.float64)
 
+    def _check_register(self, register: np.ndarray):
+        register_shape = (self.space.size,)
+        if register.shape != register_shape:
+            raise ValueError(
+                f"Expecting `register` to have  shape {register_shape}, "
+                f"got shape {register.shape}"
+            )
 
-RealArray = Annotated[NDArray[np.floating], IsAttr["ndim", IsEqual[1]]]
-Complexarray = Annotated[NDArray[np.complexfloating], IsAttr["ndim", IsEqual[1]]]
-StateArray = Union[RealArray, Complexarray]
+    def _apply(
+        self,
+        register_data: np.ndarray,
+        time: Optional[float] = None,
+        output: Optional[NDArray] = None,
+    ) -> np.ndarray:
+        self._check_register(register_data)
+
+        if time is None:
+            time = self.emulator_ir.duration
+
+        if output is None:
+            output = np.zeros_like(register_data, dtype=np.complex128)
+
+        diagonal = sum(
+            (detuning.get_diagonal(time) for detuning in self.detuning_ops),
+        )
+
+        np.multiply(diagonal, register_data, out=output)
+
+        for rabi_op in self.rabi_ops:
+            rabi_op.dot(register_data, output, time)
+
+        return output
+
+    @beartype
+    def average(
+        self,
+        register: StateVector,
+        time: Optional[float] = None,
+    ) -> float:
+        """Get energy average from RydbergHamiltonian object at time `time` with
+        register `register`
+
+        Args:
+            register (StateVector): The state vector to take average with
+            time (Optional[float], optional): Time value to evaluate average at.
+            Defaults to duration of RydbergHamiltonian.
+
+        Returns:
+            float: average energy at time `time`
+        """
+        return np.vdot(register.data, self._apply(register.data, time)).real
+
+    @beartype
+    def average_and_variance(
+        self,
+        register: StateVector,
+        time: Optional[float] = None,
+    ) -> Tuple[float, float]:
+        """Get energy average and variance from RydbergHamiltonian object at time `time`
+        with register `register`
+
+        Args:
+            register (StateVector): The state vector to take average and variance with
+            time (Optional[float], optional): Time value to evaluate average at.
+            Defaults to duration of RydbergHamiltonian.
+
+        Returns:
+            Tuple[float, float]: average and variance of energy at time `time`
+            respectively.
+        """
+        H_register_data = self._apply(register.data, time)
+
+        average = np.vdot(register.data, H_register_data).real
+        square_average = np.vdot(H_register_data, H_register_data).real
+
+        return average, square_average - average**2
+
+    @beartype
+    def variance(
+        self,
+        register: StateVector,
+        time: Optional[float] = None,
+    ) -> float:
+        """Get the energy variance from RydbergHamiltonian object at
+        time `time` with register `register`
+
+        Args:
+            register (StateVector): The state vector to take variance with
+            time (Optional[float], optional): Time value to evaluate average at.
+            Defaults to duration of RydbergHamiltonian.
+
+        Returns:
+            complex: variance of energy at time `time` respectively.
+        """
+
+        _, var = self.average_and_variance(register, time)
+        return var
+
+    @plum.dispatch
+    def expectation_value(  # noqa: F811
+        self, register: np.ndarray, operator: np.ndarray, site_indices: int
+    ) -> complex:
+        """Calculate expectation values of one and two body operators.
+
+        Args:
+            register (np.ndarray): Register to evaluate expectation value with
+            operator (np.ndarray): Operator to take expectation value of.
+            site_indices (int, Tuple[int, int]): site/sites to evaluate `operator` at.
+                It can either a single integer or a tuple of two integers for one and
+                two body operator respectively.
+
+        Raises:
+            ValueError: Error is raised when the dimension of `operator` is not
+            consistent with `site` argument. The size of the operator must fit the
+            size of the local hilbert space of `site` depending on the number of sites
+            and the number of levels inside each atom, e.g. for two site expectation v
+            alue with a three level atom the operator must be a 9 by 9 array.
+
+        Returns:
+            complex: The expectation value.
+        """
+        self._check_register(register)
 
 
 @dataclass(frozen=True)
