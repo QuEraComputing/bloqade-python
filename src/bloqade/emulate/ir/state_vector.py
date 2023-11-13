@@ -11,6 +11,7 @@ import numpy as np
 from scipy.integrate import ode
 import jax.numpy as jnp
 import jax
+from numba import njit
 
 RealArray = Annotated[NDArray[np.floating], IsAttr["ndim", IsEqual[1]]]
 Complexarray = Annotated[NDArray[np.complexfloating], IsAttr["ndim", IsEqual[1]]]
