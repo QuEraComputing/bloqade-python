@@ -1,5 +1,4 @@
 
-
 A basic AHS program contains two main parts: First, the atom geometry and second, the pulse sequence. There are many ways to specify tge atom Geometry from a simple list of positions to Bravais Lattices. The pulse sequence are defined as time dependent functions for the detuning, rabi amplitude and rabi phase for the driving between the energy levels of the atoms. Bloqade supports both two and three level driving schemes, however, QuEra's flagship AHS device only supports the two-level drive. Lets start out by defining a simple two-level rabi drive with a detuning:
 
 ```python
@@ -42,5 +41,4 @@ here `run_async` is used to denote that the function call is asynchronous. This 
 result = program.braket.local_emulator().run(100)
 ```
 
-Note that the local emulator doesn't have the same capabilities of Bloqade local emulator. 
-
+Note that the local emulator doesn't have the same capabilities of Bloqade local emulator.

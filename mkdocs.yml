@@ -13,11 +13,7 @@ nav:
     - index.md
     - Bloqade 101: home/bloqade_101.md
     - Getting Started: home/getting_started.md
-    - Advanced Geometry: home/advanced_usage/geometry.md
-    - Local Driving: home/advanced_usage/local_driving.md
-    - Slicing Waveforms: home/advanced_usage/slicing_waveforms.md
-    - Python Functions as Waveforms: home/advanced_usage/python_functions_as_waveforms.md
-    - Hybrid Workflows with Braket Hybrid Jobs: home/advanced_usage/hybrid_execution.md
+    - Advanced Usage: home/advanced_usage.md
     - Gotchas: home/gotchas.md
   - Tutorials: 'https://queracomputing.github.io/bloqade-python-examples/latest/'
   - Reference:
