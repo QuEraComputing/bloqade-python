@@ -1,6 +1,6 @@
 # Builder Overview
 
-You may have noticed from the [Getting Started](../home/getting_started.md.md) and [Tutorials](https://queracomputing.github.io/bloqade-python-examples/latest/)
+You may have noticed from the [Getting Started](../home/getting_started.md) and [Tutorials](https://queracomputing.github.io/bloqade-python-examples/latest/)
 that Bloqade uses this interesting, dot-intensive syntax.
 
 ```python
