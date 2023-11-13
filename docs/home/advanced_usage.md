@@ -1,7 +1,7 @@
 
 ## Geometry Concepts
 
-In [Getting Started](../getting_started.md) we discussed the parameterization of waveforms inside a rydberg/hyperfine drive. We have also provided infrastructure that allows you to parameterize the position of the atoms/sites in your atom array. There are a few methods to do this:
+In [Getting Started](getting_started.md) we discussed the parameterization of waveforms inside a rydberg/hyperfine drive. We have also provided infrastructure that allows you to parameterize the position of the atoms/sites in your atom array. There are a few methods to do this:
 
 ### Scaling Your Lattice
 
@@ -36,7 +36,7 @@ When fetching the results and generating the report the shot results will be org
 
 ## Programming A Local Drive
 
-You might have noticed in the [Getting Started](../getting_started.md) section that we used `...uniform...` when defining the various drives applied to the atoms. This is one special case of three total ways of defining the spatial modulation of the waveform. What do I mean by spacial modulation? In this case you think of a drive has having a temproal component, e.g. the Waveform, and a spatial component, which we call the spatial modulation. The spatial modulation is a scale factor that gets applied to the waveform when acting on a particular site. For example, if I have two atoms and I have a spatial modulation for site `0` is `0.1` and for site `1` is `0.2` then the waveform will be scaled by `0.1` when acting on site `0` and `0.2` when acting on site `1`.
+You might have noticed in the [Getting Started](getting_started.md) section that we used `...uniform...` when defining the various drives applied to the atoms. This is one special case of three total ways of defining the spatial modulation of the waveform. What do I mean by spacial modulation? In this case you think of a drive has having a temproal component, e.g. the Waveform, and a spatial component, which we call the spatial modulation. The spatial modulation is a scale factor that gets applied to the waveform when acting on a particular site. For example, if I have two atoms and I have a spatial modulation for site `0` is `0.1` and for site `1` is `0.2` then the waveform will be scaled by `0.1` when acting on site `0` and `0.2` when acting on site `1`.
 
 Intuitively, `uniform` spatial modulation simply means that regardless of the atom, the waveform value is always the same. The other two options for defining spatial modulations are: `scale` and `location`. They have two distinct use cases:
 
