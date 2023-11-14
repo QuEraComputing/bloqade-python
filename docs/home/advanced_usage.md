@@ -5,7 +5,7 @@ In [Getting Started](getting_started.md), we discussed the parameterization of w
 
 ### Scaling Your Lattice
 
-Every `AtomArrangement` object has an option to `scale`, which applies a multiplication factor to all site coordinates. To parameterize this scaling, you can either pass a literal value, a string, or a scalar expression:
+Every `AtomArrangement` object has an option to `scale`, which applies a multiplicative factor to all site coordinates. To parameterize this scaling, you can either pass a literal value, a string, or a scalar expression:
 
 ```python
 
@@ -16,7 +16,7 @@ scale_expr = var("param") / 2 + var("starting_scale")
 new_geometry_3 = my_geometry.scale(scalar_expr)
 ```
 
-### Parameterize the Position of a Individual Sites
+### Parameterize the Position of Individual Sites
 
 Suppose you are constructing a set of sites using the `start.add_position(...)` method. In that case, you can pass a literal value, a string, or a scalar expression to the `position` argument:
 
@@ -36,13 +36,13 @@ When fetching the results and generating the report, the shot results will be or
 
 ## Programming A Local Drive
 
-In the [Getting Started](getting_started.md) section, you might have noticed that we used `...uniform...` when defining the various drives applied to the atoms. This syntax refers to one of three ways of expressing the spatial modulation of the waveform. What do I mean by spatial modulation? In this case, you think of a drive having a temporal component, e.g., the waveform, and a spatial part, which we call spatial modulation. The spatial modulation is a scale factor applied to the waveform when acting on a particular site. For example, if I have two atoms and I have a spatial modulation for site-`0` is `0.1` and for site-`1` is `0.2`, then the waveform will be scaled by `0.1` when acting on-site `0` and `0.2` when applied to site-`1`.
+In the [Getting Started](getting_started.md) section, you might have noticed that we used `...uniform...` when defining the various drives applied to the atoms. This syntax refers to one of three ways of expressing the __spatial modulation__ of the waveform. What do we mean by spatial modulation? In this case, you can think of a drive having a temporal component, e.g., the waveform, and a spatial part, which we call spatial modulation. The spatial modulation is a scale factor applied to the waveform when acting on a particular site. For example, if we have two atoms and we have a spatial modulation for site-`0` which is `0.1` and for site-`1` which is `0.2`, then the waveform will be scaled by `0.1` when acting on-site-`0` and `0.2` when applied to site-`1`.
 
 Intuitively, `uniform` spatial modulation simply means that regardless of the atom, the waveform value is always the same. The other two options for defining spatial modulations are: `scale` and `location`. They have two distinct use cases:
 
 ## `scale` Method
 
-When calling the 'scale ' method, you can pass either a list of real values or a string. The list of values defines the scaling for every atom in the system, so the number of elements must equal the number of sites in your geometry. The string is a placeholder that allows you to define that mask as a list of values by passing them in through `assign`, `batch_assign`, or `args`. For `assign` and `batch_assign`, you can pass a list or a list of lists, respectively. On the other hand, `args`, the list of values, must be inserted into the `args` tuple when calling `run` or `run_async`, for example, let's take a two-atom program:
+When calling the `scale` method, you can pass either a list of real values or a string. The list of values defines the scaling for every atom in the system, so the number of elements must equal the number of sites in your geometry. The string is a placeholder that allows you to define that mask as a list of values by passing them in through `assign`, `batch_assign`, or `args`. For `assign` and `batch_assign`, you can pass a list or a list of lists, respectively. On the other hand, `args`, the list of values, must be inserted into the `args` tuple when calling `run` or `run_async`, for example, let's take a two-atom program:
 
 
 ```python
