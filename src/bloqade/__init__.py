@@ -2,7 +2,7 @@ from bloqade.ir import var, cast, Variable, Literal, start
 from bloqade.ir import to_waveform as waveform
 from bloqade.serialize import load, save, loads, dumps
 
-from bloqade.factory import (
+from bloqade._factory import (
     get_capabilities,
     piecewise_linear,
     piecewise_constant,
