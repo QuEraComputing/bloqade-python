@@ -66,6 +66,31 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
+         <loc>https://bloqade.quera.com/dev/drafts/aws_hybrid_execution/</loc>
+         <lastmod>2023-11-14</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://bloqade.quera.com/dev/home/advanced_usage/</loc>
+         <lastmod>2023-11-14</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://bloqade.quera.com/dev/home/bloqade_101/</loc>
+         <lastmod>2023-11-14</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://bloqade.quera.com/dev/home/getting_started/</loc>
+         <lastmod>2023-11-14</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://bloqade.quera.com/dev/home/gotchas/</loc>
+         <lastmod>2023-11-14</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
          <loc>https://bloqade.quera.com/dev/reference/hardware-capabilities/</loc>
          <lastmod>2023-11-14</lastmod>
          <changefreq>daily</changefreq>
