@@ -40,7 +40,7 @@ def test_integration_2():
         )
         .assign(ramp_time=3.0, r=6)
         .bloqade.python()
-        .run(10000, cache_matrices=True, blockade_radius=6.0)
+        .run(10000, cache_matrices=False, blockade_radius=6.0, multiprocessing=True)
         .report()
         .bitstrings()
     )
@@ -190,8 +190,8 @@ def test_bloqade_against_braket():
     )
 
     nshots = 1000
-    a = prog.bloqade.python().run(nshots, cache_matrices=True).report().counts
-    b = prog.braket.local_emulator().run(nshots).report().counts
+    a = prog.bloqade.python().run(nshots, cache_matrices=True).report().counts()
+    b = prog.braket.local_emulator().run(nshots).report().counts()
 
     for lhs, rhs in zip(a, b):
         KS_test(lhs, rhs)
@@ -223,8 +223,8 @@ def test_bloqade_against_braket_2():
     )
 
     nshots = 1000
-    a = prog_2.bloqade.python().run(nshots, cache_matrices=True).report().counts
-    b = prog_1.braket.local_emulator().run(nshots).report().counts
+    a = prog_2.bloqade.python().run(nshots, cache_matrices=True).report().counts()
+    b = prog_1.braket.local_emulator().run(nshots).report().counts()
 
     for lhs, rhs in zip(a, b):
         KS_test(lhs, rhs)

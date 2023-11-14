@@ -53,12 +53,14 @@ jobs:
           git config --local user.name "github-actions[bot]"
       - name: Set release notes tag
         run: |
-          export RELEASE_TAG_VERSION=${{ github.event.release.tag_name }}
-          echo "RELEASE_TAG_VERSION=${RELEASE_TAG_VERSION::3}" >> $GITHUB_ENV
+          export TAG_PATH=${{ github.ref }}
+          echo ${TAG_PATH}
+          echo "TAG_VERSION=${TAG_PATH##*/}" >> $GITHUB_ENV
+          echo ${TAG_VERSION}
       - name: Deploy documentation
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
           GOOGLE_ANALYTICS_KEY: ${{ secrets.GOOGLE_ANALYTICS_KEY }}
         run: |
           git fetch origin gh-pages --depth=1
-          pdm run mike deploy --update-alias --push ${RELEASE_TAG_VERSION} latest
+          pdm run mike deploy --update-alias --push ${TAG_VERSION} latest

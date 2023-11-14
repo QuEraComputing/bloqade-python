@@ -3,6 +3,7 @@ from bloqade.ir import to_waveform as waveform
 from bloqade.serialize import load, save, loads, dumps
 
 from bloqade.factory import (
+    get_capabilities,
     piecewise_linear,
     piecewise_constant,
     linear,
@@ -11,7 +12,6 @@ from bloqade.factory import (
 )
 import bloqade.ir as _ir
 from bloqade.constants import RB_C6
-from bloqade.submission.capabilities import get_capabilities
 
 import importlib.metadata
 

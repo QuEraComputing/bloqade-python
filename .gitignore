@@ -81,7 +81,7 @@ docs/_build/
 
 # mkdocs
 site/
-docs/reference/
+docs/reference/bloqade/
 
 # PyBuilder
 .pybuilder/
