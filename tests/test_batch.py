@@ -194,6 +194,81 @@ def test_remote_batch_task_metric(permutation, BraketBackend):
 
 
 @patch("bloqade.ir.routine.braket.BraketBackend")
+def test_pull(BraketBackend):
+    backend = BraketBackend(
+        device_arn="arn:aws:braket:us-east-1::device/qpu/quera/Aquila"
+    )
+
+    backend.submit_task.side_effect = list(map(str, range(6)))
+    backend.task_status.return_value = QuEraTaskStatusCode.Completed
+    backend.task_results.return_value = mock_results(14)
+
+    batch = (
+        start.add_position([(0, i * 6.1) for i in range(14)])
+        .rydberg.detuning.uniform.piecewise_linear(
+            [0.1, 3.8, 0.1], [-20, -20, "d", "d"]
+        )
+        .amplitude.uniform.piecewise_linear([0.1, 3.8, 0.1], [0, 15, 15, 0])
+        .phase.uniform.constant(np.pi / 2, 4)
+        .batch_assign(d=[1, 2, 4, 8, 16, 32])
+        .braket.aquila()
+        ._compile(10)
+    )
+
+    for k, task in batch.tasks.items():
+        task.backend = backend
+
+    batch._submit(ignore_submission_error=True, shuffle_submit_order=False)
+    batch.pull()
+    new_batch = batch.remove_invalid_tasks()
+    assert len(new_batch.tasks) == 6
+
+
+@patch("bloqade.ir.routine.braket.BraketBackend")
+def test_retrieve(BraketBackend):
+    backend = BraketBackend(
+        device_arn="arn:aws:braket:us-east-1::device/qpu/quera/Aquila"
+    )
+
+    backend.submit_task.side_effect = list(map(str, range(6)))
+    backend.task_results.return_value = mock_results(14)
+    backend.task_status.side_effect = [
+        # calls for fetch
+        QuEraTaskStatusCode.Completed,
+        QuEraTaskStatusCode.Completed,
+        QuEraTaskStatusCode.Completed,
+        QuEraTaskStatusCode.Running,
+        QuEraTaskStatusCode.Enqueued,
+        QuEraTaskStatusCode.Enqueued,
+        # calls for retrieve
+        QuEraTaskStatusCode.Completed,
+        QuEraTaskStatusCode.Completed,
+        QuEraTaskStatusCode.Completed,
+    ]
+
+    batch = (
+        start.add_position([(0, i * 6.1) for i in range(14)])
+        .rydberg.detuning.uniform.piecewise_linear(
+            [0.1, 3.8, 0.1], [-20, -20, "d", "d"]
+        )
+        .amplitude.uniform.piecewise_linear([0.1, 3.8, 0.1], [0, 15, 15, 0])
+        .phase.uniform.constant(np.pi / 2, 4)
+        .batch_assign(d=[1, 2, 4, 8, 16, 32])
+        .braket.aquila()
+        ._compile(10)
+    )
+
+    for k, task in batch.tasks.items():
+        task.backend = backend
+
+    batch._submit(ignore_submission_error=True, shuffle_submit_order=False)
+    batch.fetch()
+    batch.retrieve()
+    new_batch = batch.remove_invalid_tasks()
+    assert len(new_batch.tasks) == 6
+
+
+@patch("bloqade.ir.routine.braket.BraketBackend")
 def test_remove_invalid_tasks(BraketBackend):
     backend = BraketBackend(
         device_arn="arn:aws:braket:us-east-1::device/qpu/quera/Aquila"
