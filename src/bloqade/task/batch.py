@@ -307,7 +307,7 @@ class RemoteBatch(Serializable):
         """Retrieve missing task results.
 
         Note:
-            Fetching will update the status of tasks,
+            Retrieve will update the status of tasks,
             and only pull the results for those tasks
             that have completed.
 
