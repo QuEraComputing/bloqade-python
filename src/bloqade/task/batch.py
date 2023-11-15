@@ -303,6 +303,27 @@ class RemoteBatch(Serializable):
 
         return self
 
+    def retrieve(self) -> "RemoteBatch":
+        """Retrieve missing task results.
+
+        Note:
+            Fetching will update the status of tasks,
+            and only pull the results for those tasks
+            that have completed.
+
+        Return:
+            self
+
+        """
+        # partially online, sometimes blocking
+        # pull the results for tasks that have
+        # not been pulled already.
+        for task in self.tasks.values():
+            if not task._result_exists():
+                task.pull()
+
+        return self
+
     def pull(self) -> "RemoteBatch":
         """
         Pull results of the tasks in the Batch.
