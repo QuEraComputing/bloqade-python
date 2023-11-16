@@ -9,7 +9,12 @@ edit_uri: 'edit/main/docs/'
 
 # Page tree
 nav:
-  - Home: index.md
+  - Home:
+    - index.md
+    - Bloqade 101: home/bloqade_101.md
+    - Getting Started: home/getting_started.md
+    - Advanced Usage: home/advanced_usage.md
+    - Gotchas: home/gotchas.md
   - Tutorials: 'https://queracomputing.github.io/bloqade-python-examples/latest/'
   - Reference:
     - Builder Overview: reference/overview.md
@@ -81,7 +86,7 @@ extra_css:
 
 plugins:
   - search:
-      separator: '[\s\-,:!=\[\]()"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
+      separator: '[\s\-,:!=\[\: )"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
   - gen-files:
       scripts:
       - docs/scripts/gen_ref_nav.py
@@ -137,8 +142,8 @@ markdown_extensions:
   - pymdownx.caret
   - pymdownx.details
   - pymdownx.emoji:
-      emoji_generator: !!python/name:materialx.emoji.to_svg
-      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
   - pymdownx.highlight:
       anchor_linenums: true
       line_spans: __span

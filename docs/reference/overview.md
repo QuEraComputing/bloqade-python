@@ -1,6 +1,6 @@
 # Builder Overview
 
-You may have noticed from the [Usage](../getting_started/usage.md) and [Tutorials](https://queracomputing.github.io/bloqade-python-examples/latest/)
+You may have noticed from the [Getting Started](../home/getting_started.md) and [Tutorials](https://queracomputing.github.io/bloqade-python-examples/latest/)
 that Bloqade uses this interesting, dot-intensive syntax.
 
 ```python
@@ -25,7 +25,7 @@ What's the deal with that?
 
 We call this syntax the *builder* or *builder syntax* and as its name implies, it is designed to let you build programs for Analog Hamiltonian Simulation hardware as easily and as straightforward as possible.
 
-The linear structure implies a natural hiearchy in how you think about targeting the various degrees of freedom (detuning, atom positions, Rabi amplitude, etc.) your program will have. In the beginning you have unrestricted access to all these degrees of freedom but in order to do something useful you need to:
+The linear structure implies a natural hierarchy in how you think about targeting the various degrees of freedom (detuning, atom positions, Rabi amplitude, etc.) your program will have. In the beginning you have unrestricted access to all these degrees of freedom but in order to do something useful you need to:
 
 1. Narrow down and explicitly identify **what** you want to control
 2. Provide the instructions on **how** you want to control what your focused on
