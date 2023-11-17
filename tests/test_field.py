@@ -94,7 +94,7 @@ def test_field_scaled_locations():
     f1 = Field({Loc: Linear(start=1.0, stop="x", duration=3.0)})
     f2 = Field({Loc: Linear(start=1.0, stop="x", duration=3.0)})
     f3 = Field({Loc2: Linear(start=1.0, stop="x", duration=3.0)})
-    f4 = Field({Loc3: Linear(start="y", stop="x", duration=3.0)})
+    f4 = Field({Loc3: Linear(start="y", stop="x", duration=4.0)})
 
     # add with non field
     with pytest.raises(ValueError):
@@ -142,7 +142,9 @@ def test_field_scaled_locations():
     o3 = f1.add(f4)
     assert o3 == Field(
         {
-            Loc3: Linear(start="y", stop="x", duration=3.0),
+            Loc3: Linear(start="y", stop="x", duration=4.0),
             Loc: Linear(start=1.0, stop="x", duration=3.0),
         }
     )
+
+    assert o3.duration == cast(3.0).max(4.0).max(0)

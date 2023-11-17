@@ -70,6 +70,7 @@ def test_sequence():
 
     assert seq_full.children() == {"RydbergLevelCoupling": ps}
     assert seq_full.print_node() == "Sequence"
+    assert seq_full.duration == cast(3.0).max(0)
 
     mystdout = StringIO()
     p = PP(mystdout)
@@ -106,6 +107,7 @@ def test_named_sequence():
 
     assert named.children() == {"sequence": seq_full, "name": "qq"}
     assert named.print_node() == "NamedSequence"
+    assert named.duration == cast(3.0).max(0)
 
     mystdout = StringIO()
     p = PP(mystdout)
@@ -146,6 +148,7 @@ def test_slice_sequence():
 
     assert slc.children() == {"sequence": seq_full, "interval": itvl}
     assert slc.print_node() == "Slice"
+    assert slc.duration == cast(3.0).max(0)[itvl.start : itvl.stop]
 
     mystdout = StringIO()
     p = PP(mystdout)
@@ -178,6 +181,7 @@ def test_append_sequence():
 
     assert app.children() == [seq_full, seq_full]
     assert app.print_node() == "Append"
+    assert app.duration == cast(3.0).max(0) + cast(3.0).max(0)
 
     mystdout = StringIO()
     p = PP(mystdout)
