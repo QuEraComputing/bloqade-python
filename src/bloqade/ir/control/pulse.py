@@ -135,12 +135,6 @@ class Append(PulseExpr):
 
     pulses: List[PulseExpr]
 
-    def print_node(self):
-        return "Append"
-
-    def children(self):
-        return self.pulses
-
     @cached_property
     def duration(self) -> Scalar:
         duration = cast(0)
@@ -148,6 +142,12 @@ class Append(PulseExpr):
             duration = duration + p.duration
 
         return duration
+
+    def print_node(self):
+        return "Append"
+
+    def children(self):
+        return self.pulses
 
 
 @dataclass(init=False)
@@ -207,6 +207,10 @@ class NamedPulse(PulseExpr):
     name: str
     pulse: PulseExpr
 
+    @cached_property
+    def duration(self) -> Scalar:
+        return self.pulse.duration
+
     def print_node(self):
         return "NamedPulse"
 
@@ -222,22 +226,18 @@ class NamedPulse(PulseExpr):
     def show(self, **assignments):
         display_ir(self, assignments)
 
-    @cached_property
-    def duration(self) -> Scalar:
-        return self.pulse.duration
-
 
 @dataclass
 class Slice(PulseExpr):
     pulse: PulseExpr
     interval: Interval
 
+    @cached_property
+    def duration(self) -> Scalar:
+        return self.pulse.duration[self.interval.start : self.interval.stop]
+
     def print_node(self):
         return "Slice"
 
     def children(self):
         return {"Pulse": self.pulse, "Interval": self.interval}
-
-    @cached_property
-    def duration(self) -> Scalar:
-        return self.pulse.duration[self.interval.start : self.interval.stop]
