@@ -79,5 +79,5 @@ class BloqadeIRTransformer(BloqadeIRVisitor):
                     new_value[key] = value
 
             constructor_args[field.name] = value
-
+        # IR nodes are immutable, so we have to use the constructor
         return node.__class__(**constructor_args)
