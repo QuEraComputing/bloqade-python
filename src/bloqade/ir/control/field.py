@@ -222,6 +222,12 @@ class Field(FieldExpr):
     def _hash_value(self):
         return hash(frozenset(self.drives.items())) ^ hash(self.__class__)
 
+    @cached_property
+    def duration(self) -> Scalar:
+        duration = cast(0)
+        for val in self.drives.values():
+            duration = duration.max(val.duration)
+
     def __hash__(self) -> int:
         return self._hash_value
 
