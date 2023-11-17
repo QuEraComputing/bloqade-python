@@ -149,14 +149,6 @@ class Append(PulseExpr):
     def children(self):
         return self.pulses
 
-    @cached_property
-    def duration(self) -> Scalar:
-        duration = cast(0)
-        for p in self.pulses:
-            duration = duration + p.duration
-
-        return duration
-
 
 @dataclass(init=False)
 class Pulse(PulseExpr):
@@ -237,10 +229,6 @@ class NamedPulse(PulseExpr):
     def show(self, **assignments):
         display_ir(self, assignments)
 
-    @cached_property
-    def duration(self) -> Scalar:
-        return self.pulse.duration
-
 
 @dataclass
 class Slice(PulseExpr):
@@ -256,7 +244,3 @@ class Slice(PulseExpr):
 
     def children(self):
         return {"Pulse": self.pulse, "Interval": self.interval}
-
-    @cached_property
-    def duration(self) -> Scalar:
-        return self.pulse.duration[self.interval.start : self.interval.stop]
