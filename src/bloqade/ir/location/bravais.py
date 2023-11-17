@@ -136,13 +136,13 @@ class BoundedBravais(AtomArrangement):
         for index in itertools.product(*[range(n) for n in self.shape]):
             for pos in self.coordinates(list(index)):
                 position = tuple(self.lattice_spacing * pos)
-                yield LocationInfo(position, True)
+                yield LocationInfo.create(position, True)
 
     def __iter__(self):
         for index in itertools.product(*[range(n) for n in self.shape]):
             for pos in self.coordinates(list(index)):
                 position = tuple(self.lattice_spacing * pos)
-                yield LocationInfo(position, True)
+                yield LocationInfo.create(position, True)
 
     @beartype
     def scale(self, factor: ScalarType) -> "BoundedBravais":

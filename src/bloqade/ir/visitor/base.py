@@ -69,6 +69,8 @@ class BloqadeIRTransformer(BloqadeIRVisitor):
                 new_value = {self.visit(item) for item in value}
             elif isinstance(value, tuple):
                 new_value = tuple(self.visit(item) for item in value)
+            elif isinstance(value, frozenset):
+                new_value = frozenset(self.visit(item) for item in value)
             elif isinstance(value, dict):  # sometimes keys are also nodes
                 new_value = {}
                 for key, value in value.items():
@@ -77,7 +79,9 @@ class BloqadeIRTransformer(BloqadeIRVisitor):
                     if isinstance(key, BloqadeNodeTypes):
                         key = self.visit(key)
                     new_value[key] = value
+            else:
+                new_value = value
 
-            constructor_args[field.name] = value
+            constructor_args[field.name] = new_value
         # IR nodes are immutable, so we have to use the constructor
         return node.__class__(**constructor_args)

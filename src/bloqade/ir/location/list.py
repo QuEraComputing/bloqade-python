@@ -20,7 +20,7 @@ class ListOfLocations(AtomArrangement):
             if isinstance(ele, LocationInfo):
                 self.location_list.append(ele)
             else:
-                self.location_list.append(LocationInfo(ele, True))
+                self.location_list.append(LocationInfo.create(ele, True))
 
         if self.location_list:
             self.__n_atoms = sum(

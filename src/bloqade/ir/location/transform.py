@@ -76,7 +76,7 @@ class TransformTrait:
             x, y = location_info.position
             new_position = (scale * x, scale * y)
             location_list.append(
-                LocationInfo(new_position, bool(location_info.filling.value))
+                LocationInfo.create(new_position, bool(location_info.filling.value))
             )
 
         return ListOfLocations(location_list)
@@ -92,7 +92,7 @@ class TransformTrait:
             filling = True
 
         location_list = list(self.enumerate())
-        location_list.append(LocationInfo(position, filling))
+        location_list.append(LocationInfo.create(position, filling))
 
         return ListOfLocations(location_list)
 
@@ -113,11 +113,11 @@ class TransformTrait:
 
         if filling:
             for position, filling in zip(position, filling):
-                location_list.append(LocationInfo(position, filling))
+                location_list.append(LocationInfo.create(position, filling))
 
         else:
             for position in position:
-                location_list.append(LocationInfo(position, True))
+                location_list.append(LocationInfo.create(position, True))
 
         return ListOfLocations(location_list)
 
@@ -257,7 +257,7 @@ class TransformTrait:
 
         for _ in range(n_defects):
             index = rng.choice(filled_sites)
-            location_list[index] = LocationInfo(
+            location_list[index] = LocationInfo.create(
                 location_list[index].position,
                 (False if location_list[index].filling is SiteFilling.filled else True),
             )
@@ -325,7 +325,7 @@ class TransformTrait:
         for location_info in self.enumerate():
             if rng.random() < p:
                 location_list.append(
-                    LocationInfo(
+                    LocationInfo.create(
                         location_info.position,
                         (
                             False

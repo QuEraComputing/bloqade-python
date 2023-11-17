@@ -27,19 +27,22 @@ class SiteFilling(int, Enum):
         return []
 
 
-@dataclass(init=False)
+@dataclass(frozen=True)
 class LocationInfo:
     position: Tuple[Scalar, Scalar]
     filling: SiteFilling
 
     @beartype
-    def __init__(self, position: Tuple[ScalarType, ScalarType], filled: bool):
+    @staticmethod
+    def create(position: Tuple[ScalarType, ScalarType], filled: bool):
         if filled:
-            self.filling = SiteFilling.filled
+            filling = SiteFilling.filled
         else:
-            self.filling = SiteFilling.vacant
+            filling = SiteFilling.vacant
 
-        self.position = tuple(cast(ele) for ele in position)
+        position = tuple(cast(ele) for ele in position)
+
+        return LocationInfo(position, filling)
 
     def print_node(self) -> str:
         return f"Location: {self.filling.name}"
