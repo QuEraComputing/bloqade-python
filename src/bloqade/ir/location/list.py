@@ -7,7 +7,6 @@ from beartype import beartype
 
 @dataclass(init=False)
 class ListOfLocations(AtomArrangement):
-    __match_args__ = ("location_list",)
     location_list: List[LocationInfo]
 
     @beartype
