@@ -1,5 +1,6 @@
+from functools import cached_property
 from .pulse import PulseExpr, Pulse
-from ..scalar import Interval
+from ..scalar import Interval, Scalar, cast
 from ..tree_print import Printer
 
 from pydantic.dataclasses import dataclass
@@ -87,6 +88,14 @@ class SequenceExpr:
 class Append(SequenceExpr):
     sequences: List[SequenceExpr]
 
+    @cached_property
+    def duration(self) -> Scalar:
+        duration = cast(0)
+        for p in self.sequences:
+            duration = duration + p.duration
+
+        return duration
+
     def children(self):
         return self.sequences
 
@@ -117,6 +126,14 @@ class Sequence(SequenceExpr):
             else:
                 raise TypeError(f"Unexpected type {type(pulse)}")
         self.pulses = pulses
+
+    @cached_property
+    def duration(self) -> Scalar:
+        duration = cast(0)
+        for p in self.pulses.values():
+            duration = duration.max(p.duration)
+
+        return duration
 
     def __call__(self, clock_s: float, level_coupling: LevelCoupling, *args, **kwargs):
         return self.pulses[level_coupling](clock_s, *args, **kwargs)
@@ -151,6 +168,10 @@ class NamedSequence(SequenceExpr):
     sequence: SequenceExpr
     name: str
 
+    @cached_property
+    def duration(self) -> Scalar:
+        return self.sequence.duration
+
     def children(self):
         return {"sequence": self.sequence, "name": self.name}
 
@@ -171,6 +192,10 @@ class NamedSequence(SequenceExpr):
 class Slice(SequenceExpr):
     sequence: SequenceExpr
     interval: Interval
+
+    @cached_property
+    def duration(self) -> Scalar:
+        return self.sequence.duration[self.interval.start : self.interval.stop]
 
     def children(self):
         return {"sequence": self.sequence, "interval": self.interval}
