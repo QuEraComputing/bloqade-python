@@ -224,6 +224,7 @@ class Field(FieldExpr):
 
     @cached_property
     def duration(self) -> Scalar:
+        # waveforms are all aligned so that they all start at 0.
         duration = cast(0)
         for val in self.drives.values():
             duration = duration.max(val.duration)

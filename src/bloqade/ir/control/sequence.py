@@ -129,6 +129,7 @@ class Sequence(SequenceExpr):
 
     @cached_property
     def duration(self) -> Scalar:
+        # Pulses are all aligned so that they all start at 0.
         duration = cast(0)
         for p in self.pulses.values():
             duration = duration.max(p.duration)

@@ -173,6 +173,7 @@ class Pulse(PulseExpr):
 
     @cached_property
     def duration(self) -> Scalar:
+        # Fields are all aligned so that they all start at 0.
         duration = cast(0)
         for val in self.fields.values():
             duration = duration.max(val.duration)
