@@ -13,7 +13,7 @@ from bloqade.ir.scalar import (
 from bisect import bisect_left
 from decimal import Decimal
 from pydantic.dataclasses import dataclass
-from beartype.typing import Any, Tuple, Union, List, Callable, Dict
+from beartype.typing import Any, Tuple, Union, List, Callable, Dict, Container
 from beartype import beartype
 from enum import Enum
 
@@ -363,7 +363,7 @@ class Poly(Instruction):
     f(t=0:duration) = c[0] + c[1]t + c[2]t^2 + ... + c[n-1]t^n-1 + c[n]t^n
 
     Args:
-        coeffs (List[Scalar]): the coefficients c[] of the polynomial.
+        coeffs (Tuple[Scalar]): the coefficients c[] of the polynomial.
         duration (Scalar): the time span of the waveform.
 
     """
@@ -372,7 +372,7 @@ class Poly(Instruction):
     duration: Scalar
 
     @beartype
-    def __init__(self, coeffs: List[ScalarType], duration: ScalarType):
+    def __init__(self, coeffs: Container[ScalarType], duration: ScalarType):
         object.__setattr__(self, "coeffs", tuple(map(cast, coeffs)))
         object.__setattr__(self, "duration", cast(duration))
 
