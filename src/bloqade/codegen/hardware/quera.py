@@ -5,7 +5,7 @@ import bloqade.ir.control.field as field
 import bloqade.ir.control.pulse as pulse
 import bloqade.ir.control.sequence as sequence
 
-from bloqade.ir.location.base import AtomArrangement, ParallelRegister
+from bloqade.ir.location.location import AtomArrangement, ParallelRegister
 from bloqade.ir.visitor.analog_circuit import AnalogCircuitVisitor
 
 import bloqade.submission.ir.task_specification as task_spec
