@@ -12,7 +12,7 @@ from bloqade.ir import (
 )
 import bloqade.ir.control.waveform as waveform
 import bloqade.ir.scalar as scalar
-from bloqade.codegen.common.assign_variables import AssignAnalogCircuit
+from bloqade.codegen.common.assign_variables import AssignBloqadeIR
 from bloqade.ir.analysis.assignment_scan import AssignmentScan
 from decimal import Decimal
 import pytest
@@ -27,7 +27,7 @@ def test_assignment():
     )
 
     amp = 2 * [Decimal("1.0")]
-    circuit = AssignAnalogCircuit(dict(amp=amp)).visit(circuit)
+    circuit = AssignBloqadeIR(dict(amp=amp)).visit(circuit)
 
     target_circuit = AnalogCircuit(
         lattice,
@@ -60,9 +60,9 @@ def test_assignment_error():
     )
 
     amp = 2 * [Decimal("1.0")]
-    circuit = AssignAnalogCircuit(dict(amp=amp)).visit(circuit)
+    circuit = AssignBloqadeIR(dict(amp=amp)).visit(circuit)
     with pytest.raises(ValueError):
-        circuit = AssignAnalogCircuit(dict(amp=amp)).visit(circuit)
+        circuit = AssignBloqadeIR(dict(amp=amp)).visit(circuit)
 
 
 def test_scan():
@@ -78,7 +78,7 @@ def test_scan():
     params = dict(max=10, t=0.1)
 
     completed_params = AssignmentScan(params).emit(circuit)
-    completed_circuit = AssignAnalogCircuit(completed_params).visit(circuit)
+    completed_circuit = AssignBloqadeIR(completed_params).visit(circuit)
 
     t_assigned = scalar.AssignedVariable("t", 0.1)
     max_assigned = scalar.AssignedVariable("max", 10)

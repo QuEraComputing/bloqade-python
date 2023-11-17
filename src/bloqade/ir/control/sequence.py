@@ -109,23 +109,23 @@ class Sequence(SequenceExpr):
 
     pulses: dict[LevelCoupling, PulseExpr]
 
-    def __init__(self, seq_pairs: Optional[Dict] = None):
-        if seq_pairs is None:
+    def __init__(self, pulses: Optional[Dict] = None):
+        if pulses is None:
             self.pulses = {}
             return
 
-        pulses = {}
-        for level_coupling, pulse in seq_pairs.items():
+        processed_pulses = {}
+        for level_coupling, pulse in pulses.items():
             if not isinstance(level_coupling, LevelCoupling):
                 raise TypeError(f"Unexpected type {type(level_coupling)}")
 
             if isinstance(pulse, PulseExpr):
-                pulses[level_coupling] = pulse
+                processed_pulses[level_coupling] = pulse
             elif isinstance(pulse, dict):
-                pulses[level_coupling] = Pulse(pulse)
+                processed_pulses[level_coupling] = Pulse(pulse)
             else:
                 raise TypeError(f"Unexpected type {type(pulse)}")
-        self.pulses = pulses
+        self.pulses = processed_pulses
 
     @cached_property
     def duration(self) -> Scalar:

@@ -52,20 +52,20 @@ class QuEraHardwareRoutine(RoutineBase):
         args: Tuple[LiteralType, ...] = (),
         name: Optional[str] = None,
     ) -> RemoteBatch:
-        from bloqade.codegen.common.assign_variables import AssignAnalogCircuit
+        from bloqade.codegen.common.assign_variables import AssignBloqadeIR
 
         from bloqade.ir.analysis.assignment_scan import AssignmentScan
         from bloqade.codegen.hardware.quera import AHSCodegen
 
         circuit, params = self.circuit, self.params
         capabilities = self.backend.get_capabilities()
-        circuit = AssignAnalogCircuit(params.static_params).visit(circuit)
+        circuit = AssignBloqadeIR(params.static_params).visit(circuit)
 
         tasks = OrderedDict()
 
         for task_number, batch_params in enumerate(params.batch_assignments(*args)):
             record_params = AssignmentScan(batch_params).emit(circuit)
-            final_circuit = AssignAnalogCircuit(record_params).visit(circuit)
+            final_circuit = AssignBloqadeIR(record_params).visit(circuit)
             result = AHSCodegen(shots, capabilities=capabilities).emit(final_circuit)
             task_ir = result.quera_task_ir.discretize(capabilities)
             metadata = {**params.static_params, **record_params}

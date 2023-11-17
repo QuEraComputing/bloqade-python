@@ -160,16 +160,16 @@ class Pulse(PulseExpr):
 
     fields: dict[FieldName, Field]
 
-    def __init__(self, field_pairs):
-        fields = dict()
-        for k, v in field_pairs.items():
+    def __init__(self, fields):
+        processed_fields = dict()
+        for k, v in fields.items():
             if isinstance(v, Field):
-                fields[k] = v
+                processed_fields[k] = v
             elif isinstance(v, dict):
-                fields[k] = Field(v)
+                processed_fields[k] = Field(v)
             else:
                 raise TypeError(f"Expected Field or dict, got {type(v)}")
-        self.fields = fields
+        self.fields = processed_fields
 
     @cached_property
     def duration(self) -> Scalar:

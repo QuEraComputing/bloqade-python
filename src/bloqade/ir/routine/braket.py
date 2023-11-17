@@ -38,20 +38,20 @@ class BraketHardwareRoutine(RoutineBase):
         name: Optional[str] = None,
     ) -> RemoteBatch:
         ## fall passes here ###
-        from bloqade.codegen.common.assign_variables import AssignAnalogCircuit
+        from bloqade.codegen.common.assign_variables import AssignBloqadeIR
         from bloqade.ir.analysis.assignment_scan import AssignmentScan
         from bloqade.codegen.hardware.quera import AHSCodegen
 
         capabilities = self.backend.get_capabilities()
 
         circuit, params = self.circuit, self.params
-        circuit = AssignAnalogCircuit(params.static_params).visit(circuit)
+        circuit = AssignBloqadeIR(params.static_params).visit(circuit)
 
         tasks = OrderedDict()
 
         for task_number, batch_params in enumerate(params.batch_assignments(*args)):
             record_params = AssignmentScan(batch_params).emit(circuit)
-            final_circuit = AssignAnalogCircuit(record_params).visit(circuit)
+            final_circuit = AssignBloqadeIR(record_params).visit(circuit)
             # TODO: Replace these two steps with:
             # task_ir, parallel_decoder = BraketCodeGen().emit(shots, final_circuit)
             result = AHSCodegen(shots, capabilities=capabilities).emit(final_circuit)
@@ -172,12 +172,12 @@ class BraketLocalEmulatorRoutine(RoutineBase):
     ) -> LocalBatch:
         ## fall passes here ###
         from bloqade.ir import ParallelRegister
-        from bloqade.codegen.common.assign_variables import AssignAnalogCircuit
+        from bloqade.codegen.common.assign_variables import AssignBloqadeIR
         from bloqade.codegen.hardware.quera import AHSCodegen
         from bloqade.ir.analysis.assignment_scan import AssignmentScan
 
         circuit, params = self.circuit, self.params
-        circuit = AssignAnalogCircuit(params.static_params).visit(circuit)
+        circuit = AssignBloqadeIR(params.static_params).visit(circuit)
 
         if isinstance(circuit.register, ParallelRegister):
             raise TypeError(
@@ -189,7 +189,7 @@ class BraketLocalEmulatorRoutine(RoutineBase):
 
         for task_number, batch_params in enumerate(params.batch_assignments(*args)):
             record_params = AssignmentScan(batch_params).emit(circuit)
-            final_circuit = AssignAnalogCircuit(record_params).visit(circuit)
+            final_circuit = AssignBloqadeIR(record_params).visit(circuit)
             # TODO: Replace these two steps with:
             # task_ir, _ = BraketCodeGen().emit(shots, final_circuit)
             result = AHSCodegen(shots).emit(final_circuit)
