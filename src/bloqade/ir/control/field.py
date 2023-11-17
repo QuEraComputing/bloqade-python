@@ -135,9 +135,9 @@ class AssignedRunTimeVector(SpatialModulation):
 class ScaledLocations(SpatialModulation):
     value: Dict[Location, Scalar]
 
-    def __init__(self, pairs):
-        value = dict()
-        for k, v in pairs.items():
+    def __init__(self, value):
+        processed_value = dict()
+        for k, v in value.items():
             if isinstance(k, int):
                 k = Location(k)
             elif isinstance(k, Location):
@@ -145,8 +145,8 @@ class ScaledLocations(SpatialModulation):
             else:
                 raise ValueError(f"expected Location or int, got {k}")
 
-            value[k] = cast(v)
-        self.value = value
+            processed_value[k] = cast(v)
+        self.value = processed_value
 
     @cached_property
     def _hash_value(self) -> int:
