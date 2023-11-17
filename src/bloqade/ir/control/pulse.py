@@ -1,4 +1,5 @@
-from ..scalar import Interval
+from functools import cached_property
+from ..scalar import Interval, Scalar, cast
 from ..tree_print import Printer
 from .field import Field
 from typing import List
@@ -140,6 +141,14 @@ class Append(PulseExpr):
     def children(self):
         return self.pulses
 
+    @cached_property
+    def duration(self) -> Scalar:
+        duration = cast(0)
+        for p in self.pulses:
+            duration = duration + p.duration
+
+        return duration
+
 
 @dataclass(init=False)
 class Pulse(PulseExpr):
@@ -161,6 +170,12 @@ class Pulse(PulseExpr):
             else:
                 raise TypeError(f"Expected Field or dict, got {type(v)}")
         self.fields = fields
+
+    @cached_property
+    def duration(self) -> Scalar:
+        duration = cast(0)
+        for val in self.fields.values():
+            duration = duration.max(val.duration)
 
     def print_node(self):
         return "Pulse"
@@ -207,6 +222,10 @@ class NamedPulse(PulseExpr):
     def show(self, **assignments):
         display_ir(self, assignments)
 
+    @cached_property
+    def duration(self) -> Scalar:
+        return self.pulse.duration
+
 
 @dataclass
 class Slice(PulseExpr):
@@ -218,3 +237,7 @@ class Slice(PulseExpr):
 
     def children(self):
         return {"Pulse": self.pulse, "Interval": self.interval}
+
+    @cached_property
+    def duration(self) -> Scalar:
+        return self.pulse.duration[self.interval.start : self.interval.stop]
