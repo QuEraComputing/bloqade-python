@@ -1,5 +1,5 @@
 from bloqade.ir.analysis.assignment_scan import AssignmentScan
-from bloqade.ir.location.base import AtomArrangement, SiteFilling
+from bloqade.ir.location.location import AtomArrangement, SiteFilling
 from bloqade.ir.visitor.analog_circuit import AnalogCircuitVisitor
 from bloqade.ir.visitor.waveform import WaveformVisitor
 from bloqade.ir.control.field import (

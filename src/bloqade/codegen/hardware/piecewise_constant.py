@@ -1,5 +1,5 @@
 import bloqade.ir.control.waveform as waveform
-from bloqade.ir.visitor.waveform import WaveformVisitor
+from bloqade.ir.visitor.base import BloqadeIRVisitor
 
 from typing import Dict, Tuple, List, Union
 from pydantic.dataclasses import dataclass
@@ -72,7 +72,7 @@ class PiecewiseConstant:
         )
 
 
-class PiecewiseConstantCodeGen(WaveformVisitor):
+class PiecewiseConstantCodeGen(BloqadeIRVisitor):
     def __init__(self, assignments: Dict[str, Union[numbers.Real, List[numbers.Real]]]):
         self.assignments = assignments
         self.times = []
@@ -87,7 +87,9 @@ class PiecewiseConstantCodeGen(WaveformVisitor):
             self.times = [Decimal(0), duration]
             self.values = [value, value]
 
-    def visit_linear(self, ast: waveform.Linear) -> Tuple[List[Decimal], List[Decimal]]:
+    def visit_waveform_Linear(
+        self, ast: waveform.Linear
+    ) -> Tuple[List[Decimal], List[Decimal]]:
         duration = ast.duration(**self.assignments)
         start = ast.start(**self.assignments)
         stop = ast.stop(**self.assignments)
@@ -100,7 +102,7 @@ class PiecewiseConstantCodeGen(WaveformVisitor):
 
         self.append_timeseries(start, duration)
 
-    def visit_constant(
+    def visit_waveform_Constant(
         self, ast: waveform.Constant
     ) -> Tuple[List[Decimal], List[Decimal]]:
         duration = ast.duration(**self.assignments)
@@ -108,7 +110,9 @@ class PiecewiseConstantCodeGen(WaveformVisitor):
 
         self.append_timeseries(value, duration)
 
-    def visit_poly(self, ast: waveform.Poly) -> Tuple[List[Decimal], List[Decimal]]:
+    def visit_waveform_Poly(
+        self, ast: waveform.Poly
+    ) -> Tuple[List[Decimal], List[Decimal]]:
         order = len(ast.coeffs) - 1
         duration = ast.duration(**self.assignments)
 
@@ -138,19 +142,23 @@ class PiecewiseConstantCodeGen(WaveformVisitor):
 
         self.append_timeseries(value, duration)
 
-    def visit_negative(
+    def visit_waveform_Negative(
         self, ast: waveform.Negative
     ) -> Tuple[List[Decimal], List[Decimal]]:
         self.visit(ast.waveform)
 
         self.values = [-value for value in self.values]
 
-    def visit_scale(self, ast: waveform.Scale) -> Tuple[List[Decimal], List[Decimal]]:
+    def visit_waveform_Scale(
+        self, ast: waveform.Scale
+    ) -> Tuple[List[Decimal], List[Decimal]]:
         self.visit(ast.waveform)
         scale = ast.scalar(**self.assignments)
         self.values = [scale * value for value in self.values]
 
-    def visit_slice(self, ast: waveform.Slice) -> Tuple[List[Decimal], List[Decimal]]:
+    def visit_waveform_Slice(
+        self, ast: waveform.Slice
+    ) -> Tuple[List[Decimal], List[Decimal]]:
         duration = ast.waveform.duration(**self.assignments)
 
         if ast.interval.start is None:
@@ -188,7 +196,9 @@ class PiecewiseConstantCodeGen(WaveformVisitor):
         self.times = new_pwc.times
         self.values = new_pwc.values
 
-    def visit_append(self, ast: waveform.Append) -> Tuple[List[Decimal], List[Decimal]]:
+    def visit_waveform_Append(
+        self, ast: waveform.Append
+    ) -> Tuple[List[Decimal], List[Decimal]]:
         pwc = PiecewiseConstantCodeGen(self.assignments).emit(ast.waveforms[0])
 
         for sub_expr in ast.waveforms[1:]:
@@ -203,7 +213,9 @@ class PiecewiseConstantCodeGen(WaveformVisitor):
         self.times = pwc.times
         self.values = pwc.values
 
-    def visit_sample(self, ast: waveform.Sample) -> Tuple[List[Decimal], List[Decimal]]:
+    def visit_waveform_Sample(
+        self, ast: waveform.Sample
+    ) -> Tuple[List[Decimal], List[Decimal]]:
         if ast.interpolation is not waveform.Interpolation.Constant:
             raise ValueError(
                 "Failed to compile waveform to piecewise constant, "
@@ -212,9 +224,6 @@ class PiecewiseConstantCodeGen(WaveformVisitor):
         self.times, values = ast.samples(**self.assignments)
         values[-1] = values[-2]
         self.values = values
-
-    def visit_record(self, ast: waveform.Record) -> Tuple[List[Decimal], List[Decimal]]:
-        self.visit(ast.waveform)
 
     def emit(self, ast: waveform.Waveform) -> PiecewiseConstant:
         self.visit(ast)

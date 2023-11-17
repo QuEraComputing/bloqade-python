@@ -10,7 +10,7 @@ from bloqade.ir.location import (
     ListOfLocations,
     ParallelRegister,
 )
-from bloqade.ir.location.base import LocationInfo
+from bloqade.ir.location.location import LocationInfo
 from typing import Union, Any
 
 

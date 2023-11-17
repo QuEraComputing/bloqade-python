@@ -4,7 +4,7 @@ from dataclasses import fields
 import numpy as np
 import itertools
 from numpy.typing import NDArray
-from bloqade.ir.location.base import AtomArrangement, LocationInfo
+from bloqade.ir.location.location import AtomArrangement, LocationInfo
 from bloqade.ir import Literal, Scalar, cast
 
 from bloqade.builder.typing import ScalarType

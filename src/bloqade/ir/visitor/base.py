@@ -2,7 +2,7 @@ import bloqade.ir.control.waveform as _waveform
 import bloqade.ir.control.field as _field
 import bloqade.ir.control.pulse as _pulse
 import bloqade.ir.control.sequence as _sequence
-import bloqade.ir.location.base as _location
+import bloqade.ir.location.location as _location
 import bloqade.ir.analog_circuit as _analog_circuit
 import bloqade.ir.scalar as _scalar
 from beartype.typing import Any

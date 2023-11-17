@@ -1,6 +1,5 @@
 import bloqade.ir.control.waveform as waveform
-from bloqade.ir.control.waveform import Record
-from bloqade.ir.visitor.waveform import WaveformVisitor
+from bloqade.ir.visitor.base import BloqadeIRVisitor
 
 from typing import Dict, Tuple, List, Union
 from pydantic.dataclasses import dataclass
@@ -81,7 +80,7 @@ class PiecewiseLinear:
         )
 
 
-class PiecewiseLinearCodeGen(WaveformVisitor):
+class PiecewiseLinearCodeGen(BloqadeIRVisitor):
     def __init__(self, assignments: Dict[str, Union[numbers.Real, List[numbers.Real]]]):
         self.assignments = assignments
         self.times = []
@@ -106,20 +105,24 @@ class PiecewiseLinearCodeGen(WaveformVisitor):
             self.times.append(duration + self.times[-1])
             self.values.append(stop)
 
-    def visit_linear(self, ast: waveform.Linear) -> Tuple[List[Decimal], List[Decimal]]:
+    def visit_waveform_Linear(
+        self, ast: waveform.Linear
+    ) -> Tuple[List[Decimal], List[Decimal]]:
         duration = ast.duration(**self.assignments)
         start = ast.start(**self.assignments)
         stop = ast.stop(**self.assignments)
         self.append_timeseries(start, stop, duration)
 
-    def visit_constant(
+    def visit_waveform_Constant(
         self, ast: waveform.Constant
     ) -> Tuple[List[Decimal], List[Decimal]]:
         duration = ast.duration(**self.assignments)
         value = ast.value(**self.assignments)
         self.append_timeseries(value, value, duration)
 
-    def visit_poly(self, ast: waveform.Poly) -> Tuple[List[Decimal], List[Decimal]]:
+    def visit_waveform_Poly(
+        self, ast: waveform.Poly
+    ) -> Tuple[List[Decimal], List[Decimal]]:
         order = len(ast.coeffs) - 1
         duration = ast.duration(**self.assignments)
 
@@ -140,18 +143,22 @@ class PiecewiseLinearCodeGen(WaveformVisitor):
 
         self.append_timeseries(start, stop, duration)
 
-    def visit_negative(
+    def visit_waveform_Negative(
         self, ast: waveform.Negative
     ) -> Tuple[List[Decimal], List[Decimal]]:
         self.visit(ast.waveform)
         self.values = [-value for value in self.values]
 
-    def visit_scale(self, ast: waveform.Scale) -> Tuple[List[Decimal], List[Decimal]]:
+    def visit_waveform_Scale(
+        self, ast: waveform.Scale
+    ) -> Tuple[List[Decimal], List[Decimal]]:
         self.visit(ast.waveform)
         scaler = ast.scalar(**self.assignments)
         self.values = [scaler * value for value in self.values]
 
-    def visit_slice(self, ast: waveform.Slice) -> Tuple[List[Decimal], List[Decimal]]:
+    def visit_waveform_Slice(
+        self, ast: waveform.Slice
+    ) -> Tuple[List[Decimal], List[Decimal]]:
         duration = ast.waveform.duration(**self.assignments)
         if ast.interval.start is None:
             start_time = Decimal(0)
@@ -185,7 +192,9 @@ class PiecewiseLinearCodeGen(WaveformVisitor):
         self.times = new_pwl.times
         self.values = new_pwl.values
 
-    def visit_append(self, ast: waveform.Append) -> Tuple[List[Decimal], List[Decimal]]:
+    def visit_waveform_Append(
+        self, ast: waveform.Append
+    ) -> Tuple[List[Decimal], List[Decimal]]:
         pwl = PiecewiseLinearCodeGen(self.assignments).emit(ast.waveforms[0])
 
         for sub_expr in ast.waveforms[1:]:
@@ -201,7 +210,9 @@ class PiecewiseLinearCodeGen(WaveformVisitor):
         self.times = pwl.times
         self.values = pwl.values
 
-    def visit_sample(self, ast: waveform.Sample) -> Tuple[List[Decimal], List[Decimal]]:
+    def visit_waveform_Sample(
+        self, ast: waveform.Sample
+    ) -> Tuple[List[Decimal], List[Decimal]]:
         if ast.interpolation is not waveform.Interpolation.Linear:
             raise ValueError(
                 "Failed to compile waveform to piecewise linear, "
@@ -209,9 +220,6 @@ class PiecewiseLinearCodeGen(WaveformVisitor):
             )
 
         self.times, self.values = ast.samples(**self.assignments)
-
-    def visit_record(self, ast: Record) -> Tuple[List[Decimal], List[Decimal]]:
-        self.visit(ast.waveform)
 
     def emit(self, ast: waveform.Waveform) -> PiecewiseLinear:
         self.visit(ast)

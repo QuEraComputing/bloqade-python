@@ -1,7 +1,7 @@
 # from numbers import Real
 from bloqade.visualization import display_ir
 from bloqade.ir.control.sequence import SequenceExpr
-from bloqade.ir.location.base import AtomArrangement, ParallelRegister
+from bloqade.ir.location.location import AtomArrangement, ParallelRegister
 from bloqade.ir.tree_print import Printer
 from beartype.typing import Union
 from pydantic.dataclasses import dataclass

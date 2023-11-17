@@ -14,7 +14,7 @@ from bloqade.ir.location import (
     Square,
     Triangular,
 )
-from bloqade.ir.location.base import AtomArrangement, LocationInfo, ParallelRegister
+from bloqade.ir.location.location import AtomArrangement, LocationInfo, ParallelRegister
 import bloqade.ir.scalar as scalar
 
 from bloqade.ir.visitor.analog_circuit import AnalogCircuitVisitor

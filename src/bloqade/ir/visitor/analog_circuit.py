@@ -2,14 +2,14 @@ import bloqade.ir.control.waveform as waveform
 import bloqade.ir.control.field as field
 import bloqade.ir.control.pulse as pulse
 import bloqade.ir.control.sequence as sequence
-import bloqade.ir.location.base as location
+import bloqade.ir.location.location as location
 import bloqade.ir.analog_circuit as analog_circuit
 
 from bloqade.ir.control.waveform import Waveform
 from bloqade.ir.control.field import Field, SpatialModulation
 from bloqade.ir.control.pulse import PulseExpr
 from bloqade.ir.control.sequence import SequenceExpr
-from bloqade.ir.location.base import AtomArrangement, ParallelRegister
+from bloqade.ir.location.location import AtomArrangement, ParallelRegister
 from bloqade.ir.analog_circuit import AnalogCircuit
 from typing import Union, Any
 
