@@ -27,7 +27,7 @@ def iter_fields(node: Any) -> Any:
         yield field, getattr(node, field.name)
 
 
-class BloqadeNodeVisitor:
+class BloqadeIRVisitor:
     # Following the pattern from from python's ast.NodeVisitor
 
     def visit(self, node: Any) -> Any:
@@ -53,7 +53,7 @@ class BloqadeNodeVisitor:
                         self.visit(key)
 
 
-class BloqadeNodeTransformer(BloqadeNodeVisitor):
+class BloqadeIRTransformer(BloqadeIRVisitor):
     # Following the pattern from from python's ast.NodeTransformer
 
     def generic_visit(self, node: Any) -> Any:
