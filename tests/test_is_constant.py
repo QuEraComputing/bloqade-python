@@ -1,5 +1,5 @@
 from bloqade.atom_arrangement import Chain
-from bloqade.ir.analysis.is_constant import IsConstantAnalogCircuit
+from bloqade.ir.analysis.is_constant import IsConstant
 
 
 def test_happy_path():
@@ -12,8 +12,7 @@ def test_happy_path():
         .parse_circuit()
     )
 
-    result = IsConstantAnalogCircuit().emit(circuit)
-    assert result.is_constant
+    assert IsConstant().scan(circuit)
 
     circuit = (
         Chain(8, 6.1)
@@ -29,8 +28,7 @@ def test_happy_path():
     )
     print(circuit)
     # assert False
-    result = IsConstantAnalogCircuit().emit(circuit)
-    assert result.is_constant
+    assert IsConstant().scan(circuit)
 
 
 def test_fail_shape():
@@ -48,8 +46,7 @@ def test_fail_shape():
     )
     print(circuit)
     # assert False
-    result = IsConstantAnalogCircuit().emit(circuit)
-    assert not result.is_constant
+    assert not IsConstant().scan(circuit)
 
     circuit = (
         Chain(8, 6.1)
@@ -67,8 +64,7 @@ def test_fail_shape():
     )
     print(circuit)
     # assert False
-    result = IsConstantAnalogCircuit().emit(circuit)
-    assert not result.is_constant
+    assert not IsConstant().scan(circuit)
 
 
 def test_fail_duration():
@@ -83,8 +79,7 @@ def test_fail_duration():
 
     print(circuit)
     # assert False
-    result = IsConstantAnalogCircuit().emit(circuit)
-    assert not result.is_constant
+    assert not IsConstant().scan(circuit)
 
     circuit = (
         Chain(8, 6.1)
@@ -98,8 +93,7 @@ def test_fail_duration():
 
     print(circuit)
     # assert False
-    result = IsConstantAnalogCircuit().emit(circuit)
-    assert not result.is_constant
+    assert not IsConstant().scan(circuit)
 
 
 def test_fail_value():
@@ -112,5 +106,4 @@ def test_fail_value():
 
     print(circuit)
     # assert False
-    result = IsConstantAnalogCircuit().emit(circuit)
-    assert not result.is_constant
+    assert not IsConstant().scan(circuit)
