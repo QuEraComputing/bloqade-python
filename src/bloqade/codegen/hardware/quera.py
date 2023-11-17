@@ -512,6 +512,7 @@ class AHSCodegen(AnalogCircuitVisitor):
         self.n_atoms = len(self.sites)
 
     def visit_parallel_register(self, ast: ParallelRegister) -> Any:
+        info = ast.info
         if self.capabilities is None:
             raise NotImplementedError(
                 "Cannot parallelize register without device capabilities."
@@ -525,12 +526,12 @@ class AHSCodegen(AnalogCircuitVisitor):
             self.capabilities.capabilities.lattice.geometry.number_sites_max
         )
 
-        register_filling = np.asarray(ast.register_filling)
+        register_filling = np.asarray(info.register_filling)
 
         register_locations = np.asarray(
             [
                 [s(**self.assignments) for s in location]
-                for location in ast.register_locations
+                for location in info.register_locations
             ]
         )
         register_locations = register_locations - register_locations.min(axis=0)
@@ -538,7 +539,7 @@ class AHSCodegen(AnalogCircuitVisitor):
         shift_vectors = np.asarray(
             [
                 [s(**self.assignments) for s in shift_vector]
-                for shift_vector in ast.shift_vectors
+                for shift_vector in info.shift_vectors
             ]
         )
 
@@ -551,7 +552,7 @@ class AHSCodegen(AnalogCircuitVisitor):
         sites = []
         filling = []
         while c_stack:
-            if len(mapping) + len(ast.register_locations) > number_sites_max:
+            if len(mapping) + len(info.register_locations) > number_sites_max:
                 break
 
             cluster_index = c_stack.pop()
@@ -601,7 +602,7 @@ class AHSCodegen(AnalogCircuitVisitor):
                 global_site_index += 1
 
         self.lattice = task_spec.Lattice(sites=sites, filling=filling)
-        self.n_atoms = len(ast.register_locations)
+        self.n_atoms = len(info.register_locations)
         self.parallel_decoder = ParallelDecoder(mapping=mapping)
 
     def visit_analog_circuit(self, ast: AnalogCircuit) -> Any:

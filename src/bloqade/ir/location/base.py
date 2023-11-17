@@ -168,7 +168,7 @@ class AtomArrangement(ProgramStart, TransformTrait):
 
 
 @dataclass(init=False)
-class ParallelRegister(ProgramStart):
+class ParallelRegisterInfo(ProgramStart):
     """Parallel Register"""
 
     __match_args__ = ("_register", "_cluster_spacing")
@@ -178,14 +178,14 @@ class ParallelRegister(ProgramStart):
     shift_vectors: List[List[Scalar]]
 
     @beartype
-    def __init__(self, register: AtomArrangement, cluster_spacing: ScalarType):
-        self._register = register
+    def __init__(self, atom_arrangement: AtomArrangement, cluster_spacing: ScalarType):
+        self._register = atom_arrangement
         self._cluster_spacing = cast(cluster_spacing)
 
-        if register.n_atoms > 0:
+        if atom_arrangement.n_atoms > 0:
             # calculate bounding box
             # of this register
-            location_iter = register.enumerate()
+            location_iter = atom_arrangement.enumerate()
             (x, y) = next(location_iter).position
             x_min = x
             x_max = x
@@ -203,10 +203,12 @@ class ParallelRegister(ProgramStart):
             shift_y = (y_max - y_min) + cluster_spacing
 
             register_locations = [
-                list(location_info.position) for location_info in register.enumerate()
+                list(location_info.position)
+                for location_info in atom_arrangement.enumerate()
             ]
             register_filling = [
-                location_info.filling.value for location_info in register.enumerate()
+                location_info.filling.value
+                for location_info in atom_arrangement.enumerate()
             ]
             shift_vectors = [[shift_x, cast(0)], [cast(0), shift_y]]
         else:
@@ -216,3 +218,13 @@ class ParallelRegister(ProgramStart):
         self.register_filling = register_filling
         self.shift_vectors = shift_vectors
         super().__init__(self)
+
+
+@dataclass()
+class ParallelRegister:
+    atom_arrangement: AtomArrangement
+    cluster_spacing: Scalar
+
+    @property
+    def info(self) -> ParallelRegisterInfo:
+        return ParallelRegisterInfo(self.atom_arrangement, self.cluster_spacing)
