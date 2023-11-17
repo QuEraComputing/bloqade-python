@@ -94,9 +94,9 @@ class Waveform:
         return get_ir_figure(self, **assignments)
 
     def _get_data(self, npoints, **assignments):
-        from bloqade.ir.analysis.assignment_scan import AssignmentScanRecord
+        from bloqade.ir.analysis.assignment_scan import AssignmentScan
 
-        assignments = AssignmentScanRecord(assignments).emit(self)
+        assignments = AssignmentScan(assignments).emit(self)
 
         duration = float(self.duration(**assignments))
         times = np.linspace(0, duration, npoints + 1)
