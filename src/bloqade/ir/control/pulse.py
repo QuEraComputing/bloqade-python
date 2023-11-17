@@ -177,6 +177,8 @@ class Pulse(PulseExpr):
         for val in self.fields.values():
             duration = duration.max(val.duration)
 
+        return duration
+
     def print_node(self):
         return "Pulse"
 

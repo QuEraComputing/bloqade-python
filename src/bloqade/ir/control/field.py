@@ -228,6 +228,8 @@ class Field(FieldExpr):
         for val in self.drives.values():
             duration = duration.max(val.duration)
 
+        return duration
+
     def __hash__(self) -> int:
         return self._hash_value
 

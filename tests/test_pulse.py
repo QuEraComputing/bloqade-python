@@ -95,6 +95,7 @@ def test_pulse():
 
     assert ps1.print_node() == "Pulse"
     assert ps1.children() == {"Detuning": f}
+    assert ps1.duration == cast(3.0).max(cast(0))
 
     mystdout = StringIO()
     p = PP(mystdout)
@@ -125,8 +126,8 @@ def test_named_pulse():
     ps = NamedPulse("qq", ps1)
 
     assert ps.children() == {"Name": "qq", "Pulse": ps1}
-
     assert ps.print_node() == "NamedPulse"
+    assert ps.duration == cast(0.0).max(cast(3.0))
 
     mystdout = StringIO()
     p = PP(mystdout)
@@ -165,6 +166,7 @@ def test_slice_pulse():
 
     assert ps.print_node() == "Slice"
     assert ps.children() == {"Pulse": ps1, "Interval": itvl}
+    assert ps.duration == cast(0).max(cast(3.0))[itvl.start : itvl.stop]
 
     mystdout = StringIO()
     p = PP(mystdout)
@@ -205,6 +207,8 @@ def test_append_pulse():
     ps = ps1.append(ps1)
 
     assert ps.children() == [ps1, ps1]
+    assert ps.print_node() == "Append"
+    assert ps.duration == cast(0).max(cast(3.0)) + cast(0).max(cast(3.0))
 
     mystdout = StringIO()
     p = PP(mystdout)
