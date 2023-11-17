@@ -76,7 +76,7 @@ class BuilderStream:
         node = None
         while curr is not None:
             next = curr
-            curr = curr.__parent__
+            curr = curr.__parent__ if hasattr(curr, "__parent__") else None
             node = BuilderNode(next, node)
 
         return node
