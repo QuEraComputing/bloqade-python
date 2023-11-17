@@ -11,12 +11,14 @@ from dataclasses import fields
 
 BloqadeNodeTypes = (
     _scalar.Scalar,
+    _scalar.Interval,
     _waveform.Waveform,
     _field.FieldExpr,
     _pulse.PulseExpr,
     _sequence.SequenceExpr,
     _location.AtomArrangement,
     _location.ParallelRegister,
+    _location.LocationInfo,
     _analog_circuit.AnalogCircuit,
 )
 
@@ -40,7 +42,7 @@ class BloqadeIRVisitor:
         for field, value in iter_fields(node):
             if isinstance(value, BloqadeNodeTypes):
                 self.visit(value)
-            elif isinstance(value, (list, set, tuple)):
+            elif isinstance(value, (list, set, tuple, frozenset)):
                 for item in value:
                     if isinstance(item, BloqadeNodeTypes):
                         self.visit(item)
