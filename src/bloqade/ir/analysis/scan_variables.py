@@ -4,7 +4,7 @@ import bloqade.ir.control.field as field
 
 from beartype.typing import FrozenSet
 
-from bloqade.ir.visitor.base import BloqadeIRVisitor
+from bloqade.ir.visitor import BloqadeIRVisitor
 
 
 @dataclass(frozen=True)

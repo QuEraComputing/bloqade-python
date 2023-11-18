@@ -3,7 +3,7 @@ import bloqade.ir.control.field as field
 import bloqade.ir.control.pulse as pulse
 import bloqade.ir.control.sequence as sequence
 from bloqade.builder.typing import LiteralType
-from bloqade.ir.visitor.base import BloqadeIRVisitor
+from bloqade.ir.visitor import BloqadeIRVisitor
 
 from decimal import Decimal
 from beartype.typing import Any, Dict

@@ -2,7 +2,7 @@ import bloqade.ir.control.field as field
 import bloqade.ir.control.waveform as waveform
 import bloqade.ir.scalar as scalar
 from bloqade.builder.typing import LiteralType
-from bloqade.ir.visitor.base import BloqadeIRTransformer
+from bloqade.ir.visitor import BloqadeIRTransformer
 from typing import Any, Dict
 
 

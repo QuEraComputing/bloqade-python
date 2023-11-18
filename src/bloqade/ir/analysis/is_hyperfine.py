@@ -1,6 +1,6 @@
 from beartype.typing import Any
 import bloqade.ir.control.sequence as sequence
-from bloqade.ir.visitor.base import BloqadeIRVisitor
+from bloqade.ir.visitor import BloqadeIRVisitor
 
 
 class IsHyperfineSequence(BloqadeIRVisitor):

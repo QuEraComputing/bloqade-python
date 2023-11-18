@@ -1,5 +1,5 @@
 from bloqade.builder.typing import LiteralType
-from bloqade.ir.visitor.base import BloqadeIRVisitor
+from bloqade.ir.visitor import BloqadeIRVisitor
 import bloqade.ir.control.waveform as waveform
 from typing import Dict
 

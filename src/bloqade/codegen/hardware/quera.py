@@ -5,7 +5,7 @@ import bloqade.ir.control.field as field
 import bloqade.ir.control.pulse as pulse
 import bloqade.ir.control.sequence as sequence
 import bloqade.ir.location as location
-from bloqade.ir.visitor.base import BloqadeIRVisitor
+from bloqade.ir.visitor import BloqadeIRVisitor
 
 import bloqade.submission.ir.task_specification as task_spec
 from bloqade.submission.ir.braket import BraketTaskSpecification

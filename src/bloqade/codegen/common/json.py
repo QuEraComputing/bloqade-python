@@ -17,7 +17,7 @@ from bloqade.ir.location import (
 from bloqade.ir.location.location import LocationInfo, ParallelRegister
 import bloqade.ir.scalar as scalar
 
-from bloqade.ir.visitor.base import BloqadeIRVisitor, BloqadeNodeTypes
+from bloqade.ir.visitor import BloqadeIRVisitor, BloqadeNodeTypes
 
 import json
 

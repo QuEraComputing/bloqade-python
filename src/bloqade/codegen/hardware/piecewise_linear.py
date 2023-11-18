@@ -1,5 +1,5 @@
 import bloqade.ir.control.waveform as waveform
-from bloqade.ir.visitor.base import BloqadeIRVisitor
+from bloqade.ir.visitor import BloqadeIRVisitor
 
 from typing import Dict, Tuple, List, Union
 from pydantic.dataclasses import dataclass
