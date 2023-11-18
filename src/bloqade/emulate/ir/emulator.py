@@ -1,4 +1,4 @@
-from bloqade.codegen.common.json import WaveformSerializer, BloqadeIRDeserializer
+from bloqade.codegen.common.json import BloqadeIRSerializer, BloqadeIRDeserializer
 from bloqade.serialize import Serializer
 from dataclasses import dataclass
 from decimal import Decimal
@@ -22,7 +22,7 @@ class CompiledWaveform:
 def _serialize(obj: CompiledWaveform) -> Dict[str, Any]:
     return {
         "assignments": obj.assignments,
-        "source": WaveformSerializer().default(obj.source),
+        "source": BloqadeIRSerializer().default(obj.source),
     }
 
 
