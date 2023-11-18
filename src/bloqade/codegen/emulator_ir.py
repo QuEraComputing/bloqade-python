@@ -1,5 +1,7 @@
+from beartype.typing import Any
 from bloqade.ir.analysis.assignment_scan import AssignmentScan
 from bloqade.ir.location.location import AtomArrangement, SiteFilling
+from bloqade.ir.visitor.base import BloqadeIRVisitor
 from bloqade.ir.visitor.analog_circuit import AnalogCircuitVisitor
 from bloqade.ir.visitor.waveform import WaveformVisitor
 from bloqade.ir.control.field import (
@@ -34,6 +36,34 @@ from numbers import Number, Real
 from decimal import Decimal
 
 ParamType = Union[Real, List[Real]]
+
+class EmulatorProgramCodeGen(BloqadeIRVisitor):
+    def __init__(
+        self,
+        assignments: Dict[str, Number] = {},
+        blockade_radius: Real = 0.0,
+        use_hyperfine: bool = False,
+    ):
+        self.blockade_radius = Decimal(str(blockade_radius))
+        self.assignments = assignments
+        self.register = None
+        self.duration = 0.0
+        self.pulses = {}
+        self.level_couplings = set()
+        self.original_index = []
+        self.is_hyperfine = use_hyperfine
+        
+    def generic_visit(self, node: Any) -> Any:
+        # if node is a waveform default to visit_waveform
+        if isinstance(node, waveform.Waveform):
+            self.visit_waveform(node)
+        
+        return super().generic_visit(node)
+
+
+    def visit_waveform(self, node):
+        return CompiledWaveform(self.assignments, ast)
+
 
 
 class WaveformCompiler(WaveformVisitor):
