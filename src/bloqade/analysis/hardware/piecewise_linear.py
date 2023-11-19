@@ -2,7 +2,7 @@ from functools import cached_property
 import bloqade.ir.control.waveform as waveform
 import bloqade.ir.scalar as scalar
 from bloqade.ir.control.waveform import PythonFn
-from bloqade.ir.visitor.waveform import WaveformVisitor
+from bloqade.ir.visitor import BloqadeIRVisitor
 
 from pydantic.dataclasses import dataclass
 from decimal import Decimal
@@ -34,7 +34,7 @@ class PiecewiseLinearResult:
         return self.duration_expr()
 
 
-class PiecewiseLinearValidator(WaveformVisitor):
+class PiecewiseLinearValidator(BloqadeIRVisitor):
     def __init__(self):
         self.result = None
 
@@ -73,13 +73,13 @@ class PiecewiseLinearValidator(WaveformVisitor):
                 duration_expr=self.result.duration_expr + other.duration_expr,
             )
 
-    def visit_constant(self, ast: waveform.Constant) -> Any:
+    def visit_waveform_Constant(self, ast: waveform.Constant) -> Any:
         self.check(ast.value, ast.value, ast.duration)
 
-    def visit_linear(self, ast: waveform.Linear) -> Any:
+    def visit_waveform_Linear(self, ast: waveform.Linear) -> Any:
         self.check(ast.start, ast.stop, ast.duration)
 
-    def visit_poly(self, ast: waveform.Poly) -> Any:
+    def visit_waveform_Poly(self, ast: waveform.Poly) -> Any:
         if len(ast.coeffs) == 0:
             start_expr = scalar.Literal(0)
             stop_expr = scalar.Literal(0)
@@ -100,7 +100,7 @@ class PiecewiseLinearValidator(WaveformVisitor):
 
         self.check(start_expr, stop_expr, duration_expr)
 
-    def visit_record(self, ast: waveform.Record):
+    def visit_waveform_Record(self, ast: waveform.Record):
         duration = ast.waveform.duration()
         value = ast.waveform.eval_decimal(
             duration,
@@ -108,7 +108,7 @@ class PiecewiseLinearValidator(WaveformVisitor):
         self.assignments[ast.var.name] = value
         self.visit(ast.waveform)
 
-    def visit_sample(self, ast: waveform.Sample) -> Any:
+    def visit_waveform_Sample(self, ast: waveform.Sample) -> Any:
         if ast.interpolation != waveform.Interpolation.Linear:
             raise ValueError(
                 "failed to compile waveform to piecewise linear. "
@@ -116,38 +116,25 @@ class PiecewiseLinearValidator(WaveformVisitor):
             )
         self.check(ast, ast, ast.duration)
 
-    def visit_python_fn(self, ast: PythonFn) -> Any:
+    def visit_waveform_PythonFn(self, ast: PythonFn) -> Any:
         raise ValueError(
             "PythonFn Waveforms cannot be compiled to piecewise linear. "
             "Try using the `sample` method to sample the waveform and "
             "interpolate it linearly."
         )
 
-    def visit_alligned(self, ast: waveform.AlignedWaveform) -> Any:
-        self.visit(ast.waveform)
-
-    def visit_append(self, ast: waveform.Append):
-        for wf in ast.waveforms:
-            self.visit(wf)
-
-    def visit_slice(self, ast: waveform.Slice):
+    def visit_waveform_Slice(self, ast: waveform.Slice):
         # make sure waveform being sliced is piecewise linear
         PiecewiseLinearValidator().scan(ast.waveform)
         # make sure slice is is piecewise linear
         self.check(ast, ast, ast.duration)
 
-    def visit_add(self, ast: waveform.Add):
+    def visit_waveform_Add(self, ast: waveform.Add):
         scanner = PiecewiseLinearValidator()
         scanner.scan(ast.left)
         scanner.scan(ast.right)
 
         self.check(ast, ast, ast.duration)
-
-    def visit_negative(self, ast: waveform.Negative):
-        self.visit(ast.waveform)
-
-    def visit_scale(self, ast: waveform.Scale):
-        self.visit(ast.waveform)
 
     def scan(self, ast: waveform.Waveform) -> PiecewiseLinearResult:
         self.result = None
