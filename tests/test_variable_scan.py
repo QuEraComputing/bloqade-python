@@ -1,9 +1,6 @@
 from bloqade import start, var
 from bloqade.atom_arrangement import Chain
-from bloqade.ir.analysis.scan_variables import (
-    ScanVariables,
-    ScanVariableResults,
-)
+from bloqade.analysis.common.scan_variables import ScanVariableResults, ScanVariables
 import numpy as np
 
 from bloqade.ir.control.waveform import to_waveform
@@ -27,7 +24,10 @@ def test_1():
     scalar_vars = ["t", "omega", "delta", "m", "lattice_spacing", "a"]
     vector_vars = ["mask"]
     expected_result = ScanVariableResults(
-        scalar_vars=scalar_vars, vector_vars=vector_vars
+        scalar_vars=scalar_vars,
+        vector_vars=vector_vars,
+        assigned_scalar_vars=set(),
+        assigned_vector_vars=set(),
     )
     assert expected_result == ScanVariables().emit(circuit)
 
@@ -62,6 +62,9 @@ def test_2():
     scalar_vars = ["t", "x", "y", "delta", "T", "omega_max", "a", "u", "b"]
     vector_vars = ["mask"]
     expected_result = ScanVariableResults(
-        scalar_vars=scalar_vars, vector_vars=vector_vars
+        scalar_vars=scalar_vars,
+        vector_vars=vector_vars,
+        assigned_scalar_vars=set(),
+        assigned_vector_vars=set(),
     )
     assert expected_result == ScanVariables().emit(circuit)
