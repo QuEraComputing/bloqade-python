@@ -14,8 +14,8 @@ class IsHyperfineSequence(BloqadeIRVisitor):
 
         super().generic_visit(node)
 
-    def visit_sequence_Sequence(self, ast: sequence.Sequence) -> Any:
-        self.is_hyperfine = self.is_hyperfine or sequence.hyperfine in ast.pulses
+    def visit_sequence_Sequence(self, node: sequence.Sequence) -> Any:
+        self.is_hyperfine = self.is_hyperfine or sequence.hyperfine in node.pulses
 
     def emit(self, node) -> bool:
         self.visit(node)

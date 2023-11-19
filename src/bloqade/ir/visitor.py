@@ -30,7 +30,7 @@ def iter_fields(node: Any) -> Any:
 
 
 class BloqadeIRVisitor:
-    # Following the pattern from from python's ast.NodeVisitor
+    # Following the pattern from from python's node.NodeVisitor
 
     def visit(self, node: Any) -> Any:
         name = node.__class__.__name__
@@ -56,7 +56,7 @@ class BloqadeIRVisitor:
 
 
 class BloqadeIRTransformer(BloqadeIRVisitor):
-    # Following the pattern from from python's ast.NodeTransformer
+    # Following the pattern from from python's node.NodeTransformer
 
     def generic_visit(self, node: Any) -> Any:
         constructor_args = {}

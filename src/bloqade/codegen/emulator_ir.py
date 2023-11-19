@@ -43,12 +43,12 @@ class EmulatorProgramCodeGen(BloqadeIRVisitor):
         self.original_index = []
         self.is_hyperfine = use_hyperfine
 
-    def compile_waveform(self, ast: waveform.Waveform) -> CompiledWaveform:
-        return CompiledWaveform(self.assignments, ast)
+    def compile_waveform(self, node: waveform.Waveform) -> CompiledWaveform:
+        return CompiledWaveform(self.assignments, node)
 
-    def construct_register(self, ast: AtomArrangement) -> Any:
+    def construct_register(self, node: AtomArrangement) -> Any:
         positions = []
-        for org_index, loc_info in enumerate(ast.enumerate()):
+        for org_index, loc_info in enumerate(node.enumerate()):
             if loc_info.filling == SiteFilling.filled:
                 position = tuple([pos(**self.assignments) for pos in loc_info.position])
                 positions.append(position)
@@ -67,14 +67,14 @@ class EmulatorProgramCodeGen(BloqadeIRVisitor):
                 blockade_radius=self.blockade_radius,
             )
 
-    def construct_detuning(self, ast: Optional[field.Field]):
-        if ast is None:
+    def construct_detuning(self, node: Optional[field.Field]):
+        if node is None:
             return []
 
         terms = []
 
-        if len(ast.drives) <= self.n_atoms:
-            for sm, wf in ast.drives.items():
+        if len(node.drives) <= self.n_atoms:
+            for sm, wf in node.drives.items():
                 self.duration = max(
                     float(wf.duration(**self.assignments)), self.duration
                 )
@@ -86,7 +86,7 @@ class EmulatorProgramCodeGen(BloqadeIRVisitor):
                     )
                 )
         else:
-            target_atom_dict = {sm: self.visit(sm) for sm in ast.drives.keys()}
+            target_atom_dict = {sm: self.visit(sm) for sm in node.drives.keys()}
 
             for atom in range(self.n_atoms):
                 if not any(atom in value for value in target_atom_dict.values()):
@@ -95,7 +95,7 @@ class EmulatorProgramCodeGen(BloqadeIRVisitor):
                 wf = sum(
                     (
                         target_atom_dict[sm][atom] * wf
-                        for sm, wf in ast.drives.items()
+                        for sm, wf in node.drives.items()
                         if atom in target_atom_dict[sm]
                     ),
                     start=waveform.Constant(0.0, 0.0),
@@ -275,55 +275,57 @@ class EmulatorProgramCodeGen(BloqadeIRVisitor):
 
         super().generic_visit(node)
 
-    def visit_analog_circuit_AnalogCircuit(self, ast: ir.AnalogCircuit):
-        self.visit(ast.register)
-        self.visit(ast.sequence)
+    def visit_analog_circuit_AnalogCircuit(self, node: ir.AnalogCircuit):
+        self.visit(node.register)
+        self.visit(node.sequence)
 
-    def visit_sequence_Sequence(self, ast: sequence.Sequence) -> None:
+    def visit_sequence_Sequence(self, node: sequence.Sequence) -> None:
         level_coupling_mapping = {
             sequence.hyperfine: LevelCoupling.Hyperfine,
             sequence.rydberg: LevelCoupling.Rydberg,
         }
-        for level_coupling, sub_pulse in ast.pulses.items():
+        for level_coupling, sub_pulse in node.pulses.items():
             self.visit(sub_pulse)
             self.pulses[level_coupling_mapping[level_coupling]] = Fields(
                 detuning=self.detuning_terms,
                 rabi=self.rabi_terms,
             )
 
-    def visit_sequence_NamedSequence(self, ast: sequence.NamedSequence) -> None:
-        self.vicit(ast.sequence)
+    def visit_sequence_NamedSequence(self, node: sequence.NamedSequence) -> None:
+        self.vicit(node.sequence)
 
-    def visit_sequence_Slice(self, ast: sequence.Slice) -> None:
+    def visit_sequence_Slice(self, node: sequence.Slice) -> None:
         raise NotImplementedError("Slice sequences are not supported by the emulator.")
 
-    def visit_sequence_Append(self, ast: sequence.Append) -> None:
+    def visit_sequence_Append(self, node: sequence.Append) -> None:
         raise NotImplementedError("Append sequences are not supported by the emulator.")
 
-    def visit_pulse_Pulse(self, ast: pulse.Pulse) -> None:
-        detuning = ast.fields.get(pulse.detuning)
-        amplitude = ast.fields.get(pulse.rabi.amplitude)
-        phase = ast.fields.get(pulse.rabi.phase)
+    def visit_pulse_Pulse(self, node: pulse.Pulse) -> None:
+        detuning = node.fields.get(pulse.detuning)
+        amplitude = node.fields.get(pulse.rabi.amplitude)
+        phase = node.fields.get(pulse.rabi.phase)
 
         self.detuning_terms = self.construct_detuning(detuning)
         self.rabi_terms = self.construct_rabi(amplitude, phase)
 
-    def visit_pulse_NamedPulse(self, ast: pulse.NamedPulse) -> Any:
-        self.visit(ast.pulse)
+    def visit_pulse_NamedPulse(self, node: pulse.NamedPulse) -> Any:
+        self.visit(node.pulse)
 
-    def visit_pulse_Slice(self, ast: pulse.Slice) -> Any:
+    def visit_pulse_Slice(self, node: pulse.Slice) -> Any:
         raise NotImplementedError("Slice pulses are not supported by the emulator.")
 
-    def visit_pulse_Append(self, ast: pulse.Append) -> Any:
+    def visit_pulse_Append(self, node: pulse.Append) -> Any:
         raise NotImplementedError("Append pulses are not supported by the emulator.")
 
     def visit_field_UniformModulation(
-        self, ast: field.UniformModulation
+        self, node: field.UniformModulation
     ) -> Dict[int, Decimal]:
         return {atom: Decimal("1.0") for atom in range(self.n_atoms)}
 
-    def visit_field_RunTimeVector(self, ast: field.RunTimeVector) -> Dict[int, Decimal]:
-        value = self.assignments[ast.name]
+    def visit_field_RunTimeVector(
+        self, node: field.RunTimeVector
+    ) -> Dict[int, Decimal]:
+        value = self.assignments[node.name]
         return {
             new_index: Decimal(str(value[original_index]))
             for new_index, original_index in enumerate(self.original_index)
@@ -331,20 +333,20 @@ class EmulatorProgramCodeGen(BloqadeIRVisitor):
         }
 
     def visit_field_AssignedRunTimeVector(
-        self, ast: field.AssignedRunTimeVector
+        self, node: field.AssignedRunTimeVector
     ) -> Dict[int, Decimal]:
         return {
-            new_index: Decimal(str(ast.value[original_index]))
+            new_index: Decimal(str(node.value[original_index]))
             for new_index, original_index in enumerate(self.original_index)
-            if ast.value[original_index] != 0
+            if node.value[original_index] != 0
         }
 
     def visit_field_ScaledLocations(
-        self, ast: field.ScaledLocations
+        self, node: field.ScaledLocations
     ) -> Dict[int, Decimal]:
         target_atoms = {}
 
-        for location in ast.value.keys():
+        for location in node.value.keys():
             if location.value >= self.n_sites or location.value < 0:
                 raise ValueError(
                     f"Location {location.value} is out of bounds for register with "
@@ -352,7 +354,7 @@ class EmulatorProgramCodeGen(BloqadeIRVisitor):
                 )
 
         for new_index, original_index in enumerate(self.original_index):
-            value = ast.value.get(field.Location(original_index))
+            value = node.value.get(field.Location(original_index))
             if value is not None and value != 0:
                 target_atoms[new_index] = value(**self.assignments)
 

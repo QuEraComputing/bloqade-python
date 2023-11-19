@@ -422,7 +422,7 @@ class PythonFn(Instruction):
 
     fn: Callable  # [[float, ...], float] # f(t) -> value
     duration: Scalar
-    parameters: List[Union[Variable, AssignedVariable]]  # come from ast inspect
+    parameters: List[Union[Variable, AssignedVariable]]  # come from node inspect
     default_param_values: Dict[str, Decimal]
 
     @staticmethod

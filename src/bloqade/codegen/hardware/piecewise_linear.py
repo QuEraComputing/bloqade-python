@@ -106,35 +106,35 @@ class PiecewiseLinearCodeGen(BloqadeIRVisitor):
             self.values.append(stop)
 
     def visit_waveform_Linear(
-        self, ast: waveform.Linear
+        self, node: waveform.Linear
     ) -> Tuple[List[Decimal], List[Decimal]]:
-        duration = ast.duration(**self.assignments)
-        start = ast.start(**self.assignments)
-        stop = ast.stop(**self.assignments)
+        duration = node.duration(**self.assignments)
+        start = node.start(**self.assignments)
+        stop = node.stop(**self.assignments)
         self.append_timeseries(start, stop, duration)
 
     def visit_waveform_Constant(
-        self, ast: waveform.Constant
+        self, node: waveform.Constant
     ) -> Tuple[List[Decimal], List[Decimal]]:
-        duration = ast.duration(**self.assignments)
-        value = ast.value(**self.assignments)
+        duration = node.duration(**self.assignments)
+        value = node.value(**self.assignments)
         self.append_timeseries(value, value, duration)
 
     def visit_waveform_Poly(
-        self, ast: waveform.Poly
+        self, node: waveform.Poly
     ) -> Tuple[List[Decimal], List[Decimal]]:
-        order = len(ast.coeffs) - 1
-        duration = ast.duration(**self.assignments)
+        order = len(node.coeffs) - 1
+        duration = node.duration(**self.assignments)
 
-        if len(ast.coeffs) == 0:
+        if len(node.coeffs) == 0:
             start = Decimal(0)
             stop = Decimal(0)
-        elif len(ast.coeffs) == 1:
-            start = ast.coeffs[0](**self.assignments)
+        elif len(node.coeffs) == 1:
+            start = node.coeffs[0](**self.assignments)
             stop = start
-        elif len(ast.coeffs) == 2:
-            start = ast.coeffs[0](**self.assignments)
-            stop = start + ast.coeffs[1](**self.assignments) * duration
+        elif len(node.coeffs) == 2:
+            start = node.coeffs[0](**self.assignments)
+            stop = start + node.coeffs[1](**self.assignments) * duration
         else:
             raise ValueError(
                 "Failed to compile Waveform to piecewise linear,"
@@ -144,31 +144,31 @@ class PiecewiseLinearCodeGen(BloqadeIRVisitor):
         self.append_timeseries(start, stop, duration)
 
     def visit_waveform_Negative(
-        self, ast: waveform.Negative
+        self, node: waveform.Negative
     ) -> Tuple[List[Decimal], List[Decimal]]:
-        self.visit(ast.waveform)
+        self.visit(node.waveform)
         self.values = [-value for value in self.values]
 
     def visit_waveform_Scale(
-        self, ast: waveform.Scale
+        self, node: waveform.Scale
     ) -> Tuple[List[Decimal], List[Decimal]]:
-        self.visit(ast.waveform)
-        scaler = ast.scalar(**self.assignments)
+        self.visit(node.waveform)
+        scaler = node.scalar(**self.assignments)
         self.values = [scaler * value for value in self.values]
 
     def visit_waveform_Slice(
-        self, ast: waveform.Slice
+        self, node: waveform.Slice
     ) -> Tuple[List[Decimal], List[Decimal]]:
-        duration = ast.waveform.duration(**self.assignments)
-        if ast.interval.start is None:
+        duration = node.waveform.duration(**self.assignments)
+        if node.interval.start is None:
             start_time = Decimal(0)
         else:
-            start_time = ast.interval.start(**self.assignments)
+            start_time = node.interval.start(**self.assignments)
 
-        if ast.interval.stop is None:
+        if node.interval.stop is None:
             stop_time = duration
         else:
-            stop_time = ast.interval.stop(**self.assignments)
+            stop_time = node.interval.stop(**self.assignments)
 
         if start_time < 0:
             raise ValueError((f"start time for slice {start_time} is smaller than 0."))
@@ -186,18 +186,18 @@ class PiecewiseLinearCodeGen(BloqadeIRVisitor):
                 )
             )
 
-        pwl = PiecewiseLinearCodeGen(self.assignments).emit(ast.waveform)
+        pwl = PiecewiseLinearCodeGen(self.assignments).emit(node.waveform)
         new_pwl = pwl.slice(start_time, stop_time)
 
         self.times = new_pwl.times
         self.values = new_pwl.values
 
     def visit_waveform_Append(
-        self, ast: waveform.Append
+        self, node: waveform.Append
     ) -> Tuple[List[Decimal], List[Decimal]]:
-        pwl = PiecewiseLinearCodeGen(self.assignments).emit(ast.waveforms[0])
+        pwl = PiecewiseLinearCodeGen(self.assignments).emit(node.waveforms[0])
 
-        for sub_expr in ast.waveforms[1:]:
+        for sub_expr in node.waveforms[1:]:
             new_pwl = PiecewiseLinearCodeGen(self.assignments).emit(sub_expr)
 
             # skip instructions with duration=0
@@ -211,16 +211,16 @@ class PiecewiseLinearCodeGen(BloqadeIRVisitor):
         self.values = pwl.values
 
     def visit_waveform_Sample(
-        self, ast: waveform.Sample
+        self, node: waveform.Sample
     ) -> Tuple[List[Decimal], List[Decimal]]:
-        if ast.interpolation is not waveform.Interpolation.Linear:
+        if node.interpolation is not waveform.Interpolation.Linear:
             raise ValueError(
                 "Failed to compile waveform to piecewise linear, "
-                f"found piecewise {ast.interpolation.value} interpolation."
+                f"found piecewise {node.interpolation.value} interpolation."
             )
 
-        self.times, self.values = ast.samples(**self.assignments)
+        self.times, self.values = node.samples(**self.assignments)
 
-    def emit(self, ast: waveform.Waveform) -> PiecewiseLinear:
-        self.visit(ast)
+    def emit(self, node: waveform.Waveform) -> PiecewiseLinear:
+        self.visit(node)
         return PiecewiseLinear(self.times, self.values)
