@@ -35,7 +35,7 @@ with tempfile.NamedTemporaryFile() as f:
     future2 = future.remove_tasks("Completed")
     future2
 
-print(future.report().bitstrings)
-print(future.report().counts)
+print(future.report().bitstrings())
+print(future.report().counts())
 print(future.report().dataframe)
 print(future.report().rydberg_densities())

@@ -1,12 +1,11 @@
 from functools import cached_property
-from bloqade.ir.analog_circuit import AnalogCircuit
 from bloqade.ir.scalar import Literal
+import bloqade.ir.analog_circuit as analog_circuit
 import bloqade.ir.control.field as field
 import bloqade.ir.control.pulse as pulse
 import bloqade.ir.control.sequence as sequence
-
-from bloqade.ir.location.base import AtomArrangement, ParallelRegister
-from bloqade.ir.visitor.analog_circuit import AnalogCircuitVisitor
+import bloqade.ir.location as location
+from bloqade.ir.visitor import BloqadeIRVisitor
 
 import bloqade.submission.ir.task_specification as task_spec
 from bloqade.submission.ir.braket import BraketTaskSpecification
@@ -254,7 +253,7 @@ class AHSCodegenResult:
         )
 
 
-class AHSCodegen(AnalogCircuitVisitor):
+class AHSCodegen(BloqadeIRVisitor):
     def __init__(
         self,
         shots: int,
@@ -328,57 +327,14 @@ class AHSCodegen(AnalogCircuitVisitor):
         else:
             self.lattice_site_coefficients = lattice_site_coefficients
 
-    def visit_location(self, ast: field.Location) -> Any:
-        if (
-            ast.value >= self.n_atoms
-        ):  # n_atoms is now the number of atoms in the parallelized
-            # lattice, but needs to be num. atoms in the original
-            raise ValueError(
-                f"field.Location({ast.value}) is larger than the register."
-            )
-
-    def visit_uniform_modulation(self, ast: field.UniformModulation) -> Any:
-        lattice_site_coefficients = [Decimal("1.0") for _ in range(self.n_atoms)]
-        self.post_visit_spatial_modulation(lattice_site_coefficients)
-
-    def visit_scaled_locations(self, ast: field.ScaledLocations) -> Any:
-        lattice_site_coefficients = []
-
-        for location in ast.value.keys():
-            self.visit(location)
-
-        for atom_index in range(self.n_atoms):
-            scale = ast.value.get(field.Location(atom_index), Literal(0.0))
-            lattice_site_coefficients.append(scale(**self.assignments))
-
-        self.post_visit_spatial_modulation(lattice_site_coefficients)
-
-    def visit_run_time_vector(self, ast: field.RunTimeVector) -> Any:
-        if len(self.assignments[ast.name]) != self.n_atoms:
-            raise ValueError(
-                f"Coefficient list {ast.name} doesn't match the size of register "
-                f"{self.n_atoms}."
-            )
-        lattice_site_coefficients = list(self.assignments[ast.name])
-        self.post_visit_spatial_modulation(lattice_site_coefficients)
-
-    def visit_assigned_run_time_vector(self, ast: field.AssignedRunTimeVector) -> Any:
-        if len(ast.value) != self.n_atoms:
-            raise ValueError(
-                f"Coefficient list {ast.name} doesn't match the size of register "
-                f"{self.n_atoms}."
-            )
-        lattice_site_coefficients = ast.value
-        self.post_visit_spatial_modulation(lattice_site_coefficients)
-
-    def calculate_detuning(self, ast: field.Field) -> Any:
-        if len(ast.drives) == 1 and field.Uniform in ast.drives:
+    def calculate_detuning(self, node: field.Field) -> Any:
+        if len(node.drives) == 1 and field.Uniform in node.drives:
             self.global_detuning = PiecewiseLinearCodeGen(self.assignments).emit(
-                ast.drives[field.Uniform]
+                node.drives[field.Uniform]
             )
 
-        elif len(ast.drives) == 1:
-            ((spatial_modulation, waveform),) = ast.drives.items()
+        elif len(node.drives) == 1:
+            ((spatial_modulation, waveform),) = node.drives.items()
 
             self.local_detuning = PiecewiseLinearCodeGen(self.assignments).emit(
                 waveform
@@ -390,17 +346,17 @@ class AHSCodegen(AnalogCircuitVisitor):
 
             self.visit(spatial_modulation)
 
-        elif len(ast.drives) == 2 and field.Uniform in ast.drives:
+        elif len(node.drives) == 2 and field.Uniform in node.drives:
             # will only be two keys
-            for k in ast.drives.keys():
+            for k in node.drives.keys():
                 if k == field.Uniform:
                     self.global_detuning = PiecewiseLinearCodeGen(
                         self.assignments
-                    ).emit(ast.drives[field.Uniform])
+                    ).emit(node.drives[field.Uniform])
                 else:  # can be field.RunTimeVector or field.ScaledLocations
                     spatial_modulation = k
                     self.local_detuning = PiecewiseLinearCodeGen(self.assignments).emit(
-                        ast.drives[k]
+                        node.drives[k]
                     )
 
             self.visit(spatial_modulation)  # just visit the non-uniform locations
@@ -409,109 +365,169 @@ class AHSCodegen(AnalogCircuitVisitor):
             raise ValueError(
                 "Failed to compile Detuning to QuEra task, "
                 "found more than one non-uniform modulation: "
-                f"{repr(ast)}."
+                f"{repr(node)}."
             )
 
-    def calculate_rabi_amplitude(self, ast: field.Field) -> Any:
-        if len(ast.drives) == 1 and field.Uniform in ast.drives:
+    def calculate_rabi_amplitude(self, node: field.Field) -> Any:
+        if len(node.drives) == 1 and field.Uniform in node.drives:
             self.global_rabi_amplitude = PiecewiseLinearCodeGen(self.assignments).emit(
-                ast.drives[field.Uniform]
+                node.drives[field.Uniform]
             )
 
         else:
             raise ValueError(
                 "Failed to compile Rabi Amplitude to QuEra task, "
                 "found non-uniform modulation: "
-                f"{repr(ast)}."
+                f"{repr(node)}."
             )
 
-    def calculate_rabi_phase(self, ast: field.Field) -> Any:
-        if len(ast.drives) == 1 and field.Uniform in ast.drives:  # has to be global
+    def calculate_rabi_phase(self, node: field.Field) -> Any:
+        if len(node.drives) == 1 and field.Uniform in node.drives:  # has to be global
             self.global_rabi_phase = PiecewiseConstantCodeGen(self.assignments).emit(
-                ast.drives[field.Uniform]
+                node.drives[field.Uniform]
             )
 
         else:
             raise ValueError(
                 "Failed to compile Rabi Phase to QuEra task, "
                 "found non-uniform modulation: "
-                f"{repr(ast)}."
+                f"{repr(node)}."
             )
 
-    def visit_field(self, ast: field.Field):
-        if self.field_name == pulse.detuning:
-            self.calculate_detuning(ast)
-        elif self.field_name == pulse.rabi.amplitude:
-            self.calculate_rabi_amplitude(ast)
-        elif self.field_name == pulse.rabi.phase:
-            self.calculate_rabi_phase(ast)
-
-    def visit_pulse(self, ast: pulse.Pulse):
-        for field_name in ast.fields.keys():
-            self.field_name = field_name
-            self.visit(ast.fields[field_name])
-
-    def visit_named_pulse(self, ast: pulse.NamedPulse):
-        self.visit(ast.pulse)
-
-    def visit_append_pulse(self, ast: pulse.Append):
-        subexpr_compiler = AHSCodegen(self.nshots, self.assignments)
-        ahs_result = subexpr_compiler.emit(ast.pulses)
-
-        for seq in ast.sequences:
-            new_ahs_result = subexpr_compiler.emit(seq)
-            ahs_result = ahs_result.append(new_ahs_result)
-
-        self.extract_fields(ahs_result)
-
-    def visit_slice_pulse(self, ast: pulse.Slice):
-        start_time = ast.interval.start(**self.assignments)
-        stop_time = ast.interval.stop(**self.assignments)
-
-        ahs_result = AHSCodegen(self.nshots, self.assignments).emit(ast.pulse)
-        ahs_result = ahs_result.slice(start_time, stop_time)
-
-        self.extract_fields(ahs_result)
-
-    def visit_sequence(self, ast: sequence.Sequence):
-        if sequence.HyperfineLevelCoupling() in ast.pulses:
-            raise ValueError("QuEra tasks does not support Hyperfine coupling.")
-
-        self.visit(ast.pulses.get(sequence.RydbergLevelCoupling(), pulse.Pulse({})))
-
-    def visit_named_sequence(self, ast: sequence.NamedSequence):
-        self.visit(ast.sequence)
-
-    def visit_append_sequence(self, ast: sequence.Append):
-        subexpr_compiler = AHSCodegen(self.nshots, self.assignments)
-        ahs_result = subexpr_compiler.emit(ast.sequences[0])
-
-        for sub_sequence in ast.sequences[1:]:
-            new_ahs_result = subexpr_compiler.emit(sub_sequence)
-            ahs_result = ahs_result.append(new_ahs_result)
-
-        self.extract_fields(ahs_result)
-
-    def visit_slice_sequence(self, ast: sequence.Slice):
-        start_time = ast.interval.start(**self.assignments)
-        stop_time = ast.interval.stop(**self.assignments)
-
-        ahs_result = AHSCodegen(self.nshots, self.assignments).emit(ast.sequence)
-        ahs_result = ahs_result.slice(start_time, stop_time)
-        self.extract_fields(ahs_result)
-
-    def visit_register(self, ast: AtomArrangement):
+    def visit_register(self, node: location.AtomArrangement):
+        # default visitor for AtomArrangement
         self.sites = []
         self.filling = []
 
-        for location_info in ast.enumerate():
+        for location_info in node.enumerate():
             site = tuple(ele(**self.assignments) for ele in location_info.position)
             self.sites.append(site)
             self.filling.append(location_info.filling.value)
 
         self.n_atoms = len(self.sites)
 
-    def visit_parallel_register(self, ast: ParallelRegister) -> Any:
+    #########################
+    # Begin visitor methods #
+    #########################
+
+    def generic_visit(self, node):
+        # dispatch all AtomArrangement nodes to visit_register
+        # otherwise dispatch to super
+        if isinstance(node, location.AtomArrangement):
+            self.visit_register(node)
+
+        super().generic_visit(node)
+
+    def visit_field_Location(self, node: field.Location):
+        if node.value >= self.n_atoms:
+            raise ValueError(
+                f"Location index out of bounds, found {node.value}"
+                f" but with a register of size {self.n_atoms}."
+            )
+
+    def visit_analog_circuit_AnalogCircuit(
+        self, node: analog_circuit.AnalogCircuit
+    ) -> Any:
+        self.visit(node.register)
+        self.visit(node.sequence)
+
+    def visit_field_Uniform(self, node: field.UniformModulation) -> Any:
+        lattice_site_coefficients = [Decimal("1.0") for _ in range(self.n_atoms)]
+        self.post_visit_spatial_modulation(lattice_site_coefficients)
+
+    def visit_field_ScaledLocations(self, node: field.ScaledLocations) -> Any:
+        lattice_site_coefficients = []
+
+        for loc in node.value.keys():
+            self.visit(loc)
+
+        for atom_index in range(self.n_atoms):
+            scale = node.value.get(field.Location(atom_index), Literal(0.0))
+            lattice_site_coefficients.append(scale(**self.assignments))
+
+        self.post_visit_spatial_modulation(lattice_site_coefficients)
+
+    def visit_field_RunTimeVector(self, node: field.RunTimeVector) -> Any:
+        if len(self.assignments[node.name]) != self.n_atoms:
+            raise ValueError(
+                f"Coefficient list {node.name} doesn't match the size of register "
+                f"{self.n_atoms}."
+            )
+        lattice_site_coefficients = list(self.assignments[node.name])
+        self.post_visit_spatial_modulation(lattice_site_coefficients)
+
+    def visit_field_AssignedRunTimeVector(
+        self, node: field.AssignedRunTimeVector
+    ) -> Any:
+        if len(node.value) != self.n_atoms:
+            raise ValueError(
+                f"Coefficient list {node.name} doesn't match the size of register "
+                f"{self.n_atoms}."
+            )
+        lattice_site_coefficients = node.value
+        self.post_visit_spatial_modulation(lattice_site_coefficients)
+
+    def visit_field_Field(self, node: field.Field):
+        if self.field_name == pulse.detuning:
+            self.calculate_detuning(node)
+        elif self.field_name == pulse.rabi.amplitude:
+            self.calculate_rabi_amplitude(node)
+        elif self.field_name == pulse.rabi.phase:
+            self.calculate_rabi_phase(node)
+
+    def visit_pulse_Pulse(self, node: pulse.Pulse):
+        for field_name in node.fields.keys():
+            self.field_name = field_name
+            self.visit(node.fields[field_name])
+
+    def visit_pulse_NamedNulse(self, node: pulse.NamedPulse):
+        self.visit(node.pulse)
+
+    def visit_pulse_Append(self, node: pulse.Append):
+        subexpr_compiler = AHSCodegen(self.nshots, self.assignments)
+        ahs_result = subexpr_compiler.emit(node.pulses)
+
+        for seq in node.sequences:
+            new_ahs_result = subexpr_compiler.emit(seq)
+            ahs_result = ahs_result.append(new_ahs_result)
+
+        self.extract_fields(ahs_result)
+
+    def visit_pulse_Slice(self, node: pulse.Slice):
+        start_time = node.interval.start(**self.assignments)
+        stop_time = node.interval.stop(**self.assignments)
+
+        ahs_result = AHSCodegen(self.nshots, self.assignments).emit(node.pulse)
+        ahs_result = ahs_result.slice(start_time, stop_time)
+
+        self.extract_fields(ahs_result)
+
+    def visit_sequence_Sequence(self, node: sequence.Sequence):
+        if sequence.HyperfineLevelCoupling() in node.pulses:
+            raise ValueError("QuEra tasks does not support Hyperfine coupling.")
+
+        self.visit(node.pulses.get(sequence.RydbergLevelCoupling(), pulse.Pulse({})))
+
+    def visit_sequence_Append(self, node: sequence.Append):
+        subexpr_compiler = AHSCodegen(self.nshots, self.assignments)
+        ahs_result = subexpr_compiler.emit(node.sequences[0])
+
+        for sub_sequence in node.sequences[1:]:
+            new_ahs_result = subexpr_compiler.emit(sub_sequence)
+            ahs_result = ahs_result.append(new_ahs_result)
+
+        self.extract_fields(ahs_result)
+
+    def visit_sequence_Slice(self, node: sequence.Slice):
+        start_time = node.interval.start(**self.assignments)
+        stop_time = node.interval.stop(**self.assignments)
+
+        ahs_result = AHSCodegen(self.nshots, self.assignments).emit(node.sequence)
+        ahs_result = ahs_result.slice(start_time, stop_time)
+        self.extract_fields(ahs_result)
+
+    def visit_location_ParallelRegister(self, node: location.ParallelRegister) -> Any:
+        info = node.info
         if self.capabilities is None:
             raise NotImplementedError(
                 "Cannot parallelize register without device capabilities."
@@ -525,12 +541,12 @@ class AHSCodegen(AnalogCircuitVisitor):
             self.capabilities.capabilities.lattice.geometry.number_sites_max
         )
 
-        register_filling = np.asarray(ast.register_filling)
+        register_filling = np.asarray(info.register_filling)
 
         register_locations = np.asarray(
             [
                 [s(**self.assignments) for s in location]
-                for location in ast.register_locations
+                for location in info.register_locations
             ]
         )
         register_locations = register_locations - register_locations.min(axis=0)
@@ -538,7 +554,7 @@ class AHSCodegen(AnalogCircuitVisitor):
         shift_vectors = np.asarray(
             [
                 [s(**self.assignments) for s in shift_vector]
-                for shift_vector in ast.shift_vectors
+                for shift_vector in info.shift_vectors
             ]
         )
 
@@ -551,7 +567,7 @@ class AHSCodegen(AnalogCircuitVisitor):
         sites = []
         filling = []
         while c_stack:
-            if len(mapping) + len(ast.register_locations) > number_sites_max:
+            if len(mapping) + len(info.register_locations) > number_sites_max:
                 break
 
             cluster_index = c_stack.pop()
@@ -583,10 +599,10 @@ class AHSCodegen(AnalogCircuitVisitor):
                     visited.add(new_cluster_index)
                     c_stack.append(new_cluster_index)
 
-            for cluster_location_index, (location, filled) in enumerate(
+            for cluster_location_index, (loc, filled) in enumerate(
                 zip(new_register_locations[:], register_filling)
             ):
-                site = tuple(location)
+                site = tuple(loc)
                 sites.append(site)
                 filling.append(filled)
 
@@ -601,15 +617,11 @@ class AHSCodegen(AnalogCircuitVisitor):
                 global_site_index += 1
 
         self.lattice = task_spec.Lattice(sites=sites, filling=filling)
-        self.n_atoms = len(ast.register_locations)
+        self.n_atoms = len(info.register_locations)
         self.parallel_decoder = ParallelDecoder(mapping=mapping)
 
-    def visit_analog_circuit(self, ast: AnalogCircuit) -> Any:
-        self.visit(ast.register)
-        self.visit(ast.sequence)
-
-    def emit(self, ast) -> AHSCodegenResult:
-        self.visit(ast)
+    def emit(self, node) -> AHSCodegenResult:
+        self.visit(node)
         self.fix_up_missing_fields()
 
         if all(  # TODO: move this into analysis portion.

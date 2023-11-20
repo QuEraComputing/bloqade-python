@@ -1,28 +1,22 @@
-from typing import Any
-import bloqade.ir.analog_circuit as analog_circuit
+from beartype.typing import Any
 import bloqade.ir.control.sequence as sequence
-from bloqade.ir.visitor.analog_circuit import AnalogCircuitVisitor
+from bloqade.ir.visitor import BloqadeIRVisitor
 
 
-class IsHyperfineSequence(AnalogCircuitVisitor):
+class IsHyperfineSequence(BloqadeIRVisitor):
     def __init__(self):
         self.is_hyperfine = False
 
-    def visit_analog_circuit(self, ast: analog_circuit.AnalogCircuit) -> Any:
-        self.visit(ast.sequence)
+    def generic_visit(self, node: Any) -> Any:
+        # skip visiting children if we already know there are hyperfine pulses
+        if self.is_hyperfine:
+            return
 
-    def visit_append_sequence(self, ast: sequence.Append) -> Any:
-        list(map(self.visit, ast.sequences))
+        super().generic_visit(node)
 
-    def visit_slice_sequence(self, ast: sequence.Slice) -> Any:
-        self.visit(ast.sequence)
+    def visit_sequence_Sequence(self, node: sequence.Sequence) -> Any:
+        self.is_hyperfine = self.is_hyperfine or sequence.hyperfine in node.pulses
 
-    def visit_named_sequence(self, ast: sequence.NamedSequence) -> Any:
-        self.visit(ast.sequence)
-
-    def visit_sequence(self, ast: sequence.Sequence) -> Any:
-        self.is_hyperfine = self.is_hyperfine or sequence.hyperfine in ast.pulses
-
-    def emit(self, ast: analog_circuit.AnalogCircuit) -> bool:
-        self.visit(ast)
+    def emit(self, node) -> bool:
+        self.visit(node)
         return self.is_hyperfine

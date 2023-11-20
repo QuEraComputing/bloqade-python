@@ -13,7 +13,7 @@ from bloqade.ir.scalar import (
 from bisect import bisect_left
 from decimal import Decimal
 from pydantic.dataclasses import dataclass
-from beartype.typing import Any, Tuple, Union, List, Callable, Dict
+from beartype.typing import Any, Tuple, Union, List, Callable, Dict, Container
 from beartype import beartype
 from enum import Enum
 
@@ -94,9 +94,9 @@ class Waveform:
         return get_ir_figure(self, **assignments)
 
     def _get_data(self, npoints, **assignments):
-        from bloqade.ir.analysis.assignment_scan import AssignmentScanRecord
+        from bloqade.ir.analysis.assignment_scan import AssignmentScan
 
-        assignments = AssignmentScanRecord(assignments).emit(self)
+        assignments = AssignmentScan(assignments).emit(self)
 
         duration = float(self.duration(**assignments))
         times = np.linspace(0, duration, npoints + 1)
@@ -363,7 +363,7 @@ class Poly(Instruction):
     f(t=0:duration) = c[0] + c[1]t + c[2]t^2 + ... + c[n-1]t^n-1 + c[n]t^n
 
     Args:
-        coeffs (List[Scalar]): the coefficients c[] of the polynomial.
+        coeffs (Tuple[Scalar]): the coefficients c[] of the polynomial.
         duration (Scalar): the time span of the waveform.
 
     """
@@ -372,7 +372,7 @@ class Poly(Instruction):
     duration: Scalar
 
     @beartype
-    def __init__(self, coeffs: List[ScalarType], duration: ScalarType):
+    def __init__(self, coeffs: Container[ScalarType], duration: ScalarType):
         object.__setattr__(self, "coeffs", tuple(map(cast, coeffs)))
         object.__setattr__(self, "duration", cast(duration))
 
@@ -422,7 +422,7 @@ class PythonFn(Instruction):
 
     fn: Callable  # [[float, ...], float] # f(t) -> value
     duration: Scalar
-    parameters: List[Union[Variable, AssignedVariable]]  # come from ast inspect
+    parameters: List[Union[Variable, AssignedVariable]]  # come from node inspect
     default_param_values: Dict[str, Decimal]
 
     @staticmethod

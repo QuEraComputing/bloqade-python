@@ -58,16 +58,16 @@ class BloqadePythonRoutine(RoutineBase):
 
     def _generate_ir(self, args, blockade_radius):
         from bloqade.ir.analysis.assignment_scan import AssignmentScan
-        from bloqade.codegen.common.assign_variables import AssignAnalogCircuit
+        from bloqade.codegen.common.assign_variables import AssignBloqadeIR
         from bloqade.codegen.emulator_ir import EmulatorProgramCodeGen
 
         circuit, params = self.circuit, self.params
 
-        circuit = AssignAnalogCircuit(params.static_params).visit(circuit)
+        circuit = AssignBloqadeIR(params.static_params).visit(circuit)
 
         for task_number, batch_param in enumerate(params.batch_assignments(*args)):
             record_params = AssignmentScan(batch_param).emit(circuit)
-            final_circuit = AssignAnalogCircuit(record_params).visit(circuit)
+            final_circuit = AssignBloqadeIR(record_params).visit(circuit)
             metadata = {**params.static_params, **record_params}
             emulator_ir = EmulatorProgramCodeGen(blockade_radius=blockade_radius).emit(
                 final_circuit
