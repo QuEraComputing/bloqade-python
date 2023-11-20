@@ -35,9 +35,9 @@ def to_waveform(duration: ScalarType) -> Callable[[Callable], "PythonFn"]:
     return waveform_wrapper
 
 
-class AlignedValue(str, Enum):
-    Left = "left_value"
-    Right = "right_value"
+class Side(str, Enum):
+    Left = "left"
+    Right = "right"
 
 
 class Alignment(str, Enum):
@@ -107,16 +107,21 @@ class Waveform:
         display_ir(self, assignments)
 
     def align(
-        self, alignment: Alignment, value: Union[None, AlignedValue, Scalar] = None
+        self, alignment: Alignment, value: Union[None, Side, Scalar] = None
     ) -> "Waveform":
+        if isinstance(self, AlignedWaveform):
+            raise ValueError("Cannot align an aligned waveform")
+
         if value is None:
-            if alignment == Alignment.Left:
-                value = AlignedValue.Left
-            elif alignment == Alignment.Right:
-                value = AlignedValue.Right
+            if alignment == Alignment.Right:
+                value = Side.Left
+            elif alignment == Alignment.Left:
+                value = Side.Right
             else:
                 raise ValueError(f"Invalid alignment: {alignment}")
-        elif value is Scalar or value is AlignedValue:
+
+            return self.canonicalize(AlignedWaveform(self, alignment, value))
+        elif isinstance(value, (Side, Scalar)):
             return self.canonicalize(AlignedWaveform(self, alignment, value))
         else:
             return self.canonicalize(AlignedWaveform(self, alignment, cast(value)))
@@ -135,8 +140,10 @@ class Waveform:
     def __getitem__(self, s: slice) -> "Waveform":
         return self.canonicalize(Slice(self, Interval.from_slice(s)))
 
-    def record(self, variable_name: Union[str, Variable]):
-        return Record(self, cast(variable_name))
+    def record(
+        self, variable_name: Union[str, Variable], side: Union[str, Side] = Side.Right
+    ):
+        return Record(self, cast(variable_name), Side(side))
 
     def __add__(self, other: "Waveform") -> "Waveform":
         if isinstance(other, Waveform):
@@ -223,7 +230,7 @@ class AlignedWaveform(Waveform):
 
     waveform: Waveform
     alignment: Alignment
-    value: Union[Scalar, AlignedValue]
+    value: Union[Scalar, Side]
 
     @property
     def duration(self):
@@ -243,9 +250,9 @@ class AlignedWaveform(Waveform):
 
         if isinstance(self.value, Scalar):
             annotated_children["Value"] = self.value
-        elif self.value == AlignedValue.Left:
+        elif self.value == Side.Left:
             annotated_children["Value"] = "Left"
-        elif self.value == AlignedValue.Right:
+        elif self.value == Side.Right:
             annotated_children["Value"] = "Right"
 
         return annotated_children
@@ -816,12 +823,13 @@ class Add(Waveform):
 class Record(Waveform):
     """
     ```bnf
-    <record> ::= 'record' <waveform> <var>
+    <record> ::= 'record' <waveform> <var> <side>
     ```
     """
 
     waveform: Waveform
     var: Variable
+    side: Side = Side.Right
 
     @property
     def duration(self):
