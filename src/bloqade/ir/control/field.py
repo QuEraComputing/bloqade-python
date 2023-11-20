@@ -88,7 +88,7 @@ class RunTimeVector(SpatialModulation):
         return hash(self.name) ^ hash(self.__class__)
 
     def print_node(self):
-        return "RunTimeVector: self.name"
+        return f"RunTimeVector: {self.name}"
 
     def children(self):
         return []
