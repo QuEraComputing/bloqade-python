@@ -5,7 +5,7 @@ from bloqade.ir import (
     Record,
     AlignedWaveform,
     Alignment,
-    AlignedValue,
+    Side,
     to_waveform,
     Interpolation,
     GaussianKernel,
@@ -428,11 +428,11 @@ def test_wvfm_align():
     assert wf.children() == {"Waveform": wv, "Alignment": "Left", "Value": cast(0.2)}
     assert isinstance(hash(wf), int)
 
-    wf2 = AlignedWaveform(wv, Alignment.Left, AlignedValue.Right)
+    wf2 = AlignedWaveform(wv, Alignment.Left, Side.Right)
     assert wf2.print_node() == "AlignedWaveform"
     assert wf2.children() == {"Waveform": wv, "Alignment": "Left", "Value": "Right"}
 
-    wf3 = AlignedWaveform(wv, Alignment.Right, AlignedValue.Left)
+    wf3 = AlignedWaveform(wv, Alignment.Right, Side.Left)
     assert wf3.print_node() == "AlignedWaveform"
     assert wf3.children() == {"Waveform": wv, "Alignment": "Right", "Value": "Left"}
 
