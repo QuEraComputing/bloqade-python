@@ -52,9 +52,8 @@ class QuEraHardwareRoutine(RoutineBase):
         args: Tuple[LiteralType, ...] = (),
         name: Optional[str] = None,
     ) -> RemoteBatch:
-        from bloqade.codegen.common.assign_variables import AssignBloqadeIR
-
-        from bloqade.ir.analysis.assignment_scan import AssignmentScan
+        from bloqade.transform.common.assign_variables import AssignBloqadeIR
+        from bloqade.analysis.common.assignment_scan import AssignmentScan
         from bloqade.codegen.hardware.quera import AHSCodegen
 
         circuit, params = self.circuit, self.params

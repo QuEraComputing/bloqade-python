@@ -2,9 +2,8 @@ from beartype.typing import Any, Dict, Optional
 from bloqade.builder.typing import LiteralType
 from bloqade.ir.location.location import AtomArrangement, SiteFilling
 from bloqade.ir.visitor import BloqadeIRVisitor
-from bloqade.ir.analysis.assignment_scan import AssignmentScan  # noqa: F401
-from bloqade.ir.analysis.is_hyperfine import IsHyperfineSequence
-
+from bloqade.analysis.common.assignment_scan import AssignmentScan  # noqa: F401
+from bloqade.analysis.common.is_hyperfine import IsHyperfineSequence
 
 import bloqade.ir.control.sequence as sequence
 import bloqade.ir.control.pulse as pulse
