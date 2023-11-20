@@ -2,17 +2,21 @@ import bloqade.ir.control.sequence as sequence
 import bloqade.ir.control.field as field
 import bloqade.ir.control.pulse as pulse
 
-
 from pydantic.dataclasses import dataclass
-from beartype.typing import FrozenSet
+from pydantic import Field
+from beartype.typing import Any, FrozenSet
 from bloqade.ir.visitor import BloqadeIRVisitor
 
 
 @dataclass(frozen=True)
 class Channels:
-    level_couplings: FrozenSet[sequence.LevelCoupling]
-    field_names: FrozenSet[pulse.FieldName]
-    spatial_modulations: FrozenSet[field.SpatialModulation]
+    level_couplings: FrozenSet[sequence.LevelCoupling] = Field(
+        default_factory=frozenset
+    )
+    field_names: FrozenSet[pulse.FieldName] = Field(default_factory=frozenset)
+    spatial_modulations: FrozenSet[field.SpatialModulation] = Field(
+        default_factory=frozenset
+    )
 
 
 class ScanChannels(BloqadeIRVisitor):
@@ -21,19 +25,15 @@ class ScanChannels(BloqadeIRVisitor):
         self.field_names = set()
         self.spatial_modulations = set()
 
-    def visit_sequence_Sequence(self, node: sequence.Sequence):
-        for lc in node.pulses:
-            self.level_couplings.add(lc)
-            self.visit(node.pulses[lc])
-
-    def visit_pulse_Pulse(self, node: pulse.Pulse):
-        for fn in node.fields:
-            self.field_names.add(fn)
-            self.visit(node.fields[fn])
-
-    def visit_field_Field(self, node: field.Field):
-        for sm in node.drives:
-            self.spatial_modulations.add(sm)
+    def generic_visit(self, node: Any) -> Any:
+        if isinstance(node, field.SpatialModulation):
+            self.spatial_modulations.add(node)
+        elif isinstance(node, pulse.FieldName):
+            self.field_names.add(node)
+        elif isinstance(node, sequence.LevelCoupling):
+            self.level_couplings.add(node)
+        else:
+            super().generic_visit(node)
 
     def scan(self, node) -> Channels:
         self.visit(node)
