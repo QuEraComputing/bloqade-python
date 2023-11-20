@@ -1,3 +1,4 @@
+from collections import OrderedDict
 from functools import cached_property
 from ..scalar import Interval, Scalar, cast
 from ..tree_print import Printer
@@ -6,6 +7,7 @@ from typing import List
 from pydantic.dataclasses import dataclass
 from bloqade.visualization import get_pulse_figure
 from bloqade.visualization import display_ir
+
 
 __all__ = [
     "Pulse",
@@ -218,7 +220,7 @@ class NamedPulse(PulseExpr):
         return "NamedPulse"
 
     def children(self):
-        return {"Name": self.name, "Pulse": self.pulse}
+        return OrderedDict([("name", self.name), ("pulse", self.pulse)])
 
     def _get_data(self, **assigments):
         return self.name, self.pulse.value
@@ -243,4 +245,4 @@ class Slice(PulseExpr):
         return "Slice"
 
     def children(self):
-        return {"Pulse": self.pulse, "Interval": self.interval}
+        return OrderedDict([("interval", self.interval), ("pulse", self.pulse)])

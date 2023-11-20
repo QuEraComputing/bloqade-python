@@ -51,16 +51,16 @@ def test_unform():
 def test_runtime_vec():
     x = RunTimeVector("sss")
 
-    assert str(x) == "RunTimeVector\n" + "└─ sss\n"
-    assert x.print_node() == "RunTimeVector"
-    assert x.children() == ["sss"]
+    assert str(x) == "RunTimeVector: sss\n"
+    assert x.print_node() == "RunTimeVector: sss"
+    assert x.children() == []
 
     mystdout = StringIO()
     p = PP(mystdout)
 
     x._repr_pretty_(p, 0)
 
-    assert mystdout.getvalue() == "RunTimeVector\n" + "└─ sss\n"
+    assert mystdout.getvalue() == "RunTimeVector: sss\n"
 
 
 def test_scal_loc():

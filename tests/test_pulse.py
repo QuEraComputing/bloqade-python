@@ -1,3 +1,4 @@
+from collections import OrderedDict
 from bloqade.ir import Field, Uniform, Linear, Pulse, NamedPulse, detuning, rabi
 from bloqade.ir import Interval
 from bloqade import cast
@@ -125,7 +126,7 @@ def test_named_pulse():
     ps1 = Pulse({detuning: f})
     ps = NamedPulse("qq", ps1)
 
-    assert ps.children() == {"Name": "qq", "Pulse": ps1}
+    assert ps.children() == OrderedDict([("name", "qq"), ("pulse", ps1)])
     assert ps.print_node() == "NamedPulse"
     assert ps.duration == cast(0.0).max(cast(3.0))
 
@@ -136,9 +137,9 @@ def test_named_pulse():
 
     assert (
         mystdout.getvalue() == "NamedPulse\n"
-        "├─ Name\n"
+        "├─ name\n"
         "│  ⇒ qq\n"
-        "└─ Pulse\n"
+        "└─ pulse\n"
         "   ⇒ Pulse\n"
         "     └─ Detuning\n"
         "        ⇒ Field\n"
@@ -162,10 +163,10 @@ def test_slice_pulse():
     itvl = Interval(cast(0), cast(1.5))
 
     ## invoke slice
-    ps = ps1.slice(itvl)
+    ps = ps1[itvl.start : itvl.stop]
 
     assert ps.print_node() == "Slice"
-    assert ps.children() == {"Pulse": ps1, "Interval": itvl}
+    assert ps.children() == OrderedDict([("interval", itvl), ("pulse", ps1)])
     assert ps.duration == cast(0).max(cast(3.0))[itvl.start : itvl.stop]
 
     mystdout = StringIO()
@@ -175,27 +176,27 @@ def test_slice_pulse():
 
     assert (
         mystdout.getvalue() == "Slice\n"
-        "├─ Pulse\n"
-        "│  ⇒ Pulse\n"
-        "│    └─ Detuning\n"
-        "│       ⇒ Field\n"
-        "│         └─ Drive\n"
-        "│            ├─ modulation\n"
-        "│            │  ⇒ UniformModulation\n"
-        "│            └─ waveform\n"
-        "│               ⇒ Linear\n"
-        "│                 ├─ start\n"
-        "│                 │  ⇒ Literal: 1.0\n"
-        "│                 ├─ stop\n"
-        "│                 │  ⇒ Variable: x\n"
-        "│                 └─ duration\n"
-        "│                    ⇒ Literal: 3.0\n"
-        "└─ Interval\n"
-        "   ⇒ Interval\n"
-        "     ├─ start\n"
-        "     │  ⇒ Literal: 0\n"
-        "     └─ stop\n"
-        "        ⇒ Literal: 1.5"
+        "├─ interval\n"
+        "│  ⇒ Interval\n"
+        "│    ├─ start\n"
+        "│    │  ⇒ Literal: 0\n"
+        "│    └─ stop\n"
+        "│       ⇒ Literal: 1.5\n"
+        "└─ pulse\n"
+        "   ⇒ Pulse\n"
+        "     └─ Detuning\n"
+        "        ⇒ Field\n"
+        "          └─ Drive\n"
+        "             ├─ modulation\n"
+        "             │  ⇒ UniformModulation\n"
+        "             └─ waveform\n"
+        "                ⇒ Linear\n"
+        "                  ├─ start\n"
+        "                  │  ⇒ Literal: 1.0\n"
+        "                  ├─ stop\n"
+        "                  │  ⇒ Variable: x\n"
+        "                  └─ duration\n"
+        "                     ⇒ Literal: 3.0"
     )
 
 

@@ -1,3 +1,4 @@
+from collections import OrderedDict
 from functools import cached_property
 from .pulse import PulseExpr, Pulse
 from ..scalar import Interval, Scalar, cast
@@ -174,7 +175,7 @@ class NamedSequence(SequenceExpr):
         return self.sequence.duration
 
     def children(self):
-        return {"sequence": self.sequence, "name": self.name}
+        return OrderedDict([("name", self.name), ("sequence", self.sequence)])
 
     def print_node(self):
         return "NamedSequence"
@@ -199,7 +200,7 @@ class Slice(SequenceExpr):
         return self.sequence.duration[self.interval.start : self.interval.stop]
 
     def children(self):
-        return {"sequence": self.sequence, "interval": self.interval}
+        return OrderedDict([("interval", self.interval), ("sequence", self.sequence)])
 
     def print_node(self):
         return "Slice"

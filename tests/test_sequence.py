@@ -1,3 +1,4 @@
+from collections import OrderedDict
 from bloqade.ir import (
     rydberg,
     detuning,
@@ -105,7 +106,7 @@ def test_named_sequence():
     # named seq:
     named = NamedSequence(seq_full, "qq")
 
-    assert named.children() == {"sequence": seq_full, "name": "qq"}
+    assert named.children() == OrderedDict([("name", "qq"), ("sequence", seq_full)])
     assert named.print_node() == "NamedSequence"
     assert named.duration == cast(3.0).max(0)
 
@@ -115,25 +116,25 @@ def test_named_sequence():
     print(repr(mystdout.getvalue()))
     assert (
         mystdout.getvalue() == "NamedSequence\n"
-        "├─ sequence\n"
-        "│  ⇒ Sequence\n"
-        "│    └─ RydbergLevelCoupling\n"
-        "│       ⇒ Pulse\n"
-        "│         └─ Detuning\n"
-        "│            ⇒ Field\n"
-        "│              └─ Drive\n"
-        "│                 ├─ modulation\n"
-        "│                 │  ⇒ UniformModulation\n"
-        "│                 └─ waveform\n"
-        "│                    ⇒ Linear\n"
-        "│                      ├─ start\n"
-        "│                      │  ⇒ Literal: 1.0\n"
-        "│                      ├─ stop\n"
-        "│                      │  ⇒ Variable: x\n"
-        "│                      └─ duration\n"
-        "│                         ⇒ Literal: 3.0\n"
-        "└─ name\n"
-        "   ⇒ qq\n"
+        "├─ name\n"
+        "│  ⇒ qq\n"
+        "└─ sequence\n"
+        "   ⇒ Sequence\n"
+        "     └─ RydbergLevelCoupling\n"
+        "        ⇒ Pulse\n"
+        "          └─ Detuning\n"
+        "             ⇒ Field\n"
+        "               └─ Drive\n"
+        "                  ├─ modulation\n"
+        "                  │  ⇒ UniformModulation\n"
+        "                  └─ waveform\n"
+        "                     ⇒ Linear\n"
+        "                       ├─ start\n"
+        "                       │  ⇒ Literal: 1.0\n"
+        "                       ├─ stop\n"
+        "                       │  ⇒ Variable: x\n"
+        "                       └─ duration\n"
+        "                          ⇒ Literal: 3.0"
     )
 
 
@@ -146,7 +147,7 @@ def test_slice_sequence():
     # slice:
     slc = seq_full[0:1.5]
 
-    assert slc.children() == {"sequence": seq_full, "interval": itvl}
+    assert slc.children() == OrderedDict([("interval", itvl), ("sequence", seq_full)])
     assert slc.print_node() == "Slice"
     assert slc.duration == cast(3.0).max(0)[itvl.start : itvl.stop]
 
@@ -156,19 +157,19 @@ def test_slice_sequence():
 
     assert (
         mystdout.getvalue() == "Slice\n"
-        "├─ sequence\n"
-        "│  ⇒ Sequence\n"
-        "│    └─ RydbergLevelCoupling\n"
-        "│       ⇒ Pulse\n"
-        "│         └─ Detuning\n"
-        "│            ⇒ Field\n"
+        "├─ interval\n"
+        "│  ⇒ Interval\n"
+        "│    ├─ start\n"
+        "│    │  ⇒ Literal: 0\n"
+        "│    └─ stop\n"
+        "│       ⇒ Literal: 1.5\n"
+        "└─ sequence\n"
+        "   ⇒ Sequence\n"
+        "     └─ RydbergLevelCoupling\n"
+        "        ⇒ Pulse\n"
+        "          └─ Detuning\n"
+        "             ⇒ Field\n"
         "⋮\n"
-        "└─ interval\n"
-        "   ⇒ Interval\n"
-        "     ├─ start\n"
-        "     │  ⇒ Literal: 0\n"
-        "     └─ stop\n"
-        "        ⇒ Literal: 1.5"
     )
 
 

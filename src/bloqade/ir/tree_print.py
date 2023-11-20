@@ -170,7 +170,7 @@ class Printer:
             elif isinstance(node, ir.scalar.AssignedVariable):
                 node_str = self.colorcode.set_color(self.colorcode.CGREEN2, node_str)
             elif isinstance(node, ir.RunTimeVector):
-                node_str = self.colorcode.set_color(self.colorcode.CBLUE, node_str)
+                node_str = self.colorcode.set_color(self.colorcode.CBLUE2, node_str)
             elif isinstance(node, ir.AssignedRunTimeVector):
                 node_str = self.colorcode.set_color(self.colorcode.CGREEN, node_str)
             elif isinstance(node, ir.Literal):
