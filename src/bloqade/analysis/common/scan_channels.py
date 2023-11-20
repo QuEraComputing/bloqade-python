@@ -16,6 +16,11 @@ class Channels:
 
 
 class ScanChannels(BloqadeIRVisitor):
+    def __init__(self):
+        self.level_couplings = set()
+        self.field_names = set()
+        self.spatial_modulations = set()
+
     def visit_sequence_Sequence(self, node: sequence.Sequence):
         for lc in node.pulses:
             self.level_couplings.add(lc)
@@ -31,10 +36,6 @@ class ScanChannels(BloqadeIRVisitor):
             self.spatial_modulations.add(sm)
 
     def scan(self, node) -> Channels:
-        self.level_couplings = set()
-        self.field_names = set()
-        self.spatial_modulations = set()
-
         self.visit(node)
         return Channels(
             level_couplings=frozenset(self.level_couplings),
