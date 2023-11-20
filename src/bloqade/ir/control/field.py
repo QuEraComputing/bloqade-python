@@ -88,10 +88,10 @@ class RunTimeVector(SpatialModulation):
         return hash(self.name) ^ hash(self.__class__)
 
     def print_node(self):
-        return "RunTimeVector"
+        return "RunTimeVector: self.name"
 
     def children(self):
-        return [self.name]
+        return []
 
     def figure(self, **assginment):
         return get_ir_figure(self, **assginment)
@@ -116,10 +116,10 @@ class AssignedRunTimeVector(SpatialModulation):
         return self._hash_value
 
     def print_node(self):
-        return "AssgiendRunTimeVector"
+        return f"AssgiendRunTimeVector: {self.name}"
 
     def children(self):
-        return [self.name, *self.value]
+        return cast(self.value)
 
     def figure(self, **assginment):
         return get_ir_figure(self, **assginment)
