@@ -167,6 +167,14 @@ class Printer:
         if color_enabled:
             if isinstance(node, ir.Variable):
                 node_str = self.colorcode.set_color(self.colorcode.CBLUE2, node_str)
+            elif isinstance(node, ir.AssignedVariable):
+                node_str = self.colorcode.set_color(self.colorcode.CGREEN2, node_str)
+            elif isinstance(node, ir.RunTimeVector):
+                node_str = self.colorcode.set_color(self.colorcode.CBLUE, node_str)
+            elif isinstance(node, ir.AssignedRunTimeVector):
+                node_str = self.colorcode.set_color(self.colorcode.CGREEN, node_str)
+            elif isinstance(node, ir.Literal):
+                node_str = self.colorcode.set_color(self.colorcode.CYELLOW2, node_str)
 
         for i, line in enumerate(node_str.split("\n")):
             i != 0 and print(self.state.prefix)
