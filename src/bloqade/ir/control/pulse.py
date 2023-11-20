@@ -87,8 +87,8 @@ class PulseExpr:
     def append(self, other: "PulseExpr") -> "PulseExpr":
         return PulseExpr.canonicalize(Append([self, other]))
 
-    def slice(self, interval: Interval) -> "PulseExpr":
-        return PulseExpr.canonicalize(Slice(self, interval))
+    def __getitem__(self, s: slice) -> "PulseExpr":
+        return PulseExpr.canonicalize(Slice(self, Interval.from_slice(s)))
 
     @staticmethod
     def canonicalize(expr: "PulseExpr") -> "PulseExpr":
