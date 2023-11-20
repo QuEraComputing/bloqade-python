@@ -346,22 +346,12 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://bloqade.quera.com/dev/reference/bloqade/ir/location/base/</loc>
-         <lastmod>2023-11-20</lastmod>
-         <changefreq>daily</changefreq>
-    </url>
-    <url>
          <loc>https://bloqade.quera.com/dev/reference/bloqade/ir/location/bravais/</loc>
          <lastmod>2023-11-20</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://bloqade.quera.com/dev/reference/bloqade/ir/location/list/</loc>
-         <lastmod>2023-11-20</lastmod>
-         <changefreq>daily</changefreq>
-    </url>
-    <url>
-         <loc>https://bloqade.quera.com/dev/reference/bloqade/ir/location/transform/</loc>
+         <loc>https://bloqade.quera.com/dev/reference/bloqade/ir/location/location/</loc>
          <lastmod>2023-11-20</lastmod>
          <changefreq>daily</changefreq>
     </url>
