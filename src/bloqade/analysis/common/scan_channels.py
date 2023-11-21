@@ -2,43 +2,33 @@ import bloqade.ir.control.sequence as sequence
 import bloqade.ir.control.field as field
 import bloqade.ir.control.pulse as pulse
 
-from pydantic.dataclasses import dataclass
-from pydantic import Field
-from beartype.typing import Any, FrozenSet
 from bloqade.ir.visitor import BloqadeIRVisitor
-
-
-@dataclass(frozen=True)
-class Channels:
-    level_couplings: FrozenSet[sequence.LevelCoupling] = Field(
-        default_factory=frozenset
-    )
-    field_names: FrozenSet[pulse.FieldName] = Field(default_factory=frozenset)
-    spatial_modulations: FrozenSet[field.SpatialModulation] = Field(
-        default_factory=frozenset
-    )
 
 
 class ScanChannels(BloqadeIRVisitor):
     def __init__(self):
-        self.level_couplings = set()
-        self.field_names = set()
-        self.spatial_modulations = set()
+        self.channels = None
 
-    def generic_visit(self, node: Any) -> Any:
-        if isinstance(node, field.SpatialModulation):
-            self.spatial_modulations.add(node)
-        elif isinstance(node, pulse.FieldName):
-            self.field_names.add(node)
-        elif isinstance(node, sequence.LevelCoupling):
-            self.level_couplings.add(node)
-        else:
-            super().generic_visit(node)
+    def visit_sequence_Sequence(self, node: sequence.Sequence):
+        for lc, p in node.pulses.items():
+            saved = dict() if self.channels is None else dict(self.channels)
+            self.channels = saved.get(lc, {})
+            self.visit(p)
+            saved[lc] = self.channels
+            self.channels = dict(saved)
 
-    def scan(self, node) -> Channels:
+    def visit_pulse_Pulse(self, node: pulse.Pulse):
+        for fn, f in node.fields.items():
+            saved = dict() if self.channels is None else dict(self.channels)
+            self.channels = saved.get(fn, set())
+            self.visit(f)
+            saved[fn] = self.channels
+            self.channels = dict(saved)
+
+    def visit_field_Field(self, node: field.Field):
+        self.channels = set() if self.channels is None else self.channels
+        self.channels = set(node.drives.keys()) | self.channels
+
+    def scan(self, node):
         self.visit(node)
-        return Channels(
-            level_couplings=frozenset(self.level_couplings),
-            field_names=frozenset(self.field_names),
-            spatial_modulations=frozenset(self.spatial_modulations),
-        )
+        return self.channels
