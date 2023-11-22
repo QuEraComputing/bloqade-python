@@ -204,12 +204,12 @@ class Scalar:
             elif isinstance(sub_expr, Literal) and sub_expr.value <= 0:
                 return Literal(-sub_expr.value)
         elif isinstance(expr, Add):
-            lhs = Scalar.canonicalize(expr.lhs)
-            rhs = Scalar.canonicalize(expr.rhs)
+            lhs = expr.lhs
+            rhs = expr.rhs
             if isinstance(lhs, Literal) and lhs.value == 0:
-                return rhs
+                return Scalar.canonicalize(rhs)
             elif isinstance(rhs, Literal) and rhs.value == 0:
-                return lhs
+                return Scalar.canonicalize(lhs)
             elif isinstance(lhs, Literal) and isinstance(rhs, Literal):
                 return Literal(lhs.value + rhs.value)
             elif (

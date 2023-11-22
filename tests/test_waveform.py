@@ -387,7 +387,7 @@ def test_wvfn_slice():
     assert wf.print_node() == "Slice"
     assert wf.eval_decimal(Decimal("0.4")) == 0
     assert wf.eval_decimal(Decimal("0.2")) == 2.0
-    assert wf.children() == [wv, iv]
+    assert wf.children() == [iv, wv]
     assert isinstance(hash(wf), int)
 
     mystdout = StringIO()
@@ -397,16 +397,16 @@ def test_wvfn_slice():
     assert (
         mystdout.getvalue()
         == "Slice\n"
-        + "├─ Constant\n"
-        + "│  ├─ value\n"
-        + "│  │  ⇒ Literal: 2.0\n"
-        + "│  └─ duration\n"
-        + "│     ⇒ Literal: 3.0\n"
-        + "└─ Interval\n"
-        + "   ├─ start\n"
-        + "   │  ⇒ Literal: 0\n"
-        + "   └─ stop\n"
-        + "      ⇒ Literal: 0.3"
+        + "├─ Interval\n"
+        + "│  ├─ start\n"
+        + "│  │  ⇒ Literal: 0\n"
+        + "│  └─ stop\n"
+        + "│     ⇒ Literal: 0.3\n"
+        + "└─ Constant\n"
+        + "   ├─ value\n"
+        + "   │  ⇒ Literal: 2.0\n"
+        + "   └─ duration\n"
+        + "      ⇒ Literal: 3.0"
     )
 
     iv_err1 = Interval(None, None)

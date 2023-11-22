@@ -212,7 +212,7 @@ def test_append_pulse():
     mystdout = StringIO()
     p = PP(mystdout)
 
-    ps._repr_pretty_(p, 10)
+    ps._repr_pretty_(p, 12)
     print(repr(mystdout.getvalue()))
     assert (
         mystdout.getvalue() == "Append\n"

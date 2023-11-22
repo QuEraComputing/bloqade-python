@@ -202,24 +202,3 @@ def test_append_sequence():
         "           ⇒ Field\n"
         "⋮\n"
     )
-
-
-"""
-seq = Sequence(
-    {
-        rydberg: {
-            detuning: {
-                Uniform: Linear(start=1.0, stop="x", duration=3.0),
-                ScaledLocations({1: 1.0, 2: 2.0}): Linear(
-                    start=1.0, stop="x", duration=3.0
-                ),
-            },
-        }
-    }
-)
-
-print(seq)
-print(seq.name("test"))
-print(seq.append(seq))
-print(seq[:0.5])
-"""
