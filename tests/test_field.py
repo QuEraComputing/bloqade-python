@@ -147,4 +147,4 @@ def test_field_scaled_locations():
         }
     )
 
-    assert o3.duration == cast(3.0).max(4.0).max(0)
+    assert o3.duration == cast(3.0).max(4.0)
