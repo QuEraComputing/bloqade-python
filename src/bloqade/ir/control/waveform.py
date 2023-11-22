@@ -190,6 +190,9 @@ class Waveform:
             for waveform in expr.waveforms:
                 if isinstance(waveform, Append):
                     new_waveforms += waveform.waveforms
+                elif waveform.duration == cast(0):
+                    # skip zero duration waveforms
+                    continue
                 else:
                     new_waveforms.append(waveform)
 
@@ -701,7 +704,7 @@ class Slice(Waveform):
         return "Slice"
 
     def children(self):
-        return [self.waveform, self.interval]
+        return [self.interval, self.waveform]
 
 
 @dataclass(frozen=True)

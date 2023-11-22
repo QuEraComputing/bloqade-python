@@ -175,9 +175,12 @@ class Pulse(PulseExpr):
 
     @cached_property
     def duration(self) -> Scalar:
+        if len(self.fields) == 0:
+            return cast(0)
         # Fields are all aligned so that they all start at 0.
-        duration = cast(0)
-        for val in self.fields.values():
+        fields = list(self.fields.values())
+        duration = fields[0].duration
+        for val in fields[1:]:
             duration = duration.max(val.duration)
 
         return duration
@@ -245,4 +248,4 @@ class Slice(PulseExpr):
         return "Slice"
 
     def children(self):
-        return OrderedDict([("interval", self.interval), ("pulse", self.pulse)])
+        return [self.interval, self.pulse]

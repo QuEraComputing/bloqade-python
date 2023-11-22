@@ -200,7 +200,7 @@ class Slice(SequenceExpr):
         return self.sequence.duration[self.interval.start : self.interval.stop]
 
     def children(self):
-        return OrderedDict([("interval", self.interval), ("sequence", self.sequence)])
+        return [self.interval, self.sequence]
 
     def print_node(self):
         return "Slice"
