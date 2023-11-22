@@ -71,7 +71,7 @@ def test_sequence():
 
     assert seq_full.children() == {"RydbergLevelCoupling": ps}
     assert seq_full.print_node() == "Sequence"
-    assert seq_full.duration == cast(3.0).max(0)
+    assert seq_full.duration == cast(3.0)
 
     mystdout = StringIO()
     p = PP(mystdout)
@@ -108,7 +108,7 @@ def test_named_sequence():
 
     assert named.children() == OrderedDict([("name", "qq"), ("sequence", seq_full)])
     assert named.print_node() == "NamedSequence"
-    assert named.duration == cast(3.0).max(0)
+    assert named.duration == cast(3.0)
 
     mystdout = StringIO()
     p = PP(mystdout)
@@ -147,9 +147,9 @@ def test_slice_sequence():
     # slice:
     slc = seq_full[0:1.5]
 
-    assert slc.children() == OrderedDict([("interval", itvl), ("sequence", seq_full)])
+    assert slc.children() == [itvl, seq_full]
     assert slc.print_node() == "Slice"
-    assert slc.duration == cast(3.0).max(0)[itvl.start : itvl.stop]
+    assert slc.duration == cast(3.0)[itvl.start : itvl.stop]
 
     mystdout = StringIO()
     p = PP(mystdout)
@@ -157,18 +157,16 @@ def test_slice_sequence():
 
     assert (
         mystdout.getvalue() == "Slice\n"
-        "├─ interval\n"
-        "│  ⇒ Interval\n"
-        "│    ├─ start\n"
-        "│    │  ⇒ Literal: 0\n"
-        "│    └─ stop\n"
-        "│       ⇒ Literal: 1.5\n"
-        "└─ sequence\n"
-        "   ⇒ Sequence\n"
-        "     └─ RydbergLevelCoupling\n"
-        "        ⇒ Pulse\n"
-        "          └─ Detuning\n"
-        "             ⇒ Field\n"
+        "├─ Interval\n"
+        "│  ├─ start\n"
+        "│  │  ⇒ Literal: 0\n"
+        "│  └─ stop\n"
+        "│     ⇒ Literal: 1.5\n"
+        "└─ Sequence\n"
+        "   └─ RydbergLevelCoupling\n"
+        "      ⇒ Pulse\n"
+        "        └─ Detuning\n"
+        "           ⇒ Field\n"
         "⋮\n"
     )
 
@@ -182,7 +180,7 @@ def test_append_sequence():
 
     assert app.children() == [seq_full, seq_full]
     assert app.print_node() == "Append"
-    assert app.duration == cast(3.0).max(0) + cast(3.0).max(0)
+    assert app.duration == cast(6.0)
 
     mystdout = StringIO()
     p = PP(mystdout)
