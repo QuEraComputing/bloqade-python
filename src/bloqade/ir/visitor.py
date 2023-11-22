@@ -65,14 +65,13 @@ class BloqadeIRTransformer(BloqadeIRVisitor):
         for field, value in iter_fields(node):
             if isinstance(value, BloqadeNodeTypes):
                 new_value = self.visit(value)
-            elif isinstance(value, list):
-                new_value = [self.visit(item) for item in value]
-            elif isinstance(value, set):
-                new_value = {self.visit(item) for item in value}
-            elif isinstance(value, tuple):
-                new_value = tuple(self.visit(item) for item in value)
-            elif isinstance(value, frozenset):
-                new_value = frozenset(self.visit(item) for item in value)
+            elif isinstance(value, (list, set, tuple, frozenset)):
+                new_value = value.__class__(
+                    (
+                        self.visit(item) if isinstance(item, BloqadeNodeTypes) else item
+                        for item in value
+                    )
+                )
             elif isinstance(value, dict):  # sometimes keys are also nodes
                 new_value = {}
                 for key, value in value.items():
@@ -80,6 +79,7 @@ class BloqadeIRTransformer(BloqadeIRVisitor):
                         value = self.visit(value)
                     if isinstance(key, BloqadeNodeTypes):
                         key = self.visit(key)
+
                     new_value[key] = value
             else:
                 new_value = value
