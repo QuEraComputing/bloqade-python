@@ -8,16 +8,16 @@ class PiecewiseConstantValidator(BloqadeIRVisitor):
     def emit_leaf_error(self, ast: waveform.Waveform):
         expr_msg = str(ast).replace("\n", "\n    ")
 
-        raise Exception(
+        raise ValueError(
             f"failed to compile to piecewise constant, "
             f"found Non-constant segment in waveform:\n    {expr_msg}\n"
         )
 
     def visit_waveform_Linear(self, ast: waveform.Linear) -> Any:
-        if ast.start() != self.stop():
+        if ast.start() != ast.stop():
             self.emit_leaf_error(ast)
 
-    def visit_waeform_Poly(self, ast: waveform.Poly) -> Any:
+    def visit_waveform_Poly(self, ast: waveform.Poly) -> Any:
         if len(ast.coeffs) > 1:
             self.emit_leaf_error(ast)
 
@@ -31,10 +31,8 @@ class PiecewiseConstantValidator(BloqadeIRVisitor):
                 f"found non-linear interpolation:\n '{ast.interpolation!s}'"
             )
 
-    def visit_waeform_Smooth(self, ast: waveform.Smooth) -> Any:
-        res = IsConstant(self.assignments).emit(ast.waveform)
-
-        if not res.is_constant:
+    def visit_waveform_Smooth(self, ast: waveform.Smooth) -> Any:
+        if not IsConstant().scan(ast.waveform):
             self.emit_leaf_error(ast.waveform)
 
     def scan(self, ast: waveform.Waveform) -> None:

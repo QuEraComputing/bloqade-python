@@ -615,7 +615,7 @@ class Smooth(Waveform):
 
     def __init__(self, radius, kernel, waveform):
         if isinstance(kernel, str):
-            if kernel == "Guassian":
+            if kernel == "Gaussian":
                 kernel = GaussianKernel
             elif kernel == "Logistic":
                 kernel = LogisticKernel
@@ -672,6 +672,12 @@ class Smooth(Waveform):
             ]
         else:
             raise ValueError(f"Invalid kernel: {self.kernel}")
+
+    def print_node(self):
+        return f"Smooth: {self.kernel.__class__.__name__}"
+
+    def children(self):
+        return {"radius": self.radius, "waveform": self.waveform}
 
 
 @dataclass(frozen=True)

@@ -60,8 +60,8 @@ class PiecewiseLinearValidator(BloqadeIRVisitor):
                 raise ValueError(
                     "failed to compile waveform to piecewise linear. "
                     f"found discontinuity at time={self.result.duration}\n"
-                    f"with left value {self.result.stop_value} "
-                    f"and right value {self.result.start_value}:\n"
+                    f"with left value {self.result.stop} "
+                    f"and right value {self.result.start}:\n"
                     f"time expression:\n    {time_str}\n"
                     f"left expression:\n    {left_str}\n"
                     f"right expression:\n    {right_str} \n"
@@ -106,6 +106,7 @@ class PiecewiseLinearValidator(BloqadeIRVisitor):
                 "failed to compile waveform to piecewise linear. "
                 f"found non-linear interpolation:\n '{ast.interpolation!s}'"
             )
+
         self.check(ast, ast, ast.duration)
 
     def visit_waveform_PythonFn(self, ast: PythonFn) -> Any:
@@ -123,10 +124,24 @@ class PiecewiseLinearValidator(BloqadeIRVisitor):
 
     def visit_waveform_Add(self, ast: waveform.Add):
         scanner = PiecewiseLinearValidator()
-        scanner.scan(ast.left)
-        scanner.scan(ast.right)
+        left_result = scanner.scan(ast.left)
+        right_result = scanner.scan(ast.right)
+
+        if left_result.duration != right_result.duration:
+            raise ValueError(
+                "failed to compile waveform to piecewise linear. "
+                f"found mismatched durations in the sum of two waveforms:\n"
+                f"left duration: {left_result.duration}\n"
+                f"right duration: {right_result.duration}\n"
+            )
 
         self.check(ast, ast, ast.duration)
+
+    def visit_waveform_Smooth(self, ast: waveform.Smooth) -> Any:
+        raise ValueError(
+            "failed to compile waveform to piecewise linear. "
+            f"found Smooth waveform:\n {ast!s}"
+        )
 
     def scan(self, ast: waveform.Waveform) -> PiecewiseLinearResult:
         self.result = None
