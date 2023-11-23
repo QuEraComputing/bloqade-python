@@ -10,8 +10,8 @@ from bloqade.ir.visitor import BloqadeIRTransformer
 # 2. Insert zero waveform in the explicit time intervals missing a waveform
 # 3. Flatten all sequences to a single sequence by moving slices/appends to waveform
 #    level
-# 4. Assign variables, validate here
-# 5. Move the waveform slices into appends
+# 4. Move the waveform slices below appends
+# 5. Assign variables, validate here
 # 5. Validate waveform to be hardware compatible
 # 6. generate IR for hardware
 
