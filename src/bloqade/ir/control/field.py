@@ -116,7 +116,7 @@ class AssignedRunTimeVector(SpatialModulation):
         return self._hash_value
 
     def print_node(self):
-        return f"AssgiendRunTimeVector: {self.name}"
+        return f"AssignedRunTimeVector: {self.name}"
 
     def children(self):
         return cast(self.value)
@@ -160,7 +160,7 @@ class ScaledLocations(SpatialModulation):
         scls = []
 
         for loc, scl in self.value.items():
-            names.append("loc[%d]" % (loc.value))
+            names.append(f"loc[{loc.value}]")
             scls.append(str(scl(**assignments)))
 
         return names, scls
