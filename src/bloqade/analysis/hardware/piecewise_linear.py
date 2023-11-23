@@ -80,15 +80,15 @@ class PiecewiseLinearValidator(BloqadeIRVisitor):
         self.check(ast.start, ast.stop, ast.duration)
 
     def visit_waveform_Poly(self, ast: waveform.Poly) -> Any:
-        if len(ast.coeffs) == 0:
+        if len(ast.coeffs) == 0:  # zero
             start_expr = scalar.Literal(0)
             stop_expr = scalar.Literal(0)
             duration_expr = ast.duration
-        elif len(ast.coeffs) == 1:
+        elif len(ast.coeffs) == 1:  # non-zero constant
             start_expr = ast.coeffs[0]
             stop_expr = ast.coeffs[0]
             duration_expr = ast.duration
-        elif len(ast.coeffs) == 2:
+        elif len(ast.coeffs) == 2:  # linear
             duration_expr = ast.duration
             start_expr = ast.coeffs[0]
             stop_expr = ast.coeffs[0] + ast.coeffs[1] * duration_expr
@@ -99,14 +99,6 @@ class PiecewiseLinearValidator(BloqadeIRVisitor):
             )
 
         self.check(start_expr, stop_expr, duration_expr)
-
-    def visit_waveform_Record(self, ast: waveform.Record):
-        duration = ast.waveform.duration()
-        value = ast.waveform.eval_decimal(
-            duration,
-        )
-        self.assignments[ast.var.name] = value
-        self.visit(ast.waveform)
 
     def visit_waveform_Sample(self, ast: waveform.Sample) -> Any:
         if ast.interpolation != waveform.Interpolation.Linear:
