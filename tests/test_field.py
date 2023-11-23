@@ -41,7 +41,7 @@ def test_unform():
     assert x.children() == []
 
     mystdout = StringIO()
-    p = PP(mystdout, 0)
+    p = PP(mystdout)
 
     x._repr_pretty_(p, 0)
 
