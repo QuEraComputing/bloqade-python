@@ -107,24 +107,22 @@ class Waveform:
         display_ir(self, assignments)
 
     def align(
-        self, alignment: Alignment, value: Union[None, Side, Scalar] = None
+        self,
+        alignment: Union[str, Alignment],
+        value: Union[None, Side, ScalarType] = None,
     ) -> "Waveform":
         if isinstance(self, AlignedWaveform):
             raise ValueError("Cannot align an aligned waveform")
 
-        if value is None:
-            if alignment == Alignment.Right:
-                value = Side.Left
-            elif alignment == Alignment.Left:
-                value = Side.Right
-            else:
-                raise ValueError(f"Invalid alignment: {alignment}")
+        alignment = Alignment(alignment)
 
-            return self.canonicalize(AlignedWaveform(self, alignment, value))
-        elif isinstance(value, (Side, Scalar)):
-            return self.canonicalize(AlignedWaveform(self, alignment, value))
-        else:
-            return self.canonicalize(AlignedWaveform(self, alignment, cast(value)))
+        if value is None:
+            value = Side.Left if alignment is Alignment.Right else Side.Right
+
+        if not isinstance(value, Side):
+            value = cast(value)
+
+        return self.canonicalize(AlignedWaveform(self, alignment, value))
 
     def smooth(self, radius, kernel: "SmoothingKernel") -> "Waveform":
         return self.canonicalize(
@@ -151,11 +149,11 @@ class Waveform:
 
         return NotImplemented
 
-    def __radd__(self, other: "Waveform") -> "Waveform":
-        if isinstance(other, Waveform):
-            return self.canonicalize(Add(self, other))
+    # def __radd__(self, other: "Waveform") -> "Waveform":
+    #     if isinstance(other, Waveform):
+    #         return self.canonicalize(Add(self, other))
 
-        return NotImplemented
+    #     return NotImplemented
 
     def __sub__(self, other: "Waveform") -> "Waveform":
         if isinstance(other, Waveform):
@@ -163,11 +161,11 @@ class Waveform:
 
         return NotImplemented
 
-    def __rsubs__(self, other: "Waveform") -> "Waveform":
-        if isinstance(other, Waveform):
-            return other + (-self)
+    # def __rsub__(self, other: "Waveform") -> "Waveform":
+    #     if isinstance(other, Waveform):
+    #         return other + (-self)
 
-        return NotImplemented
+    #     return NotImplemented
 
     def __mul__(self, other: Any) -> "Waveform":
         return self.scale(cast(other))
@@ -197,7 +195,12 @@ class Waveform:
                     new_waveforms.append(waveform)
 
             new_waveforms = list(map(Waveform.canonicalize, new_waveforms))
-            return Append(new_waveforms)
+            if len(new_waveforms) == 0:
+                return Constant(0, 0)
+            elif len(new_waveforms) == 1:
+                return new_waveforms[0]
+            else:
+                return Append(new_waveforms)
         elif isinstance(expr, Add):
             left = Waveform.canonicalize(expr.left)
             right = Waveform.canonicalize(expr.right)

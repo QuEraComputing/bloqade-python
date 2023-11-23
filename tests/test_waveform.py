@@ -309,7 +309,41 @@ def test_wvfn_poly():
     assert isinstance(hash(wf), int)
 
 
+def test_align():
+    wf = Linear(start=1.0, stop=2.0, duration=3.0)
+    wf1 = wf.align(Alignment.Left)
+    wf2 = wf.align(Alignment.Right, 0.0)
+    wf3 = wf.align(Alignment.Right)
+
+    assert wf.align(Alignment.Right, Side.Left) == AlignedWaveform(
+        wf, Alignment.Right, Side.Left
+    )
+    assert wf1.print_node() == "AlignedWaveform"
+    assert wf1.children() == {"Waveform": wf, "Alignment": "Left", "Value": "Right"}
+    assert wf2.children() == {"Waveform": wf, "Alignment": "Right", "Value": cast(0.0)}
+    assert wf3.children() == {"Waveform": wf, "Alignment": "Right", "Value": "Left"}
+    with pytest.raises(ValueError):
+        wf1.align(Alignment.Right, Side.Right)
+
+
 ##-----------------------------
+
+
+def test_dunders():
+    class MyNewType:
+        def __init__(self, value) -> None:
+            self.value = value
+
+        def __radd__(self, other: Waveform):
+            return other.canonicalize(Constant(self.value, other.duration) + other)
+
+        def __rsub__(self, other: Waveform):
+            return other.canonicalize(Constant(self.value, other.duration) - other)
+
+    obj = MyNewType(2)
+    assert Constant(2, 1) + obj == 2 * Constant(2, 1)
+    assert Constant(2, 1) - obj == Constant(2, 1) - Constant(2, 1)
+    assert Constant(2, 1) / 2 == 0.5 * Constant(2, 1)
 
 
 def test_smkern_base():
