@@ -111,9 +111,11 @@ class FillMissingWaveforms(BloqadeIRTransformer):
         drives = {}
 
         for sm in self.spatial_modulations:
-            drives[sm] = self.add_waveform_padding(node.drives.get(sm), duration)
+            drives[sm] = self.visit(
+                self.add_waveform_padding(node.drives.get(sm), duration)
+            )
 
-        return self.visit(field.Field(drives))
+        return field.Field(drives)
 
     def visit_waveform_Add(self, node: waveform.Add) -> waveform.Add:
         left = self.visit(node.left)
