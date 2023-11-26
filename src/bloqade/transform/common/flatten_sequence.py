@@ -149,7 +149,7 @@ class FlattenBloqadeIR(BloqadeIRTransformer):
     #######################
 
     def visit_sequence_Append(self, node: sequence.Append) -> sequence.Sequence:
-        seqs = [self.visit(s) for s in node.sequences]
+        seqs = list(map(self.visit, node.sequences))
 
         pulses = {}
         for lc in self.level_couplings:
@@ -193,7 +193,6 @@ class FlattenBloqadeIR(BloqadeIRTransformer):
 
     def visit_pulse_Append(self, node: pulse.Append) -> pulse.Pulse:
         pulses = list(map(self.visit, node.pulses))
-
         fields = dict(pulses[0].fields)
 
         for p in pulses[1:]:

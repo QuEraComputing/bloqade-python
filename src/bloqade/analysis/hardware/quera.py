@@ -77,7 +77,7 @@ class ValidatePiecewiseLinearChannel(BloqadeIRVisitor):
             time = time + lhs.duration
 
     def visit_sequence_Append(self, node: sequence.Append) -> waveform.Waveform:
-        wfs = list(map(self.visit(node.sequences)))
+        wfs = list(map(self.visit, node.sequences))
 
         result = wfs[0]
 
@@ -101,10 +101,10 @@ class ValidatePiecewiseLinearChannel(BloqadeIRVisitor):
         return self.visit(node.sequence)
 
     def visit_sequence_Sequence(self, node: sequence.Sequence) -> waveform.Waveform:
-        self.visit(node.pulses[self.level_coupling])
+        return self.visit(node.pulses[self.level_coupling])
 
     def visit_pulse_Append(self, node: pulse.Append) -> waveform.Waveform:
-        wfs = list(map(self.visit(node.pulses)))
+        wfs = list(map(self.visit, node.pulses))
 
         result = wfs[0]
 

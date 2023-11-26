@@ -10,7 +10,7 @@ import bloqade.ir.control.pulse as pulse
 import bloqade.ir.control.field as field
 import bloqade.ir.control.waveform as waveform
 
-from bloqade import piecewise_constant, piecewise_linear
+from bloqade import piecewise_constant, piecewise_linear, var
 
 
 @waveform.to_waveform(1)
@@ -18,7 +18,7 @@ def py_func(x):
     return x
 
 
-def test_piecewise_constant_happy_path():
+def test_piecewise_constant_waveform_happy_path():
     validator = ValidatePiecewiseConstantChannel(
         level_coupling=sequence.rydberg,
         field_name=pulse.rabi.amplitude,
@@ -39,7 +39,7 @@ def test_piecewise_constant_happy_path():
     assert validator.scan(wf1.append(wf2).append(wf3)) is None
 
 
-def test_piecewise_constant_sad_path():
+def test_piecewise_constant_waveform_sad_path():
     validator = ValidatePiecewiseConstantChannel(
         level_coupling=sequence.rydberg,
         field_name=pulse.rabi.amplitude,
@@ -74,7 +74,7 @@ def test_piecewise_constant_sad_path():
         validator.scan(wf6)
 
 
-def test_piecewise_linear_happy_path():
+def test_piecewise_linear_waveform_happy_path():
     validator = ValidatePiecewiseLinearChannel(
         level_coupling=sequence.rydberg,
         field_name=pulse.rabi.amplitude,
@@ -102,7 +102,7 @@ def test_piecewise_linear_happy_path():
     assert validator.scan(wf9) is None
 
 
-def test_piecewise_linear_sad_path():
+def test_piecewise_linear_waveform_sad_path():
     validator = ValidatePiecewiseLinearChannel(
         level_coupling=sequence.rydberg,
         field_name=pulse.rabi.amplitude,
@@ -135,3 +135,183 @@ def test_piecewise_linear_sad_path():
 
     with pytest.raises(ValueError):
         validator.scan(wf6)
+
+
+def test_pulse_happy_path():
+    linear = ValidatePiecewiseLinearChannel(
+        level_coupling=sequence.rydberg,
+        field_name=pulse.rabi.amplitude,
+        spatial_modulations=field.Uniform,
+    )
+    constant = ValidatePiecewiseConstantChannel(
+        level_coupling=sequence.rydberg,
+        field_name=pulse.rabi.amplitude,
+        spatial_modulations=field.Uniform,
+    )
+
+    p1 = pulse.Pulse(
+        {pulse.rabi.amplitude: field.Field({field.Uniform: waveform.Constant(1, 1)})}
+    )
+    p2 = pulse.Pulse(
+        {pulse.rabi.amplitude: field.Field({field.Uniform: waveform.Linear(1, 0, 1)})}
+    )
+    p3 = pulse.Pulse(
+        {
+            pulse.rabi.amplitude: field.Field(
+                {field.Uniform: py_func.sample(0.1, "constant")}
+            )
+        }
+    )
+
+    p_test = pulse.NamedPulse("test", (p1.append(p2))[: var("t")])
+    assert linear.scan(p_test) is None
+    assert constant.scan(p3) is None
+
+
+def test_pulse_sad_path():
+    linear = ValidatePiecewiseLinearChannel(
+        level_coupling=sequence.rydberg,
+        field_name=pulse.rabi.amplitude,
+        spatial_modulations=field.Uniform,
+    )
+    constant = ValidatePiecewiseConstantChannel(
+        level_coupling=sequence.rydberg,
+        field_name=pulse.rabi.amplitude,
+        spatial_modulations=field.Uniform,
+    )
+
+    p1 = pulse.Pulse(
+        {pulse.rabi.amplitude: field.Field({field.Uniform: waveform.Constant(1, 1)})}
+    )
+    p2 = pulse.Pulse(
+        {pulse.rabi.amplitude: field.Field({field.Uniform: waveform.Linear(1, 0, 1)})}
+    )
+    p3 = pulse.Pulse({pulse.rabi.amplitude: field.Field({field.Uniform: py_func})})
+    p4 = pulse.Pulse(
+        {
+            pulse.rabi.amplitude: field.Field(
+                {field.Uniform: py_func.sample(0.1, "linear")}
+            )
+        }
+    )
+
+    p1_test = p1.append(p2).append(p3)
+
+    with pytest.raises(ValueError):
+        linear.scan(p1_test)
+
+    with pytest.raises(ValueError):
+        constant.scan(p4)
+
+
+def test_sequence_happy_path():
+    linear = ValidatePiecewiseLinearChannel(
+        level_coupling=sequence.rydberg,
+        field_name=pulse.rabi.amplitude,
+        spatial_modulations=field.Uniform,
+    )
+    constant = ValidatePiecewiseConstantChannel(
+        level_coupling=sequence.rydberg,
+        field_name=pulse.rabi.amplitude,
+        spatial_modulations=field.Uniform,
+    )
+
+    s1 = sequence.Sequence(
+        {
+            sequence.rydberg: pulse.Pulse(
+                {
+                    pulse.rabi.amplitude: field.Field(
+                        {field.Uniform: waveform.Constant(1, 1)}
+                    )
+                }
+            )
+        }
+    )
+    s2 = sequence.Sequence(
+        {
+            sequence.rydberg: pulse.Pulse(
+                {
+                    pulse.rabi.amplitude: field.Field(
+                        {field.Uniform: waveform.Linear(1, 0, 1)}
+                    )
+                }
+            )
+        }
+    )
+    s3 = sequence.Sequence(
+        {
+            sequence.rydberg: pulse.Pulse(
+                {
+                    pulse.rabi.amplitude: field.Field(
+                        {field.Uniform: py_func.sample(0.1, "constant")}
+                    )
+                }
+            )
+        }
+    )
+
+    p_test = sequence.NamedSequence(name="test", sequence=(s1.append(s2))[: var("t")])
+    assert linear.scan(p_test) is None
+    assert constant.scan(s3) is None
+
+
+def test_sequence_sad_path():
+    linear = ValidatePiecewiseLinearChannel(
+        level_coupling=sequence.rydberg,
+        field_name=pulse.rabi.amplitude,
+        spatial_modulations=field.Uniform,
+    )
+    constant = ValidatePiecewiseConstantChannel(
+        level_coupling=sequence.rydberg,
+        field_name=pulse.rabi.amplitude,
+        spatial_modulations=field.Uniform,
+    )
+
+    p1 = sequence.Sequence(
+        {
+            sequence.rydberg: pulse.Pulse(
+                {
+                    pulse.rabi.amplitude: field.Field(
+                        {field.Uniform: waveform.Constant(1, 1)}
+                    )
+                }
+            )
+        }
+    )
+    p2 = sequence.Sequence(
+        {
+            sequence.rydberg: pulse.Pulse(
+                {
+                    pulse.rabi.amplitude: field.Field(
+                        {field.Uniform: waveform.Linear(1, 0, 1)}
+                    )
+                }
+            )
+        }
+    )
+    p3 = sequence.Sequence(
+        {
+            sequence.rydberg: pulse.Pulse(
+                {pulse.rabi.amplitude: field.Field({field.Uniform: py_func})}
+            )
+        }
+    )
+    p4 = sequence.Sequence(
+        {
+            sequence.rydberg: pulse.Pulse(
+                {
+                    pulse.rabi.amplitude: field.Field(
+                        {field.Uniform: py_func.sample(0.1, "linear")}
+                    )
+                }
+            )
+        }
+    )
+
+    p1_test = p1.append(p2).append(p3)
+
+    with pytest.raises(ValueError):
+        linear.scan(p1_test)
+
+    with pytest.raises(ValueError):
+        constant.scan(p4)
