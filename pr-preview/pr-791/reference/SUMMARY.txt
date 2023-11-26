@@ -7,8 +7,6 @@
             * [scan_channels](bloqade/analysis/common/scan_channels.md)
             * [scan_variables](bloqade/analysis/common/scan_variables.md)
         * [hardware](bloqade/analysis/hardware/index.md)
-            * [piecewise_constant](bloqade/analysis/hardware/piecewise_constant.md)
-            * [piecewise_linear](bloqade/analysis/hardware/piecewise_linear.md)
             * [quera](bloqade/analysis/hardware/quera.md)
     * [atom_arrangement](bloqade/atom_arrangement.md)
     * [builder](bloqade/builder/index.md)
