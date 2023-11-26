@@ -5,16 +5,6 @@ import bloqade.ir.control.waveform as waveform
 import bloqade.ir.scalar as scalar
 from bloqade.ir.visitor import BloqadeIRTransformer
 
-# Passes for compiling to hardware
-# 1. Scan all spatial modulations, validate here
-# 2. Insert zero waveform in the explicit time intervals missing a waveform
-# 3. Flatten all sequences to a single sequence by moving slices/appends to waveform
-#    level
-# For each task in the batch assignments:
-# 4. Assign variables, validate here
-# 5. Move Append to the top level and slice to the bottom level
-# 6. generate IR for hardware
-
 
 class FillMissingWaveforms(BloqadeIRTransformer):
     def __init__(
