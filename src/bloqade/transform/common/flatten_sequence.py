@@ -13,7 +13,6 @@ from bloqade.ir.visitor import BloqadeIRTransformer
 # For each task in the batch assignments:
 # 4. Assign variables, validate here
 # 5. Move Append to the top level and slice to the bottom level
-# 6. Validate that all waveforms are piecewise linear/constant
 # 6. generate IR for hardware
 
 
@@ -114,7 +113,19 @@ class FillMissingWaveforms(BloqadeIRTransformer):
         for sm in self.spatial_modulations:
             drives[sm] = self.add_waveform_padding(node.drives.get(sm), duration)
 
-        return field.Field(drives)
+        return self.visit(field.Field(drives))
+
+    def visit_waveform_Add(self, node: waveform.Add) -> waveform.Add:
+        left = self.visit(node.left)
+        right = self.visit(node.right)
+
+        if left.duration == right.duration:
+            return left + right
+        else:
+            duration = left.duration.max(right.duration)
+            return self.add_waveform_padding(
+                left, duration
+            ) + self.add_waveform_padding(right, duration)
 
 
 class FlattenBloqadeIR(BloqadeIRTransformer):
