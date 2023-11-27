@@ -180,8 +180,9 @@ class Chain(BoundedBravais):
     lattice_spacing: Scalar
     vertical_chain: bool
 
+    @beartype
     def __init__(
-        self, L: int, lattice_spacing: ScalarType = 1.0, vertical_chain: bool = False
+        self, L: int, *, lattice_spacing: ScalarType = 1.0, vertical_chain: bool = False
     ):
         self.L = L
         self.lattice_spacing = cast(lattice_spacing)
@@ -233,8 +234,9 @@ class Square(BoundedBravais):
     L2: int
     lattice_spacing: Scalar
 
+    @beartype
     def __init__(
-        self, L1: int, L2: Optional[int] = None, lattice_spacing: ScalarType = 1.0
+        self, L1: int, L2: Optional[int] = None, *, lattice_spacing: ScalarType = 1.0
     ):
         if L2 is None:
             L2 = L1
@@ -289,10 +291,12 @@ class Rectangular(BoundedBravais):
     lattice_spacing_x: Scalar
     lattice_spacing_y: Scalar
 
+    @beartype
     def __init__(
         self,
         width: int,
         height: int,
+        *,
         lattice_spacing_x: ScalarType = 1.0,
         lattice_spacing_y: ScalarType = 1.0,
     ):
@@ -409,7 +413,7 @@ class Honeycomb(BoundedBravais):
 
     @beartype
     def __init__(
-        self, L1: int, L2: Optional[int] = None, lattice_spacing: ScalarType = 1.0
+        self, L1: int, L2: Optional[int] = None, *, lattice_spacing: ScalarType = 1.0
     ):
         if L2 is None:
             L2 = L1
@@ -466,7 +470,7 @@ class Triangular(BoundedBravais):
 
     @beartype
     def __init__(
-        self, L1: int, L2: Optional[int] = None, lattice_spacing: ScalarType = 1.0
+        self, L1: int, L2: Optional[int] = None, *, lattice_spacing: ScalarType = 1.0
     ):
         if L2 is None:
             L2 = L1
@@ -523,7 +527,7 @@ class Lieb(BoundedBravais):
 
     @beartype
     def __init__(
-        self, L1: int, L2: Optional[int] = None, lattice_spacing: ScalarType = 1.0
+        self, L1: int, L2: Optional[int] = None, *, lattice_spacing: ScalarType = 1.0
     ):
         if L2 is None:
             L2 = L1
@@ -578,7 +582,7 @@ class Kagome(BoundedBravais):
 
     @beartype
     def __init__(
-        self, L1: int, L2: Optional[int] = None, lattice_spacing: ScalarType = 1.0
+        self, L1: int, L2: Optional[int] = None, *, lattice_spacing: ScalarType = 1.0
     ):
         if L2 is None:
             L2 = L1
