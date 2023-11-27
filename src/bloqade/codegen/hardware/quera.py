@@ -4,7 +4,8 @@ import bloqade.ir.analog_circuit as analog_circuit
 import bloqade.ir.control.field as field
 import bloqade.ir.control.pulse as pulse
 import bloqade.ir.control.sequence as sequence
-import bloqade.ir.control.waveform as waveform
+
+# import bloqade.ir.control.waveform as waveform
 import bloqade.ir.location as location
 from bloqade.ir.visitor import BloqadeIRVisitor
 
@@ -29,123 +30,123 @@ from decimal import Decimal
 import numpy as np
 
 
-class GeneratePiecewiseLinearChannel(BloqadeIRVisitor):
-    def __init__(
-        self,
-        level_coupling: sequence.LevelCoupling,
-        field_name: pulse.FieldName,
-        spatial_modulations: field.SpatialModulation,
-    ):
-        self.level_coupling = level_coupling
-        self.field_name = field_name
-        self.spatial_modulations = spatial_modulations
+# class GeneratePiecewiseLinearChannel(BloqadeIRVisitor):
+#     def __init__(
+#         self,
+#         level_coupling: sequence.LevelCoupling,
+#         field_name: pulse.FieldName,
+#         spatial_modulations: field.SpatialModulation,
+#     ):
+#         self.level_coupling = level_coupling
+#         self.field_name = field_name
+#         self.spatial_modulations = spatial_modulations
 
-    def visit_waveform_Constant(self, node: waveform.Constant) -> PiecewiseLinear:
-        return PiecewiseLinear(
-            [Decimal(0), node.duration()], [node.value(), node.value()]
-        )
+#     def visit_waveform_Constant(self, node: waveform.Constant) -> PiecewiseLinear:
+#         return PiecewiseLinear(
+#             [Decimal(0), node.duration()], [node.value(), node.value()]
+#         )
 
-    def visit_waveform_Linear(self, node: waveform.Linear) -> PiecewiseLinear:
-        return PiecewiseLinear(
-            [Decimal(0), node.duration()], [node.start(), node.stop()]
-        )
+#     def visit_waveform_Linear(self, node: waveform.Linear) -> PiecewiseLinear:
+#         return PiecewiseLinear(
+#             [Decimal(0), node.duration()], [node.start(), node.stop()]
+#         )
 
-    def visit_waveform_Poly(self, node: waveform.Poly) -> PiecewiseLinear:
-        duration = node.duration()
-        start = node.eval_decimal(0)
-        stop = node.eval_decimal(duration)
+#     def visit_waveform_Poly(self, node: waveform.Poly) -> PiecewiseLinear:
+#         duration = node.duration()
+#         start = node.eval_decimal(0)
+#         stop = node.eval_decimal(duration)
 
-        return PiecewiseLinear(
-            [Decimal(0), duration],
-            [start, stop],
-        )
+#         return PiecewiseLinear(
+#             [Decimal(0), duration],
+#             [start, stop],
+#         )
 
-    def visit_waveform_Sample(self, node: waveform.Sample) -> PiecewiseLinear:
-        times, values = node.samples()
-        return PiecewiseLinear(times, values)
+#     def visit_waveform_Sample(self, node: waveform.Sample) -> PiecewiseLinear:
+#         times, values = node.samples()
+#         return PiecewiseLinear(times, values)
 
-    def visit_waveform_Add(self, node: waveform.Add) -> PiecewiseLinear:
-        lhs = self.visit(node.lhs)
-        rhs = self.visit(node.rhs)
+#     def visit_waveform_Add(self, node: waveform.Add) -> PiecewiseLinear:
+#         lhs = self.visit(node.lhs)
+#         rhs = self.visit(node.rhs)
 
-        times = sorted(list(set(lhs.times + rhs.times)))
-        values = [lhs.eval(t) + rhs.eval(t) for t in times]
+#         times = sorted(list(set(lhs.times + rhs.times)))
+#         values = [lhs.eval(t) + rhs.eval(t) for t in times]
 
-        return PiecewiseLinear(times, values)
+#         return PiecewiseLinear(times, values)
 
-    def visit_waveform_Append(self, node: waveform.Append) -> PiecewiseLinear:
-        pwl = self.visit(node.waveforms[0])
+#     def visit_waveform_Append(self, node: waveform.Append) -> PiecewiseLinear:
+#         pwl = self.visit(node.waveforms[0])
 
-        for wf in node.waveforms[1:]:
-            pwl = pwl.append(self.visit(wf))
+#         for wf in node.waveforms[1:]:
+#             pwl = pwl.append(self.visit(wf))
 
-        return pwl
+#         return pwl
 
-    def visit_waveform_Slice(self, node: waveform.Slice) -> PiecewiseLinear:
-        pwl = self.visit(node.waveform)
-        return pwl.slice(node.interval.start, node.interval.stop)
+#     def visit_waveform_Slice(self, node: waveform.Slice) -> PiecewiseLinear:
+#         pwl = self.visit(node.waveform)
+#         return pwl.slice(node.interval.start, node.interval.stop)
 
-    def visit_waveform_Negative(self, node: waveform.Negative) -> PiecewiseLinear:
-        pwl = self.visit(node.waveform)
-        return PiecewiseLinear(pwl.times, [-v for v in pwl.values])
+#     def visit_waveform_Negative(self, node: waveform.Negative) -> PiecewiseLinear:
+#         pwl = self.visit(node.waveform)
+#         return PiecewiseLinear(pwl.times, [-v for v in pwl.values])
 
-    def visit_waveform_Scale(self, node: waveform.Scale) -> PiecewiseLinear:
-        pwl = self.visit(node.waveform)
-        return PiecewiseLinear(pwl.times, [node.scalar() * v for v in pwl.values])
+#     def visit_waveform_Scale(self, node: waveform.Scale) -> PiecewiseLinear:
+#         pwl = self.visit(node.waveform)
+#         return PiecewiseLinear(pwl.times, [node.scalar() * v for v in pwl.values])
 
-    def visit_field_Field(self, node: field.Field) -> PiecewiseLinear:
-        return self.visit(node.drives[self.spatial_modulations])
+#     def visit_field_Field(self, node: field.Field) -> PiecewiseLinear:
+#         return self.visit(node.drives[self.spatial_modulations])
 
-    def visit_pulse_Pulse(self, node: pulse.Pulse) -> PiecewiseLinear:
-        return self.visit(node.fields[self.field_name])
+#     def visit_pulse_Pulse(self, node: pulse.Pulse) -> PiecewiseLinear:
+#         return self.visit(node.fields[self.field_name])
 
-    def visit_pulse_NamedPulse(self, node: pulse.NamedPulse) -> PiecewiseLinear:
-        return self.visit(node.pulse)
+#     def visit_pulse_NamedPulse(self, node: pulse.NamedPulse) -> PiecewiseLinear:
+#         return self.visit(node.pulse)
 
-    def visit_pulse_Slice(self, node: pulse.Slice) -> PiecewiseLinear:
-        start = node.interval.start()
-        stop = node.interval.stop()
+#     def visit_pulse_Slice(self, node: pulse.Slice) -> PiecewiseLinear:
+#         start = node.interval.start()
+#         stop = node.interval.stop()
 
-        pwl = self.visit(node.pulse)
+#         pwl = self.visit(node.pulse)
 
-        return pwl.slice(start, stop)
+#         return pwl.slice(start, stop)
 
-    def visit_pulse_Append(self, node: pulse.Append) -> PiecewiseLinear:
-        pwl = self.visit(node.pulses[0])
+#     def visit_pulse_Append(self, node: pulse.Append) -> PiecewiseLinear:
+#         pwl = self.visit(node.pulses[0])
 
-        for p in node.pulses[1:]:
-            pwl = pwl.append(self.visit(p))
+#         for p in node.pulses[1:]:
+#             pwl = pwl.append(self.visit(p))
 
-        return pwl
+#         return pwl
 
-    def visit_sequence_Sequence(self, node: sequence.Sequence) -> PiecewiseLinear:
-        return self.visit(node.pulses[self.level_coupling])
+#     def visit_sequence_Sequence(self, node: sequence.Sequence) -> PiecewiseLinear:
+#         return self.visit(node.pulses[self.level_coupling])
 
-    def visit_sequence_NamedSequence(
-        self, node: sequence.NamedSequence
-    ) -> PiecewiseLinear:
-        return self.visit(node.sequence)
+#     def visit_sequence_NamedSequence(
+#         self, node: sequence.NamedSequence
+#     ) -> PiecewiseLinear:
+#         return self.visit(node.sequence)
 
-    def visit_sequence_Slice(self, node: sequence.Slice) -> PiecewiseLinear:
-        start = node.interval.start()
-        stop = node.interval.stop()
+#     def visit_sequence_Slice(self, node: sequence.Slice) -> PiecewiseLinear:
+#         start = node.interval.start()
+#         stop = node.interval.stop()
 
-        pwl = self.visit(node.sequence)
+#         pwl = self.visit(node.sequence)
 
-        return pwl.slice(start, stop)
+#         return pwl.slice(start, stop)
 
-    def visit_sequence_Append(self, node: sequence.Append) -> PiecewiseLinear:
-        pwl = self.visit(node.sequences[0])
+#     def visit_sequence_Append(self, node: sequence.Append) -> PiecewiseLinear:
+#         pwl = self.visit(node.sequences[0])
 
-        for seq in node.sequences[1:]:
-            pwl = pwl.append(self.visit(seq))
+#         for seq in node.sequences[1:]:
+#             pwl = pwl.append(self.visit(seq))
 
-        return pwl
+#         return pwl
 
-    def visit_analog_circuit_AnalogCircuit(
-        self, node: analog_circuit.AnalogCircuit
-    ) -> PiecewiseLinear:
-        return self.visit(node.sequence)
+#     def visit_analog_circuit_AnalogCircuit(
+#         self, node: analog_circuit.AnalogCircuit
+#     ) -> PiecewiseLinear:
+#         return self.visit(node.sequence)
 
 
 @dataclass(frozen=True)
