@@ -212,6 +212,14 @@ class Waveform:
                 return left
             else:
                 return expr
+        elif isinstance(expr, Slice):
+            waveform = expr.waveform
+            if isinstance(waveform, Slice):
+                start = expr.start + waveform.start
+                stop = expr.start + waveform.stop
+                return waveform.waveform[start:stop]
+            else:
+                return Slice(waveform, expr.interval)
         else:
             return expr
 
@@ -692,7 +700,21 @@ class Slice(Waveform):
     interval: Interval
 
     @cached_property
-    def duration(self):
+    def start(self) -> Scalar:
+        if self.interval.start is None:
+            return cast(0)
+        else:
+            return self.interval.start
+
+    @cached_property
+    def stop(self) -> Scalar:
+        if self.interval.stop is None:
+            return self.duration
+        else:
+            return self.interval.stop
+
+    @cached_property
+    def duration(self) -> Scalar:
         from bloqade.ir.scalar import Slice
 
         if self.interval.start is None and self.interval.stop is None:
@@ -706,7 +728,7 @@ class Slice(Waveform):
         if self.interval.start is None:
             start_time = Decimal(0)
         else:
-            start_time = self.interval.start(**kwargs)
+            start_time = self.start(**kwargs)
         return self.waveform.eval_decimal(clock_s + start_time, **kwargs)
 
     def print_node(self):

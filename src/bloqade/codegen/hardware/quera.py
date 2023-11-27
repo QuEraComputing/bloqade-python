@@ -84,7 +84,7 @@ class GeneratePiecewiseLinearChannel(BloqadeIRVisitor):
 
     def visit_waveform_Slice(self, node: waveform.Slice) -> PiecewiseLinear:
         pwl = self.visit(node.waveform)
-        return pwl.slice(node.interval.start, node.interval.stop)
+        return pwl.slice(node.start(), node.stop())
 
     def visit_waveform_Negative(self, node: waveform.Negative) -> PiecewiseLinear:
         pwl = self.visit(node.waveform)
@@ -104,8 +104,8 @@ class GeneratePiecewiseLinearChannel(BloqadeIRVisitor):
         return self.visit(node.pulse)
 
     def visit_pulse_Slice(self, node: pulse.Slice) -> PiecewiseLinear:
-        start = node.interval.start()
-        stop = node.interval.stop()
+        start = node.start()
+        stop = node.stop()
 
         pwl = self.visit(node.pulse)
 
@@ -128,8 +128,8 @@ class GeneratePiecewiseLinearChannel(BloqadeIRVisitor):
         return self.visit(node.sequence)
 
     def visit_sequence_Slice(self, node: sequence.Slice) -> PiecewiseLinear:
-        start = node.interval.start()
-        stop = node.interval.stop()
+        start = node.start()
+        stop = node.stop()
 
         pwl = self.visit(node.sequence)
 
@@ -615,8 +615,8 @@ class AHSCodegen(BloqadeIRVisitor):
         self.extract_fields(ahs_result)
 
     def visit_pulse_Slice(self, node: pulse.Slice):
-        start_time = node.interval.start(**self.assignments)
-        stop_time = node.interval.stop(**self.assignments)
+        start_time = node.start(**self.assignments)
+        stop_time = node.stop(**self.assignments)
 
         ahs_result = AHSCodegen(self.nshots, self.assignments).emit(node.pulse)
         ahs_result = ahs_result.slice(start_time, stop_time)
@@ -640,7 +640,7 @@ class AHSCodegen(BloqadeIRVisitor):
         self.extract_fields(ahs_result)
 
     def visit_sequence_Slice(self, node: sequence.Slice):
-        start_time = node.interval.start(**self.assignments)
+        start_time = node.start(**self.assignments)
         stop_time = node.interval.stop(**self.assignments)
 
         ahs_result = AHSCodegen(self.nshots, self.assignments).emit(node.sequence)
