@@ -40,7 +40,7 @@ def format_report_data(report: "Report"):
     task_tid = report.dataframe.index.get_level_values("task_number").unique()
     task_tid = list(task_tid)
 
-    counts = report.counts
+    counts = report.counts()
     ryds = report.rydberg_densities()
 
     assert len(task_tid) == len(counts)
