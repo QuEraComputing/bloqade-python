@@ -1,6 +1,6 @@
 from decimal import Decimal
-from enum import Enum
 from numbers import Real
+from bloqade.builder.typing import LiteralType
 from bloqade.serialize import Serializer
 from bloqade.task.base import Report
 from bloqade.task.quera import QuEraTask
@@ -18,9 +18,10 @@ from bloqade.submission.ir.task_results import (
 
 # from bloqade.submission.base import ValidationError
 
-from beartype.typing import Union, Optional, Dict, Any, List, Set, Tuple
+from beartype.typing import Union, Optional, Dict, Any, List
 from beartype import beartype
 from collections import OrderedDict
+from collections.abc import Sequence
 from itertools import product
 import traceback
 import datetime
@@ -46,17 +47,14 @@ class Serializable:
         return dumps(self, **options)
 
 
-MetadataFilter = Union[Set[Real], Set[Decimal], Set[Tuple[Real]], Set[Tuple[Decimal]]]
-
-
-class MatchStyle(str, Enum):
-    Any = "Any"
-    All = "All"
+MetadataFilterType = Union[Sequence[LiteralType], Sequence[List[LiteralType]]]
 
 
 class Filter:
     @beartype
-    def filter_metadata(self, __match_any__: bool = False, **metadata: MetadataFilter):
+    def filter_metadata(
+        self, __match_any__: bool = False, **metadata: MetadataFilterType
+    ) -> Union["LocalBatch", "RemoteBatch"]:
         """Create a Batch object that has tasks filtered based on the
         values of metadata.
 
@@ -72,52 +70,40 @@ class Filter:
                 Tuple[Decimal].
 
         Return:
-            type(self): a Batch object with the filtered tasks.
+            type(self): a Batch object with the filtered tasks, either
+                LocalBatch or RemoteBatch depending on the type of self
 
         """
 
         def convert_to_decimal(element):
-            if isinstance(element, tuple):
-                return tuple(map(convert_to_decimal, element))
-            else:
+            if isinstance(element, list):
+                return list(map(convert_to_decimal, element))
+            elif isinstance(element, (Real, Decimal)):
                 return Decimal(str(element))
+            else:
+                raise ValueError(
+                    f"Invalid value {element} for metadata filter. "
+                    "Only Real, Decimal, List[Real], and List[Decimal] "
+                    "are supported."
+                )
 
         def metadata_match_all(task):
             return all(
-                tuple(task.metadata[key]) in value
-                for key, value in tuple_elements.items()
-            ) and all(
-                task.metadata[key] in value for key, value in scalar_elements.items()
+                task.metadata.get(key) in value for key, value in metadata.items()
             )
 
         def metadata_match_any(task):
             return any(
-                tuple(task.metadata[key]) in value
-                for key, value in tuple_elements.items()
-            ) or any(
-                task.metadata[key] in value for key, value in scalar_elements.items()
+                task.metadata.get(key) in value for key, value in metadata.items()
             )
 
-        metadata = {k: set(map(convert_to_decimal, v)) for k, v in metadata.items()}
-
-        # types of all elements in each set must be the same
-        tuple_elements = {
-            k: v
-            for k, v in metadata.items()
-            if any(isinstance(element, tuple) for element in v)
-        }
-        scalar_elements = {
-            k: v
-            for k, v in metadata.items()
-            if not any(isinstance(element, tuple) for element in v)
-        }
+        metadata = {k: list(map(convert_to_decimal, v)) for k, v in metadata.items()}
 
         metadata_filter = metadata_match_any if __match_any__ else metadata_match_all
 
-        new_tasks = OrderedDict()
-        for task_number, task in self.tasks.items():
-            if metadata_filter(task):
-                new_tasks[task_number] = task
+        new_tasks = OrderedDict(
+            [(k, v) for k, v in self.tasks.items() if metadata_filter(v)]
+        )
 
         kw = dict(self.__dict__)
         kw["tasks"] = new_tasks

@@ -166,9 +166,12 @@ def test_metadata_filter_scalar():
         ._compile(10)
     )
 
-    filtered_batch = batch.filter_metadata(d={1, 2, 16})
+    filtered_batch = batch.filter_metadata(d=[1, 2, 16])
 
     assert filtered_batch.tasks.keys() == {0, 1, 4}
+
+    with pytest.raises(ValueError):
+        filtered_batch = batch.filter_metadata(d=[1, 2, 16, 1j])
 
 
 def test_metadata_filter_vector():
@@ -184,12 +187,17 @@ def test_metadata_filter_vector():
         .bloqade.python()
         ._compile(10)
     )
-    filters = dict(d={1, 8}, m={(0, 1), (1, 0)})
+    filters = dict(d=[1, 8], m=[[0, 1], [1, 0]])
     filtered_batch_all = batch.filter_metadata(False, **filters)
     filtered_batch_any = batch.filter_metadata(True, **filters)
 
     assert filtered_batch_all.tasks.keys() == {0}
     assert filtered_batch_any.tasks.keys() == {0, 1, 3}
+
+    filters = dict(d=[1, 8], m=[[0, 1], [1, 0], (0, 0)])
+
+    with pytest.raises(ValueError):
+        filtered_batch_all = batch.filter_metadata(**filters)
 
 
 @patch("bloqade.ir.routine.braket.BraketBackend")
