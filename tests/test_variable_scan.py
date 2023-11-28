@@ -14,7 +14,7 @@ def test_1():
         return delta * np.sin(omega * t)
 
     circuit = (
-        Chain(15, "lattice_spacing")
+        Chain(15, lattice_spacing="lattice_spacing")
         .rydberg.detuning.scale("mask")
         .fn(detuning_wf, "t")
         .amplitude.uniform.constant(15, "t")
