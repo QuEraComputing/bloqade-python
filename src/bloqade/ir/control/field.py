@@ -32,7 +32,6 @@ class FieldExpr:
 
     @cached_property
     def _hash_value(self) -> int:
-        print(f"_hash_value: {self.__class__.__name__}")
         value = hash(self.__class__)
         for field in fields(self):
             field_value = getattr(self, field.name)
