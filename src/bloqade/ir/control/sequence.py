@@ -1,10 +1,11 @@
+from dataclasses import fields
 from functools import cached_property
 from .pulse import PulseExpr, Pulse
 from ..scalar import Interval, Scalar, cast
 from ..tree_print import Printer
 
 from pydantic.dataclasses import dataclass
-from typing import List, Dict, Optional
+from beartype.typing import List, Dict
 from bloqade.visualization import get_ir_figure
 from bloqade.visualization import display_ir
 
@@ -51,12 +52,12 @@ rydberg = RydbergLevelCoupling()
 hyperfine = HyperfineLevelCoupling()
 
 
-@dataclass
+@dataclass(frozen=True)
 class SequenceExpr:
     def append(self, other: "SequenceExpr") -> "SequenceExpr":
         return SequenceExpr.canonicalize(Append([self, other]))
 
-    def name(self, name: str):  # no need to call canonicalize here
+    def set_name(self, name: str):  # no need to call canonicalize here
         return NamedSequence(self, name)
 
     def __getitem__(self, s: slice) -> "Slice":
@@ -83,10 +84,29 @@ class SequenceExpr:
     def show(self, **assignment):
         raise NotImplementedError
 
+    @cached_property
+    def _hash_value(self) -> int:
+        value = hash(self.__class__)
+        for field in fields(self):
+            field_value = getattr(self, field.name)
+            if isinstance(field_value, dict):
+                value ^= hash(frozenset(field_value.items()))
+            elif isinstance(field_value, list):
+                value ^= hash(tuple(field_value))
+            else:
+                value ^= hash(field_value)
 
-@dataclass
+        return value
+
+    def __hash__(self) -> int:
+        return self._hash_value
+
+
+@dataclass(frozen=True)
 class Append(SequenceExpr):
     sequences: List[SequenceExpr]
+
+    __hash__ = SequenceExpr.__hash__
 
     @cached_property
     def duration(self) -> Scalar:
@@ -103,17 +123,16 @@ class Append(SequenceExpr):
         return "Append"
 
 
-@dataclass(init=False)
+@dataclass(frozen=True)
 class Sequence(SequenceExpr):
     """Sequence of a program, which includes pulses informations."""
 
     pulses: dict[LevelCoupling, PulseExpr]
 
-    def __init__(self, pulses: Optional[Dict] = None):
-        if pulses is None:
-            self.pulses = {}
-            return
+    __hash__ = SequenceExpr.__hash__
 
+    @staticmethod
+    def create(pulses: Dict = {}) -> "Sequence":
         processed_pulses = {}
         for level_coupling, pulse in pulses.items():
             if not isinstance(level_coupling, LevelCoupling):
@@ -125,7 +144,7 @@ class Sequence(SequenceExpr):
                 processed_pulses[level_coupling] = Pulse.create(pulse)
             else:
                 raise TypeError(f"Unexpected type {type(pulse)}")
-        self.pulses = processed_pulses
+        return Sequence(processed_pulses)
 
     @cached_property
     def duration(self) -> Scalar:
@@ -164,10 +183,12 @@ class Sequence(SequenceExpr):
         display_ir(self, assignments)
 
 
-@dataclass
+@dataclass(frozen=True)
 class NamedSequence(SequenceExpr):
-    sequence: SequenceExpr
     name: str
+    sequence: SequenceExpr
+
+    __hash__ = SequenceExpr.__hash__
 
     @cached_property
     def duration(self) -> Scalar:
@@ -189,10 +210,12 @@ class NamedSequence(SequenceExpr):
         display_ir(self, assignments)
 
 
-@dataclass
+@dataclass(frozen=True)
 class Slice(SequenceExpr):
     sequence: SequenceExpr
     interval: Interval
+
+    __hash__ = SequenceExpr.__hash__
 
     @cached_property
     def duration(self) -> Scalar:
