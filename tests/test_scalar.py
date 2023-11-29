@@ -132,7 +132,7 @@ def test_assign_var_member():
 
     assert va.children() == []
     assert va.print_node() == "AssignedVariable: a = 1.0"
-    assert str(va) == "a"
+    assert str(va) == "(a <- 1.0)"
 
 
 def test_literal_value():

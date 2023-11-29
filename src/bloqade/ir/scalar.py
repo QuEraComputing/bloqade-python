@@ -419,7 +419,7 @@ class AssignedVariable(Scalar):
         return self.value
 
     def __str__(self) -> str:
-        return f"{self.name}"
+        return f"({self.name} <- {self.value!s})"
 
     def children(self):
         return []
