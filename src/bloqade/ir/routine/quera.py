@@ -52,7 +52,7 @@ class QuEraHardwareRoutine(RoutineBase):
         args: Tuple[LiteralType, ...] = (),
         name: Optional[str] = None,
     ) -> RemoteBatch:
-        from bloqade.transform.common.assign_variables import AssignBloqadeIR
+        from bloqade.rewrite.common.assign_variables import AssignBloqadeIR
         from bloqade.analysis.common.assignment_scan import AssignmentScan
         from bloqade.codegen.hardware.quera import AHSCodegen
 

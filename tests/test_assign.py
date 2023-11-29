@@ -12,14 +12,14 @@ from bloqade.ir import (
 )
 import bloqade.ir.control.waveform as waveform
 import bloqade.ir.scalar as scalar
-from bloqade.transform.common.assign_variables import AssignBloqadeIR
+from bloqade.rewrite.common.assign_variables import AssignBloqadeIR
 from bloqade.analysis.common.assignment_scan import AssignmentScan
 from decimal import Decimal
 import pytest
 
 
 def test_assignment():
-    lattice = Chain(2, 4.5)
+    lattice = Chain(2, lattice_spacing=4.5)
     circuit = (
         lattice.rydberg.detuning.scale("amp")
         .piecewise_linear([0.1, 0.5, 0.1], [1.0, 2.0, 3.0, 4.0])
@@ -52,7 +52,7 @@ def test_assignment():
 
 
 def test_assignment_error():
-    lattice = Chain(2, 4.5)
+    lattice = Chain(2, lattice_spacing=4.5)
     circuit = (
         lattice.rydberg.detuning.scale("amp")
         .piecewise_linear([0.1, 0.5, 0.1], [1.0, 2.0, 3.0, 4.0])

@@ -5,7 +5,7 @@ import bloqade.ir.control.sequence as sequence
 from bloqade.ir.scalar import var
 
 from bloqade.analysis.common.scan_channels import ScanChannels
-from bloqade.transform.common.flatten_sequence import (
+from bloqade.rewrite.common.flatten_sequence import (
     FillMissingWaveforms,
     FlattenBloqadeIR,
 )
