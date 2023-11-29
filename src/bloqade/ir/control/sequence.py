@@ -122,7 +122,7 @@ class Sequence(SequenceExpr):
             if isinstance(pulse, PulseExpr):
                 processed_pulses[level_coupling] = pulse
             elif isinstance(pulse, dict):
-                processed_pulses[level_coupling] = Pulse(pulse)
+                processed_pulses[level_coupling] = Pulse.create(pulse)
             else:
                 raise TypeError(f"Unexpected type {type(pulse)}")
         self.pulses = processed_pulses
