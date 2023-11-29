@@ -153,6 +153,53 @@ def test_base_classes():
         task._result_exists()
 
 
+def test_metadata_filter_scalar():
+    batch = (
+        start.add_position([(0, i * 6.1) for i in range(14)])
+        .rydberg.detuning.uniform.piecewise_linear(
+            [0.1, 3.8, 0.1], [-20, -20, "d", "d"]
+        )
+        .amplitude.uniform.piecewise_linear([0.1, 3.8, 0.1], [0, 15, 15, 0])
+        .phase.uniform.constant(np.pi / 2, 4)
+        .batch_assign(d=[1, 2, 4, 8, 16, 32])
+        .braket.aquila()
+        ._compile(10)
+    )
+
+    filtered_batch = batch.filter_metadata(d=[1, 2, 16])
+
+    assert filtered_batch.tasks.keys() == {0, 1, 4}
+
+    with pytest.raises(ValueError):
+        filtered_batch = batch.filter_metadata(d=[1, 2, 16, 1j])
+
+
+def test_metadata_filter_vector():
+    batch = (
+        start.add_position([(0, i * 6.1) for i in range(2)])
+        .rydberg.detuning.uniform.piecewise_linear(
+            [0.1, 3.8, 0.1], [-20, -20, "d", "d"]
+        )
+        .amplitude.scale("m")
+        .piecewise_linear([0.1, 3.8, 0.1], [0, 15, 15, 0])
+        .phase.uniform.constant(np.pi / 2, 4)
+        .batch_assign(d=[1, 2, 4, 8], m=[[0, 1], [1, 0], [1, 1], [0, 0]])
+        .bloqade.python()
+        ._compile(10)
+    )
+    filters = dict(d=[1, 8], m=[[0, 1], [1, 0]])
+    filtered_batch_all = batch.filter_metadata(False, **filters)
+    filtered_batch_any = batch.filter_metadata(True, **filters)
+
+    assert filtered_batch_all.tasks.keys() == {0}
+    assert filtered_batch_any.tasks.keys() == {0, 1, 3}
+
+    filters = dict(d=[1, 8], m=[[0, 1], [1, 0], (0, 0)])
+
+    with pytest.raises(ValueError):
+        filtered_batch_all = batch.filter_metadata(**filters)
+
+
 @patch("bloqade.ir.routine.braket.BraketBackend")
 @patch("bloqade.task.batch.np.random.permutation")
 def test_remote_batch_task_metric(permutation, BraketBackend):
