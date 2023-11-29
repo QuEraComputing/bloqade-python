@@ -416,12 +416,12 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://bloqade.quera.com/reference/bloqade/rewrite/common/assign_variables/</loc>
+         <loc>https://bloqade.quera.com/reference/bloqade/rewrite/common/add_padding/</loc>
          <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://bloqade.quera.com/reference/bloqade/rewrite/common/fill/</loc>
+         <loc>https://bloqade.quera.com/reference/bloqade/rewrite/common/assign_variables/</loc>
          <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
