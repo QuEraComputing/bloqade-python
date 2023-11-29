@@ -4,7 +4,7 @@ from ..tree_print import Printer
 from .waveform import Waveform
 from bloqade.visualization import get_field_figure
 from pydantic.dataclasses import dataclass
-from beartype.typing import Dict, List, Optional, Sequence
+from beartype.typing import Dict, List, Optional
 from decimal import Decimal
 from bloqade.visualization import display_ir
 from bloqade.visualization import get_ir_figure
@@ -37,7 +37,7 @@ class FieldExpr:
             field_value = getattr(self, field.name)
             if isinstance(field_value, dict):
                 value ^= hash(frozenset(field_value.items()))
-            elif isinstance(field_value, Sequence):
+            elif isinstance(field_value, list):
                 value ^= hash(tuple(field_value))
             else:
                 value ^= hash(field_value)
