@@ -38,7 +38,7 @@ class BraketHardwareRoutine(RoutineBase):
         name: Optional[str] = None,
     ) -> RemoteBatch:
         ## fall passes here ###
-        from bloqade.transform.common.assign_variables import AssignBloqadeIR
+        from bloqade.rewrite.common.assign_variables import AssignBloqadeIR
         from bloqade.analysis.common.assignment_scan import AssignmentScan
         from bloqade.codegen.hardware.quera import AHSCodegen
 
@@ -172,7 +172,7 @@ class BraketLocalEmulatorRoutine(RoutineBase):
     ) -> LocalBatch:
         ## fall passes here ###
         from bloqade.ir import ParallelRegister
-        from bloqade.transform.common.assign_variables import AssignBloqadeIR
+        from bloqade.rewrite.common.assign_variables import AssignBloqadeIR
         from bloqade.analysis.common.assignment_scan import AssignmentScan
         from bloqade.codegen.hardware.quera import AHSCodegen
 

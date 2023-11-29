@@ -3,7 +3,7 @@ from bloqade.analysis.hardware.quera import (
     ValidatePiecewiseLinearChannel,
     ValidatePiecewiseConstantChannel,
 )
-from bloqade.transform.common.flatten_sequence import FillMissingWaveforms
+from bloqade.rewrite.common.flatten_sequence import FillMissingWaveforms
 
 import bloqade.ir.control.sequence as sequence
 import bloqade.ir.control.pulse as pulse
