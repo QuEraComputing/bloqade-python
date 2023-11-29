@@ -16,7 +16,6 @@ class FlattenBloqadeIR(BloqadeIRTransformer):
         self.level_couplings = level_couplings
         self.field_names = field_names
         self.spatial_modulations = spatial_modulations
-        self.duration = None
 
     #######################
     # Visitor definitions #
@@ -63,7 +62,7 @@ class FlattenBloqadeIR(BloqadeIRTransformer):
 
             fields[fn] = field.Field(drives)
 
-        return pulse.Pulse(fields)
+        return self.visit(pulse.Pulse(fields))
 
     def visit_pulse_Append(self, node: pulse.Append) -> pulse.Pulse:
         pulses = list(map(self.visit, node.pulses))
@@ -75,7 +74,7 @@ class FlattenBloqadeIR(BloqadeIRTransformer):
                     curr_wf = fields[fn].drives[sm]
                     fields[fn].drives[sm] = curr_wf.append(wf)
 
-        return pulse.Pulse(fields)
+        return self.visit(pulse.Pulse(fields))
 
     def visit_pulse_NamedPulse(self, node: pulse.NamedPulse) -> pulse.Pulse:
         return self.visit(node)
