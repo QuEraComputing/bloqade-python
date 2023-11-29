@@ -6,7 +6,7 @@ import bloqade.ir.scalar as scalar
 from bloqade.ir.visitor import BloqadeIRTransformer
 
 
-class FillMissingWaveforms(BloqadeIRTransformer):
+class AddPadding(BloqadeIRTransformer):
     def __init__(
         self,
         level_couplings=None,

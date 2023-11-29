@@ -3,7 +3,7 @@ from bloqade.analysis.hardware.quera import (
     ValidatePiecewiseLinearChannel,
     ValidatePiecewiseConstantChannel,
 )
-from bloqade.rewrite.common.flatten_sequence import FillMissingWaveforms
+from bloqade.rewrite.common.add_padding import AddPadding
 
 import bloqade.ir.control.sequence as sequence
 import bloqade.ir.control.pulse as pulse
@@ -113,9 +113,7 @@ def test_piecewise_linear_waveform_sad_path():
     wf2 = py_func.sample(0.1, "constant")
     wf3 = waveform.Poly([1, 2, 3], 1)
     wf4 = py_func.smooth(1, "Gaussian")
-    wf5 = FillMissingWaveforms().visit(
-        waveform.Linear(1, 2, 0.5) + waveform.Linear(2, 3, 1)
-    )
+    wf5 = AddPadding().visit(waveform.Linear(1, 2, 0.5) + waveform.Linear(2, 3, 1))
     wf6 = waveform.Linear(1, 2, 0.5).append(waveform.Linear(2.1, 3, 1))
 
     with pytest.raises(ValueError):
