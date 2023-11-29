@@ -60,6 +60,7 @@
     * [rewrite](bloqade/rewrite/index.md)
         * [common](bloqade/rewrite/common/index.md)
             * [assign_variables](bloqade/rewrite/common/assign_variables.md)
+            * [fill](bloqade/rewrite/common/fill.md)
             * [flatten_sequence](bloqade/rewrite/common/flatten_sequence.md)
     * [serialize](bloqade/serialize.md)
     * [submission](bloqade/submission/index.md)

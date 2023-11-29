@@ -421,6 +421,11 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
+         <loc>https://bloqade.quera.com/reference/bloqade/rewrite/common/fill/</loc>
+         <lastmod>2023-11-29</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
          <loc>https://bloqade.quera.com/reference/bloqade/rewrite/common/flatten_sequence/</loc>
          <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
