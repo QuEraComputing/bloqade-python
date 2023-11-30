@@ -1,6 +1,7 @@
 from collections import OrderedDict
 
-from typing import List, Union, Dict, Optional, Tuple
+from beartype.typing import List, Sequence, Union, Dict, Optional, Tuple
+from beartype import beartype
 from numbers import Number
 
 from bloqade.submission.ir.task_results import (
@@ -122,12 +123,40 @@ class Report:
     def markdown(self) -> str:
         return self.dataframe.to_markdown()
 
-    def bitstrings(self, filter_perfect_filling: bool = True) -> List[NDArray]:
+    def _filter(
+        self,
+        filter_perfect_filling: bool = True,
+        clusters: Union[tuple[int, int], Sequence[Tuple[int, int]]] = [],
+    ):
+        mask = np.ones(len(self.dataframe), dtype=bool)
+
+        if filter_perfect_filling:
+            perfect_sorting = self.dataframe.index.get_level_values("perfect_sorting")
+            pre_sequence = self.dataframe.index.get_level_values("pre_sequence")
+            np.logical_and(perfect_sorting == pre_sequence, mask, out=mask)
+
+        clusters = [clusters] if isinstance(clusters, tuple) else clusters
+
+        for cluster in clusters:
+            given_clusters = self.dataframe.index.get_level_values("cluster_index")
+            np.logical_and(given_clusters == cluster, mask, out=mask)
+
+        return mask
+
+    @beartype
+    def bitstrings(
+        self,
+        filter_perfect_filling: bool = True,
+        clusters: Union[tuple[int, int], List[tuple[int, int]]] = [],
+    ) -> List[NDArray]:
         """Get the bitstrings from the data.
 
         Args:
             filter_perfect_filling (bool): whether return will
             only contain perfect filling shots. Defaults to True.
+            clusters: (tuple[int, int], Sequence[Tuple[int, int]]):
+            cluster index to filter shots from. If none are provided
+            all clusters are used, defaults to [].
 
         Returns:
             bitstrings (list of ndarray): list corresponding to each
@@ -140,12 +169,8 @@ class Report:
             is set to True.
 
         """
-        perfect_sorting = self.dataframe.index.get_level_values("perfect_sorting")
-        pre_sequence = self.dataframe.index.get_level_values("pre_sequence")
-        if filter_perfect_filling:
-            df = self.dataframe[perfect_sorting == pre_sequence]
-        else:
-            df = self.dataframe
+        mask = self._filter(filter_perfect_filling, clusters)
+        df = self.dataframe[mask]
 
         task_numbers = df.index.get_level_values("task_number").unique()
 
@@ -155,14 +180,20 @@ class Report:
 
         return bitstrings
 
+    @beartype
     def counts(
-        self, filter_perfect_filling: bool = True
+        self,
+        filter_perfect_filling: bool = True,
+        clusters: Union[tuple[int, int], List[tuple[int, int]]] = [],
     ) -> List[OrderedDict[str, int]]:
         """Get the counts of unique bit strings.
 
         Args:
             filter_perfect_filling (bool): whether return will
             only contain perfect filling shots. Defaults to True.
+            clusters: (tuple[int, int], Sequence[Tuple[int, int]]):
+            cluster index to filter shots from. If none are provided
+            all clusters are used, defaults to [].
 
         Returns:
             bitstrings (list of ndarray): list corresponding to each
@@ -175,8 +206,8 @@ class Report:
             is set to True.
 
         """
-        counts = []
-        for bitstring in self.bitstrings(filter_perfect_filling):
+
+        def generate_counts(bitstring):
             output = np.unique(bitstring, axis=0, return_counts=True)
 
             count_list = [
@@ -186,11 +217,18 @@ class Report:
             count_list.sort(key=lambda x: x[1], reverse=True)
             count = OrderedDict(count_list)
 
-            counts.append(count)
+            return count
 
-        return counts
+        return list(
+            map(generate_counts, self.bitstrings(filter_perfect_filling, clusters))
+        )
 
-    def rydberg_densities(self, filter_perfect_filling: bool = True) -> pd.Series:
+    @beartype
+    def rydberg_densities(
+        self,
+        filter_perfect_filling: bool = True,
+        clusters: Union[tuple[int, int], List[tuple[int, int]]] = [],
+    ) -> pd.Series:
         """Get rydberg density for each task.
 
         Args:
@@ -201,14 +239,8 @@ class Report:
             per-site rydberg density for each task as a pandas DataFrame or Series.
 
         """
-        # TODO: implement nan for missing task numbers
-        perfect_sorting = self.dataframe.index.get_level_values("perfect_sorting")
-        pre_sequence = self.dataframe.index.get_level_values("pre_sequence")
-
-        if filter_perfect_filling:
-            df = self.dataframe[perfect_sorting == pre_sequence]
-        else:
-            df = self.dataframe
+        mask = self._filter(filter_perfect_filling, clusters)
+        df = self.dataframe[mask]
 
         return 1 - (df.groupby("task_number").mean())
 
