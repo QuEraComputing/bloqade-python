@@ -1,8 +1,8 @@
-from dataclasses import fields
 from functools import cached_property
-from .pulse import PulseExpr, Pulse
-from ..scalar import Interval, Scalar, cast
-from ..tree_print import Printer
+from bloqade.ir.control.pulse import PulseExpr, Pulse
+from bloqade.ir.control.hash_trait import HashTrait
+from bloqade.ir.scalar import Interval, Scalar, cast
+from bloqade.ir.tree_print import Printer
 
 from pydantic.dataclasses import dataclass
 from beartype.typing import List, Dict
@@ -53,7 +53,9 @@ hyperfine = HyperfineLevelCoupling()
 
 
 @dataclass(frozen=True)
-class SequenceExpr:
+class SequenceExpr(HashTrait):
+    __hash__ = HashTrait.__hash__
+
     def append(self, other: "SequenceExpr") -> "SequenceExpr":
         return SequenceExpr.canonicalize(Append([self, other]))
 
@@ -83,23 +85,6 @@ class SequenceExpr:
 
     def show(self, **assignment):
         raise NotImplementedError
-
-    @cached_property
-    def _hash_value(self) -> int:
-        value = hash(self.__class__)
-        for field in fields(self):
-            field_value = getattr(self, field.name)
-            if isinstance(field_value, dict):
-                value ^= hash(frozenset(field_value.items()))
-            elif isinstance(field_value, list):
-                value ^= hash(tuple(field_value))
-            else:
-                value ^= hash(field_value)
-
-        return value
-
-    def __hash__(self) -> int:
-        return self._hash_value
 
 
 @dataclass(frozen=True)

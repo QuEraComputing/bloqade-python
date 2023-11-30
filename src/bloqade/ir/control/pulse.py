@@ -1,8 +1,9 @@
-from dataclasses import fields
 from functools import cached_property
-from ..scalar import Interval, Scalar, cast
-from ..tree_print import Printer
-from .field import Field
+
+from bloqade.ir.scalar import Interval, Scalar, cast
+from bloqade.ir.tree_print import Printer
+from bloqade.ir.control.field import Field
+from bloqade.ir.control.hash_trait import HashTrait
 from beartype.typing import List
 from pydantic.dataclasses import dataclass
 from bloqade.visualization import get_pulse_figure
@@ -75,7 +76,7 @@ detuning = Detuning()
 
 
 @dataclass(frozen=True)
-class PulseExpr:
+class PulseExpr(HashTrait):
     """
     ```bnf
     <expr> ::= <pulse>
@@ -84,6 +85,8 @@ class PulseExpr:
       | <named>
     ```
     """
+
+    __hash__ = HashTrait.__hash__
 
     def append(self, other: "PulseExpr") -> "PulseExpr":
         return PulseExpr.canonicalize(Append([self, other]))
@@ -124,23 +127,6 @@ class PulseExpr:
 
     def show(self, **assignments):
         return NotImplementedError
-
-    @cached_property
-    def _hash_value(self) -> int:
-        value = hash(self.__class__)
-        for field in fields(self):
-            field_value = getattr(self, field.name)
-            if isinstance(field_value, dict):
-                value ^= hash(frozenset(field_value.items()))
-            elif isinstance(field_value, list):
-                value ^= hash(tuple(field_value))
-            else:  # fallback to hash
-                value ^= hash(field_value)
-
-        return value
-
-    def __hash__(self) -> int:
-        return self._hash_value
 
 
 @dataclass(frozen=True)

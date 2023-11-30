@@ -16,3 +16,6 @@ class HashTrait:
                 value ^= hash(field_value)
 
         return value
+
+    def __hash__(self):
+        return self._hash_value

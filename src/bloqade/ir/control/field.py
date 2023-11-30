@@ -1,14 +1,14 @@
 from functools import cached_property
-from ..scalar import Scalar, cast
-from ..tree_print import Printer
-from .waveform import Waveform
+from bloqade.ir.scalar import Scalar, cast
+from bloqade.ir.tree_print import Printer
+from bloqade.ir.control.waveform import Waveform
+from bloqade.ir.control.hash_trait import HashTrait
 from bloqade.visualization import get_field_figure
 from pydantic.dataclasses import dataclass
 from beartype.typing import Dict, List, Optional
 from decimal import Decimal
 from bloqade.visualization import display_ir
 from bloqade.visualization import get_ir_figure
-from dataclasses import fields
 
 
 __all__ = [
@@ -21,7 +21,9 @@ __all__ = [
 ]
 
 
-class FieldExpr:
+class FieldExpr(HashTrait):
+    __hash__ = HashTrait.__hash__
+
     def __str__(self):
         ph = Printer()
         ph.print(self)
@@ -29,23 +31,6 @@ class FieldExpr:
 
     def _repr_pretty_(self, p, cycle):
         Printer(p).print(self, cycle)
-
-    @cached_property
-    def _hash_value(self) -> int:
-        value = hash(self.__class__)
-        for field in fields(self):
-            field_value = getattr(self, field.name)
-            if isinstance(field_value, dict):
-                value ^= hash(frozenset(field_value.items()))
-            elif isinstance(field_value, list):
-                value ^= hash(tuple(field_value))
-            else:
-                value ^= hash(field_value)
-
-        return value
-
-    def __hash__(self) -> int:
-        return self._hash_value
 
 
 @dataclass(frozen=True)
