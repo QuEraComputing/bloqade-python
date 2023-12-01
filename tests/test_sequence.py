@@ -11,6 +11,7 @@ from bloqade.ir import (
     # ScaledLocations,
     LevelCoupling,
 )
+from bloqade.ir.control import sequence
 from bloqade.ir.control.sequence import NamedSequence
 from bloqade.ir import Interval
 import pytest
@@ -53,16 +54,16 @@ def test_lvlcouple_ryd():
 
 def test_sequence():
     # seq empty
-    seq = Sequence()
+    seq = Sequence.create()
     assert seq.pulses == {}
 
     # seq non-lvlcoupling:
     with pytest.raises(TypeError):
-        Sequence({"c": {}})
+        Sequence.create({"c": {}})
 
     # seq non-lvlcoupling:
     with pytest.raises(TypeError):
-        Sequence({rydberg: 3.3})
+        Sequence.create({rydberg: 3.3})
 
     # seq full
     f = Field({Uniform: Linear(start=1.0, stop="x", duration=3.0)})
@@ -72,6 +73,7 @@ def test_sequence():
     assert seq_full.children() == {"RydbergLevelCoupling": ps}
     assert seq_full.print_node() == "Sequence"
     assert seq_full.duration == cast(3.0)
+    assert hash(seq_full) == hash(Sequence) ^ hash(frozenset(seq_full.pulses.items()))
 
     mystdout = StringIO()
     p = PP(mystdout)
@@ -104,11 +106,12 @@ def test_named_sequence():
     seq_full = Sequence({rydberg: ps})
 
     # named seq:
-    named = NamedSequence(seq_full, "qq")
+    named = NamedSequence("qq", seq_full)
 
     assert named.children() == OrderedDict([("name", "qq"), ("sequence", seq_full)])
     assert named.print_node() == "NamedSequence"
     assert named.duration == cast(3.0)
+    assert hash(named) == hash(NamedSequence) ^ hash(seq_full) ^ hash("qq")
 
     mystdout = StringIO()
     p = PP(mystdout)
@@ -150,6 +153,7 @@ def test_slice_sequence():
     assert slc.children() == [itvl, seq_full]
     assert slc.print_node() == "Slice"
     assert slc.duration == cast(3.0)[itvl.start : itvl.stop]
+    assert hash(slc) == hash(sequence.Slice) ^ hash(slc.sequence) ^ hash(itvl)
 
     mystdout = StringIO()
     p = PP(mystdout)
@@ -181,6 +185,7 @@ def test_append_sequence():
     assert app.children() == [seq_full, seq_full]
     assert app.print_node() == "Append"
     assert app.duration == cast(6.0)
+    assert hash(app) == hash(sequence.Append) ^ hash(tuple([seq_full, seq_full]))
 
     mystdout = StringIO()
     p = PP(mystdout)
