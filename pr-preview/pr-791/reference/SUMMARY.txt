@@ -44,6 +44,7 @@
         * [analog_circuit](bloqade/ir/analog_circuit.md)
         * [control](bloqade/ir/control/index.md)
             * [field](bloqade/ir/control/field.md)
+            * [hash_trait](bloqade/ir/control/hash_trait.md)
             * [pulse](bloqade/ir/control/pulse.md)
             * [sequence](bloqade/ir/control/sequence.md)
             * [waveform](bloqade/ir/control/waveform.md)
