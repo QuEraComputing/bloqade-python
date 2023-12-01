@@ -138,7 +138,7 @@ class Report:
         clusters = [clusters] if isinstance(clusters, tuple) else clusters
 
         for cluster in clusters:
-            given_clusters = self.dataframe.index.get_level_values("cluster_index")
+            given_clusters = self.dataframe.index.get_level_values("cluster")
             np.logical_and(given_clusters == cluster, mask, out=mask)
 
         return mask
@@ -228,7 +228,7 @@ class Report:
         self,
         filter_perfect_filling: bool = True,
         clusters: Union[tuple[int, int], List[tuple[int, int]]] = [],
-    ) -> pd.Series:
+    ) -> Union[pd.Series, pd.DataFrame]:
         """Get rydberg density for each task.
 
         Args:
@@ -241,7 +241,6 @@ class Report:
         """
         mask = self._filter(filter_perfect_filling, clusters)
         df = self.dataframe[mask]
-
         return 1 - (df.groupby("task_number").mean())
 
     def show(self):
