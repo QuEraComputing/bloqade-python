@@ -30,7 +30,9 @@ def test_spacmod_base():
     x = SpatialModulation()
 
     with pytest.raises(NotImplementedError):
-        hash(x)
+        x.figure()
+
+    assert x._get_data() == {}
 
 
 def test_unform():
@@ -64,10 +66,10 @@ def test_runtime_vec():
 
 
 def test_scal_loc():
-    x = ScaledLocations({1: 1.0, 2: 2.0})
+    x = ScaledLocations.create({1: 1.0, 2: 2.0})
 
     with pytest.raises(ValueError):
-        ScaledLocations({(2, 3): 2})
+        ScaledLocations.create({(2, 3): 2})
 
     assert x.print_node() == "ScaledLocations"
     assert x.children() == {"Location(1)": cast(1.0), "Location(2)": cast(2.0)}
@@ -88,9 +90,9 @@ def test_scal_loc():
 
 
 def test_field_scaled_locations():
-    Loc = ScaledLocations({1: 1.0, 2: 2.0})
-    Loc2 = ScaledLocations({3: 1.0, 4: 2.0})
-    Loc3 = ScaledLocations({1: 1.0, 2: 2.0, 3: 1.0, 4: 2.0})
+    Loc = ScaledLocations.create({1: 1.0, 2: 2.0})
+    Loc2 = ScaledLocations.create({3: 1.0, 4: 2.0})
+    Loc3 = ScaledLocations.create({1: 1.0, 2: 2.0, 3: 1.0, 4: 2.0})
     f1 = Field({Loc: Linear(start=1.0, stop="x", duration=3.0)})
     f2 = Field({Loc: Linear(start=1.0, stop="x", duration=3.0)})
     f3 = Field({Loc2: Linear(start=1.0, stop="x", duration=3.0)})

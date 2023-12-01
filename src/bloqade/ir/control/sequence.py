@@ -1,10 +1,11 @@
 from functools import cached_property
-from .pulse import PulseExpr, Pulse
-from ..scalar import Interval, Scalar, cast
-from ..tree_print import Printer
+from bloqade.ir.control.pulse import PulseExpr, Pulse
+from bloqade.ir.control.hash_trait import HashTrait
+from bloqade.ir.scalar import Interval, Scalar, cast
+from bloqade.ir.tree_print import Printer
 
 from pydantic.dataclasses import dataclass
-from typing import List, Dict, Optional
+from beartype.typing import List, Dict
 from bloqade.visualization import get_ir_figure
 from bloqade.visualization import display_ir
 
@@ -51,12 +52,14 @@ rydberg = RydbergLevelCoupling()
 hyperfine = HyperfineLevelCoupling()
 
 
-@dataclass
-class SequenceExpr:
+@dataclass(frozen=True)
+class SequenceExpr(HashTrait):
+    __hash__ = HashTrait.__hash__
+
     def append(self, other: "SequenceExpr") -> "SequenceExpr":
         return SequenceExpr.canonicalize(Append([self, other]))
 
-    def name(self, name: str):  # no need to call canonicalize here
+    def set_name(self, name: str):  # no need to call canonicalize here
         return NamedSequence(self, name)
 
     def __getitem__(self, s: slice) -> "Slice":
@@ -84,9 +87,11 @@ class SequenceExpr:
         raise NotImplementedError
 
 
-@dataclass
+@dataclass(frozen=True)
 class Append(SequenceExpr):
     sequences: List[SequenceExpr]
+
+    __hash__ = SequenceExpr.__hash__
 
     @cached_property
     def duration(self) -> Scalar:
@@ -103,17 +108,16 @@ class Append(SequenceExpr):
         return "Append"
 
 
-@dataclass(init=False)
+@dataclass(frozen=True)
 class Sequence(SequenceExpr):
     """Sequence of a program, which includes pulses informations."""
 
     pulses: dict[LevelCoupling, PulseExpr]
 
-    def __init__(self, pulses: Optional[Dict] = None):
-        if pulses is None:
-            self.pulses = {}
-            return
+    __hash__ = SequenceExpr.__hash__
 
+    @staticmethod
+    def create(pulses: Dict = {}) -> "Sequence":
         processed_pulses = {}
         for level_coupling, pulse in pulses.items():
             if not isinstance(level_coupling, LevelCoupling):
@@ -122,10 +126,10 @@ class Sequence(SequenceExpr):
             if isinstance(pulse, PulseExpr):
                 processed_pulses[level_coupling] = pulse
             elif isinstance(pulse, dict):
-                processed_pulses[level_coupling] = Pulse(pulse)
+                processed_pulses[level_coupling] = Pulse.create(pulse)
             else:
                 raise TypeError(f"Unexpected type {type(pulse)}")
-        self.pulses = processed_pulses
+        return Sequence(processed_pulses)
 
     @cached_property
     def duration(self) -> Scalar:
@@ -164,10 +168,12 @@ class Sequence(SequenceExpr):
         display_ir(self, assignments)
 
 
-@dataclass
+@dataclass(frozen=True)
 class NamedSequence(SequenceExpr):
-    sequence: SequenceExpr
     name: str
+    sequence: SequenceExpr
+
+    __hash__ = SequenceExpr.__hash__
 
     @cached_property
     def duration(self) -> Scalar:
@@ -189,10 +195,12 @@ class NamedSequence(SequenceExpr):
         display_ir(self, assignments)
 
 
-@dataclass
+@dataclass(frozen=True)
 class Slice(SequenceExpr):
     sequence: SequenceExpr
     interval: Interval
+
+    __hash__ = SequenceExpr.__hash__
 
     @cached_property
     def duration(self) -> Scalar:

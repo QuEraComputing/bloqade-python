@@ -52,7 +52,7 @@ def test_assignment_scan_namedseq():
     ps = Pulse({detuning: f})
     seq_full = Sequence({rydberg: ps})
 
-    seq = NamedSequence(seq_full, "qq")
+    seq = NamedSequence("qq", seq_full)
 
     asgn = {"test": 40}
     scanner = asn.AssignmentScan({"test": 40})
