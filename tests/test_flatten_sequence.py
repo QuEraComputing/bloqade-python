@@ -87,7 +87,9 @@ def test_flatten_pulses_complex():
     sm1 = field.UniformModulation()
     sm2 = field.RunTimeVector("mask1")
     sm3 = field.AssignedRunTimeVector("mask2", list(range(4)))
-    sm4 = field.ScaledLocations({field.Location(0): "m0", field.Location(2): "m2"})
+    sm4 = field.ScaledLocations.create(
+        {field.Location(0): "m0", field.Location(2): "m2"}
+    )
 
     f1 = field.Field({sm1: wf1})
     f2 = field.Field({sm2: wf2})

@@ -171,7 +171,7 @@ def test_slice_pulse():
     ps = ps1[itvl.start : itvl.stop]
 
     assert ps.print_node() == "Slice"
-    assert ps.children() == {"Pulse": ps1, "Interval": itvl}
+    assert ps.children() == [itvl, ps1]
     assert ps.duration == cast(3.0)[itvl.start : itvl.stop]
     assert hash(ps) == hash(pulse.Slice) ^ hash(ps.pulse) ^ hash(ps.interval)
 
