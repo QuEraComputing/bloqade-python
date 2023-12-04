@@ -90,10 +90,10 @@ class RunTimeVector(SpatialModulation):
     __hash__ = SpatialModulation.__hash__
 
     def print_node(self):
-        return "RunTimeVector"
+        return f"RunTimeVector: {self.name}"
 
     def children(self):
-        return [self.name]
+        return []
 
     def figure(self, **assginment):
         return get_ir_figure(self, **assginment)
@@ -113,10 +113,10 @@ class AssignedRunTimeVector(SpatialModulation):
     __hash__ = SpatialModulation.__hash__
 
     def print_node(self):
-        return "AssgiendRunTimeVector"
+        return f"AssignedRunTimeVector: {self.name}"
 
     def children(self):
-        return [self.name, *self.value]
+        return cast(self.value)
 
     def figure(self, **assginment):
         return get_ir_figure(self, **assginment)
@@ -154,7 +154,7 @@ class ScaledLocations(SpatialModulation):
         scls = []
 
         for loc, scl in self.value.items():
-            names.append("loc[%d]" % (loc.value))
+            names.append(f"loc[{loc.value}]")
             scls.append(str(scl(**assignments)))
 
         return names, scls
@@ -217,9 +217,14 @@ class Field(FieldExpr):
     @cached_property
     def duration(self) -> Scalar:
         # waveforms are all aligned so that they all start at 0.
-        duration = cast(0)
-        for val in self.drives.values():
-            duration = duration.max(val.duration)
+        if len(self.drives) == 0:
+            return cast(0)
+
+        wfs = list(self.drives.values())
+
+        duration = wfs[0].duration
+        for wf in wfs[1:]:
+            duration = duration.max(wf.duration)
 
         return duration
 

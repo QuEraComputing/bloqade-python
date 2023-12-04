@@ -1,3 +1,4 @@
+from decimal import Decimal
 from bloqade.ir import (
     Field,
     Uniform,
@@ -6,6 +7,7 @@ from bloqade.ir import (
     Location,
     SpatialModulation,
     RunTimeVector,
+    AssignedRunTimeVector,
 )
 from bloqade.ir.control.field import Drive
 import pytest
@@ -14,8 +16,11 @@ from io import StringIO
 from IPython.lib.pretty import PrettyPrinter as PP
 
 import bloqade.ir.tree_print as trp
+from bloqade import tree_depth
 
 trp.color_enabled = False
+
+tree_depth(10)
 
 
 def test_location():
@@ -35,12 +40,13 @@ def test_spacmod_base():
     assert x._get_data() == {}
 
 
-def test_unform():
+def test_uniform():
     x = Uniform
 
     assert str(x) == "UniformModulation\n"
     assert x.print_node() == "UniformModulation"
     assert x.children() == []
+    assert x._get_data() == (["uni"], ["all"])
 
     mystdout = StringIO()
     p = PP(mystdout)
@@ -53,16 +59,39 @@ def test_unform():
 def test_runtime_vec():
     x = RunTimeVector("sss")
 
-    assert str(x) == "RunTimeVector\n" + "└─ sss\n"
-    assert x.print_node() == "RunTimeVector"
-    assert x.children() == ["sss"]
+    assert str(x) == "RunTimeVector: sss\n"
+    assert x.print_node() == "RunTimeVector: sss"
+    assert x.children() == []
+    assert x._get_data() == (["sss"], ["vec"])
 
     mystdout = StringIO()
     p = PP(mystdout)
 
     x._repr_pretty_(p, 0)
 
-    assert mystdout.getvalue() == "RunTimeVector\n" + "└─ sss\n"
+    assert mystdout.getvalue() == "RunTimeVector: sss\n"
+
+
+def test_assigned_runtime_vec():
+    x = AssignedRunTimeVector("sss", [Decimal("1.0"), Decimal("2.0")])
+
+    x_str = str(x)
+
+    assert x_str == (
+        "AssignedRunTimeVector: sss\n" "├─ Literal: 1.0\n" "└─ Literal: 2.0"
+    )
+    assert x.print_node() == "AssignedRunTimeVector: sss"
+    assert x.children() == cast([Decimal("1.0"), Decimal("2.0")])
+    assert x._get_data() == (["sss"], ["vec"])
+
+    mystdout = StringIO()
+    p = PP(mystdout)
+
+    x._repr_pretty_(p, 0)
+
+    assert mystdout.getvalue() == (
+        "AssignedRunTimeVector: sss\n" "├─ Literal: 1.0\n" "⋮\n" "└─ Literal: 2.0⋮\n"
+    )
 
 
 def test_scal_loc():
@@ -73,6 +102,12 @@ def test_scal_loc():
 
     assert x.print_node() == "ScaledLocations"
     assert x.children() == {"Location(1)": cast(1.0), "Location(2)": cast(2.0)}
+    assert x._get_data() == (["loc[1]", "loc[2]"], ["1.0", "2.0"])
+
+    x[Location(0)] = 1.0
+
+    assert x[Location(0)] == cast(1.0)
+    assert x
 
     mystdout = StringIO()
     p = PP(mystdout)
@@ -84,8 +119,11 @@ def test_scal_loc():
         "├─ Location(1)\n"
         "│  ⇒ Literal: 1.0\n"
         "⋮\n"
-        "└─ Location(2)\n"
-        "   ⇒ Literal: 2.0⋮\n"
+        "├─ Location(2)\n"
+        "│  ⇒ Literal: 2.0\n"
+        "⋮\n"
+        "└─ Location(0)\n"
+        "   ⇒ Literal: 1.0⋮\n"
     )
 
 
@@ -97,10 +135,14 @@ def test_field_scaled_locations():
     f2 = Field({Loc: Linear(start=1.0, stop="x", duration=3.0)})
     f3 = Field({Loc2: Linear(start=1.0, stop="x", duration=3.0)})
     f4 = Field({Loc3: Linear(start="y", stop="x", duration=4.0)})
+    f5 = Field({})
 
     # add with non field
     with pytest.raises(ValueError):
         f1.add(Loc)
+
+    assert f5.duration == cast(0)
+    assert f1.duration == cast(3.0)
 
     mystdout = StringIO()
     p = PP(mystdout)
@@ -149,4 +191,4 @@ def test_field_scaled_locations():
         }
     )
 
-    assert o3.duration == cast(3.0).max(4.0).max(0)
+    assert o3.duration == cast(3.0).max(4.0)

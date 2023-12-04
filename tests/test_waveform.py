@@ -5,7 +5,7 @@ from bloqade.ir import (
     Record,
     AlignedWaveform,
     Alignment,
-    AlignedValue,
+    Side,
     to_waveform,
     Interpolation,
     GaussianKernel,
@@ -309,7 +309,41 @@ def test_wvfn_poly():
     assert isinstance(hash(wf), int)
 
 
+def test_align():
+    wf = Linear(start=1.0, stop=2.0, duration=3.0)
+    wf1 = wf.align(Alignment.Left)
+    wf2 = wf.align(Alignment.Right, 0.0)
+    wf3 = wf.align(Alignment.Right)
+
+    assert wf.align(Alignment.Right, Side.Left) == AlignedWaveform(
+        wf, Alignment.Right, Side.Left
+    )
+    assert wf1.print_node() == "AlignedWaveform"
+    assert wf1.children() == {"Waveform": wf, "Alignment": "Left", "Value": "Right"}
+    assert wf2.children() == {"Waveform": wf, "Alignment": "Right", "Value": cast(0.0)}
+    assert wf3.children() == {"Waveform": wf, "Alignment": "Right", "Value": "Left"}
+    with pytest.raises(ValueError):
+        wf1.align(Alignment.Right, Side.Right)
+
+
 ##-----------------------------
+
+
+def test_dunders():
+    class MyNewType:
+        def __init__(self, value) -> None:
+            self.value = value
+
+        def __radd__(self, other: Waveform):
+            return other.canonicalize(Constant(self.value, other.duration) + other)
+
+        def __rsub__(self, other: Waveform):
+            return other.canonicalize(Constant(self.value, other.duration) - other)
+
+    obj = MyNewType(2)
+    assert Constant(2, 1) + obj == 2 * Constant(2, 1)
+    assert Constant(2, 1) - obj == Constant(2, 1) - Constant(2, 1)
+    assert Constant(2, 1) / 2 == 0.5 * Constant(2, 1)
 
 
 def test_smkern_base():
@@ -387,7 +421,7 @@ def test_wvfn_slice():
     assert wf.print_node() == "Slice"
     assert wf.eval_decimal(Decimal("0.4")) == 0
     assert wf.eval_decimal(Decimal("0.2")) == 2.0
-    assert wf.children() == [wv, iv]
+    assert wf.children() == [iv, wv]
     assert isinstance(hash(wf), int)
 
     mystdout = StringIO()
@@ -397,16 +431,16 @@ def test_wvfn_slice():
     assert (
         mystdout.getvalue()
         == "Slice\n"
-        + "├─ Constant\n"
-        + "│  ├─ value\n"
-        + "│  │  ⇒ Literal: 2.0\n"
-        + "│  └─ duration\n"
-        + "│     ⇒ Literal: 3.0\n"
-        + "└─ Interval\n"
-        + "   ├─ start\n"
-        + "   │  ⇒ Literal: 0\n"
-        + "   └─ stop\n"
-        + "      ⇒ Literal: 0.3"
+        + "├─ Interval\n"
+        + "│  ├─ start\n"
+        + "│  │  ⇒ Literal: 0\n"
+        + "│  └─ stop\n"
+        + "│     ⇒ Literal: 0.3\n"
+        + "└─ Constant\n"
+        + "   ├─ value\n"
+        + "   │  ⇒ Literal: 2.0\n"
+        + "   └─ duration\n"
+        + "      ⇒ Literal: 3.0"
     )
 
     iv_err1 = Interval(None, None)
@@ -428,11 +462,11 @@ def test_wvfm_align():
     assert wf.children() == {"Waveform": wv, "Alignment": "Left", "Value": cast(0.2)}
     assert isinstance(hash(wf), int)
 
-    wf2 = AlignedWaveform(wv, Alignment.Left, AlignedValue.Right)
+    wf2 = AlignedWaveform(wv, Alignment.Left, Side.Right)
     assert wf2.print_node() == "AlignedWaveform"
     assert wf2.children() == {"Waveform": wv, "Alignment": "Left", "Value": "Right"}
 
-    wf3 = AlignedWaveform(wv, Alignment.Right, AlignedValue.Left)
+    wf3 = AlignedWaveform(wv, Alignment.Right, Side.Left)
     assert wf3.print_node() == "AlignedWaveform"
     assert wf3.children() == {"Waveform": wv, "Alignment": "Right", "Value": "Left"}
 

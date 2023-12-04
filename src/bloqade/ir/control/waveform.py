@@ -36,9 +36,9 @@ def to_waveform(duration: ScalarType) -> Callable[[Callable], "PythonFn"]:
     return waveform_wrapper
 
 
-class AlignedValue(str, Enum):
-    Left = "left_value"
-    Right = "right_value"
+class Side(str, Enum):
+    Left = "left"
+    Right = "right"
 
 
 class Alignment(str, Enum):
@@ -97,7 +97,7 @@ class Waveform(HashTrait):
         return get_ir_figure(self, **assignments)
 
     def _get_data(self, npoints, **assignments):
-        from bloqade.ir.analysis.assignment_scan import AssignmentScan
+        from bloqade.analysis.common.assignment_scan import AssignmentScan
 
         assignments = AssignmentScan(assignments).emit(self)
 
@@ -110,19 +110,22 @@ class Waveform(HashTrait):
         display_ir(self, assignments)
 
     def align(
-        self, alignment: Alignment, value: Union[None, AlignedValue, Scalar] = None
+        self,
+        alignment: Union[str, Alignment],
+        value: Union[None, Side, ScalarType] = None,
     ) -> "Waveform":
+        if isinstance(self, AlignedWaveform):
+            raise ValueError("Cannot align an aligned waveform")
+
+        alignment = Alignment(alignment)
+
         if value is None:
-            if alignment == Alignment.Left:
-                value = AlignedValue.Left
-            elif alignment == Alignment.Right:
-                value = AlignedValue.Right
-            else:
-                raise ValueError(f"Invalid alignment: {alignment}")
-        elif value is Scalar or value is AlignedValue:
-            return self.canonicalize(AlignedWaveform(self, alignment, value))
-        else:
-            return self.canonicalize(AlignedWaveform(self, alignment, cast(value)))
+            value = Side.Left if alignment is Alignment.Right else Side.Right
+
+        if not isinstance(value, Side):
+            value = cast(value)
+
+        return self.canonicalize(AlignedWaveform(self, alignment, value))
 
     def smooth(self, radius, kernel: "SmoothingKernel") -> "Waveform":
         return self.canonicalize(
@@ -138,8 +141,10 @@ class Waveform(HashTrait):
     def __getitem__(self, s: slice) -> "Waveform":
         return self.canonicalize(Slice(self, Interval.from_slice(s)))
 
-    def record(self, variable_name: Union[str, Variable]):
-        return Record(self, cast(variable_name))
+    def record(
+        self, variable_name: Union[str, Variable], side: Union[str, Side] = Side.Right
+    ):
+        return Record(self, cast(variable_name), Side(side))
 
     def __add__(self, other: "Waveform") -> "Waveform":
         if isinstance(other, Waveform):
@@ -147,11 +152,11 @@ class Waveform(HashTrait):
 
         return NotImplemented
 
-    def __radd__(self, other: "Waveform") -> "Waveform":
-        if isinstance(other, Waveform):
-            return self.canonicalize(Add(self, other))
+    # def __radd__(self, other: "Waveform") -> "Waveform":
+    #     if isinstance(other, Waveform):
+    #         return self.canonicalize(Add(self, other))
 
-        return NotImplemented
+    #     return NotImplemented
 
     def __sub__(self, other: "Waveform") -> "Waveform":
         if isinstance(other, Waveform):
@@ -159,11 +164,11 @@ class Waveform(HashTrait):
 
         return NotImplemented
 
-    def __rsubs__(self, other: "Waveform") -> "Waveform":
-        if isinstance(other, Waveform):
-            return other + (-self)
+    # def __rsub__(self, other: "Waveform") -> "Waveform":
+    #     if isinstance(other, Waveform):
+    #         return other + (-self)
 
-        return NotImplemented
+    #     return NotImplemented
 
     def __mul__(self, other: Any) -> "Waveform":
         return self.scale(cast(other))
@@ -186,11 +191,19 @@ class Waveform(HashTrait):
             for waveform in expr.waveforms:
                 if isinstance(waveform, Append):
                     new_waveforms += waveform.waveforms
+                elif waveform.duration == cast(0):
+                    # skip zero duration waveforms
+                    continue
                 else:
                     new_waveforms.append(waveform)
 
             new_waveforms = list(map(Waveform.canonicalize, new_waveforms))
-            return Append(new_waveforms)
+            if len(new_waveforms) == 0:
+                return Constant(0, 0)
+            elif len(new_waveforms) == 1:
+                return new_waveforms[0]
+            else:
+                return Append(new_waveforms)
         elif isinstance(expr, Add):
             left = Waveform.canonicalize(expr.left)
             right = Waveform.canonicalize(expr.right)
@@ -226,7 +239,7 @@ class AlignedWaveform(Waveform):
 
     waveform: Waveform
     alignment: Alignment
-    value: Union[Scalar, AlignedValue]
+    value: Union[Scalar, Side]
 
     __hash__ = Waveform.__hash__
 
@@ -248,9 +261,9 @@ class AlignedWaveform(Waveform):
 
         if isinstance(self.value, Scalar):
             annotated_children["Value"] = self.value
-        elif self.value == AlignedValue.Left:
+        elif self.value == Side.Left:
             annotated_children["Value"] = "Left"
-        elif self.value == AlignedValue.Right:
+        elif self.value == Side.Right:
             annotated_children["Value"] = "Right"
 
         return annotated_children
@@ -604,7 +617,7 @@ class Smooth(Waveform):
 
     def __init__(self, radius, kernel, waveform):
         if isinstance(kernel, str):
-            if kernel == "Guassian":
+            if kernel == "Gaussian":
                 kernel = GaussianKernel
             elif kernel == "Logistic":
                 kernel = LogisticKernel
@@ -662,6 +675,12 @@ class Smooth(Waveform):
         else:
             raise ValueError(f"Invalid kernel: {self.kernel}")
 
+    def print_node(self):
+        return f"Smooth: {self.kernel.__class__.__name__}"
+
+    def children(self):
+        return {"radius": self.radius, "waveform": self.waveform}
+
 
 @dataclass(frozen=True)
 class Slice(Waveform):
@@ -698,7 +717,7 @@ class Slice(Waveform):
         return "Slice"
 
     def children(self):
-        return [self.waveform, self.interval]
+        return [self.interval, self.waveform]
 
 
 @dataclass(frozen=True)
@@ -828,12 +847,13 @@ class Add(Waveform):
 class Record(Waveform):
     """
     ```bnf
-    <record> ::= 'record' <waveform> <var>
+    <record> ::= 'record' <waveform> <var> <side>
     ```
     """
 
     waveform: Waveform
     var: Variable
+    side: Side = Side.Right
 
     __hash__ = Waveform.__hash__
 

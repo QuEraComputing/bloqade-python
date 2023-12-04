@@ -31,8 +31,8 @@ def tree_depth(depth: int = None):
         int: current updated depth
     """
     if depth is not None:
-        _ir.tree_print.max_tree_depth = depth
-    return _ir.tree_print.max_tree_depth
+        _ir.tree_print.MAX_TREE_DEPTH = depth
+    return _ir.tree_print.MAX_TREE_DEPTH
 
 
 __all__ = [
