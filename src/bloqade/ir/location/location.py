@@ -562,7 +562,6 @@ class ParallelRegisterInfo:
         self.register_locations = register_locations
         self.register_filling = register_filling
         self.shift_vectors = shift_vectors
-        super().__init__(self)
 
 
 @dataclass(init=False)
