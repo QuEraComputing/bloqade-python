@@ -36,7 +36,8 @@ class ScanVariables(BloqadeIRVisitor):
         self.vector_vars.add(node.name)
 
     def visit_field_AssignedRunTimeVector(self, node: field.AssignedRunTimeVector):
-        self.assigned_vector_vars.add(node.name)
+        if node.name is not None:  # skip literal vectors
+            self.assigned_vector_vars.add(node.name)
 
     def emit(self, node) -> ScanVariableResults:
         self.visit(node)
