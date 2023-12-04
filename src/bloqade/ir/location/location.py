@@ -555,6 +555,22 @@ class ParallelRegister:
     def info(self) -> ParallelRegisterInfo:
         return ParallelRegisterInfo(self.atom_arrangement, self.cluster_spacing)
 
+    @property
+    def n_atoms(self):
+        return self.atom_arrangement.n_atoms
+
+    @property
+    def n_sites(self):
+        return self.atom_arrangement.n_sites
+
+    @property
+    def n_vacant(self):
+        return self.atom_arrangement.n_vacant
+
+    @property
+    def n_dims(self):
+        return self.atom_arrangement.n_dims
+
 
 @dataclass(init=False)
 class ListOfLocations(AtomArrangement):
