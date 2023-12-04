@@ -2,7 +2,7 @@ from functools import cached_property
 from bloqade.ir.scalar import Scalar, cast
 from bloqade.ir.tree_print import Printer
 from bloqade.ir.control.waveform import Waveform
-from bloqade.ir.control.traits.hash_trait import HashTrait
+from bloqade.ir.control.traits.hash import HashTrait
 from bloqade.visualization import get_field_figure
 from pydantic.dataclasses import dataclass
 from beartype.typing import Dict, List, Optional
