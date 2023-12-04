@@ -493,20 +493,39 @@ class AtomArrangement(ProgramStart):
         return ListOfLocations(new_locations)
 
 
-@dataclass(init=False)
-class ParallelRegisterInfo(ProgramStart):
-    """Parallel Register"""
+@dataclass
+class ParallelRegister(ProgramStart):
+    atom_arrangement: AtomArrangement
+    cluster_spacing: Scalar
 
-    __match_args__ = ("_register", "_cluster_spacing")
+    @property
+    def n_atoms(self):
+        return self.atom_arrangement.n_atoms
+
+    @property
+    def n_sites(self):
+        return self.atom_arrangement.n_sites
+
+    @property
+    def n_vacant(self):
+        return self.atom_arrangement.n_vacant
+
+    @property
+    def n_dims(self):
+        return self.atom_arrangement.n_dims
+
+
+@dataclass(init=False)
+class ParallelRegisterInfo:
+    """ParallelRegisterInfo"""
 
     register_locations: List[List[Scalar]]
     register_filling: List[int]
     shift_vectors: List[List[Scalar]]
 
-    @beartype
-    def __init__(self, atom_arrangement: AtomArrangement, cluster_spacing: ScalarType):
-        self._register = atom_arrangement
-        self._cluster_spacing = cast(cluster_spacing)
+    def __init__(self, parallel_register: ParallelRegister):
+        atom_arrangement = parallel_register.atom_arrangement
+        cluster_spacing = parallel_register.cluster_spacing
 
         if atom_arrangement.n_atoms > 0:
             # calculate bounding box
@@ -544,32 +563,6 @@ class ParallelRegisterInfo(ProgramStart):
         self.register_filling = register_filling
         self.shift_vectors = shift_vectors
         super().__init__(self)
-
-
-@dataclass()
-class ParallelRegister:
-    atom_arrangement: AtomArrangement
-    cluster_spacing: Scalar
-
-    @property
-    def info(self) -> ParallelRegisterInfo:
-        return ParallelRegisterInfo(self.atom_arrangement, self.cluster_spacing)
-
-    @property
-    def n_atoms(self):
-        return self.atom_arrangement.n_atoms
-
-    @property
-    def n_sites(self):
-        return self.atom_arrangement.n_sites
-
-    @property
-    def n_vacant(self):
-        return self.atom_arrangement.n_vacant
-
-    @property
-    def n_dims(self):
-        return self.atom_arrangement.n_dims
 
 
 @dataclass(init=False)
