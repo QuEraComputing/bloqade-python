@@ -9,7 +9,7 @@ from bloqade.ir.scalar import (
     cast,
     var,
 )
-from bloqade.ir.control.hash_trait import HashTrait
+from bloqade.ir.control.traits.hash_trait import HashTrait
 
 from bisect import bisect_left
 from decimal import Decimal

@@ -1,7 +1,7 @@
 from collections import OrderedDict
 from functools import cached_property
 from bloqade.ir.control.pulse import PulseExpr, Pulse
-from bloqade.ir.control.hash_trait import HashTrait
+from bloqade.ir.control.traits.hash_trait import HashTrait
 from bloqade.ir.scalar import Interval, Scalar, cast
 from bloqade.ir.tree_print import Printer
 

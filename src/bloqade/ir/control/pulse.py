@@ -4,7 +4,7 @@ from functools import cached_property
 from bloqade.ir.scalar import Interval, Scalar, cast
 from bloqade.ir.tree_print import Printer
 from bloqade.ir.control.field import Field
-from bloqade.ir.control.hash_trait import HashTrait
+from bloqade.ir.control.traits.hash_trait import HashTrait
 from beartype.typing import List
 from pydantic.dataclasses import dataclass
 from bloqade.visualization import get_pulse_figure
