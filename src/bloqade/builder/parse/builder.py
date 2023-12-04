@@ -224,7 +224,7 @@ class Parser:
         from bloqade.ir.analog_circuit import AnalogCircuit
         from bloqade.ir.routine.params import Params, ScalarArg, VectorArg
         from bloqade.ir.routine.base import Routine
-        from bloqade.ir.analysis.scan_variables import ScanVariablesAnalogCircuit
+        from bloqade.ir.analysis.scan_variables import ScanVariables
 
         self.reset(builder)
         self.read_register()
@@ -233,7 +233,7 @@ class Parser:
 
         circuit = AnalogCircuit(self.register, self.sequence)
 
-        var_res = ScanVariablesAnalogCircuit().emit(circuit)
+        var_res = ScanVariables().emit(circuit)
 
         args_list = [
             (VectorArg(name) if name in var_res.vector_vars else ScalarArg(name))
