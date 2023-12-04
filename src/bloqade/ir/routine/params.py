@@ -29,6 +29,7 @@ class Params:
         num_args = 0
         for arg in self.args_list:
             if isinstance(arg, VectorArg):
+                # expect n_sites args for vector arguments
                 num_args += self.n_sites
             else:
                 num_args += 1
@@ -48,6 +49,7 @@ class Params:
         args = []
         i = 0
         for arg in self.args_list:
+            # if arg is a vector, then we need to unpack the next n_sites args
             if isinstance(arg, VectorArg):
                 vec = list(map(Decimal, map(str, flattened_args[i : i + self.n_sites])))
                 args.append(vec)
