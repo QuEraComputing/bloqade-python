@@ -9,6 +9,7 @@ from bloqade.ir.scalar import (
     cast,
     var,
 )
+from bloqade.ir.control.hash_trait import HashTrait
 
 from bisect import bisect_left
 from decimal import Decimal
@@ -46,7 +47,7 @@ class Alignment(str, Enum):
 
 
 @dataclass(frozen=True)
-class Waveform:
+class Waveform(HashTrait):
     """
     Waveform node in the IR.
 
@@ -72,6 +73,8 @@ class Waveform:
         | <sample>
     ```
     """
+
+    __hash__ = HashTrait.__hash__
 
     def __call__(self, clock_s: float, **kwargs) -> float:
         return float(self.eval_decimal(Decimal(str(clock_s)), **kwargs))
@@ -246,6 +249,8 @@ class AlignedWaveform(Waveform):
     alignment: Alignment
     value: Union[Scalar, Side]
 
+    __hash__ = Waveform.__hash__
+
     @property
     def duration(self):
         return self.waveform.duration
@@ -290,7 +295,7 @@ class Instruction(Waveform):
     ```
     """
 
-    pass
+    __hash__ = Waveform.__hash__
 
 
 @dataclass(init=False, frozen=True)
@@ -318,6 +323,8 @@ class Linear(Instruction):
         object.__setattr__(self, "start", cast(start))
         object.__setattr__(self, "stop", cast(stop))
         object.__setattr__(self, "duration", cast(duration))
+
+    __hash__ = Instruction.__hash__
 
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
         start_value = self.start(**kwargs)
@@ -360,6 +367,8 @@ class Constant(Instruction):
         object.__setattr__(self, "value", cast(value))
         object.__setattr__(self, "duration", cast(duration))
 
+    __hash__ = Instruction.__hash__
+
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
         constant_value = self.value(**kwargs)
         if clock_s > self.duration(**kwargs):
@@ -396,6 +405,8 @@ class Poly(Instruction):
     def __init__(self, coeffs: Container[ScalarType], duration: ScalarType):
         object.__setattr__(self, "coeffs", tuple(map(cast, coeffs)))
         object.__setattr__(self, "duration", cast(duration))
+
+    __hash__ = Instruction.__hash__
 
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
         # b + x + x^2 + ... + x^n-1 + x^n
@@ -446,6 +457,8 @@ class PythonFn(Instruction):
     parameters: List[Union[Variable, AssignedVariable]]  # come from node inspect
     default_param_values: Dict[str, Decimal]
 
+    __hash__ = Instruction.__hash__
+
     @staticmethod
     def create(fn: Callable, duration: ScalarType) -> "PythonFn":
         signature = inspect.getfullargspec(fn)
@@ -477,19 +490,6 @@ class PythonFn(Instruction):
         duration = cast(duration)
 
         return PythonFn(fn, duration, parameters, default_param_values)
-
-    @cached_property
-    def _hash_value(self) -> int:
-        return (
-            hash(self.__class__)
-            ^ hash(self.fn)
-            ^ hash(self.duration)
-            ^ hash(tuple(self.parameters))
-            ^ hash(frozenset(self.default_param_values.items()))
-        )
-
-    def __hash__(self) -> int:
-        return self._hash_value
 
     def eval_decimal(self, clock_s: Decimal, **assignments) -> Decimal:
         new_assignments = {**self.default_param_values, **assignments}
@@ -621,6 +621,8 @@ class Smooth(Waveform):
     kernel: SmoothingKernel
     waveform: Waveform
 
+    __hash__ = Waveform.__hash__
+
     def __init__(self, radius, kernel, waveform):
         if isinstance(kernel, str):
             if kernel == "Gaussian":
@@ -699,6 +701,8 @@ class Slice(Waveform):
     waveform: Waveform
     interval: Interval
 
+    __hash__ = Waveform.__hash__
+
     @cached_property
     def start(self) -> Scalar:
         if self.interval.start is None:
@@ -744,6 +748,8 @@ class Append(Waveform):
 
     waveforms: Tuple[Waveform, ...]
 
+    __hash__ = Waveform.__hash__
+
     @cached_property
     def duration(self):
         duration = cast(0.0)
@@ -781,6 +787,8 @@ class Negative(Waveform):
 
     waveform: Waveform
 
+    __hash__ = Waveform.__hash__
+
     @property
     def duration(self):
         return self.waveform.duration
@@ -810,6 +818,8 @@ class Scale(Waveform):
         object.__setattr__(self, "scalar", cast(scalar))
         object.__setattr__(self, "waveform", waveform)
 
+    __hash__ = Waveform.__hash__
+
     @property
     def duration(self):
         return self.waveform.duration
@@ -834,6 +844,8 @@ class Add(Waveform):
 
     left: Waveform
     right: Waveform
+
+    __hash__ = Waveform.__hash__
 
     @cached_property
     def duration(self):
@@ -860,6 +872,8 @@ class Record(Waveform):
     waveform: Waveform
     var: Variable
     side: Side = Side.Right
+
+    __hash__ = Waveform.__hash__
 
     @property
     def duration(self):
@@ -891,6 +905,8 @@ class Sample(Waveform):
     waveform: Waveform
     interpolation: Interpolation
     dt: Scalar
+
+    __hash__ = Waveform.__hash__
 
     @property
     def duration(self):

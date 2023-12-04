@@ -281,7 +281,7 @@ files = [
 
 [[package]]
 name = "bokeh"
-version = "3.3.1"
+version = "3.3.2"
 requires_python = ">=3.9"
 summary = "Interactive plots and applications in the browser from Python"
 dependencies = [
@@ -296,8 +296,8 @@ dependencies = [
     "xyzservices>=2021.09.1",
 ]
 files = [
-    {file = "bokeh-3.3.1-py3-none-any.whl", hash = "sha256:783fb503d80306fb1e3c06e9c775d98675bf9e07514a776d7109178798e85683"},
-    {file = "bokeh-3.3.1.tar.gz", hash = "sha256:2a7b3702d7e9f03ef4cd801b02b7380196c70cff2773859bcb84fa565218955c"},
+    {file = "bokeh-3.3.2-py3-none-any.whl", hash = "sha256:f70bcea96c72f85bbeae01b9dcd30a9f27aa48fbfaf8e6f45b6958dfcd08e5c5"},
+    {file = "bokeh-3.3.2.tar.gz", hash = "sha256:ae180f86f776525f7eb81673a1f27e0eb56887d733771662c512ec0d82a433f5"},
 ]
 
 [[package]]
@@ -1357,19 +1357,20 @@ files = [
 
 [[package]]
 name = "jupytext"
-version = "1.15.2"
-requires_python = "~=3.6"
+version = "1.16.0"
+requires_python = ">=3.8"
 summary = "Jupyter notebooks as Markdown documents, Julia, Python or R scripts"
 dependencies = [
     "markdown-it-py>=1.0.0",
     "mdit-py-plugins",
     "nbformat",
+    "packaging",
     "pyyaml",
     "toml",
 ]
 files = [
-    {file = "jupytext-1.15.2-py3-none-any.whl", hash = "sha256:ef2a1a3eb8f63d84a3b3772014bdfbe238e4e12a30c4309b8c89e0a54adeb7d1"},
-    {file = "jupytext-1.15.2.tar.gz", hash = "sha256:c9976e24d834e991906c1de55af4b6d512d764f6372aabae45fc1ea72b589173"},
+    {file = "jupytext-1.16.0-py3-none-any.whl", hash = "sha256:c2b951ac72871f39cd6cd242b56bc43219b7ed8169598bae5359811fb1f54d28"},
+    {file = "jupytext-1.16.0.tar.gz", hash = "sha256:94c7e67775e90e1792c39ab7fca4e0459bf7c35656123e8dc2e9e1b3e953baf8"},
 ]
 
 [[package]]

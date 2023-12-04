@@ -137,9 +137,11 @@ def test_scale():
 
 
 def test_scale_location():
+    from bloqade.ir.control.field import Location
+
     prog = start.rydberg.detuning.location([1, 2], [1.2, 3.3])
 
-    assert prog._scaled_locations == {1: cast(1.2), 2: cast(3.3)}
+    assert prog._scaled_locations == {Location(1): cast(1.2), Location(2): cast(3.3)}
 
 
 def test_build_ast_Scale():

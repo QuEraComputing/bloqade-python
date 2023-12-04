@@ -22,7 +22,9 @@ def generate_spatiamodulations():
     sm1 = field.UniformModulation()
     sm2 = field.RunTimeVector("mask1")
     sm3 = field.AssignedRunTimeVector("mask2", list(range(4)))
-    sm4 = field.ScaledLocations({field.Location(0): "m0", field.Location(2): "m2"})
+    sm4 = field.ScaledLocations.create(
+        {field.Location(0): "m0", field.Location(2): "m2"}
+    )
 
     return sm1, sm2, sm3, sm4
 
