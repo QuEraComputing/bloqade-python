@@ -73,3 +73,58 @@ def test_options_4():
     with pytest.raises(ValueError):
         # checking that using `arg` is not allowed without args
         program._compile(100, args=(2,))
+
+
+def test_options_5():
+    def detuning(t, x, y):
+        return y * t + x
+
+    runtime_assign = (
+        start.add_position((0, 0))
+        .add_position((0, 6.1))
+        .add_position((0, "d"))
+        .rydberg.detuning.scale("mask")
+        .fn(detuning, 4)
+        .sample(0.05)
+        .assign(x=1)
+        .batch_assign(d=[0, 1], y=[0, 1])
+        .args(["mask"])
+        .parallelize(20)
+        .quera.mock()
+        ._compile(100, args=(0, 1, 0))
+    )
+
+    static_assign = (
+        start.add_position((0, 0))
+        .add_position((0, 6.1))
+        .add_position((0, "d"))
+        .rydberg.detuning.scale([0, 1, 0])
+        .fn(detuning, 4)
+        .sample(0.05)
+        .assign(x=1)
+        .batch_assign(d=[0, 1], y=[0, 1])
+        .parallelize(20)
+        .quera.mock()
+        ._compile(100)
+    )
+
+    for task_1, task_2 in zip(
+        runtime_assign.tasks.values(), static_assign.tasks.values()
+    ):
+        assert task_1.task_ir == task_2.task_ir
+
+    with pytest.raises(ValueError):
+        (
+            start.add_position((0, 0))
+            .add_position((0, 6.1))
+            .add_position((0, "d"))
+            .rydberg.detuning.scale("mask")
+            .fn(detuning, 4)
+            .sample(0.05)
+            .assign(x=1)
+            .batch_assign(d=[0, 1], y=[0, 1])
+            .args(["mask"])
+            .parallelize(20)
+            .quera.mock()
+            ._compile(100, args=(0, 0.5))
+        )

@@ -528,7 +528,10 @@ class AHSCodegen(BloqadeIRVisitor):
         self.extract_fields(ahs_result)
 
     def visit_location_ParallelRegister(self, node: location.ParallelRegister) -> Any:
-        info = node.info
+        from bloqade.ir.location.location import ParallelRegisterInfo
+
+        info = ParallelRegisterInfo(node)
+
         if self.capabilities is None:
             raise NotImplementedError(
                 "Cannot parallelize register without device capabilities."
