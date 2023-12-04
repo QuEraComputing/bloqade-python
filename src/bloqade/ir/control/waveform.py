@@ -704,10 +704,8 @@ class Slice(SliceTrait, Waveform):
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
         if clock_s > self.duration(**kwargs):
             return Decimal(0)
-        if self.interval.start is None:
-            start_time = Decimal(0)
-        else:
-            start_time = self.interval.start(**kwargs)
+
+        start_time = self.start(**kwargs)
         return self.waveform.eval_decimal(clock_s + start_time, **kwargs)
 
     def print_node(self):

@@ -9,6 +9,12 @@ class SliceTrait:
 
     @cached_property
     def start(self) -> Scalar:
+        """Start time of the sliced object
+
+        Returns:
+            Scalar: The starting time of the sliced object as a
+            Scalar Expression
+        """
         if self.interval.start is None:
             return cast(0)
         else:
@@ -16,6 +22,12 @@ class SliceTrait:
 
     @cached_property
     def stop(self) -> Scalar:
+        """Stop time of the sliced object
+
+        Returns:
+            Scalar: The stopping time of the sliced object as a
+            Scalar Expression
+        """
         if self.interval.stop is None:
             return self._sub_expr.duration
         else:
