@@ -1,3 +1,4 @@
+from collections import OrderedDict
 from functools import cached_property
 from bloqade.ir.control.pulse import PulseExpr, Pulse
 from bloqade.ir.control.hash_trait import HashTrait
@@ -134,8 +135,12 @@ class Sequence(SequenceExpr):
     @cached_property
     def duration(self) -> Scalar:
         # Pulses are all aligned so that they all start at 0.
-        duration = cast(0)
-        for p in self.pulses.values():
+        if len(self.pulses) == 0:
+            return cast(0)
+
+        pulses = list(self.pulses.values())
+        duration = pulses[0].duration
+        for p in pulses[1:]:
             duration = duration.max(p.duration)
 
         return duration
@@ -180,7 +185,7 @@ class NamedSequence(SequenceExpr):
         return self.sequence.duration
 
     def children(self):
-        return {"sequence": self.sequence, "name": self.name}
+        return OrderedDict([("name", self.name), ("sequence", self.sequence)])
 
     def print_node(self):
         return "NamedSequence"
@@ -207,7 +212,7 @@ class Slice(SequenceExpr):
         return self.sequence.duration[self.interval.start : self.interval.stop]
 
     def children(self):
-        return {"sequence": self.sequence, "interval": self.interval}
+        return [self.interval, self.sequence]
 
     def print_node(self):
         return "Slice"

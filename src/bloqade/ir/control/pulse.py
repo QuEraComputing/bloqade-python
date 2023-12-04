@@ -1,3 +1,4 @@
+from collections import OrderedDict
 from functools import cached_property
 
 from bloqade.ir.scalar import Interval, Scalar, cast
@@ -8,6 +9,7 @@ from beartype.typing import List
 from pydantic.dataclasses import dataclass
 from bloqade.visualization import get_pulse_figure
 from bloqade.visualization import display_ir
+
 
 __all__ = [
     "Pulse",
@@ -91,8 +93,8 @@ class PulseExpr(HashTrait):
     def append(self, other: "PulseExpr") -> "PulseExpr":
         return PulseExpr.canonicalize(Append([self, other]))
 
-    def slice(self, interval: Interval) -> "PulseExpr":
-        return PulseExpr.canonicalize(Slice(self, interval))
+    def __getitem__(self, s: slice) -> "PulseExpr":
+        return PulseExpr.canonicalize(Slice(self, Interval.from_slice(s)))
 
     @staticmethod
     def canonicalize(expr: "PulseExpr") -> "PulseExpr":
@@ -183,9 +185,12 @@ class Pulse(PulseExpr):
 
     @cached_property
     def duration(self) -> Scalar:
+        if len(self.fields) == 0:
+            return cast(0)
         # Fields are all aligned so that they all start at 0.
-        duration = cast(0)
-        for val in self.fields.values():
+        fields = list(self.fields.values())
+        duration = fields[0].duration
+        for val in fields[1:]:
             duration = duration.max(val.duration)
 
         return duration
@@ -230,7 +235,7 @@ class NamedPulse(PulseExpr):
         return "NamedPulse"
 
     def children(self):
-        return {"Name": self.name, "Pulse": self.pulse}
+        return OrderedDict([("name", self.name), ("pulse", self.pulse)])
 
     def _get_data(self, **assigments):
         return self.name, self.pulse.value
@@ -257,4 +262,4 @@ class Slice(PulseExpr):
         return "Slice"
 
     def children(self):
-        return {"Pulse": self.pulse, "Interval": self.interval}
+        return [self.interval, self.pulse]

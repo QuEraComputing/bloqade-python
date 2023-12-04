@@ -4,6 +4,7 @@ import bloqade.ir.analog_circuit as analog_circuit
 import bloqade.ir.control.field as field
 import bloqade.ir.control.pulse as pulse
 import bloqade.ir.control.sequence as sequence
+
 import bloqade.ir.location as location
 from bloqade.ir.visitor import BloqadeIRVisitor
 

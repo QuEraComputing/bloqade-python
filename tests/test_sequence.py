@@ -1,3 +1,4 @@
+from collections import OrderedDict
 from bloqade.ir import (
     rydberg,
     detuning,
@@ -71,7 +72,7 @@ def test_sequence():
 
     assert seq_full.children() == {"RydbergLevelCoupling": ps}
     assert seq_full.print_node() == "Sequence"
-    assert seq_full.duration == cast(3.0).max(0)
+    assert seq_full.duration == cast(3.0)
     assert hash(seq_full) == hash(Sequence) ^ hash(frozenset(seq_full.pulses.items()))
 
     mystdout = StringIO()
@@ -107,9 +108,9 @@ def test_named_sequence():
     # named seq:
     named = NamedSequence("qq", seq_full)
 
-    assert named.children() == {"sequence": seq_full, "name": "qq"}
+    assert named.children() == OrderedDict([("name", "qq"), ("sequence", seq_full)])
     assert named.print_node() == "NamedSequence"
-    assert named.duration == cast(3.0).max(0)
+    assert named.duration == cast(3.0)
     assert hash(named) == hash(NamedSequence) ^ hash(seq_full) ^ hash("qq")
 
     mystdout = StringIO()
@@ -118,25 +119,25 @@ def test_named_sequence():
     print(repr(mystdout.getvalue()))
     assert (
         mystdout.getvalue() == "NamedSequence\n"
-        "├─ sequence\n"
-        "│  ⇒ Sequence\n"
-        "│    └─ RydbergLevelCoupling\n"
-        "│       ⇒ Pulse\n"
-        "│         └─ Detuning\n"
-        "│            ⇒ Field\n"
-        "│              └─ Drive\n"
-        "│                 ├─ modulation\n"
-        "│                 │  ⇒ UniformModulation\n"
-        "│                 └─ waveform\n"
-        "│                    ⇒ Linear\n"
-        "│                      ├─ start\n"
-        "│                      │  ⇒ Literal: 1.0\n"
-        "│                      ├─ stop\n"
-        "│                      │  ⇒ Variable: x\n"
-        "│                      └─ duration\n"
-        "│                         ⇒ Literal: 3.0\n"
-        "└─ name\n"
-        "   ⇒ qq\n"
+        "├─ name\n"
+        "│  ⇒ qq\n"
+        "└─ sequence\n"
+        "   ⇒ Sequence\n"
+        "     └─ RydbergLevelCoupling\n"
+        "        ⇒ Pulse\n"
+        "          └─ Detuning\n"
+        "             ⇒ Field\n"
+        "               └─ Drive\n"
+        "                  ├─ modulation\n"
+        "                  │  ⇒ UniformModulation\n"
+        "                  └─ waveform\n"
+        "                     ⇒ Linear\n"
+        "                       ├─ start\n"
+        "                       │  ⇒ Literal: 1.0\n"
+        "                       ├─ stop\n"
+        "                       │  ⇒ Variable: x\n"
+        "                       └─ duration\n"
+        "                          ⇒ Literal: 3.0"
     )
 
 
@@ -149,9 +150,9 @@ def test_slice_sequence():
     # slice:
     slc = seq_full[0:1.5]
 
-    assert slc.children() == {"sequence": seq_full, "interval": itvl}
+    assert slc.children() == [itvl, seq_full]
     assert slc.print_node() == "Slice"
-    assert slc.duration == cast(3.0).max(0)[itvl.start : itvl.stop]
+    assert slc.duration == cast(3.0)[itvl.start : itvl.stop]
     assert hash(slc) == hash(sequence.Slice) ^ hash(slc.sequence) ^ hash(itvl)
 
     mystdout = StringIO()
@@ -160,19 +161,17 @@ def test_slice_sequence():
 
     assert (
         mystdout.getvalue() == "Slice\n"
-        "├─ sequence\n"
-        "│  ⇒ Sequence\n"
-        "│    └─ RydbergLevelCoupling\n"
-        "│       ⇒ Pulse\n"
-        "│         └─ Detuning\n"
-        "│            ⇒ Field\n"
+        "├─ Interval\n"
+        "│  ├─ start\n"
+        "│  │  ⇒ Literal: 0\n"
+        "│  └─ stop\n"
+        "│     ⇒ Literal: 1.5\n"
+        "└─ Sequence\n"
+        "   └─ RydbergLevelCoupling\n"
+        "      ⇒ Pulse\n"
+        "        └─ Detuning\n"
+        "           ⇒ Field\n"
         "⋮\n"
-        "└─ interval\n"
-        "   ⇒ Interval\n"
-        "     ├─ start\n"
-        "     │  ⇒ Literal: 0\n"
-        "     └─ stop\n"
-        "        ⇒ Literal: 1.5"
     )
 
 
@@ -185,7 +184,7 @@ def test_append_sequence():
 
     assert app.children() == [seq_full, seq_full]
     assert app.print_node() == "Append"
-    assert app.duration == cast(3.0).max(0) + cast(3.0).max(0)
+    assert app.duration == cast(6.0)
     assert hash(app) == hash(sequence.Append) ^ hash(tuple([seq_full, seq_full]))
 
     mystdout = StringIO()
@@ -208,24 +207,3 @@ def test_append_sequence():
         "           ⇒ Field\n"
         "⋮\n"
     )
-
-
-"""
-seq = Sequence(
-    {
-        rydberg: {
-            detuning: {
-                Uniform: Linear(start=1.0, stop="x", duration=3.0),
-                ScaledLocations({1: 1.0, 2: 2.0}): Linear(
-                    start=1.0, stop="x", duration=3.0
-                ),
-            },
-        }
-    }
-)
-
-print(seq)
-print(seq.name("test"))
-print(seq.append(seq))
-print(seq[:0.5])
-"""

@@ -2,6 +2,7 @@ from bloqade.builder.typing import LiteralType
 from bloqade.ir.visitor import BloqadeIRVisitor
 import bloqade.ir.control.waveform as waveform
 from typing import Dict
+from decimal import Decimal
 
 
 class AssignmentScan(BloqadeIRVisitor):
@@ -12,7 +13,12 @@ class AssignmentScan(BloqadeIRVisitor):
         self.visit(node.waveform)
         duration = node.waveform.duration(**self.assignments)
         var = node.var
-        value = node.waveform.eval_decimal(duration, **self.assignments)
+
+        if node.side is waveform.Side.Right:
+            value = node.waveform.eval_decimal(duration, **self.assignments)
+        else:
+            value = node.waveform.eval_decimal(Decimal(0), **self.assignments)
+
         self.assignments[var.name] = value
 
     def emit(self, node) -> Dict[str, LiteralType]:
