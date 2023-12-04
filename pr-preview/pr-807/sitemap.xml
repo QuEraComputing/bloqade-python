@@ -131,6 +131,51 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
+         <loc>https://bloqade.quera.com/reference/bloqade/analysis/</loc>
+         <lastmod>2023-12-04</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://bloqade.quera.com/reference/bloqade/analysis/common/</loc>
+         <lastmod>2023-12-04</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://bloqade.quera.com/reference/bloqade/analysis/common/assignment_scan/</loc>
+         <lastmod>2023-12-04</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://bloqade.quera.com/reference/bloqade/analysis/common/is_constant/</loc>
+         <lastmod>2023-12-04</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://bloqade.quera.com/reference/bloqade/analysis/common/is_hyperfine/</loc>
+         <lastmod>2023-12-04</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://bloqade.quera.com/reference/bloqade/analysis/common/scan_channels/</loc>
+         <lastmod>2023-12-04</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://bloqade.quera.com/reference/bloqade/analysis/common/scan_variables/</loc>
+         <lastmod>2023-12-04</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://bloqade.quera.com/reference/bloqade/analysis/hardware/</loc>
+         <lastmod>2023-12-04</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://bloqade.quera.com/reference/bloqade/analysis/hardware/quera/</loc>
+         <lastmod>2023-12-04</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
          <loc>https://bloqade.quera.com/reference/bloqade/builder/</loc>
          <lastmod>2023-12-04</lastmod>
          <changefreq>daily</changefreq>
@@ -291,31 +336,6 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://bloqade.quera.com/reference/bloqade/ir/analysis/</loc>
-         <lastmod>2023-12-04</lastmod>
-         <changefreq>daily</changefreq>
-    </url>
-    <url>
-         <loc>https://bloqade.quera.com/reference/bloqade/ir/analysis/assignment_scan/</loc>
-         <lastmod>2023-12-04</lastmod>
-         <changefreq>daily</changefreq>
-    </url>
-    <url>
-         <loc>https://bloqade.quera.com/reference/bloqade/ir/analysis/is_constant/</loc>
-         <lastmod>2023-12-04</lastmod>
-         <changefreq>daily</changefreq>
-    </url>
-    <url>
-         <loc>https://bloqade.quera.com/reference/bloqade/ir/analysis/is_hyperfine/</loc>
-         <lastmod>2023-12-04</lastmod>
-         <changefreq>daily</changefreq>
-    </url>
-    <url>
-         <loc>https://bloqade.quera.com/reference/bloqade/ir/analysis/scan_variables/</loc>
-         <lastmod>2023-12-04</lastmod>
-         <changefreq>daily</changefreq>
-    </url>
-    <url>
          <loc>https://bloqade.quera.com/reference/bloqade/ir/control/</loc>
          <lastmod>2023-12-04</lastmod>
          <changefreq>daily</changefreq>
@@ -387,6 +407,31 @@
     </url>
     <url>
          <loc>https://bloqade.quera.com/reference/bloqade/ir/routine/quera/</loc>
+         <lastmod>2023-12-04</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://bloqade.quera.com/reference/bloqade/rewrite/</loc>
+         <lastmod>2023-12-04</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://bloqade.quera.com/reference/bloqade/rewrite/common/</loc>
+         <lastmod>2023-12-04</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://bloqade.quera.com/reference/bloqade/rewrite/common/add_padding/</loc>
+         <lastmod>2023-12-04</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://bloqade.quera.com/reference/bloqade/rewrite/common/assign_variables/</loc>
+         <lastmod>2023-12-04</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://bloqade.quera.com/reference/bloqade/rewrite/common/flatten_sequence/</loc>
          <lastmod>2023-12-04</lastmod>
          <changefreq>daily</changefreq>
     </url>
