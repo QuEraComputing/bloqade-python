@@ -10,6 +10,8 @@ from bloqade.ir.scalar import (
     var,
 )
 from bloqade.ir.control.traits.hash import HashTrait
+from bloqade.ir.control.traits.append import AppendTrait
+from bloqade.ir.control.traits.slice import SliceTrait
 
 from bisect import bisect_left
 from decimal import Decimal
@@ -683,7 +685,7 @@ class Smooth(Waveform):
 
 
 @dataclass(frozen=True)
-class Slice(Waveform):
+class Slice(SliceTrait, Waveform):
     """
     ```
     <slice> ::= <waveform> <scalar.interval>
@@ -695,14 +697,9 @@ class Slice(Waveform):
 
     __hash__ = Waveform.__hash__
 
-    @cached_property
-    def duration(self):
-        from bloqade.ir.scalar import Slice
-
-        if self.interval.start is None and self.interval.stop is None:
-            raise ValueError("Interval must have a start or stop value")
-
-        return Slice(self.waveform.duration, self.interval)
+    @property
+    def _sub_expr(self):
+        return self.waveform
 
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
         if clock_s > self.duration(**kwargs):
@@ -721,7 +718,7 @@ class Slice(Waveform):
 
 
 @dataclass(frozen=True)
-class Append(Waveform):
+class Append(AppendTrait, Waveform):
     """
     ```bnf
     <append> ::= <waveform>+
@@ -732,13 +729,9 @@ class Append(Waveform):
 
     __hash__ = Waveform.__hash__
 
-    @cached_property
-    def duration(self):
-        duration = cast(0.0)
-        for waveform in self.waveforms:
-            duration = duration + waveform.duration
-
-        return duration
+    @property
+    def _sub_exprs(self):
+        return self.waveforms
 
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
         append_time = Decimal(0)

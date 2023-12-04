@@ -2,6 +2,8 @@ from collections import OrderedDict
 from functools import cached_property
 from bloqade.ir.control.pulse import PulseExpr, Pulse
 from bloqade.ir.control.traits.hash import HashTrait
+from bloqade.ir.control.traits.append import AppendTrait
+from bloqade.ir.control.traits.slice import SliceTrait
 from bloqade.ir.scalar import Interval, Scalar, cast
 from bloqade.ir.tree_print import Printer
 
@@ -89,18 +91,14 @@ class SequenceExpr(HashTrait):
 
 
 @dataclass(frozen=True)
-class Append(SequenceExpr):
+class Append(AppendTrait, SequenceExpr):
     sequences: List[SequenceExpr]
 
     __hash__ = SequenceExpr.__hash__
 
-    @cached_property
-    def duration(self) -> Scalar:
-        duration = cast(0)
-        for p in self.sequences:
-            duration = duration + p.duration
-
-        return duration
+    @property
+    def _sub_exprs(self):
+        return self.sequences
 
     def children(self):
         return self.sequences
@@ -201,15 +199,15 @@ class NamedSequence(SequenceExpr):
 
 
 @dataclass(frozen=True)
-class Slice(SequenceExpr):
+class Slice(SliceTrait, SequenceExpr):
     sequence: SequenceExpr
     interval: Interval
 
     __hash__ = SequenceExpr.__hash__
 
-    @cached_property
-    def duration(self) -> Scalar:
-        return self.sequence.duration[self.interval.start : self.interval.stop]
+    @property
+    def _sub_expr(self):
+        return self.sequence
 
     def children(self):
         return [self.interval, self.sequence]
