@@ -7,7 +7,7 @@ from beartype import beartype
 __bloqade_package_loaded__ = False
 
 
-def load_patchage():
+def load_bloqade():
     import pkgutil
     import os
 
@@ -103,7 +103,7 @@ def loads(s: str, use_decimal: bool = True, **json_kwargs):
     Returns:
         Any: the deserialized object
     """
-    load_patchage()
+    load_bloqade()
     return json.loads(
         s, object_hook=Serializer.object_hook, use_decimal=use_decimal, **json_kwargs
     )
@@ -121,7 +121,7 @@ def load(fp: Union[TextIO, str], use_decimal: bool = True, **json_kwargs):
     Returns:
         Any: the deserialized object
     """
-    load_patchage()
+    load_bloqade()
     if isinstance(fp, str):
         with open(fp, "r") as f:
             return json.load(

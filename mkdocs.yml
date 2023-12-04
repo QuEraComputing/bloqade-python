@@ -9,10 +9,23 @@ edit_uri: 'edit/main/docs/'
 
 # Page tree
 nav:
-  - Home: index.md
-  - Getting started:
-    - Installation: getting_started/installation.md
-    - Usage: getting_started/philosophy.md
+  - Home:
+    - index.md
+    - Bloqade 101: home/bloqade_101.md
+    - Getting Started: home/getting_started.md
+    - Advanced Usage: home/advanced_usage.md
+    - Gotchas: home/gotchas.md
+  - Tutorials: 'https://queracomputing.github.io/bloqade-python-examples/latest/'
+  - Reference:
+    - Builder Overview: reference/overview.md
+    - Builder Standard Diagram: reference/standard.md
+    - Hardware Reference: reference/hardware-capabilities.md
+    - API References : reference/bloqade/
+  - Blog:
+    - 2023:
+      - blog/2023/index.md
+      - Introducing Bloqade SDK for Python: blog/2023/posts/bloqade-release.md
+  - License: https://github.com/QuEraComputing/bloqade-python/blob/main/LICENSE
   - Contributing:
     - contributing/index.md
     - Reporting Bugs: contributing/reporting-a-bug.md
@@ -21,19 +34,8 @@ nav:
     - Developing Bloqade: contributing/developing-bloqade.md
     - Design Philosophy and Architecture: contributing/design-philosophy-and-architecture.md
     - Community Slack: contributing/community-slack.md
-    - Asking a Question: 'contributing/asking-a-question.md'
-  - Tutorials: 'https://queracomputing.github.io/bloqade-python-examples/latest/'
-  - Reference:
-    - Builder Overview: docs/builder-workflow/overview.md
-    - Builder Standard Diagram: docs/builder-workflow/standard.md 
-    - API References : reference/bloqade/
-  - Blog:
-    - 2023:
-      - blog/2023/index.md
-      - Introducing Bloqade SDK for Python: blog/2023/posts/bloqade-release.md
-
-
-  - License: https://github.com/QuEraComputing/bloqade-python/blob/main/LICENSE
+    - Asking a Question: contributing/asking-a-question.md
+    - Providing Feedback: contributing/providing-feedback.md
 
 copyright: Copyright &copy; 2023 - QuEra Computing Inc.
 theme:
@@ -84,7 +86,7 @@ extra_css:
 
 plugins:
   - search:
-      separator: '[\s\-,:!=\[\]()"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
+      separator: '[\s\-,:!=\[\: )"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
   - gen-files:
       scripts:
       - docs/scripts/gen_ref_nav.py
@@ -102,11 +104,6 @@ plugins:
               ignore_init_summary: true
   - minify:
       minify_html: true
-  - mkdocs-jupyter:
-      include: ["*.py"] # only include scripts
-      ignore: ["*.ipynb"]
-      execute: true # always execute
-      include_source: True
   - mike
 
 extra:
@@ -145,8 +142,8 @@ markdown_extensions:
   - pymdownx.caret
   - pymdownx.details
   - pymdownx.emoji:
-      emoji_generator: !!python/name:materialx.emoji.to_svg
-      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
   - pymdownx.highlight:
       anchor_linenums: true
       line_spans: __span

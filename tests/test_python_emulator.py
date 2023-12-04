@@ -1,13 +1,12 @@
-from bloqade import start, var, cast
+from bloqade import start, var, cast, dumps, loads
 from bloqade.atom_arrangement import Chain
-from bloqade.serialize import dumps, loads
 import numpy as np
 from beartype.typing import Dict
 from scipy.stats import ks_2samp
 
 
 def test_integration_1():
-    (
+    batch = (
         start.add_position((0, 0))
         .add_position((0, 5.0))
         .scale("r")
@@ -18,9 +17,12 @@ def test_integration_1():
         .assign(ramp_time=3.0, r=8)
         .bloqade.python()
         .run(10000, cache_matrices=True, blockade_radius=6.0, interaction_picture=True)
-        .report()
-        .bitstrings()
     )
+
+    batch_str = dumps(batch)
+    batch2 = loads(batch_str)
+    assert isinstance(batch2, type(batch))
+    batch2.report().bitstrings()
 
 
 def test_integration_2():
@@ -38,7 +40,7 @@ def test_integration_2():
         )
         .assign(ramp_time=3.0, r=6)
         .bloqade.python()
-        .run(10000, cache_matrices=True, blockade_radius=6.0)
+        .run(10000, cache_matrices=False, blockade_radius=6.0, multiprocessing=True)
         .report()
         .bitstrings()
     )
@@ -188,8 +190,8 @@ def test_bloqade_against_braket():
     )
 
     nshots = 1000
-    a = prog.bloqade.python().run(nshots, cache_matrices=True).report().counts
-    b = prog.braket.local_emulator().run(nshots).report().counts
+    a = prog.bloqade.python().run(nshots, cache_matrices=True).report().counts()
+    b = prog.braket.local_emulator().run(nshots).report().counts()
 
     for lhs, rhs in zip(a, b):
         KS_test(lhs, rhs)
@@ -221,8 +223,8 @@ def test_bloqade_against_braket_2():
     )
 
     nshots = 1000
-    a = prog_2.bloqade.python().run(nshots, cache_matrices=True).report().counts
-    b = prog_1.braket.local_emulator().run(nshots).report().counts
+    a = prog_2.bloqade.python().run(nshots, cache_matrices=True).report().counts()
+    b = prog_1.braket.local_emulator().run(nshots).report().counts()
 
     for lhs, rhs in zip(a, b):
         KS_test(lhs, rhs)

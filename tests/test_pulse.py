@@ -4,6 +4,7 @@ from bloqade import cast
 import pytest
 from io import StringIO
 from IPython.lib.pretty import PrettyPrinter as PP
+from bloqade.ir.control import pulse
 from bloqade.ir.control.pulse import (
     FieldName,
     RabiFrequencyAmplitude,
@@ -88,13 +89,16 @@ def test_pulse():
 
     ## make pulse, invalid field:
     with pytest.raises(TypeError):
-        Pulse({Uniform: 1.0})
+        Pulse.create({Uniform: 1.0})
 
     ## make pulse:
     ps1 = Pulse({detuning: f})
 
     assert ps1.print_node() == "Pulse"
     assert ps1.children() == {"Detuning": f}
+    assert ps1.duration == cast(3.0).max(cast(0))
+
+    assert hash(ps1) == hash(Pulse) ^ hash(frozenset([(detuning, f)]))
 
     mystdout = StringIO()
     p = PP(mystdout)
@@ -125,8 +129,10 @@ def test_named_pulse():
     ps = NamedPulse("qq", ps1)
 
     assert ps.children() == {"Name": "qq", "Pulse": ps1}
-
     assert ps.print_node() == "NamedPulse"
+    assert ps.duration == cast(0.0).max(cast(3.0))
+
+    assert hash(ps) == hash(NamedPulse) ^ hash(ps.name) ^ hash(ps.pulse)
 
     mystdout = StringIO()
     p = PP(mystdout)
@@ -165,6 +171,8 @@ def test_slice_pulse():
 
     assert ps.print_node() == "Slice"
     assert ps.children() == {"Pulse": ps1, "Interval": itvl}
+    assert ps.duration == cast(0).max(cast(3.0))[itvl.start : itvl.stop]
+    assert hash(ps) == hash(pulse.Slice) ^ hash(ps.pulse) ^ hash(ps.interval)
 
     mystdout = StringIO()
     p = PP(mystdout)
@@ -205,6 +213,9 @@ def test_append_pulse():
     ps = ps1.append(ps1)
 
     assert ps.children() == [ps1, ps1]
+    assert ps.print_node() == "Append"
+    assert ps.duration == cast(0).max(cast(3.0)) + cast(0).max(cast(3.0))
+    assert hash(ps) == hash(pulse.Append) ^ hash(tuple(ps.pulses))
 
     mystdout = StringIO()
     p = PP(mystdout)

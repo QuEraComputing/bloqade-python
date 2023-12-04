@@ -1,10 +1,10 @@
 from bloqade.atom_arrangement import Chain
-from bloqade.ir.analysis.is_constant import IsConstantAnalogCircuit
+from bloqade.ir.analysis.is_constant import IsConstant
 
 
 def test_happy_path():
     circuit = (
-        Chain(8, 6.1)
+        Chain(8, lattice_spacing=6.1)
         .rydberg.detuning.uniform.constant(1.0, 10.0)
         .amplitude.uniform.linear(1.0, 1.0, 5.0)
         .linear(1.0, 1.0, 5.0)
@@ -12,11 +12,10 @@ def test_happy_path():
         .parse_circuit()
     )
 
-    result = IsConstantAnalogCircuit().emit(circuit)
-    assert result.is_constant
+    assert IsConstant().scan(circuit)
 
     circuit = (
-        Chain(8, 6.1)
+        Chain(8, lattice_spacing=6.1)
         .rydberg.detuning.uniform.constant(1.0, 5.0)
         .uniform.constant(1.0, 10.0)
         .slice(2.5, 7.5)
@@ -29,13 +28,12 @@ def test_happy_path():
     )
     print(circuit)
     # assert False
-    result = IsConstantAnalogCircuit().emit(circuit)
-    assert result.is_constant
+    assert IsConstant().scan(circuit)
 
 
 def test_fail_shape():
     circuit = (
-        Chain(8, 6.1)
+        Chain(8, lattice_spacing=6.1)
         .rydberg.detuning.uniform.constant(1.0, 5.0)
         .uniform.constant(1.0, 10.0)
         .slice(2.5, 7.5)
@@ -48,11 +46,10 @@ def test_fail_shape():
     )
     print(circuit)
     # assert False
-    result = IsConstantAnalogCircuit().emit(circuit)
-    assert not result.is_constant
+    assert not IsConstant().scan(circuit)
 
     circuit = (
-        Chain(8, 6.1)
+        Chain(8, lattice_spacing=6.1)
         .rydberg.detuning.uniform.constant(1.0, 5.0)
         .uniform.constant(1.0, 10.0)
         .slice(2.5, 7.5)
@@ -67,13 +64,12 @@ def test_fail_shape():
     )
     print(circuit)
     # assert False
-    result = IsConstantAnalogCircuit().emit(circuit)
-    assert not result.is_constant
+    assert not IsConstant().scan(circuit)
 
 
 def test_fail_duration():
     circuit = (
-        Chain(8, 6.1)
+        Chain(8, lattice_spacing=6.1)
         .rydberg.detuning.uniform.constant(1.0, 9.0)
         .amplitude.uniform.linear(1.0, 1.0, 5.0)
         .linear(1.0, 1.0, 5.0)
@@ -83,11 +79,10 @@ def test_fail_duration():
 
     print(circuit)
     # assert False
-    result = IsConstantAnalogCircuit().emit(circuit)
-    assert not result.is_constant
+    assert not IsConstant().scan(circuit)
 
     circuit = (
-        Chain(8, 6.1)
+        Chain(8, lattice_spacing=6.1)
         .rydberg.detuning.uniform.constant(1.0, 10.0)
         .uniform.constant(1.0, 9.0)
         .amplitude.uniform.linear(1.0, 1.0, 5.0)
@@ -98,13 +93,12 @@ def test_fail_duration():
 
     print(circuit)
     # assert False
-    result = IsConstantAnalogCircuit().emit(circuit)
-    assert not result.is_constant
+    assert not IsConstant().scan(circuit)
 
 
 def test_fail_value():
     circuit = (
-        Chain(8, 6.1)
+        Chain(8, lattice_spacing=6.1)
         .rydberg.detuning.uniform.constant(1.0, 10.0)
         .constant(1.1, 10.0)
         .parse_circuit()
@@ -112,5 +106,4 @@ def test_fail_value():
 
     print(circuit)
     # assert False
-    result = IsConstantAnalogCircuit().emit(circuit)
-    assert not result.is_constant
+    assert not IsConstant().scan(circuit)

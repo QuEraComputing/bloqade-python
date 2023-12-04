@@ -1,7 +1,7 @@
 <div align="center">
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/docs/assets/logo-dark.png">
-  <source media="(prefers-color-scheme: light)" srcset="docs/docs/assets/logo.png">
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/logo-dark.png">
+  <source media="(prefers-color-scheme: light)" srcset="docs/assets/logo.png">
   <img alt="Bloqade Logo">
 </picture>
 </div>
@@ -24,7 +24,7 @@ Those coming from Bloqade.jl will most likely have this as their first question 
 
 Bloqade.jl was designed as an ***emulation-first*** SDK enabling users to investigate novel physical phenomena and develop complex algorithms with bleeding-edge performance. The result of this focus is that not everything made in Bloqade.jl is compatible with quantum hardware. While the ability to submit to Braket is available in Bloqade.jl it becomes cumbersome to analyze results and keep track of parameter sweeps.
 
-In our mission to make neutral atom quantum computing more accessible to a broader community and the valuable feedback we've received in users of our quantum hardware, we took the opportunity to create a ***hardware-first*** SDK. One that is perfectly positioned to make it even easier to reap the benefits of neutral atoms while minimizing the pain points of initial program creation and post-processing results. 
+In our mission to make neutral atom quantum computing more accessible to a broader community and the valuable feedback we've received in users of our quantum hardware, we took the opportunity to create a ***hardware-first*** SDK. One that is perfectly positioned to make it even easier to reap the benefits of neutral atoms while minimizing the pain points of initial program creation and post-processing results.
 
 ## What does Bloqade do?
 
@@ -42,7 +42,7 @@ pip install bloqade
 
 ## Documentation
 
-If you're already convinced about what Bloqade brings to the table, feel free to take a look at our documentation with examples [here](https://queracomputing.github.io/bloqade-python/latest/). 
+If you're already convinced about what Bloqade brings to the table, feel free to take a look at our documentation with examples [here](https://queracomputing.github.io/bloqade-python/latest/).
 
 If you aren't convinced, keep scrolling!
 
@@ -50,11 +50,11 @@ If you aren't convinced, keep scrolling!
 
 ### Smart Documentation
 
-Get where you need to go in your program development with documentation that knows *where* and *when* it's needed. Never get lost developing your algorithm ever again! 
+Get where you need to go in your program development with documentation that knows *where* and *when* it's needed. Never get lost developing your algorithm ever again!
 
 If you're a novice to neutral atoms, smart docs have your back. If you're an expert with neutral atoms, let smart docs give you some guidance on some new avenues for algorithm development.
 
-![](docs/docs/assets/readme-gifs/smart-docs.gif)
+![](docs/assets/readme-gifs/smart-docs.gif)
 
 
 ### Fully Parameterized Analog Programs
@@ -63,13 +63,13 @@ If you're a novice to neutral atoms, smart docs have your back. If you're an exp
 
 You used to have to manually keep track of all the small variations of your program per parameter, keeping careful track not to forget to submit one variation or lose one on top of a convoluted post-processing pipeline to incorporate all the results in one place.
 
-Bloqade eliminates this with its own support for variables and internal handling of program parameter variations. Just drop in a variable in almost any place a single value can live and you can either assign a value later or a whole sequence of values to create a parameter sweep. 
+Bloqade eliminates this with its own support for variables and internal handling of program parameter variations. Just drop in a variable in almost any place a single value can live and you can either assign a value later or a whole sequence of values to create a parameter sweep.
 
 Let Bloqade handle keeping track of all the variations while you focus on becoming a master of neutral atoms.
 
 Did we mention you can throw your program at hardware and emulation and still keep your parameter sweeps?
 
-```python 
+```python
 from bloqade import var
 from bloqade.atom_arrangement import Square
 
@@ -79,9 +79,9 @@ adiabatic_durations = [0.4, 3.2, 0.4]
 
 # create variables explicitly...
 max_detuning = var("max_detuning")
-# ...or implicitly inside the program definition. 
+# ...or implicitly inside the program definition.
 adiabatic_program = (
-    Square(3, "lattice_spacing")
+    Square(3, lattice_spacing="lattice_spacing")
     .rydberg.rabi.amplitude.uniform.piecewise_linear(
         durations=adiabatic_durations, values=[0.0, "max_rabi", "max_rabi", 0.0]
     )
@@ -109,13 +109,13 @@ hw_results = adiabatic_program.parallelize(24).braket.aquila().run_async(100)
 
 Simple and fast visualization for programs no matter how complex your program gets:
 
-![](docs/docs/assets/readme-gifs/locations-hover.gif)
-![](docs/docs/assets/readme-gifs/graph-select.gif)
+![](docs/assets/readme-gifs/locations-hover.gif)
+![](docs/assets/readme-gifs/graph-select.gif)
 
-The same holds for results: 
+The same holds for results:
 
-![](docs/docs/assets/readme-gifs/visualize-bitstrings.gif)
-![](docs/docs/assets/readme-gifs/hover-bitstrings.gif)
+![](docs/assets/readme-gifs/visualize-bitstrings.gif)
+![](docs/assets/readme-gifs/hover-bitstrings.gif)
 
 ### Maximum Composability
 
@@ -127,42 +127,51 @@ Feel free to let your waveforms grow to your liking too!:
 from bloqade import start
 
 # Save your intermediate steps any way you like
-initial_geometry = start.add_position((0,0))
+initial_geometry = start.add_position((0, 0))
 target_rabi_wf = initial_geometry.rydberg.rabi.amplitude.uniform
-program_1 = target_rabi_wf.piecewise_linear(durations = [0.4, 2.1, 0.4], values = [0, 15.8, 15.8, 0])
+program_1 = target_rabi_wf.piecewise_linear(
+    durations=[0.4, 2.1, 0.4], values=[0, 15.8, 15.8, 0]
+)
 # Tinker with new ideas in a snap
-program_2 = target_rabi_wf.piecewise_linear(durations = [0.5, 1.0, 0.5], values = [0, 10.0, 11.0, 0]).constant(duration = 0.4, value = 5.1)
+program_2 = target_rabi_wf.piecewise_linear(
+    durations=[0.5, 1.0, 0.5], values=[0, 10.0, 11.0, 0]
+).constant(duration=0.4, value=5.1)
 
 ```
 
 Want to focus on building one part of your program first before others (or, just want that same Bloqade.jl flavor?) We've got you covered:
 
 ```python
-from bloqade import piecewise_linear
+from bloqade import piecewise_linear, var
 from bloqade.ir.location import Square
+import numpy as np
 
 # Create a geometry without worrying about pulses yet
-square_lattice = Square(3, "lattice_spacing")
+square_lattice = Square(3, lattice_spacing="lattice_spacing")
 
 # Develop your waveforms any way you like
 
 adiabatic_durations = [0.8, 2.4, 0.8]
-separate_rabi_amp_wf = piecewise_linear(durations = adiabatic_durations, values = [0.0, "max_rabi", "max_rabi", 0.0])
+separate_rabi_amp_wf = piecewise_linear(
+    durations=adiabatic_durations, values=[0.0, "max_rabi", "max_rabi", 0.0]
+)
 
 max_detuning = var("max_detuning")
-separate_rabi_detuning = piecewise_linear(durations = adiabatic_durations, values = [-max_detuning, -max_detuning, max_detuning, max_detuning])
+separate_rabi_detuning = piecewise_linear(
+    durations=adiabatic_durations,
+    values=[-max_detuning, -max_detuning, max_detuning, max_detuning],
+)
 
-# Now bring it all together! 
+# Now bring it all together!
 # And why not sprinkle in some parameter sweeps for fun?
 full_program = (
-    square_lattice.rydberg.rabi.amplitude.uniform
-    .apply(separate_rabi_amp_wf)
-    .detuning.uniform
-    .apply(separate_rabi_detuning)
-    .assign(max_rabi = 15.8, 
-            max_detuning = 16.33)
-    .batch_assign(lattice_spacing = np.arange(4.0, 7.0, 0.5),
-                  max_rabi = np.linspace(2 * np.pi * 0.5, 2 * np.pi * 2.5, 6))
+    square_lattice.rydberg.rabi.amplitude.uniform.apply(separate_rabi_amp_wf)
+    .detuning.uniform.apply(separate_rabi_detuning)
+    .assign(max_rabi=15.8, max_detuning=16.33)
+    .batch_assign(
+        lattice_spacing=np.arange(4.0, 7.0, 0.5),
+        max_rabi=np.linspace(2 * np.pi * 0.5, 2 * np.pi * 2.5, 6),
+    )
 )
 ```
 
@@ -185,6 +194,8 @@ program_with_few_atoms.parallelize(24).braket.aquila(24).run_async(100)
 
 Bloqade wouldn't exist if we weren't fortunate enough to obtain feedback from awesome members of our community such as yourself (:
 
-If you find a bug, have an idea, or find an issue with our documentation, please feel free to file an issue on the [Github repo itself](https://github.com/QuEraComputing/bloqade-python/issues/new/choose). 
+If you find a bug, have an idea, or find an issue with our documentation, please feel free to file an issue on the [Github repo itself](https://github.com/QuEraComputing/bloqade-python/issues/new/choose).
+
+After using/experimenting/tinkering/hacking with Bloqade it would also be helpful to us for you to fill out [this form](https://share.hsforms.com/1FJjYan2VQC6NfrQ5IPAcewdrwvd) which allows us to get some more detailed feedback.
 
 *May the van der Waals force be with you!*

@@ -4,6 +4,7 @@ out.txt
 .DS_Store
 tests/data/jobs/
 main.html
+main
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -80,7 +81,7 @@ docs/_build/
 
 # mkdocs
 site/
-docs/reference/
+docs/reference/bloqade/
 
 # PyBuilder
 .pybuilder/

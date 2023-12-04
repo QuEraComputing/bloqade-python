@@ -52,7 +52,7 @@ def test_assignment_scan_namedseq():
     ps = Pulse({detuning: f})
     seq_full = Sequence({rydberg: ps})
 
-    seq = NamedSequence(seq_full, "qq")
+    seq = NamedSequence("qq", seq_full)
 
     asgn = {"test": 40}
     scanner = asn.AssignmentScan({"test": 40})
@@ -111,40 +111,40 @@ def test_plin_codegen_slice():
     scanner = quer.PiecewiseLinearCodeGen(asgn)
 
     wf = wv[:0.5]
-    times, values = scanner.visit_slice(wf)
-    assert (cf(times), cf(values)) == ([0, 0.5], [0, 0.5])
+    pwl = scanner.emit(wf)
+    assert (cf(pwl.times), cf(pwl.values)) == ([0, 0.5], [0, 0.5])
 
     wf2 = wv[0:1]
-    times, values = scanner.visit_slice(wf2)
-    assert (cf(times), cf(values)) == ([0, 1], [0, 1])
+    pwl = scanner.emit(wf2)
+    assert (cf(pwl.times), cf(pwl.values)) == ([0, 1], [0, 1])
 
     wf3 = wv[0.7:1]
-    times, values = scanner.visit_slice(wf3)
-    assert (cf(times), cf(values)) == ([0, 0.3], [0.7, 1])
+    pwl = scanner.emit(wf3)
+    assert (cf(pwl.times), cf(pwl.values)) == ([0, 0.3], [0.7, 1])
 
     wf4 = wv[0:0.6]
-    times, values = scanner.visit_slice(wf4)
-    assert (cf(times), cf(values)) == ([0, 0.6], [0.0, 0.6])
+    pwl = scanner.emit(wf4)
+    assert (cf(pwl.times), cf(pwl.values)) == ([0, 0.6], [0.0, 0.6])
 
     wf5 = wv[0.2:0.6]
-    times, values = scanner.visit_slice(wf5)
-    assert (cf(times), cf(values)) == ([0, 0.4], [0.2, 0.6])
+    pwl = scanner.emit(wf5)
+    assert (cf(pwl.times), cf(pwl.values)) == ([0, 0.4], [0.2, 0.6])
 
     wf6 = wv[0.6:1.5]
-    times, values = scanner.visit_slice(wf6)
-    assert (cf(times), cf(values)) == ([0, 0.4, 0.9], [0.6, 1.0, 1.25])
+    pwl = scanner.emit(wf6)
+    assert (cf(pwl.times), cf(pwl.values)) == ([0, 0.4, 0.9], [0.6, 1.0, 1.25])
 
     wf7 = wv[1.0:1.5]
-    times, values = scanner.visit_slice(wf7)
-    assert (cf(times), cf(values)) == ([0, 0.5], [1.0, 1.25])
+    pwl = scanner.emit(wf7)
+    assert (cf(pwl.times), cf(pwl.values)) == ([0, 0.5], [1.0, 1.25])
 
     wf8 = wv[1.0:3.0]
-    times, values = scanner.visit_slice(wf8)
-    assert (cf(times), cf(values)) == ([0, 2.0], [1.0, 2.0])
+    pwl = scanner.emit(wf8)
+    assert (cf(pwl.times), cf(pwl.values)) == ([0, 2.0], [1.0, 2.0])
 
     wf9 = wv[1.5:3.0]
-    times, values = scanner.visit_slice(wf9)
-    assert (cf(times), cf(values)) == ([0, 1.5], [1.25, 2.0])
+    pwl = scanner.emit(wf9)
+    assert (cf(pwl.times), cf(pwl.values)) == ([0, 1.5], [1.25, 2.0])
 
 
 def test_pconst_codegen_slice():
@@ -155,49 +155,49 @@ def test_pconst_codegen_slice():
     scanner = quer.PiecewiseConstantCodeGen(asgn)
 
     wf = wv[:1.3]
-    times, values = scanner.visit_slice(wf)
-    assert (cf(times), cf(values)) == ([0, 1.0, 1.3], [1.0, 2.0, 2.0])
+    pwc = scanner.emit(wf)
+    assert (cf(pwc.times), cf(pwc.values)) == ([0, 1.0, 1.3], [1.0, 2.0, 2.0])
 
     wf2 = wv[0:1]
-    times, values = scanner.visit_slice(wf2)
-    assert (cf(times), cf(values)) == ([0, 1.0], [1.0, 1.0])
+    pwc = scanner.emit(wf2)
+    assert (cf(pwc.times), cf(pwc.values)) == ([0, 1.0], [1.0, 1.0])
 
     wf3 = wv[0.7:1.2]
-    times, values = scanner.visit_slice(wf3)
-    assert (cf(times), cf(values)) == ([0, 0.3, 0.5], [1.0, 2.0, 2.0])
+    pwc = scanner.emit(wf3)
+    assert (cf(pwc.times), cf(pwc.values)) == ([0, 0.3, 0.5], [1.0, 2.0, 2.0])
 
     wf4 = wv[0.7:1]
-    times, values = scanner.visit_slice(wf4)
-    assert (cf(times), cf(values)) == ([0, 0.3], [1.0, 1])
+    pwc = scanner.emit(wf4)
+    assert (cf(pwc.times), cf(pwc.values)) == ([0, 0.3], [1.0, 1])
 
     wf4 = wv[0:0.6]
-    times, values = scanner.visit_slice(wf4)
-    assert (cf(times), cf(values)) == ([0, 0.6], [1.0, 1.0])
+    pwc = scanner.emit(wf4)
+    assert (cf(pwc.times), cf(pwc.values)) == ([0, 0.6], [1.0, 1.0])
 
     wf5 = wv[0.2:0.6]
-    times, values = scanner.visit_slice(wf5)
-    assert (cf(times), cf(values)) == ([0, 0.4], [1.0, 1.0])
+    pwc = scanner.emit(wf5)
+    assert (cf(pwc.times), cf(pwc.values)) == ([0, 0.4], [1.0, 1.0])
 
     wf6 = wv[0:0]
-    times, values = scanner.visit_slice(wf6)
-    assert (cf(times), cf(values)) == ([0, 0], [0, 0])
+    pwc = scanner.emit(wf6)
+    assert (cf(pwc.times), cf(pwc.values)) == ([0, 0], [0, 0])
 
     wf8 = wv[1:1]
-    times, values = scanner.visit_slice(wf8)
-    assert (cf(times), cf(values)) == ([0, 0], [0, 0])
+    pwc = scanner.emit(wf8)
+    assert (cf(pwc.times), cf(pwc.values)) == ([0, 0], [0, 0])
 
     wf7 = wv[1.3:1.3]
-    times, values = scanner.visit_slice(wf7)
-    assert (cf(times), cf(values)) == ([0, 0], [0, 0])
+    pwc = scanner.emit(wf7)
+    assert (cf(pwc.times), cf(pwc.values)) == ([0, 0], [0, 0])
 
     wf9 = wv[1:2.5]
-    times, values = scanner.visit_slice(wf9)
-    assert (cf(times), cf(values)) == ([0, 1.5], [2.0, 2.0])
+    pwc = scanner.emit(wf9)
+    assert (cf(pwc.times), cf(pwc.values)) == ([0, 1.5], [2.0, 2.0])
 
     wf10 = wv[1.5:2.5]
-    times, values = scanner.visit_slice(wf10)
-    assert (cf(times), cf(values)) == ([0, 1.0], [2.0, 2.0])
+    pwc = scanner.emit(wf10)
+    assert (cf(pwc.times), cf(pwc.values)) == ([0, 1.0], [2.0, 2.0])
 
     wf11 = wv[1:1.5]
-    times, values = scanner.visit_slice(wf11)
-    assert (cf(times), cf(values)) == ([0, 0.5], [2.0, 2.0])
+    pwc = scanner.emit(wf11)
+    assert (cf(pwc.times), cf(pwc.values)) == ([0, 0.5], [2.0, 2.0])

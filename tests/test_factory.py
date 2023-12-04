@@ -9,6 +9,7 @@ from bloqade import (
     var,
     cast,
     start,
+    get_capabilities,
 )
 from bloqade.atom_arrangement import Chain
 from bloqade.ir import (
@@ -25,6 +26,78 @@ from bloqade.ir.routine.base import Routine
 from bloqade.ir.routine.params import Params, ScalarArg
 
 import numpy as np
+from decimal import Decimal
+
+
+def test_get_capabilities():
+    capabilities = get_capabilities()
+
+    assert capabilities.version == "0.6"
+    assert capabilities.capabilities.task.number_shots_min == 1
+    assert capabilities.capabilities.task.number_shots_max == 1000
+    assert capabilities.capabilities.lattice.number_qubits_max == 256
+    assert capabilities.capabilities.lattice.area.width == Decimal("75.0")
+    assert capabilities.capabilities.lattice.area.height == Decimal("76.0")
+    assert capabilities.capabilities.lattice.geometry.spacing_radial_min == Decimal(
+        "4.0"
+    )
+    assert capabilities.capabilities.lattice.geometry.spacing_vertical_min == Decimal(
+        "4.0"
+    )
+    assert capabilities.capabilities.lattice.geometry.position_resolution == Decimal(
+        "0.1"
+    )
+    assert capabilities.capabilities.lattice.geometry.number_sites_max == 256
+    assert capabilities.capabilities.rydberg.c6_coefficient == Decimal("5.42e6")
+    assert capabilities.capabilities.rydberg.global_.rabi_frequency_min == Decimal(
+        "0.0"
+    )
+    assert capabilities.capabilities.rydberg.global_.rabi_frequency_max == Decimal(
+        "15.8"
+    )
+    assert (
+        capabilities.capabilities.rydberg.global_.rabi_frequency_resolution
+        == Decimal("4.0e-4")
+    )
+    assert (
+        capabilities.capabilities.rydberg.global_.rabi_frequency_slew_rate_max
+        == Decimal("250.0")
+    )
+    assert capabilities.capabilities.rydberg.global_.detuning_min == Decimal("-125.0")
+    assert capabilities.capabilities.rydberg.global_.detuning_max == Decimal("125.0")
+    assert capabilities.capabilities.rydberg.global_.detuning_resolution == Decimal(
+        "2.0e-7"
+    )
+    assert capabilities.capabilities.rydberg.global_.detuning_slew_rate_max == Decimal(
+        "2500.0"
+    )
+    assert capabilities.capabilities.rydberg.global_.phase_min == Decimal("-99.0")
+    assert capabilities.capabilities.rydberg.global_.phase_max == Decimal("99.0")
+    assert capabilities.capabilities.rydberg.global_.phase_resolution == Decimal(
+        "5.0E-7"
+    )
+    assert capabilities.capabilities.rydberg.global_.time_min == Decimal("0.0")
+    assert capabilities.capabilities.rydberg.global_.time_max == Decimal("4.0")
+    assert capabilities.capabilities.rydberg.global_.time_resolution == Decimal("1e-3")
+    assert capabilities.capabilities.rydberg.global_.time_delta_min == Decimal("5e-2")
+    assert capabilities.capabilities.rydberg.local.detuning_min == Decimal("0.0")
+    assert capabilities.capabilities.rydberg.local.detuning_max == Decimal("125.0")
+    assert capabilities.capabilities.rydberg.local.detuning_slew_rate_max == Decimal(
+        "1.2566e3"
+    )
+    assert capabilities.capabilities.rydberg.local.site_coefficient_min == Decimal(
+        "0.0"
+    )
+    assert capabilities.capabilities.rydberg.local.site_coefficient_max == Decimal(
+        "1.0"
+    )
+    assert (
+        capabilities.capabilities.rydberg.local.number_local_detuning_sites
+        == Decimal("200")
+    )
+    assert capabilities.capabilities.rydberg.local.spacing_radial_min == Decimal("5.0")
+    assert capabilities.capabilities.rydberg.local.time_resolution == Decimal("1e-3")
+    assert capabilities.capabilities.rydberg.local.time_delta_min == Decimal("5e-2")
 
 
 def test_ir_piecewise_linear():

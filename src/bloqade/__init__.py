@@ -3,6 +3,7 @@ from bloqade.ir import to_waveform as waveform
 from bloqade.serialize import load, save, loads, dumps
 
 from bloqade.factory import (
+    get_capabilities,
     piecewise_linear,
     piecewise_constant,
     linear,
@@ -52,4 +53,5 @@ __all__ = [
     "dumps",
     "rydberg_h",
     "waveform",
+    "get_capabilities",
 ]

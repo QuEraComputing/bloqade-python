@@ -1,10 +1,9 @@
 from collections import OrderedDict
 
-import json
-from typing import List, TextIO, Type, TypeVar, Union, Dict, Optional, Tuple
+from beartype.typing import List, Sequence, Union, Dict, Optional, Tuple
+from beartype import beartype
 from numbers import Number
 
-from pydantic import BaseModel
 from bloqade.submission.ir.task_results import (
     QuEraTaskResults,
     QuEraTaskStatusCode,
@@ -17,42 +16,12 @@ from bloqade.submission.ir.parallel import ParallelDecoder
 import datetime
 from bloqade.visualization import display_report
 
-JSONSubType = TypeVar("JSONSubType", bound="JSONInterface")
-
 
 @dataclass(frozen=True)
 class Geometry:
     sites: List[Tuple[float, float]]
     filling: List[int]
     parallel_decoder: Optional[ParallelDecoder] = None
-
-
-class JSONInterface(BaseModel):
-    def json(self, exclude_none=True, by_alias=True, **json_options) -> str:
-        return super().json(
-            exclude_none=exclude_none, by_alias=by_alias, **json_options
-        )
-
-    def save_json(
-        self, filename_or_io: Union[str, TextIO], mode="w", **json_options
-    ) -> None:
-        if isinstance(filename_or_io, str):
-            with open(filename_or_io, mode) as f:
-                f.write(self.json(**json_options))
-        else:
-            filename_or_io.write(self.json(**json_options))
-
-    @classmethod
-    def load_json(
-        cls: Type[JSONSubType], filename_or_io: Union[str, TextIO]
-    ) -> JSONSubType:
-        if isinstance(filename_or_io, str):
-            with open(filename_or_io, "r") as f:
-                params = json.load(f)
-        else:
-            params = json.load(filename_or_io)
-
-        return cls(**params)
 
 
 class Task:
@@ -141,10 +110,12 @@ class Report:
         """
 
         def cast(x):
-            try:
+            if x is None:
+                return None
+            elif isinstance(x, (list, tuple, np.ndarray)):
+                return list(map(cast, x))
+            else:
                 return float(x)
-            except ValueError:
-                return x
 
         return list(map(cast, (meta.get(field_name) for meta in self.metas)))
 
@@ -152,21 +123,54 @@ class Report:
     def markdown(self) -> str:
         return self.dataframe.to_markdown()
 
-    def bitstrings(self, filter_perfect_filling: bool = True) -> List[NDArray]:
-        """
-        Get the bitstrings from the data.
+    def _filter(
+        self,
+        filter_perfect_filling: bool = True,
+        clusters: Union[tuple[int, int], Sequence[Tuple[int, int]]] = [],
+    ):
+        mask = np.ones(len(self.dataframe), dtype=bool)
+
+        if filter_perfect_filling:
+            perfect_sorting = self.dataframe.index.get_level_values("perfect_sorting")
+            pre_sequence = self.dataframe.index.get_level_values("pre_sequence")
+            np.logical_and(perfect_sorting == pre_sequence, mask, out=mask)
+
+        clusters = [clusters] if isinstance(clusters, tuple) else clusters
+
+        for cluster in clusters:
+            given_clusters = self.dataframe.index.get_level_values("cluster")
+            np.logical_and(given_clusters == cluster, mask, out=mask)
+
+        return mask
+
+    @beartype
+    def bitstrings(
+        self,
+        filter_perfect_filling: bool = True,
+        clusters: Union[tuple[int, int], List[tuple[int, int]]] = [],
+    ) -> List[NDArray]:
+        """Get the bitstrings from the data.
 
         Args:
             filter_perfect_filling (bool): whether return will
-            only contain perfect filling shots.
+            only contain perfect filling shots. Defaults to True.
+            clusters: (tuple[int, int], Sequence[Tuple[int, int]]):
+            cluster index to filter shots from. If none are provided
+            all clusters are used, defaults to [].
+
+        Returns:
+            bitstrings (list of ndarray): list corresponding to each
+            task in the report. Each element is an ndarray of shape
+            (nshots, nsites) where nshots is the number of shots for
+            the task and nsites is the number of sites in the task.
+
+        Note:
+            Note that nshots may vary between tasks if filter_perfect_filling
+            is set to True.
 
         """
-        perfect_sorting = self.dataframe.index.get_level_values("perfect_sorting")
-        pre_sequence = self.dataframe.index.get_level_values("pre_sequence")
-        if filter_perfect_filling:
-            df = self.dataframe[perfect_sorting == pre_sequence]
-        else:
-            df = self.dataframe
+        mask = self._filter(filter_perfect_filling, clusters)
+        df = self.dataframe[mask]
 
         task_numbers = df.index.get_level_values("task_number").unique()
 
@@ -176,23 +180,34 @@ class Report:
 
         return bitstrings
 
-    @property
-    def counts(self) -> List[OrderedDict[str, int]]:
+    @beartype
+    def counts(
+        self,
+        filter_perfect_filling: bool = True,
+        clusters: Union[tuple[int, int], List[tuple[int, int]]] = [],
+    ) -> List[OrderedDict[str, int]]:
+        """Get the counts of unique bit strings.
+
+        Args:
+            filter_perfect_filling (bool): whether return will
+            only contain perfect filling shots. Defaults to True.
+            clusters: (tuple[int, int], Sequence[Tuple[int, int]]):
+            cluster index to filter shots from. If none are provided
+            all clusters are used, defaults to [].
+
+        Returns:
+            bitstrings (list of ndarray): list corresponding to each
+            task in the report. Each element is an ndarray of shape
+            (nshots, nsites) where nshots is the number of shots for
+            the task and nsites is the number of sites in the task.
+
+        Note:
+            Note that nshots may vary between tasks if filter_perfect_filling
+            is set to True.
+
         """
-        Get the statistic for the counts for each configuration(s)
 
-        Return:
-            statistic of configuration (str): counts (int) for each task
-
-        """
-        if self._counts is not None:
-            return self._counts
-        self._counts = self._construct_counts()
-        return self._counts
-
-    def _construct_counts(self) -> List[OrderedDict[str, int]]:
-        counts = []
-        for bitstring in self.bitstrings():
+        def generate_counts(bitstring):
             output = np.unique(bitstring, axis=0, return_counts=True)
 
             count_list = [
@@ -202,31 +217,30 @@ class Report:
             count_list.sort(key=lambda x: x[1], reverse=True)
             count = OrderedDict(count_list)
 
-            counts.append(count)
+            return count
 
-        return counts
+        return list(
+            map(generate_counts, self.bitstrings(filter_perfect_filling, clusters))
+        )
 
-    def rydberg_densities(self, filter_perfect_filling: bool = True) -> pd.Series:
-        """
-        Get rydberg density for each task.
+    @beartype
+    def rydberg_densities(
+        self,
+        filter_perfect_filling: bool = True,
+        clusters: Union[tuple[int, int], List[tuple[int, int]]] = [],
+    ) -> Union[pd.Series, pd.DataFrame]:
+        """Get rydberg density for each task.
 
         Args:
-            filter_perfect_filling (bool):  whether return will
-            only contain perfect filling shots.
+            filter_perfect_filling (bool, optional): whether return will
+            only contain perfect filling shots. Defaults to True.
 
         Return:
-            per-site rydberg density for each task
+            per-site rydberg density for each task as a pandas DataFrame or Series.
 
         """
-        # TODO: implement nan for missing task numbers
-        perfect_sorting = self.dataframe.index.get_level_values("perfect_sorting")
-        pre_sequence = self.dataframe.index.get_level_values("pre_sequence")
-
-        if filter_perfect_filling:
-            df = self.dataframe[perfect_sorting == pre_sequence]
-        else:
-            df = self.dataframe
-
+        mask = self._filter(filter_perfect_filling, clusters)
+        df = self.dataframe[mask]
         return 1 - (df.groupby("task_number").mean())
 
     def show(self):

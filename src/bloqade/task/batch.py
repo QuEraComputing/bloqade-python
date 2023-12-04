@@ -1,3 +1,6 @@
+from decimal import Decimal
+from numbers import Real
+from bloqade.builder.typing import LiteralType
 from bloqade.serialize import Serializer
 from bloqade.task.base import Report
 from bloqade.task.quera import QuEraTask
@@ -18,6 +21,7 @@ from bloqade.submission.ir.task_results import (
 from beartype.typing import Union, Optional, Dict, Any, List
 from beartype import beartype
 from collections import OrderedDict
+from collections.abc import Sequence
 from itertools import product
 import traceback
 import datetime
@@ -43,9 +47,73 @@ class Serializable:
         return dumps(self, **options)
 
 
+MetadataFilterType = Union[Sequence[LiteralType], Sequence[List[LiteralType]]]
+
+
+class Filter:
+    @beartype
+    def filter_metadata(
+        self, __match_any__: bool = False, **metadata: MetadataFilterType
+    ) -> Union["LocalBatch", "RemoteBatch"]:
+        """Create a Batch object that has tasks filtered based on the
+        values of metadata.
+
+        Args:
+            __match_any__: if True, then a task will be included if it
+                matches any of the metadata filters. If False, then a
+                task will be included only if it matches all of the
+                metadata filters. Defaults to False.
+
+            **metadata: the metadata to filter on. The keys are the metadata
+                names and the values (as a set) are the values to filter on.
+                The elements in the set can be Real, Decimal, Tuple[Real], or
+                Tuple[Decimal].
+
+        Return:
+            type(self): a Batch object with the filtered tasks, either
+                LocalBatch or RemoteBatch depending on the type of self
+
+        """
+
+        def convert_to_decimal(element):
+            if isinstance(element, list):
+                return list(map(convert_to_decimal, element))
+            elif isinstance(element, (Real, Decimal)):
+                return Decimal(str(element))
+            else:
+                raise ValueError(
+                    f"Invalid value {element} for metadata filter. "
+                    "Only Real, Decimal, List[Real], and List[Decimal] "
+                    "are supported."
+                )
+
+        def metadata_match_all(task):
+            return all(
+                task.metadata.get(key) in value for key, value in metadata.items()
+            )
+
+        def metadata_match_any(task):
+            return any(
+                task.metadata.get(key) in value for key, value in metadata.items()
+            )
+
+        metadata = {k: list(map(convert_to_decimal, v)) for k, v in metadata.items()}
+
+        metadata_filter = metadata_match_any if __match_any__ else metadata_match_all
+
+        new_tasks = OrderedDict(
+            [(k, v) for k, v in self.tasks.items() if metadata_filter(v)]
+        )
+
+        kw = dict(self.__dict__)
+        kw["tasks"] = new_tasks
+
+        return self.__class__(**kw)
+
+
 @dataclass
 @Serializer.register
-class LocalBatch(Serializable):
+class LocalBatch(Serializable, Filter):
     source: Optional[Builder]
     tasks: OrderedDict[int, Union[BraketEmulatorTask, BloqadeTask]]
     name: Optional[str] = None
@@ -247,7 +315,7 @@ def _deserialize(obj: dict) -> BatchErrors:
 # the user only need to store this objecet
 @dataclass
 @Serializer.register
-class RemoteBatch(Serializable):
+class RemoteBatch(Serializable, Filter):
     source: Builder
     tasks: Union[OrderedDict[int, QuEraTask], OrderedDict[int, BraketTask]]
     name: Optional[str] = None
@@ -303,6 +371,27 @@ class RemoteBatch(Serializable):
 
         return self
 
+    def retrieve(self) -> "RemoteBatch":
+        """Retrieve missing task results.
+
+        Note:
+            Retrieve will update the status of tasks,
+            and only pull the results for those tasks
+            that have completed.
+
+        Return:
+            self
+
+        """
+        # partially online, sometimes blocking
+        # pull the results for tasks that have
+        # not been pulled already.
+        for task in self.tasks.values():
+            if not task._result_exists():
+                task.pull()
+
+        return self
+
     def pull(self) -> "RemoteBatch":
         """
         Pull results of the tasks in the Batch.
@@ -344,7 +433,7 @@ class RemoteBatch(Serializable):
             dat[0] = task.task_id
             if task.task_result_ir is not None:
                 dat[1] = task.task_result_ir.task_status.name
-                dat[2] = task.task_ir.nshots
+            dat[2] = task.task_ir.nshots
             data.append(dat)
 
         return pd.DataFrame(data, index=tid, columns=["task ID", "status", "shots"])
@@ -556,7 +645,7 @@ class RemoteBatch(Serializable):
         # statuses that are in a state that will
         # not run going forward for any reason
         statuses = ["Completed", "Failed", "Unaccepted", "Partial", "Cancelled"]
-        return self.remove_tasks(*statuses)
+        return self.get_tasks(*statuses)
 
     def get_completed_tasks(self) -> "RemoteBatch":
         """
@@ -600,7 +689,10 @@ class RemoteBatch(Serializable):
                 continue
 
             ## filter has result but is not correctly completed.
-            if not task.task_result_ir.task_status == QuEraTaskStatusCode.Completed:
+            if task.task_result_ir.task_status not in [
+                QuEraTaskStatusCode.Completed,
+                QuEraTaskStatusCode.Partial,
+            ]:
                 continue
 
             geometry = task.geometry

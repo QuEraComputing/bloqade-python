@@ -10,14 +10,23 @@ from bloqade.submission.ir.task_results import (
 )
 from bloqade.submission.ir.task_specification import QuEraTaskSpecification
 from braket.aws import AwsDevice, AwsQuantumTask
+from beartype.typing import Optional
+from pydantic import PrivateAttr
+import bloqade
 
 
 class BraketBackend(SubmissionBackend):
     device_arn: str = "arn:aws:braket:us-east-1::device/qpu/quera/Aquila"
+    _device: Optional[AwsDevice] = PrivateAttr(default=None)
 
     @property
     def device(self) -> AwsDevice:
-        return AwsDevice(self.device_arn)
+        if self._device is None:
+            self._device = AwsDevice(self.device_arn)
+            user_agent = f"Bloqade/{bloqade.__version__}"
+            self._device.aws_session.add_braket_user_agent(user_agent)
+
+        return self._device
 
     def submit_task(self, task_ir: QuEraTaskSpecification) -> str:
         shots, ahs_program = to_braket_task(task_ir)

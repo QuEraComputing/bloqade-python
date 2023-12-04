@@ -1,7 +1,10 @@
-from ..scalar import Interval
-from ..tree_print import Printer
-from .field import Field
-from typing import List
+from functools import cached_property
+
+from bloqade.ir.scalar import Interval, Scalar, cast
+from bloqade.ir.tree_print import Printer
+from bloqade.ir.control.field import Field
+from bloqade.ir.control.hash_trait import HashTrait
+from beartype.typing import List
 from pydantic.dataclasses import dataclass
 from bloqade.visualization import get_pulse_figure
 from bloqade.visualization import display_ir
@@ -72,8 +75,8 @@ rabi = RabiRouter()
 detuning = Detuning()
 
 
-@dataclass
-class PulseExpr:
+@dataclass(frozen=True)
+class PulseExpr(HashTrait):
     """
     ```bnf
     <expr> ::= <pulse>
@@ -82,6 +85,8 @@ class PulseExpr:
       | <named>
     ```
     """
+
+    __hash__ = HashTrait.__hash__
 
     def append(self, other: "PulseExpr") -> "PulseExpr":
         return PulseExpr.canonicalize(Append([self, other]))
@@ -124,7 +129,7 @@ class PulseExpr:
         return NotImplementedError
 
 
-@dataclass
+@dataclass(frozen=True)
 class Append(PulseExpr):
     """
     ```bnf
@@ -134,6 +139,16 @@ class Append(PulseExpr):
 
     pulses: List[PulseExpr]
 
+    __hash__ = PulseExpr.__hash__
+
+    @cached_property
+    def duration(self) -> Scalar:
+        duration = cast(0)
+        for p in self.pulses:
+            duration = duration + p.duration
+
+        return duration
+
     def print_node(self):
         return "Append"
 
@@ -141,7 +156,7 @@ class Append(PulseExpr):
         return self.pulses
 
 
-@dataclass(init=False)
+@dataclass(frozen=True)
 class Pulse(PulseExpr):
     """
     ```bnf
@@ -151,16 +166,29 @@ class Pulse(PulseExpr):
 
     fields: dict[FieldName, Field]
 
-    def __init__(self, field_pairs):
-        fields = dict()
-        for k, v in field_pairs.items():
+    __hash__ = PulseExpr.__hash__
+
+    @staticmethod
+    def create(fields) -> "Pulse":
+        processed_fields = dict()
+        for k, v in fields.items():
             if isinstance(v, Field):
-                fields[k] = v
+                processed_fields[k] = v
             elif isinstance(v, dict):
-                fields[k] = Field(v)
+                processed_fields[k] = Field(v)
             else:
                 raise TypeError(f"Expected Field or dict, got {type(v)}")
-        self.fields = fields
+
+        return Pulse(processed_fields)
+
+    @cached_property
+    def duration(self) -> Scalar:
+        # Fields are all aligned so that they all start at 0.
+        duration = cast(0)
+        for val in self.fields.values():
+            duration = duration.max(val.duration)
+
+        return duration
 
     def print_node(self):
         return "Pulse"
@@ -187,10 +215,16 @@ class Pulse(PulseExpr):
         display_ir(self, assignments)
 
 
-@dataclass
+@dataclass(frozen=True)
 class NamedPulse(PulseExpr):
     name: str
     pulse: PulseExpr
+
+    __hash__ = PulseExpr.__hash__
+
+    @cached_property
+    def duration(self) -> Scalar:
+        return self.pulse.duration
 
     def print_node(self):
         return "NamedPulse"
@@ -208,10 +242,16 @@ class NamedPulse(PulseExpr):
         display_ir(self, assignments)
 
 
-@dataclass
+@dataclass(frozen=True)
 class Slice(PulseExpr):
     pulse: PulseExpr
     interval: Interval
+
+    __hash__ = PulseExpr.__hash__
+
+    @cached_property
+    def duration(self) -> Scalar:
+        return self.pulse.duration[self.interval.start : self.interval.stop]
 
     def print_node(self):
         return "Slice"

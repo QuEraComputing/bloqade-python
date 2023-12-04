@@ -1,7 +1,7 @@
 from bloqade import start, var
 from bloqade.atom_arrangement import Chain
 from bloqade.ir.analysis.scan_variables import (
-    ScanVariablesAnalogCircuit,
+    ScanVariables,
     ScanVariableResults,
 )
 import numpy as np
@@ -14,7 +14,7 @@ def test_1():
         return delta * np.sin(omega * t)
 
     circuit = (
-        Chain(15, "lattice_spacing")
+        Chain(15, lattice_spacing="lattice_spacing")
         .rydberg.detuning.scale("mask")
         .fn(detuning_wf, "t")
         .amplitude.uniform.constant(15, "t")
@@ -29,7 +29,7 @@ def test_1():
     expected_result = ScanVariableResults(
         scalar_vars=scalar_vars, vector_vars=vector_vars
     )
-    assert expected_result == ScanVariablesAnalogCircuit().emit(circuit)
+    assert expected_result == ScanVariables().emit(circuit)
 
 
 def test_2():
@@ -64,4 +64,4 @@ def test_2():
     expected_result = ScanVariableResults(
         scalar_vars=scalar_vars, vector_vars=vector_vars
     )
-    assert expected_result == ScanVariablesAnalogCircuit().emit(circuit)
+    assert expected_result == ScanVariables().emit(circuit)

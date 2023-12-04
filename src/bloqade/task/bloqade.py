@@ -36,6 +36,10 @@ class BloqadeTask(LocalTask):
     def result(self) -> QuEraTaskResults:
         return self.task_result_ir
 
+    @property
+    def nshots(self) -> int:
+        return self.shots
+
     def run(
         self,
         solver_name: str = "dop853",
@@ -83,5 +87,13 @@ def _serialze(obj: BloqadeTask) -> Dict[str, Any]:
         "shots": obj.shots,
         "emulator_ir": obj.emulator_ir,
         "metadata": obj.metadata,
-        "task_result_ir": obj.task_result_ir,
+        "task_result_ir": obj.task_result_ir.dict() if obj.task_result_ir else None,
     }
+
+
+@BloqadeTask.set_deserializer
+def _deserialize(d: Dict[str, Any]) -> BloqadeTask:
+    d["task_result_ir"] = (
+        QuEraTaskResults(**d["task_result_ir"]) if d["task_result_ir"] else None
+    )
+    return BloqadeTask(**d)

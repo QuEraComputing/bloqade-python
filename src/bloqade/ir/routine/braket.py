@@ -13,6 +13,10 @@ from bloqade.task.braket import BraketTask
 
 @dataclass(frozen=True, config=__pydantic_dataclass_config__)
 class BraketServiceOptions(RoutineBase):
+    def device(self, device_arn: str) -> "BraketHardwareRoutine":
+        backend = BraketBackend(device_arn=device_arn)
+        return BraketHardwareRoutine(self.source, self.circuit, self.params, backend)
+
     def aquila(self) -> "BraketHardwareRoutine":
         backend = BraketBackend(
             device_arn="arn:aws:braket:us-east-1::device/qpu/quera/Aquila"
@@ -34,33 +38,31 @@ class BraketHardwareRoutine(RoutineBase):
         name: Optional[str] = None,
     ) -> RemoteBatch:
         ## fall passes here ###
-        from bloqade.codegen.common.assign_variables import AssignAnalogCircuit
+        from bloqade.codegen.common.assign_variables import AssignBloqadeIR
         from bloqade.ir.analysis.assignment_scan import AssignmentScan
-        from bloqade.codegen.hardware.quera import QuEraCodeGen
+        from bloqade.codegen.hardware.quera import AHSCodegen
 
         capabilities = self.backend.get_capabilities()
 
         circuit, params = self.circuit, self.params
-        circuit = AssignAnalogCircuit(params.static_params).visit(circuit)
+        circuit = AssignBloqadeIR(params.static_params).visit(circuit)
 
         tasks = OrderedDict()
 
         for task_number, batch_params in enumerate(params.batch_assignments(*args)):
             record_params = AssignmentScan(batch_params).emit(circuit)
-            final_circuit = AssignAnalogCircuit(record_params).visit(circuit)
+            final_circuit = AssignBloqadeIR(record_params).visit(circuit)
             # TODO: Replace these two steps with:
             # task_ir, parallel_decoder = BraketCodeGen().emit(shots, final_circuit)
-            task_ir, parallel_decoder = QuEraCodeGen(capabilities=capabilities).emit(
-                shots, final_circuit
-            )
+            result = AHSCodegen(shots, capabilities=capabilities).emit(final_circuit)
             metadata = {**params.static_params, **record_params}
-            task_ir = task_ir.discretize(capabilities)
+            task_ir = result.quera_task_ir.discretize(capabilities)
             tasks[task_number] = BraketTask(
                 None,
                 self.backend,
                 task_ir,
                 metadata,
-                parallel_decoder,
+                result.parallel_decoder,
                 None,
             )
 
@@ -170,13 +172,12 @@ class BraketLocalEmulatorRoutine(RoutineBase):
     ) -> LocalBatch:
         ## fall passes here ###
         from bloqade.ir import ParallelRegister
-        from bloqade.codegen.common.assign_variables import AssignAnalogCircuit
-        from bloqade.codegen.hardware.quera import QuEraCodeGen
+        from bloqade.codegen.common.assign_variables import AssignBloqadeIR
+        from bloqade.codegen.hardware.quera import AHSCodegen
         from bloqade.ir.analysis.assignment_scan import AssignmentScan
-        from bloqade.submission.ir.braket import to_braket_task_ir
 
         circuit, params = self.circuit, self.params
-        circuit = AssignAnalogCircuit(params.static_params).visit(circuit)
+        circuit = AssignBloqadeIR(params.static_params).visit(circuit)
 
         if isinstance(circuit.register, ParallelRegister):
             raise TypeError(
@@ -188,15 +189,14 @@ class BraketLocalEmulatorRoutine(RoutineBase):
 
         for task_number, batch_params in enumerate(params.batch_assignments(*args)):
             record_params = AssignmentScan(batch_params).emit(circuit)
-            final_circuit = AssignAnalogCircuit(record_params).visit(circuit)
+            final_circuit = AssignBloqadeIR(record_params).visit(circuit)
             # TODO: Replace these two steps with:
             # task_ir, _ = BraketCodeGen().emit(shots, final_circuit)
-            quera_task_ir, _ = QuEraCodeGen().emit(shots, final_circuit)
+            result = AHSCodegen(shots).emit(final_circuit)
 
-            task_ir = to_braket_task_ir(quera_task_ir)
             metadata = {**params.static_params, **record_params}
             tasks[task_number] = BraketEmulatorTask(
-                task_ir,
+                result.braket_task_ir,
                 metadata,
                 None,
             )

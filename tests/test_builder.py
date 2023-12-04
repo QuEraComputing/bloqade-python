@@ -126,7 +126,7 @@ def test_scale():
         [0.1, 3.8, 0.1], [-10, -10, "a", "b"]
     )
 
-    ## let Emit build ast
+    ## let Emit build node
     seq = prog.parse_sequence()
 
     # print(type(list(seq.pulses.keys())[0]))
@@ -137,9 +137,11 @@ def test_scale():
 
 
 def test_scale_location():
+    from bloqade.ir.control.field import Location
+
     prog = start.rydberg.detuning.location([1, 2], [1.2, 3.3])
 
-    assert prog._scaled_locations == {1: cast(1.2), 2: cast(3.3)}
+    assert prog._scaled_locations == {Location(1): cast(1.2), Location(2): cast(3.3)}
 
 
 def test_build_ast_Scale():
@@ -147,7 +149,7 @@ def test_build_ast_Scale():
         durations=[0.1], values=[1]
     )
 
-    # compile ast:
+    # compile node:
     tmp = prog.parse_sequence()
 
     locs = list(tmp.pulses[rydberg].fields[detuning].drives.keys())[0]
@@ -166,7 +168,7 @@ def test_spatial_var():
 
     prog = prog.piecewise_constant([0.1], [30])
 
-    # test build ast:
+    # test build node:
     seq = prog.parse_sequence()
 
     assert seq.pulses[rydberg].fields[detuning].drives[

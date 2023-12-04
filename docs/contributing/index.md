@@ -12,3 +12,4 @@ Thank you for your interest in contributing to the project! We welcome all contr
 - [Design Philosophy and Architecture](design-philosophy-and-architecture.md)
 - [Community Slack](community-slack.md)
 - [Ask a Question](asking-a-question.md)
+- [Providing Feedback](providing-feedback.md)

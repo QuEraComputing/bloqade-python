@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 class Parser:
     stream: Optional["BuilderStream"] = None
     vector_node_names: Set[str] = set()
-    sequence: ir.Sequence = ir.Sequence()
+    sequence: ir.Sequence = ir.Sequence.create()
     register: Union[ir.AtomArrangement, ir.ParallelRegister, None] = None
     batch_params: List[Dict[str, "ParamType"]] = [{}]
     static_params: Dict[str, "ParamType"] = {}
@@ -29,7 +29,7 @@ class Parser:
     def reset(self, builder: Builder):
         self.stream = BuilderStream.create(builder)
         self.vector_node_names = set()
-        self.sequence = ir.Sequence()
+        self.sequence = ir.Sequence.create()
         self.register = None
         self.batch_params = [{}]
         self.static_params = {}
@@ -138,8 +138,10 @@ class Parser:
             drive = self.read_drive(spatial_head)
             field = field.add(drive)
 
-            pulse.fields[self.field_name] = field
-            self.sequence.pulses[self.coupling_name] = pulse
+            pulse = ir.Pulse.create(pulse.fields | {self.field_name: field})
+            self.sequence = ir.Sequence.create(
+                self.sequence.pulses | {self.coupling_name: pulse}
+            )
 
         return self.sequence
 
