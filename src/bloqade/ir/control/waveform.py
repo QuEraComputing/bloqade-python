@@ -83,10 +83,10 @@ class Waveform(HashTrait):
         raise NotImplementedError
 
     def add(self, other: "Waveform") -> "Waveform":
-        return self.canonicalize(Add(self, other))
+        return Add(self, other)
 
     def append(self, other: "Waveform") -> "Waveform":
-        return self.canonicalize(Append([self, other]))
+        return Append([self, other])
 
     def figure(self, **assignments):
         """get figure of the plotting the waveform.
@@ -125,21 +125,19 @@ class Waveform(HashTrait):
         if not isinstance(value, Side):
             value = cast(value)
 
-        return self.canonicalize(AlignedWaveform(self, alignment, value))
+        return AlignedWaveform(self, alignment, value)
 
     def smooth(self, radius, kernel: "SmoothingKernel") -> "Waveform":
-        return self.canonicalize(
-            Smooth(kernel=kernel, waveform=self, radius=cast(radius))
-        )
+        return Smooth(kernel=kernel, waveform=self, radius=cast(radius))
 
     def scale(self, value) -> "Waveform":
-        return self.canonicalize(Scale(cast(value), self))
+        return Scale(cast(value), self)
 
     def __neg__(self) -> "Waveform":
-        return self.canonicalize(Negative(self))
+        return Negative(self)
 
     def __getitem__(self, s: slice) -> "Waveform":
-        return self.canonicalize(Slice(self, Interval.from_slice(s)))
+        return Slice(self, Interval.from_slice(s))
 
     def record(
         self, variable_name: Union[str, Variable], side: Union[str, Side] = Side.Right
@@ -148,27 +146,15 @@ class Waveform(HashTrait):
 
     def __add__(self, other: "Waveform") -> "Waveform":
         if isinstance(other, Waveform):
-            return self.canonicalize(Add(self, other))
+            return Add(self, other)
 
         return NotImplemented
-
-    # def __radd__(self, other: "Waveform") -> "Waveform":
-    #     if isinstance(other, Waveform):
-    #         return self.canonicalize(Add(self, other))
-
-    #     return NotImplemented
 
     def __sub__(self, other: "Waveform") -> "Waveform":
         if isinstance(other, Waveform):
             return self + (-other)
 
         return NotImplemented
-
-    # def __rsub__(self, other: "Waveform") -> "Waveform":
-    #     if isinstance(other, Waveform):
-    #         return other + (-self)
-
-    #     return NotImplemented
 
     def __mul__(self, other: Any) -> "Waveform":
         return self.scale(cast(other))
