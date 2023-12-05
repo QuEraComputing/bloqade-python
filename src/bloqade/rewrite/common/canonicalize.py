@@ -19,6 +19,14 @@ def is_one(expr):
     return isinstance(expr, scalar.Literal) and expr.value == 1
 
 
+def is_scaled_waveform(expr):
+    return isinstance(expr, waveform.Scale)
+
+
+def is_constant_waveform(expr):
+    return isinstance(expr, waveform.Constant)
+
+
 class Canonicalize(BloqadeIRTransformer):
     def minmax_canonicalize(self, op, exprs):
         new_exprs = set()
@@ -113,51 +121,116 @@ class Canonicalize(BloqadeIRTransformer):
         else:
             return scalar.Div(lhs=lhs, rhs=rhs)
 
-    def visit_waveform_Append(self, node: waveform.Append):
-        waveforms = []
+    ########################################
+    #    Waveform Canonicalization Pass    #
+    ########################################
 
+    def visit_waveform_Append(self, node: waveform.Append):
+        waveforms_pass_one = []
+
+        # flatten nested append nodes
         for sub_waveform in map(self.visit, node.waveforms):
             if sub_waveform.duration == scalar.Literal(0):
                 continue
             elif isinstance(sub_waveform, waveform.Append):
-                waveforms.extend(sub_waveform.waveforms)
+                waveforms_pass_one.extend(sub_waveform.waveforms)
             else:
-                waveforms.append(sub_waveform)
+                waveforms_pass_one.append(sub_waveform)
 
-        if len(waveforms) == 1:
-            return waveforms[0]
+        # combine adjacent constant waveforms if possible
+        waveforms_pass_two = [waveforms_pass_one[0]]
+        for next_wf in waveforms_pass_one[1:]:
+            last_wf = waveforms_pass_two.pop()
+            if (
+                is_constant_waveform(last_wf)
+                and is_constant_waveform(next_wf)
+                and last_wf.value == next_wf.value
+            ):
+                new_duration = self.visit(last_wf.duration + next_wf.duration)
+                waveforms_pass_two.append(
+                    waveform.Constant(value=last_wf.value, duration=new_duration)
+                )
+            else:
+                waveforms_pass_two.append(last_wf)
+                waveforms_pass_two.append(next_wf)
+
+        # if there is only one waveform, return it
+        if len(waveforms_pass_two) == 1:
+            return waveforms_pass_two[0]
         else:
-            return waveform.Append(waveforms=waveforms)
+            return waveform.Append(waveforms=waveforms_pass_two)
 
     def visit_waveform_Add(self, node: waveform.Add):
         left = self.visit(node.left)
         right = self.visit(node.right)
 
         if left == right:
-            return waveform.Scale(2, waveform=left)
+            return self.visit(waveform.Scale(2, waveform=left))
         elif left.duration == scalar.Literal(0):
             return right
         elif right.duration == scalar.Literal(0):
             return left
+        elif (
+            is_constant_waveform(left)
+            and is_constant_waveform(right)
+            and (left.duration == right.duration)
+        ):
+            return self.visit(
+                waveform.Constant(
+                    value=left.value + right.value, duration=left.duration
+                )
+            )
+        elif is_constant_waveform(left) and left.value == 0:
+            return right
+        elif is_constant_waveform(right) and right.value == 0:
+            return left
+        elif (
+            is_scaled_waveform(left)
+            and is_scaled_waveform(right)
+            and left.scalar == right.scalar
+        ):
+            new_waveform = left.waveform + right.waveform
+            return self.visit(waveform.Scale(scalar=left.scalar, waveform=new_waveform))
+        elif (
+            is_scaled_waveform(left)
+            and is_scaled_waveform(right)
+            and left.waveform == right.waveform
+        ):
+            new_scalar = left.scalar + right.scalar
+            return self.visit(waveform.Scale(scalar=new_scalar, waveform=left.waveform))
+        elif is_scaled_waveform(left) and left.waveform == right:
+            return self.visit(
+                waveform.Scale(scalar=left.scalar + 1, waveform=left.waveform)
+            )
+        elif is_scaled_waveform(right) and right.waveform == left:
+            return self.visit(
+                waveform.Scale(scalar=right.scalar + 1, waveform=right.waveform)
+            )
         else:
             return waveform.Add(left=left, right=right)
 
     def visit_waveform_Scale(self, node: waveform.Scale):
-        factor = self.visit(node.factor)
+        scale = self.visit(node.scalar)
         sub_waveform = self.visit(node.waveform)
 
-        if is_zero(factor):
+        if is_zero(scale):
             return waveform.Constant(0, duration=sub_waveform.duration)
-        elif is_one(factor):
+        elif is_one(scale):
             return sub_waveform
-        elif isinstance(sub_waveform, waveform.Scale):
+        elif is_scaled_waveform(sub_waveform):
             return self.visit(
                 waveform.Scale(
-                    factor=factor * sub_waveform.factor, waveform=sub_waveform.waveform
+                    scalar=scale * sub_waveform.scalar, waveform=sub_waveform.waveform
+                )
+            )
+        elif is_constant_waveform(sub_waveform):
+            return self.visit(
+                waveform.Constant(
+                    value=scale * sub_waveform.value, duration=sub_waveform.duration
                 )
             )
         else:
-            return waveform.Scale(factor=factor, waveform=sub_waveform)
+            return waveform.Scale(scalar=scale, waveform=sub_waveform)
 
     def visit_waveform_Slice(self, node: waveform.Slice):
         sub_waveform = self.visit(node.waveform)
@@ -177,8 +250,87 @@ class Canonicalize(BloqadeIRTransformer):
             return self.visit(
                 waveform.Slice(waveform=sub_waveform.waveform, interval=interval)
             )
+        elif is_scaled_waveform(sub_waveform):
+            new_waveform = waveform.Slice(
+                waveform=sub_waveform.waveform, interval=interval
+            )
+            return self.visit(
+                waveform.Scale(
+                    scalar=sub_waveform.scalar,
+                    waveform=new_waveform,
+                )
+            )
+        elif is_negative(sub_waveform):
+            return self.visit(
+                waveform.Negative(
+                    waveform.Slice(waveform=sub_waveform.waveform, interval=interval)
+                )
+            )
         else:
             return waveform.Slice(waveform=sub_waveform, interval=interval)
+
+    def visit_waveform_Negative(self, node: waveform.Negative):
+        sub_waveform = self.visit(node.waveform)
+
+        if isinstance(sub_waveform, waveform.Negative):
+            return sub_waveform.waveform
+        elif is_constant_waveform(sub_waveform):
+            return self.visit(
+                waveform.Constant(
+                    value=scalar.Negative(sub_waveform.value),
+                    duration=sub_waveform.duration,
+                )
+            )
+        elif is_scaled_waveform(sub_waveform):
+            return self.visit(
+                waveform.Scale(
+                    scalar=scalar.Negative(sub_waveform.scalar),
+                    waveform=sub_waveform.waveform,
+                )
+            )
+        else:
+            return self.visit(waveform.Negative(waveform=sub_waveform))
+
+    ########################################
+    #    Field Canonicalization Pass       #
+    ########################################
+
+    def visit_field_Field(self, node: field.Field):
+        inv_drives = {}
+
+        # map spatial modulations to waveforms
+        for sm, wf in node.drives.items():
+            wf = self.visit(wf)
+            inv_drives[wf] = inv_drives.get(wf, []) + [sm]
+
+        # merge spatial modulations with the same waveform
+        for wf, sms in inv_drives.items():
+            other_sms = []
+            new_scaled_locations = field.ScaledLocations.create({})
+
+            for sm in sms:  # merge scaled locations
+                if isinstance(sm, field.ScaledLocations):
+                    for loc, scale in sm.value.items():
+                        new_scaled_locations[loc] = (
+                            new_scaled_locations.get(loc, scalar.Literal(0)) + scale
+                        )
+                else:
+                    other_sms.append(sm)
+
+            if new_scaled_locations:
+                # if there are any scaled locations,
+                # add them to the list of spatial modulations
+                other_sms.append(new_scaled_locations)
+
+            inv_drives[wf] = other_sms
+
+        drives = {sm: wf for wf, sms in inv_drives.items() for sm in sms}
+
+        return field.Field(drives=drives)
+
+    ########################################
+    #    Pulse Canonicalization Pass       #
+    ########################################
 
     def visit_pulse_Slice(self, node: pulse.Slice):
         sub_pulse = self.visit(node.pulse)
@@ -210,6 +362,10 @@ class Canonicalize(BloqadeIRTransformer):
             return pulses[0]
         else:
             return pulse.Append(pulses=pulses)
+
+    ########################################
+    #    Sequence Canonicalization Pass    #
+    ########################################
 
     def visit_sequence_Slice(self, node: sequence.Slice):
         sub_sequence = self.visit(node.sequence)
@@ -247,36 +403,3 @@ class Canonicalize(BloqadeIRTransformer):
             return sequences[0]
         else:
             return sequence.Append(sequences=sequences)
-
-    def visit_field_Field(self, node: field.Field):
-        inv_drives = {}
-
-        # map spatial modulations to waveforms
-        for sm, wf in node.drives.items():
-            wf = self.visit(wf)
-            inv_drives[wf] = inv_drives.get(wf, []) + [sm]
-
-        # merge spatial modulations with the same waveform
-        for wf, sms in inv_drives.items():
-            other_sms = []
-            new_scaled_locations = field.ScaledLocations.create({})
-
-            for sm in sms:  # merge scaled locations
-                if isinstance(sm, field.ScaledLocations):
-                    for loc, scale in sm.value.items():
-                        new_scaled_locations[loc] = (
-                            new_scaled_locations.get(loc, scalar.Literal(0)) + scale
-                        )
-                else:
-                    other_sms.append(sm)
-
-            if new_scaled_locations:
-                # if there are any scaled locations,
-                # add them to the list of spatial modulations
-                other_sms.append(new_scaled_locations)
-
-            inv_drives[wf] = other_sms
-
-        drives = {sm: wf for wf, sms in inv_drives.items() for sm in sms}
-
-        return field.Field(drives=drives)
