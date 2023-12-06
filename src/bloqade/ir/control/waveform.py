@@ -905,7 +905,7 @@ class Sample(Waveform):
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
         times, values = self.samples(**kwargs)
 
-        if clock_s < 0 or clock_s > self.times[-1]:
+        if clock_s < 0 or clock_s > times[-1]:
             return Decimal("0")
 
         if self.interpolation is Interpolation.Linear:
@@ -922,7 +922,7 @@ class Sample(Waveform):
 
         elif self.interpolation is Interpolation.Constant:
             i = bisect_right(times[1:], clock_s)
-            return self.values[i]
+            return values[i]
 
     def print_node(self):
         return f"Sample {self.interpolation.value}"
