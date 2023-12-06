@@ -138,7 +138,7 @@ class GeneratePiecewiseConstantChannel(BloqadeIRVisitor):
 
         times = sorted(list(set(left.times + right.times)))
         values = [left.eval(t) + right.eval(t) for t in times]
-        print(values, times)
+
         return PiecewiseConstant(times, values)
 
     def visit_waveform_Append(self, node: waveform.Append) -> PiecewiseConstant:
