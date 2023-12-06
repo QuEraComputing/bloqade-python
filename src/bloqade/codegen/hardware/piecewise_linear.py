@@ -1,15 +1,24 @@
-import bloqade.ir.control.waveform as waveform
+from functools import reduce
 from bloqade.ir.visitor import BloqadeIRVisitor
+from bloqade.ir.control import waveform, field, pulse, sequence
+import bloqade.ir.analog_circuit as analog_circuit
 
-from typing import Dict, Tuple, List, Union
+from beartype.typing import List
+from beartype import beartype
 from pydantic.dataclasses import dataclass
 from bisect import bisect_left, bisect_right
-import numbers
 from decimal import Decimal
 
 
 @dataclass(frozen=True)
 class PiecewiseLinear:
+    """PiecewiseLinear represents a piecewise linear function.
+
+
+    Contains methods for evaluating the function at a given time and slicing
+    since these are common operations in the code generation process.
+    """
+
     times: List[Decimal]
     values: List[Decimal]
 
@@ -71,156 +80,112 @@ class PiecewiseLinear:
 
         return PiecewiseLinear([time - start_time for time in absolute_times], values)
 
-    def append(self, other: "PiecewiseLinear"):
-        assert self.values[-1] == other.values[0]
-
+    @staticmethod
+    def append(left: "PiecewiseLinear", right: "PiecewiseLinear") -> "PiecewiseLinear":
         return PiecewiseLinear(
-            times=self.times + [time + self.times[-1] for time in other.times[1:]],
-            values=self.values + other.values[1:],
+            times=left.times + [time + left.times[-1] for time in right.times[1:]],
+            values=left.values + right.values[1:],
         )
 
 
-class PiecewiseLinearCodeGen(BloqadeIRVisitor):
-    def __init__(self, assignments: Dict[str, Union[numbers.Real, List[numbers.Real]]]):
-        self.assignments = assignments
-        self.times = []
-        self.values = []
+class GeneratePiecewiseLinearChannel(BloqadeIRVisitor):
+    @beartype
+    def __init__(
+        self,
+        level_coupling: sequence.LevelCoupling,
+        field_name: pulse.FieldName,
+        spatial_modulations: field.SpatialModulation,
+    ):
+        self.level_coupling = level_coupling
+        self.field_name = field_name
+        self.spatial_modulations = spatial_modulations
 
-    @staticmethod
-    def check_continiuity(left, right):
-        if left != right:
-            diff = abs(left - right)
-            raise ValueError(
-                f"discontinuity with a jump of {diff} found when compiling to "
-                "piecewise linear."
-            )
+    def visit_waveform_Constant(self, node: waveform.Constant) -> PiecewiseLinear:
+        return PiecewiseLinear(
+            [Decimal(0), node.duration()], [node.value(), node.value()]
+        )
 
-    def append_timeseries(self, start, stop, duration):
-        if len(self.times) == 0:
-            self.times = [Decimal(0), duration]
-            self.values = [start, stop]
-        else:
-            self.check_continiuity(self.values[-1], start)
+    def visit_waveform_Linear(self, node: waveform.Linear) -> PiecewiseLinear:
+        return PiecewiseLinear(
+            [Decimal(0), node.duration()], [node.start(), node.stop()]
+        )
 
-            self.times.append(duration + self.times[-1])
-            self.values.append(stop)
+    def visit_waveform_Poly(self, node: waveform.Poly) -> PiecewiseLinear:
+        duration = node.duration()
+        start = node.eval_decimal(0)
+        stop = node.eval_decimal(duration)
 
-    def visit_waveform_Linear(
-        self, node: waveform.Linear
-    ) -> Tuple[List[Decimal], List[Decimal]]:
-        duration = node.duration(**self.assignments)
-        start = node.start(**self.assignments)
-        stop = node.stop(**self.assignments)
-        self.append_timeseries(start, stop, duration)
+        return PiecewiseLinear(
+            [Decimal(0), duration],
+            [start, stop],
+        )
 
-    def visit_waveform_Constant(
-        self, node: waveform.Constant
-    ) -> Tuple[List[Decimal], List[Decimal]]:
-        duration = node.duration(**self.assignments)
-        value = node.value(**self.assignments)
-        self.append_timeseries(value, value, duration)
+    def visit_waveform_Sample(self, node: waveform.Sample) -> PiecewiseLinear:
+        times, values = node.samples()
+        return PiecewiseLinear(times, values)
 
-    def visit_waveform_Poly(
-        self, node: waveform.Poly
-    ) -> Tuple[List[Decimal], List[Decimal]]:
-        order = len(node.coeffs) - 1
-        duration = node.duration(**self.assignments)
+    def visit_waveform_Add(self, node: waveform.Add) -> PiecewiseLinear:
+        lhs = self.visit(node.lhs)
+        rhs = self.visit(node.rhs)
 
-        if len(node.coeffs) == 0:
-            start = Decimal(0)
-            stop = Decimal(0)
-        elif len(node.coeffs) == 1:
-            start = node.coeffs[0](**self.assignments)
-            stop = start
-        elif len(node.coeffs) == 2:
-            start = node.coeffs[0](**self.assignments)
-            stop = start + node.coeffs[1](**self.assignments) * duration
-        else:
-            raise ValueError(
-                "Failed to compile Waveform to piecewise linear,"
-                f"found Polynomial of order {order}."
-            )
+        times = sorted(list(set(lhs.times + rhs.times)))
+        values = [lhs.eval(t) + rhs.eval(t) for t in times]
 
-        self.append_timeseries(start, stop, duration)
+        return PiecewiseLinear(times, values)
 
-    def visit_waveform_Negative(
-        self, node: waveform.Negative
-    ) -> Tuple[List[Decimal], List[Decimal]]:
-        self.visit(node.waveform)
-        self.values = [-value for value in self.values]
+    def visit_waveform_Append(self, node: waveform.Append) -> PiecewiseLinear:
+        return reduce(PiecewiseLinear.append, map(self.visit, node.waveforms))
 
-    def visit_waveform_Scale(
-        self, node: waveform.Scale
-    ) -> Tuple[List[Decimal], List[Decimal]]:
-        self.visit(node.waveform)
-        scaler = node.scalar(**self.assignments)
-        self.values = [scaler * value for value in self.values]
+    def visit_waveform_Slice(self, node: waveform.Slice) -> PiecewiseLinear:
+        pwl = self.visit(node.waveform)
+        return pwl.slice(node.start(), node.stop())
 
-    def visit_waveform_Slice(
-        self, node: waveform.Slice
-    ) -> Tuple[List[Decimal], List[Decimal]]:
-        duration = node.waveform.duration(**self.assignments)
-        if node.interval.start is None:
-            start_time = Decimal(0)
-        else:
-            start_time = node.interval.start(**self.assignments)
+    def visit_waveform_Negative(self, node: waveform.Negative) -> PiecewiseLinear:
+        pwl = self.visit(node.waveform)
+        return PiecewiseLinear(pwl.times, [-v for v in pwl.values])
 
-        if node.interval.stop is None:
-            stop_time = duration
-        else:
-            stop_time = node.interval.stop(**self.assignments)
+    def visit_waveform_Scale(self, node: waveform.Scale) -> PiecewiseLinear:
+        pwl = self.visit(node.waveform)
+        return PiecewiseLinear(pwl.times, [node.scalar() * v for v in pwl.values])
 
-        if start_time < 0:
-            raise ValueError((f"start time for slice {start_time} is smaller than 0."))
+    def visit_field_Field(self, node: field.Field) -> PiecewiseLinear:
+        return self.visit(node.drives[self.spatial_modulations])
 
-        if stop_time > duration:
-            raise ValueError(
-                (f"end time for slice {stop_time} is larger than duration {duration}.")
-            )
+    def visit_pulse_Pulse(self, node: pulse.Pulse) -> PiecewiseLinear:
+        return self.visit(node.fields[self.field_name])
 
-        if stop_time < start_time:
-            raise ValueError(
-                (
-                    f"end time for slice {stop_time} is smaller than "
-                    f"starting value for slice {start_time}."
-                )
-            )
+    def visit_pulse_NamedPulse(self, node: pulse.NamedPulse) -> PiecewiseLinear:
+        return self.visit(node.pulse)
 
-        pwl = PiecewiseLinearCodeGen(self.assignments).emit(node.waveform)
-        new_pwl = pwl.slice(start_time, stop_time)
+    def visit_pulse_Slice(self, node: pulse.Slice) -> PiecewiseLinear:
+        return self.visit(node.pulse).slice(node.start(), node.stop())
 
-        self.times = new_pwl.times
-        self.values = new_pwl.values
+    def visit_pulse_Append(self, node: pulse.Append) -> PiecewiseLinear:
+        return reduce(PiecewiseLinear.append, map(self.visit, node.pulses))
 
-    def visit_waveform_Append(
-        self, node: waveform.Append
-    ) -> Tuple[List[Decimal], List[Decimal]]:
-        pwl = PiecewiseLinearCodeGen(self.assignments).emit(node.waveforms[0])
+    def visit_sequence_Sequence(self, node: sequence.Sequence) -> PiecewiseLinear:
+        return self.visit(node.pulses[self.level_coupling])
 
-        for sub_expr in node.waveforms[1:]:
-            new_pwl = PiecewiseLinearCodeGen(self.assignments).emit(sub_expr)
+    def visit_sequence_NamedSequence(
+        self, node: sequence.NamedSequence
+    ) -> PiecewiseLinear:
+        return self.visit(node.sequence)
 
-            # skip instructions with duration=0
-            if new_pwl.times[-1] == Decimal(0):
-                continue
+    def visit_sequence_Slice(self, node: sequence.Slice) -> PiecewiseLinear:
+        return self.visit(node.sequence).slice(node.start(), node.stop())
 
-            self.check_continiuity(pwl.values[-1], new_pwl.values[0])
-            pwl = pwl.append(new_pwl)
+    def visit_sequence_Append(self, node: sequence.Append) -> PiecewiseLinear:
+        return reduce(PiecewiseLinear.append, map(self.visit, node.sequences))
 
-        self.times = pwl.times
-        self.values = pwl.values
+    def visit_analog_circuit_AnalogCircuit(
+        self, node: analog_circuit.AnalogCircuit
+    ) -> PiecewiseLinear:
+        return self.visit(node.sequence)
 
-    def visit_waveform_Sample(
-        self, node: waveform.Sample
-    ) -> Tuple[List[Decimal], List[Decimal]]:
-        if node.interpolation is not waveform.Interpolation.Linear:
-            raise ValueError(
-                "Failed to compile waveform to piecewise linear, "
-                f"found piecewise {node.interpolation.value} interpolation."
-            )
-
-        self.times, self.values = node.samples(**self.assignments)
-
-    def emit(self, node: waveform.Waveform) -> PiecewiseLinear:
-        self.visit(node)
-        return PiecewiseLinear(self.times, self.values)
+    # add another visit method for the new type
+    # every visitor method should return a PiecewiseLinear object
+    # Then we can use the PiecewiseLinear object to combine the
+    # resulting waveforms into a single waveform using the AST node
+    # to determine which transformation to apply, e.g. add, scale, etc.
+    def visit(self, node) -> PiecewiseLinear:
+        return super().visit(node)
