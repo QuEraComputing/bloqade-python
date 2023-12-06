@@ -22,7 +22,7 @@ def test_error():
         ).visit(wf)
 
 
-def test_waveform_append():
+def test_waveform_append_pwl():
     visitor = GeneratePiecewiseLinearChannel(
         sequence.rydberg, pulse.detuning, field.Uniform
     )
@@ -62,7 +62,7 @@ def test_waveform_append():
     assert visitor.visit(new_wf) == expected
 
 
-def test_waveform_sample():
+def test_waveform_sample_pwl():
     visitor = GeneratePiecewiseLinearChannel(
         sequence.rydberg, pulse.detuning, field.Uniform
     )
@@ -76,7 +76,7 @@ def test_waveform_sample():
     assert visitor.visit(pwl_wf) == expected
 
 
-def test_waveform_add():
+def test_waveform_add_pwl():
     left = waveform.Linear(0, 1, 2)
     right = piecewise_linear([1, 1], [0, 1, 0])
     wf = left + right
@@ -93,7 +93,7 @@ def test_waveform_add():
     assert visitor.visit(wf) == expected
 
 
-def test_waveform_slice():
+def test_waveform_slice_pwl():
     wf1 = waveform.Linear(0, 1, 2)[0.5:1.5]
 
     visitor = GeneratePiecewiseLinearChannel(
@@ -152,7 +152,7 @@ def test_waveform_slice():
     # assert False
 
 
-def test_waveform_negative():
+def test_waveform_negative_pwl():
     wf = -waveform.Linear(0, 1, 2)
 
     visitor = GeneratePiecewiseLinearChannel(
@@ -167,7 +167,7 @@ def test_waveform_negative():
     assert visitor.visit(wf) == expected
 
 
-def test_waveform_scale():
+def test_waveform_scale_pwl():
     wf = waveform.Linear(0, 1, 2) * 2
 
     visitor = GeneratePiecewiseLinearChannel(
@@ -182,7 +182,7 @@ def test_waveform_scale():
     assert visitor.visit(wf) == expected
 
 
-def test_field():
+def test_field_pwl():
     wf = piecewise_linear([1, 2, 3], [0, 1, 0, 1])
     f = field.Field({field.Uniform: wf})
 
@@ -198,7 +198,7 @@ def test_field():
     assert visitor.visit(f) == expected
 
 
-def test_pulse_leaf():
+def test_pulse_leaf_pwl():
     wf = piecewise_linear([1, 2, 3], [0, 1, 0, 1])
     f = field.Field({field.Uniform: wf})
     p = pulse.Pulse({pulse.detuning: f})
@@ -215,7 +215,7 @@ def test_pulse_leaf():
     assert visitor.visit(p) == expected
 
 
-def test_pulse_named():
+def test_pulse_named_pwl():
     wf = piecewise_linear([1, 2, 3], [0, 1, 1, 0])
     f = field.Field({field.Uniform: wf})
     p = pulse.NamedPulse("test", pulse.Pulse({pulse.detuning: f}))
@@ -232,7 +232,7 @@ def test_pulse_named():
     assert visitor.visit(p) == expected
 
 
-def test_pulse_slice():
+def test_pulse_slice_pwl():
     wf = piecewise_linear([1, 2, 3], [0, 1, 0, 1])
     f = field.Field({field.Uniform: wf})
     p = pulse.Pulse({pulse.detuning: f})[1.0:4.5]
@@ -249,7 +249,7 @@ def test_pulse_slice():
     assert visitor.visit(p) == expected
 
 
-def test_pulse_append():
+def test_pulse_append_pwl():
     wf = piecewise_linear([1, 2, 3], [0, 1, 1, 0])
     f = field.Field({field.Uniform: wf})
     p = pulse.Pulse({pulse.detuning: f})
@@ -283,7 +283,7 @@ def test_pulse_append():
     assert visitor.visit(p) == expected
 
 
-def test_sequence_leaf():
+def test_sequence_leaf_pwl():
     wf = piecewise_linear([1, 2, 3], [0, 1, 0, 1])
     f = field.Field({field.Uniform: wf})
     p = pulse.Pulse({pulse.detuning: f})
@@ -301,7 +301,7 @@ def test_sequence_leaf():
     assert visitor.visit(s) == expected
 
 
-def test_sequence_named():
+def test_sequence_named_pwl():
     wf = piecewise_linear([1, 2, 3], [0, 1, 1, 0])
     f = field.Field({field.Uniform: wf})
     p = pulse.Pulse({pulse.detuning: f})
@@ -319,7 +319,7 @@ def test_sequence_named():
     assert visitor.visit(s) == expected
 
 
-def test_sequence_slice():
+def test_sequence_slice_pwl():
     wf = piecewise_linear([1, 2, 3], [0, 1, 0, 1])
     f = field.Field({field.Uniform: wf})
     p = pulse.Pulse({pulse.detuning: f})
@@ -337,7 +337,7 @@ def test_sequence_slice():
     assert visitor.visit(s) == expected
 
 
-def test_sequence_append():
+def test_sequence_append_pwl():
     wf = piecewise_linear([1, 2, 3], [0, 1, 1, 0])
     f = field.Field({field.Uniform: wf})
     p = pulse.Pulse({pulse.detuning: f})
@@ -372,7 +372,7 @@ def test_sequence_append():
     assert visitor.visit(s) == expected
 
 
-def test_analog_circuit():
+def test_analog_circuit_pwl():
     wf = piecewise_linear([1, 2, 3], [0, 1, 0, 1])
     f = field.Field({field.Uniform: wf})
     p = pulse.Pulse({pulse.detuning: f})
