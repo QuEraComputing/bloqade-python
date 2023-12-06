@@ -89,6 +89,28 @@ class PiecewiseLinear:
 
 
 class GeneratePiecewiseLinearChannel(BloqadeIRVisitor):
+    valid_nodes = {
+        waveform.Constant,
+        waveform.Linear,
+        waveform.Poly,
+        waveform.Sample,
+        waveform.Add,
+        waveform.Append,
+        waveform.Slice,
+        waveform.Negative,
+        waveform.Scale,
+        field.Field,
+        pulse.Pulse,
+        pulse.NamedPulse,
+        pulse.Slice,
+        pulse.Append,
+        sequence.Sequence,
+        sequence.NamedSequence,
+        sequence.Slice,
+        sequence.Append,
+        analog_circuit.AnalogCircuit,
+    }
+
     @beartype
     def __init__(
         self,
@@ -125,11 +147,11 @@ class GeneratePiecewiseLinearChannel(BloqadeIRVisitor):
         return PiecewiseLinear(times, values)
 
     def visit_waveform_Add(self, node: waveform.Add) -> PiecewiseLinear:
-        lhs = self.visit(node.lhs)
-        rhs = self.visit(node.rhs)
+        left = self.visit(node.left)
+        right = self.visit(node.right)
 
-        times = sorted(list(set(lhs.times + rhs.times)))
-        values = [lhs.eval(t) + rhs.eval(t) for t in times]
+        times = sorted(list(set(left.times + right.times)))
+        values = [left.eval(t) + right.eval(t) for t in times]
 
         return PiecewiseLinear(times, values)
 
@@ -188,4 +210,9 @@ class GeneratePiecewiseLinearChannel(BloqadeIRVisitor):
     # resulting waveforms into a single waveform using the AST node
     # to determine which transformation to apply, e.g. add, scale, etc.
     def visit(self, node) -> PiecewiseLinear:
+        if type(node) not in self.valid_nodes:
+            raise TypeError(
+                f"Expected one of {self.valid_nodes}, got {type(node)} instead."
+            )
+
         return super().visit(node)
