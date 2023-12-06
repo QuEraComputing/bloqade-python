@@ -346,11 +346,6 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://bloqade.quera.com/reference/bloqade/ir/control/hash_trait/</loc>
-         <lastmod>2023-12-06</lastmod>
-         <changefreq>daily</changefreq>
-    </url>
-    <url>
          <loc>https://bloqade.quera.com/reference/bloqade/ir/control/pulse/</loc>
          <lastmod>2023-12-06</lastmod>
          <changefreq>daily</changefreq>
@@ -362,6 +357,26 @@
     </url>
     <url>
          <loc>https://bloqade.quera.com/reference/bloqade/ir/control/waveform/</loc>
+         <lastmod>2023-12-06</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://bloqade.quera.com/reference/bloqade/ir/control/traits/</loc>
+         <lastmod>2023-12-06</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://bloqade.quera.com/reference/bloqade/ir/control/traits/append/</loc>
+         <lastmod>2023-12-06</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://bloqade.quera.com/reference/bloqade/ir/control/traits/hash/</loc>
+         <lastmod>2023-12-06</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://bloqade.quera.com/reference/bloqade/ir/control/traits/slice/</loc>
          <lastmod>2023-12-06</lastmod>
          <changefreq>daily</changefreq>
     </url>
