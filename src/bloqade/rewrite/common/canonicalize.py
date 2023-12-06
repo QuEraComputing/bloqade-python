@@ -274,22 +274,20 @@ class Canonicalize(BloqadeIRTransformer):
 
         if isinstance(sub_waveform, waveform.Negative):
             return sub_waveform.waveform
-        elif is_constant_waveform(sub_waveform):
-            return self.visit(
-                waveform.Constant(
-                    value=scalar.Negative(sub_waveform.value),
-                    duration=sub_waveform.duration,
-                )
+        elif is_constant_waveform(sub_waveform) and is_negative(sub_waveform.value):
+            new_value = -sub_waveform.value
+            return waveform.Constant(
+                value=new_value,
+                duration=sub_waveform.duration,
             )
-        elif is_scaled_waveform(sub_waveform):
-            return self.visit(
-                waveform.Scale(
-                    scalar=scalar.Negative(sub_waveform.scalar),
-                    waveform=sub_waveform.waveform,
-                )
+        elif is_scaled_waveform(sub_waveform) and is_negative(sub_waveform.scalar):
+            new_scalar = -sub_waveform.scalar
+            return waveform.Scale(
+                scalar=new_scalar,
+                waveform=sub_waveform.waveform,
             )
         else:
-            return self.visit(waveform.Negative(waveform=sub_waveform))
+            return waveform.Negative(waveform=sub_waveform)
 
     ########################################
     #    Field Canonicalization Pass       #

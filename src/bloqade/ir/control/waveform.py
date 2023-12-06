@@ -83,10 +83,14 @@ class Waveform(HashTrait):
         raise NotImplementedError
 
     def add(self, other: "Waveform") -> "Waveform":
-        return Add(self, other)
+        from bloqade.rewrite.common.canonicalize import Canonicalize
+
+        return Canonicalize().visit(Add(self, other))
 
     def append(self, other: "Waveform") -> "Waveform":
-        return Append([self, other])
+        from bloqade.rewrite.common.canonicalize import Canonicalize
+
+        return Canonicalize().visit(Append([self, other]))
 
     def figure(self, **assignments):
         """get figure of the plotting the waveform.
@@ -128,31 +132,44 @@ class Waveform(HashTrait):
         return AlignedWaveform(self, alignment, value)
 
     def smooth(self, radius, kernel: "SmoothingKernel") -> "Waveform":
-        return Smooth(kernel=kernel, waveform=self, radius=cast(radius))
+        from bloqade.rewrite.common.canonicalize import Canonicalize
+
+        return Canonicalize().visit(
+            Smooth(kernel=kernel, waveform=self, radius=cast(radius))
+        )
 
     def scale(self, value) -> "Waveform":
-        return Scale(cast(value), self)
+        from bloqade.rewrite.common.canonicalize import Canonicalize
+
+        return Canonicalize().visit(Scale(cast(value), self))
 
     def __neg__(self) -> "Waveform":
-        return Negative(self)
+        from bloqade.rewrite.common.canonicalize import Canonicalize
+
+        return Canonicalize().visit(Negative(self))
 
     def __getitem__(self, s: slice) -> "Waveform":
-        return Slice(self, Interval.from_slice(s))
+        from bloqade.rewrite.common.canonicalize import Canonicalize
+
+        if s.start is None and s.stop is None and s.step is None:
+            return self
+
+        return Canonicalize().visit(Slice(self, Interval.from_slice(s)))
 
     def record(
         self, variable_name: Union[str, Variable], side: Union[str, Side] = Side.Right
     ):
-        return Record(self, cast(variable_name), Side(side))
+        return Record(self, var(variable_name), Side(side))
 
     def __add__(self, other: "Waveform") -> "Waveform":
         if isinstance(other, Waveform):
-            return Add(self, other)
+            return self.add(other)
 
         return NotImplemented
 
     def __sub__(self, other: "Waveform") -> "Waveform":
         if isinstance(other, Waveform):
-            return self + (-other)
+            return self.add(-other)
 
         return NotImplemented
 
