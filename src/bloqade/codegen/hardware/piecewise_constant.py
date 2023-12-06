@@ -161,15 +161,8 @@ class PiecewiseConstantCodeGen(BloqadeIRVisitor):
     ) -> Tuple[List[Decimal], List[Decimal]]:
         duration = node.waveform.duration(**self.assignments)
 
-        if node.interval.start is None:
-            start_time = Decimal(0)
-        else:
-            start_time = node.interval.start(**self.assignments)
-
-        if node.interval.stop is None:
-            stop_time = duration
-        else:
-            stop_time = node.interval.stop(**self.assignments)
+        start_time = node.start(**self.assignments)
+        stop_time = node.stop(**self.assignments)
 
         if start_time < 0:
             raise ValueError((f"start time for slice {start_time} is smaller than 0."))
