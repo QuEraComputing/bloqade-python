@@ -61,6 +61,7 @@
     * [rewrite](bloqade/rewrite/index.md)
         * [common](bloqade/rewrite/common/index.md)
             * [add_padding](bloqade/rewrite/common/add_padding.md)
+            * [assign_to_literal](bloqade/rewrite/common/assign_to_literal.md)
             * [assign_variables](bloqade/rewrite/common/assign_variables.md)
             * [flatten_sequence](bloqade/rewrite/common/flatten_sequence.md)
     * [serialize](bloqade/serialize.md)

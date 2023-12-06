@@ -426,6 +426,11 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
+         <loc>https://bloqade.quera.com/dev/reference/bloqade/rewrite/common/assign_to_literal/</loc>
+         <lastmod>2023-12-06</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
          <loc>https://bloqade.quera.com/dev/reference/bloqade/rewrite/common/assign_variables/</loc>
          <lastmod>2023-12-06</lastmod>
          <changefreq>daily</changefreq>
