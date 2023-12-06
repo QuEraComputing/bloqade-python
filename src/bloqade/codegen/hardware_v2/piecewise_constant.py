@@ -7,7 +7,7 @@ from bloqade.ir.visitor import BloqadeIRVisitor
 from beartype.typing import List
 from beartype import beartype
 from pydantic.dataclasses import dataclass
-from bisect import bisect_left
+from bisect import bisect_right, bisect_left
 from decimal import Decimal
 
 
@@ -17,17 +17,12 @@ class PiecewiseConstant:
     values: List[Decimal]
 
     def eval(self, time):
-        if time >= self.times[-1]:
-            return self.values[-1]
-        elif time <= self.times[0]:
-            return self.values[0]
-        else:
-            index = bisect_left(self.times, time)
+        if time < 0 or time > self.times[-1]:
+            return Decimal("0")
 
-            if self.times[index] == time:
-                index += 1
+        i = bisect_right(self.times[1:], time)
 
-            return self.values[index]
+        return self.values[i]
 
     def slice(self, start_time, stop_time) -> "PiecewiseConstant":
         start_time = Decimal(str(start_time))
@@ -70,15 +65,39 @@ class PiecewiseConstant:
 
     @staticmethod
     def append(
-        left: "PiecewiseConstant", other: "PiecewiseConstant"
+        left: "PiecewiseConstant", right: "PiecewiseConstant"
     ) -> "PiecewiseConstant":
+        new_times = left.times + [time + left.times[-1] for time in right.times[1:]]
+        new_values = left.values[:-1] + right.values
         return PiecewiseConstant(
-            times=left.times + [time + left.times[-1] for time in other.times[1:]],
-            values=left.values[:-1] + other.values,
+            times=new_times,
+            values=new_values,
         )
 
 
 class GeneratePiecewiseConstantChannel(BloqadeIRVisitor):
+    valid_nodes = {
+        waveform.Constant,
+        waveform.Linear,
+        waveform.Poly,
+        waveform.Sample,
+        waveform.Add,
+        waveform.Append,
+        waveform.Slice,
+        waveform.Negative,
+        waveform.Scale,
+        field.Field,
+        pulse.Pulse,
+        pulse.NamedPulse,
+        pulse.Slice,
+        pulse.Append,
+        sequence.Sequence,
+        sequence.NamedSequence,
+        sequence.Slice,
+        sequence.Append,
+        analog_circuit.AnalogCircuit,
+    }
+
     @beartype
     def __init__(
         self,
@@ -114,12 +133,12 @@ class GeneratePiecewiseConstantChannel(BloqadeIRVisitor):
         return PiecewiseConstant(times, values)
 
     def visit_waveform_Add(self, node: waveform.Add) -> PiecewiseConstant:
-        lhs = self.visit(node.lhs)
-        rhs = self.visit(node.rhs)
+        left = self.visit(node.left)
+        right = self.visit(node.right)
 
-        times = sorted(list(set(lhs.times + rhs.times)))
-        values = [lhs.eval(t) + rhs.eval(t) for t in times]
-
+        times = sorted(list(set(left.times + right.times)))
+        values = [left.eval(t) + right.eval(t) for t in times]
+        print(values, times)
         return PiecewiseConstant(times, values)
 
     def visit_waveform_Append(self, node: waveform.Append) -> PiecewiseConstant:
@@ -177,4 +196,9 @@ class GeneratePiecewiseConstantChannel(BloqadeIRVisitor):
     # resulting waveforms into a single waveform using the AST node
     # to determine which transformation to apply, e.g. add, scale, etc.
     def visit(self, node) -> PiecewiseConstant:
+        if type(node) not in self.valid_nodes:
+            raise TypeError(
+                f"Expected one of {self.valid_nodes}, got {type(node)} instead."
+            )
+
         return super().visit(node)
