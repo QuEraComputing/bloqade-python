@@ -76,12 +76,9 @@ def test_waveform_sample():
     assert visitor.visit(pwl_wf) == expected
 
 
-def test_waveform_lowering_add():
+def test_waveform_add():
     left = waveform.Linear(0, 1, 2)
-    right = piecewise_linear(
-        [1, 1],
-        [0, 1, 0],
-    )
+    right = piecewise_linear([1, 1], [0, 1, 0])
     wf = left + right
 
     visitor = GeneratePiecewiseLinearChannel(
@@ -91,6 +88,80 @@ def test_waveform_lowering_add():
     expected = PiecewiseLinear(
         times=[Decimal("0"), Decimal("1"), Decimal("2")],
         values=[Decimal("0"), Decimal("1.5"), Decimal("1.0")],
+    )
+
+    assert visitor.visit(wf) == expected
+
+
+def test_waveform_slice():
+    wf1 = waveform.Linear(0, 1, 2)[0.5:1.5]
+
+    visitor = GeneratePiecewiseLinearChannel(
+        sequence.rydberg, pulse.detuning, field.Uniform
+    )
+
+    expected = PiecewiseLinear(
+        times=[Decimal("0"), Decimal("1")],
+        values=[Decimal("0.25"), Decimal("0.75")],
+    )
+
+    assert visitor.visit(wf1) == expected
+
+    wf2 = piecewise_linear([1, 2, 3], [0, 1, 0, 1])[0.5:4.5]
+
+    expected = PiecewiseLinear(
+        [Decimal("0.0"), Decimal("0.5"), Decimal("2.5"), Decimal("4")],
+        [Decimal("0.5"), Decimal("1.0"), Decimal("0.0"), Decimal("0.5")],
+    )
+
+    assert visitor.visit(wf2) == expected
+
+    wf3 = waveform.Linear(0, 1, 2)[0.5:0.5]
+
+    expected = PiecewiseLinear(
+        [Decimal("0.0"), Decimal("0.0")], [Decimal("0.0"), Decimal("0.0")]
+    )
+
+    assert visitor.visit(wf3) == expected
+
+    wf4 = piecewise_linear([1, 2, 3], [0, 1, 0, 1])[1.0:4.5]
+
+    expected = PiecewiseLinear(
+        [Decimal("0.0"), Decimal("2.0"), Decimal("3.5")],
+        [Decimal("1.0"), Decimal("0.0"), Decimal("0.5")],
+    )
+
+    assert visitor.visit(wf4) == expected
+
+    wf5 = piecewise_linear([1, 2, 3], [0, 1, 0, 1])[:3.0]
+
+    expected = PiecewiseLinear(
+        [Decimal("0.0"), Decimal("1.0"), Decimal("3.0")],
+        [Decimal("0.0"), Decimal("1.0"), Decimal("0.0")],
+    )
+    assert visitor.visit(wf5) == expected
+
+    wf5 = piecewise_linear([1, 2, 3], [0, 1, 0, 1])[0.5:3.0]
+
+    expected = PiecewiseLinear(
+        [Decimal("0.0"), Decimal("0.5"), Decimal("2.5")],
+        [Decimal("0.5"), Decimal("1.0"), Decimal("0.0")],
+    )
+    assert visitor.visit(wf5) == expected
+
+    # assert False
+
+
+def test_waveform_negative():
+    wf = -waveform.Linear(0, 1, 2)
+
+    visitor = GeneratePiecewiseLinearChannel(
+        sequence.rydberg, pulse.detuning, field.Uniform
+    )
+
+    expected = PiecewiseLinear(
+        times=[Decimal("0"), Decimal("2")],
+        values=[Decimal("0"), Decimal("-1")],
     )
 
     assert visitor.visit(wf) == expected

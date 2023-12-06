@@ -58,9 +58,8 @@ class PiecewiseLinear:
         stop_index = bisect_left(self.times, stop_time)
         start_value = self.eval(start_time)
         stop_value = self.eval(stop_time)
-
         if start_time == self.times[start_index]:
-            if stop_time == self.times[start_index]:
+            if stop_time == self.times[stop_index]:
                 absolute_times = list(self.times[start_index : stop_index + 1])
                 values = list(self.values[start_index : stop_index + 1])
             else:
