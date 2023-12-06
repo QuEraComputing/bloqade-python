@@ -54,10 +54,9 @@ class Canonicalize(BloqadeIRTransformer):
         expr = self.visit(node.expr)
         if isinstance(expr, scalar.Negative):
             return expr.expr
-        elif is_literal(expr) and expr.value < 0:
-            # literal expressions must be positive
-            return scalar.Negative(expr=scalar.Literal(-expr.value))
-        else:
+        elif is_literal(expr):
+            return scalar.Literal(-expr.value)
+        else:  # only apply negative to literals
             return scalar.Negative(expr=expr)
 
     def visit_scalar_Add(self, node: scalar.Add):
@@ -67,9 +66,9 @@ class Canonicalize(BloqadeIRTransformer):
         if lhs == rhs:
             return 2 * lhs
         elif is_zero(rhs):
-            return rhs
-        elif is_zero(lhs):
             return lhs
+        elif is_zero(lhs):
+            return rhs
         elif is_literal(lhs) and is_literal(rhs):
             return scalar.Literal(lhs.value + rhs.value)
         elif is_negative(lhs) and is_negative(rhs):
@@ -80,6 +79,7 @@ class Canonicalize(BloqadeIRTransformer):
             is_negative(rhs) and rhs.expr == lhs
         ):
             return scalar.Literal(0)
+
         else:
             return scalar.Add(lhs=lhs, rhs=rhs)
 
@@ -97,8 +97,10 @@ class Canonicalize(BloqadeIRTransformer):
             return scalar.Literal(lhs.value * rhs.value)
         elif is_negative(lhs) and is_negative(rhs):
             return self.visit(scalar.Mul(lhs=lhs.expr, rhs=rhs.expr))
-        elif is_negative(lhs) or is_negative(rhs):
+        elif is_negative(lhs):
             return self.visit(scalar.Negative(expr=scalar.Mul(lhs=lhs.expr, rhs=rhs)))
+        elif is_negative(rhs):
+            return self.visit(scalar.Negative(expr=scalar.Mul(lhs=lhs, rhs=rhs.expr)))
         else:
             return scalar.Mul(lhs=lhs, rhs=rhs)
 
@@ -114,9 +116,13 @@ class Canonicalize(BloqadeIRTransformer):
             return lhs
         elif is_negative(lhs) and is_negative(rhs):
             return self.visit(scalar.Div(lhs=lhs.expr, rhs=rhs.expr))
-        elif is_negative(lhs) or is_negative(rhs):
+        elif is_negative(lhs):
             return self.visit(
                 scalar.Negative(expr=self.visit(scalar.Div(lhs=lhs.expr, rhs=rhs)))
+            )
+        elif is_negative(rhs):
+            return self.visit(
+                scalar.Negative(expr=self.visit(scalar.Div(lhs=lhs, rhs=rhs.expr)))
             )
         else:
             return scalar.Div(lhs=lhs, rhs=rhs)

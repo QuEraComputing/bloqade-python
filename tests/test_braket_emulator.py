@@ -15,7 +15,7 @@ def test_braket_simulator_getbitstring():
         )
         .detuning.uniform.piecewise_linear(durations=[1.1], values=[0.0, 0.0])
     )
-
+    print(program.parse().circuit.sequence)
     output = program.braket.local_emulator().run(shots=10).report()
 
     assert len(output.bitstrings()[0].flatten()) == 10

@@ -83,14 +83,10 @@ class Waveform(HashTrait):
         raise NotImplementedError
 
     def add(self, other: "Waveform") -> "Waveform":
-        from bloqade.rewrite.common.canonicalize import Canonicalize
-
-        return Canonicalize().visit(Add(self, other))
+        return self.canonicalize(Add(self, other))
 
     def append(self, other: "Waveform") -> "Waveform":
-        from bloqade.rewrite.common.canonicalize import Canonicalize
-
-        return Canonicalize().visit(Append([self, other]))
+        return self.canonicalize(Append([self, other]))
 
     def figure(self, **assignments):
         """get figure of the plotting the waveform.
@@ -129,37 +125,26 @@ class Waveform(HashTrait):
         if not isinstance(value, Side):
             value = cast(value)
 
-        return AlignedWaveform(self, alignment, value)
+        return self.canonicalize(AlignedWaveform(self, alignment, value))
 
     def smooth(self, radius, kernel: "SmoothingKernel") -> "Waveform":
-        from bloqade.rewrite.common.canonicalize import Canonicalize
-
-        return Canonicalize().visit(
+        return self.canonicalize(
             Smooth(kernel=kernel, waveform=self, radius=cast(radius))
         )
 
     def scale(self, value) -> "Waveform":
-        from bloqade.rewrite.common.canonicalize import Canonicalize
-
-        return Canonicalize().visit(Scale(cast(value), self))
+        return self.canonicalize(Scale(cast(value), self))
 
     def __neg__(self) -> "Waveform":
-        from bloqade.rewrite.common.canonicalize import Canonicalize
-
-        return Canonicalize().visit(Negative(self))
+        return self.canonicalize(Negative(self))
 
     def __getitem__(self, s: slice) -> "Waveform":
-        from bloqade.rewrite.common.canonicalize import Canonicalize
-
-        if s.start is None and s.stop is None and s.step is None:
-            return self
-
-        return Canonicalize().visit(Slice(self, Interval.from_slice(s)))
+        return self.canonicalize(Slice(self, Interval.from_slice(s)))
 
     def record(
         self, variable_name: Union[str, Variable], side: Union[str, Side] = Side.Right
     ):
-        return Record(self, var(variable_name), Side(side))
+        return Record(self, cast(variable_name), Side(side))
 
     def __add__(self, other: "Waveform") -> "Waveform":
         if isinstance(other, Waveform):
@@ -189,37 +174,9 @@ class Waveform(HashTrait):
 
     @staticmethod
     def canonicalize(expr: "Waveform") -> "Waveform":
-        if isinstance(expr, Append):
-            new_waveforms = []
-            for waveform in expr.waveforms:
-                if isinstance(waveform, Append):
-                    new_waveforms += waveform.waveforms
-                elif waveform.duration == cast(0):
-                    # skip zero duration waveforms
-                    continue
-                else:
-                    new_waveforms.append(waveform)
+        from bloqade.rewrite.common.canonicalize import Canonicalize
 
-            new_waveforms = list(map(Waveform.canonicalize, new_waveforms))
-            if len(new_waveforms) == 0:
-                return Constant(0, 0)
-            elif len(new_waveforms) == 1:
-                return new_waveforms[0]
-            else:
-                return Append(new_waveforms)
-        elif isinstance(expr, Add):
-            left = Waveform.canonicalize(expr.left)
-            right = Waveform.canonicalize(expr.right)
-            if left == right:
-                return left.scale(2)
-            if left.duration == cast(0):
-                return right
-            if right.duration == cast(0):
-                return left
-            else:
-                return expr
-        else:
-            return expr
+        return Canonicalize().visit(expr)
 
     def _repr_pretty_(self, p, cycle):
         Printer(p).print(self, cycle)
