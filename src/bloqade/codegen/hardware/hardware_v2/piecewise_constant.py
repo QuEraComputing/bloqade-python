@@ -1,10 +1,13 @@
-import bloqade.ir.control.waveform as waveform
+from functools import reduce
+from bloqade.ir.control import waveform, pulse, sequence, field
+from bloqade.ir import analog_circuit
+
 from bloqade.ir.visitor import BloqadeIRVisitor
 
-from typing import Dict, Tuple, List, Union
+from beartype.typing import List
+from beartype import beartype
 from pydantic.dataclasses import dataclass
 from bisect import bisect_left
-import numbers
 from decimal import Decimal
 
 
@@ -65,167 +68,113 @@ class PiecewiseConstant:
 
         return PiecewiseConstant([time - start_time for time in absolute_times], values)
 
-    def append(self, other: "PiecewiseConstant"):
+    @staticmethod
+    def append(
+        left: "PiecewiseConstant", other: "PiecewiseConstant"
+    ) -> "PiecewiseConstant":
         return PiecewiseConstant(
-            times=self.times + [time + self.times[-1] for time in other.times[1:]],
-            values=self.values[:-1] + other.values,
+            times=left.times + [time + left.times[-1] for time in other.times[1:]],
+            values=left.values[:-1] + other.values,
         )
 
 
-class PiecewiseConstantCodeGen(BloqadeIRVisitor):
-    def __init__(self, assignments: Dict[str, Union[numbers.Real, List[numbers.Real]]]):
-        self.assignments = assignments
-        self.times = []
-        self.values = []
+class GeneratePiecewiseConstantChannel(BloqadeIRVisitor):
+    @beartype
+    def __init__(
+        self,
+        level_coupling: sequence.LevelCoupling,
+        field_name: pulse.FieldName,
+        spatial_modulations: field.SpatialModulation,
+    ):
+        self.level_coupling = level_coupling
+        self.field_name = field_name
+        self.spatial_modulations = spatial_modulations
 
-    def append_timeseries(self, value, duration):
-        if len(self.times) > 0:
-            self.times.append(duration + self.times[-1])
-            self.values[-1] = value
-            self.values.append(value)
-        else:
-            self.times = [Decimal(0), duration]
-            self.values = [value, value]
-
-    def visit_waveform_Linear(
-        self, node: waveform.Linear
-    ) -> Tuple[List[Decimal], List[Decimal]]:
-        duration = node.duration(**self.assignments)
-        start = node.start(**self.assignments)
-        stop = node.stop(**self.assignments)
-
-        if start != stop:
-            raise ValueError(
-                "Failed to compile Waveform to piecewise constant, "
-                "found non-constant Linear piece."
-            )
-
-        self.append_timeseries(start, duration)
-
-    def visit_waveform_Constant(
-        self, node: waveform.Constant
-    ) -> Tuple[List[Decimal], List[Decimal]]:
-        duration = node.duration(**self.assignments)
-        value = node.value(**self.assignments)
-
-        self.append_timeseries(value, duration)
-
-    def visit_waveform_Poly(
-        self, node: waveform.Poly
-    ) -> Tuple[List[Decimal], List[Decimal]]:
-        order = len(node.coeffs) - 1
-        duration = node.duration(**self.assignments)
-
-        if len(node.coeffs) == 0:
-            value = Decimal(0)
-
-        elif len(node.coeffs) == 1:
-            value = node.coeffs[0](**self.assignments)
-
-        elif len(node.coeffs) == 2:
-            start = node.coeffs[0](**self.assignments)
-            stop = start + node.coeffs[1](**self.assignments) * duration
-
-            if start != stop:
-                raise ValueError(
-                    "Failed to compile Waveform to piecewise constant, "
-                    "found non-constant Polynomial piece."
-                )
-
-            value = start
-
-        else:
-            raise ValueError(
-                "Failed to compile Waveform to piecewise constant,"
-                f"found Polynomial of order {order}."
-            )
-
-        self.append_timeseries(value, duration)
-
-    def visit_waveform_Negative(
-        self, node: waveform.Negative
-    ) -> Tuple[List[Decimal], List[Decimal]]:
-        self.visit(node.waveform)
-
-        self.values = [-value for value in self.values]
-
-    def visit_waveform_Scale(
-        self, node: waveform.Scale
-    ) -> Tuple[List[Decimal], List[Decimal]]:
-        self.visit(node.waveform)
-        scale = node.scalar(**self.assignments)
-        self.values = [scale * value for value in self.values]
-
-    def visit_waveform_Slice(
-        self, node: waveform.Slice
-    ) -> Tuple[List[Decimal], List[Decimal]]:
-        duration = node.waveform.duration(**self.assignments)
-
-        if node.interval.start is None:
-            start_time = Decimal(0)
-        else:
-            start_time = node.interval.start(**self.assignments)
-
-        if node.interval.stop is None:
-            stop_time = duration
-        else:
-            stop_time = node.interval.stop(**self.assignments)
-
-        if start_time < 0:
-            raise ValueError((f"start time for slice {start_time} is smaller than 0."))
-
-        if stop_time > duration:
-            raise ValueError(
-                (f"end time for slice {stop_time} is larger than duration {duration}.")
-            )
-
-        if stop_time < start_time:
-            raise ValueError(
-                (
-                    f"end time for slice {stop_time} is smaller than "
-                    f"starting value for slice {start_time}."
-                )
-            )
-
-        new_pwc = (
-            PiecewiseConstantCodeGen(self.assignments)
-            .emit(node.waveform)
-            .slice(start_time, stop_time)
+    def visit_waveform_Constant(self, node: waveform.Constant) -> PiecewiseConstant:
+        return PiecewiseConstant(
+            [Decimal(0), node.duration()], [node.value(), node.value()]
         )
 
-        self.times = new_pwc.times
-        self.values = new_pwc.values
+    def visit_waveform_Linear(self, node: waveform.Linear) -> PiecewiseConstant:
+        return PiecewiseConstant(
+            [Decimal(0), node.duration()], [node.start(), node.start()]
+        )
 
-    def visit_waveform_Append(
-        self, node: waveform.Append
-    ) -> Tuple[List[Decimal], List[Decimal]]:
-        pwc = PiecewiseConstantCodeGen(self.assignments).emit(node.waveforms[0])
+    def visit_waveform_Poly(self, node: waveform.Poly) -> PiecewiseConstant:
+        duration = node.duration()
+        start = node.eval_decimal(0)
 
-        for sub_expr in node.waveforms[1:]:
-            new_pwc = PiecewiseConstantCodeGen(self.assignments).emit(sub_expr)
+        return PiecewiseConstant(
+            [Decimal(0), duration],
+            [start, start],
+        )
 
-            # skip instructions with duration=0
-            if new_pwc.times[-1] == Decimal(0):
-                continue
+    def visit_waveform_Sample(self, node: waveform.Sample) -> PiecewiseConstant:
+        times, values = node.samples()
+        return PiecewiseConstant(times, values)
 
-            pwc = pwc.append(new_pwc)
+    def visit_waveform_Add(self, node: waveform.Add) -> PiecewiseConstant:
+        lhs = self.visit(node.lhs)
+        rhs = self.visit(node.rhs)
 
-        self.times = pwc.times
-        self.values = pwc.values
+        times = sorted(list(set(lhs.times + rhs.times)))
+        values = [lhs.eval(t) + rhs.eval(t) for t in times]
 
-    def visit_waveform_Sample(
-        self, node: waveform.Sample
-    ) -> Tuple[List[Decimal], List[Decimal]]:
-        if node.interpolation is not waveform.Interpolation.Constant:
-            raise ValueError(
-                "Failed to compile waveform to piecewise constant, "
-                f"found piecewise {node.interpolation.value} interpolation."
-            )
-        self.times, values = node.samples(**self.assignments)
-        values[-1] = values[-2]
-        self.values = values
+        return PiecewiseConstant(times, values)
 
-    def emit(self, node: waveform.Waveform) -> PiecewiseConstant:
-        self.visit(node)
+    def visit_waveform_Append(self, node: waveform.Append) -> PiecewiseConstant:
+        return reduce(PiecewiseConstant.append, map(self.visit, node.waveforms))
 
-        return PiecewiseConstant(times=self.times, values=self.values)
+    def visit_waveform_Slice(self, node: waveform.Slice) -> PiecewiseConstant:
+        pwl = self.visit(node.waveform)
+        return pwl.slice(node.start(), node.stop())
+
+    def visit_waveform_Negative(self, node: waveform.Negative) -> PiecewiseConstant:
+        pwl = self.visit(node.waveform)
+        return PiecewiseConstant(pwl.times, [-v for v in pwl.values])
+
+    def visit_waveform_Scale(self, node: waveform.Scale) -> PiecewiseConstant:
+        pwl = self.visit(node.waveform)
+        return PiecewiseConstant(pwl.times, [node.scalar() * v for v in pwl.values])
+
+    def visit_field_Field(self, node: field.Field) -> PiecewiseConstant:
+        return self.visit(node.drives[self.spatial_modulations])
+
+    def visit_pulse_Pulse(self, node: pulse.Pulse) -> PiecewiseConstant:
+        return self.visit(node.fields[self.field_name])
+
+    def visit_pulse_NamedPulse(self, node: pulse.NamedPulse) -> PiecewiseConstant:
+        return self.visit(node.pulse)
+
+    def visit_pulse_Slice(self, node: pulse.Slice) -> PiecewiseConstant:
+        return self.visit(node.pulse).slice(node.start(), node.stop())
+
+    def visit_pulse_Append(self, node: pulse.Append) -> PiecewiseConstant:
+        return reduce(PiecewiseConstant.append, map(self.visit, node.pulses))
+
+    def visit_sequence_Sequence(self, node: sequence.Sequence) -> PiecewiseConstant:
+        return self.visit(node.pulses[self.level_coupling])
+
+    def visit_sequence_NamedSequence(
+        self, node: sequence.NamedSequence
+    ) -> PiecewiseConstant:
+        return self.visit(node.sequence)
+
+    def visit_sequence_Slice(self, node: sequence.Slice) -> PiecewiseConstant:
+        return self.visit(node.sequence).slice(node.start(), node.stop())
+
+    def visit_sequence_Append(self, node: sequence.Append) -> PiecewiseConstant:
+        return reduce(PiecewiseConstant.append, map(self.visit, node.sequences))
+
+    def visit_analog_circuit_AnalogCircuit(
+        self, node: analog_circuit.AnalogCircuit
+    ) -> PiecewiseConstant:
+        return self.visit(node.sequence)
+
+    # add another visit method for the new type
+    # every visitor method should return a PiecewiseConstant object
+    # Then we can use the PiecewiseConstant object to combine the
+    # resulting waveforms into a single waveform using the AST node
+    # to determine which transformation to apply, e.g. add, scale, etc.
+    def visit(self, node) -> PiecewiseConstant:
+        return super().visit(node)
