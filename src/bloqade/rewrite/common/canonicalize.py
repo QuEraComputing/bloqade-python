@@ -30,13 +30,30 @@ def is_constant_waveform(expr):
 class Canonicalize(BloqadeIRTransformer):
     def minmax_canonicalize(self, op, exprs):
         new_exprs = set()
+        new_literals = set()
+
         for expr in exprs:
             if isinstance(expr, op):
                 exprs = list(map(self.visit, expr.exprs))
-                new_exprs.update(exprs)
+                new_exprs.update(expr for expr in exprs if not is_literal(expr))
+                new_literals.update(expr for expr in exprs if is_literal(expr))
             else:
                 expr = self.visit(expr)
-                new_exprs.add(expr)
+                if is_literal(expr):
+                    new_literals.add(expr)
+                else:
+                    new_exprs.add(expr)
+
+        if new_literals:
+            if len(new_literals) > 1:
+                minmax = min if op == scalar.Min else max
+                new_literal = scalar.Literal(
+                    minmax(*[ele.value for ele in new_literals])
+                )
+            else:
+                new_literal = new_literals.pop()
+
+            new_exprs.add(new_literal)
 
         if len(new_exprs) > 1:
             return op(exprs=frozenset(new_exprs))
