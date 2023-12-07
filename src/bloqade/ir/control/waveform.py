@@ -9,9 +9,11 @@ from bloqade.ir.scalar import (
     cast,
     var,
 )
-from bloqade.ir.control.hash_trait import HashTrait
+from bloqade.ir.control.traits.hash import HashTrait
+from bloqade.ir.control.traits.append import AppendTrait
+from bloqade.ir.control.traits.slice import SliceTrait
 
-from bisect import bisect_left
+from bisect import bisect_left, bisect_right
 from decimal import Decimal
 from pydantic.dataclasses import dataclass
 from beartype.typing import Any, Tuple, Union, List, Callable, Dict, Container
@@ -643,7 +645,7 @@ class Smooth(Waveform):
 
 
 @dataclass(frozen=True)
-class Slice(Waveform):
+class Slice(SliceTrait, Waveform):
     """
     ```
     <slice> ::= <waveform> <scalar.interval>
@@ -655,22 +657,15 @@ class Slice(Waveform):
 
     __hash__ = Waveform.__hash__
 
-    @cached_property
-    def duration(self):
-        from bloqade.ir.scalar import Slice
-
-        if self.interval.start is None and self.interval.stop is None:
-            raise ValueError("Interval must have a start or stop value")
-
-        return Slice(self.waveform.duration, self.interval)
+    @property
+    def _sub_expr(self):
+        return self.waveform
 
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
         if clock_s > self.duration(**kwargs):
             return Decimal(0)
-        if self.interval.start is None:
-            start_time = Decimal(0)
-        else:
-            start_time = self.interval.start(**kwargs)
+
+        start_time = self.start(**kwargs)
         return self.waveform.eval_decimal(clock_s + start_time, **kwargs)
 
     def print_node(self):
@@ -681,7 +676,7 @@ class Slice(Waveform):
 
 
 @dataclass(frozen=True)
-class Append(Waveform):
+class Append(AppendTrait, Waveform):
     """
     ```bnf
     <append> ::= <waveform>+
@@ -692,13 +687,9 @@ class Append(Waveform):
 
     __hash__ = Waveform.__hash__
 
-    @cached_property
-    def duration(self):
-        duration = cast(0.0)
-        for waveform in self.waveforms:
-            duration = duration + waveform.duration
-
-        return duration
+    @property
+    def _sub_exprs(self):
+        return self.waveforms
 
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
         append_time = Decimal(0)
@@ -873,12 +864,16 @@ class Sample(Waveform):
 
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
         times, values = self.samples(**kwargs)
-        i = bisect_left(times, clock_s)
 
-        if i == len(times):
-            return Decimal(0)
+        if clock_s < 0 or clock_s > times[-1]:
+            return Decimal("0")
 
         if self.interpolation is Interpolation.Linear:
+            i = bisect_left(times, clock_s)
+
+            if i == len(times):
+                return Decimal(0)
+
             if i == 0:
                 return values[i]
             else:
@@ -886,10 +881,8 @@ class Sample(Waveform):
                 return slope * (clock_s - times[i - 1]) + values[i - 1]
 
         elif self.interpolation is Interpolation.Constant:
-            if i == 0:
-                return values[i]
-            else:
-                return values[i - 1]
+            i = bisect_right(times[1:], clock_s)
+            return values[i]
 
     def print_node(self):
         return f"Sample {self.interpolation.value}"
