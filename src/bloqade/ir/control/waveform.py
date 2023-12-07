@@ -13,7 +13,7 @@ from bloqade.ir.control.traits.hash import HashTrait
 from bloqade.ir.control.traits.append import AppendTrait
 from bloqade.ir.control.traits.slice import SliceTrait
 
-from bisect import bisect_left
+from bisect import bisect_left, bisect_right
 from decimal import Decimal
 from pydantic.dataclasses import dataclass
 from beartype.typing import Any, Tuple, Union, List, Callable, Dict, Container
@@ -904,12 +904,16 @@ class Sample(Waveform):
 
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
         times, values = self.samples(**kwargs)
-        i = bisect_left(times, clock_s)
 
-        if i == len(times):
-            return Decimal(0)
+        if clock_s < 0 or clock_s > times[-1]:
+            return Decimal("0")
 
         if self.interpolation is Interpolation.Linear:
+            i = bisect_left(times, clock_s)
+
+            if i == len(times):
+                return Decimal(0)
+
             if i == 0:
                 return values[i]
             else:
@@ -917,10 +921,8 @@ class Sample(Waveform):
                 return slope * (clock_s - times[i - 1]) + values[i - 1]
 
         elif self.interpolation is Interpolation.Constant:
-            if i == 0:
-                return values[i]
-            else:
-                return values[i - 1]
+            i = bisect_right(times[1:], clock_s)
+            return values[i]
 
     def print_node(self):
         return f"Sample {self.interpolation.value}"
