@@ -2666,7 +2666,7 @@ files = [
 
 [[package]]
 name = "pytest-recording"
-version = "0.13.0"
+version = "0.13.1"
 requires_python = ">=3.7"
 summary = "A pytest plugin that allows you recording of network interactions via VCR.py"
 dependencies = [
@@ -2674,8 +2674,8 @@ dependencies = [
     "vcrpy>=2.0.1",
 ]
 files = [
-    {file = "pytest_recording-0.13.0-py3-none-any.whl", hash = "sha256:679b0ae6eb3337b981f6a4d590a30c28c43855bfac5b9ad87070ad6d08b05dbc"},
-    {file = "pytest_recording-0.13.0.tar.gz", hash = "sha256:b24b707af843341457d9d340328f361eceb0efe980e388341941b4fada3745ca"},
+    {file = "pytest_recording-0.13.1-py3-none-any.whl", hash = "sha256:e5c75feb2593eb4ed9362182c6640bfe19004204bf9a6082d62c91b5fdb50a3e"},
+    {file = "pytest_recording-0.13.1.tar.gz", hash = "sha256:1265d679f39263f115968ec01c2a3bfed250170fd1b0d9e288970b2e4a13737a"},
 ]
 
 [[package]]
