@@ -51,16 +51,6 @@ def test_cast():
 
 
 def test_add():
-    assert var("a") + var("b") == scalar.Add(var("a"), var("b"))
-    assert var("a") + 1 == scalar.Add(var("a"), scalar.Literal(Decimal("1")))
-    assert 0 + var("a") == var("a")
-    assert var("a") + 0 == var("a")
-    assert 1 + var("a") == scalar.Add(scalar.Literal(Decimal("1")), var("a"))
-    assert cast(1) + cast(2) == scalar.Literal(Decimal("3"))
-    assert -cast("a") + -cast("b") == scalar.Negative(
-        expr=scalar.Add(var("a"), var("b"))
-    )
-
     mystdout = StringIO()
     p = PP(mystdout)
     (1 + var("a"))._repr_pretty_(p, 0)
@@ -68,26 +58,7 @@ def test_add():
     assert mystdout.getvalue() == "+\n├─ Literal: 1\n⋮\n└─ Variable: a⋮\n"
 
 
-def test_sub():
-    assert var("a") - var("b") == scalar.Add(var("a"), scalar.Negative(var("b")))
-    assert var("a") - 1 == scalar.Add(var("a"), cast(-1))
-    assert 1 - var("a") == scalar.Add(
-        scalar.Literal(Decimal("1")), scalar.Negative(var("a"))
-    )
-    assert cast(1) - cast(2) == scalar.Literal(Decimal("-1"))
-    assert -cast(1) + cast(2) == scalar.Literal(Decimal("1"))
-
-
 def test_mul():
-    assert var("a") * var("b") == scalar.Mul(var("a"), var("b"))
-    assert 1 * var("a") == var("a")
-    assert var("a") * 1 == var("a")
-    assert 3 * var("a") == scalar.Mul(scalar.Literal(Decimal("3")), var("a"))
-    assert cast(1) * cast(2) == scalar.Literal(Decimal("2"))
-    assert -cast("a") * -cast("b") == cast("a") * cast("b")
-    assert -cast("a") * cast("b") == -(cast("a") * cast("b"))
-    assert cast("a") * -cast("b") == -(cast("a") * cast("b"))
-
     mystdout = StringIO()
     p = PP(mystdout)
     (3 * var("a"))._repr_pretty_(p, 0)
@@ -96,37 +67,11 @@ def test_mul():
 
 
 def test_div():
-    assert var("a") / var("b") == scalar.Div(var("a"), var("b"))
-    assert 1 / var("a") == scalar.Div(cast(1), var("a"))
-    assert var("a") / 1 == var("a")
-    assert 3 / var("a") == scalar.Div(cast(3), var("a"))
-    assert cast(1) / cast(2) == cast(0.5)
-    assert cast(0) / cast("a") == cast(0)
-    assert -cast("a") / -cast("b") == cast("a") / cast("b")
-    assert -cast("a") / cast("b") == -(cast("a") / cast("b"))
-    assert cast("a") / -cast("b") == -(cast("a") / cast("b"))
-
     mystdout = StringIO()
     p = PP(mystdout)
     (3 / var("a"))._repr_pretty_(p, 0)
 
     assert mystdout.getvalue() == "/\n├─ Literal: 3\n⋮\n└─ Variable: a⋮\n"
-
-
-@pytest.mark.skip(reason="no longer supported")
-def test_list_of_var():
-    pylist = ["a", "b", "c"]
-    vlist = var(pylist)
-    for pyobj, bobj in zip(pylist, vlist):
-        assert bobj == var(pyobj)
-
-
-@pytest.mark.skip(reason="no longer supported")
-def test_tuple_of_var():
-    pylist = ("a", "b", "c")
-    vlist = var(pylist)
-    for pyobj, bobj in zip(pylist, vlist):
-        assert bobj == var(pyobj)
 
 
 def test_var_member():
@@ -161,13 +106,12 @@ def test_invalid_keyword():
 
 
 def test_negative_node():
-    sa = cast(1.0)
-    nsa = scalar.Negative(sa)
+    sa = cast("a")
+    nsa = -sa
 
-    assert -nsa == sa
     assert nsa.children() == [sa]
     assert nsa.print_node() == "Negative"
-    assert str(nsa) == "-(1.0)"
+    assert str(nsa) == "-(a)"
 
 
 # def test_base_invalid():
