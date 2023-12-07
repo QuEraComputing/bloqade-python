@@ -296,9 +296,9 @@ def test_min_scalar():
 
 
 def test_max_scalar():
-    A = cast(1)
-    B = cast(2)
-    C = cast(3)
+    A = cast("a")
+    B = cast("b")
+    C = cast("c")
 
     D = scalar.Max([A, B, C])
     assert D.children() == [A, B, C]
