@@ -181,9 +181,9 @@ class Scalar:
 
     @staticmethod
     def canonicalize(expr: "Scalar") -> "Scalar":
-        from bloqade.rewrite.common.canonicalize import Canonicalize
+        from bloqade.rewrite.common.canonicalize import Canonicalizer
 
-        return Canonicalize().visit(expr)
+        return Canonicalizer().visit(expr)
 
     # @staticmethod
     # def canonicalize(expr: "Scalar") -> "Scalar":

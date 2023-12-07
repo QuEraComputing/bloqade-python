@@ -176,9 +176,9 @@ class Waveform(HashTrait):
 
     @staticmethod
     def canonicalize(expr: "Waveform") -> "Waveform":
-        from bloqade.rewrite.common.canonicalize import Canonicalize
+        from bloqade.rewrite.common.canonicalize import Canonicalizer
 
-        return Canonicalize().visit(expr)
+        return Canonicalizer().visit(expr)
 
     def _repr_pretty_(self, p, cycle):
         Printer(p).print(self, cycle)

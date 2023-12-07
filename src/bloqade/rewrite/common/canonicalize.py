@@ -27,7 +27,7 @@ def is_constant_waveform(expr):
     return isinstance(expr, waveform.Constant)
 
 
-class Canonicalize(BloqadeIRTransformer):
+class Canonicalizer(BloqadeIRTransformer):
     def minmax_canonicalize(self, op, exprs):
         new_exprs = set()
         new_literals = set()
