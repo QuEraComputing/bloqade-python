@@ -44,11 +44,17 @@ class RydbergLevelCoupling(LevelCoupling):
     def print_node(self):
         return "RydbergLevelCoupling"
 
+    def __str__(self):
+        return "Rydberg"
+
 
 @dataclass(frozen=True)
 class HyperfineLevelCoupling(LevelCoupling):
     def print_node(self):
         return "HyperfineLevelCoupling"
+
+    def __str__(self):
+        return "Hyperfine"
 
 
 rydberg = RydbergLevelCoupling()
