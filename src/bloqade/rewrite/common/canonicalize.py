@@ -264,15 +264,6 @@ class Canonicalizer(BloqadeIRTransformer):
             and interval.stop == sub_waveform.duration
         ):
             return sub_waveform
-        elif isinstance(sub_waveform, waveform.Slice):
-            start = node.start + sub_waveform.start
-            stop = node.start + sub_waveform.stop
-
-            interval = scalar.Interval(start=start, stop=stop)
-
-            return self.visit(
-                waveform.Slice(waveform=sub_waveform.waveform, interval=interval)
-            )
         elif is_scaled_waveform(sub_waveform):
             new_waveform = waveform.Slice(
                 waveform=sub_waveform.waveform, interval=interval
