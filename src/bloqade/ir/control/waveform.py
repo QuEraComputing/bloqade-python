@@ -9,9 +9,13 @@ from bloqade.ir.scalar import (
     cast,
     var,
 )
-from bloqade.ir.control.traits.hash import HashTrait
-from bloqade.ir.control.traits.append import AppendTrait
-from bloqade.ir.control.traits.slice import SliceTrait
+from bloqade.ir.control.traits import (
+    HashTrait,
+    AppendTrait,
+    SliceTrait,
+    CanonicalizeTrait,
+)
+
 
 from bisect import bisect_left, bisect_right
 from decimal import Decimal
@@ -49,7 +53,7 @@ class Alignment(str, Enum):
 
 
 @dataclass(frozen=True)
-class Waveform(HashTrait):
+class Waveform(HashTrait, CanonicalizeTrait):
     """
     Waveform node in the IR.
 
@@ -150,27 +154,15 @@ class Waveform(HashTrait):
 
     def __add__(self, other: "Waveform") -> "Waveform":
         if isinstance(other, Waveform):
-            return self.canonicalize(Add(self, other))
+            return self.add(other)
 
         return NotImplemented
-
-    # def __radd__(self, other: "Waveform") -> "Waveform":
-    #     if isinstance(other, Waveform):
-    #         return self.canonicalize(Add(self, other))
-
-    #     return NotImplemented
 
     def __sub__(self, other: "Waveform") -> "Waveform":
         if isinstance(other, Waveform):
-            return self + (-other)
+            return self.add(-other)
 
         return NotImplemented
-
-    # def __rsub__(self, other: "Waveform") -> "Waveform":
-    #     if isinstance(other, Waveform):
-    #         return other + (-self)
-
-    #     return NotImplemented
 
     def __mul__(self, other: Any) -> "Waveform":
         return self.scale(cast(other))
@@ -185,40 +177,6 @@ class Waveform(HashTrait):
         ph = Printer()
         ph.print(self)
         return ph.get_value()
-
-    @staticmethod
-    def canonicalize(expr: "Waveform") -> "Waveform":
-        if isinstance(expr, Append):
-            new_waveforms = []
-            for waveform in expr.waveforms:
-                if isinstance(waveform, Append):
-                    new_waveforms += waveform.waveforms
-                elif waveform.duration == cast(0):
-                    # skip zero duration waveforms
-                    continue
-                else:
-                    new_waveforms.append(waveform)
-
-            new_waveforms = list(map(Waveform.canonicalize, new_waveforms))
-            if len(new_waveforms) == 0:
-                return Constant(0, 0)
-            elif len(new_waveforms) == 1:
-                return new_waveforms[0]
-            else:
-                return Append(new_waveforms)
-        elif isinstance(expr, Add):
-            left = Waveform.canonicalize(expr.left)
-            right = Waveform.canonicalize(expr.right)
-            if left == right:
-                return left.scale(2)
-            if left.duration == cast(0):
-                return right
-            if right.duration == cast(0):
-                return left
-            else:
-                return expr
-        else:
-            return expr
 
     def _repr_pretty_(self, p, cycle):
         Printer(p).print(self, cycle)

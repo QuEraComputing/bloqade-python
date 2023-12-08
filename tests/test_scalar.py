@@ -51,13 +51,6 @@ def test_cast():
 
 
 def test_add():
-    assert var("a") + var("b") == scalar.Add(var("a"), var("b"))
-    assert var("a") + 1 == scalar.Add(var("a"), scalar.Literal(Decimal("1")))
-    assert 0 + var("a") == var("a")
-    assert var("a") + 0 == var("a")
-    assert 1 + var("a") == scalar.Add(scalar.Literal(Decimal("1")), var("a"))
-    assert cast(1) + cast(2) == scalar.Literal(Decimal("3"))
-
     mystdout = StringIO()
     p = PP(mystdout)
     (1 + var("a"))._repr_pretty_(p, 0)
@@ -65,23 +58,7 @@ def test_add():
     assert mystdout.getvalue() == "+\n├─ Literal: 1\n⋮\n└─ Variable: a⋮\n"
 
 
-def test_sub():
-    assert var("a") - var("b") == scalar.Add(var("a"), scalar.Negative(var("b")))
-    assert var("a") - 1 == scalar.Add(var("a"), scalar.Negative(cast(1)))
-    assert 1 - var("a") == scalar.Add(
-        scalar.Literal(Decimal("1")), scalar.Negative(var("a"))
-    )
-    assert cast(1) - cast(2) == scalar.Literal(Decimal("-1"))
-    assert -cast(1) + cast(2) == scalar.Literal(Decimal("1"))
-
-
 def test_mul():
-    assert var("a") * var("b") == scalar.Mul(var("a"), var("b"))
-    assert 1 * var("a") == var("a")
-    assert var("a") * 1 == var("a")
-    assert 3 * var("a") == scalar.Mul(scalar.Literal(Decimal("3")), var("a"))
-    assert cast(1) * cast(2) == scalar.Literal(Decimal("2"))
-
     mystdout = StringIO()
     p = PP(mystdout)
     (3 * var("a"))._repr_pretty_(p, 0)
@@ -90,33 +67,11 @@ def test_mul():
 
 
 def test_div():
-    assert var("a") / var("b") == scalar.Div(var("a"), var("b"))
-    assert 1 / var("a") == scalar.Div(cast(1), var("a"))
-    assert var("a") / 1 == var("a")
-    assert 3 / var("a") == scalar.Div(cast(3), var("a"))
-    assert cast(1) / cast(2) == cast(0.5)
-
     mystdout = StringIO()
     p = PP(mystdout)
     (3 / var("a"))._repr_pretty_(p, 0)
 
     assert mystdout.getvalue() == "/\n├─ Literal: 3\n⋮\n└─ Variable: a⋮\n"
-
-
-@pytest.mark.skip(reason="no longer supported")
-def test_list_of_var():
-    pylist = ["a", "b", "c"]
-    vlist = var(pylist)
-    for pyobj, bobj in zip(pylist, vlist):
-        assert bobj == var(pyobj)
-
-
-@pytest.mark.skip(reason="no longer supported")
-def test_tuple_of_var():
-    pylist = ("a", "b", "c")
-    vlist = var(pylist)
-    for pyobj, bobj in zip(pylist, vlist):
-        assert bobj == var(pyobj)
 
 
 def test_var_member():
@@ -151,12 +106,12 @@ def test_invalid_keyword():
 
 
 def test_negative_node():
-    sa = cast(1.0)
-    nsa = scalar.Negative(sa)
+    sa = cast("a")
+    nsa = -sa
 
     assert nsa.children() == [sa]
     assert nsa.print_node() == "Negative"
-    assert str(nsa) == "-(1.0)"
+    assert str(nsa) == "-(a)"
 
 
 # def test_base_invalid():
@@ -321,12 +276,12 @@ def test_div_scalar():
 
 
 def test_min_scalar():
-    A = cast(1)
-    B = cast(2)
-    C = cast(3)
+    A = cast("a")
+    B = cast("b")
+    C = cast("c")
 
     D = scalar.Min([A, B, C])
-    assert D.children() == [A, B, C]
+    assert set(D.children()) == set([A, B, C])
     assert D.print_node() == "min"
 
     mystdout = StringIO()
@@ -335,18 +290,20 @@ def test_min_scalar():
 
     assert (
         mystdout.getvalue()
-        == "min\n├─ Literal: 1\n⋮\n├─ Literal: 2\n⋮\n└─ Literal: 3⋮\n"
+        == "min\n├─ Variable: {}\n⋮\n├─ Variable: {}\n⋮\n└─ Variable: {}⋮\n".format(
+            *set([A, B, C])
+        )
     )
-    assert str(D) == "min(1, 2, 3)"
+    assert str(D) == "min({}, {}, {})".format(*set([A, B, C]))
 
 
 def test_max_scalar():
-    A = cast(1)
-    B = cast(2)
-    C = cast(3)
+    A = cast("a")
+    B = cast("b")
+    C = cast("c")
 
     D = scalar.Max([A, B, C])
-    assert D.children() == [A, B, C]
+    assert set(D.children()) == set([A, B, C])
     assert D.print_node() == "max"
 
     mystdout = StringIO()
@@ -355,9 +312,11 @@ def test_max_scalar():
 
     assert (
         mystdout.getvalue()
-        == "max\n├─ Literal: 1\n⋮\n├─ Literal: 2\n⋮\n└─ Literal: 3⋮\n"
+        == "max\n├─ Variable: {}\n⋮\n├─ Variable: {}\n⋮\n└─ Variable: {}⋮\n".format(
+            *set([A, B, C])
+        )
     )
-    assert str(D) == "max(1, 2, 3)"
+    assert str(D) == "max({}, {}, {})".format(*set([A, B, C]))
 
 
 def test_cast_decimal():
