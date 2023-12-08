@@ -8,7 +8,7 @@ def is_literal(expr):
 
 
 def is_negative(expr):
-    return isinstance(expr, scalar.Negative)
+    return isinstance(expr, scalar.Negative) or isinstance(expr, waveform.Negative)
 
 
 def is_zero(expr):
@@ -69,7 +69,7 @@ class Canonicalizer(BloqadeIRTransformer):
 
     def visit_scalar_Negative(self, node: scalar.Negative):
         expr = self.visit(node.expr)
-        if isinstance(expr, scalar.Negative):
+        if is_negative(expr):
             return expr.expr
         elif is_literal(expr):
             return scalar.Literal(-expr.value)
@@ -241,16 +241,13 @@ class Canonicalizer(BloqadeIRTransformer):
         elif is_one(scale):
             return sub_waveform
         elif is_scaled_waveform(sub_waveform):
-            return self.visit(
-                waveform.Scale(
-                    scalar=scale * sub_waveform.scalar, waveform=sub_waveform.waveform
-                )
+            return waveform.Scale(
+                scalar=scale * sub_waveform.scalar, waveform=sub_waveform.waveform
             )
+
         elif is_constant_waveform(sub_waveform):
-            return self.visit(
-                waveform.Constant(
-                    value=scale * sub_waveform.value, duration=sub_waveform.duration
-                )
+            return waveform.Constant(
+                value=scale * sub_waveform.value, duration=sub_waveform.duration
             )
         else:
             return waveform.Scale(scalar=scale, waveform=sub_waveform)
@@ -268,18 +265,16 @@ class Canonicalizer(BloqadeIRTransformer):
             new_waveform = waveform.Slice(
                 waveform=sub_waveform.waveform, interval=interval
             )
-            return self.visit(
-                waveform.Scale(
-                    scalar=sub_waveform.scalar,
-                    waveform=new_waveform,
-                )
+            return waveform.Scale(
+                scalar=sub_waveform.scalar,
+                waveform=new_waveform,
             )
+
         elif is_negative(sub_waveform):
-            return self.visit(
-                waveform.Negative(
-                    waveform.Slice(waveform=sub_waveform.waveform, interval=interval)
-                )
+            return waveform.Negative(
+                waveform.Slice(waveform=sub_waveform.waveform, interval=interval)
             )
+
         else:
             return waveform.Slice(waveform=sub_waveform, interval=interval)
 
@@ -288,7 +283,7 @@ class Canonicalizer(BloqadeIRTransformer):
 
         if isinstance(sub_waveform, waveform.Negative):
             return sub_waveform.waveform
-        elif is_constant_waveform(sub_waveform) and is_negative(sub_waveform.value):
+        elif is_constant_waveform(sub_waveform):
             new_value = -sub_waveform.value
             return waveform.Constant(
                 value=new_value,
