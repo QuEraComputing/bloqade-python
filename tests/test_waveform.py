@@ -167,14 +167,14 @@ def test_wvfm_app():
 
 
 def test_wvfm_neg():
-    wf = Constant(value=1.0, duration=3.0)
+    wf = Linear(start=1.0, stop=2.0, duration=3.0)
     wf2 = -wf
 
     assert wf2.print_node() == "Negative"
     assert wf2.children() == [wf]
     assert isinstance(hash(wf), int)
 
-    assert wf2.eval_decimal(Decimal("0.5")) == Decimal("-1.0")
+    assert wf2.eval_decimal(Decimal("1.5")) == Decimal("-1.5")
 
     mystdout = StringIO()
     p = PP(mystdout)
@@ -184,9 +184,11 @@ def test_wvfm_neg():
     assert (
         mystdout.getvalue()
         == "Negative\n"
-        + "└─ Constant\n"
-        + "   ├─ value\n"
+        + "└─ Linear\n"
+        + "   ├─ start\n"
         + "   │  ⇒ Literal: 1.0\n"
+        + "   ├─ stop\n"
+        + "   │  ⇒ Literal: 2.0\n"
         + "   └─ duration\n"
         + "      ⇒ Literal: 3.0"
     )
