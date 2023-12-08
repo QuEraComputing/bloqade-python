@@ -48,6 +48,7 @@
             * [sequence](bloqade/ir/control/sequence.md)
             * [traits](bloqade/ir/control/traits/index.md)
                 * [append](bloqade/ir/control/traits/append.md)
+                * [canonicalize](bloqade/ir/control/traits/canonicalize.md)
                 * [hash](bloqade/ir/control/traits/hash.md)
                 * [slice](bloqade/ir/control/traits/slice.md)
             * [waveform](bloqade/ir/control/waveform.md)

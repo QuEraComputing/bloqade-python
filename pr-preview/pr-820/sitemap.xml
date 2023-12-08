@@ -371,6 +371,11 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
+         <loc>https://bloqade.quera.com/reference/bloqade/ir/control/traits/canonicalize/</loc>
+         <lastmod>2023-12-08</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
          <loc>https://bloqade.quera.com/reference/bloqade/ir/control/traits/hash/</loc>
          <lastmod>2023-12-08</lastmod>
          <changefreq>daily</changefreq>
