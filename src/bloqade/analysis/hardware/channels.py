@@ -47,8 +47,8 @@ class ValidateChannels(BloqadeIRVisitor):
                     f"modulation, found:\n\n{spatial_modulation_str}"
                 )
 
-            (non_uniform_modulation,) = non_uniform_modulations
-            self.visit(non_uniform_modulation)
+            if non_uniform_modulations:
+                self.visit(non_uniform_modulations.pop())
 
     def visit_field_ScaledLocations(self, node: field.ScaledLocations) -> None:
         for loc in node.value.keys():
@@ -57,7 +57,7 @@ class ValidateChannels(BloqadeIRVisitor):
                     "location index out of range: "
                     f"found {loc.value} with a total number of sites: {self.n_sites}."
                     f"Error found in the {self.field_name} field "
-                    f"with spatial modulation:\n\n{self.spatial_modulations}"
+                    f"with spatial modulation:\n\n{node}"
                 )
 
     def visit_field_AssignedRunTimeVector(
@@ -68,7 +68,7 @@ class ValidateChannels(BloqadeIRVisitor):
                 "length of runtime vector does not match number of sites in the "
                 f"register. expected {self.n_sites}, found {len(node.value)} for "
                 f"the {self.field_name} field with spatial modulation:"
-                f"\n\n{self.spatial_modulations}"
+                f"\n\n{node}"
             )
 
     def visit_analog_circuit_AnalogCircuit(

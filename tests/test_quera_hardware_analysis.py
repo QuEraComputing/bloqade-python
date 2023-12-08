@@ -1,3 +1,4 @@
+from decimal import Decimal
 import pytest
 from bloqade.analysis.hardware.piecewise_linear import (
     ValidatePiecewiseLinearChannel,
@@ -5,6 +6,8 @@ from bloqade.analysis.hardware.piecewise_linear import (
 from bloqade.analysis.hardware.piecewise_constant import (
     ValidatePiecewiseConstantChannel,
 )
+from bloqade.analysis.hardware.channels import ValidateChannels
+from bloqade.ir import analog_circuit
 from bloqade.rewrite.common.add_padding import AddPadding
 
 import bloqade.ir.control.sequence as sequence
@@ -12,12 +15,92 @@ import bloqade.ir.control.pulse as pulse
 import bloqade.ir.control.field as field
 import bloqade.ir.control.waveform as waveform
 
-from bloqade import piecewise_constant, piecewise_linear, var
+from bloqade import piecewise_constant, piecewise_linear, var, start
 
 
 @waveform.to_waveform(1)
 def py_func(x):
     return x
+
+
+def test_validate_channels_happy_path():
+    wf1 = waveform.Constant(1, 1)
+    wf2 = waveform.Linear(1, 1, 1)
+
+    sm = field.AssignedRunTimeVector("mask", [Decimal("1.0"), Decimal("2.0")])
+
+    f1 = field.Field({field.Uniform: wf1, sm: wf2})
+    f2 = field.Field({sm: wf2})
+    f3 = f1.add(f2)
+
+    p1 = pulse.Pulse({pulse.detuning: f1})
+    p2 = pulse.Pulse({pulse.detuning: f2})
+    p3 = pulse.Pulse({pulse.detuning: f3})
+
+    s1 = sequence.Sequence({sequence.rydberg: p1})
+    s2 = sequence.Sequence({sequence.rydberg: p2})
+    s3 = sequence.Sequence({sequence.rydberg: p3})
+
+    register = start.add_position([(0, 0), (1, 1)])
+    circuit1 = analog_circuit.AnalogCircuit(register, s1)
+    circuit2 = analog_circuit.AnalogCircuit(register, s2)
+    circuit3 = analog_circuit.AnalogCircuit(register, s3)
+
+    assert ValidateChannels().scan(circuit1) is None
+    assert ValidateChannels().scan(circuit2) is None
+    assert ValidateChannels().scan(circuit3) is None
+
+
+def test_validate_channels_sad_path():
+    wf1 = waveform.Constant(1, 1)
+    wf2 = waveform.Linear(1, 1, 1)
+    wf3 = waveform.Poly([1, 2], 1)
+
+    sm1 = field.AssignedRunTimeVector(
+        "mask", [Decimal("1.0"), Decimal("2.0"), Decimal("3.0")]
+    )
+    sm2 = field.ScaledLocations.create({0: Decimal("1.0"), 1: Decimal("2.0")})
+    sm2_broken = field.ScaledLocations.create({1: Decimal("1.0"), 3: Decimal("2.0")})
+    sm1_broken = field.AssignedRunTimeVector("mask", [Decimal("1.9"), Decimal("1.0")])
+
+    f0 = field.Field({field.Uniform: wf1, sm1: wf2})
+    f1 = field.Field({field.Uniform: wf1, sm1: wf2, sm2: wf3})
+    f2 = field.Field({field.Uniform: wf1, sm2_broken: wf2})
+    f3 = field.Field({field.Uniform: wf1, sm1_broken: wf2})
+
+    p0 = pulse.Pulse({pulse.detuning: f0})
+    p1 = pulse.Pulse({pulse.detuning: f1})
+    p2 = pulse.Pulse({pulse.detuning: f2})
+    p3 = pulse.Pulse({pulse.detuning: f3})
+    p4 = pulse.Pulse({pulse.rabi.amplitude: f1, pulse.detuning: f0})
+
+    s1 = sequence.Sequence({sequence.rydberg: p1})
+    s2 = sequence.Sequence({sequence.rydberg: p2})
+    s3 = sequence.Sequence({sequence.rydberg: p3})
+    s4 = sequence.Sequence({sequence.hyperfine: p0, sequence.rydberg: p0})
+    s5 = sequence.Sequence({sequence.rydberg: p4})
+
+    register = start.add_position([(0, 0), (1, 1), (2, 2)])
+    circuit1 = analog_circuit.AnalogCircuit(register, s1)
+    circuit2 = analog_circuit.AnalogCircuit(register, s2)
+    circuit3 = analog_circuit.AnalogCircuit(register, s3)
+    circuit4 = analog_circuit.AnalogCircuit(register, s4)
+    circuit5 = analog_circuit.AnalogCircuit(register, s5)
+
+    with pytest.raises(ValueError):
+        ValidateChannels().scan(circuit1)
+
+    with pytest.raises(ValueError):
+        ValidateChannels().scan(circuit2)
+
+    with pytest.raises(ValueError):
+        ValidateChannels().scan(circuit3)
+
+    with pytest.raises(ValueError):
+        ValidateChannels().scan(circuit4)
+
+    with pytest.raises(ValueError):
+        ValidateChannels().scan(circuit5)
 
 
 def test_piecewise_constant_waveform_happy_path():
