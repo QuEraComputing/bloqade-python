@@ -1,6 +1,8 @@
 import pytest
-from bloqade.analysis.hardware.quera import (
+from bloqade.analysis.hardware.piecewise_linear import (
     ValidatePiecewiseLinearChannel,
+)
+from bloqade.analysis.hardware.piecewise_constant import (
     ValidatePiecewiseConstantChannel,
 )
 from bloqade.rewrite.common.add_padding import AddPadding
