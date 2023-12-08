@@ -4,9 +4,12 @@ from functools import cached_property
 from bloqade.ir.scalar import Interval, Scalar, cast
 from bloqade.ir.tree_print import Printer
 from bloqade.ir.control.field import Field
-from bloqade.ir.control.traits.hash import HashTrait
-from bloqade.ir.control.traits.append import AppendTrait
-from bloqade.ir.control.traits.slice import SliceTrait
+from bloqade.ir.control.traits import (
+    HashTrait,
+    AppendTrait,
+    SliceTrait,
+    CanonicalizeTrait,
+)
 from beartype.typing import List
 from pydantic.dataclasses import dataclass
 from bloqade.visualization import get_pulse_figure
@@ -80,7 +83,7 @@ detuning = Detuning()
 
 
 @dataclass(frozen=True)
-class PulseExpr(HashTrait):
+class PulseExpr(HashTrait, CanonicalizeTrait):
     """
     ```bnf
     <expr> ::= <pulse>
@@ -97,12 +100,6 @@ class PulseExpr(HashTrait):
 
     def __getitem__(self, s: slice) -> "PulseExpr":
         return PulseExpr.canonicalize(Slice(self, Interval.from_slice(s)))
-
-    @staticmethod
-    def canonicalize(expr: "PulseExpr") -> "PulseExpr":
-        from bloqade.rewrite.common.canonicalize import Canonicalizer
-        
-        return Canonicalizer().visit(expr)
 
     def __str__(self) -> str:
         ph = Printer()

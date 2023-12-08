@@ -9,9 +9,13 @@ from bloqade.ir.scalar import (
     cast,
     var,
 )
-from bloqade.ir.control.traits.hash import HashTrait
-from bloqade.ir.control.traits.append import AppendTrait
-from bloqade.ir.control.traits.slice import SliceTrait
+from bloqade.ir.control.traits import (
+    HashTrait,
+    AppendTrait,
+    SliceTrait,
+    CanonicalizeTrait,
+)
+
 
 from bisect import bisect_left, bisect_right
 from decimal import Decimal
@@ -49,7 +53,7 @@ class Alignment(str, Enum):
 
 
 @dataclass(frozen=True)
-class Waveform(HashTrait):
+class Waveform(HashTrait, CanonicalizeTrait):
     """
     Waveform node in the IR.
 
@@ -173,12 +177,6 @@ class Waveform(HashTrait):
         ph = Printer()
         ph.print(self)
         return ph.get_value()
-
-    @staticmethod
-    def canonicalize(expr: "Waveform") -> "Waveform":
-        from bloqade.rewrite.common.canonicalize import Canonicalizer
-
-        return Canonicalizer().visit(expr)
 
     def _repr_pretty_(self, p, cycle):
         Printer(p).print(self, cycle)

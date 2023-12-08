@@ -2,7 +2,7 @@ from functools import cached_property
 from bloqade.ir.scalar import Scalar, cast
 from bloqade.ir.tree_print import Printer
 from bloqade.ir.control.waveform import Waveform
-from bloqade.ir.control.traits.hash import HashTrait
+from bloqade.ir.control.traits import HashTrait, CanonicalizeTrait
 from bloqade.visualization import get_field_figure
 from pydantic.dataclasses import dataclass
 from beartype.typing import Dict, List, Optional
@@ -21,7 +21,7 @@ __all__ = [
 ]
 
 
-class FieldExpr(HashTrait):
+class FieldExpr(HashTrait, CanonicalizeTrait):
     __hash__ = HashTrait.__hash__
 
     def __str__(self):
@@ -227,15 +227,6 @@ class Field(FieldExpr):
             duration = duration.max(wf.duration)
 
         return duration
-
-    @staticmethod
-    def canonicalize(expr) -> "Field":
-        """
-        Canonicalize the Field by merging `ScaledLocation` nodes with the same waveform.
-        """
-        from bloqade.rewrite.common.canonicalize import Canonicalizer
-
-        return Canonicalizer().visit(expr)
 
     def add(self, other):
         if not isinstance(other, Field):
