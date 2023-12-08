@@ -100,20 +100,9 @@ class PulseExpr(HashTrait):
 
     @staticmethod
     def canonicalize(expr: "PulseExpr") -> "PulseExpr":
-        # TODO: update canonicalization rules for appending pulses
-
-        if isinstance(expr, Append):
-            new_pulses = []
-            for pulse in expr.pulses:
-                if isinstance(pulse, Append):
-                    new_pulses += pulse.pulses
-                else:
-                    new_pulses.append(pulse)
-
-            new_pulses = list(map(PulseExpr.canonicalize, new_pulses))
-            return Append(new_pulses)
-        else:
-            return expr
+        from bloqade.rewrite.common.canonicalize import Canonicalizer
+        
+        return Canonicalizer().visit(expr)
 
     def __str__(self) -> str:
         ph = Printer()

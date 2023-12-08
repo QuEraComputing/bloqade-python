@@ -313,7 +313,7 @@ class Canonicalizer(BloqadeIRTransformer):
         # merge spatial modulations with the same waveform
         for wf, sms in inv_drives.items():
             other_sms = []
-            new_scaled_locations = field.ScaledLocations.create({})
+            new_scaled_locations = {}
 
             for sm in sms:  # merge scaled locations
                 if isinstance(sm, field.ScaledLocations):
@@ -327,7 +327,7 @@ class Canonicalizer(BloqadeIRTransformer):
             if new_scaled_locations:
                 # if there are any scaled locations,
                 # add them to the list of spatial modulations
-                other_sms.append(new_scaled_locations)
+                other_sms.append(field.ScaledLocations.create(new_scaled_locations))
 
             inv_drives[wf] = other_sms
 

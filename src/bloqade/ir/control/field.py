@@ -228,34 +228,14 @@ class Field(FieldExpr):
 
         return duration
 
-    def canonicalize(self) -> "Field":
+    @staticmethod
+    def canonicalize(expr) -> "Field":
         """
         Canonicalize the Field by merging `ScaledLocation` nodes with the same waveform.
         """
-        reversed_dirves = {}
+        from bloqade.rewrite.common.canonicalize import Canonicalizer
 
-        for sm, wf in self.drives.items():
-            reversed_dirves[wf] = reversed_dirves.get(wf, []) + [sm]
-
-        drives = {}
-
-        for wf, sms in reversed_dirves.items():
-            new_sm = [sm for sm in sms if not isinstance(sm, ScaledLocations)]
-            scaled_locations_sm = [sm for sm in sms if isinstance(sm, ScaledLocations)]
-
-            new_mask = {}
-
-            for ele in scaled_locations_sm:
-                for loc, scl in ele.value.items():
-                    new_mask[loc] = new_mask.get(loc, 0) + cast(scl)
-
-            if new_mask:
-                new_sm += [ScaledLocations.create(new_mask)]
-
-            for sm in new_sm:
-                drives[sm] = wf
-
-        return Field(drives)
+        return Canonicalizer().visit(expr)
 
     def add(self, other):
         if not isinstance(other, Field):
@@ -271,7 +251,7 @@ class Field(FieldExpr):
             else:
                 out.drives[spatial_modulation] = waveform
 
-        return out.canonicalize()
+        return self.canonicalize(self)
 
     def print_node(self):
         return "Field"

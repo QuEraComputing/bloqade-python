@@ -76,7 +76,9 @@ class SequenceExpr(HashTrait):
 
     @staticmethod
     def canonicalize(expr: "SequenceExpr") -> "SequenceExpr":
-        return expr
+        from bloqade.rewrite.common.canonicalize import Canonicalizer
+        
+        return Canonicalizer().visit(expr)
 
     def __str__(self) -> str:
         ph = Printer()
