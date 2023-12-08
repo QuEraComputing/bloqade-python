@@ -1,9 +1,12 @@
 from collections import OrderedDict
 from functools import cached_property
 from bloqade.ir.control.pulse import PulseExpr, Pulse
-from bloqade.ir.control.traits.hash import HashTrait
-from bloqade.ir.control.traits.append import AppendTrait
-from bloqade.ir.control.traits.slice import SliceTrait
+from bloqade.ir.control.traits import (
+    HashTrait,
+    AppendTrait,
+    SliceTrait,
+    CanonicalizeTrait,
+)
 from bloqade.ir.scalar import Interval, Scalar, cast
 from bloqade.ir.tree_print import Printer
 
@@ -62,7 +65,7 @@ hyperfine = HyperfineLevelCoupling()
 
 
 @dataclass(frozen=True)
-class SequenceExpr(HashTrait):
+class SequenceExpr(HashTrait, CanonicalizeTrait):
     __hash__ = HashTrait.__hash__
 
     def append(self, other: "SequenceExpr") -> "SequenceExpr":
@@ -73,10 +76,6 @@ class SequenceExpr(HashTrait):
 
     def __getitem__(self, s: slice) -> "Slice":
         return self.canonicalize(Slice(self, Interval.from_slice(s)))
-
-    @staticmethod
-    def canonicalize(expr: "SequenceExpr") -> "SequenceExpr":
-        return expr
 
     def __str__(self) -> str:
         ph = Printer()

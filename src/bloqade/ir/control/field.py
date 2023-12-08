@@ -2,7 +2,7 @@ from functools import cached_property
 from bloqade.ir.scalar import Scalar, cast
 from bloqade.ir.tree_print import Printer
 from bloqade.ir.control.waveform import Waveform
-from bloqade.ir.control.traits.hash import HashTrait
+from bloqade.ir.control.traits import HashTrait, CanonicalizeTrait
 from bloqade.visualization import get_field_figure
 from pydantic.dataclasses import dataclass
 from beartype.typing import Dict, List, Optional
@@ -21,7 +21,7 @@ __all__ = [
 ]
 
 
-class FieldExpr(HashTrait):
+class FieldExpr(HashTrait, CanonicalizeTrait):
     __hash__ = HashTrait.__hash__
 
     def __str__(self):
@@ -228,35 +228,6 @@ class Field(FieldExpr):
 
         return duration
 
-    def canonicalize(self) -> "Field":
-        """
-        Canonicalize the Field by merging `ScaledLocation` nodes with the same waveform.
-        """
-        reversed_dirves = {}
-
-        for sm, wf in self.drives.items():
-            reversed_dirves[wf] = reversed_dirves.get(wf, []) + [sm]
-
-        drives = {}
-
-        for wf, sms in reversed_dirves.items():
-            new_sm = [sm for sm in sms if not isinstance(sm, ScaledLocations)]
-            scaled_locations_sm = [sm for sm in sms if isinstance(sm, ScaledLocations)]
-
-            new_mask = {}
-
-            for ele in scaled_locations_sm:
-                for loc, scl in ele.value.items():
-                    new_mask[loc] = new_mask.get(loc, 0) + cast(scl)
-
-            if new_mask:
-                new_sm += [ScaledLocations.create(new_mask)]
-
-            for sm in new_sm:
-                drives[sm] = wf
-
-        return Field(drives)
-
     def add(self, other):
         if not isinstance(other, Field):
             raise ValueError(f"Cannot add Field and {other.__class__}")
@@ -271,7 +242,7 @@ class Field(FieldExpr):
             else:
                 out.drives[spatial_modulation] = waveform
 
-        return out.canonicalize()
+        return Field.canonicalize(out)
 
     def print_node(self):
         return "Field"

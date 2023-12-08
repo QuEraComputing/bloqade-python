@@ -89,7 +89,7 @@ def test_add_position_dispatch():
 
 def test_piecewise_const():
     prog = start.rydberg.detuning.uniform.piecewise_constant(
-        durations=[0.1, 3.1, 0.05], values=[4, 4, 7.5]
+        durations=[0.1, 3.1, 0.05], values=[3, 4, 7.5]
     )
 
     ## inspect ir
@@ -103,7 +103,7 @@ def test_piecewise_const():
     assert ir2.duration == cast(3.1)
 
     ir3 = node1.waveforms[0]
-    assert ir3.value == cast(4)
+    assert ir3.value == cast(3)
     assert ir3.duration == cast(0.1)
 
 
