@@ -221,4 +221,4 @@ class TestWaveform:
 
         assert -(-wf1) == wf1
         assert -waveform.Constant(1, 1) == waveform.Constant(-1, 1)
-        assert 
+        assert
