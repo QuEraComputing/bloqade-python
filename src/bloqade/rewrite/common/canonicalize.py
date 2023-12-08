@@ -189,9 +189,13 @@ class Canonicalizer(BloqadeIRTransformer):
 
         if left == right:
             return self.visit(waveform.Scale(2, waveform=left))
-        elif left.duration == scalar.Literal(0):
+        elif is_zero(left.duration) or (
+            is_constant_waveform(left) and is_zero(left.value)
+        ):
             return right
-        elif right.duration == scalar.Literal(0):
+        elif is_zero(right.duration) or (
+            is_constant_waveform(right) and is_zero(right.value)
+        ):
             return left
         elif (
             is_constant_waveform(left)
@@ -203,10 +207,6 @@ class Canonicalizer(BloqadeIRTransformer):
                     value=left.value + right.value, duration=left.duration
                 )
             )
-        elif is_constant_waveform(left) and left.value == 0:
-            return right
-        elif is_constant_waveform(right) and right.value == 0:
-            return left
         elif (
             is_scaled_waveform(left)
             and is_scaled_waveform(right)

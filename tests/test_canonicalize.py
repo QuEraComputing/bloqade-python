@@ -115,13 +115,38 @@ class TestScalar:
 
 class TestWaveform:
     def test_add(self):
-        pass
+        wf1 = waveform.Linear(0, "a", "T")
+        wf2 = waveform.Constant(1, 1)
+        wf3 = waveform.Constant(2, 1)
+        wf4 = waveform.Poly(["a", "b", "c"], "t")
+
+        assert wf1 + wf1 == 2 * wf1
+        assert wf1 + waveform.Constant(1, 0) == wf1
+        assert waveform.Constant(1, 0) + wf1 == wf1
+        assert wf1 + waveform.Constant(0, 1) == wf1
+        assert waveform.Constant(0, 1) + wf1 == wf1
+        assert wf2 + wf3 == waveform.Constant(3, 1)
+        assert 3.12 * wf1 + 3.12 * wf4 == 3.12 * (wf1 + wf4)
+        assert 4.123 * wf1 + 3.13 * wf1 == 7.253 * wf1
+        assert 4.123 * wf1 + wf1 == 5.123 * wf1
+        assert wf1 + 4.123 * wf1 == 5.123 * wf1
 
     def test_neg(self):
-        pass
+        wf1 = waveform.Linear(0, "a", "T")
+        wf2 = waveform.Constant(1, 1)
+
+        assert -(-wf1) == wf1
+        assert -wf2 == waveform.Constant(-1, 1)
+        assert -(-var("a") * wf1) == var("a") * wf1
 
     def test_scale(self):
-        pass
+        wf1 = waveform.Linear(0, "a", "T")
+        wf2 = waveform.Constant(1, 1)
+
+        assert 1 * wf1 == wf1
+        assert 0 * wf1 == waveform.Constant(0, "T")
+        assert 2 * (3 * wf1) == 6 * wf1
+        assert 2 * wf2 == waveform.Constant(2, 1)
 
     def test_append(self):
         # test nested appends
@@ -221,4 +246,27 @@ class TestWaveform:
 
         assert -(-wf1) == wf1
         assert -waveform.Constant(1, 1) == waveform.Constant(-1, 1)
-        assert
+        assert -waveform.Constant(-1, 1) == waveform.Constant(1, 1)
+
+
+class TestHigherExpressions:
+    def test_field(self):
+        pass
+
+    def test_pulse_leaf(self):
+        pass
+
+    def test_pulse_slice(self):
+        pass
+
+    def test_pulse_append(self):
+        pass
+
+    def test_sequence(self):
+        pass
+
+    def test_sequence_slice(self):
+        pass
+
+    def test_sequence_append(self):
+        pass
