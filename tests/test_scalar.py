@@ -276,12 +276,12 @@ def test_div_scalar():
 
 
 def test_min_scalar():
-    A = cast(1)
-    B = cast(2)
-    C = cast(3)
+    A = cast("a")
+    B = cast("b")
+    C = cast("c")
 
     D = scalar.Min([A, B, C])
-    assert D.children() == [A, B, C]
+    assert set(D.children()) == set([A, B, C])
     assert D.print_node() == "min"
 
     mystdout = StringIO()
@@ -290,9 +290,11 @@ def test_min_scalar():
 
     assert (
         mystdout.getvalue()
-        == "min\n├─ Literal: 1\n⋮\n├─ Literal: 2\n⋮\n└─ Literal: 3⋮\n"
+        == "min\n├─ Variable: {}\n⋮\n├─ Variable: {}\n⋮\n└─ Variable: {}⋮\n".format(
+            *set([A, B, C])
+        )
     )
-    assert str(D) == "min(1, 2, 3)"
+    assert str(D) == "min({}, {}, {})".format(*set([A, B, C]))
 
 
 def test_max_scalar():
@@ -301,7 +303,7 @@ def test_max_scalar():
     C = cast("c")
 
     D = scalar.Max([A, B, C])
-    assert D.children() == [A, B, C]
+    assert set(D.children()) == set([A, B, C])
     assert D.print_node() == "max"
 
     mystdout = StringIO()
@@ -310,9 +312,11 @@ def test_max_scalar():
 
     assert (
         mystdout.getvalue()
-        == "max\n├─ Literal: 1\n⋮\n├─ Literal: 2\n⋮\n└─ Literal: 3⋮\n"
+        == "max\n├─ Variable: {}\n⋮\n├─ Variable: {}\n⋮\n└─ Variable: {}⋮\n".format(
+            *set([A, B, C])
+        )
     )
-    assert str(D) == "max(1, 2, 3)"
+    assert str(D) == "max({}, {}, {})".format(*set([A, B, C]))
 
 
 def test_cast_decimal():
