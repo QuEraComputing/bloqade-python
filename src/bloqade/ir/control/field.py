@@ -251,7 +251,7 @@ class Field(FieldExpr):
             else:
                 out.drives[spatial_modulation] = waveform
 
-        return self.canonicalize(self)
+        return Field.canonicalize(out)
 
     def print_node(self):
         return "Field"

@@ -310,6 +310,7 @@ class Canonicalizer(BloqadeIRTransformer):
             wf = self.visit(wf)
             inv_drives[wf] = inv_drives.get(wf, []) + [sm]
 
+        new_inv_drives = {}
         # merge spatial modulations with the same waveform
         for wf, sms in inv_drives.items():
             other_sms = []
@@ -329,9 +330,9 @@ class Canonicalizer(BloqadeIRTransformer):
                 # add them to the list of spatial modulations
                 other_sms.append(field.ScaledLocations.create(new_scaled_locations))
 
-            inv_drives[wf] = other_sms
+            new_inv_drives[wf] = other_sms
 
-        drives = {sm: wf for wf, sms in inv_drives.items() for sm in sms}
+        drives = {sm: wf for wf, sms in new_inv_drives.items() for sm in sms}
 
         return field.Field(drives=drives)
 
@@ -345,13 +346,6 @@ class Canonicalizer(BloqadeIRTransformer):
 
         if interval.start == scalar.Literal(0) and interval.stop == sub_pulse.duration:
             return sub_pulse
-        elif isinstance(sub_pulse, pulse.Slice):
-            start = node.start + sub_pulse.start
-            stop = node.start + sub_pulse.stop
-
-            interval = scalar.Interval(start=start, stop=stop)
-
-            return self.visit(pulse.Slice(pulse=sub_pulse.pulse, interval=interval))
         else:
             return pulse.Slice(pulse=sub_pulse, interval=interval)
 
@@ -383,15 +377,6 @@ class Canonicalizer(BloqadeIRTransformer):
             and interval.stop == sub_sequence.duration
         ):
             return sub_sequence
-        elif isinstance(sub_sequence, sequence.Slice):
-            start = node.start + sub_sequence.start
-            stop = node.start + sub_sequence.stop
-
-            interval = scalar.Interval(start=start, stop=stop)
-
-            return self.visit(
-                sequence.Slice(sequence=sub_sequence.sequence, interval=interval)
-            )
         else:
             return sequence.Slice(sequence=sub_sequence, interval=interval)
 
