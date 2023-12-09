@@ -9,9 +9,15 @@ from bloqade.codegen.hardware_v2.piecewise_constant import (
     PiecewiseConstant,
     GeneratePiecewiseConstantChannel,
 )
+from bloqade.codegen.hardware_v2.lattice_site_coefficients import (
+    GenerateLatticeSiteCoefficients,
+)
 from bloqade import piecewise_linear, piecewise_constant, start
 import numpy as np
 from decimal import Decimal
+
+from bloqade.ir.scalar import cast
+from bloqade.submission.ir.parallel import ParallelDecoder, ClusterLocationInfo
 
 
 @waveform.to_waveform(4.0)
@@ -783,11 +789,63 @@ def test_analog_circuit_pwc():
 
 def test_lattice_site_coefficients_codegen():
     wf = piecewise_linear([1, 2, 3], [0, 1, 0, 1])
-    
-    mask = [Decimal("0"), Decimal("1"), Decimal("0")]
-    f = field.Field({field.AssignedRunTimeVector("mask", mask): wf})
-    p = pulse.Pulse({pulse.detuning: f})
-    s = sequence.Sequence({sequence.rydberg: p})
-    c = analog_circuit.AnalogCircuit(start.add_position([(0, 0),(1,1), (2, 2)]), s)
-    
-    
+
+    sm1 = field.AssignedRunTimeVector(
+        "mask", [Decimal("0"), Decimal("1"), Decimal("2")]
+    )
+    sm2 = field.ScaledLocations.create({1: cast(1), 2: cast(2)})
+
+    f1 = field.Field({sm1: wf})
+    f2 = field.Field({sm2: wf})
+
+    p1 = pulse.Pulse({pulse.detuning: f1})
+    p2 = pulse.Pulse({pulse.detuning: f2})
+
+    s1 = sequence.Sequence({sequence.rydberg: p1})
+    s2 = sequence.Sequence({sequence.rydberg: p2})
+
+    c1 = analog_circuit.AnalogCircuit(start.add_position([(0, 0), (1, 1), (2, 2)]), s1)
+    c2 = analog_circuit.AnalogCircuit(start.add_position([(0, 0), (1, 1), (2, 2)]), s2)
+
+    mapping = [
+        ClusterLocationInfo(
+            cluster_index=(0, 0), global_location_index=0, cluster_location_index=0
+        ),
+        ClusterLocationInfo(
+            cluster_index=(0, 0), global_location_index=1, cluster_location_index=1
+        ),
+        ClusterLocationInfo(
+            cluster_index=(0, 0), global_location_index=2, cluster_location_index=2
+        ),
+        ClusterLocationInfo(
+            cluster_index=(0, 0), global_location_index=3, cluster_location_index=0
+        ),
+        ClusterLocationInfo(
+            cluster_index=(0, 0), global_location_index=4, cluster_location_index=1
+        ),
+        ClusterLocationInfo(
+            cluster_index=(0, 0), global_location_index=5, cluster_location_index=2
+        ),
+    ]
+
+    parallel_decoder = ParallelDecoder(mapping)
+
+    assert GenerateLatticeSiteCoefficients().emit(c1) == [
+        Decimal("0"),
+        Decimal("1"),
+        Decimal("2"),
+    ]
+    assert GenerateLatticeSiteCoefficients().emit(c2) == [
+        Decimal("0"),
+        Decimal("1"),
+        Decimal("2"),
+    ]
+
+    assert GenerateLatticeSiteCoefficients(parallel_decoder).emit(c1) == [
+        Decimal("0"),
+        Decimal("1"),
+        Decimal("2"),
+        Decimal("0"),
+        Decimal("1"),
+        Decimal("2"),
+    ]

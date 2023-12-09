@@ -40,8 +40,8 @@ from decimal import Decimal
 from bloqade.submission.ir.task_specification import QuEraTaskSpecification
 
 
-
 # Compiler passes
+
 
 def analyze_channels(circuit):
     """1. Scan channels"""
@@ -55,7 +55,7 @@ def analyze_channels(circuit):
         field_name: fields.get(field_name, {field.Uniform})
         for field_name in [pulse.detuning, pulse.rabi.amplitude, pulse.rabi.phase]
     }
-    
+
     return {sequence.rydberg: updated_fields}
 
 

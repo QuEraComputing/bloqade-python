@@ -11,6 +11,7 @@ class GenerateLatticeSiteCoefficients(BloqadeIRVisitor):
     def __init__(self, parallel_decoder: Optional[ParallelDecoder] = None):
         self.n_sites = None
         self.parallel_decoder = parallel_decoder
+        self.lattice_site_coefficients = None
 
     def post_spatial_modulation_visit(self):
         if self.parallel_decoder is None:
@@ -31,9 +32,11 @@ class GenerateLatticeSiteCoefficients(BloqadeIRVisitor):
     # UniformModulation is merged into global detuning
 
     def visit_field_ScaledLocations(self, node: field.ScaledLocations):
+        self.lattice_site_coefficients = []
+
         for i in range(self.n_sites):
             value = node.value.get(field.Location(i), scalar.Literal(0))
-            self.lattice_site_coefficients.append(value)
+            self.lattice_site_coefficients.append(value())
 
     def visit_field_AssignedRunTimeVector(self, node: field.AssignedRunTimeVector):
         self.lattice_site_coefficients = list(map(Decimal, map(str, node.value)))
