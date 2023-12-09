@@ -779,3 +779,15 @@ def test_analog_circuit_pwc():
     )
 
     assert visitor.visit(c) == expected
+
+
+def test_lattice_site_coefficients_codegen():
+    wf = piecewise_linear([1, 2, 3], [0, 1, 0, 1])
+    
+    mask = [Decimal("0"), Decimal("1"), Decimal("0")]
+    f = field.Field({field.AssignedRunTimeVector("mask", mask): wf})
+    p = pulse.Pulse({pulse.detuning: f})
+    s = sequence.Sequence({sequence.rydberg: p})
+    c = analog_circuit.AnalogCircuit(start.add_position([(0, 0),(1,1), (2, 2)]), s)
+    
+    
