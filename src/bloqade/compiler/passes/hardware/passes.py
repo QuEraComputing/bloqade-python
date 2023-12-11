@@ -237,8 +237,6 @@ def generate_ahs_code(
 
     ahs_lattice_data = GenerateLattice(capabilities).emit(circuit)
 
-    print(circuit.sequence)
-
     global_detuning = GeneratePiecewiseLinearChannel(
         sequence.rydberg, pulse.detuning, field.Uniform
     ).visit(circuit)
@@ -261,7 +259,7 @@ def generate_ahs_code(
 
         lattice_site_coefficients = GenerateLatticeSiteCoefficients(
             parallel_decoder=ahs_lattice_data.parallel_decoder
-        ).visit(circuit)
+        ).emit(circuit)
 
         local_detuning = GeneratePiecewiseLinearChannel(
             sequence.rydberg, pulse.detuning, sm
