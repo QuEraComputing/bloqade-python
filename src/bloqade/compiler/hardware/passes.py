@@ -35,9 +35,9 @@ def analyze_channels(circuit: analog_circuit.AnalogCircuit) -> Dict:
 def add_padding(
     circuit: analog_circuit.AnalogCircuit, level_couplings: Dict
 ) -> analog_circuit.AnalogCircuit:
+    """2. Insert zero waveform in the explicit time intervals missing a waveform"""
     from bloqade.rewrite.common.add_padding import AddPadding
 
-    """2. Insert zero waveform in the explicit time intervals missing a waveform"""
     return AddPadding(level_couplings=level_couplings).visit(circuit)
 
 
@@ -45,7 +45,6 @@ def assign_circuit(
     circuit: analog_circuit.AnalogCircuit, assignments: Dict[str, ParamType]
 ) -> analog_circuit.AnalogCircuit:
     """3. Assign variables, validate here"""
-
     from bloqade.analysis.common.assignment_scan import AssignmentScan
     from bloqade.analysis.common.scan_variables import ScanVariables
     from bloqade.rewrite.common.assign_variables import AssignBloqadeIR
@@ -160,6 +159,7 @@ def generate_ahs_code(
 def generate_quera_ir(
     ahs_components: AHSComponents, shots: int
 ) -> QuEraTaskSpecification:
+    """7. generate quera ir"""
     import bloqade.submission.ir.task_specification as task_spec
     from bloqade.compiler.hardware.units import (
         convert_time_units,
@@ -236,6 +236,7 @@ def generate_quera_ir(
 def generate_braket_ir(
     ahs_components: AHSComponents, shots: int
 ) -> BraketTaskSpecification:
+    """7. generate braket ir"""
     import braket.ir.ahs as ahs
     from bloqade.compiler.hardware.units import (
         convert_time_units,
