@@ -23,7 +23,12 @@ class GenerateLatticeSiteCoefficients(BloqadeIRVisitor):
         # insert the cluster site coefficients into the parallelized
         # lattice site coefficients
         self.lattice_site_coefficients = []
-        for cluster_site_info in self.parallel_decoder.mapping:
+        # sort by global location index so that we can insert the
+        # cluster site coefficients in the correct order
+        sorted_decoder_mapping = sorted(
+            self.parallel_decoder.mapping, key=lambda x: x.global_location_index
+        )
+        for cluster_site_info in sorted_decoder_mapping:
             self.lattice_site_coefficients.append(
                 lattice_site_coefficients[cluster_site_info.cluster_location_index]
             )
