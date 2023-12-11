@@ -1,12 +1,15 @@
 from bloqade.ir.location import location
 from bloqade.ir import analog_circuit
 from bloqade.submission.ir.parallel import ClusterLocationInfo, ParallelDecoder
+from bloqade.submission.capabilities import QuEraCapabilities
+from bloqade.ir.visitor import BloqadeIRVisitor
+from beartype.typing import Optional
 import numpy as np
 from decimal import Decimal
 
 
-class GenerateLattice:
-    def __init__(self, capabilities=None):
+class GenerateLattice(BloqadeIRVisitor):
+    def __init__(self, capabilities: Optional[QuEraCapabilities] = None):
         self.capabilities = capabilities
         self.parallel_decoder = None
 
@@ -24,7 +27,7 @@ class GenerateLattice:
         self.filling = []
 
         for location_info in node.enumerate():
-            site = tuple(ele(**self.assignments) for ele in location_info.position)
+            site = tuple(ele() for ele in location_info.position)
             self.sites.append(site)
             self.filling.append(location_info.filling.value)
 
@@ -34,9 +37,7 @@ class GenerateLattice:
         info = ParallelRegisterInfo(node)
 
         if self.capabilities is None:
-            raise NotImplementedError(
-                "Cannot parallelize register without device capabilities."
-            )
+            raise ValueError("Cannot parallelize register without device capabilities.")
 
         height_max = self.capabilities.capabilities.lattice.area.height / Decimal(
             "1e-6"
