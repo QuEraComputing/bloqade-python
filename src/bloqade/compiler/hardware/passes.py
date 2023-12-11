@@ -27,9 +27,18 @@ from bloqade.rewrite.common.assign_variables import AssignBloqadeIR
 from bloqade.rewrite.common.add_padding import AddPadding
 from bloqade.rewrite.common.assign_to_literal import AssignToLiteral
 from bloqade.rewrite.common.canonicalize import Canonicalizer
-from beartype.typing import Dict, Optional
+from bloqade.submission.ir.braket import BraketTaskSpecification
 
 from bloqade.submission.ir.capabilities import QuEraCapabilities
+from bloqade.submission.ir.task_specification import QuEraTaskSpecification
+
+from bloqade.compiler.hardware.units import (
+    convert_time_units,
+    convert_energy_units,
+    convert_coordinate_units,
+)
+
+from beartype.typing import Dict, Optional
 
 
 def analyze_channels(circuit: analog_circuit.AnalogCircuit) -> Dict:
@@ -76,7 +85,9 @@ def assign_program(
     return assigned_circuit
 
 
-def validate_waveforms(level_couplings, circuit) -> None:
+def validate_waveforms(
+    circuit: analog_circuit.AnalogCircuit, level_couplings: Dict
+) -> None:
     """4. validate piecewise linear and piecewise constant pieces of pulses"""
     channel_iter = (
         (level_coupling, field_name, sm)
@@ -95,8 +106,7 @@ def to_literal_and_canonicalize(
     circuit: analog_circuit.AnalogCircuit,
 ) -> analog_circuit.AnalogCircuit:
     """5. convert to literals and canonicalize"""
-    circuit = AssignToLiteral().visit(circuit)
-    return Canonicalizer().visit(circuit)
+    return Canonicalizer().visit(AssignToLiteral().visit(circuit))
 
 
 def generate_ahs_code(
@@ -144,3 +154,152 @@ def generate_ahs_code(
         local_detuning=local_detuning,
         lattice_site_coefficients=lattice_site_coefficients,
     )
+
+
+def generate_quera_ir(
+    ahs_components: AHSComponents, shots: int
+) -> QuEraTaskSpecification:
+    import bloqade.submission.ir.task_specification as task_spec
+
+    lattice = task_spec.Lattice(
+        sites=list(
+            map(
+                convert_coordinate_units,
+                ahs_components.lattice_data.sites,
+            )
+        ),
+        filling=ahs_components.lattice_data.filling,
+    )
+
+    global_detuning = task_spec.GlobalField(
+        times=list(map(convert_time_units, ahs_components.global_detuning.times)),
+        values=list(map(convert_energy_units, ahs_components.global_detuning.values)),
+    )
+
+    local_detuning = None
+
+    if ahs_components.lattice_site_coefficients is not None:
+        local_detuning = task_spec.LocalField(
+            times=list(map(convert_time_units, ahs_components.local_detuning.times)),
+            values=list(
+                map(convert_energy_units, ahs_components.local_detuning.values)
+            ),
+            lattice_site_coefficients=ahs_components.lattice_site_coefficients,
+        )
+
+    rabi_frequency_amplitude_field = task_spec.GlobalField(
+        times=list(map(convert_time_units, ahs_components.global_amplitude.times)),
+        values=list(map(convert_energy_units, ahs_components.global_amplitude.values)),
+    )
+
+    rabi_frequency_phase_field = task_spec.GlobalField(
+        times=list(map(convert_time_units, ahs_components.global_phase.times)),
+        values=ahs_components.global_phase.values,
+    )
+
+    detuning = task_spec.Detuning(
+        global_=global_detuning,
+        local=local_detuning,
+    )
+
+    rabi_frequency_amplitude = task_spec.RabiFrequencyAmplitude(
+        global_=rabi_frequency_amplitude_field,
+    )
+
+    rabi_frequency_phase = task_spec.RabiFrequencyPhase(
+        global_=rabi_frequency_phase_field,
+    )
+
+    rydberg = task_spec.RydbergHamiltonian(
+        rabi_frequency_amplitude=rabi_frequency_amplitude,
+        rabi_frequency_phase=rabi_frequency_phase,
+        detuning=detuning,
+    )
+
+    effective_hamiltonian = task_spec.EffectiveHamiltonian(
+        rydberg=rydberg,
+    )
+
+    return task_spec.QuEraTaskSpecification(
+        nshots=shots,
+        lattice=lattice,
+        effective_hamiltonian=effective_hamiltonian,
+    )
+
+
+def generate_braket_ir(
+    ahs_components: AHSComponents, shots: int
+) -> BraketTaskSpecification:
+    import braket.ir.ahs as ahs
+    from bloqade.submission.ir.braket import BraketTaskSpecification
+
+    ahs_register = ahs.AtomArrangement(
+        sites=list(map(convert_coordinate_units, ahs_components.lattice_data.sites)),
+        filling=ahs_components.lattice_data.filling,
+    )
+
+    global_detuning_time_series = ahs.TimeSeries(
+        times=list(map(convert_time_units, ahs_components.global_detuning.times)),
+        values=list(map(convert_energy_units, ahs_components.global_detuning.values)),
+    )
+
+    local_detuning_time_series = None
+    if ahs_components.lattice_site_coefficients is not None:
+        local_detuning_time_series = ahs.TimeSeries(
+            times=list(map(convert_time_units, ahs_components.local_detuning.times)),
+            values=list(
+                map(convert_energy_units, ahs_components.local_detuning.values)
+            ),
+        )
+
+    amplitude_time_series = ahs.TimeSeries(
+        times=list(map(convert_time_units, ahs_components.global_amplitude.times)),
+        values=list(map(convert_energy_units, ahs_components.global_amplitude.values)),
+    )
+
+    phase_time_series = ahs.TimeSeries(
+        times=list(map(convert_time_units, ahs_components.global_phase.times)),
+        values=ahs_components.global_phase.values,
+    )
+
+    detuning = ahs.PhysicalField(
+        time_series=global_detuning_time_series,
+        pattern="uniform",
+    )
+
+    amplitude = ahs.PhysicalField(
+        time_series=amplitude_time_series,
+        pattern="uniform",
+    )
+
+    phase = ahs.PhysicalField(
+        time_series=phase_time_series,
+        pattern="uniform",
+    )
+
+    local_detuning = None
+    if ahs_components.lattice_site_coefficients is not None:
+        local_detuning = ahs.PhysicalField(
+            time_series=local_detuning_time_series,
+            pattern=ahs_components.lattice_site_coefficients,
+        )
+
+    driving_field = ahs.DrivingField(
+        detuning=detuning,
+        amplitude=amplitude,
+        phase=phase,
+    )
+
+    shiftingFields = []
+    if ahs_components.lattice_site_coefficients is not None:
+        shiftingFields = [ahs.ShiftingField(magnitude=local_detuning)]
+
+    program = ahs.Program(
+        setup=ahs.Setup(ahs_register=ahs_register),
+        hamiltonian=ahs.Hamiltonian(
+            drivingFields=[driving_field],
+            shiftingFields=shiftingFields,
+        ),
+    )
+
+    return BraketTaskSpecification(nshots=shots, program=program)
