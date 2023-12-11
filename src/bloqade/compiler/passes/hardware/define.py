@@ -36,8 +36,8 @@ def analyze_channels(circuit: analog_circuit.AnalogCircuit) -> Dict:
             and amplitude.
 
     """
-    from bloqade.compiler.analysis.hardware.channels import ValidateChannels
-    from bloqade.compiler.analysis.common.scan_channels import ScanChannels
+    from bloqade.compiler.analysis.hardware import ValidateChannels
+    from bloqade.compiler.analysis.common import ScanChannels
 
     ValidateChannels().scan(circuit)
     level_couplings = ScanChannels().scan(circuit)
@@ -73,7 +73,7 @@ def add_padding(
             intervals missing a waveform.
 
     """
-    from bloqade.compiler.rewrite.common.add_padding import AddPadding
+    from bloqade.compiler.rewrite.common import AddPadding
 
     return AddPadding(level_couplings=level_couplings).visit(circuit)
 
@@ -98,9 +98,8 @@ def assign_circuit(
         ValueError: If there are any variables that have not been assigned.
 
     """
-    from bloqade.compiler.analysis.common.assignment_scan import AssignmentScan
-    from bloqade.compiler.analysis.common.scan_variables import ScanVariables
-    from bloqade.compiler.rewrite.common.assign_variables import AssignBloqadeIR
+    from bloqade.compiler.analysis.common import AssignmentScan, ScanVariables
+    from bloqade.compiler.rewrite.common import AssignBloqadeIR
 
     final_assignments = AssignmentScan(assignments).emit(circuit)
 
@@ -143,13 +142,11 @@ def validate_waveforms(
             channels.
 
     """
-    from bloqade.compiler.analysis.hardware.piecewise_constant import (
+    from bloqade.compiler.analysis.hardware import (
         ValidatePiecewiseConstantChannel,
-    )
-    from bloqade.compiler.analysis.hardware.piecewise_linear import (
         ValidatePiecewiseLinearChannel,
     )
-    from bloqade.compiler.analysis.common.check_slices import CheckSlices
+    from bloqade.compiler.analysis.common import CheckSlices
 
     channel_iter = (
         (level_coupling, field_name, sm)
@@ -185,9 +182,11 @@ def to_literal_and_canonicalize(
         circuit: AnalogCircuit with all literals and canonicalized.
 
     """
-    from bloqade.compiler.rewrite.common.assign_to_literal import AssignToLiteral
-    from bloqade.compiler.rewrite.common.canonicalize import Canonicalizer
-    from bloqade.compiler.rewrite.common.flatten import FlattenCircuit
+    from bloqade.compiler.rewrite.common import (
+        AssignToLiteral,
+        Canonicalizer,
+        FlattenCircuit,
+    )
 
     circuit = AssignToLiteral().visit(circuit)
     circuit = Canonicalizer().visit(circuit)
@@ -224,14 +223,10 @@ def generate_ahs_code(
             the capabilities to generate the lattice data.
 
     """
-    from bloqade.compiler.codegen.hardware.lattice import GenerateLattice
-    from bloqade.compiler.codegen.hardware.lattice_site_coefficients import (
+    from bloqade.compiler.codegen.hardware import (
+        GenerateLattice,
         GenerateLatticeSiteCoefficients,
-    )
-    from bloqade.compiler.codegen.hardware.piecewise_linear import (
         GeneratePiecewiseLinearChannel,
-    )
-    from bloqade.compiler.codegen.hardware.piecewise_constant import (
         GeneratePiecewiseConstantChannel,
     )
 
