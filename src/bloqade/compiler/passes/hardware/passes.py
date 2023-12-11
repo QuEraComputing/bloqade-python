@@ -1,6 +1,6 @@
 from bloqade.builder.typing import ParamType
 
-from bloqade.compiler.passes.components import AHSComponents
+from bloqade.compiler.passes.hardware.components import AHSComponents
 from bloqade.ir import analog_circuit
 from bloqade.ir.control import pulse, sequence, field
 
@@ -9,7 +9,7 @@ from bloqade.submission.ir.braket import BraketTaskSpecification
 from bloqade.submission.ir.capabilities import QuEraCapabilities
 from bloqade.submission.ir.task_specification import QuEraTaskSpecification
 
-from beartype.typing import Dict, Optional
+from beartype.typing import Dict, Optional, Tuple
 
 
 def analyze_channels(circuit: analog_circuit.AnalogCircuit) -> Dict:
@@ -47,7 +47,7 @@ def analyze_channels(circuit: analog_circuit.AnalogCircuit) -> Dict:
     # detuning, phase and amplitude are required
     # to have at least a uniform field
     updated_fields = {
-        field_name: fields.get(field_name, {field.Uniform})
+        field_name: fields.get(field_name, {field.Uniform}).union({field.Uniform})
         for field_name in [pulse.detuning, pulse.rabi.amplitude, pulse.rabi.phase]
     }
 
@@ -80,7 +80,7 @@ def add_padding(
 
 def assign_circuit(
     circuit: analog_circuit.AnalogCircuit, assignments: Dict[str, ParamType]
-) -> analog_circuit.AnalogCircuit:
+) -> Tuple[analog_circuit.AnalogCircuit, Dict]:
     """3. Assign variables and validate assignment
 
     This pass assigns variables to the circuit and validates that all variables
@@ -106,20 +106,23 @@ def assign_circuit(
 
     assigned_circuit = AssignBloqadeIR(final_assignments).visit(circuit)
 
-    assignment_analysis = ScanVariables().emit(circuit)
+    assignment_analysis = ScanVariables().emit(assigned_circuit)
 
     if not assignment_analysis.is_assigned:
-        missing_vars = assignment_analysis.scalar_vars + assignment_analysis.vector_vars
+        missing_vars = assignment_analysis.scalar_vars.union(
+            assignment_analysis.vector_vars
+        )
         raise ValueError(
             "Missing assignments for variables:\n"
-            "\n".join(f"{var}" for var in missing_vars)
+            + ("\n".join(f"{var}" for var in missing_vars))
+            + "\n"
         )
 
-    return assigned_circuit
+    return assigned_circuit, final_assignments
 
 
 def validate_waveforms(
-    circuit: analog_circuit.AnalogCircuit, level_couplings: Dict
+    level_couplings: Dict, circuit: analog_circuit.AnalogCircuit
 ) -> None:
     """4. validate piecewise linear and piecewise constant pieces of pulses
 
@@ -146,6 +149,7 @@ def validate_waveforms(
     from bloqade.compiler.analysis.hardware.piecewise_linear import (
         ValidatePiecewiseLinearChannel,
     )
+    from bloqade.compiler.analysis.common.check_slices import CheckSlices
 
     channel_iter = (
         (level_coupling, field_name, sm)
@@ -158,6 +162,11 @@ def validate_waveforms(
             ValidatePiecewiseLinearChannel(*channel).visit(circuit)
         else:
             ValidatePiecewiseConstantChannel(*channel).visit(circuit)
+
+    CheckSlices().visit(circuit)
+
+    if circuit.sequence.duration() == 0:
+        raise ValueError("Circuit Duration must be be non-zero")
 
 
 def to_literal_and_canonicalize(
@@ -180,9 +189,11 @@ def to_literal_and_canonicalize(
     from bloqade.compiler.rewrite.common.canonicalize import Canonicalizer
     from bloqade.compiler.rewrite.common.flatten import FlattenCircuit
 
-    return FlattenCircuit().visit(
-        Canonicalizer().visit(AssignToLiteral().visit(circuit))
-    )
+    circuit = AssignToLiteral().visit(circuit)
+    circuit = Canonicalizer().visit(circuit)
+    circuit = FlattenCircuit().visit(circuit)
+
+    return circuit
 
 
 def generate_ahs_code(
@@ -226,6 +237,8 @@ def generate_ahs_code(
 
     ahs_lattice_data = GenerateLattice(capabilities).emit(circuit)
 
+    print(circuit.sequence)
+
     global_detuning = GeneratePiecewiseLinearChannel(
         sequence.rydberg, pulse.detuning, field.Uniform
     ).visit(circuit)
@@ -241,10 +254,10 @@ def generate_ahs_code(
     local_detuning = None
     lattice_site_coefficients = None
 
-    extra_sm = level_couplings[sequence.rydberg][pulse.detuning] - {field.Uniform}
+    extra_sm = set(level_couplings[sequence.rydberg][pulse.detuning]) - {field.Uniform}
 
     if extra_sm:
-        (sm,) = extra_sm
+        sm = extra_sm.pop()
 
         lattice_site_coefficients = GenerateLatticeSiteCoefficients(
             parallel_decoder=ahs_lattice_data.parallel_decoder
@@ -282,7 +295,7 @@ def generate_quera_ir(
 
     """
     import bloqade.submission.ir.task_specification as task_spec
-    from bloqade.compiler.passes.units import (
+    from bloqade.compiler.passes.hardware.units import (
         convert_time_units,
         convert_energy_units,
         convert_coordinate_units,
@@ -372,7 +385,7 @@ def generate_braket_ir(
 
     """
     import braket.ir.ahs as ahs
-    from bloqade.compiler.passes.units import (
+    from bloqade.compiler.passes.hardware.units import (
         convert_time_units,
         convert_energy_units,
         convert_coordinate_units,
