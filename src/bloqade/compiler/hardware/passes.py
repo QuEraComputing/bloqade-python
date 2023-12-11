@@ -1,3 +1,4 @@
+# TODO: import common passes from bloqade.analysis.common
 from bloqade.analysis.common.assignment_scan import AssignmentScan
 from bloqade.analysis.common.scan_channels import ScanChannels
 from bloqade.analysis.common.scan_variables import ScanVariables
@@ -9,6 +10,8 @@ from bloqade.analysis.hardware.piecewise_linear import (
     ValidatePiecewiseLinearChannel,
 )
 from bloqade.builder.typing import ParamType
+
+# TODO: import hardware_v2 passes from bloqade.codegen.hardware_v2
 from bloqade.codegen.hardware_v2.lattice import GenerateLattice
 from bloqade.codegen.hardware_v2.lattice_site_coefficients import (
     GenerateLatticeSiteCoefficients,
@@ -23,6 +26,7 @@ from bloqade.compiler.hardware.components import AHSComponents
 from bloqade.ir import analog_circuit
 from bloqade.ir.control import pulse, sequence, field
 
+# TODO: import common passes from bloqade.rewrite.common
 from bloqade.rewrite.common.assign_variables import AssignBloqadeIR
 from bloqade.rewrite.common.add_padding import AddPadding
 from bloqade.rewrite.common.assign_to_literal import AssignToLiteral
