@@ -142,13 +142,15 @@ def test_waveform_sample_pwc():
         sequence.rydberg, pulse.detuning, field.Uniform
     )
 
-    pwl_wf = wf.sample(0.1, waveform.Interpolation.Constant)
+    pwc_wf = wf.sample(0.1, waveform.Interpolation.Constant)
 
-    times, values = pwl_wf.samples()
+    times, values = pwc_wf.samples()
+
+    values[-1] = values[-2]
 
     expected = PiecewiseConstant(times=times, values=values)
 
-    assert visitor.visit(pwl_wf) == expected
+    assert visitor.visit(pwc_wf) == expected
 
 
 def test_waveform_add_pwl():

@@ -52,24 +52,43 @@ class QuEraHardwareRoutine(RoutineBase):
         args: Tuple[LiteralType, ...] = (),
         name: Optional[str] = None,
     ) -> RemoteBatch:
+        from bloqade.compiler.passes.hardware.passes import (
+            analyze_channels,
+            add_padding,
+            assign_circuit,
+            validate_waveforms,
+            to_literal_and_canonicalize,
+            generate_ahs_code,
+            generate_quera_ir,
+        )
         from bloqade.compiler.rewrite.common.assign_variables import AssignBloqadeIR
-        from bloqade.compiler.analysis.common.assignment_scan import AssignmentScan
-        from bloqade.compiler.codegen.hardware.quera import AHSCodegen
 
         circuit, params = self.circuit, self.params
         capabilities = self.backend.get_capabilities()
         circuit = AssignBloqadeIR(params.static_params).visit(circuit)
-
         tasks = OrderedDict()
 
         for task_number, batch_params in enumerate(params.batch_assignments(*args)):
-            record_params = AssignmentScan(batch_params).emit(circuit)
-            final_circuit = AssignBloqadeIR(record_params).visit(circuit)
-            result = AHSCodegen(shots, capabilities=capabilities).emit(final_circuit)
-            task_ir = result.quera_task_ir.discretize(capabilities)
+            final_circuit, record_params = assign_circuit(circuit, batch_params)
+
+            level_couplings = analyze_channels(final_circuit)
+            final_circuit = add_padding(final_circuit, level_couplings)
+
+            validate_waveforms(level_couplings, final_circuit)
+            final_circuit = to_literal_and_canonicalize(final_circuit)
+            ahs_components = generate_ahs_code(
+                capabilities, level_couplings, final_circuit
+            )
+
+            task_ir = generate_quera_ir(ahs_components, shots).discretize(capabilities)
+
             metadata = {**params.static_params, **record_params}
             tasks[task_number] = QuEraTask(
-                None, self.backend, task_ir, metadata, result.parallel_decoder
+                None,
+                self.backend,
+                task_ir,
+                metadata,
+                ahs_components.lattice_data.parallel_decoder,
             )
 
         batch = RemoteBatch(source=self.source, tasks=tasks, name=name)

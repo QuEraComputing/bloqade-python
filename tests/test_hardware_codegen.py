@@ -645,8 +645,8 @@ def test_integration_record():
     assert ir["lattice"]["filling"] == [1]
 
     phase_ir = ir["effective_hamiltonian"]["rydberg"]["rabi_frequency_phase"]
-    assert all(fvec(phase_ir["global"]["times"]) == np.array([0, 0.5, 1.0, 1.3]) * 1e-6)
-    assert all(fvec(phase_ir["global"]["values"]) == np.array([0, 1.0, 1.0, 1.0]))
+    assert all(fvec(phase_ir["global"]["times"]) == np.array([0, 0.5, 1.3]) * 1e-6)
+    assert all(fvec(phase_ir["global"]["values"]) == np.array([0, 1.0, 1.0]))
 
 
 pytest.mark.skip(reason="fixing now")
