@@ -6,28 +6,6 @@ import json
 import numpy as np
 
 
-"""
-import bloqade.ir.location as location
-from bloqade.compiler.codegen.hardware.quera import SchemaCodeGen
-from bloqade.submission.base import get_capabilities
-
-bloqade_program = (
-    location.Square(1)
-    .rydberg.rabi.phase.uniform.piecewise_constant(
-        durations=[0.5, 0.5], values=[0, 1]
-    )
-    .piecewise_constant(
-        durations=[0.3] ,values = [0.2]
-    ).program
-)
-
-capabilities = get_capabilities()
-schema = SchemaCodeGen({},capabilities=capabilities).emit(10, bloqade_program)
-
-print(schema.effective_hamiltonian.rydberg.rabi_frequency_phase.global_.times)
-"""
-
-
 def fc(x):
     return float(x)
 
