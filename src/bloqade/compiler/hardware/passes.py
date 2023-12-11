@@ -64,8 +64,6 @@ def assign_program(
 
     assigned_circuit = AssignBloqadeIR(final_assignments).visit(circuit)
 
-    assigned_circuit = Canonicalizer().visit(assigned_circuit)
-
     assignment_analysis = ScanVariables().emit(circuit)
 
     if not assignment_analysis.is_assigned:
