@@ -75,7 +75,7 @@
             * [assign_to_literal](bloqade/rewrite/common/assign_to_literal.md)
             * [assign_variables](bloqade/rewrite/common/assign_variables.md)
             * [canonicalize](bloqade/rewrite/common/canonicalize.md)
-            * [flatten_sequence](bloqade/rewrite/common/flatten_sequence.md)
+            * [flatten](bloqade/rewrite/common/flatten.md)
     * [serialize](bloqade/serialize.md)
     * [submission](bloqade/submission/index.md)
         * [base](bloqade/submission/base.md)
