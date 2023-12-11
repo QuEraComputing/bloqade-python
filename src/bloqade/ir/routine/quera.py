@@ -52,7 +52,7 @@ class QuEraHardwareRoutine(RoutineBase):
         args: Tuple[LiteralType, ...] = (),
         name: Optional[str] = None,
     ) -> RemoteBatch:
-        from bloqade.compiler.passes.hardware.passes import (
+        from bloqade.compiler.passes.hardware import (
             analyze_channels,
             add_padding,
             assign_circuit,

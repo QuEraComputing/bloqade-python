@@ -38,7 +38,7 @@ class BraketHardwareRoutine(RoutineBase):
         name: Optional[str] = None,
     ) -> RemoteBatch:
         ## fall passes here ###
-        from bloqade.compiler.passes.hardware.passes import (
+        from bloqade.compiler.passes.hardware import (
             analyze_channels,
             add_padding,
             assign_circuit,
@@ -183,7 +183,7 @@ class BraketLocalEmulatorRoutine(RoutineBase):
     ) -> LocalBatch:
         ## fall passes here ###
         from bloqade.ir import ParallelRegister
-        from bloqade.compiler.passes.hardware.passes import (
+        from bloqade.compiler.passes.hardware import (
             analyze_channels,
             add_padding,
             assign_circuit,
