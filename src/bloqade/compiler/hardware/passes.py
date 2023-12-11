@@ -165,8 +165,9 @@ def to_literal_and_canonicalize(
 ) -> analog_circuit.AnalogCircuit:
     """5. convert to literals and canonicalize
 
-    This pass converts all assgined variables to literals and canonicalizes the
-    circuit. This should simplify the circuit and make it faster to compile.
+    This pass converts all assgined variables to literals, canonicalizes the
+    circuit and Flattens the Sequence structure. This should simplify
+    the circuit and make it faster to compile.
 
     Args:
         circuit: AnalogCircuit to convert to literals and canonicalize.
@@ -177,8 +178,11 @@ def to_literal_and_canonicalize(
     """
     from bloqade.rewrite.common.assign_to_literal import AssignToLiteral
     from bloqade.rewrite.common.canonicalize import Canonicalizer
+    from bloqade.rewrite.common.flatten import FlattenCircuit
 
-    return Canonicalizer().visit(AssignToLiteral().visit(circuit))
+    return FlattenCircuit().visit(
+        Canonicalizer().visit(AssignToLiteral().visit(circuit))
+    )
 
 
 def generate_ahs_code(
