@@ -26,6 +26,7 @@
         * [analysis](bloqade/compiler/analysis/index.md)
             * [common](bloqade/compiler/analysis/common/index.md)
                 * [assignment_scan](bloqade/compiler/analysis/common/assignment_scan.md)
+                * [check_slices](bloqade/compiler/analysis/common/check_slices.md)
                 * [is_constant](bloqade/compiler/analysis/common/is_constant.md)
                 * [is_hyperfine](bloqade/compiler/analysis/common/is_hyperfine.md)
                 * [scan_channels](bloqade/compiler/analysis/common/scan_channels.md)

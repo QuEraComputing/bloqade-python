@@ -261,6 +261,11 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
+         <loc>https://bloqade.quera.com/reference/bloqade/compiler/analysis/common/check_slices/</loc>
+         <lastmod>2023-12-11</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
          <loc>https://bloqade.quera.com/reference/bloqade/compiler/analysis/common/is_constant/</loc>
          <lastmod>2023-12-11</lastmod>
          <changefreq>daily</changefreq>
