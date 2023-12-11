@@ -13,7 +13,29 @@ from beartype.typing import Dict, Optional
 
 
 def analyze_channels(circuit: analog_circuit.AnalogCircuit) -> Dict:
-    """1. Scan channels"""
+    """1. Scan channels
+
+    This pass checks to make sure that:
+    * There is no hyperfine coupling in the sequence
+    * There are no non-uniform spatial modulation for rabi phase and amplitude
+    * there is no more than one non-uniform spatial modulation for detuning
+
+    Args:
+        circuit: AnalogCircuit to analyze
+
+    Returns:
+        level_couplings: Dictionary containing the required channels for the
+            sequence. Note that this will insert a uniform field for any missing
+            channels.
+
+    Raises:
+        ValueError: If there is hyperfine coupling in the sequence.
+        ValueError: If there is more than one non-uniform spatial modulation for
+            detuning.
+        ValueError: If there are non-uniform spatial modulations for rabi phase
+            and amplitude.
+
+    """
     from bloqade.analysis.hardware.channels import ValidateChannels
     from bloqade.analysis.common.scan_channels import ScanChannels
 
@@ -35,7 +57,22 @@ def analyze_channels(circuit: analog_circuit.AnalogCircuit) -> Dict:
 def add_padding(
     circuit: analog_circuit.AnalogCircuit, level_couplings: Dict
 ) -> analog_circuit.AnalogCircuit:
-    """2. Insert zero waveform in the explicit time intervals missing a waveform"""
+    """2. Insert zero waveform in the explicit time intervals missing a waveform
+
+    This pass inserts a zero waveform in the explicit time intervals missing a
+    waveform. This is required for later analysis passes to check that the
+    waveforms are compatible with the hardware.
+
+    Args:
+        circuit: AnalogCircuit to add padding to
+        level_couplings: Dictionary containing the given channels for the
+            sequence.
+
+    Return
+        circuit: AnalogCircuit with zero waveforms inserted in the explicit time
+            intervals missing a waveform.
+
+    """
     from bloqade.rewrite.common.add_padding import AddPadding
 
     return AddPadding(level_couplings=level_couplings).visit(circuit)
@@ -44,7 +81,23 @@ def add_padding(
 def assign_circuit(
     circuit: analog_circuit.AnalogCircuit, assignments: Dict[str, ParamType]
 ) -> analog_circuit.AnalogCircuit:
-    """3. Assign variables, validate here"""
+    """3. Assign variables and validate assignment
+
+    This pass assigns variables to the circuit and validates that all variables
+    have been assigned.
+
+    Args:
+        circuit: AnalogCircuit to assign variables to
+        assignments: Dictionary containing the assignments for the variables in
+            the circuit.
+
+    Returns:
+        assigned_circuit: AnalogCircuit with variables assigned.
+
+    Raises:
+        ValueError: If there are any variables that have not been assigned.
+
+    """
     from bloqade.analysis.common.assignment_scan import AssignmentScan
     from bloqade.analysis.common.scan_variables import ScanVariables
     from bloqade.rewrite.common.assign_variables import AssignBloqadeIR
@@ -68,7 +121,25 @@ def assign_circuit(
 def validate_waveforms(
     circuit: analog_circuit.AnalogCircuit, level_couplings: Dict
 ) -> None:
-    """4. validate piecewise linear and piecewise constant pieces of pulses"""
+    """4. validate piecewise linear and piecewise constant pieces of pulses
+
+    This pass check to make sure that the waveforms are compatible with the
+    hardware. This includes checking that the waveforms are piecewise linear or
+    piecewise constant. It also checks that the waveforms are compatible with
+    the given channels.
+
+    Args:
+        circuit: AnalogCircuit to validate waveforms for
+        level_couplings: Dictionary containing the given channels for the
+            sequence.
+
+    Raises:
+        ValueError: If the waveforms are not piecewise linear or piecewise
+            constant, e.g. the waveform is not continuous.
+        ValueError: If a waveform segment is not compatible with the given
+            channels.
+
+    """
     from bloqade.analysis.hardware.piecewise_constant import (
         ValidatePiecewiseConstantChannel,
     )
@@ -92,7 +163,18 @@ def validate_waveforms(
 def to_literal_and_canonicalize(
     circuit: analog_circuit.AnalogCircuit,
 ) -> analog_circuit.AnalogCircuit:
-    """5. convert to literals and canonicalize"""
+    """5. convert to literals and canonicalize
+
+    This pass converts all assgined variables to literals and canonicalizes the
+    circuit. This should simplify the circuit and make it faster to compile.
+
+    Args:
+        circuit: AnalogCircuit to convert to literals and canonicalize.
+
+    Returns:
+        circuit: AnalogCircuit with all literals and canonicalized.
+
+    """
     from bloqade.rewrite.common.assign_to_literal import AssignToLiteral
     from bloqade.rewrite.common.canonicalize import Canonicalizer
 
@@ -104,7 +186,29 @@ def generate_ahs_code(
     level_couplings: Dict,
     circuit: analog_circuit.AnalogCircuit,
 ) -> AHSComponents:
-    """6. generate ahs code"""
+    """6. generate ahs code
+
+    Generates the AHS code for the given circuit. This includes generating the
+    lattice data, global detuning, global amplitude, global phase, local
+    detuning and lattice site coefficients (if applicable).
+
+    Args:
+        capabilities (QuEraCapabilities | None): Capabilities of the hardware.
+        level_couplings (Dict): Dictionary containing the given channels for the
+            sequence.
+        circuit (AnalogCircuit): AnalogCircuit to generate AHS code for.
+
+    Returns:
+        ahs_components (AHSComponents): A collection of the AHS components
+            generated for the given circuit. Can be used to generate the QuEra
+            and Braket IR.
+
+    Raises:
+        ValueError: If the capabilities are not provided but the circuit has
+            a ParallelRegister. This is because the ParallelRegister requires
+            the capabilities to generate the lattice data.
+
+    """
     from bloqade.codegen.hardware_v2.lattice import GenerateLattice
     from bloqade.codegen.hardware_v2.lattice_site_coefficients import (
         GenerateLatticeSiteCoefficients,
@@ -159,7 +263,20 @@ def generate_ahs_code(
 def generate_quera_ir(
     ahs_components: AHSComponents, shots: int
 ) -> QuEraTaskSpecification:
-    """7. generate quera ir"""
+    """7. generate quera ir
+
+    This pass takes the AHS components and generates the QuEra IR.
+
+    Args:
+        ahs_components (AHSComponents): A collection of the AHS components
+            generated for the given circuit.
+        shots (int): Number of shots to run the circuit for.
+
+    Returns:
+        task_specification (QuEraTaskSpecification): QuEra IR for the given
+            circuit.
+
+    """
     import bloqade.submission.ir.task_specification as task_spec
     from bloqade.compiler.hardware.units import (
         convert_time_units,
@@ -236,7 +353,20 @@ def generate_quera_ir(
 def generate_braket_ir(
     ahs_components: AHSComponents, shots: int
 ) -> BraketTaskSpecification:
-    """7. generate braket ir"""
+    """7. generate braket ir
+
+    This pass takes the AHS components and generates the Braket IR.
+
+    Args:
+        ahs_components (AHSComponents): A collection of the AHS components
+            generated for the given circuit.
+        shots (int): Number of shots to run the circuit for.
+
+    Returns:
+        task_specification (BraketTaskSpecification): Braket IR for the given
+            circuit.
+
+    """
     import braket.ir.ahs as ahs
     from bloqade.compiler.hardware.units import (
         convert_time_units,
