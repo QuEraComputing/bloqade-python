@@ -64,7 +64,7 @@ def add_padding(
     return AddPadding(level_couplings=level_couplings).visit(circuit)
 
 
-def assign_program(
+def assign_circuit(
     circuit: analog_circuit.AnalogCircuit, assignments: Dict[str, ParamType]
 ) -> analog_circuit.AnalogCircuit:
     """3. Assign variables, validate here"""

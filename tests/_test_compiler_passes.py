@@ -5,7 +5,7 @@ from bloqade.ir import analog_circuit
 from bloqade.compiler.hardware.passes import (
     analyze_channels,
     add_padding,
-    assign_program,
+    assign_circuit,
     validate_waveforms,
     to_literal_and_canonicalize,
     generate_ahs_code,
@@ -30,7 +30,7 @@ capabilities = get_capabilities()
 
 level_couplings = analyze_channels(circuit)
 circuit = add_padding(circuit, level_couplings)
-circuit = assign_program(circuit, assignments)
+circuit = assign_circuit(circuit, assignments)
 validate_waveforms(level_couplings, circuit)
 circuit = to_literal_and_canonicalize(circuit)
 ahs_code = generate_ahs_code(capabilities, level_couplings, circuit)
