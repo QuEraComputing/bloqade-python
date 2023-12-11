@@ -13,11 +13,11 @@ from bloqade.submission.ir.braket import BraketTaskSpecification
 from bloqade.submission.ir.task_specification import QuEraTaskSpecification
 from bloqade.submission.ir.parallel import ParallelDecoder, ClusterLocationInfo
 from bloqade.submission.ir.capabilities import QuEraCapabilities
-from bloqade.codegen.hardware.piecewise_linear import (
+from bloqade.compiler.codegen.hardware.piecewise_linear import (
     PiecewiseLinearCodeGen,
     PiecewiseLinear,
 )
-from bloqade.codegen.hardware.piecewise_constant import (
+from bloqade.compiler.codegen.hardware.piecewise_constant import (
     PiecewiseConstantCodeGen,
     PiecewiseConstant,
 )

@@ -12,8 +12,8 @@ from bloqade.ir import (
 )
 import bloqade.ir.control.waveform as waveform
 import bloqade.ir.scalar as scalar
-from bloqade.rewrite.common.assign_variables import AssignBloqadeIR
-from bloqade.analysis.common.assignment_scan import AssignmentScan
+from bloqade.compiler.rewrite.common.assign_variables import AssignBloqadeIR
+from bloqade.compiler.analysis.common.assignment_scan import AssignmentScan
 from decimal import Decimal
 import pytest
 

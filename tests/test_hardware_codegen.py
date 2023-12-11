@@ -8,7 +8,7 @@ import numpy as np
 
 """
 import bloqade.ir.location as location
-from bloqade.codegen.hardware.quera import SchemaCodeGen
+from bloqade.compiler.codegen.hardware.quera import SchemaCodeGen
 from bloqade.submission.base import get_capabilities
 
 bloqade_program = (

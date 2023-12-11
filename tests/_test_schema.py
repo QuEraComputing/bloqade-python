@@ -1,6 +1,6 @@
-from bloqade.codegen.hardware.waveform import WaveformCodeGen
-from bloqade.codegen.hardware.field import FieldCodeGen
-from bloqade.codegen.hardware.pulse import PulseCodeGen
+from bloqade.compiler.codegen.hardware.waveform import WaveformCodeGen
+from bloqade.compiler.codegen.hardware.field import FieldCodeGen
+from bloqade.compiler.codegen.hardware.pulse import PulseCodeGen
 
 from bloqade.ir.pulse import RabiFrequencyAmplitude, RabiFrequencyPhase
 from bloqade.ir.scalar import cast

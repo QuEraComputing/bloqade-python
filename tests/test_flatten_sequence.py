@@ -4,9 +4,9 @@ import bloqade.ir.control.pulse as pulse
 import bloqade.ir.control.sequence as sequence
 from bloqade.ir.scalar import var
 
-from bloqade.analysis.common.scan_channels import ScanChannels
-from bloqade.rewrite.common.flatten import FlattenCircuit
-from bloqade.rewrite.common.add_padding import AddPadding
+from bloqade.compiler.analysis.common.scan_channels import ScanChannels
+from bloqade.compiler.rewrite.common.flatten import FlattenCircuit
+from bloqade.compiler.rewrite.common.add_padding import AddPadding
 from bloqade import tree_depth
 
 tree_depth(30)

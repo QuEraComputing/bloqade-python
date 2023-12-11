@@ -6,7 +6,7 @@ from bloqade import var
 
 # from bloqade.ir.scalar import var
 
-from bloqade.analysis.common.scan_channels import ScanChannels
+from bloqade.compiler.analysis.common.scan_channels import ScanChannels
 
 
 def generate_waveforms():

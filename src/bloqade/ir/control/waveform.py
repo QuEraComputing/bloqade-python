@@ -103,7 +103,7 @@ class Waveform(HashTrait, CanonicalizeTrait):
         return get_ir_figure(self, **assignments)
 
     def _get_data(self, npoints, **assignments):
-        from bloqade.analysis.common.assignment_scan import AssignmentScan
+        from bloqade.compiler.analysis.common.assignment_scan import AssignmentScan
 
         assignments = AssignmentScan(assignments).emit(self)
 
