@@ -38,7 +38,7 @@
         * [passes](bloqade/compiler/passes/index.md)
             * [hardware](bloqade/compiler/passes/hardware/index.md)
                 * [components](bloqade/compiler/passes/hardware/components.md)
-                * [passes](bloqade/compiler/passes/hardware/passes.md)
+                * [define](bloqade/compiler/passes/hardware/define.md)
                 * [units](bloqade/compiler/passes/hardware/units.md)
         * [rewrite](bloqade/compiler/rewrite/index.md)
             * [common](bloqade/compiler/rewrite/common/index.md)
