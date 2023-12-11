@@ -125,7 +125,7 @@ def generate_ahs_code(capabilities, level_couplings, final_circuit) -> AHSCompon
         (sm,) = extra_sm
 
         lattice_site_coefficients = GenerateLatticeSiteCoefficients(
-            sequence.rydberg, pulse.detuning, sm
+            parallel_decoder=ahs_lattice_data.parallel_decoder
         ).visit(final_circuit)
 
         local_detuning = GeneratePiecewiseLinearChannel(
