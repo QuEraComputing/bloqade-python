@@ -224,14 +224,14 @@ def generate_ahs_code(
             the capabilities to generate the lattice data.
 
     """
-    from bloqade.compiler.codegen.hardware_v2.lattice import GenerateLattice
-    from bloqade.compiler.codegen.hardware_v2.lattice_site_coefficients import (
+    from bloqade.compiler.codegen.hardware.lattice import GenerateLattice
+    from bloqade.compiler.codegen.hardware.lattice_site_coefficients import (
         GenerateLatticeSiteCoefficients,
     )
-    from bloqade.compiler.codegen.hardware_v2.piecewise_linear import (
+    from bloqade.compiler.codegen.hardware.piecewise_linear import (
         GeneratePiecewiseLinearChannel,
     )
-    from bloqade.compiler.codegen.hardware_v2.piecewise_constant import (
+    from bloqade.compiler.codegen.hardware.piecewise_constant import (
         GeneratePiecewiseConstantChannel,
     )
 

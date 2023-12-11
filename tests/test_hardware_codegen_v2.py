@@ -1,15 +1,15 @@
 import pytest
 from bloqade.ir.control import waveform, field, pulse, sequence
 from bloqade.ir import analog_circuit
-from bloqade.compiler.codegen.hardware_v2.piecewise_linear import (
+from bloqade.compiler.codegen.hardware.piecewise_linear import (
     PiecewiseLinear,
     GeneratePiecewiseLinearChannel,
 )
-from bloqade.compiler.codegen.hardware_v2.piecewise_constant import (
+from bloqade.compiler.codegen.hardware.piecewise_constant import (
     PiecewiseConstant,
     GeneratePiecewiseConstantChannel,
 )
-from bloqade.compiler.codegen.hardware_v2.lattice_site_coefficients import (
+from bloqade.compiler.codegen.hardware.lattice_site_coefficients import (
     GenerateLatticeSiteCoefficients,
 )
 from bloqade import piecewise_linear, piecewise_constant, start
@@ -19,7 +19,7 @@ from decimal import Decimal
 from bloqade.ir.scalar import cast
 from bloqade.submission.ir.parallel import ParallelDecoder, ClusterLocationInfo
 from bloqade.ir.location import ListOfLocations, ParallelRegister
-from bloqade.compiler.codegen.hardware_v2.lattice import GenerateLattice
+from bloqade.compiler.codegen.hardware.lattice import GenerateLattice
 from bloqade.submission.capabilities import get_capabilities
 
 
