@@ -6,6 +6,15 @@ from bloqade.ir.visitor import BloqadeIRVisitor
 from beartype.typing import Optional
 import numpy as np
 from decimal import Decimal
+from pydantic.dataclasses import dataclass
+from beartype.typing import List, Tuple
+
+
+@dataclass
+class AHSLatticeData:
+    sites: List[Tuple[Decimal, Decimal]]
+    filling: List[int]
+    parallel_decoder: Optional[ParallelDecoder]
 
 
 class GenerateLattice(BloqadeIRVisitor):
@@ -123,7 +132,11 @@ class GenerateLattice(BloqadeIRVisitor):
     def visit_analog_circuit_AnalogCircuit(self, node: analog_circuit.AnalogCircuit):
         self.visit(node.register)
 
-    def emit(self, node):
+    def emit(self, node) -> AHSLatticeData:
         self.visit(node)
 
-        return self.sites, self.filling, self.parallel_decoder
+        return AHSLatticeData(
+            sites=self.sites,
+            filling=self.filling,
+            parallel_decoder=self.parallel_decoder,
+        )

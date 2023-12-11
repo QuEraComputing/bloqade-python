@@ -21,29 +21,30 @@ def test():
 
     circuit = AnalogCircuit(lattice, Sequence({}))
 
-    sites, filling, parallel_decoder = GenerateLattice(capabilities).emit(circuit)
+    ahs_lattice_data = GenerateLattice(capabilities).emit(circuit)
 
-    assert sites == [(Decimal("0.0"), Decimal("0.0")), (Decimal("0.0"), Decimal("6.0"))]
-    assert filling == [1, 0]
-    assert parallel_decoder is None
+    assert ahs_lattice_data.sites == [
+        (Decimal("0.0"), Decimal("0.0")),
+        (Decimal("0.0"), Decimal("6.0")),
+    ]
+    assert ahs_lattice_data.filling == [1, 0]
+    assert ahs_lattice_data.parallel_decoder is None
 
     parallel_lattice = ParallelRegister(lattice, cast(5))
 
     with pytest.raises(ValueError):
-        sites, filling, parallel_decoder = GenerateLattice().emit(parallel_lattice)
+        ahs_lattice_data = GenerateLattice().emit(parallel_lattice)
 
-    sites, filling, parallel_decoder = GenerateLattice(capabilities).emit(
-        parallel_lattice
-    )
+    ahs_lattice_data = GenerateLattice(capabilities).emit(parallel_lattice)
 
-    assert sites == [
+    assert ahs_lattice_data.sites == [
         (Decimal("0.0"), Decimal("0.0")),
         (Decimal("0.0"), Decimal("6.0")),
         (Decimal("5.0"), Decimal("0.0")),
         (Decimal("5.0"), Decimal("6.0")),
     ]
-    assert filling == [1, 0, 1, 0]
-    assert parallel_decoder == ParallelDecoder(
+    assert ahs_lattice_data.filling == [1, 0, 1, 0]
+    assert ahs_lattice_data.parallel_decoder == ParallelDecoder(
         [
             ClusterLocationInfo(
                 cluster_index=(0, 0), global_location_index=0, cluster_location_index=0
