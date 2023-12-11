@@ -130,6 +130,8 @@ class GeneratePiecewiseConstantChannel(BloqadeIRVisitor):
 
     def visit_waveform_Sample(self, node: waveform.Sample) -> PiecewiseConstant:
         times, values = node.samples()
+        values[-1] = values[-2]
+
         return PiecewiseConstant(times, values)
 
     def visit_waveform_Add(self, node: waveform.Add) -> PiecewiseConstant:
