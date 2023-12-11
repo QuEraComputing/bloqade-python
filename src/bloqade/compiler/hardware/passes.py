@@ -27,7 +27,9 @@ from bloqade.rewrite.common.assign_variables import AssignBloqadeIR
 from bloqade.rewrite.common.add_padding import AddPadding
 from bloqade.rewrite.common.assign_to_literal import AssignToLiteral
 from bloqade.rewrite.common.canonicalize import Canonicalizer
-from beartype.typing import Dict
+from beartype.typing import Dict, Optional
+
+from bloqade.submission.ir.capabilities import QuEraCapabilities
 
 
 def analyze_channels(circuit: analog_circuit.AnalogCircuit) -> Dict:
@@ -99,22 +101,26 @@ def to_literal_and_canonicalize(
     return Canonicalizer().visit(circuit)
 
 
-def generate_ahs_code(capabilities, level_couplings, final_circuit) -> AHSComponents:
+def generate_ahs_code(
+    capabilities: Optional[QuEraCapabilities],
+    level_couplings: Dict,
+    circuit: analog_circuit.AnalogCircuit,
+) -> AHSComponents:
     """6. generate ahs code"""
 
-    ahs_lattice_data = GenerateLattice(capabilities).emit(final_circuit)
+    ahs_lattice_data = GenerateLattice(capabilities).emit(circuit)
 
     global_detuning = GeneratePiecewiseLinearChannel(
         sequence.rydberg, pulse.detuning, field.Uniform
-    ).visit(final_circuit)
+    ).visit(circuit)
 
     global_amplitude = GeneratePiecewiseLinearChannel(
         sequence.rydberg, pulse.rabi.amplitude, field.Uniform
-    ).visit(final_circuit)
+    ).visit(circuit)
 
     global_phase = GeneratePiecewiseConstantChannel(
         sequence.rydberg, pulse.rabi.phase, field.Uniform
-    ).visit(final_circuit)
+    ).visit(circuit)
 
     local_detuning = None
     lattice_site_coefficients = None
@@ -126,11 +132,11 @@ def generate_ahs_code(capabilities, level_couplings, final_circuit) -> AHSCompon
 
         lattice_site_coefficients = GenerateLatticeSiteCoefficients(
             parallel_decoder=ahs_lattice_data.parallel_decoder
-        ).visit(final_circuit)
+        ).visit(circuit)
 
         local_detuning = GeneratePiecewiseLinearChannel(
             sequence.rydberg, pulse.detuning, sm
-        ).visit(final_circuit)
+        ).visit(circuit)
 
     return AHSComponents(
         lattice_data=ahs_lattice_data,
