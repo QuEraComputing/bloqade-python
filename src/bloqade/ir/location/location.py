@@ -514,6 +514,9 @@ class ParallelRegister(ProgramStart):
     def n_dims(self):
         return self.atom_arrangement.n_dims
 
+    def __str__(self):
+        return "ParallelRegister:\n" + self.atom_arrangement.__str__()
+
 
 @dataclass(init=False)
 class ParallelRegisterInfo:

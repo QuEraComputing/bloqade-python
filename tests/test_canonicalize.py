@@ -1,4 +1,4 @@
-import bloqade.rewrite.common.canonicalize as canonicalize
+import bloqade.compiler.rewrite.common.canonicalize as canonicalize
 
 from bloqade.ir import scalar
 from bloqade.ir.control import waveform

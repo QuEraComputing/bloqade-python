@@ -3,7 +3,7 @@ from decimal import Decimal
 import pytest
 from bloqade import cast
 from bloqade.ir.location import ListOfLocations, ParallelRegister
-from bloqade.codegen.hardware_v2.lattice import GenerateLattice
+from bloqade.compiler.codegen.hardware.lattice import GenerateLattice
 from bloqade.submission.capabilities import get_capabilities
 from bloqade.submission.ir.parallel import ParallelDecoder, ClusterLocationInfo
 from bloqade.ir.analog_circuit import AnalogCircuit

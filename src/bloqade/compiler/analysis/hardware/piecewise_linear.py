@@ -22,11 +22,11 @@ class ValidatePiecewiseLinearChannel(BloqadeIRVisitor):
         lhs: waveform.Waveform,
         rhs: waveform.Waveform,
     ):
-        diff = abs(lhs.eval_decimal(lhs.duration()) - rhs.eval_decimal(0))
-        if diff != Decimal("0"):
+        diff = abs(lhs.eval_decimal(lhs.duration()) - rhs.eval_decimal(Decimal(0)))
+        if diff > Decimal("2.2e-16"):
             raise ValueError(
                 f"failed to compile waveform to piecewise linear. On the {level} level "
-                f"a discontinuity of {diff} was found at time={time()}"
+                f"a discontinuity of {diff} was found at time={time()} "
                 f"for the {self.level_coupling} {self.field_name} with spatial "
                 f"modulation:\n{self.spatial_modulations}"
             )

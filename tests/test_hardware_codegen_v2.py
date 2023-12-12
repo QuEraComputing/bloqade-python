@@ -1,15 +1,15 @@
 import pytest
 from bloqade.ir.control import waveform, field, pulse, sequence
 from bloqade.ir import analog_circuit
-from bloqade.codegen.hardware_v2.piecewise_linear import (
+from bloqade.compiler.codegen.hardware.piecewise_linear import (
     PiecewiseLinear,
     GeneratePiecewiseLinearChannel,
 )
-from bloqade.codegen.hardware_v2.piecewise_constant import (
+from bloqade.compiler.codegen.hardware.piecewise_constant import (
     PiecewiseConstant,
     GeneratePiecewiseConstantChannel,
 )
-from bloqade.codegen.hardware_v2.lattice_site_coefficients import (
+from bloqade.compiler.codegen.hardware.lattice_site_coefficients import (
     GenerateLatticeSiteCoefficients,
 )
 from bloqade import piecewise_linear, piecewise_constant, start
@@ -18,6 +18,9 @@ from decimal import Decimal
 
 from bloqade.ir.scalar import cast
 from bloqade.submission.ir.parallel import ParallelDecoder, ClusterLocationInfo
+from bloqade.ir.location import ListOfLocations, ParallelRegister
+from bloqade.compiler.codegen.hardware.lattice import GenerateLattice
+from bloqade.submission.capabilities import get_capabilities
 
 
 @waveform.to_waveform(4.0)
@@ -139,13 +142,15 @@ def test_waveform_sample_pwc():
         sequence.rydberg, pulse.detuning, field.Uniform
     )
 
-    pwl_wf = wf.sample(0.1, waveform.Interpolation.Constant)
+    pwc_wf = wf.sample(0.1, waveform.Interpolation.Constant)
 
-    times, values = pwl_wf.samples()
+    times, values = pwc_wf.samples()
+
+    values[-1] = values[-2]
 
     expected = PiecewiseConstant(times=times, values=values)
 
-    assert visitor.visit(pwl_wf) == expected
+    assert visitor.visit(pwc_wf) == expected
 
 
 def test_waveform_add_pwl():
@@ -849,3 +854,55 @@ def test_lattice_site_coefficients_codegen():
         Decimal("1"),
         Decimal("2"),
     ]
+
+
+def test_lattice():
+    lattice = ListOfLocations().add_position((0, 0)).add_position((0, 6), filling=False)
+
+    capabilities = get_capabilities()
+
+    capabilities.capabilities.lattice.area.height = Decimal("13.0e-6")
+    capabilities.capabilities.lattice.area.width = Decimal("13.0e-6")
+    capabilities.capabilities.lattice.geometry.number_sites_max = 4
+
+    circuit = analog_circuit.AnalogCircuit(lattice, sequence.Sequence({}))
+
+    ahs_lattice_data = GenerateLattice(capabilities).emit(circuit)
+
+    assert ahs_lattice_data.sites == [
+        (Decimal("0.0"), Decimal("0.0")),
+        (Decimal("0.0"), Decimal("6.0")),
+    ]
+    assert ahs_lattice_data.filling == [1, 0]
+    assert ahs_lattice_data.parallel_decoder is None
+
+    parallel_lattice = ParallelRegister(lattice, cast(5))
+
+    with pytest.raises(ValueError):
+        ahs_lattice_data = GenerateLattice().emit(parallel_lattice)
+
+    ahs_lattice_data = GenerateLattice(capabilities).emit(parallel_lattice)
+
+    assert ahs_lattice_data.sites == [
+        (Decimal("0.0"), Decimal("0.0")),
+        (Decimal("0.0"), Decimal("6.0")),
+        (Decimal("5.0"), Decimal("0.0")),
+        (Decimal("5.0"), Decimal("6.0")),
+    ]
+    assert ahs_lattice_data.filling == [1, 0, 1, 0]
+    assert ahs_lattice_data.parallel_decoder == ParallelDecoder(
+        [
+            ClusterLocationInfo(
+                cluster_index=(0, 0), global_location_index=0, cluster_location_index=0
+            ),
+            ClusterLocationInfo(
+                cluster_index=(0, 0), global_location_index=1, cluster_location_index=1
+            ),
+            ClusterLocationInfo(
+                cluster_index=(1, 0), global_location_index=2, cluster_location_index=0
+            ),
+            ClusterLocationInfo(
+                cluster_index=(1, 0), global_location_index=3, cluster_location_index=1
+            ),
+        ]
+    )

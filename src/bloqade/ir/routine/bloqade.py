@@ -57,9 +57,9 @@ class BloqadePythonRoutine(RoutineBase):
             )
 
     def _generate_ir(self, args, blockade_radius):
-        from bloqade.analysis.common.assignment_scan import AssignmentScan
-        from bloqade.rewrite.common.assign_variables import AssignBloqadeIR
-        from bloqade.codegen.emulator_ir import EmulatorProgramCodeGen
+        from bloqade.compiler.analysis.common.assignment_scan import AssignmentScan
+        from bloqade.compiler.rewrite.common.assign_variables import AssignBloqadeIR
+        from bloqade.compiler.codegen.emulator_ir import EmulatorProgramCodeGen
 
         circuit, params = self.circuit, self.params
 

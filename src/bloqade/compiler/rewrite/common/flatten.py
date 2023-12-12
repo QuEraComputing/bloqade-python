@@ -4,7 +4,7 @@ import bloqade.ir.control.field as field
 from bloqade.ir.visitor import BloqadeIRTransformer
 
 
-class FlattenBloqadeIR(BloqadeIRTransformer):
+class FlattenCircuit(BloqadeIRTransformer):
     # every visitor for sequence returns a Sequence
 
     def __init__(
