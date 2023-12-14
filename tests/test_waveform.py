@@ -167,14 +167,14 @@ def test_wvfm_app():
 
 
 def test_wvfm_neg():
-    wf = Constant(value=1.0, duration=3.0)
+    wf = Linear(start=1.0, stop=2.0, duration=3.0)
     wf2 = -wf
 
     assert wf2.print_node() == "Negative"
     assert wf2.children() == [wf]
     assert isinstance(hash(wf), int)
 
-    assert wf2.eval_decimal(Decimal("0.5")) == Decimal("-1.0")
+    assert wf2.eval_decimal(Decimal("1.5")) == Decimal("-1.5")
 
     mystdout = StringIO()
     p = PP(mystdout)
@@ -184,29 +184,31 @@ def test_wvfm_neg():
     assert (
         mystdout.getvalue()
         == "Negative\n"
-        + "└─ Constant\n"
-        + "   ├─ value\n"
+        + "└─ Linear\n"
+        + "   ├─ start\n"
         + "   │  ⇒ Literal: 1.0\n"
+        + "   ├─ stop\n"
+        + "   │  ⇒ Literal: 2.0\n"
         + "   └─ duration\n"
         + "      ⇒ Literal: 3.0"
     )
 
 
 def test_wvfm_scale():
-    wf = Constant(value=1.0, duration=3.0)
+    wf = Linear(start=1.0, stop=2.0, duration=3.0)
     wf2 = 2.0 * wf
 
     assert wf2.print_node() == "Scale"
     assert wf2.children() == [cast(2.0), wf]
     assert isinstance(hash(wf), int)
 
-    assert wf2.eval_decimal(Decimal("0.5")) == Decimal("2.0")
+    assert wf2.eval_decimal(Decimal("0.0")) == Decimal("2.0")
 
     wf3 = wf * 2.0
     assert wf3.print_node() == "Scale"
     assert wf3.children() == [cast(2.0), wf]
 
-    assert wf3.eval_decimal(Decimal("0.5")) == Decimal("2.0")
+    assert wf3.eval_decimal(Decimal("3.0")) == Decimal("4.0")
 
     mystdout = StringIO()
     p = PP(mystdout)
@@ -217,9 +219,11 @@ def test_wvfm_scale():
         mystdout.getvalue()
         == "Scale\n"
         + "├─ Literal: 2.0\n"
-        + "└─ Constant\n"
-        + "   ├─ value\n"
+        + "└─ Linear\n"
+        + "   ├─ start\n"
         + "   │  ⇒ Literal: 1.0\n"
+        + "   ├─ stop\n"
+        + "   │  ⇒ Literal: 2.0\n"
         + "   └─ duration\n"
         + "      ⇒ Literal: 3.0"
     )
@@ -335,10 +339,10 @@ def test_dunders():
             self.value = value
 
         def __radd__(self, other: Waveform):
-            return other.canonicalize(Constant(self.value, other.duration) + other)
+            return Constant(self.value, other.duration) + other
 
         def __rsub__(self, other: Waveform):
-            return other.canonicalize(Constant(self.value, other.duration) - other)
+            return Constant(self.value, other.duration) - other
 
     obj = MyNewType(2)
     assert Constant(2, 1) + obj == 2 * Constant(2, 1)

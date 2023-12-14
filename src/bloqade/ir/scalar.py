@@ -181,81 +181,9 @@ class Scalar:
 
     @staticmethod
     def canonicalize(expr: "Scalar") -> "Scalar":
-        def minmax(op, exprs):
-            new_exprs = set()
-            for expr in exprs:
-                if isinstance(expr, op):
-                    exprs = list(map(Scalar.canonicalize, expr.exprs))
-                    new_exprs.update(exprs)
-                else:
-                    expr = Scalar.canonicalize(expr)
-                    new_exprs.add(expr)
+        from bloqade.compiler.rewrite.common.canonicalize import Canonicalizer
 
-            if len(new_exprs) > 1:
-                return op(exprs=frozenset(new_exprs))
-            else:
-                (new_expr,) = new_exprs
-                return new_expr
-
-        if isinstance(expr, Negative):
-            sub_expr = expr.expr
-            if isinstance(sub_expr, Negative):
-                return Scalar.canonicalize(sub_expr.expr)
-            elif isinstance(sub_expr, Literal) and sub_expr.value <= 0:
-                return Literal(-sub_expr.value)
-        elif isinstance(expr, Add):
-            lhs = expr.lhs
-            rhs = expr.rhs
-            if isinstance(lhs, Literal) and lhs.value == 0:
-                return Scalar.canonicalize(rhs)
-            elif isinstance(rhs, Literal) and rhs.value == 0:
-                return Scalar.canonicalize(lhs)
-            elif isinstance(lhs, Literal) and isinstance(rhs, Literal):
-                return Literal(lhs.value + rhs.value)
-            elif (
-                isinstance(lhs, Negative)
-                and isinstance(lhs.expr, Literal)
-                and isinstance(rhs, Literal)
-            ):
-                return Literal(rhs.value - lhs.expr.value)
-            elif (
-                isinstance(rhs, Negative)
-                and isinstance(rhs.expr, Literal)
-                and isinstance(lhs, Literal)
-            ):
-                return Literal(lhs.value - rhs.expr.value)
-            elif isinstance(lhs, Negative) and lhs.expr == rhs:
-                return Literal(0.0)
-            elif isinstance(rhs, Negative) and rhs.expr == lhs:
-                return Literal(0.0)
-        elif isinstance(expr, Mul):
-            lhs = expr.lhs
-            rhs = expr.rhs
-            if isinstance(lhs, Literal) and lhs.value == 1:
-                return Scalar.canonicalize(rhs)
-            elif isinstance(rhs, Literal) and rhs.value == 1:
-                return Scalar.canonicalize(lhs)
-            elif isinstance(lhs, Literal) and isinstance(rhs, Literal):
-                return Literal(lhs.value * rhs.value)
-            elif isinstance(lhs, Literal) and lhs.value == 0:
-                return Literal(0.0)
-            elif isinstance(rhs, Literal) and rhs.value == 0:
-                return Literal(0.0)
-        elif isinstance(expr, Div):
-            lhs = expr.lhs
-            rhs = expr.rhs
-            if isinstance(lhs, Literal) and lhs.value == 0:
-                return Literal(0.0)
-            elif isinstance(rhs, Literal) and rhs.value == 1:
-                return Scalar.canonicalize(lhs)
-            elif isinstance(lhs, Literal) and isinstance(rhs, Literal):
-                return Literal(lhs.value / rhs.value)
-        elif isinstance(expr, Min):
-            return minmax(Min, expr.exprs)
-        elif isinstance(expr, Max):
-            return minmax(Max, expr.exprs)
-
-        return expr
+        return Canonicalizer().visit(expr)
 
 
 def check_variable_name(name: str) -> None:

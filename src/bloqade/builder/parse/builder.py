@@ -224,7 +224,7 @@ class Parser:
         from bloqade.ir.analog_circuit import AnalogCircuit
         from bloqade.ir.routine.params import Params, ScalarArg, VectorArg
         from bloqade.ir.routine.base import Routine
-        from bloqade.analysis.common.scan_variables import ScanVariables
+        from bloqade.compiler.analysis.common.scan_variables import ScanVariables
 
         self.reset(builder)
         self.read_register()

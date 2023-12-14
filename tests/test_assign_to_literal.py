@@ -1,6 +1,7 @@
-from bloqade import cast, constant
-from bloqade.rewrite.common.assign_to_literal import AssignToLiteral
-from bloqade.rewrite.common.assign_variables import AssignBloqadeIR
+from bloqade import cast
+from bloqade.ir import scalar
+from bloqade.compiler.rewrite.common.assign_to_literal import AssignToLiteral
+from bloqade.compiler.rewrite.common.assign_variables import AssignBloqadeIR
 from decimal import Decimal
 
 
@@ -15,9 +16,12 @@ def test_assign_to_literal():
     b = Decimal("2.0")
     c = Decimal("3.0")
 
-    wf_expr = constant(1.0, expr)
+    assigned_expr = AssignBloqadeIR(dict(a=a, b=b, c=c)).visit(expr)
 
-    new_expr = AssignBloqadeIR(dict(a=a, b=b, c=c)).visit(wf_expr)
-    literal_expr = AssignToLiteral().visit(new_expr)
-
-    assert cast((a - b) * c / Decimal("2.0")) == literal_expr.value
+    assert AssignToLiteral().visit(assigned_expr) == scalar.Div(
+        scalar.Mul(
+            scalar.Add(scalar.Literal(a), scalar.Negative(scalar.Literal(b))),
+            scalar.Literal(c),
+        ),
+        scalar.Literal(2.0),
+    )

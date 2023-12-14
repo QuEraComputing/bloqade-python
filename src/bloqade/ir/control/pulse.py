@@ -4,7 +4,12 @@ from functools import cached_property
 from bloqade.ir.scalar import Interval, Scalar, cast
 from bloqade.ir.tree_print import Printer
 from bloqade.ir.control.field import Field
-from bloqade.ir.control.hash_trait import HashTrait
+from bloqade.ir.control.traits import (
+    HashTrait,
+    AppendTrait,
+    SliceTrait,
+    CanonicalizeTrait,
+)
 from beartype.typing import List
 from pydantic.dataclasses import dataclass
 from bloqade.visualization import get_pulse_figure
@@ -78,7 +83,7 @@ detuning = Detuning()
 
 
 @dataclass(frozen=True)
-class PulseExpr(HashTrait):
+class PulseExpr(HashTrait, CanonicalizeTrait):
     """
     ```bnf
     <expr> ::= <pulse>
@@ -95,23 +100,6 @@ class PulseExpr(HashTrait):
 
     def __getitem__(self, s: slice) -> "PulseExpr":
         return PulseExpr.canonicalize(Slice(self, Interval.from_slice(s)))
-
-    @staticmethod
-    def canonicalize(expr: "PulseExpr") -> "PulseExpr":
-        # TODO: update canonicalization rules for appending pulses
-
-        if isinstance(expr, Append):
-            new_pulses = []
-            for pulse in expr.pulses:
-                if isinstance(pulse, Append):
-                    new_pulses += pulse.pulses
-                else:
-                    new_pulses.append(pulse)
-
-            new_pulses = list(map(PulseExpr.canonicalize, new_pulses))
-            return Append(new_pulses)
-        else:
-            return expr
 
     def __str__(self) -> str:
         ph = Printer()
@@ -132,7 +120,7 @@ class PulseExpr(HashTrait):
 
 
 @dataclass(frozen=True)
-class Append(PulseExpr):
+class Append(AppendTrait, PulseExpr):
     """
     ```bnf
     <append> ::= <expr>+
@@ -143,13 +131,9 @@ class Append(PulseExpr):
 
     __hash__ = PulseExpr.__hash__
 
-    @cached_property
-    def duration(self) -> Scalar:
-        duration = cast(0)
-        for p in self.pulses:
-            duration = duration + p.duration
-
-        return duration
+    @property
+    def _sub_exprs(self):
+        return self.pulses
 
     def print_node(self):
         return "Append"
@@ -248,15 +232,15 @@ class NamedPulse(PulseExpr):
 
 
 @dataclass(frozen=True)
-class Slice(PulseExpr):
+class Slice(SliceTrait, PulseExpr):
     pulse: PulseExpr
     interval: Interval
 
     __hash__ = PulseExpr.__hash__
 
-    @cached_property
-    def duration(self) -> Scalar:
-        return self.pulse.duration[self.interval.start : self.interval.stop]
+    @property
+    def _sub_expr(self):
+        return self.pulse
 
     def print_node(self):
         return "Slice"

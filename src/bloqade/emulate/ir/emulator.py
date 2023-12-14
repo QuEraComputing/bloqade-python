@@ -1,4 +1,7 @@
-from bloqade.codegen.common.json import BloqadeIRSerializer, BloqadeIRDeserializer
+from bloqade.compiler.codegen.common.json import (
+    BloqadeIRSerializer,
+    BloqadeIRDeserializer,
+)
 from bloqade.serialize import Serializer
 from dataclasses import dataclass
 from decimal import Decimal

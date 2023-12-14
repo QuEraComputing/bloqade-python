@@ -9,9 +9,15 @@ from bloqade.ir.scalar import (
     cast,
     var,
 )
-from bloqade.ir.control.hash_trait import HashTrait
+from bloqade.ir.control.traits import (
+    HashTrait,
+    AppendTrait,
+    SliceTrait,
+    CanonicalizeTrait,
+)
 
-from bisect import bisect_left
+
+from bisect import bisect_left, bisect_right
 from decimal import Decimal
 from pydantic.dataclasses import dataclass
 from beartype.typing import Any, Tuple, Union, List, Callable, Dict, Container
@@ -47,7 +53,7 @@ class Alignment(str, Enum):
 
 
 @dataclass(frozen=True)
-class Waveform(HashTrait):
+class Waveform(HashTrait, CanonicalizeTrait):
     """
     Waveform node in the IR.
 
@@ -97,7 +103,7 @@ class Waveform(HashTrait):
         return get_ir_figure(self, **assignments)
 
     def _get_data(self, npoints, **assignments):
-        from bloqade.analysis.common.assignment_scan import AssignmentScan
+        from bloqade.compiler.analysis.common.assignment_scan import AssignmentScan
 
         assignments = AssignmentScan(assignments).emit(self)
 
@@ -148,27 +154,15 @@ class Waveform(HashTrait):
 
     def __add__(self, other: "Waveform") -> "Waveform":
         if isinstance(other, Waveform):
-            return self.canonicalize(Add(self, other))
+            return self.add(other)
 
         return NotImplemented
-
-    # def __radd__(self, other: "Waveform") -> "Waveform":
-    #     if isinstance(other, Waveform):
-    #         return self.canonicalize(Add(self, other))
-
-    #     return NotImplemented
 
     def __sub__(self, other: "Waveform") -> "Waveform":
         if isinstance(other, Waveform):
-            return self + (-other)
+            return self.add(-other)
 
         return NotImplemented
-
-    # def __rsub__(self, other: "Waveform") -> "Waveform":
-    #     if isinstance(other, Waveform):
-    #         return other + (-self)
-
-    #     return NotImplemented
 
     def __mul__(self, other: Any) -> "Waveform":
         return self.scale(cast(other))
@@ -183,40 +177,6 @@ class Waveform(HashTrait):
         ph = Printer()
         ph.print(self)
         return ph.get_value()
-
-    @staticmethod
-    def canonicalize(expr: "Waveform") -> "Waveform":
-        if isinstance(expr, Append):
-            new_waveforms = []
-            for waveform in expr.waveforms:
-                if isinstance(waveform, Append):
-                    new_waveforms += waveform.waveforms
-                elif waveform.duration == cast(0):
-                    # skip zero duration waveforms
-                    continue
-                else:
-                    new_waveforms.append(waveform)
-
-            new_waveforms = list(map(Waveform.canonicalize, new_waveforms))
-            if len(new_waveforms) == 0:
-                return Constant(0, 0)
-            elif len(new_waveforms) == 1:
-                return new_waveforms[0]
-            else:
-                return Append(new_waveforms)
-        elif isinstance(expr, Add):
-            left = Waveform.canonicalize(expr.left)
-            right = Waveform.canonicalize(expr.right)
-            if left == right:
-                return left.scale(2)
-            if left.duration == cast(0):
-                return right
-            if right.duration == cast(0):
-                return left
-            else:
-                return expr
-        else:
-            return expr
 
     def _repr_pretty_(self, p, cycle):
         Printer(p).print(self, cycle)
@@ -683,7 +643,7 @@ class Smooth(Waveform):
 
 
 @dataclass(frozen=True)
-class Slice(Waveform):
+class Slice(SliceTrait, Waveform):
     """
     ```
     <slice> ::= <waveform> <scalar.interval>
@@ -695,22 +655,15 @@ class Slice(Waveform):
 
     __hash__ = Waveform.__hash__
 
-    @cached_property
-    def duration(self):
-        from bloqade.ir.scalar import Slice
-
-        if self.interval.start is None and self.interval.stop is None:
-            raise ValueError("Interval must have a start or stop value")
-
-        return Slice(self.waveform.duration, self.interval)
+    @property
+    def _sub_expr(self):
+        return self.waveform
 
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
         if clock_s > self.duration(**kwargs):
             return Decimal(0)
-        if self.interval.start is None:
-            start_time = Decimal(0)
-        else:
-            start_time = self.interval.start(**kwargs)
+
+        start_time = self.start(**kwargs)
         return self.waveform.eval_decimal(clock_s + start_time, **kwargs)
 
     def print_node(self):
@@ -721,7 +674,7 @@ class Slice(Waveform):
 
 
 @dataclass(frozen=True)
-class Append(Waveform):
+class Append(AppendTrait, Waveform):
     """
     ```bnf
     <append> ::= <waveform>+
@@ -732,13 +685,9 @@ class Append(Waveform):
 
     __hash__ = Waveform.__hash__
 
-    @cached_property
-    def duration(self):
-        duration = cast(0.0)
-        for waveform in self.waveforms:
-            duration = duration + waveform.duration
-
-        return duration
+    @property
+    def _sub_exprs(self):
+        return self.waveforms
 
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
         append_time = Decimal(0)
@@ -913,12 +862,16 @@ class Sample(Waveform):
 
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
         times, values = self.samples(**kwargs)
-        i = bisect_left(times, clock_s)
 
-        if i == len(times):
-            return Decimal(0)
+        if clock_s < 0 or clock_s > times[-1]:
+            return Decimal("0")
 
         if self.interpolation is Interpolation.Linear:
+            i = bisect_left(times, clock_s)
+
+            if i == len(times):
+                return Decimal(0)
+
             if i == 0:
                 return values[i]
             else:
@@ -926,10 +879,8 @@ class Sample(Waveform):
                 return slope * (clock_s - times[i - 1]) + values[i - 1]
 
         elif self.interpolation is Interpolation.Constant:
-            if i == 0:
-                return values[i]
-            else:
-                return values[i - 1]
+            i = bisect_right(times[1:], clock_s)
+            return values[i]
 
     def print_node(self):
         return f"Sample {self.interpolation.value}"

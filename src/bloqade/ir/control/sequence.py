@@ -1,7 +1,12 @@
 from collections import OrderedDict
 from functools import cached_property
 from bloqade.ir.control.pulse import PulseExpr, Pulse
-from bloqade.ir.control.hash_trait import HashTrait
+from bloqade.ir.control.traits import (
+    HashTrait,
+    AppendTrait,
+    SliceTrait,
+    CanonicalizeTrait,
+)
 from bloqade.ir.scalar import Interval, Scalar, cast
 from bloqade.ir.tree_print import Printer
 
@@ -42,11 +47,17 @@ class RydbergLevelCoupling(LevelCoupling):
     def print_node(self):
         return "RydbergLevelCoupling"
 
+    def __str__(self):
+        return "Rydberg"
+
 
 @dataclass(frozen=True)
 class HyperfineLevelCoupling(LevelCoupling):
     def print_node(self):
         return "HyperfineLevelCoupling"
+
+    def __str__(self):
+        return "Hyperfine"
 
 
 rydberg = RydbergLevelCoupling()
@@ -54,7 +65,7 @@ hyperfine = HyperfineLevelCoupling()
 
 
 @dataclass(frozen=True)
-class SequenceExpr(HashTrait):
+class SequenceExpr(HashTrait, CanonicalizeTrait):
     __hash__ = HashTrait.__hash__
 
     def append(self, other: "SequenceExpr") -> "SequenceExpr":
@@ -65,10 +76,6 @@ class SequenceExpr(HashTrait):
 
     def __getitem__(self, s: slice) -> "Slice":
         return self.canonicalize(Slice(self, Interval.from_slice(s)))
-
-    @staticmethod
-    def canonicalize(expr: "SequenceExpr") -> "SequenceExpr":
-        return expr
 
     def __str__(self) -> str:
         ph = Printer()
@@ -89,18 +96,14 @@ class SequenceExpr(HashTrait):
 
 
 @dataclass(frozen=True)
-class Append(SequenceExpr):
+class Append(AppendTrait, SequenceExpr):
     sequences: List[SequenceExpr]
 
     __hash__ = SequenceExpr.__hash__
 
-    @cached_property
-    def duration(self) -> Scalar:
-        duration = cast(0)
-        for p in self.sequences:
-            duration = duration + p.duration
-
-        return duration
+    @property
+    def _sub_exprs(self):
+        return self.sequences
 
     def children(self):
         return self.sequences
@@ -201,15 +204,15 @@ class NamedSequence(SequenceExpr):
 
 
 @dataclass(frozen=True)
-class Slice(SequenceExpr):
+class Slice(SliceTrait, SequenceExpr):
     sequence: SequenceExpr
     interval: Interval
 
     __hash__ = SequenceExpr.__hash__
 
-    @cached_property
-    def duration(self) -> Scalar:
-        return self.sequence.duration[self.interval.start : self.interval.stop]
+    @property
+    def _sub_expr(self):
+        return self.sequence
 
     def children(self):
         return [self.interval, self.sequence]

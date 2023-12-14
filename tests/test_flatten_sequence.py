@@ -4,9 +4,9 @@ import bloqade.ir.control.pulse as pulse
 import bloqade.ir.control.sequence as sequence
 from bloqade.ir.scalar import var
 
-from bloqade.analysis.common.scan_channels import ScanChannels
-from bloqade.rewrite.common.flatten_sequence import FlattenBloqadeIR
-from bloqade.rewrite.common.add_padding import AddPadding
+from bloqade.compiler.analysis.common.scan_channels import ScanChannels
+from bloqade.compiler.rewrite.common.flatten import FlattenCircuit
+from bloqade.compiler.rewrite.common.add_padding import AddPadding
 from bloqade import tree_depth
 
 tree_depth(30)
@@ -72,7 +72,7 @@ def test_flatten_pulses_simple():
     )
 
     p_filled = AddPadding(field_names=field_names).visit(p_test)
-    p_flattened = FlattenBloqadeIR(field_names=field_names).visit(p_filled)
+    p_flattened = FlattenCircuit(field_names=field_names).visit(p_filled)
 
     assert p_filled_expected == p_filled
     assert p_flattened_expected == p_flattened
@@ -175,7 +175,7 @@ def test_flatten_pulses_complex():
     )
 
     p_filled = AddPadding(field_names=field_names).visit(p_test)
-    p_flattened = FlattenBloqadeIR(field_names=field_names).visit(p_filled)
+    p_flattened = FlattenCircuit(field_names=field_names).visit(p_filled)
 
     assert p_filled_expected == p_filled
     assert p_flattened_expected == p_flattened
@@ -240,7 +240,7 @@ def test_flatten_sequence_simple():
 
     level_couplings = ScanChannels().scan(s_test)
     s_filled = AddPadding(level_couplings=level_couplings).visit(s_test)
-    s_flattened = FlattenBloqadeIR(level_couplings=level_couplings).visit(s_filled)
+    s_flattened = FlattenCircuit(level_couplings=level_couplings).visit(s_filled)
     print(s_filled_expected)
     print(s_filled)
     assert s_filled_expected == s_filled
@@ -307,7 +307,7 @@ def test_flatten_sequence_simple_2():
 
     level_couplings = ScanChannels().scan(s_test)
     s_filled = AddPadding(level_couplings=level_couplings).visit(s_test)
-    s_flattened = FlattenBloqadeIR(level_couplings=level_couplings).visit(s_filled)
+    s_flattened = FlattenCircuit(level_couplings=level_couplings).visit(s_filled)
 
     assert s_filled_expected == s_filled
     assert s_flattened_expected == s_flattened
