@@ -1,6 +1,4 @@
-import numpy as np
-import plum
-from bloqade.ir.location import ListOfLocations
+from bloqade.ir.location import ListOfLocations, PositionArray
 from bloqade.ir.routine.base import Routine
 from bloqade.ir.control.waveform import Waveform, Linear, Constant
 from bloqade.builder.typing import ScalarType, LiteralType
@@ -8,6 +6,7 @@ from beartype import beartype
 from beartype.typing import TYPE_CHECKING, List, Optional, Union, Dict, Any, Tuple
 from decimal import Decimal
 from networkx import Graph
+import numpy as np
 
 if TYPE_CHECKING:
     from bloqade.submission.ir.capabilities import QuEraCapabilities
@@ -310,17 +309,17 @@ def rydberg_h(
     return prog.parse()
 
 
-@plum.dispatch
+@beartype
 def from_unit_disk_graph(
-    positions: List[Tuple[LiteralType, LiteralType]],
+    positions: Union[PositionArray, List[Tuple[LiteralType, LiteralType]]],
     graph: Graph,
     radius_physical: LiteralType = 7.0,
 ) -> ListOfLocations:
     """Generates a Physical Geometry given a unit disk graph.
 
     Args:
-        positions (List[Tuple[LiteralType, LiteralType]]): The list of
-            positions for the nodes
+        positions (List[Tuple[LiteralType, LiteralType]] | ndarray):
+            The list of positions for the nodes
         graph (Graph): A graph describing the connectivity of the nodes
         radius_physical (LiteralType): The target physical radius
             (in micrometers) of the physical geometry
@@ -336,8 +335,8 @@ def from_unit_disk_graph(
 
     positions = np.asarray(positions)
 
-    rmin = 0
-    rmax = np.inf
+    min_radius = 0
+    max_radius = np.inf
 
     dists = {}
 
@@ -346,13 +345,13 @@ def from_unit_disk_graph(
             d = dists.get((i, j), np.linalg.norm(pos_i - pos_j))
 
             if (i, j) in graph.edges:
-                rmin = max(rmin, d)
+                min_radius = max(min_radius, d)
             else:
-                rmax = min(rmax, d)
+                max_radius = min(max_radius, d)
 
-    if rmin > rmax:
+    if min_radius > max_radius:
         raise ValueError("Positions do not form the unit disk graph specified by graph")
 
-    r_udg = np.sqrt(rmin * rmax)
+    r_udg = np.sqrt(min_radius * max_radius)
 
     return start.add_position(positions).scale(radius_physical / r_udg)
