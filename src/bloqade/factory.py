@@ -328,7 +328,7 @@ def from_unit_disk_graph(
         ValueError: The provided positions comply with the graph provided
 
     Returns:
-        ListOfLocations: The equivilant physical geometry
+        ListOfLocations: The equivalent physical geometry
     """
 
     from bloqade import start
