@@ -1,4 +1,4 @@
-from bloqade.ir.location import ListOfLocations, PositionArray
+from bloqade.ir.location.location import ListOfLocations, PositionArray
 from bloqade.ir.routine.base import Routine
 from bloqade.ir.control.waveform import Waveform, Linear, Constant
 from bloqade.builder.typing import ScalarType, LiteralType
