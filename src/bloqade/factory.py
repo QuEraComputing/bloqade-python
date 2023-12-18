@@ -1,9 +1,13 @@
+import numpy as np
+import plum
+from bloqade.ir.location import ListOfLocations
 from bloqade.ir.routine.base import Routine
 from bloqade.ir.control.waveform import Waveform, Linear, Constant
-from bloqade.builder.typing import ScalarType
+from bloqade.builder.typing import ScalarType, LiteralType
 from beartype import beartype
-from beartype.typing import TYPE_CHECKING, List, Optional, Union, Dict, Any
+from beartype.typing import TYPE_CHECKING, List, Optional, Union, Dict, Any, Tuple
 from decimal import Decimal
+from networkx import Graph
 
 if TYPE_CHECKING:
     from bloqade.submission.ir.capabilities import QuEraCapabilities
@@ -304,3 +308,51 @@ def rydberg_h(
     prog = prog.args(args)
 
     return prog.parse()
+
+
+@plum.dispatch
+def from_unit_disk_graph(
+    positions: List[Tuple[LiteralType, LiteralType]],
+    graph: Graph,
+    radius_physical: LiteralType = 7.0,
+) -> ListOfLocations:
+    """Generates a Physical Geometry given a unit disk graph.
+
+    Args:
+        positions (List[Tuple[LiteralType, LiteralType]]): The list of
+            positions for the nodes
+        graph (Graph): A graph describing the connectivity of the nodes
+        radius_physical (LiteralType): The target physical radius
+            (in micrometers) of the physical geometry
+
+    Raises:
+        ValueError: The provided positions comply with the graph provided
+
+    Returns:
+        ListOfLocations: The equivilant physical geometry
+    """
+
+    from bloqade import start
+
+    positions = np.asarray(positions)
+
+    rmin = 0
+    rmax = np.inf
+
+    dists = {}
+
+    for i, pos_i in enumerate(positions[:]):
+        for j, pos_j in enumerate(positions[i + 1 :], i + 1):
+            d = dists.get((i, j), np.linalg.norm(pos_i - pos_j))
+
+            if (i, j) in graph.edges:
+                rmin = max(rmin, d)
+            else:
+                rmax = min(rmax, d)
+
+    if rmin > rmax:
+        raise ValueError("Positions do not form the unit disk graph specified by graph")
+
+    r_udg = np.sqrt(rmin * rmax)
+
+    return start.add_position(positions).scale(radius_physical / r_udg)
