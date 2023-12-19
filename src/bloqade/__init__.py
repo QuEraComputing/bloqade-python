@@ -9,6 +9,7 @@ from bloqade.factory import (
     linear,
     constant,
     rydberg_h,
+    from_unit_disk_graph,
 )
 import bloqade.ir as _ir
 from bloqade.constants import RB_C6
@@ -52,6 +53,7 @@ __all__ = [
     "loads",
     "dumps",
     "rydberg_h",
+    "from_unit_disk_graph",
     "waveform",
     "get_capabilities",
 ]

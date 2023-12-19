@@ -1,5 +1,6 @@
 import pytest
 from bloqade import (
+    from_unit_disk_graph,
     waveform,
     rydberg_h,
     piecewise_linear,
@@ -27,6 +28,7 @@ from bloqade.ir.routine.params import Params, ScalarArg
 
 import numpy as np
 from decimal import Decimal
+from networkx import Graph
 
 
 def test_get_capabilities():
@@ -238,3 +240,31 @@ def test_rydberg_h_2():
     print(AnalogCircuit(register, sequence))
 
     assert prog.parse_circuit() == AnalogCircuit(register, sequence)
+
+
+def test_from_unit_disk_graph():
+    positions = [(0, 0), (1, 0), (0, 1), (1, 1), (2, 2)]
+
+    graph = Graph()
+    graph.add_edges_from([(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3), (3, 4)])
+
+    min_radius = np.sqrt(2)
+    max_radius = np.sqrt(5)
+    udg_radious = np.sqrt(min_radius * max_radius)
+
+    ratio = 6.0 / udg_radious
+    geometry = from_unit_disk_graph(positions, graph, 6.0)
+
+    expected_positions = np.asarray(positions) * ratio
+    positions = np.asarray(
+        [tuple(float(ele()) for ele in loc.position) for loc in geometry.enumerate()]
+    )
+
+    assert np.allclose(positions, expected_positions)
+
+    graph.add_edge(0, 4)
+
+    with pytest.raises(ValueError):
+        geometry = from_unit_disk_graph(positions, graph, 6.0)
+
+    # assert False

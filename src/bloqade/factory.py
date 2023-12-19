@@ -352,6 +352,6 @@ def from_unit_disk_graph(
     if min_radius > max_radius:
         raise ValueError("Positions do not form the unit disk graph specified by graph")
 
-    r_udg = np.sqrt(min_radius * max_radius)
+    udg_radius = np.sqrt(min_radius * max_radius)
 
-    return start.add_position(positions).scale(radius_physical / r_udg)
+    return start.add_position(positions).scale(radius_physical / udg_radius)
