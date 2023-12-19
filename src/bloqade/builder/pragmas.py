@@ -6,6 +6,7 @@ if TYPE_CHECKING:
     from bloqade.builder.assign import Assign, BatchAssign, ListAssign
     from bloqade.builder.parallelize import Parallelize
     from bloqade.builder.args import Args
+    from bloqade.builder.rowify import Rowify
 
 
 class AddArgs:
@@ -141,3 +142,32 @@ class Parallelizable:
         from bloqade.builder.parallelize import Parallelize
 
         return Parallelize(cluster_spacing, self)
+
+
+class CoarseRowable:
+    def coarse_rows(self) -> "Rowify":
+        """
+
+        Coarse rows to fit constraints of the QPU.
+
+        The amount of coarsen is determined by the QPU's constraints
+        which are specific to each device.
+
+        ### Usage Example:
+        ```
+        >>> reg = start.add_position([(0,0),(0,5),(0, 3.5))])
+        >>> prog = reg.rydberg.rabi.amplitude.uniform.constant("value", 5.0)
+        >>> coarse_prog = prog.coarse_rows()
+        ```
+
+        - Your next steps are:
+            `...coarse_rows().parallelize(cluster_spacing)`: parallelize
+            the program register, duplicating the geometry and waveforms
+            to take advantage of all available space/qubits on the QPU.
+            `...coarse_rows().braket`: select the braket local emulator or
+            QuEra hardware on the cloud
+
+        """
+        from bloqade.builder.rowify import Rowify
+
+        return Rowify(self)
