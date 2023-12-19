@@ -3,10 +3,11 @@ from beartype import beartype
 from bloqade.builder.typing import LiteralType
 from bloqade.builder.base import Builder
 from bloqade.builder.backend import BackendRoute
+from bloqade.builder.pragmas import RowCoarsable
 from bloqade.ir import cast
 
 
-class Parallelize(BackendRoute, Builder):
+class Parallelize(BackendRoute, RowCoarsable, Builder):
     @beartype
     def __init__(
         self, cluster_spacing: LiteralType, parent: Optional[Builder] = None

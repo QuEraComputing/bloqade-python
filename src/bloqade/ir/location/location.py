@@ -522,6 +522,8 @@ class ParallelRegister(ProgramStart):
 @dataclass
 class RowifyRegister(ProgramStart):
     atom_arrangement: Union[AtomArrangement, ParallelRegister]
+    row_constraint: Optional[Scalar]
+    radial_constraint: Optional[Scalar]
 
     @property
     def n_atoms(self):

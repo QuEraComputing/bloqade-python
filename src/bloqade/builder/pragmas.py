@@ -1,4 +1,4 @@
-from beartype.typing import List, Dict, Union, TYPE_CHECKING
+from beartype.typing import List, Dict, Union, Optional, TYPE_CHECKING
 from bloqade.builder.typing import LiteralType, ParamType
 from bloqade.ir.scalar import Variable
 
@@ -131,8 +131,8 @@ class Parallelizable:
         ```
 
         - Your next steps are:
-             `...parallelize(cluster_spacing).bloqade`: select the bloqade
-                local emulator backend
+            `...parallelize(cluster_spacing).coarse_rows()`: coarse rows to fit
+                constraints of the QPU.
              `...parallelize(cluster_spacing).braket`: select braket
                 local emulator or QuEra hardware on the cloud
              `...parallelize(cluster_spacing).device(specifier_string)`: select
@@ -144,8 +144,12 @@ class Parallelizable:
         return Parallelize(cluster_spacing, self)
 
 
-class CoarseRowable:
-    def coarse_rows(self) -> "Rowify":
+class RowCoarsable:
+    def coarse_rows(
+        self,
+        row_constraint: Optional[LiteralType] = None,
+        radial_constraint: Optional[LiteralType] = None,
+    ) -> "Rowify":
         """
 
         Coarse rows to fit constraints of the QPU.
@@ -161,13 +165,10 @@ class CoarseRowable:
         ```
 
         - Your next steps are:
-            `...coarse_rows().parallelize(cluster_spacing)`: parallelize
-            the program register, duplicating the geometry and waveforms
-            to take advantage of all available space/qubits on the QPU.
             `...coarse_rows().braket`: select the braket local emulator or
             QuEra hardware on the cloud
 
         """
         from bloqade.builder.rowify import Rowify
 
-        return Rowify(self)
+        return Rowify(row_constraint, radial_constraint, self)

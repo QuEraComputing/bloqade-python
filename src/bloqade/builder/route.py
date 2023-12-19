@@ -6,6 +6,7 @@ from bloqade.builder.pragmas import (
     BatchAssignable,
     Parallelizable,
     AddArgs,
+    RowCoarsable,
 )
 from bloqade.builder.backend import BackendRoute
 
@@ -14,7 +15,9 @@ class PulseRoute(Drive, LevelCoupling, Field, Rabi):
     pass
 
 
-class PragmaRoute(Assignable, BatchAssignable, Parallelizable, AddArgs, BackendRoute):
+class PragmaRoute(
+    Assignable, BatchAssignable, Parallelizable, RowCoarsable, AddArgs, BackendRoute
+):
     pass
 
 
