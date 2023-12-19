@@ -1,7 +1,7 @@
 from bloqade.builder.base import Builder
 from bloqade.builder.sequence_builder import SequenceBuilder
 from bloqade.builder.drive import Drive
-from bloqade.ir.control.sequence import Sequence
+from bloqade.ir.control.sequence import SequenceExpr
 from beartype import beartype
 
 
@@ -11,7 +11,7 @@ class ProgramStart(Drive, Builder):
     """
 
     @beartype
-    def apply(self, sequence: Sequence) -> SequenceBuilder:
+    def apply(self, sequence: SequenceExpr) -> SequenceBuilder:
         """
         Apply a pre-built sequence to a program.
 
