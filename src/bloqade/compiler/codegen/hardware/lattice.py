@@ -129,6 +129,27 @@ class GenerateLattice(BloqadeIRVisitor):
         self.filling = filling
         self.parallel_decoder = ParallelDecoder(mapping=mapping)
 
+    def visit_location_RowifyRegister(self, node: location.RowifyRegister):
+        self.visit(node.register)
+
+        vertical_spacing_min = (
+            self.capabilities.capabilities.lattice.geometry.spacing_vertical_min
+        )
+        row_constraint = (
+            node.row_constraint
+            if node.row_constraint is not None
+            else vertical_spacing_min
+        )
+
+        spacing_radial_min = (
+            self.capabilities.capabilities.lattice.geometry.spacing_radial_min
+        )
+        radial_constraint = (
+            node.radial_constraint
+            if node.radial_constraint is not None
+            else spacing_radial_min
+        )
+
     def visit_analog_circuit_AnalogCircuit(self, node: analog_circuit.AnalogCircuit):
         self.visit(node.register)
 
