@@ -18,7 +18,7 @@ def __row_cluster(points0: np.ndarray, threshold: float, plotit=False):
     i = 0
     for ctr in range(len(points0) - 1):
         dists = abs(points.reshape(len(points), 1) - points.reshape(1, len(points)))
-        dists[range(len(points)), range(len(points))] = np.inf
+        np.fill_diagonal(dists, np.inf)
 
         if dists.min() >= threshold:
             break
@@ -51,11 +51,13 @@ def rowify(points0: np.ndarray, horizontal_threshold: float, row_threshold: floa
 
     RETURNS
     positions     - Positions of each atom in the array
-    assignments_F - "Forward" assignements; a list indexed by vertex, with values of the atom index.
-                       Note that multiple vertices may be assigned to a single atom (many-to-one)
-    assignments_R - "Reverse" assignements; A dict indexed by atom number, with values as a list of
-                       every vertex assigned to that atom.
-    ERROR_OUT - The average root-mean-square error between vertex positions and atom positions
+    assignments_F - "Forward" assignements; a list indexed by vertex, with values
+        of the atom index. Note that multiple vertices may be assigned to a single
+        atom (many-to-one)
+    assignments_R - "Reverse" assignements; A dict indexed by atom number, with
+        values as a list of every vertex assigned to that atom.
+    ERROR_OUT - The average root-mean-square error between vertex positions and
+        atom positions
 
     """
 
