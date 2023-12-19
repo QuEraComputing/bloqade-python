@@ -498,6 +498,14 @@ class ParallelRegister(ProgramStart):
     atom_arrangement: AtomArrangement
     cluster_spacing: Scalar
 
+    @staticmethod
+    @beartype
+    def create(
+        atom_arrangement: AtomArrangement,
+        cluster_spacing: ScalarType,
+    ):
+        return ParallelRegister(atom_arrangement, cast(cluster_spacing))
+
     @property
     def n_atoms(self):
         return self.atom_arrangement.n_atoms
@@ -524,6 +532,18 @@ class RowifyRegister(ProgramStart):
     atom_arrangement: Union[AtomArrangement, ParallelRegister]
     row_constraint: Optional[Scalar]
     radial_constraint: Optional[Scalar]
+
+    @staticmethod
+    def create(
+        atom_arrangement: Union[AtomArrangement, ParallelRegister],
+        row_constraint: Optional[ScalarType] = None,
+        radial_constraint: Optional[ScalarType] = None,
+    ):
+        return RowifyRegister(
+            atom_arrangement,
+            cast(row_constraint) if row_constraint else None,
+            cast(radial_constraint) if radial_constraint else None,
+        )
 
     @property
     def n_atoms(self):
