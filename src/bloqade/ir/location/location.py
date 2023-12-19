@@ -515,7 +515,33 @@ class ParallelRegister(ProgramStart):
         return self.atom_arrangement.n_dims
 
     def __str__(self):
-        return "ParallelRegister:\n" + self.atom_arrangement.__str__()
+        sub_str = self.atom_arrangement.__str__()
+        return "ParallelRegister:\n" + sub_str.replace("\n", "\n    ")
+
+
+@dataclass
+class RowifyRegister(ProgramStart):
+    atom_arrangement: Union[AtomArrangement, ParallelRegister]
+
+    @property
+    def n_atoms(self):
+        return self.atom_arrangement.n_atoms
+
+    @property
+    def n_sites(self):
+        return self.atom_arrangement.n_sites
+
+    @property
+    def n_vacant(self):
+        return self.atom_arrangement.n_vacant
+
+    @property
+    def n_dims(self):
+        return self.atom_arrangement.n_dims
+
+    def __str__(self):
+        sub_str = self.atom_arrangement.__str__()
+        return "RowifyRegister:\n" + sub_str.replace("\n", "\n    ")
 
 
 @dataclass(init=False)
