@@ -8,6 +8,7 @@ authors = [
 dependencies = [
     "numpy>=1.26.2",
     "networkx>=3.2.1",
+    "bloqade>=0.14.0",
 ]
 requires-python = ">=3.9,<3.12"
 readme = "README.md"
@@ -24,5 +25,5 @@ package-type = "library"
 
 [tool.pdm.dev-dependencies]
 dev = [
-
+    "-e file:///${PROJECT_ROOT}/../..#egg=bloqade",
 ]
