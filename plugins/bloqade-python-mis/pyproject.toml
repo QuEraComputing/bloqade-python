@@ -1,0 +1,28 @@
+[project]
+name = "bloqade-python-mis"
+version = "0.1.0"
+description = "A plug-in for generating MIS problems for Bloqade"
+authors = [
+    {name = "Phillip Weinberg", email = "pweinberg@quera.com"},
+]
+dependencies = [
+    "numpy>=1.26.2",
+    "networkx>=3.2.1",
+]
+requires-python = ">=3.9,<3.12"
+readme = "README.md"
+license = {text = "Apache 2.0"}
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+
+[tool.pdm]
+package-type = "library"
+
+
+[tool.pdm.dev-dependencies]
+dev = [
+
+]
