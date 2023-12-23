@@ -11,8 +11,10 @@ from bloqade.compiler.rewrite.common import (
 
 def flatten(circuit):
     level_couplings = ScanChannels().scan(circuit)
-    circuit = AddPadding(level_couplings).visit(circuit)
-    return FlattenCircuit(level_couplings).visit(circuit)
+    print(level_couplings)
+    circuit = AddPadding(level_couplings=level_couplings).visit(circuit)
+    print(circuit)
+    return FlattenCircuit(level_couplings=level_couplings).visit(circuit)
 
 
 def assign(assignments, circuit):

@@ -67,7 +67,8 @@ class BloqadePythonRoutine(RoutineBase):
         circuit = flatten(self.circuit)
 
         for task_number, batch_param in enumerate(params.batch_assignments(*args)):
-            metadata, final_circuit = assign(batch_param, circuit)
+            assignment = {**params.static_params, **batch_param}
+            metadata, final_circuit = assign(assignment, circuit)
             emulator_ir = generate_emulator_ir(final_circuit, blockade_radius)
             yield task_number, emulator_ir, metadata
 
