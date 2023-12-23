@@ -105,7 +105,7 @@ def assign_circuit(
 
     assigned_circuit = AssignBloqadeIR(final_assignments).visit(circuit)
 
-    assignment_analysis = ScanVariables().emit(assigned_circuit)
+    assignment_analysis = ScanVariables().scan(assigned_circuit)
 
     if not assignment_analysis.is_assigned:
         missing_vars = assignment_analysis.scalar_vars.union(

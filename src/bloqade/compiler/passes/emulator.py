@@ -17,7 +17,7 @@ def flatten(circuit):
 
 def assign(assignments, circuit):
     circuit = AssignBloqadeIR(assignments).emit(circuit)
-    assignment_analysis = ScanVariables().emit(circuit)
+    assignment_analysis = ScanVariables().scan(circuit)
 
     if not assignment_analysis.is_assigned:
         missing_vars = assignment_analysis.scalar_vars.union(
