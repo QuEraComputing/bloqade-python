@@ -1,4 +1,4 @@
-from bloqade.compiler.analysis.common import ScanChannels, ScanVariables
+from bloqade.compiler.analysis.common import ScanChannels, ScanVariables, AssignmentScan
 from bloqade.compiler.codegen.emulator_ir import EmulatorProgramCodeGen
 from bloqade.compiler.rewrite.common import (
     AddPadding,
@@ -16,7 +16,8 @@ def flatten(circuit):
 
 
 def assign(assignments, circuit):
-    circuit = AssignBloqadeIR(assignments).emit(circuit)
+    completed_assignments = AssignmentScan(assignments).scan(circuit)
+    circuit = AssignBloqadeIR(completed_assignments).emit(circuit)
     assignment_analysis = ScanVariables().scan(circuit)
 
     if not assignment_analysis.is_assigned:
@@ -29,10 +30,10 @@ def assign(assignments, circuit):
             + "\n"
         )
 
-    return Canonicalizer().visit(AssignToLiteral().visit(circuit))
+    return completed_assignments, Canonicalizer().visit(
+        AssignToLiteral().visit(circuit)
+    )
 
 
-def generate_emulator_ir(circuit, blockade_radius, use_hyperfine):
-    return EmulatorProgramCodeGen(
-        blockade_radius=blockade_radius, use_hyperfine=use_hyperfine
-    ).emit(circuit)
+def generate_emulator_ir(circuit, blockade_radius):
+    return EmulatorProgramCodeGen(blockade_radius=blockade_radius).emit(circuit)

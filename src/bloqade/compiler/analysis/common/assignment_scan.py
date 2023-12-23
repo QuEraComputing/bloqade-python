@@ -21,6 +21,6 @@ class AssignmentScan(BloqadeIRVisitor):
 
         self.assignments[var.name] = value
 
-    def emit(self, node) -> Dict[str, LiteralType]:
+    def scan(self, node) -> Dict[str, LiteralType]:
         self.visit(node)
         return self.assignments

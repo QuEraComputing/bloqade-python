@@ -362,7 +362,7 @@ class EmulatorProgramCodeGen(BloqadeIRVisitor):
         return target_atoms
 
     def emit(self, circuit: ir.AnalogCircuit) -> EmulatorProgram:
-        self.assignments = AssignmentScan(self.assignments).emit(circuit.sequence)
+        self.assignments = AssignmentScan(self.assignments).scan(circuit.sequence)
         self.is_hyperfine = IsHyperfineSequence().emit(circuit) or self.is_hyperfine
         self.n_atoms = circuit.register.n_atoms
         self.n_sites = circuit.register.n_sites

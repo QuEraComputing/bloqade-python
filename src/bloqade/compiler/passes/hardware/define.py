@@ -101,7 +101,7 @@ def assign_circuit(
     from bloqade.compiler.analysis.common import AssignmentScan, ScanVariables
     from bloqade.compiler.rewrite.common import AssignBloqadeIR
 
-    final_assignments = AssignmentScan(assignments).emit(circuit)
+    final_assignments = AssignmentScan(assignments).scan(circuit)
 
     assigned_circuit = AssignBloqadeIR(final_assignments).visit(circuit)
 
