@@ -1,6 +1,6 @@
-from bloqade.ir.visitor.waveform import WaveformVisitor
+from bloqade.ir.visitor import BloqadeIRVisitor
 import bloqade.ir.control.waveform as waveform
-from beartype.typing import Any, Dict, FrozenSet, Set
+from beartype.typing import Dict, FrozenSet, Set
 from pydantic.dataclasses import dataclass
 
 
@@ -10,7 +10,7 @@ class WaveformScanResult:
     imports: Dict[str, FrozenSet[str]]
 
 
-class WaveformScan(WaveformVisitor):
+class WaveformScan(BloqadeIRVisitor):
     def __init__(
         self,
         bindings: Dict[waveform.Waveform, str] = {},
@@ -34,46 +34,12 @@ class WaveformScan(WaveformVisitor):
 
         self.bindings[expr] = symbol
 
-    def visit_constant(self, ast: waveform.Constant):
-        pass
+    def generic_visit(self, node: waveform.Waveform):
+        self.add_binding(node)
+        super().generic_visit(node)
 
-    def visit_linear(self, ast: waveform.Linear):
-        pass
-
-    def visit_python_fn(self, ast: waveform.PythonFn):
-        pass
-
-    def visit_poly(self, ast: waveform.Poly):
-        pass
-
-    def visit_add(self, ast: waveform.Add):
-        self.visit(ast.left)
-        self.visit(ast.right)
-
-    def visit_negative(self, ast: waveform.Negative):
-        self.visit(ast.waveform)
-
-    def visit_scale(self, ast: waveform.Scale):
-        self.visit(ast.waveform)
-
-    def visit_slice(self, ast: waveform.Slice):
-        self.visit(ast.waveform)
-
-    def visit_append(self, ast: waveform.Append) -> Any:
-        list(map(self.visit, ast.waveforms))
-
-    def visit_record(self, ast: waveform.Record) -> Any:
-        raise ValueError("Expecting fully expanded waveform, found Record Node")
-
-    def visit_sample(self, ast: waveform.Sample):
-        raise ValueError("Expecting fully expanded waveform, found Sample Node")
-
-    def visit(self, ast: waveform.Waveform):
-        self.add_binding(ast)
-        super().visit(ast)
-
-    def scan(self, ast: waveform.Waveform) -> WaveformScanResult:
-        self.visit(ast)
+    def scan(self, node: waveform.Waveform) -> WaveformScanResult:
+        self.visit(node)
         imports = {
             module: frozenset(imports) for module, imports in self.imports.items()
         }
