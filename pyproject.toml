@@ -1,6 +1,6 @@
 [project]
 name = "bloqade"
-version = "0.11.0"
+version = "0.14.1"
 description = "Neutral atom software development kit"
 authors = [
     {name = "QuEra Computing Inc.", email = "info@quera.com"},
@@ -97,6 +97,8 @@ dev = [
     "vcrpy==4.4.0",
     "pyinstrument>=4.6.1",
     "scikit-optimize>=0.9.0",
+    "matplotlib>=3.8.1",
+    "icecream>=2.1.3",
 ]
 
 [tool.pdm.scripts]

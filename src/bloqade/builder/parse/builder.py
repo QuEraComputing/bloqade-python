@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 class Parser:
     stream: Optional["BuilderStream"] = None
     vector_node_names: Set[str] = set()
-    sequence: ir.Sequence = ir.Sequence()
+    sequence: ir.Sequence = ir.Sequence.create()
     register: Union[ir.AtomArrangement, ir.ParallelRegister, None] = None
     batch_params: List[Dict[str, "ParamType"]] = [{}]
     static_params: Dict[str, "ParamType"] = {}
@@ -29,7 +29,7 @@ class Parser:
     def reset(self, builder: Builder):
         self.stream = BuilderStream.create(builder)
         self.vector_node_names = set()
-        self.sequence = ir.Sequence()
+        self.sequence = ir.Sequence.create()
         self.register = None
         self.batch_params = [{}]
         self.static_params = {}
@@ -138,8 +138,10 @@ class Parser:
             drive = self.read_drive(spatial_head)
             field = field.add(drive)
 
-            pulse.fields[self.field_name] = field
-            self.sequence.pulses[self.coupling_name] = pulse
+            pulse = ir.Pulse.create(pulse.fields | {self.field_name: field})
+            self.sequence = ir.Sequence.create(
+                self.sequence.pulses | {self.coupling_name: pulse}
+            )
 
         return self.sequence
 
@@ -183,14 +185,6 @@ class Parser:
                 if dup:
                     raise ValueError(f"Cannot have duplicate names {dup}.")
 
-                order_names = set([*order])
-                vector_names = order_names.intersection(self.vector_node_names)
-
-                if vector_names:
-                    raise ValueError(
-                        f"Cannot have RunTimeVectors: {vector_names} as an argument."
-                    )
-
                 self.order = order
 
             elif isinstance(node, Parallelize):
@@ -228,19 +222,29 @@ class Parser:
 
     def parse(self, builder: Builder) -> "Routine":
         from bloqade.ir.analog_circuit import AnalogCircuit
-        from bloqade.ir.routine.params import Params
+        from bloqade.ir.routine.params import Params, ScalarArg, VectorArg
         from bloqade.ir.routine.base import Routine
+        from bloqade.compiler.analysis.common.scan_variables import ScanVariables
 
         self.reset(builder)
         self.read_register()
         self.read_sequence()
         self.read_pragmas()
 
+        circuit = AnalogCircuit(self.register, self.sequence)
+
+        var_res = ScanVariables().emit(circuit)
+        # mark vector and scalar arguments
+        args_list = [
+            (VectorArg(name) if name in var_res.vector_vars else ScalarArg(name))
+            for name in self.order
+        ]
+
         params = Params(
+            n_sites=self.register.n_sites,
             static_params=self.static_params,
             batch_params=self.batch_params,
-            args_list=self.order,
+            args_list=args_list,
         )
-        circuit = AnalogCircuit(self.register, self.sequence)
 
         return Routine(builder, circuit, params)

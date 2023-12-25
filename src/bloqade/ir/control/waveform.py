@@ -9,11 +9,18 @@ from bloqade.ir.scalar import (
     cast,
     var,
 )
+from bloqade.ir.control.traits import (
+    HashTrait,
+    AppendTrait,
+    SliceTrait,
+    CanonicalizeTrait,
+)
 
-from bisect import bisect_left
+
+from bisect import bisect_left, bisect_right
 from decimal import Decimal
 from pydantic.dataclasses import dataclass
-from beartype.typing import Any, Tuple, Union, List, Callable, Dict
+from beartype.typing import Any, Tuple, Union, List, Callable, Dict, Container
 from beartype import beartype
 from enum import Enum
 
@@ -35,9 +42,9 @@ def to_waveform(duration: ScalarType) -> Callable[[Callable], "PythonFn"]:
     return waveform_wrapper
 
 
-class AlignedValue(str, Enum):
-    Left = "left_value"
-    Right = "right_value"
+class Side(str, Enum):
+    Left = "left"
+    Right = "right"
 
 
 class Alignment(str, Enum):
@@ -46,7 +53,7 @@ class Alignment(str, Enum):
 
 
 @dataclass(frozen=True)
-class Waveform:
+class Waveform(HashTrait, CanonicalizeTrait):
     """
     Waveform node in the IR.
 
@@ -73,6 +80,8 @@ class Waveform:
     ```
     """
 
+    __hash__ = HashTrait.__hash__
+
     def __call__(self, clock_s: float, **kwargs) -> float:
         return float(self.eval_decimal(Decimal(str(clock_s)), **kwargs))
 
@@ -94,9 +103,9 @@ class Waveform:
         return get_ir_figure(self, **assignments)
 
     def _get_data(self, npoints, **assignments):
-        from bloqade.analysis.common.assignment_scan import AssignmentScanRecord
+        from bloqade.compiler.analysis.common.assignment_scan import AssignmentScan
 
-        assignments = AssignmentScanRecord(assignments).emit(self)
+        assignments = AssignmentScan(assignments).emit(self)
 
         duration = float(self.duration(**assignments))
         times = np.linspace(0, duration, npoints + 1)
@@ -107,19 +116,22 @@ class Waveform:
         display_ir(self, assignments)
 
     def align(
-        self, alignment: Alignment, value: Union[None, AlignedValue, Scalar] = None
+        self,
+        alignment: Union[str, Alignment],
+        value: Union[None, Side, ScalarType] = None,
     ) -> "Waveform":
+        if isinstance(self, AlignedWaveform):
+            raise ValueError("Cannot align an aligned waveform")
+
+        alignment = Alignment(alignment)
+
         if value is None:
-            if alignment == Alignment.Left:
-                value = AlignedValue.Left
-            elif alignment == Alignment.Right:
-                value = AlignedValue.Right
-            else:
-                raise ValueError(f"Invalid alignment: {alignment}")
-        elif value is Scalar or value is AlignedValue:
-            return self.canonicalize(AlignedWaveform(self, alignment, value))
-        else:
-            return self.canonicalize(AlignedWaveform(self, alignment, cast(value)))
+            value = Side.Left if alignment is Alignment.Right else Side.Right
+
+        if not isinstance(value, Side):
+            value = cast(value)
+
+        return self.canonicalize(AlignedWaveform(self, alignment, value))
 
     def smooth(self, radius, kernel: "SmoothingKernel") -> "Waveform":
         return self.canonicalize(
@@ -135,30 +147,20 @@ class Waveform:
     def __getitem__(self, s: slice) -> "Waveform":
         return self.canonicalize(Slice(self, Interval.from_slice(s)))
 
-    def record(self, variable_name: Union[str, Variable]):
-        return Record(self, cast(variable_name))
+    def record(
+        self, variable_name: Union[str, Variable], side: Union[str, Side] = Side.Right
+    ):
+        return Record(self, cast(variable_name), Side(side))
 
     def __add__(self, other: "Waveform") -> "Waveform":
         if isinstance(other, Waveform):
-            return self.canonicalize(Add(self, other))
-
-        return NotImplemented
-
-    def __radd__(self, other: "Waveform") -> "Waveform":
-        if isinstance(other, Waveform):
-            return self.canonicalize(Add(self, other))
+            return self.add(other)
 
         return NotImplemented
 
     def __sub__(self, other: "Waveform") -> "Waveform":
         if isinstance(other, Waveform):
-            return self + (-other)
-
-        return NotImplemented
-
-    def __rsubs__(self, other: "Waveform") -> "Waveform":
-        if isinstance(other, Waveform):
-            return other + (-self)
+            return self.add(-other)
 
         return NotImplemented
 
@@ -175,32 +177,6 @@ class Waveform:
         ph = Printer()
         ph.print(self)
         return ph.get_value()
-
-    @staticmethod
-    def canonicalize(expr: "Waveform") -> "Waveform":
-        if isinstance(expr, Append):
-            new_waveforms = []
-            for waveform in expr.waveforms:
-                if isinstance(waveform, Append):
-                    new_waveforms += waveform.waveforms
-                else:
-                    new_waveforms.append(waveform)
-
-            new_waveforms = list(map(Waveform.canonicalize, new_waveforms))
-            return Append(new_waveforms)
-        elif isinstance(expr, Add):
-            left = Waveform.canonicalize(expr.left)
-            right = Waveform.canonicalize(expr.right)
-            if left == right:
-                return left.scale(2)
-            if left.duration == cast(0):
-                return right
-            if right.duration == cast(0):
-                return left
-            else:
-                return expr
-        else:
-            return expr
 
     def _repr_pretty_(self, p, cycle):
         Printer(p).print(self, cycle)
@@ -223,7 +199,9 @@ class AlignedWaveform(Waveform):
 
     waveform: Waveform
     alignment: Alignment
-    value: Union[Scalar, AlignedValue]
+    value: Union[Scalar, Side]
+
+    __hash__ = Waveform.__hash__
 
     @property
     def duration(self):
@@ -243,9 +221,9 @@ class AlignedWaveform(Waveform):
 
         if isinstance(self.value, Scalar):
             annotated_children["Value"] = self.value
-        elif self.value == AlignedValue.Left:
+        elif self.value == Side.Left:
             annotated_children["Value"] = "Left"
-        elif self.value == AlignedValue.Right:
+        elif self.value == Side.Right:
             annotated_children["Value"] = "Right"
 
         return annotated_children
@@ -269,7 +247,7 @@ class Instruction(Waveform):
     ```
     """
 
-    pass
+    __hash__ = Waveform.__hash__
 
 
 @dataclass(init=False, frozen=True)
@@ -297,6 +275,8 @@ class Linear(Instruction):
         object.__setattr__(self, "start", cast(start))
         object.__setattr__(self, "stop", cast(stop))
         object.__setattr__(self, "duration", cast(duration))
+
+    __hash__ = Instruction.__hash__
 
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
         start_value = self.start(**kwargs)
@@ -339,6 +319,8 @@ class Constant(Instruction):
         object.__setattr__(self, "value", cast(value))
         object.__setattr__(self, "duration", cast(duration))
 
+    __hash__ = Instruction.__hash__
+
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
         constant_value = self.value(**kwargs)
         if clock_s > self.duration(**kwargs):
@@ -363,7 +345,7 @@ class Poly(Instruction):
     f(t=0:duration) = c[0] + c[1]t + c[2]t^2 + ... + c[n-1]t^n-1 + c[n]t^n
 
     Args:
-        coeffs (List[Scalar]): the coefficients c[] of the polynomial.
+        coeffs (Tuple[Scalar]): the coefficients c[] of the polynomial.
         duration (Scalar): the time span of the waveform.
 
     """
@@ -372,9 +354,11 @@ class Poly(Instruction):
     duration: Scalar
 
     @beartype
-    def __init__(self, coeffs: List[ScalarType], duration: ScalarType):
+    def __init__(self, coeffs: Container[ScalarType], duration: ScalarType):
         object.__setattr__(self, "coeffs", tuple(map(cast, coeffs)))
         object.__setattr__(self, "duration", cast(duration))
+
+    __hash__ = Instruction.__hash__
 
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
         # b + x + x^2 + ... + x^n-1 + x^n
@@ -422,8 +406,10 @@ class PythonFn(Instruction):
 
     fn: Callable  # [[float, ...], float] # f(t) -> value
     duration: Scalar
-    parameters: List[Union[Variable, AssignedVariable]]  # come from ast inspect
+    parameters: List[Union[Variable, AssignedVariable]]  # come from node inspect
     default_param_values: Dict[str, Decimal]
+
+    __hash__ = Instruction.__hash__
 
     @staticmethod
     def create(fn: Callable, duration: ScalarType) -> "PythonFn":
@@ -456,19 +442,6 @@ class PythonFn(Instruction):
         duration = cast(duration)
 
         return PythonFn(fn, duration, parameters, default_param_values)
-
-    @cached_property
-    def _hash_value(self) -> int:
-        return (
-            hash(self.__class__)
-            ^ hash(self.fn)
-            ^ hash(self.duration)
-            ^ hash(tuple(self.parameters))
-            ^ hash(frozenset(self.default_param_values.items()))
-        )
-
-    def __hash__(self) -> int:
-        return self._hash_value
 
     def eval_decimal(self, clock_s: Decimal, **assignments) -> Decimal:
         new_assignments = {**self.default_param_values, **assignments}
@@ -600,9 +573,11 @@ class Smooth(Waveform):
     kernel: SmoothingKernel
     waveform: Waveform
 
+    __hash__ = Waveform.__hash__
+
     def __init__(self, radius, kernel, waveform):
         if isinstance(kernel, str):
-            if kernel == "Guassian":
+            if kernel == "Gaussian":
                 kernel = GaussianKernel
             elif kernel == "Logistic":
                 kernel = LogisticKernel
@@ -660,9 +635,15 @@ class Smooth(Waveform):
         else:
             raise ValueError(f"Invalid kernel: {self.kernel}")
 
+    def print_node(self):
+        return f"Smooth: {self.kernel.__class__.__name__}"
+
+    def children(self):
+        return {"radius": self.radius, "waveform": self.waveform}
+
 
 @dataclass(frozen=True)
-class Slice(Waveform):
+class Slice(SliceTrait, Waveform):
     """
     ```
     <slice> ::= <waveform> <scalar.interval>
@@ -672,33 +653,28 @@ class Slice(Waveform):
     waveform: Waveform
     interval: Interval
 
-    @cached_property
-    def duration(self):
-        from bloqade.ir.scalar import Slice
+    __hash__ = Waveform.__hash__
 
-        if self.interval.start is None and self.interval.stop is None:
-            raise ValueError("Interval must have a start or stop value")
-
-        return Slice(self.waveform.duration, self.interval)
+    @property
+    def _sub_expr(self):
+        return self.waveform
 
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
         if clock_s > self.duration(**kwargs):
             return Decimal(0)
-        if self.interval.start is None:
-            start_time = Decimal(0)
-        else:
-            start_time = self.interval.start(**kwargs)
+
+        start_time = self.start(**kwargs)
         return self.waveform.eval_decimal(clock_s + start_time, **kwargs)
 
     def print_node(self):
         return "Slice"
 
     def children(self):
-        return [self.waveform, self.interval]
+        return [self.interval, self.waveform]
 
 
 @dataclass(frozen=True)
-class Append(Waveform):
+class Append(AppendTrait, Waveform):
     """
     ```bnf
     <append> ::= <waveform>+
@@ -707,13 +683,11 @@ class Append(Waveform):
 
     waveforms: Tuple[Waveform, ...]
 
-    @cached_property
-    def duration(self):
-        duration = cast(0.0)
-        for waveform in self.waveforms:
-            duration = duration + waveform.duration
+    __hash__ = Waveform.__hash__
 
-        return duration
+    @property
+    def _sub_exprs(self):
+        return self.waveforms
 
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
         append_time = Decimal(0)
@@ -744,6 +718,8 @@ class Negative(Waveform):
 
     waveform: Waveform
 
+    __hash__ = Waveform.__hash__
+
     @property
     def duration(self):
         return self.waveform.duration
@@ -773,6 +749,8 @@ class Scale(Waveform):
         object.__setattr__(self, "scalar", cast(scalar))
         object.__setattr__(self, "waveform", waveform)
 
+    __hash__ = Waveform.__hash__
+
     @property
     def duration(self):
         return self.waveform.duration
@@ -798,6 +776,8 @@ class Add(Waveform):
     left: Waveform
     right: Waveform
 
+    __hash__ = Waveform.__hash__
+
     @cached_property
     def duration(self):
         return self.left.duration.max(self.right.duration)
@@ -816,12 +796,15 @@ class Add(Waveform):
 class Record(Waveform):
     """
     ```bnf
-    <record> ::= 'record' <waveform> <var>
+    <record> ::= 'record' <waveform> <var> <side>
     ```
     """
 
     waveform: Waveform
     var: Variable
+    side: Side = Side.Right
+
+    __hash__ = Waveform.__hash__
 
     @property
     def duration(self):
@@ -854,6 +837,8 @@ class Sample(Waveform):
     interpolation: Interpolation
     dt: Scalar
 
+    __hash__ = Waveform.__hash__
+
     @property
     def duration(self):
         return self.waveform.duration
@@ -877,12 +862,16 @@ class Sample(Waveform):
 
     def eval_decimal(self, clock_s: Decimal, **kwargs) -> Decimal:
         times, values = self.samples(**kwargs)
-        i = bisect_left(times, clock_s)
 
-        if i == len(times):
-            return Decimal(0)
+        if clock_s < 0 or clock_s > times[-1]:
+            return Decimal("0")
 
         if self.interpolation is Interpolation.Linear:
+            i = bisect_left(times, clock_s)
+
+            if i == len(times):
+                return Decimal(0)
+
             if i == 0:
                 return values[i]
             else:
@@ -890,10 +879,8 @@ class Sample(Waveform):
                 return slope * (clock_s - times[i - 1]) + values[i - 1]
 
         elif self.interpolation is Interpolation.Constant:
-            if i == 0:
-                return values[i]
-            else:
-                return values[i - 1]
+            i = bisect_right(times[1:], clock_s)
+            return values[i]
 
     def print_node(self):
         return f"Sample {self.interpolation.value}"

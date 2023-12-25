@@ -38,39 +38,42 @@ class BraketHardwareRoutine(RoutineBase):
         name: Optional[str] = None,
     ) -> RemoteBatch:
         ## fall passes here ###
-        from bloqade.transform.common.assign_variables import AssignAnalogCircuit
-        from bloqade.analysis.common.scan_variables import ScanVariablesAnalogCircuit
-        from bloqade.analysis.common.assignment_scan import AssignmentScan
-        from bloqade.codegen.hardware.quera import AHSCodegen
+        from bloqade.compiler.passes.hardware import (
+            analyze_channels,
+            add_padding,
+            assign_circuit,
+            validate_waveforms,
+            to_literal_and_canonicalize,
+            generate_ahs_code,
+            generate_quera_ir,
+        )
 
         capabilities = self.backend.get_capabilities()
 
         circuit, params = self.circuit, self.params
-        circuit = AssignAnalogCircuit(params.static_params).visit(circuit)
 
         tasks = OrderedDict()
 
         for task_number, batch_params in enumerate(params.batch_assignments(*args)):
-            record_params = AssignmentScan(batch_params).emit(circuit)
-            final_circuit = AssignAnalogCircuit(record_params).visit(circuit)
-            variables = ScanVariablesAnalogCircuit().emit(final_circuit)
+            assignments = {**batch_params, **params.static_params}
+            final_circuit, metadata = assign_circuit(circuit, assignments)
 
-            if not variables.is_assigned:
-                raise ValueError(
-                    "Not all variables are assigned, missing variables:\n"
-                    f"{variables.scalar_vars.union(variables.vector_vars)}"
-                )
-            # TODO: Replace these two steps with:
-            # task_ir, parallel_decoder = BraketCodeGen().emit(shots, final_circuit)
-            result = AHSCodegen(shots, capabilities=capabilities).emit(final_circuit)
-            metadata = {**params.static_params, **record_params}
-            task_ir = result.quera_task_ir.discretize(capabilities)
+            level_couplings = analyze_channels(final_circuit)
+            final_circuit = add_padding(final_circuit, level_couplings)
+
+            validate_waveforms(level_couplings, final_circuit)
+            final_circuit = to_literal_and_canonicalize(final_circuit)
+            ahs_components = generate_ahs_code(
+                capabilities, level_couplings, final_circuit
+            )
+
+            task_ir = generate_quera_ir(ahs_components, shots).discretize(capabilities)
             tasks[task_number] = BraketTask(
                 None,
                 self.backend,
                 task_ir,
                 metadata,
-                result.parallel_decoder,
+                ahs_components.lattice_data.parallel_decoder,
                 None,
             )
 
@@ -180,13 +183,17 @@ class BraketLocalEmulatorRoutine(RoutineBase):
     ) -> LocalBatch:
         ## fall passes here ###
         from bloqade.ir import ParallelRegister
-        from bloqade.transform.common.assign_variables import AssignAnalogCircuit
-        from bloqade.analysis.common.scan_variables import ScanVariablesAnalogCircuit
-        from bloqade.analysis.common.assignment_scan import AssignmentScan
-        from bloqade.codegen.hardware.quera import AHSCodegen
+        from bloqade.compiler.passes.hardware import (
+            analyze_channels,
+            add_padding,
+            assign_circuit,
+            validate_waveforms,
+            to_literal_and_canonicalize,
+            generate_ahs_code,
+            generate_braket_ir,
+        )
 
         circuit, params = self.circuit, self.params
-        circuit = AssignAnalogCircuit(params.static_params).visit(circuit)
 
         if isinstance(circuit.register, ParallelRegister):
             raise TypeError(
@@ -197,22 +204,19 @@ class BraketLocalEmulatorRoutine(RoutineBase):
         tasks = OrderedDict()
 
         for task_number, batch_params in enumerate(params.batch_assignments(*args)):
-            record_params = AssignmentScan(batch_params).emit(circuit)
-            final_circuit = AssignAnalogCircuit(record_params).visit(circuit)
-            variables = ScanVariablesAnalogCircuit().emit(final_circuit)
+            assignments = {**batch_params, **params.static_params}
+            final_circuit, metadata = assign_circuit(circuit, assignments)
 
-            if not variables.is_assigned:
-                raise ValueError(
-                    "Not all variables are assigned, missing variables:\n"
-                    f"{variables.scalar_vars.union(variables.vector_vars)}"
-                )
-            # TODO: Replace these two steps with:
-            # task_ir, _ = BraketCodeGen().emit(shots, final_circuit)
-            result = AHSCodegen(shots).emit(final_circuit)
+            level_couplings = analyze_channels(final_circuit)
+            final_circuit = add_padding(final_circuit, level_couplings)
 
-            metadata = {**params.static_params, **record_params}
+            validate_waveforms(level_couplings, final_circuit)
+            final_circuit = to_literal_and_canonicalize(final_circuit)
+            ahs_components = generate_ahs_code(None, level_couplings, final_circuit)
+            braket_task_ir = generate_braket_ir(ahs_components, shots)
+
             tasks[task_number] = BraketEmulatorTask(
-                result.braket_task_ir,
+                braket_task_ir,
                 metadata,
                 None,
             )

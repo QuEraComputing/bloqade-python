@@ -71,12 +71,12 @@ class BuilderStream:
         return node
 
     @staticmethod
-    def build_nodes(ast: Builder) -> "BuilderNode":
-        curr = ast
+    def build_nodes(node: Builder) -> "BuilderNode":
+        curr = node
         node = None
         while curr is not None:
             next = curr
-            curr = curr.__parent__
+            curr = curr.__parent__ if hasattr(curr, "__parent__") else None
             node = BuilderNode(next, node)
 
         return node

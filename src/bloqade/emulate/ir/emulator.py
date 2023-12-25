@@ -1,4 +1,7 @@
-from bloqade.codegen.common.json import WaveformSerializer, BloqadeIRDeserializer
+from bloqade.compiler.codegen.common.json import (
+    BloqadeIRSerializer,
+    BloqadeIRDeserializer,
+)
 from bloqade.serialize import Serializer
 from dataclasses import dataclass
 from decimal import Decimal
@@ -46,8 +49,7 @@ class JITWaveform:
 def _serialize(obj: JITWaveform) -> Dict[str, Any]:
     return {
         "assignments": obj.assignments,
-        "source": WaveformSerializer().default(obj.source),
-        "jit_compiled": obj.jit_compiled,
+        "source": BloqadeIRSerializer().default(obj.source),
     }
 
 
@@ -184,46 +186,46 @@ def _deserializer(d: Dict[str, Any]) -> EmulatorProgram:
 
 
 class Visitor:
-    def visit_emulator_program(self, ast: EmulatorProgram) -> Any:
+    def visit_emulator_program(self, node: EmulatorProgram) -> Any:
         raise NotImplementedError
 
-    def visit_compiled_waveform(self, ast: JITWaveform) -> Any:
+    def visit_compiled_waveform(self, node: JITWaveform) -> Any:
         raise NotImplementedError
 
-    def visit_fields(self, ast: Fields) -> Any:
+    def visit_fields(self, node: Fields) -> Any:
         raise NotImplementedError
 
-    def visit_detuning_operator_data(self, ast: DetuningOperatorData) -> Any:
+    def visit_detuning_operator_data(self, node: DetuningOperatorData) -> Any:
         raise NotImplementedError
 
-    def visit_rabi_operator_data(self, ast: RabiOperatorData) -> Any:
+    def visit_rabi_operator_data(self, node: RabiOperatorData) -> Any:
         raise NotImplementedError
 
-    def visit_detuning_term(self, ast: DetuningTerm) -> Any:
+    def visit_detuning_term(self, node: DetuningTerm) -> Any:
         raise NotImplementedError
 
-    def visit_rabi_term(self, ast: RabiTerm) -> Any:
+    def visit_rabi_term(self, node: RabiTerm) -> Any:
         raise NotImplementedError
 
-    def visit_register(self, ast: Register) -> Any:
+    def visit_register(self, node: Register) -> Any:
         raise NotImplementedError
 
-    def visit(self, ast) -> Any:
-        if isinstance(ast, EmulatorProgram):
-            return self.visit_emulator_program(ast)
-        elif isinstance(ast, Register):
-            return self.visit_register(ast)
-        elif isinstance(ast, Fields):
-            return self.visit_fields(ast)
-        elif isinstance(ast, RabiTerm):
-            return self.visit_rabi_term(ast)
-        elif isinstance(ast, DetuningTerm):
-            return self.visit_detuning_term(ast)
-        elif isinstance(ast, RabiOperatorData):
-            return self.visit_rabi_operator_data(ast)
-        elif isinstance(ast, DetuningOperatorData):
-            return self.visit_detuning_operator_data(ast)
-        elif isinstance(ast, JITWaveform):
-            return self.visit_compiled_waveform(ast)
+    def visit(self, node) -> Any:
+        if isinstance(node, EmulatorProgram):
+            return self.visit_emulator_program(node)
+        elif isinstance(node, Register):
+            return self.visit_register(node)
+        elif isinstance(node, Fields):
+            return self.visit_fields(node)
+        elif isinstance(node, RabiTerm):
+            return self.visit_rabi_term(node)
+        elif isinstance(node, DetuningTerm):
+            return self.visit_detuning_term(node)
+        elif isinstance(node, RabiOperatorData):
+            return self.visit_rabi_operator_data(node)
+        elif isinstance(node, DetuningOperatorData):
+            return self.visit_detuning_operator_data(node)
+        elif isinstance(node, JITWaveform):
+            return self.visit_compiled_waveform(node)
         else:
-            raise NotImplementedError(f"Unknown AST node type {type(ast)}: {ast!r}")
+            raise NotImplementedError(f"Unknown AST node type {type(node)}: {node!r}")

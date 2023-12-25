@@ -153,6 +153,53 @@ def test_base_classes():
         task._result_exists()
 
 
+def test_metadata_filter_scalar():
+    batch = (
+        start.add_position([(0, i * 6.1) for i in range(14)])
+        .rydberg.detuning.uniform.piecewise_linear(
+            [0.1, 3.8, 0.1], [-20, -20, "d", "d"]
+        )
+        .amplitude.uniform.piecewise_linear([0.1, 3.8, 0.1], [0, 15, 15, 0])
+        .phase.uniform.constant(np.pi / 2, 4)
+        .batch_assign(d=[1, 2, 4, 8, 16, 32])
+        .braket.aquila()
+        ._compile(10)
+    )
+
+    filtered_batch = batch.filter_metadata(d=[1, 2, 16])
+
+    assert filtered_batch.tasks.keys() == {0, 1, 4}
+
+    with pytest.raises(ValueError):
+        filtered_batch = batch.filter_metadata(d=[1, 2, 16, 1j])
+
+
+def test_metadata_filter_vector():
+    batch = (
+        start.add_position([(0, i * 6.1) for i in range(2)])
+        .rydberg.detuning.uniform.piecewise_linear(
+            [0.1, 3.8, 0.1], [-20, -20, "d", "d"]
+        )
+        .amplitude.scale("m")
+        .piecewise_linear([0.1, 3.8, 0.1], [0, 15, 15, 0])
+        .phase.uniform.constant(np.pi / 2, 4)
+        .batch_assign(d=[1, 2, 4, 8], m=[[0, 1], [1, 0], [1, 1], [0, 0]])
+        .bloqade.python()
+        ._compile(10)
+    )
+    filters = dict(d=[1, 8], m=[[0, 1], [1, 0]])
+    filtered_batch_all = batch.filter_metadata(False, **filters)
+    filtered_batch_any = batch.filter_metadata(True, **filters)
+
+    assert filtered_batch_all.tasks.keys() == {0}
+    assert filtered_batch_any.tasks.keys() == {0, 1, 3}
+
+    filters = dict(d=[1, 8], m=[[0, 1], [1, 0], (0, 0)])
+
+    with pytest.raises(ValueError):
+        filtered_batch_all = batch.filter_metadata(**filters)
+
+
 @patch("bloqade.ir.routine.braket.BraketBackend")
 @patch("bloqade.task.batch.np.random.permutation")
 def test_remote_batch_task_metric(permutation, BraketBackend):
@@ -191,6 +238,81 @@ def test_remote_batch_task_metric(permutation, BraketBackend):
     )
 
     assert batch.total_nshots == 60
+
+
+@patch("bloqade.ir.routine.braket.BraketBackend")
+def test_pull(BraketBackend):
+    backend = BraketBackend(
+        device_arn="arn:aws:braket:us-east-1::device/qpu/quera/Aquila"
+    )
+
+    backend.submit_task.side_effect = list(map(str, range(6)))
+    backend.task_status.return_value = QuEraTaskStatusCode.Completed
+    backend.task_results.return_value = mock_results(14)
+
+    batch = (
+        start.add_position([(0, i * 6.1) for i in range(14)])
+        .rydberg.detuning.uniform.piecewise_linear(
+            [0.1, 3.8, 0.1], [-20, -20, "d", "d"]
+        )
+        .amplitude.uniform.piecewise_linear([0.1, 3.8, 0.1], [0, 15, 15, 0])
+        .phase.uniform.constant(np.pi / 2, 4)
+        .batch_assign(d=[1, 2, 4, 8, 16, 32])
+        .braket.aquila()
+        ._compile(10)
+    )
+
+    for k, task in batch.tasks.items():
+        task.backend = backend
+
+    batch._submit(ignore_submission_error=True, shuffle_submit_order=False)
+    batch.pull()
+    new_batch = batch.remove_invalid_tasks()
+    assert len(new_batch.tasks) == 6
+
+
+@patch("bloqade.ir.routine.braket.BraketBackend")
+def test_retrieve(BraketBackend):
+    backend = BraketBackend(
+        device_arn="arn:aws:braket:us-east-1::device/qpu/quera/Aquila"
+    )
+
+    backend.submit_task.side_effect = list(map(str, range(6)))
+    backend.task_results.return_value = mock_results(14)
+    backend.task_status.side_effect = [
+        # calls for fetch
+        QuEraTaskStatusCode.Completed,
+        QuEraTaskStatusCode.Completed,
+        QuEraTaskStatusCode.Completed,
+        QuEraTaskStatusCode.Running,
+        QuEraTaskStatusCode.Enqueued,
+        QuEraTaskStatusCode.Enqueued,
+        # calls for retrieve
+        QuEraTaskStatusCode.Completed,
+        QuEraTaskStatusCode.Completed,
+        QuEraTaskStatusCode.Completed,
+    ]
+
+    batch = (
+        start.add_position([(0, i * 6.1) for i in range(14)])
+        .rydberg.detuning.uniform.piecewise_linear(
+            [0.1, 3.8, 0.1], [-20, -20, "d", "d"]
+        )
+        .amplitude.uniform.piecewise_linear([0.1, 3.8, 0.1], [0, 15, 15, 0])
+        .phase.uniform.constant(np.pi / 2, 4)
+        .batch_assign(d=[1, 2, 4, 8, 16, 32])
+        .braket.aquila()
+        ._compile(10)
+    )
+
+    for k, task in batch.tasks.items():
+        task.backend = backend
+
+    batch._submit(ignore_submission_error=True, shuffle_submit_order=False)
+    batch.fetch()
+    batch.retrieve()
+    new_batch = batch.remove_invalid_tasks()
+    assert len(new_batch.tasks) == 6
 
 
 @patch("bloqade.ir.routine.braket.BraketBackend")

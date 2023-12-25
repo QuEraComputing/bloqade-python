@@ -89,7 +89,7 @@ def test_add_position_dispatch():
 
 def test_piecewise_const():
     prog = start.rydberg.detuning.uniform.piecewise_constant(
-        durations=[0.1, 3.1, 0.05], values=[4, 4, 7.5]
+        durations=[0.1, 3.1, 0.05], values=[3, 4, 7.5]
     )
 
     ## inspect ir
@@ -103,7 +103,7 @@ def test_piecewise_const():
     assert ir2.duration == cast(3.1)
 
     ir3 = node1.waveforms[0]
-    assert ir3.value == cast(4)
+    assert ir3.value == cast(3)
     assert ir3.duration == cast(0.1)
 
 
@@ -126,7 +126,7 @@ def test_scale():
         [0.1, 3.8, 0.1], [-10, -10, "a", "b"]
     )
 
-    ## let Emit build ast
+    ## let Emit build node
     seq = prog.parse_sequence()
 
     # print(type(list(seq.pulses.keys())[0]))
@@ -137,9 +137,11 @@ def test_scale():
 
 
 def test_scale_location():
+    from bloqade.ir.control.field import Location
+
     prog = start.rydberg.detuning.location([1, 2], [1.2, 3.3])
 
-    assert prog._scaled_locations == {1: cast(1.2), 2: cast(3.3)}
+    assert prog._scaled_locations == {Location(1): cast(1.2), Location(2): cast(3.3)}
 
 
 def test_build_ast_Scale():
@@ -147,7 +149,7 @@ def test_build_ast_Scale():
         durations=[0.1], values=[1]
     )
 
-    # compile ast:
+    # compile node:
     tmp = prog.parse_sequence()
 
     locs = list(tmp.pulses[rydberg].fields[detuning].drives.keys())[0]
@@ -166,7 +168,7 @@ def test_spatial_var():
 
     prog = prog.piecewise_constant([0.1], [30])
 
-    # test build ast:
+    # test build node:
     seq = prog.parse_sequence()
 
     assert seq.pulses[rydberg].fields[detuning].drives[
