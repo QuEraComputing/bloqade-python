@@ -30,10 +30,10 @@ class JITWaveform:
         return self._stub
 
     def _jit(self) -> Callable[[float], float]:
-        from bloqade.transform.common.assign_variables import AssignWaveform
-        from bloqade.transform.python.waveform import NormalizeWaveformPython
-        from bloqade.analysis.python.waveform import WaveformScan
-        from bloqade.codegen.python.waveform import CodegenPythonWaveform
+        from bloqade.compiler.rewrite.common.assign_variables import AssignWaveform
+        from bloqade.compiler.rewrite.python.waveform import NormalizeWaveformPython
+        from bloqade.compiler.analysis.python.waveform import WaveformScan
+        from bloqade.compiler.codegen.python.waveform import CodegenPythonWaveform
 
         ast_assigned = AssignWaveform(self.assignments).emit(self.source)
         ast_normalized = NormalizeWaveformPython().visit(ast_assigned)
