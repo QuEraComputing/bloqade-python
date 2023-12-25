@@ -1,12 +1,12 @@
 from decimal import Decimal
-from bloqade.ir.visitor.waveform import WaveformVisitor
+from bloqade.ir.visitor import BloqadeIRVisitor
 import bloqade.ir.control.waveform as waveform
-from bloqade.analysis.python.waveform import WaveformScanResult
+from bloqade.compiler.analysis.python.waveform import WaveformScanResult
 from beartype.typing import Optional
 from random import randint
 
 
-class CodegenPythonWaveform(WaveformVisitor):
+class CodegenPythonWaveform(BloqadeIRVisitor):
     def __init__(
         self,
         scan_result: WaveformScanResult,
@@ -32,24 +32,24 @@ class CodegenPythonWaveform(WaveformVisitor):
 
         return func_binding
 
-    def visit(self, ast: waveform.Waveform):
-        super().visit(ast)
-        self.head_binding = self.bindings[ast]
+    def generic_visit(self, node: waveform.Waveform):
+        super().generic_visit(node)
+        self.head_binding = self.bindings[node]
 
-    def visit_constant(self, ast: waveform.Constant):
-        self.exprs.append(f"{self.indent_expr}{self.bindings[ast]} = {ast.value()}")
+    def visit_waveform_Constant(self, node: waveform.Constant):
+        self.exprs.append(f"{self.indent_expr}{self.bindings[node]} = {node.value()}")
 
-    def visit_linear(self, ast: waveform.Linear):
-        slope = (ast.stop - ast.start) / ast.duration
+    def visit_waveform_Linear(self, node: waveform.Linear):
+        slope = (node.stop - node.start) / node.duration
 
         self.exprs.append(
-            f"{self.indent_expr}{self.bindings[ast]} = "
-            f"{slope()} * ({self.time_str}) + {ast.start()}"
+            f"{self.indent_expr}{self.bindings[node]} = "
+            f"{slope()} * ({self.time_str}) + {node.start()}"
         )
 
-    def visit_poly(self, ast: waveform.Poly):
-        coeff_values = [coeff() for coeff in ast.coeffs]
-        binding = self.bindings[ast]
+    def visit_waveform_Poly(self, node: waveform.Poly):
+        coeff_values = [coeff() for coeff in node.coeffs]
+        binding = self.bindings[node]
 
         terms = [str(coeff_values[0])] + [
             f"{coeff} * ({self.time_str}) ** {p}"
@@ -58,69 +58,69 @@ class CodegenPythonWaveform(WaveformVisitor):
         term_sum = " + ".join(terms)
         self.exprs.append(f"{self.indent_expr}{binding} = {term_sum}")
 
-    def visit_python_fn(self, ast: waveform.PythonFn):
+    def visit_waveform_PythonFn(self, node: waveform.PythonFn):
         from numba import njit
 
-        sorted_parameters = sorted(ast.parameters, key=lambda p: p.name)
+        sorted_parameters = sorted(node.parameters, key=lambda p: p.name)
 
         args = ", ".join(
             [f"{param.name} = {param.value}" for param in sorted_parameters]
         )
         func_binding = self.gen_func_binding()
 
-        globals()[func_binding] = njit(ast.fn) if self.jit_compiled else ast.fn
+        globals()[func_binding] = njit(node.fn) if self.jit_compiled else node.fn
 
         if args:
             self.exprs.append(
-                f"{self.indent_expr}{self.bindings[ast]} = "
+                f"{self.indent_expr}{self.bindings[node]} = "
                 f"{func_binding}({self.time_str}, {args})"
             )
         else:
             self.exprs.append(
-                f"{self.indent_expr}{self.bindings[ast]} = "
+                f"{self.indent_expr}{self.bindings[node]} = "
                 f"{func_binding}({self.time_str})"
             )
 
-    def visit_add(self, ast: waveform.Add):
-        self.visit(ast.left)
-        self.visit(ast.right)
+    def visit_waveform_Add(self, node: waveform.Add):
+        self.visit(node.left)
+        self.visit(node.right)
 
-        left_duration = ast.left.duration()
-        right_duration = ast.right.duration()
+        left_duration = node.left.duration()
+        right_duration = node.right.duration()
 
         if left_duration == right_duration:
             self.exprs.append(
-                f"{self.indent_expr}{self.bindings[ast]} = "
-                f"{self.bindings[ast.left]} + {self.bindings[ast.right]}"
+                f"{self.indent_expr}{self.bindings[node]} = "
+                f"{self.bindings[node.left]} + {self.bindings[node.right]}"
             )
         elif left_duration > right_duration:
             self.exprs.append(
-                f"{self.indent_expr}{self.bindings[ast]} = "
-                f"{self.bindings[ast.left]} + {self.bindings[ast.right]} "
-                f"if {self.time_str} < {right_duration} else {self.bindings[ast.left]}"
+                f"{self.indent_expr}{self.bindings[node]} = "
+                f"{self.bindings[node.left]} + {self.bindings[node.right]} "
+                f"if {self.time_str} < {right_duration} else {self.bindings[node.left]}"
             )
         else:
             self.exprs.append(
-                f"{self.indent_expr}{self.bindings[ast]} = "
-                f"{self.bindings[ast.left]} + {self.bindings[ast.right]} "
-                f"if {self.time_str} < {left_duration} else {self.bindings[ast.right]}"
+                f"{self.indent_expr}{self.bindings[node]} = "
+                f"{self.bindings[node.left]} + {self.bindings[node.right]} "
+                f"if {self.time_str} < {left_duration} else {self.bindings[node.right]}"
             )
 
-    def visit_negative(self, ast: waveform.Negative):
-        self.visit(ast.waveform)
+    def visit_waveform_Negative(self, node: waveform.Negative):
+        self.visit(node.waveform)
         self.exprs.append(
-            f"{self.indent_expr}{self.bindings[ast]} = -{self.bindings[ast.waveform]}"
+            f"{self.indent_expr}{self.bindings[node]} = -{self.bindings[node.waveform]}"
         )
 
-    def visit_scale(self, ast: waveform.Scale):
-        self.visit(ast.waveform)
+    def visit_waveform_Scale(self, node: waveform.Scale):
+        self.visit(node.waveform)
         self.exprs.append(
-            f"{self.indent_expr}{self.bindings[ast]} = "
-            f"{ast.scalar()} * {self.bindings[ast.waveform]}"
+            f"{self.indent_expr}{self.bindings[node]} = "
+            f"{node.scalar()} * {self.bindings[node.waveform]}"
         )
 
-    def visit_slice(self, ast: waveform.Slice):
-        shift = ast.interval.start() if ast.interval.start else Decimal("0")
+    def visit_waveform_Slice(self, node: waveform.Slice):
+        shift = node.interval.start() if node.interval.start else Decimal("0")
 
         compiler = CodegenPythonWaveform(
             WaveformScanResult(self.bindings, self.imports),
@@ -128,18 +128,18 @@ class CodegenPythonWaveform(WaveformVisitor):
             indent_level=self.indent_level,
         )
 
-        compiler.visit(ast.waveform)
+        compiler.visit(node.waveform)
 
         self.exprs.extend(compiler.exprs)
         self.exprs.append(
-            f"{self.indent_expr}{self.bindings[ast]} = "
-            f"{compiler.bindings[ast.waveform]}"
+            f"{self.indent_expr}{self.bindings[node]} = "
+            f"{compiler.bindings[node.waveform]}"
         )
 
-    def visit_append(self, ast: waveform.Append):
+    def visit_waveform_Append(self, node: waveform.Append):
         time_shift = Decimal("0")
 
-        wf = ast.waveforms[0]
+        wf = node.waveforms[0]
 
         compiler = CodegenPythonWaveform(
             WaveformScanResult(self.bindings, self.imports),
@@ -152,10 +152,10 @@ class CodegenPythonWaveform(WaveformVisitor):
         self.exprs.append(f"{self.indent_expr}if {self.time_str} < {time_shift}:")
         self.exprs.extend(compiler.exprs)
         self.exprs.append(
-            f"{compiler.indent_expr}{self.bindings[ast]} = {compiler.head_binding}"
+            f"{compiler.indent_expr}{self.bindings[node]} = {compiler.head_binding}"
         )
 
-        for wf in ast.waveforms[1:]:
+        for wf in node.waveforms[1:]:
             compiler = CodegenPythonWaveform(
                 WaveformScanResult(self.bindings, self.imports),
                 time_str=f"{self.time_str} - {time_shift}",
@@ -169,20 +169,20 @@ class CodegenPythonWaveform(WaveformVisitor):
             )
             self.exprs.extend(compiler.exprs)
             self.exprs.append(
-                f"{compiler.indent_expr}{self.bindings[ast]} = {compiler.head_binding}"
+                f"{compiler.indent_expr}{self.bindings[node]} = {compiler.head_binding}"
             )
 
         self.exprs.append(f"{self.indent_expr}else:")
-        self.exprs.append(f"{compiler.indent_expr}{self.bindings[ast]} = 0")
+        self.exprs.append(f"{compiler.indent_expr}{self.bindings[node]} = 0")
 
-    def emit_func(self, ast, func_binding: Optional[str] = None) -> str:
+    def emit_func(self, node, func_binding: Optional[str] = None) -> str:
         func_binding = self.gen_func_binding() if func_binding is None else func_binding
-        self.visit(ast)
+        self.visit(node)
         body = "\n".join(self.exprs)
 
         func = (
             f"def {func_binding}(time):\n"
-            f"    if time > {ast.duration()}:"
+            f"    if time > {node.duration()}:"
             f"\n        return 0"
             f"\n{body}"
             f"\n    return {self.head_binding}"
@@ -190,8 +190,8 @@ class CodegenPythonWaveform(WaveformVisitor):
         func_code = self.indent_func + func.replace("\n", "\n" + self.indent_func)
         return func_binding, func_code
 
-    def compile(self, ast):
-        func_binding, func = self.emit_func(ast)
+    def compile(self, node):
+        func_binding, func = self.emit_func(node)
         imports = "\n".join(
             [
                 f"from {module} import {', '.join(funcs)}"
