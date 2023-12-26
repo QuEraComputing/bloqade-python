@@ -1,8 +1,10 @@
 from decimal import Decimal
+
+from beartype import beartype
 from bloqade.ir.visitor import BloqadeIRVisitor
 import bloqade.ir.control.waveform as waveform
 from bloqade.compiler.analysis.python.waveform import WaveformScanResult
-from beartype.typing import Optional
+from beartype.typing import Optional, Tuple
 from random import randint
 
 
@@ -32,9 +34,10 @@ class CodegenPythonWaveform(BloqadeIRVisitor):
 
         return func_binding
 
-    def generic_visit(self, node: waveform.Waveform):
-        super().generic_visit(node)
-        self.head_binding = self.bindings[node]
+    def visit(self, node):
+        super().visit(node)
+        if isinstance(node, waveform.Waveform):
+            self.head_binding = self.bindings[node]
 
     def visit_waveform_Constant(self, node: waveform.Constant):
         self.exprs.append(f"{self.indent_expr}{self.bindings[node]} = {node.value()}")
@@ -175,11 +178,13 @@ class CodegenPythonWaveform(BloqadeIRVisitor):
         self.exprs.append(f"{self.indent_expr}else:")
         self.exprs.append(f"{compiler.indent_expr}{self.bindings[node]} = 0")
 
-    def emit_func(self, node, func_binding: Optional[str] = None) -> str:
+    @beartype
+    def emit_func(
+        self, node: waveform.Waveform, func_binding: Optional[str] = None
+    ) -> Tuple[str, str]:
         func_binding = self.gen_func_binding() if func_binding is None else func_binding
         self.visit(node)
         body = "\n".join(self.exprs)
-
         func = (
             f"def {func_binding}(time):\n"
             f"    if time > {node.duration()}:"
@@ -190,7 +195,8 @@ class CodegenPythonWaveform(BloqadeIRVisitor):
         func_code = self.indent_func + func.replace("\n", "\n" + self.indent_func)
         return func_binding, func_code
 
-    def compile(self, node):
+    @beartype
+    def compile(self, node: waveform.Waveform):
         func_binding, func = self.emit_func(node)
         imports = "\n".join(
             [

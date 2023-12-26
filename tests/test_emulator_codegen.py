@@ -35,7 +35,7 @@ def test_codegen_global_detuning():
         program.sequence.pulses[rydberg].fields[detuning].drives[Uniform]
     )
 
-    compiled_waveform = JITWaveform({}, detuning_waveform, True)
+    compiled_waveform = JITWaveform({}, detuning_waveform)
 
     geometry = Register(
         TwoLevelAtom,
@@ -44,7 +44,7 @@ def test_codegen_global_detuning():
     )
 
     detuning_term = DetuningTerm(
-        DetuningOperatorData({i: Decimal("1") for i in range(len(geometry))}),
+        DetuningOperatorData({i: Decimal("1.0") for i in range(len(geometry))}),
         compiled_waveform,
     )
 
@@ -80,8 +80,8 @@ def test_codegen_global_detuning_and_rabi():
         program.sequence.pulses[rydberg].fields[rabi.amplitude].drives[Uniform]
     )
 
-    compiled_detuning = JITWaveform({}, detuning_waveform, True)
-    compiled_amplitude = JITWaveform({}, amplitude_waveform, True)
+    compiled_detuning = JITWaveform({}, detuning_waveform)
+    compiled_amplitude = JITWaveform({}, amplitude_waveform)
 
     geometry = Register(
         TwoLevelAtom,
@@ -143,8 +143,8 @@ def test_codegen_detuning_max_terms():
 
     assignments = {"mask_1": mask_1_value}
 
-    compiled_wf_0 = JITWaveform(assignments, wf_0, True)
-    compiled_wf_1 = JITWaveform(assignments, wf_1, True)
+    compiled_wf_0 = JITWaveform(assignments, wf_0)
+    compiled_wf_1 = JITWaveform(assignments, wf_1)
 
     geometry = Register(
         TwoLevelAtom,
@@ -205,8 +205,8 @@ def test_codegen_rabi_max_terms():
 
     assignments = {"mask_1": mask_1_value}
 
-    compiled_wf_0 = JITWaveform(assignments, wf_0, True)
-    compiled_wf_1 = JITWaveform(assignments, wf_1, True)
+    compiled_wf_0 = JITWaveform(assignments, wf_0)
+    compiled_wf_1 = JITWaveform(assignments, wf_1)
 
     geometry = Register(
         TwoLevelAtom,
@@ -268,8 +268,8 @@ def test_codegen_rabi_uniform_phase():
 
     assignments = {}
 
-    compiled_amp = JITWaveform(assignments, uniform_amp, True)
-    compiled_phase = JITWaveform(assignments, uniform_phase, True)
+    compiled_amp = JITWaveform(assignments, uniform_amp)
+    compiled_phase = JITWaveform(assignments, uniform_phase)
 
     geometry = Register(
         TwoLevelAtom,
@@ -337,10 +337,10 @@ def test_codegen_uniform_phase_rabi_max_terms():
 
     assignments = {"mask_1": mask_1_value}
 
-    compiled_wf_0 = JITWaveform(assignments, wf_0, True)
-    compiled_wf_1 = JITWaveform(assignments, wf_1, True)
-    compiled_wf_0_phase = JITWaveform(assignments, wf_0_phase, True)
-    compiled_wf_1_phase = JITWaveform(assignments, wf_1_phase, True)
+    compiled_wf_0 = JITWaveform(assignments, wf_0)
+    compiled_wf_1 = JITWaveform(assignments, wf_1)
+    compiled_wf_0_phase = JITWaveform(assignments, wf_0_phase)
+    compiled_wf_1_phase = JITWaveform(assignments, wf_1_phase)
 
     geometry = Register(
         TwoLevelAtom,

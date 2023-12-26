@@ -66,22 +66,15 @@ def test_waveform_scan():
         wf2: "__bloqade_var2",
     }
 
-    wf10 = 2.1 * wf1
-    wf11 = wf1 + wf10
-    scan = WaveformScan().scan(wf11)
-    assert scan.bindings == {
-        wf11: "__bloqade_var0",
-        wf1: "__bloqade_var1",
-        wf10: "__bloqade_var2",
-    }
-
-    wf10 = 2.1 * wf1
-    wf11 = wf10 + wf1
+    wf10 = wf1 + wf2
+    wf11 = wf10 + wf3
     scan = WaveformScan().scan(wf11)
     assert scan.bindings == {
         wf11: "__bloqade_var0",
         wf10: "__bloqade_var1",
         wf1: "__bloqade_var2",
+        wf2: "__bloqade_var3",
+        wf3: "__bloqade_var4",
     }
 
 
@@ -125,7 +118,7 @@ def test_waveform_normalize():
     assert NormalizeWaveformPython().visit(wf7) == wf8
 
 
-@patch("bloqade.codegen.python.waveform.randint")
+@patch("bloqade.compiler.codegen.python.waveform.randint")
 def test_python_codegen(randint):
     def func_def(wf):
         scan = WaveformScan().scan(wf)

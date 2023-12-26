@@ -1,6 +1,7 @@
 from bloqade.ir.visitor import BloqadeIRVisitor
 import bloqade.ir.control.waveform as waveform
 from beartype.typing import Dict, FrozenSet, Set
+from beartype import beartype
 from pydantic.dataclasses import dataclass
 
 
@@ -20,8 +21,8 @@ class WaveformScan(BloqadeIRVisitor):
         self.imports = dict(imports)
         self.i = 0
 
-    def add_binding(self, expr: waveform.Waveform):
-        if expr in self.bindings:
+    def add_binding(self, node: waveform.Waveform):
+        if node in self.bindings:
             return
 
         symbol = f"__bloqade_var{self.i}"
@@ -32,12 +33,14 @@ class WaveformScan(BloqadeIRVisitor):
 
         self.i += 1
 
-        self.bindings[expr] = symbol
+        self.bindings[node] = symbol
 
     def generic_visit(self, node: waveform.Waveform):
-        self.add_binding(node)
+        if isinstance(node, waveform.Waveform):
+            self.add_binding(node)
         super().generic_visit(node)
 
+    @beartype
     def scan(self, node: waveform.Waveform) -> WaveformScanResult:
         self.visit(node)
         imports = {
