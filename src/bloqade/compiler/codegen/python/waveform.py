@@ -216,6 +216,7 @@ class CodegenPythonWaveform(BloqadeIRVisitor):
         else:
             func = f"{imports}\n\n{func}"
 
-        exec(func, globals())
+        globs = globals()
+        exec(func, globs)
 
-        return globals()[func_binding]
+        return globs[func_binding]

@@ -9,7 +9,6 @@ from typing import Any, Dict, List, Tuple, Optional, Callable
 from enum import Enum
 from bloqade.ir.control.waveform import Waveform
 from bloqade.emulate.ir.atom_type import AtomType
-from functools import cached_property
 
 
 @dataclass
@@ -18,19 +17,8 @@ class JITWaveform:
     assignments: Dict[str, Decimal]
     source: Waveform
     jit_compiled: bool = False
-    _stub: Optional[Callable[[float], float]] = None
 
-    def __call__(self, t: float) -> float:
-        return self.stub(t)
-
-    @cached_property
-    def stub(self) -> Callable[[float], float]:
-        if self._stub is None:
-            self._stub = self._jit()
-
-        return self._stub
-
-    def _jit(self) -> Callable[[float], float]:
+    def emit(self) -> Callable[[float], float]:
         from bloqade.compiler.rewrite.common.assign_variables import AssignBloqadeIR
         from bloqade.compiler.rewrite.python.waveform import NormalizeWaveformPython
         from bloqade.compiler.analysis.python.waveform import WaveformScan
