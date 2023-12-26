@@ -19,7 +19,7 @@ from bloqade.emulate.ir.emulator import (
     RabiOperatorData,
     RabiOperatorType,
     DetuningTerm,
-    CompiledWaveform,
+    JITWaveform,
     EmulatorProgram,
     Register,
     Fields,
@@ -44,8 +44,8 @@ class EmulatorProgramCodeGen(BloqadeIRVisitor):
         self.original_index = []
         self.is_hyperfine = use_hyperfine
 
-    def compile_waveform(self, node: waveform.Waveform) -> CompiledWaveform:
-        return CompiledWaveform(self.assignments, node)
+    def compile_waveform(self, node: waveform.Waveform) -> JITWaveform:
+        return JITWaveform(self.assignments, node)
 
     def construct_register(self, node: AtomArrangement) -> Any:
         positions = []

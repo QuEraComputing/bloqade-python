@@ -1,8 +1,8 @@
 import inspect
-from bloqade.analysis.python.waveform import WaveformScan
-from bloqade.transform.python.waveform import NormalizeWaveformPython
-from bloqade.codegen.python.waveform import CodegenPythonWaveform
-from bloqade.transform.common.assign_variables import AssignWaveform
+from bloqade.compiler.analysis.python.waveform import WaveformScan
+from bloqade.compiler.rewrite.python.waveform import NormalizeWaveformPython
+from bloqade.compiler.codegen.python.waveform import CodegenPythonWaveform
+from bloqade.compiler.rewrite.common.assign_variables import AssignBloqadeIR
 from bloqade.factory import piecewise_linear, piecewise_constant
 import bloqade.ir.control.waveform as wf
 from unittest.mock import patch
@@ -140,7 +140,7 @@ def test_python_codegen(randint):
     wf4 = wf.PythonFn.create(f, 4.0)
     wf5 = wf.PythonFn.create(g, 4.0)
 
-    wf6 = AssignWaveform(dict(a=1, b=2)).emit(wf5)
+    wf6 = AssignBloqadeIR(dict(a=1, b=2)).emit(wf5)
 
     randint.side_effect = [0, 1, 2, 3, 4]
 

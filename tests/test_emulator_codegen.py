@@ -9,7 +9,7 @@ from bloqade.emulate.ir.emulator import (
     DetuningOperatorData,
     RabiOperatorType,
 )
-from bloqade.compiler.codegen.emulator_ir import (
+from bloqade.compiler.codegen.python.emulator_ir import (
     EmulatorProgramCodeGen,
     JITWaveform,
     LevelCoupling,

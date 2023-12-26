@@ -1,5 +1,4 @@
 from bloqade.atom_arrangement import Chain
-from bloqade.analysis.common.is_constant import IsConstantAnalogCircuit
 from bloqade.compiler.analysis.common.is_constant import IsConstant
 
 
