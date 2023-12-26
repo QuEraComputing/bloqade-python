@@ -1,15 +1,3 @@
-<<<<<<<< HEAD:src/bloqade/codegen/python/emulator_ir.py
-from bloqade.analysis.common.assignment_scan import AssignmentScan
-from bloqade.ir.location.base import AtomArrangement, SiteFilling
-from bloqade.ir.visitor.analog_circuit import AnalogCircuitVisitor
-from bloqade.ir.control.field import (
-    AssignedRunTimeVector,
-    Field,
-    ScaledLocations,
-    RunTimeVector,
-    UniformModulation,
-)
-========
 from beartype.typing import Any, Dict, Optional
 from bloqade.builder.typing import LiteralType
 from bloqade.ir.location.location import AtomArrangement, SiteFilling
@@ -19,16 +7,11 @@ from bloqade.compiler.analysis.common.assignment_scan import (
 )  # noqa: F401
 from bloqade.compiler.analysis.common.is_hyperfine import IsHyperfineSequence
 
->>>>>>>> main:src/bloqade/compiler/codegen/emulator_ir.py
 import bloqade.ir.control.sequence as sequence
 import bloqade.ir.control.pulse as pulse
 import bloqade.ir.control.waveform as waveform
 import bloqade.ir.control.field as field
 import bloqade.ir as ir
-<<<<<<<< HEAD:src/bloqade/codegen/python/emulator_ir.py
-from bloqade.analysis.common.is_hyperfine import IsHyperfineSequence
-========
->>>>>>>> main:src/bloqade/compiler/codegen/emulator_ir.py
 from bloqade.emulate.ir.atom_type import ThreeLevelAtom, TwoLevelAtom
 from bloqade.emulate.ir.emulator import (
     DetuningOperatorData,
@@ -36,7 +19,7 @@ from bloqade.emulate.ir.emulator import (
     RabiOperatorData,
     RabiOperatorType,
     DetuningTerm,
-    JITWaveform,
+    CompiledWaveform,
     EmulatorProgram,
     Register,
     Fields,
@@ -45,18 +28,12 @@ from bloqade.emulate.ir.emulator import (
 from decimal import Decimal
 
 
-<<<<<<<< HEAD:src/bloqade/codegen/python/emulator_ir.py
-
-class EmulatorProgramCodeGen(AnalogCircuitVisitor):
-========
 class EmulatorProgramCodeGen(BloqadeIRVisitor):
->>>>>>>> main:src/bloqade/compiler/codegen/emulator_ir.py
     def __init__(
         self,
         assignments: Dict[str, LiteralType] = {},
         blockade_radius: Decimal = 0.0,
         use_hyperfine: bool = False,
-        jit_compiled: bool = True,
     ):
         self.blockade_radius = Decimal(str(blockade_radius))
         self.assignments = assignments
@@ -66,10 +43,6 @@ class EmulatorProgramCodeGen(BloqadeIRVisitor):
         self.level_couplings = set()
         self.original_index = []
         self.is_hyperfine = use_hyperfine
-        self.jit_compiled = jit_compiled
-
-    def visit_waveform(self, ast: waveform.Waveform) -> Any:
-        return JITWaveform(self.assignments, ast, self.jit_compiled)
 
     def compile_waveform(self, node: waveform.Waveform) -> CompiledWaveform:
         return CompiledWaveform(self.assignments, node)
@@ -110,11 +83,7 @@ class EmulatorProgramCodeGen(BloqadeIRVisitor):
                 terms.append(
                     DetuningTerm(
                         operator_data=DetuningOperatorData(target_atoms=self.visit(sm)),
-<<<<<<<< HEAD:src/bloqade/codegen/python/emulator_ir.py
-                        amplitude=self.visit(wf),
-========
                         amplitude=self.compile_waveform(wf),
->>>>>>>> main:src/bloqade/compiler/codegen/emulator_ir.py
                     )
                 )
         else:
@@ -142,11 +111,7 @@ class EmulatorProgramCodeGen(BloqadeIRVisitor):
                         operator_data=DetuningOperatorData(
                             target_atoms={atom: Decimal("1.0")}
                         ),
-<<<<<<<< HEAD:src/bloqade/codegen/python/emulator_ir.py
-                        amplitude=self.visit(wf),
-========
                         amplitude=self.compile_waveform(wf),
->>>>>>>> main:src/bloqade/compiler/codegen/emulator_ir.py
                     )
                 )
 
@@ -181,11 +146,7 @@ class EmulatorProgramCodeGen(BloqadeIRVisitor):
                             target_atoms=target_atoms,
                             operator_type=RabiOperatorType.RabiSymmetric,
                         ),
-<<<<<<<< HEAD:src/bloqade/codegen/python/emulator_ir.py
-                        amplitude=self.visit(wf),
-========
                         amplitude=self.compile_waveform(wf),
->>>>>>>> main:src/bloqade/compiler/codegen/emulator_ir.py
                     )
                 )
         elif phase is None:  # fully local real rabi fields
@@ -217,11 +178,7 @@ class EmulatorProgramCodeGen(BloqadeIRVisitor):
                             target_atoms={atom: Decimal("1.0")},
                             operator_type=RabiOperatorType.RabiSymmetric,
                         ),
-<<<<<<<< HEAD:src/bloqade/codegen/python/emulator_ir.py
-                        amplitude=self.visit(amplitude_wf),
-========
                         amplitude=self.compile_waveform(amplitude_wf),
->>>>>>>> main:src/bloqade/compiler/codegen/emulator_ir.py
                     )
                 )
         elif (
@@ -230,11 +187,7 @@ class EmulatorProgramCodeGen(BloqadeIRVisitor):
             and len(amplitude.drives) <= self.n_atoms
         ):
             (phase_waveform,) = phase.drives.values()
-<<<<<<<< HEAD:src/bloqade/codegen/python/emulator_ir.py
-            rabi_phase = self.visit(phase_waveform)
-========
             rabi_phase = self.compile_waveform(phase_waveform)
->>>>>>>> main:src/bloqade/compiler/codegen/emulator_ir.py
             self.duration = max(
                 float(phase_waveform.duration(**self.assignments)), self.duration
             )
@@ -258,11 +211,7 @@ class EmulatorProgramCodeGen(BloqadeIRVisitor):
                             target_atoms=target_atoms,
                             operator_type=RabiOperatorType.RabiAsymmetric,
                         ),
-<<<<<<<< HEAD:src/bloqade/codegen/python/emulator_ir.py
-                        amplitude=self.visit(wf),
-========
                         amplitude=self.compile_waveform(wf),
->>>>>>>> main:src/bloqade/compiler/codegen/emulator_ir.py
                         phase=rabi_phase,
                     )
                 )
@@ -310,13 +259,8 @@ class EmulatorProgramCodeGen(BloqadeIRVisitor):
                             target_atoms={atom: 1},
                             operator_type=RabiOperatorType.RabiAsymmetric,
                         ),
-<<<<<<<< HEAD:src/bloqade/codegen/python/emulator_ir.py
-                        amplitude=self.visit(amplitude_wf),
-                        phase=self.visit(phase_wf),
-========
                         amplitude=self.compile_waveform(amplitude_wf),
                         phase=self.compile_waveform(phase_wf),
->>>>>>>> main:src/bloqade/compiler/codegen/emulator_ir.py
                     )
                 )
 
