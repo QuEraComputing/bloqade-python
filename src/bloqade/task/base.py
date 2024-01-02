@@ -125,14 +125,19 @@ class Report:
 
     def _filter(
         self,
+        task_number: int,
         filter_perfect_filling: bool = True,
         clusters: Union[tuple[int, int], Sequence[Tuple[int, int]]] = [],
     ):
         mask = np.ones(len(self.dataframe), dtype=bool)
 
+        task_numbers = self.dataframe.index.get_level_values("task_number")
+        np.logical_and(task_numbers == task_number, mask, out=mask)
+
         if filter_perfect_filling:
             perfect_sorting = self.dataframe.index.get_level_values("perfect_sorting")
             pre_sequence = self.dataframe.index.get_level_values("pre_sequence")
+
             np.logical_and(perfect_sorting == pre_sequence, mask, out=mask)
 
         clusters = [clusters] if isinstance(clusters, tuple) else clusters
@@ -169,14 +174,18 @@ class Report:
             is set to True.
 
         """
-        mask = self._filter(filter_perfect_filling, clusters)
-        df = self.dataframe[mask]
 
-        task_numbers = df.index.get_level_values("task_number").unique()
+        task_numbers = self.dataframe.index.get_level_values("task_number").unique()
 
         bitstrings = []
         for task_number in task_numbers:
-            bitstrings.append(df.loc[task_number, ...].to_numpy())
+            mask = self._filter(task_number, filter_perfect_filling, clusters)
+            if np.any(mask):
+                bitstrings.append(self.dataframe.loc[mask, ...].to_numpy())
+            else:
+                bitstrings.append(
+                    np.zeros((0, self.dataframe.shape[1]), dtype=np.uint8)
+                )
 
         return bitstrings
 
