@@ -125,14 +125,16 @@ class Report:
 
     def _filter(
         self,
-        task_number: int,
+        *,
+        task_number: Optional[int] = None,
         filter_perfect_filling: bool = True,
         clusters: Union[tuple[int, int], Sequence[Tuple[int, int]]] = [],
     ):
         mask = np.ones(len(self.dataframe), dtype=bool)
 
-        task_numbers = self.dataframe.index.get_level_values("task_number")
-        np.logical_and(task_numbers == task_number, mask, out=mask)
+        if task_number is not None:
+            task_numbers = self.dataframe.index.get_level_values("task_number")
+            np.logical_and(task_numbers == task_number, mask, out=mask)
 
         if filter_perfect_filling:
             perfect_sorting = self.dataframe.index.get_level_values("perfect_sorting")
@@ -179,7 +181,11 @@ class Report:
 
         bitstrings = []
         for task_number in task_numbers:
-            mask = self._filter(task_number, filter_perfect_filling, clusters)
+            mask = self._filter(
+                task_number=task_number,
+                filter_perfect_filling=filter_perfect_filling,
+                clusters=clusters,
+            )
             if np.any(mask):
                 bitstrings.append(self.dataframe.loc[mask].to_numpy())
             else:
@@ -248,7 +254,9 @@ class Report:
             per-site rydberg density for each task as a pandas DataFrame or Series.
 
         """
-        mask = self._filter(filter_perfect_filling, clusters)
+        mask = self._filter(
+            filter_perfect_filling=filter_perfect_filling, clusters=clusters
+        )
         df = self.dataframe[mask]
         return 1 - (df.groupby("task_number").mean())
 
