@@ -41,16 +41,14 @@ def format_report_data(report: "Report"):
     task_tid = list(task_tid)
 
     counts = report.counts()
-    ryds = report.rydberg_densities()
+    bitstrings = report.bitstrings()
+    ryds = [np.mean(ele, axis=0) for ele in bitstrings]
 
     assert len(task_tid) == len(counts)
 
     cnt_sources = []
     ryd_sources = []
     for i, cnt_data in enumerate(counts):
-        # bitstrings = list(
-        #    "\n".join(textwrap.wrap(bitstring, 32)) for bitstring in cnt_data.keys()
-        # )
         bitstrings = list(cnt_data.keys())
         bit_id = [f"[{x}]" for x in range(len(bitstrings))]
 
@@ -60,7 +58,7 @@ def format_report_data(report: "Report"):
             data=dict(tid=tid, bitstrings=bitstrings, cnts=cnts, bit_id=bit_id)
         )
 
-        rydens = list(ryds.iloc[i])
+        rydens = list(ryds[i])
         tid = [i] * len(rydens)
 
         rsrc = ColumnDataSource(
@@ -147,7 +145,11 @@ def mock_data():
     return cnt_sources, ryd_sources, metas, geos, "Mock"
 
 
-# def get_
+def get_radius(length_scale, x_min, x_max, y_min, y_max):
+    global_length_scale = max(x_max - x_min, y_max - y_min)
+    coeff = 0.15 + 0.3 * np.tanh(global_length_scale / 10)
+    radius = coeff * length_scale
+    return radius
 
 
 def plot_register_ryd_dense(geo, ryds):
@@ -223,9 +225,7 @@ def plot_register_ryd_dense(geo, ryds):
 
     # interpolate between a scale for small lattices
     # and a scale for larger lattices
-    global_lenth_scale = np.sqrt((x_max - x_min) ** 2 + (y_max - y_min) ** 2)
-    coeff = 0.35 - 0.2 * np.exp(-global_lenth_scale / 100)
-    radius = coeff * length_scale
+    radius = get_radius(length_scale, x_min, x_max, y_min, y_max)
 
     p.circle(
         "_x",
@@ -316,9 +316,7 @@ def plot_register_bits(geo):
 
     # interpolate between a scale for small lattices
     # and a scale for larger lattices
-    global_lenth_scale = np.sqrt((x_max - x_min) ** 2 + (y_max - y_min) ** 2)
-    coeff = 0.35 - 0.2 * np.exp(-global_lenth_scale / 100)
-    radius = coeff * length_scale
+    radius = get_radius(length_scale, x_min, x_max, y_min, y_max)
 
     ## remove box_zoom since we don't want to change the scale
 
