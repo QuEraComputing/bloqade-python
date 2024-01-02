@@ -517,25 +517,6 @@ class ParallelRegister(ProgramStart):
     def __str__(self):
         return "ParallelRegister:\n" + self.atom_arrangement.__str__()
 
-    def figure(self, fig_kwargs=None, **assignments):
-        from bloqade.compiler.rewrite.common import AssignBloqadeIR
-        from bloqade.compiler.codegen.hardware import GenerateLattice
-        from bloqade.submission.capabilities import get_capabilities
-
-        capabilities = get_capabilities()
-
-        assigned_self = AssignBloqadeIR(assignments).emit(self)
-        lattice_data = GenerateLattice(capabilities).emit(assigned_self)
-
-        list_of_locations = ListOfLocations()
-        for site, filling in zip(lattice_data.sites, lattice_data.filling):
-            list_of_locations = list_of_locations.add_position(site, filling == 1)
-
-        return list_of_locations.figure(fig_kwargs)
-
-    def show(self, **assignments) -> None:
-        display_ir(self, assignments)
-
 
 @dataclass(init=False)
 class ParallelRegisterInfo:
