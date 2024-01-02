@@ -147,6 +147,9 @@ def mock_data():
     return cnt_sources, ryd_sources, metas, geos, "Mock"
 
 
+# def get_
+
+
 def plot_register_ryd_dense(geo, ryds):
     """obtain a figure object from the atom arrangement."""
     xs_filled, ys_filled, labels_filled, density_filled = [], [], [], []
@@ -175,7 +178,11 @@ def plot_register_ryd_dense(geo, ryds):
             density_vacant.append(density)
 
     if len(geo.sites) > 0:
-        length_scale = max(y_max - y_min, x_max - x_min, 1)
+        length_scale = np.inf
+        for i, site_i in enumerate(geo.sites):
+            for site_j in geo.sites[i + 1 :]:
+                dist = np.linalg.norm(np.array(site_i) - np.array(site_j)) / 1e-6
+                length_scale = min(length_scale, dist)
     else:
         length_scale = 1
 
@@ -196,7 +203,6 @@ def plot_register_ryd_dense(geo, ryds):
         ("index: ", "@_labels"),
         ("ryd density: ", "@_ryd"),
     ]
-
     color_mapper = LinearColorMapper(palette="Magma256", low=min(ryds), high=max(ryds))
 
     # specify that we want to map the colors to the y values,
@@ -212,28 +218,35 @@ def plot_register_ryd_dense(geo, ryds):
         toolbar_location="above",
         title="rydberg density",
     )
-    p.x_range = Range1d(x_min - 1, x_min + length_scale + 1)
-    p.y_range = Range1d(y_min - 1, y_min + length_scale + 1)
+    p.x_range = Range1d(x_min - length_scale, x_max + length_scale)
+    p.y_range = Range1d(y_min - length_scale, y_max + length_scale)
+
+    # interpolate between a scale for small lattices
+    # and a scale for larger lattices
+    global_lenth_scale = np.sqrt((x_max - x_min) ** 2 + (y_max - y_min) ** 2)
+    coeff = 0.35 - 0.2 * np.exp(-global_lenth_scale / 100)
+    radius = coeff * length_scale
 
     p.circle(
         "_x",
         "_y",
         source=source_filled,
-        radius=0.035 * length_scale,
+        radius=radius,
         fill_alpha=1,
         line_color="black",
         color={"field": "_ryd", "transform": color_mapper},
     )
+
     p.circle(
         "_x",
         "_y",
         source=source_vacant,
-        radius=0.035 * length_scale,
+        radius=radius,
         fill_alpha=1,
         # color="grey",
         line_color="black",
         color={"field": "_ryd", "transform": color_mapper},
-        line_width=0.2 * length_scale,
+        line_width=0.01 * length_scale,
     )
 
     color_bar = ColorBar(
@@ -272,13 +285,17 @@ def plot_register_bits(geo):
         x_max = max(x, x_max)
         y_max = max(y, y_max)
 
-        xs.append(x)
         ys.append(y)
+        xs.append(x)
         bits.append(0)
         labels.append(idx)
 
     if len(geo.sites) > 0:
-        length_scale = max(y_max - y_min, x_max - x_min, 1)
+        length_scale = np.inf
+        for i, site_i in enumerate(geo.sites):
+            for site_j in geo.sites[i + 1 :]:
+                dist = np.linalg.norm(np.array(site_i) - np.array(site_j)) / 1e-6
+                length_scale = min(length_scale, dist)
     else:
         length_scale = 1
 
@@ -297,6 +314,12 @@ def plot_register_bits(geo):
     # this could be replaced with a list of colors
     ##p.scatter(x,y,color={'field': 'y', 'transform': color_mapper})
 
+    # interpolate between a scale for small lattices
+    # and a scale for larger lattices
+    global_lenth_scale = np.sqrt((x_max - x_min) ** 2 + (y_max - y_min) ** 2)
+    coeff = 0.35 - 0.2 * np.exp(-global_lenth_scale / 100)
+    radius = coeff * length_scale
+
     ## remove box_zoom since we don't want to change the scale
 
     p = figure(
@@ -306,14 +329,14 @@ def plot_register_bits(geo):
         toolbar_location="above",
         title="reg state",
     )
-    p.x_range = Range1d(x_min - 1, x_min + length_scale + 1)
-    p.y_range = Range1d(y_min - 1, y_min + length_scale + 1)
+    p.x_range = Range1d(x_min - length_scale, x_max + length_scale)
+    p.y_range = Range1d(y_min - length_scale, y_max + length_scale)
 
     p.circle(
         "_x",
         "_y",
         source=source,
-        radius=0.035 * length_scale,
+        radius=radius,
         fill_alpha=1,
         line_color="black",
         color={"field": "_bits", "transform": color_mapper},
