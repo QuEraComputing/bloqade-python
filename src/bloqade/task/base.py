@@ -181,7 +181,7 @@ class Report:
         for task_number in task_numbers:
             mask = self._filter(task_number, filter_perfect_filling, clusters)
             if np.any(mask):
-                bitstrings.append(self.dataframe.loc[mask, ...].to_numpy())
+                bitstrings.append(self.dataframe.loc[mask].to_numpy())
             else:
                 bitstrings.append(
                     np.zeros((0, self.dataframe.shape[1]), dtype=np.uint8)
