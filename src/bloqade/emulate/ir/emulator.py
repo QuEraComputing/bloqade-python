@@ -11,18 +11,20 @@ from enum import Enum
 from bloqade.ir.control.waveform import Waveform
 from bloqade.emulate.ir.atom_type import AtomType
 
+
 class WaveformRuntime(str, Enum):
     Python = "python"
     Numba = "numba"
     Interpret = "interpret"
+
 
 @dataclass
 @Serializer.register
 class JITWaveform:
     assignments: Dict[str, Decimal]
     source: Waveform
-    runtime: WaveformRuntime = WaveformRuntime.interpret
-    
+    runtime: WaveformRuntime = WaveformRuntime.Interpret
+
     @cached_property
     def canonicalized_ir(self):
         from bloqade.compiler.rewrite.common import (
