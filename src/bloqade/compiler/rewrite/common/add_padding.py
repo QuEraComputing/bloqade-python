@@ -68,14 +68,15 @@ class AddPadding(BloqadeIRTransformer):
             self.field_names = field_names
 
             if lc in node.pulses:
-                p = self.visit(node.pulses[lc])
+                p = node.pulses[lc]
+                diff_duration = node.duration - p.duration
+
+                p = self.visit(p)
+                if diff_duration != scalar.Literal(0):
+                    p = p.append(self.get_empty_pulse(diff_duration))
+
             else:
                 p = self.get_empty_pulse(node.duration)
-
-            diff_duration = node.duration - p.duration
-
-            if diff_duration != scalar.Literal(0):
-                p = p.append(self.get_empty_pulse(diff_duration))
 
             pulses[lc] = p
 

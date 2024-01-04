@@ -95,7 +95,7 @@ dev = [
     "jupytext>=1.14.5",
     "pytest-recording>=0.12.2",
     "vcrpy==4.4.0",
-    "pyinstrument>=4.5.3",
+    "pyinstrument>=4.6.1",
     "scikit-optimize>=0.9.0",
     "matplotlib>=3.8.1",
     "icecream>=2.1.3",

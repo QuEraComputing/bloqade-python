@@ -192,7 +192,7 @@ class RydbergHamiltonianCodeGen(Visitor):
         self.detuning_ops.append(
             DetuningOperator(
                 diagonal=self.visit(detuning_term.operator_data),
-                amplitude=detuning_term.amplitude,
+                amplitude=detuning_term.amplitude.emit(),
             )
         )
 
@@ -200,8 +200,8 @@ class RydbergHamiltonianCodeGen(Visitor):
         self.rabi_ops.append(
             RabiOperator(
                 op=self.visit(rabi_term.operator_data),
-                amplitude=rabi_term.amplitude,
-                phase=rabi_term.phase,
+                amplitude=rabi_term.amplitude.emit(),
+                phase=rabi_term.phase.emit() if rabi_term.phase else None,
             )
         )
 

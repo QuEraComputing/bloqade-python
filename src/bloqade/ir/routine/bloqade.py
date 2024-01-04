@@ -56,21 +56,21 @@ class BloqadePythonRoutine(RoutineBase):
                 wrapped_register, metadata, hamiltonian, *self.callback_args
             )
 
-    def _generate_ir(self, args, blockade_radius):
-        from bloqade.compiler.analysis.common.assignment_scan import AssignmentScan
-        from bloqade.compiler.rewrite.common.assign_variables import AssignBloqadeIR
-        from bloqade.compiler.codegen.emulator_ir import EmulatorProgramCodeGen
+    def _generate_ir(self, args, blockade_radius, waveform_runtime):
+        from bloqade.compiler.passes.emulator import (
+            flatten,
+            assign,
+            generate_emulator_ir,
+        )
 
-        circuit, params = self.circuit, self.params
-
-        circuit = AssignBloqadeIR(params.static_params).visit(circuit)
+        params = self.params
+        circuit = flatten(self.circuit)
 
         for task_number, batch_param in enumerate(params.batch_assignments(*args)):
-            record_params = AssignmentScan(batch_param).emit(circuit)
-            final_circuit = AssignBloqadeIR(record_params).visit(circuit)
-            metadata = {**params.static_params, **record_params}
-            emulator_ir = EmulatorProgramCodeGen(blockade_radius=blockade_radius).emit(
-                final_circuit
+            assignment = {**params.static_params, **batch_param}
+            metadata, final_circuit = assign(assignment, circuit)
+            emulator_ir = generate_emulator_ir(
+                final_circuit, blockade_radius, waveform_runtime
             )
             yield task_number, emulator_ir, metadata
 
@@ -81,6 +81,7 @@ class BloqadePythonRoutine(RoutineBase):
         name: Optional[str] = None,
         blockade_radius: LiteralType = 0.0,
         cache_matrices: bool = False,
+        waveform_runtime: str = "interpret",
     ) -> LocalBatch:
         from bloqade.task.bloqade import BloqadeTask
 
@@ -90,7 +91,7 @@ class BloqadePythonRoutine(RoutineBase):
             matrix_cache = None
 
         tasks = OrderedDict()
-        it_iter = self._generate_ir(args, blockade_radius)
+        it_iter = self._generate_ir(args, blockade_radius, waveform_runtime)
         for task_number, emulator_ir, metadata in it_iter:
             tasks[task_number] = BloqadeTask(shots, emulator_ir, metadata, matrix_cache)
 
@@ -103,6 +104,7 @@ class BloqadePythonRoutine(RoutineBase):
         args: Tuple[LiteralType, ...] = (),
         name: Optional[str] = None,
         blockade_radius: float = 0.0,
+        waveform_runtime: str = "interpret",
         interaction_picture: bool = False,
         cache_matrices: bool = False,
         multiprocessing: bool = False,
@@ -121,6 +123,8 @@ class BloqadePythonRoutine(RoutineBase):
             name (Optional[str], optional): Name to give this run. Defaults to None.
             blockade_radius (float, optional): Use the Blockade subspace given a
             particular radius. Defaults to 0.0.
+            waveform_runtime: (bool, optional): Use Numba to compile the waveforms,
+            Defaults to False.
             interaction_picture (bool, optional): Use the interaction picture when
             solving schrodinger equation. Defaults to False.
             cache_matrices (bool, optional): Reuse previously evaluated matrcies when
@@ -155,6 +159,7 @@ class BloqadePythonRoutine(RoutineBase):
             name=name,
             blockade_radius=blockade_radius,
             cache_matrices=cache_matrices,
+            waveform_runtime=waveform_runtime,
         )
 
         solver_options = dict(
@@ -179,6 +184,7 @@ class BloqadePythonRoutine(RoutineBase):
         shots: int = 1,
         name: Optional[str] = None,
         blockade_radius: float = 0.0,
+        waveform_runtime: str = "interpret",
         interaction_picture: bool = False,
         multiprocessing: bool = False,
         num_workers: Optional[int] = None,
@@ -193,6 +199,7 @@ class BloqadePythonRoutine(RoutineBase):
             args=args,
             name=name,
             blockade_radius=blockade_radius,
+            waveform_runtime=waveform_runtime,
             multiprocessing=multiprocessing,
             num_workers=num_workers,
             cache_matrices=cache_matrices,
@@ -212,6 +219,7 @@ class BloqadePythonRoutine(RoutineBase):
         callback_args: Tuple = (),
         ignore_exceptions: bool = False,
         blockade_radius: float = 0.0,
+        waveform_runtime: str = "interpret",
         interaction_picture: bool = False,
         cache_matrices: bool = False,
         multiprocessing: bool = False,
@@ -237,6 +245,8 @@ class BloqadePythonRoutine(RoutineBase):
             tasks have executed. Defaults to False.
             blockade_radius (float, optional): Use the Blockade subspace given a
             particular radius. Defaults to 0.0.
+            waveform_runtime: (str, optional): Specify which runtime to use for
+            waveforms. Defaults to "interpret".
             interaction_picture (bool, optional): Use the interaction picture when
             solving schrodinger equation. Defaults to False.
             cache_matrices (bool, optional): Reuse previously evaluated matrcies when
@@ -301,7 +311,7 @@ class BloqadePythonRoutine(RoutineBase):
         results = Queue()
 
         total_tasks = 0
-        it_iter = self._generate_ir(program_args, blockade_radius)
+        it_iter = self._generate_ir(program_args, blockade_radius, waveform_runtime)
         for task_number, emulator_ir, metadata in it_iter:
             total_tasks += 1
             tasks.put((task_number, (emulator_ir, metadata)))

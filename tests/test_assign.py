@@ -77,7 +77,7 @@ def test_scan():
 
     params = dict(max=10, t=0.1)
 
-    completed_params = AssignmentScan(params).emit(circuit)
+    completed_params = AssignmentScan(params).scan(circuit)
     completed_circuit = AssignBloqadeIR(completed_params).visit(circuit)
 
     t_assigned = scalar.AssignedVariable("t", 0.1)
