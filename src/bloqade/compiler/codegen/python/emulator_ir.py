@@ -34,6 +34,7 @@ class EmulatorProgramCodeGen(BloqadeIRVisitor):
         assignments: Dict[str, LiteralType] = {},
         blockade_radius: Decimal = 0.0,
         use_hyperfine: bool = False,
+        interpret_waveform: bool = True,
     ):
         self.blockade_radius = Decimal(str(blockade_radius))
         self.assignments = assignments
@@ -43,9 +44,12 @@ class EmulatorProgramCodeGen(BloqadeIRVisitor):
         self.level_couplings = set()
         self.original_index = []
         self.is_hyperfine = use_hyperfine
+        self.interpret_waveform = interpret_waveform
 
     def compile_waveform(self, node: waveform.Waveform) -> JITWaveform:
-        return JITWaveform(self.assignments, node)
+        return JITWaveform(
+            self.assignments, node, interpret_waveform=self.interpret_waveform
+        )
 
     def construct_register(self, node: AtomArrangement) -> Any:
         positions = []

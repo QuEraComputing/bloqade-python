@@ -1,3 +1,4 @@
+from functools import cached_property
 from bloqade.compiler.codegen.common.json import (
     BloqadeIRSerializer,
     BloqadeIRDeserializer,
@@ -16,20 +17,48 @@ from bloqade.emulate.ir.atom_type import AtomType
 class JITWaveform:
     assignments: Dict[str, Decimal]
     source: Waveform
-    jit_compiled: bool = False
+    numba_compiled: bool = False
+    interpret_waveform: bool = True
+
+    @cached_property
+    def canonicalized_ir(self):
+        from bloqade.compiler.rewrite.common import (
+            AssignBloqadeIR,
+            AssignToLiteral,
+            Canonicalizer,
+        )
+        from bloqade.compiler.rewrite.python.waveform import NormalizeWaveformPython
+        from bloqade.compiler.analysis.common import AssignmentScan, ScanVariables
+
+        assignments = AssignmentScan(self.assignments).scan(self.source)
+        ast_assigned = AssignBloqadeIR(assignments).emit(self.source)
+        scan = ScanVariables().scan(ast_assigned)
+
+        if not scan.is_assigned:
+            missing_vars = scan.scalar_vars.union(scan.vector_vars)
+            raise ValueError(
+                "Missing assignments for variables:\n"
+                + ("\n".join(f"{var}" for var in missing_vars))
+                + "\n"
+            )
+
+        ast_normalized = NormalizeWaveformPython().visit(ast_assigned)
+        ast_literal = AssignToLiteral().visit(ast_normalized)
+        ast_canonicalized = Canonicalizer().visit(ast_literal)
+
+        return ast_canonicalized
 
     def emit(self) -> Callable[[float], float]:
-        from bloqade.compiler.rewrite.common.assign_variables import AssignBloqadeIR
-        from bloqade.compiler.rewrite.python.waveform import NormalizeWaveformPython
         from bloqade.compiler.analysis.python.waveform import WaveformScan
         from bloqade.compiler.codegen.python.waveform import CodegenPythonWaveform
 
-        ast_assigned = AssignBloqadeIR(self.assignments).emit(self.source)
-        ast_normalized = NormalizeWaveformPython().visit(ast_assigned)
-        scan_results = WaveformScan().scan(ast_normalized)
+        if self.interpret_waveform:
+            return self.canonicalized_ir
+
+        scan_results = WaveformScan().scan(self.canonicalize_ir)
         stub = CodegenPythonWaveform(
-            scan_results, jit_compiled=self.jit_compiled
-        ).compile(ast_normalized)
+            scan_results, jit_compiled=self.numba_compiled
+        ).compile(self.canonicalized_ir)
 
         return stub
 

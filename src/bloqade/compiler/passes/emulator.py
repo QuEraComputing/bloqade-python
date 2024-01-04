@@ -1,5 +1,5 @@
 from bloqade.compiler.analysis.common import ScanChannels, ScanVariables, AssignmentScan
-from bloqade.compiler.codegen.emulator_ir import EmulatorProgramCodeGen
+from bloqade.compiler.codegen.python.emulator_ir import EmulatorProgramCodeGen
 from bloqade.compiler.rewrite.common import (
     AddPadding,
     FlattenCircuit,
