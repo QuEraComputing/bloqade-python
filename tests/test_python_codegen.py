@@ -8,6 +8,7 @@ import bloqade.ir.control.waveform as wf
 from unittest.mock import patch
 import numpy as np
 import numba
+from bloqade import start
 
 
 def f(t):
@@ -262,6 +263,43 @@ def test_python_codegen(randint):
 
     assert inspect.isfunction(func)
     assert func.__name__ == "__bloqade_waveform_3"
+
+
+def test_interpret_vs_python_vs_numba():
+    def phase_function(t):
+        return np.sin(t)
+
+    def collect_callback(state, metadata, hamiltonian):
+        return state.data.copy()
+
+    program = (
+        start.add_position([(0, 0), (0, 6)])
+        .rydberg.detuning.uniform.piecewise_linear([0.1, 0.8, 0.1], [-10, -10, 20, 20])
+        .amplitude.uniform.piecewise_linear([0.1, 0.8, 0.1], [0, 15.7, 15.7, 0])
+        .phase.location(0, 1.0)
+        .fn(phase_function, 1.0)
+        .detuning.scale([0.1, 1.0])
+        .piecewise_constant([0.1, 0.3, 0.1], [0, 1, 2])
+        .poly([2, -1, 3, -4], 0.5)
+    )
+
+    interp_results = program.bloqade.python().run_callback(
+        collect_callback, waveform_runtime="interpret"
+    )
+
+    python_results = program.bloqade.python().run_callback(
+        collect_callback, waveform_runtime="python"
+    )
+
+    numba_results = program.bloqade.python().run_callback(
+        collect_callback, waveform_runtime="numba"
+    )
+
+    for interp_result, python_result, numba_result in zip(
+        interp_results, python_results, numba_results
+    ):
+        assert np.allclose(interp_result, python_result)
+        assert np.allclose(interp_result, numba_result)
 
 
 if __name__ == "__main__":

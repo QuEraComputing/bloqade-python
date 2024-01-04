@@ -60,7 +60,7 @@ class JITWaveform:
         if self.runtime is WaveformRuntime.Interpret:
             return self.canonicalized_ir
 
-        scan_results = WaveformScan().scan(self.canonicalize_ir)
+        scan_results = WaveformScan().scan(self.canonicalized_ir)
         stub = CodegenPythonWaveform(
             scan_results, jit_compiled=self.runtime is WaveformRuntime.Numba
         ).compile(self.canonicalized_ir)
