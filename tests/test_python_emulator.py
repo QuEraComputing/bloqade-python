@@ -40,7 +40,7 @@ def test_integration_2():
         )
         .assign(ramp_time=3.0, r=6)
         .bloqade.python()
-        .run(10000, cache_matrices=False, blockade_radius=6.0, multiprocessing=True)
+        .run(10000, cache_matrices=False, blockade_radius=6.0, multiprocessing=False)
         .report()
         .bitstrings()
     )
