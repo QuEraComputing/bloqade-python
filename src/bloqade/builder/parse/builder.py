@@ -233,7 +233,7 @@ class Parser:
 
         circuit = AnalogCircuit(self.register, self.sequence)
 
-        var_res = ScanVariables().emit(circuit)
+        var_res = ScanVariables().scan(circuit)
         # mark vector and scalar arguments
         args_list = [
             (VectorArg(name) if name in var_res.vector_vars else ScalarArg(name))

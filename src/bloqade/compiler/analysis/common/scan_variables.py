@@ -39,7 +39,7 @@ class ScanVariables(BloqadeIRVisitor):
         if node.name is not None:  # skip literal vectors
             self.assigned_vector_vars.add(node.name)
 
-    def emit(self, node) -> ScanVariableResults:
+    def scan(self, node) -> ScanVariableResults:
         self.visit(node)
         return ScanVariableResults(
             self.scalar_vars,
