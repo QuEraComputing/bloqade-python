@@ -38,6 +38,7 @@
             * [python](bloqade/compiler/analysis/python/index.md)
                 * [waveform](bloqade/compiler/analysis/python/waveform.md)
         * [passes](bloqade/compiler/passes/index.md)
+            * [emulator](bloqade/compiler/passes/emulator.md)
             * [hardware](bloqade/compiler/passes/hardware/index.md)
                 * [components](bloqade/compiler/passes/hardware/components.md)
                 * [define](bloqade/compiler/passes/hardware/define.md)
