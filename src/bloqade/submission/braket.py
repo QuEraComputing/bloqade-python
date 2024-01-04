@@ -3,7 +3,9 @@ from bloqade.submission.ir.braket import (
     from_braket_task_results,
     from_braket_status_codes,
     to_braket_task,
+    to_quera_capabilities,
 )
+from bloqade.submission.ir.capabilities import QuEraCapabilities
 from bloqade.submission.ir.task_results import (
     QuEraTaskStatusCode,
     QuEraTaskResults,
@@ -27,6 +29,9 @@ class BraketBackend(SubmissionBackend):
             self._device.aws_session.add_braket_user_agent(user_agent)
 
         return self._device
+
+    def get_capabilities(self) -> QuEraCapabilities:
+        return to_quera_capabilities(self.device.properties.paradigm)
 
     def submit_task(self, task_ir: QuEraTaskSpecification) -> str:
         shots, ahs_program = to_braket_task(task_ir)
