@@ -1,5 +1,5 @@
 from bloqade.compiler.analysis.common import ScanChannels, ScanVariables, AssignmentScan
-from bloqade.compiler.codegen.emulator_ir import EmulatorProgramCodeGen
+from bloqade.compiler.codegen.python.emulator_ir import EmulatorProgramCodeGen
 from bloqade.compiler.rewrite.common import (
     AddPadding,
     FlattenCircuit,
@@ -35,5 +35,7 @@ def assign(assignments, circuit):
     )
 
 
-def generate_emulator_ir(circuit, blockade_radius):
-    return EmulatorProgramCodeGen(blockade_radius=blockade_radius).emit(circuit)
+def generate_emulator_ir(circuit, blockade_radius, waveform_runtime):
+    return EmulatorProgramCodeGen(
+        blockade_radius=blockade_radius, waveform_runtime=waveform_runtime
+    ).emit(circuit)
