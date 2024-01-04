@@ -105,7 +105,7 @@ class Waveform(HashTrait, CanonicalizeTrait):
     def _get_data(self, npoints, **assignments):
         from bloqade.compiler.analysis.common.assignment_scan import AssignmentScan
 
-        assignments = AssignmentScan(assignments).emit(self)
+        assignments = AssignmentScan(assignments).scan(self)
 
         duration = float(self.duration(**assignments))
         times = np.linspace(0, duration, npoints + 1)
