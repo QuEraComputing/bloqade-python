@@ -11,15 +11,18 @@ from enum import Enum
 from bloqade.ir.control.waveform import Waveform
 from bloqade.emulate.ir.atom_type import AtomType
 
+class WaveformRuntime(str, Enum):
+    Python = "python"
+    Numba = "numba"
+    Interpret = "interpret"
 
 @dataclass
 @Serializer.register
 class JITWaveform:
     assignments: Dict[str, Decimal]
     source: Waveform
-    numba_compiled: bool = False
-    interpret_waveform: bool = True
-
+    runtime: WaveformRuntime = WaveformRuntime.interpret
+    
     @cached_property
     def canonicalized_ir(self):
         from bloqade.compiler.rewrite.common import (
@@ -52,12 +55,12 @@ class JITWaveform:
         from bloqade.compiler.analysis.python.waveform import WaveformScan
         from bloqade.compiler.codegen.python.waveform import CodegenPythonWaveform
 
-        if self.interpret_waveform:
+        if self.runtime is WaveformRuntime.Interpret:
             return self.canonicalized_ir
 
         scan_results = WaveformScan().scan(self.canonicalize_ir)
         stub = CodegenPythonWaveform(
-            scan_results, jit_compiled=self.numba_compiled
+            scan_results, jit_compiled=self.runtime is WaveformRuntime.Numba
         ).compile(self.canonicalized_ir)
 
         return stub

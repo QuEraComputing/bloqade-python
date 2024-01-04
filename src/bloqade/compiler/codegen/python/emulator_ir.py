@@ -20,6 +20,7 @@ from bloqade.emulate.ir.emulator import (
     RabiOperatorType,
     DetuningTerm,
     JITWaveform,
+    WaveformRuntime,
     EmulatorProgram,
     Register,
     Fields,
@@ -34,7 +35,7 @@ class EmulatorProgramCodeGen(BloqadeIRVisitor):
         assignments: Dict[str, LiteralType] = {},
         blockade_radius: Decimal = 0.0,
         use_hyperfine: bool = False,
-        interpret_waveform: bool = True,
+        waveform_runtime: WaveformRuntime = WaveformRuntime.Interpret
     ):
         self.blockade_radius = Decimal(str(blockade_radius))
         self.assignments = assignments
@@ -44,11 +45,11 @@ class EmulatorProgramCodeGen(BloqadeIRVisitor):
         self.level_couplings = set()
         self.original_index = []
         self.is_hyperfine = use_hyperfine
-        self.interpret_waveform = interpret_waveform
+        self.waveform_runtime = WaveformRuntime(waveform_runtime)
 
     def compile_waveform(self, node: waveform.Waveform) -> JITWaveform:
         return JITWaveform(
-            self.assignments, node, interpret_waveform=self.interpret_waveform
+            self.assignments, node, waveform_runtime=self.waveform_runtime
         )
 
     def construct_register(self, node: AtomArrangement) -> Any:
