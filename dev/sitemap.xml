@@ -306,6 +306,16 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
+         <loc>https://bloqade.quera.com/dev/reference/bloqade/compiler/analysis/python/</loc>
+         <lastmod>2024-01-04</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://bloqade.quera.com/dev/reference/bloqade/compiler/analysis/python/waveform/</loc>
+         <lastmod>2024-01-04</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
          <loc>https://bloqade.quera.com/dev/reference/bloqade/compiler/passes/</loc>
          <lastmod>2024-01-04</lastmod>
          <changefreq>daily</changefreq>
@@ -367,6 +377,16 @@
     </url>
     <url>
          <loc>https://bloqade.quera.com/dev/reference/bloqade/compiler/rewrite/common/flatten/</loc>
+         <lastmod>2024-01-04</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://bloqade.quera.com/dev/reference/bloqade/compiler/rewrite/python/</loc>
+         <lastmod>2024-01-04</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://bloqade.quera.com/dev/reference/bloqade/compiler/rewrite/python/waveform/</loc>
          <lastmod>2024-01-04</lastmod>
          <changefreq>daily</changefreq>
     </url>
