@@ -35,5 +35,7 @@ def assign(assignments, circuit):
     )
 
 
-def generate_emulator_ir(circuit, blockade_radius):
-    return EmulatorProgramCodeGen(blockade_radius=blockade_radius).emit(circuit)
+def generate_emulator_ir(circuit, blockade_radius, waveform_runtime):
+    return EmulatorProgramCodeGen(
+        blockade_radius=blockade_radius, waveform_runtime=waveform_runtime
+    ).emit(circuit)
