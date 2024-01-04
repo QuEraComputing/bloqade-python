@@ -32,7 +32,7 @@ def test_1():
         assigned_scalar_vars=set(),
         assigned_vector_vars=set(),
     )
-    assert expected_result == ScanVariables().emit(circuit)
+    assert expected_result == ScanVariables().scan(circuit)
 
 
 def test_2():
@@ -70,4 +70,4 @@ def test_2():
         assigned_scalar_vars=set(),
         assigned_vector_vars=set(),
     )
-    assert expected_result == ScanVariables().emit(circuit)
+    assert expected_result == ScanVariables().scan(circuit)
