@@ -1,3 +1,4 @@
+import warnings
 from bloqade.submission.base import SubmissionBackend
 from bloqade.submission.ir.braket import (
     from_braket_task_results,
@@ -31,7 +32,16 @@ class BraketBackend(SubmissionBackend):
         return self._device
 
     def get_capabilities(self) -> QuEraCapabilities:
-        return to_quera_capabilities(self.device.properties.paradigm)
+        from botocore.exceptions import ClientError
+
+        try:
+            to_quera_capabilities(self.device.properties.paradigm)
+        except ClientError:
+            warnings.warn(
+                "Could not retrieve device capabilities. Using local "
+                "capabiltiiies file for Aquila."
+            )
+            return super().get_capabilities()
 
     def submit_task(self, task_ir: QuEraTaskSpecification) -> str:
         shots, ahs_program = to_braket_task(task_ir)
