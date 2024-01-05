@@ -8,6 +8,7 @@ from beartype.typing import List, Tuple, Generator, Union, Optional
 from beartype import beartype
 from enum import Enum
 from numpy.typing import NDArray
+from bloqade.submission.ir.capabilities import QuEraCapabilities
 from bloqade.visualization import get_atom_arrangement_figure
 from bloqade.visualization import display_ir
 
@@ -517,21 +518,30 @@ class ParallelRegister(ProgramStart):
     def __str__(self):
         return "ParallelRegister:\n" + self.atom_arrangement.__str__()
 
-    def figure(self, fig_kwargs=None, **assignments):
+    def _compile_to_list(
+        self, __capabilities: Optional[QuEraCapabilities] = None, **assignments
+    ):
         from bloqade.compiler.rewrite.common import AssignBloqadeIR
         from bloqade.compiler.codegen.hardware import GenerateLattice
         from bloqade.submission.capabilities import get_capabilities
 
-        capabilities = get_capabilities()
-
-        assigned_self = AssignBloqadeIR(assignments).emit(self)
-        lattice_data = GenerateLattice(capabilities).emit(assigned_self)
+        lattice_data = GenerateLattice(__capabilities or get_capabilities()).emit(
+            AssignBloqadeIR(assignments).emit(self)
+        )
 
         list_of_locations = ListOfLocations()
         for site, filling in zip(lattice_data.sites, lattice_data.filling):
             list_of_locations = list_of_locations.add_position(site, filling == 1)
 
-        return list_of_locations.figure(fig_kwargs)
+        return list_of_locations
+
+    def figure(
+        self,
+        fig_kwargs=None,
+        capabilities: Optional[QuEraCapabilities] = None,
+        **assignments,
+    ):
+        return self._compile_to_list(capabilities).figure(fig_kwargs)
 
     def show(self, **assignments) -> None:
         display_ir(self, assignments)
