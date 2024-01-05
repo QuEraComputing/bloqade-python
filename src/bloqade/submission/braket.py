@@ -32,16 +32,17 @@ class BraketBackend(SubmissionBackend):
         return self._device
 
     def get_capabilities(self) -> QuEraCapabilities:
-        from botocore.exceptions import ClientError
+        from botocore.exceptions import BotoCoreError
 
         try:
             to_quera_capabilities(self.device.properties.paradigm)
-        except ClientError:
+        except BotoCoreError:
             warnings.warn(
-                "Could not retrieve device capabilities. Using local "
-                "capabiltiiies file for Aquila."
+                "Could not retrieve device capabilities from braket API. "
+                "Using local capabiltiiies file for Aquila."
             )
-            return super().get_capabilities()
+
+        return super().get_capabilities()
 
     def submit_task(self, task_ir: QuEraTaskSpecification) -> str:
         shots, ahs_program = to_braket_task(task_ir)
