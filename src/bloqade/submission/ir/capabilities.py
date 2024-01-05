@@ -1,6 +1,7 @@
-from typing import Optional
 from pydantic import BaseModel
 from decimal import Decimal
+from beartype.typing import Optional
+from beartype import beartype
 
 __all__ = ["QuEraCapabilities"]
 
@@ -22,6 +23,7 @@ class RydbergGlobalCapabilities(BaseModel):
     time_resolution: Decimal
     time_delta_min: Decimal
 
+    @beartype
     def scale_units(
         self, _: Decimal, energy_scale: Decimal
     ) -> "RydbergGlobalCapabilities":
@@ -56,13 +58,14 @@ class RydbergLocalCapabilities(BaseModel):
     time_resolution: Decimal
     time_delta_min: Decimal
 
+    @beartype
     def scale_units(self, distance_scale, energy_scale) -> "RydbergLocalCapabilities":
         return RydbergLocalCapabilities(
             detuning_min=self.detuning_min * energy_scale,
             detuning_max=self.detuning_max * energy_scale,
             detuning_slew_rate_max=self.detuning_slew_rate_max * energy_scale**2,
-            site_coefficient_min=self.site_coefficient_min * energy_scale,
-            site_coefficient_max=self.site_coefficient_max * energy_scale,
+            site_coefficient_min=self.site_coefficient_min,
+            site_coefficient_max=self.site_coefficient_max,
             number_local_detuning_sites=self.number_local_detuning_sites,
             spacing_radial_min=self.spacing_radial_min * distance_scale,
             time_resolution=self.time_resolution / energy_scale,
@@ -79,6 +82,7 @@ class RydbergCapabilities(BaseModel):
         allow_population_by_field_name = True
         fields = {"global_": "global"}
 
+    @beartype
     def scale_units(self, distance_scale, energy_scale) -> "RydbergCapabilities":
         return RydbergCapabilities(
             c6_coefficient=self.c6_coefficient * energy_scale * distance_scale**6,
@@ -93,6 +97,7 @@ class LatticeGeometryCapabilities(BaseModel):
     position_resolution: Decimal
     number_sites_max: int
 
+    @beartype
     def scale_units(
         self, distance_scale: Decimal, _: Decimal
     ) -> "LatticeGeometryCapabilities":
@@ -108,6 +113,7 @@ class LatticeAreaCapabilities(BaseModel):
     width: Decimal
     height: Decimal
 
+    @beartype
     def scale_units(
         self, distance_scale: Decimal, _: Decimal
     ) -> "LatticeAreaCapabilities":
@@ -136,6 +142,7 @@ class TaskCapabilities(BaseModel):
     number_shots_min: int
     number_shots_max: int
 
+    @beartype
     def scale_units(self, _: Decimal, __: Decimal) -> "TaskCapabilities":
         return TaskCapabilities(
             number_shots_min=self.number_shots_min,
@@ -148,6 +155,7 @@ class DeviceCapabilities(BaseModel):
     lattice: LatticeCapabilities
     rydberg: RydbergCapabilities
 
+    @beartype
     def scale_units(
         self, distance_scale: Decimal, energy_scale: Decimal
     ) -> "DeviceCapabilities":
@@ -162,6 +170,7 @@ class QuEraCapabilities(BaseModel):
     version: str
     capabilities: DeviceCapabilities
 
+    @beartype
     def scale_units(
         self, distance_scale: Decimal, energy_scale: Decimal
     ) -> "QuEraCapabilities":

@@ -27,12 +27,8 @@ def get_capabilities() -> "QuEraCapabilities":
 
     from bloqade.submission.capabilities import get_capabilities
 
-    capabilities_schema = get_capabilities()
-
-    capabilities = capabilities_schema.capabilities
-
     # manually convert to units
-    return capabilities.scale_units(Decimal("1e6"), Decimal("1e-6"))
+    return get_capabilities().scale_units(Decimal("1e6"), Decimal("1e-6"))
 
 
 @beartype
