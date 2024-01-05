@@ -147,7 +147,7 @@ def mock_data():
 
 def get_radius(length_scale, x_min, x_max, y_min, y_max):
     global_length_scale = max(x_max - x_min, y_max - y_min)
-    coeff = 0.15 + 0.3 * np.tanh(global_length_scale / 10)
+    coeff = 0.15 + 0.25 * np.tanh(global_length_scale / 10)
     radius = coeff * length_scale
     return radius
 
@@ -220,12 +220,14 @@ def plot_register_ryd_dense(geo, ryds):
         toolbar_location="above",
         title="rydberg density",
     )
-    p.x_range = Range1d(x_min - length_scale, x_max + length_scale)
-    p.y_range = Range1d(y_min - length_scale, y_max + length_scale)
+    radius = get_radius(length_scale, x_min, x_max, y_min, y_max)
+    window_size = max(x_max - x_min, y_max - y_min)
+
+    p.x_range = Range1d(x_min - length_scale, x_min + window_size + length_scale)
+    p.y_range = Range1d(y_min - length_scale, y_min + window_size + length_scale)
 
     # interpolate between a scale for small lattices
     # and a scale for larger lattices
-    radius = get_radius(length_scale, x_min, x_max, y_min, y_max)
 
     p.circle(
         "_x",
@@ -314,10 +316,6 @@ def plot_register_bits(geo):
     # this could be replaced with a list of colors
     ##p.scatter(x,y,color={'field': 'y', 'transform': color_mapper})
 
-    # interpolate between a scale for small lattices
-    # and a scale for larger lattices
-    radius = get_radius(length_scale, x_min, x_max, y_min, y_max)
-
     ## remove box_zoom since we don't want to change the scale
 
     p = figure(
@@ -327,8 +325,13 @@ def plot_register_bits(geo):
         toolbar_location="above",
         title="reg state",
     )
-    p.x_range = Range1d(x_min - length_scale, x_max + length_scale)
-    p.y_range = Range1d(y_min - length_scale, y_max + length_scale)
+    # interpolate between a scale for small lattices
+    # and a scale for larger lattices
+    radius = get_radius(length_scale, x_min, x_max, y_min, y_max)
+    window_size = max(x_max - x_min, y_max - y_min)
+
+    p.x_range = Range1d(x_min - length_scale, x_min + window_size + length_scale)
+    p.y_range = Range1d(y_min - length_scale, y_min + window_size + length_scale)
 
     p.circle(
         "_x",
