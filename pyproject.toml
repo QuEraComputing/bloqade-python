@@ -108,7 +108,7 @@ build = {cmd = "pdm build"}
 publish = {composite = ["build", "upload"]}
 test = {shell = "git clean -f && pytest tests"}
 coverage = {shell = "git clean -f && coverage run -m pytest tests/ && coverage xml && coverage report"}
-coverage-html = {shell = "git clean -f && coverage run -m pytest tests/ && coverage html && open htmlcov/index.html"}
+coverage-html = {shell = "git clean -f && coverage run -m pytest -x -vv tests/ && coverage html && open htmlcov/index.html"}
 doc = {cmd = "mkdocs serve"}
 doc_build = {cmd = "mkdocs build"}
 doc_deploy = {cmd = "pdm mike deploy --push --update-aliases dev"}
