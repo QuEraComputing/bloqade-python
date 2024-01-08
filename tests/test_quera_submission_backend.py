@@ -64,13 +64,13 @@ def test_quera_backend_submit():
 
     queue = MagicMock()
 
-    queue.post_task.return_value = "task_id"
+    queue.submit_task.return_value = "task_id"
 
     backend = bloqade.submission.quera.QuEraBackend(**api_config)
     backend._queue_api = queue
 
     assert backend.submit_task(get_task_ir()) == "task_id"
-    queue.post_task.assert_called_once()
+    queue.submit_task.assert_called_once()
 
 
 def test_quera_backend_validate_fail():
