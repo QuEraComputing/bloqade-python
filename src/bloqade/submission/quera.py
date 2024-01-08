@@ -48,9 +48,9 @@ class QuEraBackend(SubmissionBackend):
             return super().get_capabilities()
 
     def submit_task(self, task_ir: QuEraTaskSpecification) -> str:
-        return self.queue_api.post_task(
-            task_ir.json(by_alias=True, exclude_none=True, exclude_unset=True)
-        )
+        task_json = task_ir.json(by_alias=True, exclude_none=True, exclude_unset=True)
+        self.queue_api.validate_task(task_json)
+        return self.queue_api.post_task(task_json)
 
     def task_results(self, task_id: str) -> QuEraTaskResults:
         return QuEraTaskResults(**self.queue_api.poll_task_results(task_id))
