@@ -32,11 +32,16 @@ class BraketBackend(SubmissionBackend):
         return self._device
 
     def get_capabilities(self) -> QuEraCapabilities:
-        from botocore.exceptions import BotoCoreError
+        from botocore.exceptions import BotoCoreError, ClientError
 
         try:
-            to_quera_capabilities(self.device.properties.paradigm)
+            return to_quera_capabilities(self.device.properties.paradigm)
         except BotoCoreError:
+            warnings.warn(
+                "Could not retrieve device capabilities from braket API. "
+                "Using local capabiltiiies file for Aquila."
+            )
+        except ClientError:
             warnings.warn(
                 "Could not retrieve device capabilities from braket API. "
                 "Using local capabiltiiies file for Aquila."
