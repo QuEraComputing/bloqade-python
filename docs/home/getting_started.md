@@ -1,7 +1,7 @@
 This page is an excellent place to start for those familiar with the Neutral Atoms AHS model. For those who are not, we recommend you read our [Bloqade 101](bloqade_101.md) tutorial. Here, we will go through how to define your AHS program for two and three-level schemes. The beginning of your program starts with the atom geometry. You can build it as a list of coordinates or by using some pre-defined Bravais Lattices found in `bloqade.atom_arrangements`. For example, to define a simple 2x2 square lattice, you can do the following:
 
 ```python
-from bloqade.atom_arrangements import Square
+from bloqade.atom_arrangement import Square
 
 program = (
     Square(2, 2, lattice_spacing=6.0)
