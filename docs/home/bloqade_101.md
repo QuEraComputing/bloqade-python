@@ -25,7 +25,7 @@ from bloqade import start
 program = (
     start.add_position((0, 0))
     .rydberg.detuning.uniform.constant(10, 1.1)
-    .amplitude.uniform.piecewise_linear([0.05, 1.0, 0.05], [0, 15, 15, 0])
+    .amplitude.uniform.piecewise_linear([0.06, 1.0, 0.06], [0, 15, 15, 0])
 )
 ```
 
