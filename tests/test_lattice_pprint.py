@@ -7,7 +7,7 @@ import bloqade.ir.tree_print as trp
 
 
 trp.color_enabled = False
-
+trp.MAX_TREE_DEPTH = 10
 
 PROJECT_RELATIVE_PPRINT_TESTS_OUTPUT_PATH = os.path.join(
     os.getcwd(), "tests/data/expected_pprint_output"
@@ -59,7 +59,7 @@ def test_list_of_locations_pprint():
 
 
 def test_list_trun():
-    geo = Chain(19).add_position((-1, "a"))
+    geo = Chain(20).add_position((-1, "a"))
 
     assert str(geo) == (
         "AtomArrangement\n"
