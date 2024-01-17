@@ -32,6 +32,10 @@ Bloqade makes writing analog quantum programs for neutral atom quantum computers
 
 Our interface is designed to guide our users through the process of defining an analog quantum program as well as different methods to run the program, whether it be real quantum hardware or an emulator. Bloqade also provides a simple interface for analyzing the results of the program, whether it is a single run, a batch of runs, or even some types of hybrid quantum-classical algorithms.
 
+## Direct feedback
+
+In order to better understand more about Bloqade users we would kindly ask that you take a few minutes fill out our online survey [here](https://share.hsforms.com/1FJjYan2VQC6NfrQ5IPAcewdrwvd).
+
 ## Installation
 
 You can install the package with `pip` in your Python environment of choice via:
