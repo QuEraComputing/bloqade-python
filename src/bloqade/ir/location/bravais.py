@@ -205,6 +205,9 @@ class Chain(BoundedBravais):
     def cell_atoms(self) -> List[List[float]]:
         return [[0, 0]]
 
+    def _repr_pretty_(self, p, _):
+        p.text(str(self))
+
 
 @dataclass
 class Square(BoundedBravais):
@@ -249,14 +252,14 @@ class Square(BoundedBravais):
     def shape(self) -> Tuple[int, ...]:
         return (self.L1, self.L2)
 
-    def __repr__(self):
-        return super().__repr__()
-
     def cell_vectors(self) -> List[List[float]]:
         return [[1, 0], [0, 1]]
 
     def cell_atoms(self) -> List[List[float]]:
         return [[0, 0]]
+
+    def _repr_pretty_(self, p, _):
+        p.text(str(self))
 
 
 @dataclass(init=False)
@@ -378,6 +381,9 @@ class Rectangular(BoundedBravais):
     def cell_atoms(self) -> List[List[float]]:
         return [[0, 0]]
 
+    def _repr_pretty_(self, p, _):
+        p.text(str(self))
+
 
 @dataclass
 class Honeycomb(BoundedBravais):
@@ -428,14 +434,14 @@ class Honeycomb(BoundedBravais):
     def shape(self) -> Tuple[int, ...]:
         return (self.L1, self.L2)
 
-    def __repr__(self):
-        return super().__repr__()
-
     def cell_vectors(self) -> List[List[float]]:
         return [[1.0, 0.0], [1 / 2, np.sqrt(3) / 2]]
 
     def cell_atoms(self) -> List[List[float]]:
         return [[0.0, 0.0], [1 / 2, 1 / (2 * np.sqrt(3))]]
+
+    def _repr_pretty_(self, p, _):
+        p.text(str(self))
 
 
 @dataclass
@@ -484,14 +490,14 @@ class Triangular(BoundedBravais):
     def shape(self) -> Tuple[int, ...]:
         return (self.L1, self.L2)
 
-    def __repr__(self):
-        return super().__repr__()
-
     def cell_vectors(self) -> List[List[float]]:
         return [[1.0, 0.0], [1 / 2, np.sqrt(3) / 2]]
 
     def cell_atoms(self) -> List[List[float]]:
         return [[0.0, 0.0]]
+
+    def _repr_pretty_(self, p, _):
+        p.text(str(self))
 
 
 @dataclass
@@ -535,9 +541,6 @@ class Lieb(BoundedBravais):
         self.L2 = L2
         self.lattice_spacing = cast(lattice_spacing)
 
-    def __repr__(self):
-        return super().__repr__()
-
     def cell_vectors(self) -> List[List[float]]:
         return [[1.0, 0.0], [0.0, 1.0]]
 
@@ -547,6 +550,9 @@ class Lieb(BoundedBravais):
     @property
     def shape(self) -> Tuple[int, ...]:
         return (self.L1, self.L2)
+
+    def _repr_pretty_(self, p, _):
+        p.text(str(self))
 
 
 @dataclass
@@ -596,11 +602,11 @@ class Kagome(BoundedBravais):
     def shape(self) -> Tuple[int, ...]:
         return (self.L1, self.L2)
 
-    def __repr__(self):
-        return super().__repr__()
-
     def cell_vectors(self) -> List[List[float]]:
         return [[1.0, 0.0], [1 / 2, np.sqrt(3) / 2]]
 
     def cell_atoms(self) -> List[List[float]]:
         return [[0.0, 0.0], [1 / 2, 0], [1 / 4, np.sqrt(3) / 4]]
+
+    def _repr_pretty_(self, p, _):
+        p.text(str(self))
