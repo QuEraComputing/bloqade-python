@@ -120,9 +120,6 @@ class AtomArrangement(ProgramStart):
             ph.print(self)
             return ph.get_value()
 
-    def _repr_pretty_(self, p, cycle):
-        Printer(p).print(self, cycle)
-
     def print_node(self) -> str:
         return "AtomArrangement"
 
@@ -518,6 +515,9 @@ class ParallelRegister(ProgramStart):
     def __str__(self):
         return "ParallelRegister:\n" + self.atom_arrangement.__str__()
 
+    def _repr_pretty_(self, p, _):
+        p.text(str(self))
+
     def _compile_to_list(
         self, __capabilities: Optional[QuEraCapabilities] = None, **assignments
     ):
@@ -625,6 +625,9 @@ class ListOfLocations(AtomArrangement):
             self.__n_dims = None
 
         super().__init__()
+
+    def _repr_pretty_(self, p, _):
+        p.text(str(self))
 
     @property
     def n_atoms(self):
