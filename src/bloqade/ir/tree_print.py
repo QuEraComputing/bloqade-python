@@ -209,13 +209,10 @@ class Printer:
                 child = children.pop(0)
                 annotation = None
 
-            if trunc_list_depth:
-                list_depth += 1
-                trunc_list_print = (
-                    list_depth > MAX_TREE_DEPTH and len(children) >= MAX_TREE_DEPTH
-                )
-            else:
-                trunc_list_print = False
+            list_depth += 1
+            trunc_list_print = trunc_list_depth and (
+                list_depth > MAX_TREE_DEPTH and len(children) >= MAX_TREE_DEPTH
+            )
 
             if trunc_list_print:
                 if not printed_list_trunc:
