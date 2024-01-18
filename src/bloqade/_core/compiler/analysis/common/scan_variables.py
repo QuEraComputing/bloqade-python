@@ -1,10 +1,10 @@
 from pydantic.dataclasses import dataclass
-import bloqade.ir.scalar as scalar
-import bloqade.ir.control.field as field
+import bloqade._core.ir.scalar as scalar
+import bloqade._core.ir.control.field as field
 
 from beartype.typing import FrozenSet
 
-from bloqade.ir.visitor import BloqadeIRVisitor
+from bloqade._core.ir.visitor import BloqadeIRVisitor
 
 
 @dataclass(frozen=True)

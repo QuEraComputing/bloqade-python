@@ -1,9 +1,9 @@
 from beartype.typing import TYPE_CHECKING
-from bloqade.builder.base import Builder
+from bloqade._core.builder.base import Builder
 
 
 if TYPE_CHECKING:
-    from bloqade.ir.routine.braket import (
+    from bloqade._core.ir.routine.braket import (
         BraketHardwareRoutine,
         BraketLocalEmulatorRoutine,
     )

@@ -1,8 +1,8 @@
-from bloqade.ir.location import location
-from bloqade.ir import analog_circuit
-from bloqade.submission.ir.parallel import ClusterLocationInfo, ParallelDecoder
-from bloqade.submission.capabilities import QuEraCapabilities
-from bloqade.ir.visitor import BloqadeIRVisitor
+from bloqade._core.ir.location import location
+from bloqade._core.ir import analog_circuit
+from bloqade._core.submission.ir.parallel import ClusterLocationInfo, ParallelDecoder
+from bloqade._core.submission.capabilities import QuEraCapabilities
+from bloqade._core.ir.visitor import BloqadeIRVisitor
 from beartype.typing import Optional
 import numpy as np
 from decimal import Decimal
@@ -41,7 +41,7 @@ class GenerateLattice(BloqadeIRVisitor):
             self.filling.append(location_info.filling.value)
 
     def visit_location_ParallelRegister(self, node: location.ParallelRegister):
-        from bloqade.ir.location.location import ParallelRegisterInfo
+        from bloqade._core.ir.location.location import ParallelRegisterInfo
 
         info = ParallelRegisterInfo(node)
 

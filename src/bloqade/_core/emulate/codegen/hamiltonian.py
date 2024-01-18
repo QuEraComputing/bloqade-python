@@ -1,5 +1,5 @@
 from bloqade.constants import RB_C6
-from bloqade.emulate.ir.emulator import (
+from bloqade._core.emulate.ir.emulator import (
     DetuningOperatorData,
     EmulatorProgram,
     LevelCoupling,
@@ -11,17 +11,17 @@ from bloqade.emulate.ir.emulator import (
     RabiTerm,
     Visitor,
 )
-from bloqade.emulate.ir.space import Space
-from bloqade.emulate.ir.atom_type import (
+from bloqade._core.emulate.ir.space import Space
+from bloqade._core.emulate.ir.atom_type import (
     TwoLevelAtomType,
     ThreeLevelAtomType,
 )
-from bloqade.emulate.ir.state_vector import (
+from bloqade._core.emulate.ir.state_vector import (
     RabiOperator,
     DetuningOperator,
     RydbergHamiltonian,
 )
-from bloqade.emulate.sparse_operator import (
+from bloqade._core.emulate.sparse_operator import (
     IndexMapping,
     SparseMatrixCSR,
 )

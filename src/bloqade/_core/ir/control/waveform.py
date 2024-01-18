@@ -1,7 +1,7 @@
 from numbers import Real
-from bloqade.builder.typing import ScalarType
-from bloqade.ir.tree_print import Printer
-from bloqade.ir.scalar import (
+from bloqade._core.builder.typing import ScalarType
+from bloqade._core.ir.tree_print import Printer
+from bloqade._core.ir.scalar import (
     Scalar,
     Interval,
     Variable,
@@ -9,7 +9,7 @@ from bloqade.ir.scalar import (
     cast,
     var,
 )
-from bloqade.ir.control.traits import (
+from bloqade._core.ir.control.traits import (
     HashTrait,
     AppendTrait,
     SliceTrait,
@@ -57,15 +57,15 @@ class Waveform(HashTrait, CanonicalizeTrait):
     """
     Waveform node in the IR.
 
-    - [`<instruction>`][bloqade.ir.control.waveform.Instruction]
-    - [`<smooth>`][bloqade.ir.control.waveform.Smooth]
-    - [`<slice>`][bloqade.ir.control.waveform.Slice]
-    - [`<apppend>`][bloqade.ir.control.waveform.Append]
-    - [`<negative>`][bloqade.ir.control.waveform.Negative]
-    - [`<scale>`][bloqade.ir.control.waveform.Scale]
-    - [`<add>`][bloqade.ir.control.waveform.Add]
-    - [`<record>`][bloqade.ir.control.waveform.Record]
-    - [`<sample>`][bloqade.ir.control.waveform.Sample]
+    - [`<instruction>`][bloqade._core.ir.control.waveform.Instruction]
+    - [`<smooth>`][bloqade._core.ir.control.waveform.Smooth]
+    - [`<slice>`][bloqade._core.ir.control.waveform.Slice]
+    - [`<apppend>`][bloqade._core.ir.control.waveform.Append]
+    - [`<negative>`][bloqade._core.ir.control.waveform.Negative]
+    - [`<scale>`][bloqade._core.ir.control.waveform.Scale]
+    - [`<add>`][bloqade._core.ir.control.waveform.Add]
+    - [`<record>`][bloqade._core.ir.control.waveform.Record]
+    - [`<sample>`][bloqade._core.ir.control.waveform.Sample]
 
     ```bnf
     <waveform> ::= <instruction>
@@ -103,7 +103,9 @@ class Waveform(HashTrait, CanonicalizeTrait):
         return get_ir_figure(self, **assignments)
 
     def _get_data(self, npoints, **assignments):
-        from bloqade.compiler.analysis.common.assignment_scan import AssignmentScan
+        from bloqade._core.compiler.analysis.common.assignment_scan import (
+            AssignmentScan,
+        )
 
         assignments = AssignmentScan(assignments).scan(self)
 
@@ -233,10 +235,10 @@ class AlignedWaveform(Waveform):
 class Instruction(Waveform):
     """Instruction node in the IR.
 
-    - [`<linear>`][bloqade.ir.control.waveform.Linear]
-    - [`<constant>`][bloqade.ir.control.waveform.Constant]
-    - [`<poly>`][bloqade.ir.control.waveform.Poly]
-    - [`<python-fn>`][bloqade.ir.control.waveform.PythonFn]
+    - [`<linear>`][bloqade._core.ir.control.waveform.Linear]
+    - [`<constant>`][bloqade._core.ir.control.waveform.Constant]
+    - [`<poly>`][bloqade._core.ir.control.waveform.Poly]
+    - [`<python-fn>`][bloqade._core.ir.control.waveform.PythonFn]
 
 
     ```bnf

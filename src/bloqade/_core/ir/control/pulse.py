@@ -1,10 +1,10 @@
 from collections import OrderedDict
 from functools import cached_property
 
-from bloqade.ir.scalar import Interval, Scalar, cast
-from bloqade.ir.tree_print import Printer
-from bloqade.ir.control.field import Field
-from bloqade.ir.control.traits import (
+from bloqade._core.ir.scalar import Interval, Scalar, cast
+from bloqade._core.ir.tree_print import Printer
+from bloqade._core.ir.control.field import Field
+from bloqade._core.ir.control.traits import (
     HashTrait,
     AppendTrait,
     SliceTrait,

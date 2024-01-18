@@ -1,8 +1,8 @@
 # from numbers import Real
 from bloqade.visualization import display_ir
-from bloqade.ir.control.sequence import SequenceExpr
-from bloqade.ir.location.location import AtomArrangement, ParallelRegister
-from bloqade.ir.tree_print import Printer
+from bloqade._core.ir.control.sequence import SequenceExpr
+from bloqade._core.ir.location.location import AtomArrangement, ParallelRegister
+from bloqade._core.ir.tree_print import Printer
 from beartype.typing import Union
 from pydantic.dataclasses import dataclass
 
@@ -25,11 +25,11 @@ class AnalogCircuit:
 
         Note:
             If the program is built with
-            [`parallelize()`][bloqade.builder.emit.Emit.parallelize],
+            [`parallelize()`][bloqade._core.builder.emit.Emit.parallelize],
             The the register will be a
-            [`ParallelRegister`][bloqade.ir.location.base.ParallelRegister].
+            [`ParallelRegister`][bloqade._core.ir.location.base.ParallelRegister].
             Otherwise it will be a
-            [`AtomArrangement`][bloqade.ir.location.base.AtomArrangement].
+            [`AtomArrangement`][bloqade._core.ir.location.base.AtomArrangement].
         """
         return self.atom_arrangement
 

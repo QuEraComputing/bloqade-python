@@ -1,14 +1,14 @@
-from bloqade.builder.typing import ScalarType
-from bloqade.builder.start import ProgramStart
-from bloqade.ir.scalar import Scalar, Literal, cast
-from bloqade.ir.tree_print import Printer
+from bloqade._core.builder.typing import ScalarType
+from bloqade._core.builder.start import ProgramStart
+from bloqade._core.ir.scalar import Scalar, Literal, cast
+from bloqade._core.ir.tree_print import Printer
 
 from pydantic.dataclasses import dataclass
 from beartype.typing import List, Tuple, Generator, Union, Optional
 from beartype import beartype
 from enum import Enum
 from numpy.typing import NDArray
-from bloqade.submission.ir.capabilities import QuEraCapabilities
+from bloqade._core.submission.ir.capabilities import QuEraCapabilities
 from bloqade.visualization import get_atom_arrangement_figure
 from bloqade.visualization import display_ir
 
@@ -521,9 +521,9 @@ class ParallelRegister(ProgramStart):
     def _compile_to_list(
         self, __capabilities: Optional[QuEraCapabilities] = None, **assignments
     ):
-        from bloqade.compiler.rewrite.common import AssignBloqadeIR
-        from bloqade.compiler.codegen.hardware import GenerateLattice
-        from bloqade.submission.capabilities import get_capabilities
+        from bloqade._core.compiler.rewrite.common import AssignBloqadeIR
+        from bloqade._core.compiler.codegen.hardware import GenerateLattice
+        from bloqade._core.submission.capabilities import get_capabilities
 
         lattice_data = GenerateLattice(__capabilities or get_capabilities()).emit(
             AssignBloqadeIR(assignments).emit(self)

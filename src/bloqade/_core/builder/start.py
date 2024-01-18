@@ -1,7 +1,7 @@
-from bloqade.builder.base import Builder
-from bloqade.builder.sequence_builder import SequenceBuilder
-from bloqade.builder.drive import Drive
-from bloqade.ir.control.sequence import SequenceExpr
+from bloqade._core.builder.base import Builder
+from bloqade._core.builder.sequence_builder import SequenceBuilder
+from bloqade._core.builder.drive import Drive
+from bloqade._core.ir.control.sequence import SequenceExpr
 from beartype import beartype
 
 

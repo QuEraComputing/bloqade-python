@@ -1,12 +1,12 @@
 from functools import reduce
-from bloqade.builder.base import Builder
-from bloqade.builder.typing import ScalarType
-from bloqade.builder.route import WaveformRoute
+from bloqade._core.builder.base import Builder
+from bloqade._core.builder.typing import ScalarType
+from bloqade._core.builder.route import WaveformRoute
 
 from beartype import beartype
 from beartype.typing import Optional, Union, List, Callable
 
-import bloqade.ir as ir
+import bloqade._core.ir as ir
 
 
 class WaveformAttachable(Builder):
@@ -47,7 +47,7 @@ class WaveformAttachable(Builder):
                 to append a piecewise constant waveform
             - `...linear(start, stop, duration).poly([coefficients], duration)`:
                 to append a polynomial waveform
-            - `...linear(start, stop, duration).apply(wf:bloqade.ir.Waveform)`:
+            - `...linear(start, stop, duration).apply(wf:bloqade._core.ir.Waveform)`:
                 to append a pre-defined waveform
             - `...linear(start, stop, duration).fn(f(t,...))`:
                 to append a waveform defined by a python function
@@ -136,7 +136,7 @@ class WaveformAttachable(Builder):
                 to append a piecewise constant waveform
             - `...constant(value, duration).poly([coefficients], duration)`:
                 to append a polynomial waveform
-            - `...constant(value, duration).apply(wf:bloqade.ir.Waveform)`:
+            - `...constant(value, duration).apply(wf:bloqade._core.ir.Waveform)`:
                 to append a pre-defined waveform
             - `...constant(value, duration).fn(f(t,...))`:
                 to append a waveform defined by a python function
@@ -293,7 +293,7 @@ class WaveformAttachable(Builder):
     @beartype
     def apply(self, wf: ir.Waveform) -> "Apply":
         """
-        Apply a [`Waveform`][bloqade.ir.control.Waveform] built previously to
+        Apply a [`Waveform`][bloqade._core.ir.control.Waveform] built previously to
         current location(s).
 
         If you specified a spatial modulation (e.g. `uniform`, `location`,`scale`)
@@ -736,7 +736,7 @@ class Sliceable:
                 to append a piecewise constant waveform
             - `...slice(start, stop).poly([coefficients], duration)`:
                 to append a polynomial waveform
-            - `...slice(start, stop).apply(wf:bloqade.ir.Waveform)`:
+            - `...slice(start, stop).apply(wf:bloqade._core.ir.Waveform)`:
                 to append a pre-defined waveform
             - `...slilce(start, stop).fn(f(t,...))`:
                 to append a waveform defined by a python function
@@ -835,7 +835,7 @@ class Recordable:
                 to append a piecewise constant waveform
             - `...slice(start, stop).poly([coefficients], duration)`:
                 to append a polynomial waveform
-            - `...slice(start, stop).apply(wf:bloqade.ir.Waveform)`:
+            - `...slice(start, stop).apply(wf:bloqade._core.ir.Waveform)`:
                 to append a pre-defined waveform
             - `...slilce(start, stop).fn(f(t,...))`:
                 to append a waveform defined by a python function

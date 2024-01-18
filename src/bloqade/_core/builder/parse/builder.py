@@ -1,20 +1,20 @@
-from bloqade.builder.base import Builder
-from bloqade.builder.coupling import LevelCoupling, Rydberg, Hyperfine
-from bloqade.builder.sequence_builder import SequenceBuilder
-from bloqade.builder.field import Field, Detuning, RabiAmplitude, RabiPhase
-from bloqade.builder.spatial import SpatialModulation, Location, Uniform, Scale
-from bloqade.builder.waveform import WaveformPrimitive, Slice, Record, Sample, Fn
-from bloqade.builder.assign import Assign, BatchAssign, ListAssign
-from bloqade.builder.args import Args
-from bloqade.builder.parallelize import Parallelize
-from bloqade.builder.parse.stream import BuilderNode, BuilderStream
-import bloqade.ir as ir
+from bloqade._core.builder.base import Builder
+from bloqade._core.builder.coupling import LevelCoupling, Rydberg, Hyperfine
+from bloqade._core.builder.sequence_builder import SequenceBuilder
+from bloqade._core.builder.field import Field, Detuning, RabiAmplitude, RabiPhase
+from bloqade._core.builder.spatial import SpatialModulation, Location, Uniform, Scale
+from bloqade._core.builder.waveform import WaveformPrimitive, Slice, Record, Sample, Fn
+from bloqade._core.builder.assign import Assign, BatchAssign, ListAssign
+from bloqade._core.builder.args import Args
+from bloqade._core.builder.parallelize import Parallelize
+from bloqade._core.builder.parse.stream import BuilderNode, BuilderStream
+import bloqade._core.ir as ir
 from beartype.typing import TYPE_CHECKING, Tuple, Union, Dict, List, Optional, Set
 
 if TYPE_CHECKING:
-    from bloqade.ir.routine.params import ParamType
-    from bloqade.ir.routine.base import Routine
-    from bloqade.ir.analog_circuit import AnalogCircuit
+    from bloqade._core.ir.routine.params import ParamType
+    from bloqade._core.ir.routine.base import Routine
+    from bloqade._core.ir.analog_circuit import AnalogCircuit
 
 
 class Parser:
@@ -210,7 +210,7 @@ class Parser:
         return self.sequence
 
     def parse_circuit(self, builder: Builder) -> "AnalogCircuit":
-        from bloqade.ir.analog_circuit import AnalogCircuit
+        from bloqade._core.ir.analog_circuit import AnalogCircuit
 
         self.reset(builder)
         self.read_register()
@@ -221,10 +221,10 @@ class Parser:
         return circuit
 
     def parse(self, builder: Builder) -> "Routine":
-        from bloqade.ir.analog_circuit import AnalogCircuit
-        from bloqade.ir.routine.params import Params, ScalarArg, VectorArg
-        from bloqade.ir.routine.base import Routine
-        from bloqade.compiler.analysis.common.scan_variables import ScanVariables
+        from bloqade._core.ir.analog_circuit import AnalogCircuit
+        from bloqade._core.ir.routine.params import Params, ScalarArg, VectorArg
+        from bloqade._core.ir.routine.base import Routine
+        from bloqade._core.compiler.analysis.common.scan_variables import ScanVariables
 
         self.reset(builder)
         self.read_register()

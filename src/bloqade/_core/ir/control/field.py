@@ -1,8 +1,8 @@
 from functools import cached_property
-from bloqade.ir.scalar import Scalar, cast
-from bloqade.ir.tree_print import Printer
-from bloqade.ir.control.waveform import Waveform
-from bloqade.ir.control.traits import HashTrait, CanonicalizeTrait
+from bloqade._core.ir.scalar import Scalar, cast
+from bloqade._core.ir.tree_print import Printer
+from bloqade._core.ir.control.waveform import Waveform
+from bloqade._core.ir.control.traits import HashTrait, CanonicalizeTrait
 from bloqade.visualization import get_field_figure
 from pydantic.dataclasses import dataclass
 from beartype.typing import Dict, List, Optional
@@ -203,7 +203,7 @@ class Drive:
 @dataclass(frozen=True)
 class Field(FieldExpr):
     """Field node in the IR. Which contains collection(s) of
-    [`Waveform`][bloqade.ir.control.waveform.Waveform]
+    [`Waveform`][bloqade._core.ir.control.waveform.Waveform]
 
     ```bnf
     <field> ::= ('field' <spatial modulation>  <padded waveform>)*

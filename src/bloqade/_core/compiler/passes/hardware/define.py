@@ -1,13 +1,13 @@
-from bloqade.builder.typing import ParamType
+from bloqade._core.builder.typing import ParamType
 
-from bloqade.compiler.passes.hardware.components import AHSComponents
-from bloqade.ir import analog_circuit
-from bloqade.ir.control import pulse, sequence, field
+from bloqade._core.compiler.passes.hardware.components import AHSComponents
+from bloqade._core.ir import analog_circuit
+from bloqade._core.ir.control import pulse, sequence, field
 
-from bloqade.submission.ir.braket import BraketTaskSpecification
+from bloqade._core.submission.ir.braket import BraketTaskSpecification
 
-from bloqade.submission.ir.capabilities import QuEraCapabilities
-from bloqade.submission.ir.task_specification import QuEraTaskSpecification
+from bloqade._core.submission.ir.capabilities import QuEraCapabilities
+from bloqade._core.submission.ir.task_specification import QuEraTaskSpecification
 
 from beartype.typing import Dict, Optional, Tuple
 
@@ -36,8 +36,8 @@ def analyze_channels(circuit: analog_circuit.AnalogCircuit) -> Dict:
             and amplitude.
 
     """
-    from bloqade.compiler.analysis.hardware import ValidateChannels
-    from bloqade.compiler.analysis.common import ScanChannels
+    from bloqade._core.compiler.analysis.hardware import ValidateChannels
+    from bloqade._core.compiler.analysis.common import ScanChannels
 
     ValidateChannels().scan(circuit)
     level_couplings = ScanChannels().scan(circuit)
@@ -73,7 +73,7 @@ def add_padding(
             intervals missing a waveform.
 
     """
-    from bloqade.compiler.rewrite.common import AddPadding
+    from bloqade._core.compiler.rewrite.common import AddPadding
 
     return AddPadding(level_couplings=level_couplings).visit(circuit)
 
@@ -98,8 +98,8 @@ def assign_circuit(
         ValueError: If there are any variables that have not been assigned.
 
     """
-    from bloqade.compiler.analysis.common import AssignmentScan, ScanVariables
-    from bloqade.compiler.rewrite.common import AssignBloqadeIR
+    from bloqade._core.compiler.analysis.common import AssignmentScan, ScanVariables
+    from bloqade._core.compiler.rewrite.common import AssignBloqadeIR
 
     final_assignments = AssignmentScan(assignments).scan(circuit)
 
@@ -142,11 +142,11 @@ def validate_waveforms(
             channels.
 
     """
-    from bloqade.compiler.analysis.hardware import (
+    from bloqade._core.compiler.analysis.hardware import (
         ValidatePiecewiseConstantChannel,
         ValidatePiecewiseLinearChannel,
     )
-    from bloqade.compiler.analysis.common import CheckSlices
+    from bloqade._core.compiler.analysis.common import CheckSlices
 
     channel_iter = (
         (level_coupling, field_name, sm)
@@ -182,7 +182,7 @@ def to_literal_and_canonicalize(
         circuit: AnalogCircuit with all literals and canonicalized.
 
     """
-    from bloqade.compiler.rewrite.common import (
+    from bloqade._core.compiler.rewrite.common import (
         AssignToLiteral,
         Canonicalizer,
         FlattenCircuit,
@@ -223,7 +223,7 @@ def generate_ahs_code(
             the capabilities to generate the lattice data.
 
     """
-    from bloqade.compiler.codegen.hardware import (
+    from bloqade._core.compiler.codegen.hardware import (
         GenerateLattice,
         GenerateLatticeSiteCoefficients,
         GeneratePiecewiseLinearChannel,
@@ -287,8 +287,8 @@ def generate_quera_ir(
             circuit.
 
     """
-    import bloqade.submission.ir.task_specification as task_spec
-    from bloqade.compiler.passes.hardware.units import (
+    import bloqade._core.submission.ir.task_specification as task_spec
+    from bloqade._core.compiler.passes.hardware.units import (
         convert_time_units,
         convert_energy_units,
         convert_coordinate_units,
@@ -378,7 +378,7 @@ def generate_braket_ir(
 
     """
     import braket.ir.ahs as ahs
-    from bloqade.compiler.passes.hardware.units import (
+    from bloqade._core.compiler.passes.hardware.units import (
         convert_time_units,
         convert_energy_units,
         convert_coordinate_units,

@@ -1,5 +1,5 @@
 from functools import cached_property
-from bloqade.ir.scalar import cast
+from bloqade._core.ir.scalar import cast
 
 
 class AppendTrait:

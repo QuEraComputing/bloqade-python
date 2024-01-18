@@ -1,22 +1,22 @@
 from decimal import Decimal
 from numbers import Real
-from bloqade.builder.typing import LiteralType
+from bloqade._core.builder.typing import LiteralType
 from bloqade.serialize import Serializer
-from bloqade.task.base import Report
-from bloqade.task.quera import QuEraTask
-from bloqade.task.braket import BraketTask
-from bloqade.task.braket_simulator import BraketEmulatorTask
-from bloqade.task.bloqade import BloqadeTask
+from bloqade._core.task.base import Report
+from bloqade._core.task.quera import QuEraTask
+from bloqade._core.task.braket import BraketTask
+from bloqade._core.task.braket_simulator import BraketEmulatorTask
+from bloqade._core.task.bloqade import BloqadeTask
 
-from bloqade.builder.base import Builder
+from bloqade._core.builder.base import Builder
 
-from bloqade.submission.ir.task_results import (
+from bloqade._core.submission.ir.task_results import (
     QuEraShotStatusCode,
     QuEraTaskStatusCode,
     QuEraTaskResults,
 )
 
-# from bloqade.submission.base import ValidationError
+# from bloqade._core.submission.base import ValidationError
 
 from beartype.typing import Union, Optional, Dict, Any, List
 from beartype import beartype

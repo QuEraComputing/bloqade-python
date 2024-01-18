@@ -1,8 +1,11 @@
 from decimal import Decimal
 from itertools import combinations
 from bloqade.atom_arrangement import Chain
-from bloqade.compiler.codegen.python.emulator_ir import EmulatorProgramCodeGen
-from bloqade.emulate.codegen.hamiltonian import CompileCache, RydbergHamiltonianCodeGen
+from bloqade._core.compiler.codegen.python.emulator_ir import EmulatorProgramCodeGen
+from bloqade._core.emulate.codegen.hamiltonian import (
+    CompileCache,
+    RydbergHamiltonianCodeGen,
+)
 from functools import reduce
 import numpy as np
 import pytest

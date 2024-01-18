@@ -1,10 +1,10 @@
-from bloqade.builder.base import Builder
-from bloqade.builder.typing import ScalarType
+from bloqade._core.builder.base import Builder
+from bloqade._core.builder.typing import ScalarType
 from beartype.typing import Union, List, Optional, TYPE_CHECKING
 import plum
 
 if TYPE_CHECKING:
-    from bloqade.builder.spatial import Uniform, Location, Scale
+    from bloqade._core.builder.spatial import Uniform, Location, Scale
 
 
 class Field(Builder):
@@ -26,7 +26,7 @@ class Field(Builder):
             - `...uniform.constant(value, duration)` : to apply a constant waveform
             - `...uniform.poly([coefficients], duration)` : to apply a
                 polynomial waveform
-            - `...uniform.apply(wf:bloqade.ir.Waveform)`: to apply a
+            - `...uniform.apply(wf:bloqade._core.ir.Waveform)`: to apply a
             pre-defined waveform
             - `...uniform.piecewise_linear([durations], [values])`:  to apply
             a piecewise linear waveform
@@ -35,13 +35,13 @@ class Field(Builder):
             - `...uniform.fn(f(t,...))`: to apply a function as a waveform
 
         """
-        from bloqade.builder.spatial import Uniform
+        from bloqade._core.builder.spatial import Uniform
 
         return Uniform(self)
 
     @plum.dispatch
     def _location(self, label: int, scale: Optional[ScalarType] = None):  # noqa: F811
-        from bloqade.builder.spatial import Location
+        from bloqade._core.builder.spatial import Location
 
         if scale is None:
             scale = 1
@@ -52,7 +52,7 @@ class Field(Builder):
     def _location(
         self, labels: List[int], scales: Optional[List[ScalarType]] = None
     ):  # noqa: F811
-        from bloqade.builder.spatial import Location
+        from bloqade._core.builder.spatial import Location
 
         if scales is None:
             scales = [1] * len(labels)
@@ -99,7 +99,7 @@ class Field(Builder):
                 a constant waveform
             - `...location(labels, scales).poly([coefficients], duration)` : to apply
                 a polynomial waveform
-            - `...location(labels, scales).apply(wf:bloqade.ir.Waveform)`: to apply
+            - `...location(labels, scales).apply(wf:bloqade._core.ir.Waveform)`: to apply
                 a pre-defined waveform
             - `...location(labels, scales).piecewise_linear([durations], [values])`:
                 to apply
@@ -150,7 +150,7 @@ class Field(Builder):
                 a constant waveform
             - `...scale(coeffs).poly([coefficients], duration)` : to apply
                 a polynomial waveform
-            - `...scale(coeffs).apply(wf:bloqade.ir.Waveform)`: to apply
+            - `...scale(coeffs).apply(wf:bloqade._core.ir.Waveform)`: to apply
                 a pre-defined waveform
             - `...scale(coeffs).piecewise_linear(durations, values)`:  to
                 apply a piecewise linear waveform
@@ -159,7 +159,7 @@ class Field(Builder):
             - `...scale(coeffs).fn(f(t,..))`: to apply a function as a waveform
 
         """
-        from bloqade.builder.spatial import Scale
+        from bloqade._core.builder.spatial import Scale
 
         return Scale(coeffs, self)
 
@@ -176,23 +176,23 @@ class Detuning(Field):
 
         >>> node = bloqade.start.rydberg.detuning
         >>> type(node)
-        <class 'bloqade.builder.field.Detuning'>
+        <class 'bloqade._core.builder.field.Detuning'>
 
         - To specify detuning of hyperfine coupling:
 
         >>> node = bloqade.start.hyperfine.detuning
         >>> type(node)
-        <class 'bloqade.builder.field.Detuning'>
+        <class 'bloqade._core.builder.field.Detuning'>
 
     Note:
         This node is a SpatialModulation node.
-        See [`SpatialModulation`][bloqade.builder.field.SpatialModulation]
+        See [`SpatialModulation`][bloqade._core.builder.field.SpatialModulation]
         for additional options.
 
     """
 
     def __bloqade_ir__(self):
-        from bloqade.ir.control.pulse import detuning
+        from bloqade._core.ir.control.pulse import detuning
 
         return detuning
 
@@ -211,13 +211,13 @@ class Rabi(Builder):
         - To specify rabi of rydberg coupling:
 
         >>> node = bloqade.start.rydberg.rabi
-        <class 'bloqade.builder.field.Rabi'>
+        <class 'bloqade._core.builder.field.Rabi'>
 
         - To specify rabi of hyperfine coupling:
 
         >>> node = bloqade.start.hyperfine.rabi
         >>> type(node)
-        <class 'bloqade.builder.field.Rabi'>
+        <class 'bloqade._core.builder.field.Rabi'>
 
 
     """
@@ -275,23 +275,23 @@ class RabiAmplitude(Field):
 
         >>> node = bloqade.start.rydberg.rabi.amplitude
         >>> type(node)
-        <class 'bloqade.builder.field.Amplitude'>
+        <class 'bloqade._core.builder.field.Amplitude'>
 
         - To specify rabi amplitude of hyperfine coupling:
 
         >>> node = bloqade.start.hyperfine.rabi.amplitude
         >>> type(node)
-        <class 'bloqade.builder.field.Amplitude'>
+        <class 'bloqade._core.builder.field.Amplitude'>
 
     Note:
         This node is a SpatialModulation node.
-        See [`SpatialModulation`][bloqade.builder.field.SpatialModulation]
+        See [`SpatialModulation`][bloqade._core.builder.field.SpatialModulation]
         for additional options.
 
     """
 
     def __bloqade_ir__(self):
-        from bloqade.ir.control.pulse import rabi
+        from bloqade._core.ir.control.pulse import rabi
 
         return rabi.amplitude
 
@@ -306,21 +306,21 @@ class RabiPhase(Field):
 
         >>> node = bloqade.start.rydberg.rabi.phase
         >>> type(node)
-        <class 'bloqade.builder.field.Phase'>
+        <class 'bloqade._core.builder.field.Phase'>
 
         - To specify rabi phase of hyperfine coupling:
 
         >>> node = bloqade.start.hyperfine.rabi.phase
         >>> type(node)
-        <class 'bloqade.builder.field.Phase'>
+        <class 'bloqade._core.builder.field.Phase'>
 
     Note:
         This node is a SpatialModulation node.
-        See [`SpatialModulation`][bloqade.builder.field.SpatialModulation]
+        See [`SpatialModulation`][bloqade._core.builder.field.SpatialModulation]
         for additional options.
     """
 
     def __bloqade_ir__(self):
-        from bloqade.ir.control.pulse import rabi
+        from bloqade._core.ir.control.pulse import rabi
 
         return rabi.phase

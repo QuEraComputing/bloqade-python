@@ -267,7 +267,7 @@ Saving files isn’t all that Bloqade offers. When dealing with a Cloud device l
 
 - `batch_task.remove_tasks(*status_codes)` return a new Batch object that contains tasks that did not match the status code that have been given.
 
-See the [documentation](https://bloqade.quera.com/latest/reference/bloqade/task/batch/#bloqade.task.batch.RemoteBatch) for more details on what the various status codes are and what they mean.
+See the [documentation](https://bloqade.quera.com/latest/reference/bloqade/task/batch/#bloqade._core.task.batch.RemoteBatch) for more details on what the various status codes are and what they mean.
 
 
 ## Adaptive workloads

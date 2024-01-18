@@ -4,10 +4,10 @@ from dataclasses import fields
 import numpy as np
 import itertools
 from numpy.typing import NDArray
-from bloqade.ir.location.location import AtomArrangement, LocationInfo
-from bloqade.ir import Literal, Scalar, cast
+from bloqade._core.ir.location.location import AtomArrangement, LocationInfo
+from bloqade._core.ir import Literal, Scalar, cast
 
-from bloqade.builder.typing import ScalarType
+from bloqade._core.builder.typing import ScalarType
 from beartype.typing import List, Tuple, Generator, Optional
 from beartype import beartype
 
@@ -26,15 +26,15 @@ class Cell:
 class BoundedBravais(AtomArrangement):
     __match_args__ = ("shape", "lattice_spacing")
     """Base classe for Bravais lattices
-    [`AtomArrangement`][bloqade.ir.location.base.AtomArrangement].
+    [`AtomArrangement`][bloqade._core.ir.location.base.AtomArrangement].
 
-    - [`Square`][bloqade.ir.location.bravais.Square]
-    - [`Chain`][bloqade.ir.location.bravais.Chain]
-    - [`Honeycomb`][bloqade.ir.location.bravais.Honeycomb]
-    - [`Triangular`][bloqade.ir.location.bravais.Triangular]
-    - [`Lieb`][bloqade.ir.location.bravais.Lieb]
-    - [`Kagome`][bloqade.ir.location.bravais.Kagome]
-    - [`Rectangular`][bloqade.ir.location.bravais.Rectangular]
+    - [`Square`][bloqade._core.ir.location.bravais.Square]
+    - [`Chain`][bloqade._core.ir.location.bravais.Chain]
+    - [`Honeycomb`][bloqade._core.ir.location.bravais.Honeycomb]
+    - [`Triangular`][bloqade._core.ir.location.bravais.Triangular]
+    - [`Lieb`][bloqade._core.ir.location.bravais.Lieb]
+    - [`Kagome`][bloqade._core.ir.location.bravais.Kagome]
+    - [`Rectangular`][bloqade._core.ir.location.bravais.Rectangular]
 
 
     """

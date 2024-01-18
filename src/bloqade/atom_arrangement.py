@@ -1,4 +1,4 @@
-from bloqade.ir.location import (
+from bloqade._core.ir.location import (
     AtomArrangement,
     Chain,
     Square,

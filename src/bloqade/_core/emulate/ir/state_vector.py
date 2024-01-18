@@ -1,7 +1,7 @@
 import plum
-from bloqade.emulate.ir.emulator import EmulatorProgram
-from bloqade.emulate.ir.space import Space
-from bloqade.emulate.sparse_operator import (
+from bloqade._core.emulate.ir.emulator import EmulatorProgram
+from bloqade._core.emulate.ir.space import Space
+from bloqade._core.emulate.sparse_operator import (
     IndexMapping,
     SparseMatrixCSC,
     SparseMatrixCSR,

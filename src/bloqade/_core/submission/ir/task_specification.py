@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from typing import Optional, List, Tuple
 from decimal import Decimal
-from bloqade.submission.ir.capabilities import QuEraCapabilities
+from bloqade._core.submission.ir.capabilities import QuEraCapabilities
 from bloqade.visualization import display_task_ir, get_task_ir_figure
 
 __all__ = ["QuEraTaskSpecification"]

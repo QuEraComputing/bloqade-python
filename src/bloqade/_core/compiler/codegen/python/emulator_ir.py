@@ -1,19 +1,19 @@
 from beartype.typing import Any, Dict, Optional
-from bloqade.builder.typing import LiteralType
-from bloqade.ir.location.location import AtomArrangement, SiteFilling
-from bloqade.ir.visitor import BloqadeIRVisitor
-from bloqade.compiler.analysis.common.assignment_scan import (
+from bloqade._core.builder.typing import LiteralType
+from bloqade._core.ir.location.location import AtomArrangement, SiteFilling
+from bloqade._core.ir.visitor import BloqadeIRVisitor
+from bloqade._core.compiler.analysis.common.assignment_scan import (
     AssignmentScan,
 )  # noqa: F401
-from bloqade.compiler.analysis.common.is_hyperfine import IsHyperfineSequence
+from bloqade._core.compiler.analysis.common.is_hyperfine import IsHyperfineSequence
 
-import bloqade.ir.control.sequence as sequence
-import bloqade.ir.control.pulse as pulse
-import bloqade.ir.control.waveform as waveform
-import bloqade.ir.control.field as field
-import bloqade.ir as ir
-from bloqade.emulate.ir.atom_type import ThreeLevelAtom, TwoLevelAtom
-from bloqade.emulate.ir.emulator import (
+import bloqade._core.ir.control.sequence as sequence
+import bloqade._core.ir.control.pulse as pulse
+import bloqade._core.ir.control.waveform as waveform
+import bloqade._core.ir.control.field as field
+import bloqade._core.ir as ir
+from bloqade._core.emulate.ir.atom_type import ThreeLevelAtom, TwoLevelAtom
+from bloqade._core.emulate.ir.emulator import (
     DetuningOperatorData,
     LevelCoupling,
     RabiOperatorData,

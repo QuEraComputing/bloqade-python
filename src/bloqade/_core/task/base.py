@@ -4,7 +4,7 @@ from beartype.typing import List, Sequence, Union, Dict, Optional, Tuple
 from beartype import beartype
 from numbers import Number
 
-from bloqade.submission.ir.task_results import (
+from bloqade._core.submission.ir.task_results import (
     QuEraTaskResults,
     QuEraTaskStatusCode,
 )
@@ -12,7 +12,7 @@ from numpy.typing import NDArray
 import pandas as pd
 import numpy as np
 from pydantic.dataclasses import dataclass
-from bloqade.submission.ir.parallel import ParallelDecoder
+from bloqade._core.submission.ir.parallel import ParallelDecoder
 import datetime
 from bloqade.visualization import display_report
 

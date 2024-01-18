@@ -1,6 +1,6 @@
 import simplejson as json
 import os
-from bloqade.submission.ir.capabilities import QuEraCapabilities
+from bloqade._core.submission.ir.capabilities import QuEraCapabilities
 
 
 # TODO: Create unit converter for capabilities

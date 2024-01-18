@@ -1,10 +1,10 @@
-import bloqade.ir.control.waveform as _waveform
-import bloqade.ir.control.field as _field
-import bloqade.ir.control.pulse as _pulse
-import bloqade.ir.control.sequence as _sequence
-import bloqade.ir.location.location as _location
-import bloqade.ir.analog_circuit as _analog_circuit
-import bloqade.ir.scalar as _scalar
+import bloqade._core.ir.control.waveform as _waveform
+import bloqade._core.ir.control.field as _field
+import bloqade._core.ir.control.pulse as _pulse
+import bloqade._core.ir.control.sequence as _sequence
+import bloqade._core.ir.location.location as _location
+import bloqade._core.ir.analog_circuit as _analog_circuit
+import bloqade._core.ir.scalar as _scalar
 from beartype.typing import Any
 
 from dataclasses import fields

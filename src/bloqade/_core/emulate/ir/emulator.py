@@ -1,5 +1,5 @@
 from functools import cached_property
-from bloqade.compiler.codegen.common.json import (
+from bloqade._core.compiler.codegen.common.json import (
     BloqadeIRSerializer,
     BloqadeIRDeserializer,
 )
@@ -8,8 +8,8 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any, Dict, List, Tuple, Optional, Callable
 from enum import Enum
-from bloqade.ir.control.waveform import Waveform
-from bloqade.emulate.ir.atom_type import AtomType
+from bloqade._core.ir.control.waveform import Waveform
+from bloqade._core.emulate.ir.atom_type import AtomType
 
 
 class WaveformRuntime(str, Enum):
@@ -27,13 +27,15 @@ class JITWaveform:
 
     @cached_property
     def canonicalized_ir(self):
-        from bloqade.compiler.rewrite.common import (
+        from bloqade._core.compiler.rewrite.common import (
             AssignBloqadeIR,
             AssignToLiteral,
             Canonicalizer,
         )
-        from bloqade.compiler.rewrite.python.waveform import NormalizeWaveformPython
-        from bloqade.compiler.analysis.common import AssignmentScan, ScanVariables
+        from bloqade._core.compiler.rewrite.python.waveform import (
+            NormalizeWaveformPython,
+        )
+        from bloqade._core.compiler.analysis.common import AssignmentScan, ScanVariables
 
         assignments = AssignmentScan(self.assignments).scan(self.source)
         ast_assigned = AssignBloqadeIR(assignments).emit(self.source)
@@ -54,8 +56,8 @@ class JITWaveform:
         return ast_canonicalized
 
     def emit(self) -> Callable[[float], float]:
-        from bloqade.compiler.analysis.python.waveform import WaveformScan
-        from bloqade.compiler.codegen.python.waveform import CodegenPythonWaveform
+        from bloqade._core.compiler.analysis.python.waveform import WaveformScan
+        from bloqade._core.compiler.codegen.python.waveform import CodegenPythonWaveform
 
         if self.runtime is WaveformRuntime.Interpret:
             return self.canonicalized_ir

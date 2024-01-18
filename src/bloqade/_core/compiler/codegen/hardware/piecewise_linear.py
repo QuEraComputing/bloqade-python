@@ -1,7 +1,7 @@
 from functools import reduce
-from bloqade.ir.visitor import BloqadeIRVisitor
-from bloqade.ir.control import waveform, field, pulse, sequence
-import bloqade.ir.analog_circuit as analog_circuit
+from bloqade._core.ir.visitor import BloqadeIRVisitor
+from bloqade._core.ir.control import waveform, field, pulse, sequence
+import bloqade._core.ir.analog_circuit as analog_circuit
 
 from beartype.typing import List
 from beartype import beartype

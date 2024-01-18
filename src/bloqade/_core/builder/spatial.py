@@ -2,13 +2,13 @@ from beartype.typing import Optional, TYPE_CHECKING
 
 from beartype import beartype
 from beartype.typing import List, Union
-from bloqade.builder.typing import ScalarType, LiteralType
-from bloqade.builder.waveform import WaveformAttachable
-from bloqade.builder.base import Builder
+from bloqade._core.builder.typing import ScalarType, LiteralType
+from bloqade._core.builder.waveform import WaveformAttachable
+from bloqade._core.builder.base import Builder
 
 
 if TYPE_CHECKING:
-    from bloqade.ir.control.field import (
+    from bloqade._core.ir.control.field import (
         UniformModulation,
         ScaledLocations,
         AssignedRunTimeVector,
@@ -23,7 +23,7 @@ class SpatialModulation(WaveformAttachable):
 class Uniform(SpatialModulation):
     """
     The node specify a uniform spacial modulation. Which is ready to apply waveform
-    (See [`Waveform`][bloqade.builder.waveform] for available waveform options)
+    (See [`Waveform`][bloqade._core.builder.waveform] for available waveform options)
 
     Examples:
 
@@ -34,14 +34,14 @@ class Uniform(SpatialModulation):
 
         - Apply Linear waveform:
 
-        >>> wv = bloqade.ir.Linear(start=0,stop=1,duration=0.5)
+        >>> wv = bloqade._core.ir.Linear(start=0,stop=1,duration=0.5)
         >>> reg = bloqade.start.add_position([(0,0),(1,1),(2,2),(3,3)])
         >>> loc = reg.rydberg.detuning.uniform.apply(wv)
 
     """
 
     def __bloqade_ir__(self) -> "UniformModulation":
-        from bloqade.ir import Uniform
+        from bloqade._core.ir import Uniform
 
         return Uniform
 
@@ -54,8 +54,8 @@ class Location(SpatialModulation):
         scales: List[ScalarType],
         parent: Optional[Builder] = None,
     ) -> None:
-        from bloqade.ir.scalar import cast
-        from bloqade.ir.control.field import Location
+        from bloqade._core.ir.scalar import cast
+        from bloqade._core.ir.control.field import Location
 
         super().__init__(parent)
         self._scaled_locations = {
@@ -63,7 +63,7 @@ class Location(SpatialModulation):
         }
 
     def __bloqade_ir__(self) -> "ScaledLocations":
-        from bloqade.ir import ScaledLocations
+        from bloqade._core.ir import ScaledLocations
 
         return ScaledLocations(self._scaled_locations)
 
@@ -79,7 +79,7 @@ class Scale(SpatialModulation):
         self._name_or_list = name_or_list
 
     def __bloqade_ir__(self) -> Union["RunTimeVector", "AssignedRunTimeVector"]:
-        from bloqade.ir import RunTimeVector, AssignedRunTimeVector
+        from bloqade._core.ir import RunTimeVector, AssignedRunTimeVector
 
         if isinstance(self._name_or_list, str):
             return RunTimeVector(self._name_or_list)

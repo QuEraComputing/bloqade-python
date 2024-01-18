@@ -1,10 +1,10 @@
 from beartype import beartype
-from bloqade.ir import analog_circuit
-import bloqade.ir.control.field as field
-import bloqade.ir.control.pulse as pulse
-import bloqade.ir.control.sequence as sequence
+from bloqade._core.ir import analog_circuit
+import bloqade._core.ir.control.field as field
+import bloqade._core.ir.control.pulse as pulse
+import bloqade._core.ir.control.sequence as sequence
 
-from bloqade.ir.visitor import BloqadeIRVisitor
+from bloqade._core.ir.visitor import BloqadeIRVisitor
 
 
 class ValidateChannels(BloqadeIRVisitor):

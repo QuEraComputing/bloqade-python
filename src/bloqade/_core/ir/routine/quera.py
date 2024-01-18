@@ -2,13 +2,13 @@ from collections import OrderedDict
 from pydantic.dataclasses import dataclass
 import json
 
-from bloqade.builder.typing import LiteralType
-from bloqade.ir.routine.base import RoutineBase, __pydantic_dataclass_config__
-from bloqade.submission.quera import QuEraBackend
-from bloqade.submission.mock import MockBackend
-from bloqade.submission.load_config import load_config
-from bloqade.task.batch import RemoteBatch
-from bloqade.task.quera import QuEraTask
+from bloqade._core.builder.typing import LiteralType
+from bloqade._core.ir.routine.base import RoutineBase, __pydantic_dataclass_config__
+from bloqade._core.submission.quera import QuEraBackend
+from bloqade._core.submission.mock import MockBackend
+from bloqade._core.submission.load_config import load_config
+from bloqade._core.task.batch import RemoteBatch
+from bloqade._core.task.quera import QuEraTask
 
 from beartype.typing import Tuple, Union, Optional
 from beartype import beartype
@@ -52,7 +52,7 @@ class QuEraHardwareRoutine(RoutineBase):
         args: Tuple[LiteralType, ...] = (),
         name: Optional[str] = None,
     ) -> RemoteBatch:
-        from bloqade.compiler.passes.hardware import (
+        from bloqade._core.compiler.passes.hardware import (
             analyze_channels,
             add_padding,
             assign_circuit,

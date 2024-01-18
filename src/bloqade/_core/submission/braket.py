@@ -1,17 +1,17 @@
 import warnings
-from bloqade.submission.base import SubmissionBackend
-from bloqade.submission.ir.braket import (
+from bloqade._core.submission.base import SubmissionBackend
+from bloqade._core.submission.ir.braket import (
     from_braket_task_results,
     from_braket_status_codes,
     to_braket_task,
     to_quera_capabilities,
 )
-from bloqade.submission.ir.capabilities import QuEraCapabilities
-from bloqade.submission.ir.task_results import (
+from bloqade._core.submission.ir.capabilities import QuEraCapabilities
+from bloqade._core.submission.ir.task_results import (
     QuEraTaskStatusCode,
     QuEraTaskResults,
 )
-from bloqade.submission.ir.task_specification import QuEraTaskSpecification
+from bloqade._core.submission.ir.task_specification import QuEraTaskSpecification
 from braket.aws import AwsDevice, AwsQuantumTask
 from beartype.typing import Optional
 from pydantic import PrivateAttr

@@ -1,9 +1,9 @@
 from bloqade import start, cast
-from bloqade.ir.location import Square, Rectangular, Chain
+from bloqade._core.ir.location import Square, Rectangular, Chain
 import random
 import numpy as np
 import os
-import bloqade.ir.tree_print as trp
+import bloqade._core.ir.tree_print as trp
 
 
 trp.color_enabled = False

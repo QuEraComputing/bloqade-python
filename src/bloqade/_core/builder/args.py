@@ -1,9 +1,9 @@
 from beartype import beartype
 from beartype.typing import List, Optional, Union
-from bloqade.ir.scalar import Variable
-from bloqade.builder.base import Builder
-from bloqade.builder.pragmas import Parallelizable
-from bloqade.builder.backend import BackendRoute
+from bloqade._core.ir.scalar import Variable
+from bloqade._core.builder.base import Builder
+from bloqade._core.builder.pragmas import Parallelizable
+from bloqade._core.builder.backend import BackendRoute
 
 
 class Args(Parallelizable, BackendRoute, Builder):

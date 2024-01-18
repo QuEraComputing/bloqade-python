@@ -8,14 +8,14 @@ from braket.ahs.shifting_field import ShiftingField
 from braket.ahs.field import Field
 
 from braket.task_result import AnalogHamiltonianSimulationTaskResult
-from bloqade.submission.ir.task_results import (
+from bloqade._core.submission.ir.task_results import (
     QuEraTaskResults,
     QuEraTaskStatusCode,
     QuEraShotResult,
     QuEraShotStatusCode,
 )
 
-from bloqade.submission.ir.task_specification import (
+from bloqade._core.submission.ir.task_specification import (
     QuEraTaskSpecification,
     GlobalField,
     LocalField,
@@ -125,7 +125,7 @@ def from_braket_status_codes(braket_message: str) -> QuEraTaskStatusCode:
 
 
 def to_quera_capabilities(paradigm):
-    import bloqade.submission.ir.capabilities as cp
+    import bloqade._core.submission.ir.capabilities as cp
 
     rydberg_global = paradigm.rydberg.rydbergGlobal
 

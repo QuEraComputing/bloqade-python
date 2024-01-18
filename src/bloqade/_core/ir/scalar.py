@@ -181,7 +181,7 @@ class Scalar:
 
     @staticmethod
     def canonicalize(expr: "Scalar") -> "Scalar":
-        from bloqade.compiler.rewrite.common.canonicalize import Canonicalizer
+        from bloqade._core.compiler.rewrite.common.canonicalize import Canonicalizer
 
         return Canonicalizer().visit(expr)
 
@@ -196,10 +196,10 @@ def check_variable_name(name: str) -> None:
 def cast(py) -> "Scalar":
     """
     1. cast Real number (or list/tuple of Real numbers)
-    to [`Scalar Literal`][bloqade.ir.scalar.Literal].
+    to [`Scalar Literal`][bloqade._core.ir.scalar.Literal].
 
     2. cast str (or list/tuple of Real numbers)
-    to [`Scalar Variable`][bloqade.ir.scalar.Variable].
+    to [`Scalar Variable`][bloqade._core.ir.scalar.Variable].
 
     Args:
         py (Union[str,Real,Tuple[Real],List[Real]]): python object to cast
@@ -238,7 +238,7 @@ def trycast(py) -> Optional[Scalar]:
 
 def var(py: str) -> "Variable":
     """cast string (or list/tuple of strings)
-    to [`Variable`][bloqade.ir.scalar.Variable].
+    to [`Variable`][bloqade._core.ir.scalar.Variable].
 
     Args:
         py (Union[str, List[str]]): a string or list/tuple of strings

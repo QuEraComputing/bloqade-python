@@ -1,9 +1,9 @@
 from decimal import Decimal
 
 from beartype import beartype
-from bloqade.ir.visitor import BloqadeIRVisitor
-import bloqade.ir.control.waveform as waveform
-from bloqade.compiler.analysis.python.waveform import WaveformScanResult
+from bloqade._core.ir.visitor import BloqadeIRVisitor
+import bloqade._core.ir.control.waveform as waveform
+from bloqade._core.compiler.analysis.python.waveform import WaveformScanResult
 from beartype.typing import Optional, Tuple
 from random import randint
 

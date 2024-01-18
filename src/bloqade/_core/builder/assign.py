@@ -1,9 +1,9 @@
 from itertools import repeat
 from beartype.typing import Optional, List, Dict, Set, Sequence, Union
-from bloqade.builder.typing import ParamType
-from bloqade.builder.base import Builder
-from bloqade.builder.pragmas import Parallelizable, AddArgs, BatchAssignable
-from bloqade.builder.backend import BackendRoute
+from bloqade._core.builder.typing import ParamType
+from bloqade._core.builder.base import Builder
+from bloqade._core.builder.pragmas import Parallelizable, AddArgs, BatchAssignable
+from bloqade._core.builder.backend import BackendRoute
 from numbers import Real
 from decimal import Decimal
 import numpy as np
@@ -69,7 +69,7 @@ class Assign(BatchAssignable, AddArgs, Parallelizable, BackendRoute, AssignBase)
     def __init__(
         self, assignments: Dict[str, ParamType], parent: Optional[Builder] = None
     ) -> None:
-        from bloqade.compiler.analysis.common.scan_variables import ScanVariables
+        from bloqade._core.compiler.analysis.common.scan_variables import ScanVariables
 
         super().__init__(parent)
 
@@ -85,7 +85,7 @@ class BatchAssign(AddArgs, Parallelizable, BackendRoute, AssignBase):
     def __init__(
         self, assignments: Dict[str, List[ParamType]], parent: Optional[Builder] = None
     ) -> None:
-        from bloqade.compiler.analysis.common.scan_variables import ScanVariables
+        from bloqade._core.compiler.analysis.common.scan_variables import ScanVariables
 
         super().__init__(parent)
 
@@ -120,7 +120,7 @@ class ListAssign(AddArgs, Parallelizable, BackendRoute, AssignBase):
         batch_params: Sequence[Dict[str, ParamType]],
         parent: Optional[Builder] = None,
     ) -> None:
-        from bloqade.compiler.analysis.common.scan_variables import ScanVariables
+        from bloqade._core.compiler.analysis.common.scan_variables import ScanVariables
 
         super().__init__(parent)
 

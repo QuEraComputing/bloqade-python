@@ -1,8 +1,8 @@
 from bloqade import start
-from bloqade.submission.capabilities import get_capabilities
-from bloqade.ir import analog_circuit
+from bloqade._core.submission.capabilities import get_capabilities
+from bloqade._core.ir import analog_circuit
 
-from bloqade.compiler.passes.hardware import (
+from bloqade._core.compiler.passes.hardware import (
     analyze_channels,
     add_padding,
     assign_circuit,

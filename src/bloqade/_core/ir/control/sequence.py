@@ -1,14 +1,14 @@
 from collections import OrderedDict
 from functools import cached_property
-from bloqade.ir.control.pulse import PulseExpr, Pulse
-from bloqade.ir.control.traits import (
+from bloqade._core.ir.control.pulse import PulseExpr, Pulse
+from bloqade._core.ir.control.traits import (
     HashTrait,
     AppendTrait,
     SliceTrait,
     CanonicalizeTrait,
 )
-from bloqade.ir.scalar import Interval, Scalar, cast
-from bloqade.ir.tree_print import Printer
+from bloqade._core.ir.scalar import Interval, Scalar, cast
+from bloqade._core.ir.tree_print import Printer
 
 from pydantic.dataclasses import dataclass
 from beartype.typing import List, Dict

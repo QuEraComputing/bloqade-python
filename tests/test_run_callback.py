@@ -1,7 +1,7 @@
 from bloqade import start
-from bloqade.compiler.codegen.python.emulator_ir import EmulatorProgramCodeGen
-from bloqade.emulate.codegen.hamiltonian import RydbergHamiltonianCodeGen
-from bloqade.emulate.ir.state_vector import AnalogGate
+from bloqade._core.compiler.codegen.python.emulator_ir import EmulatorProgramCodeGen
+from bloqade._core.emulate.codegen.hamiltonian import RydbergHamiltonianCodeGen
+from bloqade._core.emulate.ir.state_vector import AnalogGate
 import numpy as np
 import pytest
 

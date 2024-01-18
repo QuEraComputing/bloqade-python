@@ -1,9 +1,9 @@
-import bloqade.ir.control.waveform as waveform
-import bloqade.ir.control.field as field
-import bloqade.ir.control.pulse as pulse
-import bloqade.ir.control.sequence as sequence
-from bloqade.builder.typing import LiteralType
-from bloqade.ir.visitor import BloqadeIRVisitor
+import bloqade._core.ir.control.waveform as waveform
+import bloqade._core.ir.control.field as field
+import bloqade._core.ir.control.pulse as pulse
+import bloqade._core.ir.control.sequence as sequence
+from bloqade._core.builder.typing import LiteralType
+from bloqade._core.ir.visitor import BloqadeIRVisitor
 
 from decimal import Decimal
 from beartype.typing import Any, Dict

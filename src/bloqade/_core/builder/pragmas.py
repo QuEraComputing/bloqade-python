@@ -1,16 +1,16 @@
 from beartype.typing import List, Dict, Union, TYPE_CHECKING
-from bloqade.builder.typing import LiteralType, ParamType
-from bloqade.ir.scalar import Variable
+from bloqade._core.builder.typing import LiteralType, ParamType
+from bloqade._core.ir.scalar import Variable
 
 if TYPE_CHECKING:
-    from bloqade.builder.assign import Assign, BatchAssign, ListAssign
-    from bloqade.builder.parallelize import Parallelize
-    from bloqade.builder.args import Args
+    from bloqade._core.builder.assign import Assign, BatchAssign, ListAssign
+    from bloqade._core.builder.parallelize import Parallelize
+    from bloqade._core.builder.args import Args
 
 
 class AddArgs:
     def args(self, args_list: List[Union[str, Variable]]) -> "Args":
-        from bloqade.builder.args import Args
+        from bloqade._core.builder.args import Args
 
         return Args(args_list, self)
 
@@ -54,7 +54,7 @@ class Assignable:
             - `...assign(assignments).args([previously_defined_vars])`
 
         """
-        from bloqade.builder.assign import Assign
+        from bloqade._core.builder.assign import Assign
 
         return Assign(assignments, parent=self)
 
@@ -100,7 +100,7 @@ class BatchAssignable:
             - `...batch_assign(assignments).args([previously_defined_vars])`
 
         """
-        from bloqade.builder.assign import BatchAssign, ListAssign
+        from bloqade._core.builder.assign import BatchAssign, ListAssign
 
         if len(__batch_params) > 0 and assignments:
             raise ValueError("batch_params and assignments cannot be used together.")
@@ -138,6 +138,6 @@ class Parallelizable:
                 backend by specifying a string
 
         """
-        from bloqade.builder.parallelize import Parallelize
+        from bloqade._core.builder.parallelize import Parallelize
 
         return Parallelize(cluster_spacing, self)

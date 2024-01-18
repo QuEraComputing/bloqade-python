@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import Optional, List, Type
-from bloqade.builder.base import Builder
+from bloqade._core.builder.base import Builder
 
 
 @dataclass

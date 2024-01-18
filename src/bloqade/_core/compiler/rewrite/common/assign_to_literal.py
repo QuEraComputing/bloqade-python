@@ -1,6 +1,6 @@
-from bloqade.ir.visitor import BloqadeIRTransformer
-import bloqade.ir.scalar as scalar
-from bloqade.ir.control import waveform
+from bloqade._core.ir.visitor import BloqadeIRTransformer
+import bloqade._core.ir.scalar as scalar
+from bloqade._core.ir.control import waveform
 
 
 class AssignToLiteral(BloqadeIRTransformer):

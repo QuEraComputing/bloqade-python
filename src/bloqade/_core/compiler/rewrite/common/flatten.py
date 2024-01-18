@@ -1,7 +1,7 @@
-import bloqade.ir.control.sequence as sequence
-import bloqade.ir.control.pulse as pulse
-import bloqade.ir.control.field as field
-from bloqade.ir.visitor import BloqadeIRTransformer
+import bloqade._core.ir.control.sequence as sequence
+import bloqade._core.ir.control.pulse as pulse
+import bloqade._core.ir.control.field as field
+from bloqade._core.ir.visitor import BloqadeIRTransformer
 
 
 class FlattenCircuit(BloqadeIRTransformer):

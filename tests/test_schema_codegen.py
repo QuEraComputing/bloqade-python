@@ -1,6 +1,6 @@
 from bloqade import start
-from bloqade.ir.location import Square
-from bloqade.ir import Constant, Linear
+from bloqade._core.ir.location import Square
+from bloqade._core.ir import Constant, Linear
 import json
 import numpy as np
 import pytest
@@ -47,9 +47,9 @@ def test_local_no_global():
     panel = json.loads(batch.json())
 
     print(panel)
-    panel = panel["bloqade.task.batch.RemoteBatch"]
+    panel = panel["bloqade._core.task.batch.RemoteBatch"]
 
-    task = panel["tasks"][0][1]["bloqade.task.quera.QuEraTask"]
+    task = panel["tasks"][0][1]["bloqade._core.task.quera.QuEraTask"]
     ir = task["task_ir"]
 
     assert ir["nshots"] == 10
@@ -83,10 +83,10 @@ def test_local_global():
     )
 
     panel = json.loads(job.json())
-    panel = panel["bloqade.task.batch.RemoteBatch"]
+    panel = panel["bloqade._core.task.batch.RemoteBatch"]
 
     print(panel)
-    task = panel["tasks"][0][1]["bloqade.task.quera.QuEraTask"]
+    task = panel["tasks"][0][1]["bloqade._core.task.quera.QuEraTask"]
     ir = task["task_ir"]
 
     assert ir["nshots"] == 10

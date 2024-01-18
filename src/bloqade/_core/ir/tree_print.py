@@ -2,7 +2,7 @@
 
 from pydantic.dataclasses import dataclass
 import sys
-import bloqade.ir as ir
+import bloqade._core.ir as ir
 
 # The maximum depth of the tree to print.
 MAX_TREE_DEPTH = 10

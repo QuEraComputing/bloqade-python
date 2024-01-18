@@ -1,15 +1,22 @@
 from collections import OrderedDict, namedtuple
 
-from bloqade.ir.routine.base import RoutineBase, __pydantic_dataclass_config__
-from bloqade.builder.typing import LiteralType
-from bloqade.task.batch import LocalBatch
+from bloqade._core.ir.routine.base import RoutineBase, __pydantic_dataclass_config__
+from bloqade._core.builder.typing import LiteralType
+from bloqade._core.task.batch import LocalBatch
 from beartype import beartype
 from beartype.typing import Optional, Tuple, Callable, Dict, Any, List, NamedTuple
 from pydantic.dataclasses import dataclass
 import numpy as np
 
-from bloqade.emulate.codegen.hamiltonian import CompileCache, RydbergHamiltonianCodeGen
-from bloqade.emulate.ir.state_vector import AnalogGate, RydbergHamiltonian, StateVector
+from bloqade._core.emulate.codegen.hamiltonian import (
+    CompileCache,
+    RydbergHamiltonianCodeGen,
+)
+from bloqade._core.emulate.ir.state_vector import (
+    AnalogGate,
+    RydbergHamiltonian,
+    StateVector,
+)
 import traceback
 
 
@@ -57,7 +64,7 @@ class BloqadePythonRoutine(RoutineBase):
             )
 
     def _generate_ir(self, args, blockade_radius, waveform_runtime):
-        from bloqade.compiler.passes.emulator import (
+        from bloqade._core.compiler.passes.emulator import (
             flatten,
             assign,
             generate_emulator_ir,
@@ -83,7 +90,7 @@ class BloqadePythonRoutine(RoutineBase):
         cache_matrices: bool = False,
         waveform_runtime: str = "interpret",
     ) -> LocalBatch:
-        from bloqade.task.bloqade import BloqadeTask
+        from bloqade._core.task.bloqade import BloqadeTask
 
         if cache_matrices:
             matrix_cache = CompileCache()

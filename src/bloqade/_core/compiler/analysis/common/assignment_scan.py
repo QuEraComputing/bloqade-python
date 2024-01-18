@@ -1,6 +1,6 @@
-from bloqade.builder.typing import LiteralType
-from bloqade.ir.visitor import BloqadeIRVisitor
-import bloqade.ir.control.waveform as waveform
+from bloqade._core.builder.typing import LiteralType
+from bloqade._core.ir.visitor import BloqadeIRVisitor
+import bloqade._core.ir.control.waveform as waveform
 from typing import Dict
 from decimal import Decimal
 

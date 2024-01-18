@@ -1,10 +1,13 @@
-from bloqade.submission.ir.braket import BraketTaskSpecification
-from bloqade.submission.ir.task_specification import QuEraTaskSpecification
-from bloqade.submission.ir.task_results import QuEraTaskResults, QuEraTaskStatusCode
+from bloqade._core.submission.ir.braket import BraketTaskSpecification
+from bloqade._core.submission.ir.task_specification import QuEraTaskSpecification
+from bloqade._core.submission.ir.task_results import (
+    QuEraTaskResults,
+    QuEraTaskStatusCode,
+)
 from typing import Union
 from pydantic import BaseModel, Extra
-from bloqade.submission.capabilities import get_capabilities
-from bloqade.submission.ir.capabilities import QuEraCapabilities
+from bloqade._core.submission.capabilities import get_capabilities
+from bloqade._core.submission.ir.capabilities import QuEraCapabilities
 
 
 class ValidationError(Exception):

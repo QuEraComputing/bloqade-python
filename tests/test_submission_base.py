@@ -1,4 +1,4 @@
-from bloqade.submission.base import SubmissionBackend
+from bloqade._core.submission.base import SubmissionBackend
 import pytest
 
 

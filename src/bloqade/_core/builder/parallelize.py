@@ -1,9 +1,9 @@
 from beartype.typing import Optional
 from beartype import beartype
-from bloqade.builder.typing import LiteralType
-from bloqade.builder.base import Builder
-from bloqade.builder.backend import BackendRoute
-from bloqade.ir import cast
+from bloqade._core.builder.typing import LiteralType
+from bloqade._core.builder.base import Builder
+from bloqade._core.builder.backend import BackendRoute
+from bloqade._core.ir import cast
 
 
 class Parallelize(BackendRoute, Builder):

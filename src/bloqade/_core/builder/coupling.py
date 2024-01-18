@@ -1,5 +1,5 @@
-from bloqade.builder.base import Builder
-from bloqade.builder.field import Rabi, Detuning
+from bloqade._core.builder.base import Builder
+from bloqade._core.builder.field import Rabi, Detuning
 
 
 class LevelCoupling(Builder):
@@ -9,8 +9,8 @@ class LevelCoupling(Builder):
     ) -> Detuning:  # field is summation of one or more drives,
         # waveform + spatial modulation = drive
         """
-        Specify the [`Detuning`][bloqade.builder.field.Detuning]
-         [`Field`][bloqade.builder.Field] of your program.
+        Specify the [`Detuning`][bloqade._core.builder.field.Detuning]
+         [`Field`][bloqade._core.builder.Field] of your program.
 
         A "field" is a summation of one or more "drives", with a drive being the sum
         of a waveform and spatial modulation.
@@ -32,14 +32,14 @@ class LevelCoupling(Builder):
     @property
     def rabi(self) -> Rabi:
         """
-        Specify the complex-valued [`Rabi`][bloqade.builder.field.Rabi]
+        Specify the complex-valued [`Rabi`][bloqade._core.builder.field.Rabi]
         field of your program.
 
         The Rabi field is composed of a real-valued Amplitude and Phase field.
 
         - Next possible steps to build your program are
-          creating the [`RabiAmplitude`][bloqade.builder.field.RabiAmplitude] field
-          and [`RabiPhase`][bloqade.builder.field.RabiAmplitude] field of the field:
+          creating the [`RabiAmplitude`][bloqade._core.builder.field.RabiAmplitude] field
+          and [`RabiPhase`][bloqade._core.builder.field.RabiAmplitude] field of the field:
             - `...rabi.amplitude`: To create the Rabi amplitude field
             - `...rabi.phase`: To create the Rabi phase field
 
@@ -58,12 +58,12 @@ class Rydberg(LevelCoupling):
 
         >>> node = bloqade.start.rydberg
         >>> type(node)
-        <class 'bloqade.builder.coupling.Rydberg'>
+        <class 'bloqade._core.builder.coupling.Rydberg'>
 
         - Rydberg level coupling have two reachable field nodes:
 
-            - detuning term (See also [`Detuning`][bloqade.builder.field.Detuning])
-            - rabi term (See also [`Rabi`][bloqade.builder.field.Rabi])
+            - detuning term (See also [`Detuning`][bloqade._core.builder.field.Detuning])
+            - rabi term (See also [`Rabi`][bloqade._core.builder.field.Rabi])
 
         >>> ryd_detune = bloqade.start.rydberg.detuning
         >>> ryd_rabi = bloqade.start.rydberg.rabi
@@ -71,7 +71,7 @@ class Rydberg(LevelCoupling):
     """
 
     def __bloqade_ir__(self):
-        from bloqade.ir.control.sequence import rydberg
+        from bloqade._core.ir.control.sequence import rydberg
 
         return rydberg
 
@@ -86,12 +86,12 @@ class Hyperfine(LevelCoupling):
 
         >>> node = bloqade.start.hyperfine
         >>> type(node)
-        <class 'bloqade.builder.coupling.Hyperfine'>
+        <class 'bloqade._core.builder.coupling.Hyperfine'>
 
         - Hyperfine level coupling have two reachable field nodes:
 
-            - detuning term (See also [`Detuning`][bloqade.builder.field.Detuning])
-            - rabi term (See also [`Rabi`][bloqade.builder.field.Rabi])
+            - detuning term (See also [`Detuning`][bloqade._core.builder.field.Detuning])
+            - rabi term (See also [`Rabi`][bloqade._core.builder.field.Rabi])
 
         >>> hyp_detune = bloqade.start.hyperfine.detuning
         >>> hyp_rabi = bloqade.start.hyperfine.rabi
@@ -99,6 +99,6 @@ class Hyperfine(LevelCoupling):
     """
 
     def __bloqade_ir__(self):
-        from bloqade.ir.control.sequence import hyperfine
+        from bloqade._core.ir.control.sequence import hyperfine
 
         return hyperfine

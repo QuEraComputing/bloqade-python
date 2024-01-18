@@ -1,4 +1,4 @@
-from bloqade.ir import (
+from bloqade._core.ir import (
     Linear,
     Constant,
     Poly,
@@ -20,15 +20,15 @@ from bloqade.ir import (
     CosineKernel,
 )
 from bloqade import cast
-from bloqade.ir.scalar import Interval
-from bloqade.ir.control.waveform import PythonFn, Append, Slice, Sample
-from bloqade.ir.control.waveform import SmoothingKernel, Waveform
+from bloqade._core.ir.scalar import Interval
+from bloqade._core.ir.control.waveform import PythonFn, Append, Slice, Sample
+from bloqade._core.ir.control.waveform import SmoothingKernel, Waveform
 from decimal import Decimal
 import pytest
 import numpy as np
 from io import StringIO
 from IPython.lib.pretty import PrettyPrinter as PP
-import bloqade.ir.tree_print as trp
+import bloqade._core.ir.tree_print as trp
 
 trp.color_enabled = False
 

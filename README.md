@@ -147,7 +147,7 @@ Want to focus on building one part of your program first before others (or, just
 
 ```python
 from bloqade import piecewise_linear, var
-from bloqade.ir.location import Square
+from bloqade.atom_arrangement import Square
 import numpy as np
 
 # Create a geometry without worrying about pulses yet

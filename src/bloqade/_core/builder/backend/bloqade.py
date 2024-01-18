@@ -1,4 +1,4 @@
-from bloqade.builder.base import Builder
+from bloqade._core.builder.base import Builder
 
 
 class BloqadeService(Builder):
