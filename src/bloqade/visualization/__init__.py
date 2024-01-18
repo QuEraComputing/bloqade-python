@@ -1,4 +1,9 @@
-Use_bokeh = True
+try:
+    import bokeh  # noqa: F401
+
+    Use_bokeh = True
+except ImportError:
+    Use_bokeh = False
 
 if Use_bokeh:
     from .display import (
