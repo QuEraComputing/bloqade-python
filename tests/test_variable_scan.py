@@ -1,12 +1,12 @@
 from bloqade import start, var
 from bloqade.atom_arrangement import Chain
-from bloqade.compiler.analysis.common.scan_variables import (
+from bloqade.core.compiler.analysis.common.scan_variables import (
     ScanVariableResults,
     ScanVariables,
 )
 import numpy as np
 
-from bloqade.ir.control.waveform import to_waveform
+from bloqade.core.ir.control.waveform import to_waveform
 
 
 def test_1():

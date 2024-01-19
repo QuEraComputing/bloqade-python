@@ -1,19 +1,19 @@
 from decimal import Decimal
 import pytest
-from bloqade.compiler.analysis.hardware.piecewise_linear import (
+from bloqade.core.compiler.analysis.hardware.piecewise_linear import (
     ValidatePiecewiseLinearChannel,
 )
-from bloqade.compiler.analysis.hardware.piecewise_constant import (
+from bloqade.core.compiler.analysis.hardware.piecewise_constant import (
     ValidatePiecewiseConstantChannel,
 )
-from bloqade.compiler.analysis.hardware.channels import ValidateChannels
-from bloqade.ir import analog_circuit
-from bloqade.compiler.rewrite.common.add_padding import AddPadding
+from bloqade.core.compiler.analysis.hardware.channels import ValidateChannels
+from bloqade.core.ir import analog_circuit
+from bloqade.core.compiler.rewrite.common.add_padding import AddPadding
 
-import bloqade.ir.control.sequence as sequence
-import bloqade.ir.control.pulse as pulse
-import bloqade.ir.control.field as field
-import bloqade.ir.control.waveform as waveform
+import bloqade.core.ir.control.sequence as sequence
+import bloqade.core.ir.control.pulse as pulse
+import bloqade.core.ir.control.field as field
+import bloqade.core.ir.control.waveform as waveform
 
 from bloqade import piecewise_constant, piecewise_linear, var, start
 

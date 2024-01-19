@@ -11,12 +11,12 @@ from bokeh.models import (
 
 ## unify the entry point:
 def display_ir(obj, assignments):
-    from bloqade.ir.analog_circuit import AnalogCircuit
-    from bloqade.ir.control.pulse import PulseExpr
-    from bloqade.ir.control.sequence import SequenceExpr
-    from bloqade.ir.control.field import Field, SpatialModulation
-    from bloqade.ir.control.waveform import Waveform
-    from bloqade.ir.location import AtomArrangement
+    from bloqade.core.ir.analog_circuit import AnalogCircuit
+    from bloqade.core.ir.control.pulse import PulseExpr
+    from bloqade.core.ir.control.sequence import SequenceExpr
+    from bloqade.core.ir.control.field import Field, SpatialModulation
+    from bloqade.core.ir.control.waveform import Waveform
+    from bloqade.core.ir.location import AtomArrangement
 
     if isinstance(obj, AnalogCircuit):
         display_analog_circuit(obj, assignments)
@@ -37,12 +37,12 @@ def display_ir(obj, assignments):
 
 
 def figure_ir(obj, assignments):
-    from bloqade.ir.analog_circuit import AnalogCircuit
-    from bloqade.ir.control.pulse import PulseExpr
-    from bloqade.ir.control.sequence import SequenceExpr
-    from bloqade.ir.control.field import Field, SpatialModulation
-    from bloqade.ir.control.waveform import Waveform
-    from bloqade.ir.location import AtomArrangement
+    from bloqade.core.ir.analog_circuit import AnalogCircuit
+    from bloqade.core.ir.control.pulse import PulseExpr
+    from bloqade.core.ir.control.sequence import SequenceExpr
+    from bloqade.core.ir.control.field import Field, SpatialModulation
+    from bloqade.core.ir.control.waveform import Waveform
+    from bloqade.core.ir.location import AtomArrangement
 
     if isinstance(obj, AnalogCircuit):
         return analog_circuit_figure(obj, assignments)
@@ -67,7 +67,7 @@ def liner(txt):
 
 
 def builder_figure(builder, batch_id):
-    from bloqade.builder.parse.builder import Parser
+    from bloqade.core.builder.parse.builder import Parser
 
     routine = Parser().parse(builder)
 

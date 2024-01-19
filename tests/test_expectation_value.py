@@ -1,9 +1,9 @@
 from bloqade import start
 import numpy as np
-from bloqade.emulate.ir.space import Space
-from bloqade.emulate.ir.emulator import Register
-from bloqade.emulate.ir.atom_type import TwoLevelAtom, ThreeLevelAtom
-from bloqade.emulate.ir.state_vector import _expt_two_body_op, _expt_one_body_op
+from bloqade.core.emulate.ir.space import Space
+from bloqade.core.emulate.ir.emulator import Register
+from bloqade.core.emulate.ir.atom_type import TwoLevelAtom, ThreeLevelAtom
+from bloqade.core.emulate.ir.state_vector import _expt_two_body_op, _expt_one_body_op
 from scipy.sparse import csc_array
 from decimal import Decimal
 from itertools import product
@@ -65,7 +65,7 @@ def callback_two_atom(register, *_):
     np.testing.assert_almost_equal(exact_rabi_expt_1, rabi_expt_1)
 
 
-def test_expection_value_two_atom():
+def test_expectation_value_two_atom():
     omega = 2 * np.pi
     (
         start.add_position((0, 0))
@@ -196,3 +196,15 @@ def test_internals_two_body(atom_type, i, j):
 
     exact_result = np.vdot(psi, density_op_space.dot(psi))
     np.testing.assert_almost_equal(exact_result, result)
+
+
+if __name__ == "__main__":
+    omega = 2 * np.pi
+    result = (
+        start.add_position((0, 0))
+        .rydberg.rabi.amplitude.uniform.constant("omega", "run_time")
+        .assign(omega=omega)
+        .batch_assign(run_time=np.linspace(0, 2 * np.pi / omega, 11))
+        .bloqade.python()
+        .run_callback(callback=callback_single_atom)
+    )

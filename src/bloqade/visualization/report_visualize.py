@@ -16,7 +16,7 @@ from bokeh.palettes import Dark2_5
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from bloqade.task.base import Report
+    from bloqade.core.task.base import Report
 
 import math
 
@@ -75,7 +75,7 @@ def format_report_data(report: "Report"):
 
 
 def mock_data():
-    import bloqade.task as tks
+    import bloqade.core.task as tks
 
     cnt_sources = []
     ryd_sources = []

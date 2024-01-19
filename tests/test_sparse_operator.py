@@ -1,4 +1,4 @@
-from bloqade.emulate.sparse_operator import (
+from bloqade.core.emulate.sparse_operator import (
     SparseMatrixCSC,
     SparseMatrixCSR,
     IndexMapping,

@@ -1,6 +1,6 @@
 # from bloqade import start
-from bloqade.ir import location, cast, Interpolation
-from bloqade.ir import Constant, Linear, Poly, PythonFn, Sample
+from bloqade.core.ir import location, cast, Interpolation
+from bloqade.core.ir import Constant, Linear, Poly, PythonFn, Sample
 import pytest
 import json
 import numpy as np
@@ -50,9 +50,9 @@ def test_integration_scale():
 
     print(panel)
 
-    task_data = panel["bloqade.task.batch.RemoteBatch"]["tasks"][0][1]
+    task_data = panel["bloqade.core.task.batch.RemoteBatch"]["tasks"][0][1]
 
-    ir = task_data["bloqade.task.quera.QuEraTask"]["task_ir"]
+    ir = task_data["bloqade.core.task.quera.QuEraTask"]["task_ir"]
 
     assert ir["nshots"] == 10
     assert fvec(ir["lattice"]["sites"][0]) == [0.0, 0.0]
@@ -78,9 +78,9 @@ def test_integration_neg():
     panel = json.loads(job.json())
     print(panel)
 
-    task_data = panel["bloqade.task.batch.RemoteBatch"]["tasks"][0][1]
+    task_data = panel["bloqade.core.task.batch.RemoteBatch"]["tasks"][0][1]
 
-    ir = task_data["bloqade.task.quera.QuEraTask"]["task_ir"]
+    ir = task_data["bloqade.core.task.quera.QuEraTask"]["task_ir"]
 
     assert ir["nshots"] == 10
     assert fvec(ir["lattice"]["sites"][0]) == [0.0, 0.0]
@@ -114,9 +114,9 @@ def test_integration_poly_const():
     panel = json.loads(job.json())
     print(panel)
 
-    task_data = panel["bloqade.task.batch.RemoteBatch"]["tasks"][0][1]
+    task_data = panel["bloqade.core.task.batch.RemoteBatch"]["tasks"][0][1]
 
-    ir = task_data["bloqade.task.quera.QuEraTask"]["task_ir"]
+    ir = task_data["bloqade.core.task.quera.QuEraTask"]["task_ir"]
 
     assert ir["nshots"] == 12
     assert fvec(ir["lattice"]["sites"][0]) == [0.0, 0.0]
@@ -138,9 +138,9 @@ def test_integration_poly_linear():
     panel = json.loads(job.json())
     print(panel)
 
-    task_data = panel["bloqade.task.batch.RemoteBatch"]["tasks"][0][1]
+    task_data = panel["bloqade.core.task.batch.RemoteBatch"]["tasks"][0][1]
 
-    ir = task_data["bloqade.task.quera.QuEraTask"]["task_ir"]
+    ir = task_data["bloqade.core.task.quera.QuEraTask"]["task_ir"]
 
     assert ir["nshots"] == 10
     assert fvec(ir["lattice"]["sites"][0]) == [0.0, 0.0]
@@ -182,9 +182,9 @@ def test_integration_slice_linear_const():
 
     print(panel)
 
-    task_data = panel["bloqade.task.batch.RemoteBatch"]["tasks"][0][1]
+    task_data = panel["bloqade.core.task.batch.RemoteBatch"]["tasks"][0][1]
 
-    ir = task_data["bloqade.task.quera.QuEraTask"]["task_ir"]
+    ir = task_data["bloqade.core.task.quera.QuEraTask"]["task_ir"]
 
     assert ir["nshots"] == 10
     assert fvec(ir["lattice"]["sites"][0]) == [0.0, 0.0]
@@ -206,9 +206,9 @@ def test_integration_slice_linear_no_stop():
 
     print(panel)
 
-    task_data = panel["bloqade.task.batch.RemoteBatch"]["tasks"][0][1]
+    task_data = panel["bloqade.core.task.batch.RemoteBatch"]["tasks"][0][1]
 
-    ir = task_data["bloqade.task.quera.QuEraTask"]["task_ir"]
+    ir = task_data["bloqade.core.task.quera.QuEraTask"]["task_ir"]
 
     assert ir["nshots"] == 10
     assert fvec(ir["lattice"]["sites"][0]) == [0.0, 0.0]
@@ -230,8 +230,8 @@ def test_integration_slice_linear_no_start():
 
     print(panel)
 
-    task_data = panel["bloqade.task.batch.RemoteBatch"]["tasks"][0][1]
-    ir = task_data["bloqade.task.quera.QuEraTask"]["task_ir"]
+    task_data = panel["bloqade.core.task.batch.RemoteBatch"]["tasks"][0][1]
+    ir = task_data["bloqade.core.task.quera.QuEraTask"]["task_ir"]
 
     assert ir["nshots"] == 10
     assert fvec(ir["lattice"]["sites"][0]) == [0.0, 0.0]
@@ -282,9 +282,9 @@ def test_integration_phase():
 
     print(panel)
 
-    task_data = panel["bloqade.task.batch.RemoteBatch"]["tasks"][0][1]
+    task_data = panel["bloqade.core.task.batch.RemoteBatch"]["tasks"][0][1]
 
-    ir = task_data["bloqade.task.quera.QuEraTask"]["task_ir"]
+    ir = task_data["bloqade.core.task.quera.QuEraTask"]["task_ir"]
 
     assert ir["nshots"] == 10
     assert fvec(ir["lattice"]["sites"][0]) == [0.0, 0.0]
@@ -326,9 +326,9 @@ def test_integration_phase_linear():
 
     print(panel)
 
-    task_data = panel["bloqade.task.batch.RemoteBatch"]["tasks"][0][1]
+    task_data = panel["bloqade.core.task.batch.RemoteBatch"]["tasks"][0][1]
 
-    ir = task_data["bloqade.task.quera.QuEraTask"]["task_ir"]
+    ir = task_data["bloqade.core.task.quera.QuEraTask"]["task_ir"]
 
     assert ir["nshots"] == 10
     assert fvec(ir["lattice"]["sites"][0]) == [0.0, 0.0]
@@ -353,9 +353,9 @@ def test_integration_phase_polyconst():
 
     print(panel)
 
-    task_data = panel["bloqade.task.batch.RemoteBatch"]["tasks"][0][1]
+    task_data = panel["bloqade.core.task.batch.RemoteBatch"]["tasks"][0][1]
 
-    ir = task_data["bloqade.task.quera.QuEraTask"]["task_ir"]
+    ir = task_data["bloqade.core.task.quera.QuEraTask"]["task_ir"]
 
     assert ir["nshots"] == 10
     assert fvec(ir["lattice"]["sites"][0]) == [0.0, 0.0]
@@ -381,9 +381,9 @@ def test_integration_phase_slice():
 
     print(panel)
 
-    task_data = panel["bloqade.task.batch.RemoteBatch"]["tasks"][0][1]
+    task_data = panel["bloqade.core.task.batch.RemoteBatch"]["tasks"][0][1]
 
-    ir = task_data["bloqade.task.quera.QuEraTask"]["task_ir"]
+    ir = task_data["bloqade.core.task.quera.QuEraTask"]["task_ir"]
 
     assert ir["nshots"] == 10
     assert fvec(ir["lattice"]["sites"][0]) == [0.0, 0.0]
@@ -408,9 +408,9 @@ def test_integration_phase_scale():
 
     print(panel)
 
-    task_data = panel["bloqade.task.batch.RemoteBatch"]["tasks"][0][1]
+    task_data = panel["bloqade.core.task.batch.RemoteBatch"]["tasks"][0][1]
 
-    ir = task_data["bloqade.task.quera.QuEraTask"]["task_ir"]
+    ir = task_data["bloqade.core.task.quera.QuEraTask"]["task_ir"]
 
     assert ir["nshots"] == 10
     assert fvec(ir["lattice"]["sites"][0]) == [0.0, 0.0]
@@ -435,9 +435,9 @@ def test_integration_phase_neg():
 
     print(panel)
 
-    task_data = panel["bloqade.task.batch.RemoteBatch"]["tasks"][0][1]
+    task_data = panel["bloqade.core.task.batch.RemoteBatch"]["tasks"][0][1]
 
-    ir = task_data["bloqade.task.quera.QuEraTask"]["task_ir"]
+    ir = task_data["bloqade.core.task.quera.QuEraTask"]["task_ir"]
 
     assert ir["nshots"] == 10
     assert fvec(ir["lattice"]["sites"][0]) == [0.0, 0.0]
@@ -462,9 +462,9 @@ def test_integration_phase_slice_no_start():
 
     print(panel)
 
-    task_data = panel["bloqade.task.batch.RemoteBatch"]["tasks"][0][1]
+    task_data = panel["bloqade.core.task.batch.RemoteBatch"]["tasks"][0][1]
 
-    ir = task_data["bloqade.task.quera.QuEraTask"]["task_ir"]
+    ir = task_data["bloqade.core.task.quera.QuEraTask"]["task_ir"]
 
     assert ir["nshots"] == 10
     assert fvec(ir["lattice"]["sites"][0]) == [0.0, 0.0]
@@ -490,9 +490,9 @@ def test_integration_phase_slice_no_stop():
 
     print(panel)
 
-    task_data = panel["bloqade.task.batch.RemoteBatch"]["tasks"][0][1]
+    task_data = panel["bloqade.core.task.batch.RemoteBatch"]["tasks"][0][1]
 
-    ir = task_data["bloqade.task.quera.QuEraTask"]["task_ir"]
+    ir = task_data["bloqade.core.task.quera.QuEraTask"]["task_ir"]
 
     assert ir["nshots"] == 10
     assert fvec(ir["lattice"]["sites"][0]) == [0.0, 0.0]
@@ -518,9 +518,9 @@ def test_integration_phase_slice_same_start_stop():
 
     print(panel)
 
-    task_data = panel["bloqade.task.batch.RemoteBatch"]["tasks"][0][1]
+    task_data = panel["bloqade.core.task.batch.RemoteBatch"]["tasks"][0][1]
 
-    ir = task_data["bloqade.task.quera.QuEraTask"]["task_ir"]
+    ir = task_data["bloqade.core.task.quera.QuEraTask"]["task_ir"]
 
     assert ir["nshots"] == 10
     assert fvec(ir["lattice"]["sites"][0]) == [0.0, 0.0]
@@ -613,9 +613,9 @@ def test_integration_record():
 
     print(panel)
 
-    task_data = panel["bloqade.task.batch.RemoteBatch"]["tasks"][0][1]
+    task_data = panel["bloqade.core.task.batch.RemoteBatch"]["tasks"][0][1]
 
-    ir = task_data["bloqade.task.quera.QuEraTask"]["task_ir"]
+    ir = task_data["bloqade.core.task.quera.QuEraTask"]["task_ir"]
 
     assert ir["nshots"] == 10
     assert fvec(ir["lattice"]["sites"][0]) == [0.0, 0.0]
@@ -648,9 +648,9 @@ def test_integration_fn_phase():
 
     print(panel)
 
-    task_data = panel["bloqade.task.batch.RemoteBatch"]["tasks"][0][1]
+    task_data = panel["bloqade.core.task.batch.RemoteBatch"]["tasks"][0][1]
 
-    ir = task_data["bloqade.task.quera.QuEraTask"]["task_ir"]
+    ir = task_data["bloqade.core.task.quera.QuEraTask"]["task_ir"]
 
     assert ir["nshots"] == 10
     assert fvec(ir["lattice"]["sites"][0]) == [0.0, 0.0]
@@ -685,9 +685,9 @@ def test_integration_fn_detune():
 
     print(panel)
 
-    task_data = panel["bloqade.task.batch.RemoteBatch"]["tasks"][0][1]
+    task_data = panel["bloqade.core.task.batch.RemoteBatch"]["tasks"][0][1]
 
-    ir = task_data["bloqade.task.quera.QuEraTask"]["task_ir"]
+    ir = task_data["bloqade.core.task.quera.QuEraTask"]["task_ir"]
 
     assert ir["nshots"] == 10
     assert fvec(ir["lattice"]["sites"][0]) == [0.0, 0.0]

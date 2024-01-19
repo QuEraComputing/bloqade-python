@@ -8,7 +8,7 @@ import numpy as np
 
 
 def get_atom_arrangement_figure(atom_arng_ir, fig_kwargs=None, **assignments):
-    import bloqade.ir.location as ir_loc
+    import bloqade.core.ir.location as ir_loc
 
     """obtain a figure object from the atom arrangement."""
     xs_filled, ys_filled, labels_filled = [], [], []

@@ -1,13 +1,13 @@
 from decimal import Decimal
-import bloqade.ir as ir
-from bloqade.ir.location import ListOfLocations, AtomArrangement, ParallelRegister
-from bloqade.ir.location import Square
+import bloqade.core.ir as ir
+from bloqade.core.ir.location import ListOfLocations, AtomArrangement, ParallelRegister
+from bloqade.core.ir.location import Square
 from bloqade.constants import RB_C6
 from bloqade import cast
 import pytest
 import numpy as np
 
-from bloqade.submission.capabilities import get_capabilities
+from bloqade.core.submission.capabilities import get_capabilities
 
 
 def test_rydberg_interactions():

@@ -1,4 +1,4 @@
-from bloqade.ir.location import Square
+from bloqade.core.ir.location import Square
 import numpy as np
 from decimal import Decimal
 from bloqade.visualization import builder_figure

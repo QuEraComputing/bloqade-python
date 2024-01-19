@@ -1,5 +1,5 @@
-import bloqade.ir.location as location
-from bloqade.ir import Linear, Constant
+import bloqade.core.ir.location as location
+from bloqade.core.ir import Linear, Constant
 from bloqade.serialize import loads, dumps
 
 

@@ -1,11 +1,14 @@
 import pytest
 
-import bloqade.submission.quera
-import bloqade.submission.ir.task_specification as task_spec
-from bloqade.submission.ir.task_results import QuEraTaskResults, QuEraTaskStatusCode
-from bloqade.submission.base import ValidationError
-from bloqade.submission.capabilities import get_capabilities
-from bloqade.submission.ir.capabilities import QuEraCapabilities
+import bloqade.core.submission.quera
+import bloqade.core.submission.ir.task_specification as task_spec
+from bloqade.core.submission.ir.task_results import (
+    QuEraTaskResults,
+    QuEraTaskStatusCode,
+)
+from bloqade.core.submission.base import ValidationError
+from bloqade.core.submission.capabilities import get_capabilities
+from bloqade.core.submission.ir.capabilities import QuEraCapabilities
 
 from unittest.mock import MagicMock
 
@@ -66,7 +69,7 @@ def test_quera_backend_submit():
 
     queue.submit_task.return_value = "task_id"
 
-    backend = bloqade.submission.quera.QuEraBackend(**api_config)
+    backend = bloqade.core.submission.quera.QuEraBackend(**api_config)
     backend._queue_api = queue
 
     assert backend.submit_task(get_task_ir()) == "task_id"
@@ -82,7 +85,7 @@ def test_quera_backend_validate_fail():
     queue.ValidationError = RuntimeError
     queue.validate_task.side_effect = RuntimeError("error")
 
-    backend = bloqade.submission.quera.QuEraBackend(**api_config)
+    backend = bloqade.core.submission.quera.QuEraBackend(**api_config)
     backend._queue_api = queue
 
     with pytest.raises(ValidationError):
@@ -98,7 +101,7 @@ def test_quera_backend_validate_pass():
 
     queue = MagicMock()
     queue.validate_task.return_value = None
-    backend = bloqade.submission.quera.QuEraBackend(**api_config)
+    backend = bloqade.core.submission.quera.QuEraBackend(**api_config)
     backend._queue_api = queue
 
     assert backend.validate_task(get_task_ir()) is None
@@ -113,7 +116,7 @@ def test_quera_backend_cancel():
 
     queue = MagicMock()
 
-    backend = bloqade.submission.quera.QuEraBackend(**api_config)
+    backend = bloqade.core.submission.quera.QuEraBackend(**api_config)
     backend._queue_api = queue
 
     backend.cancel_task("task_id")
@@ -130,7 +133,7 @@ def test_quera_backend_status():
 
     queue.get_task_status_in_queue.return_value = "Completed"
 
-    backend = bloqade.submission.quera.QuEraBackend(**api_config)
+    backend = bloqade.core.submission.quera.QuEraBackend(**api_config)
     backend._queue_api = queue
 
     assert backend.task_status("task_id") == QuEraTaskStatusCode.Completed
@@ -146,7 +149,7 @@ def teest_quera_backend_task_results():
     queue = MagicMock()
     queue.poll_task_results.return_value = mock_results()
 
-    backend = bloqade.submission.quera.QuEraBackend(**api_config)
+    backend = bloqade.core.submission.quera.QuEraBackend(**api_config)
     backend._queue_api = queue
 
     assert backend.task_results("task_id") == QuEraTaskResults(**mock_results())
@@ -163,7 +166,7 @@ def test_quera_backend_get_capabilities():
     queue = MagicMock()
     queue.get_capabilities.return_value = capabilities_dict
 
-    backend = bloqade.submission.quera.QuEraBackend(**api_config)
+    backend = bloqade.core.submission.quera.QuEraBackend(**api_config)
     backend._queue_api = queue
 
     assert backend.get_capabilities() == QuEraCapabilities(**capabilities_dict)
@@ -172,7 +175,7 @@ def test_quera_backend_get_capabilities():
     queue.reset_mock()
 
     queue.get_capabilities.return_value = Exception("error")
-    backend = bloqade.submission.quera.QuEraBackend(**api_config)
+    backend = bloqade.core.submission.quera.QuEraBackend(**api_config)
     backend._queue_api = queue
 
     assert backend.get_capabilities() == QuEraCapabilities(**get_capabilities().dict())
@@ -184,7 +187,7 @@ def test_run_time_error():
         api_hostname="https://api.que-ee.com", qpu_id="qpu-1", api_stage="v0"
     )
 
-    backend = bloqade.submission.quera.QuEraBackend(**api_config)
+    backend = bloqade.core.submission.quera.QuEraBackend(**api_config)
 
     with pytest.raises(RuntimeError):
         backend.queue_api

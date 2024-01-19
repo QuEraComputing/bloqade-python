@@ -1,12 +1,12 @@
-from bloqade.ir.routine.base import Routine
-from bloqade.ir.control.waveform import Waveform, Linear, Constant
-from bloqade.builder.typing import ScalarType
+from bloqade.core.ir.routine.base import Routine
+from bloqade.core.ir.control.waveform import Waveform, Linear, Constant
+from bloqade.core.builder.typing import ScalarType
 from beartype import beartype
 from beartype.typing import TYPE_CHECKING, List, Optional, Union, Dict, Any
 from decimal import Decimal
 
 if TYPE_CHECKING:
-    from bloqade.submission.ir.capabilities import QuEraCapabilities
+    from bloqade.core.submission.ir.capabilities import QuEraCapabilities
 
 
 def get_capabilities() -> "QuEraCapabilities":
@@ -25,7 +25,7 @@ def get_capabilities() -> "QuEraCapabilities":
         page
     """
 
-    from bloqade.submission.capabilities import get_capabilities
+    from bloqade.core.submission.capabilities import get_capabilities
 
     # manually convert to units
     return get_capabilities().scale_units(Decimal("1e6"), Decimal("1e-6"))

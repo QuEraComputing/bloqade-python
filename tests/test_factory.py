@@ -12,7 +12,7 @@ from bloqade import (
     get_capabilities,
 )
 from bloqade.atom_arrangement import Chain
-from bloqade.ir import (
+from bloqade.core.ir import (
     AnalogCircuit,
     Sequence,
     rydberg,
@@ -22,8 +22,8 @@ from bloqade.ir import (
     Field,
     Uniform,
 )
-from bloqade.ir.routine.base import Routine
-from bloqade.ir.routine.params import Params, ScalarArg
+from bloqade.core.ir.routine.base import Routine
+from bloqade.core.ir.routine.params import Params, ScalarArg
 
 import numpy as np
 from decimal import Decimal

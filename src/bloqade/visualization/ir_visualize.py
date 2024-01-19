@@ -372,9 +372,9 @@ def get_ir_figure(ir, **assignments):
     # sequence, spmod and waveform does not need extra
     # pulse, field need extra arguments
     # so we handle separately
-    from bloqade.ir.control.sequence import SequenceExpr
-    from bloqade.ir.control.field import SpatialModulation
-    from bloqade.ir.control.waveform import Waveform
+    from bloqade.core.ir.control.sequence import SequenceExpr
+    from bloqade.core.ir.control.field import SpatialModulation
+    from bloqade.core.ir.control.waveform import Waveform
 
     if isinstance(ir, SequenceExpr):
         return get_sequence_figure(ir, **assignments)

@@ -3,8 +3,8 @@ try:
 except ImportError:
     __path__ = __import__("pkgutil").extend_path(__path__, __name__)
 
-from bloqade.ir import var, cast, Variable, Literal, start
-from bloqade.ir import to_waveform as waveform
+from bloqade.core.ir import var, cast, Variable, Literal, start
+from bloqade.core.ir import to_waveform as waveform
 from bloqade.serialize import load, save, loads, dumps
 
 from bloqade.factory import (
@@ -15,7 +15,7 @@ from bloqade.factory import (
     constant,
     rydberg_h,
 )
-import bloqade.ir as _ir
+import bloqade.core.ir as _ir
 from bloqade.constants import RB_C6
 
 import importlib.metadata
