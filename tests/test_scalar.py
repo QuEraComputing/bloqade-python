@@ -1,11 +1,11 @@
 from pydantic import ValidationError
 from bloqade import cast, var
-import bloqade._core.ir.scalar as scalar
+import bloqade.core.ir.scalar as scalar
 import pytest
 from decimal import Decimal
 from io import StringIO
 from IPython.lib.pretty import PrettyPrinter as PP
-import bloqade._core.ir.tree_print as trp
+import bloqade.core.ir.tree_print as trp
 
 trp.color_enabled = False
 

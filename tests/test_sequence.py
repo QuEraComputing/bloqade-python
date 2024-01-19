@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from bloqade._core.ir import (
+from bloqade.core.ir import (
     rydberg,
     detuning,
     hyperfine,
@@ -11,14 +11,14 @@ from bloqade._core.ir import (
     # ScaledLocations,
     LevelCoupling,
 )
-from bloqade._core.ir.control import sequence
-from bloqade._core.ir.control.sequence import NamedSequence
-from bloqade._core.ir import Interval
+from bloqade.core.ir.control import sequence
+from bloqade.core.ir.control.sequence import NamedSequence
+from bloqade.core.ir import Interval
 import pytest
 from bloqade import cast
 from io import StringIO
 from IPython.lib.pretty import PrettyPrinter as PP
-import bloqade._core.ir.tree_print as trp
+import bloqade.core.ir.tree_print as trp
 
 trp.color_enabled = False
 

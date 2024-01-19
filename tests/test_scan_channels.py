@@ -1,12 +1,12 @@
-import bloqade._core.ir.control.waveform as waveform
-import bloqade._core.ir.control.field as field
-import bloqade._core.ir.control.pulse as pulse
-import bloqade._core.ir.control.sequence as sequence
+import bloqade.core.ir.control.waveform as waveform
+import bloqade.core.ir.control.field as field
+import bloqade.core.ir.control.pulse as pulse
+import bloqade.core.ir.control.sequence as sequence
 from bloqade import var
 
-# from bloqade._core.ir.scalar import var
+# from bloqade.core.ir.scalar import var
 
-from bloqade._core.compiler.analysis.common.scan_channels import ScanChannels
+from bloqade.core.compiler.analysis.common.scan_channels import ScanChannels
 
 
 def generate_waveforms():

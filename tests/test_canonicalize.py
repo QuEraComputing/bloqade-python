@@ -1,7 +1,7 @@
-import bloqade._core.compiler.rewrite.common.canonicalize as canonicalize
+import bloqade.core.compiler.rewrite.common.canonicalize as canonicalize
 
-from bloqade._core.ir import scalar
-from bloqade._core.ir.control import waveform
+from bloqade.core.ir import scalar
+from bloqade.core.ir.control import waveform
 from bloqade import var, cast
 from decimal import Decimal
 

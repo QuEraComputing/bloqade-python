@@ -59,7 +59,7 @@ def test_error():
 
 
 """
-from bloqade._core.ir.location import Square
+from bloqade.core.ir.location import Square
 if __name__ == "__main__":
     simulator_job = (
         start.add_position((0, 0))

@@ -1,5 +1,5 @@
 from bloqade.atom_arrangement import Chain
-from bloqade._core.compiler.analysis.common.is_constant import IsConstant
+from bloqade.core.compiler.analysis.common.is_constant import IsConstant
 
 
 def test_happy_path():

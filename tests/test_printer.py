@@ -1,8 +1,8 @@
 from IPython.lib.pretty import PrettyPrinter as PP
-from bloqade._core.ir import Linear, Poly
+from bloqade.core.ir import Linear, Poly
 from io import StringIO
-from bloqade._core.ir.tree_print import Printer
-import bloqade._core.ir.tree_print as trp
+from bloqade.core.ir.tree_print import Printer
+import bloqade.core.ir.tree_print as trp
 
 trp.color_enabled = False
 

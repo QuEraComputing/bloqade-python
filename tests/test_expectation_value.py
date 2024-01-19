@@ -1,9 +1,9 @@
 from bloqade import start
 import numpy as np
-from bloqade._core.emulate.ir.space import Space
-from bloqade._core.emulate.ir.emulator import Register
-from bloqade._core.emulate.ir.atom_type import TwoLevelAtom, ThreeLevelAtom
-from bloqade._core.emulate.ir.state_vector import _expt_two_body_op, _expt_one_body_op
+from bloqade.core.emulate.ir.space import Space
+from bloqade.core.emulate.ir.emulator import Register
+from bloqade.core.emulate.ir.atom_type import TwoLevelAtom, ThreeLevelAtom
+from bloqade.core.emulate.ir.state_vector import _expt_two_body_op, _expt_one_body_op
 from scipy.sparse import csc_array
 from decimal import Decimal
 from itertools import product

@@ -1,26 +1,26 @@
 import pytest
-from bloqade._core.ir.control import waveform, field, pulse, sequence
-from bloqade._core.ir import analog_circuit
-from bloqade._core.compiler.codegen.hardware.piecewise_linear import (
+from bloqade.core.ir.control import waveform, field, pulse, sequence
+from bloqade.core.ir import analog_circuit
+from bloqade.core.compiler.codegen.hardware.piecewise_linear import (
     PiecewiseLinear,
     GeneratePiecewiseLinearChannel,
 )
-from bloqade._core.compiler.codegen.hardware.piecewise_constant import (
+from bloqade.core.compiler.codegen.hardware.piecewise_constant import (
     PiecewiseConstant,
     GeneratePiecewiseConstantChannel,
 )
-from bloqade._core.compiler.codegen.hardware.lattice_site_coefficients import (
+from bloqade.core.compiler.codegen.hardware.lattice_site_coefficients import (
     GenerateLatticeSiteCoefficients,
 )
 from bloqade import piecewise_linear, piecewise_constant, start
 import numpy as np
 from decimal import Decimal
 
-from bloqade._core.ir.scalar import cast
-from bloqade._core.submission.ir.parallel import ParallelDecoder, ClusterLocationInfo
-from bloqade._core.ir.location import ListOfLocations, ParallelRegister
-from bloqade._core.compiler.codegen.hardware.lattice import GenerateLattice
-from bloqade._core.submission.capabilities import get_capabilities
+from bloqade.core.ir.scalar import cast
+from bloqade.core.submission.ir.parallel import ParallelDecoder, ClusterLocationInfo
+from bloqade.core.ir.location import ListOfLocations, ParallelRegister
+from bloqade.core.compiler.codegen.hardware.lattice import GenerateLattice
+from bloqade.core.submission.capabilities import get_capabilities
 
 
 @waveform.to_waveform(4.0)

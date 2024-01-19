@@ -2,12 +2,12 @@ from decimal import Decimal
 
 import pytest
 from bloqade import cast
-from bloqade._core.ir.location import ListOfLocations, ParallelRegister
-from bloqade._core.compiler.codegen.hardware.lattice import GenerateLattice
-from bloqade._core.submission.capabilities import get_capabilities
-from bloqade._core.submission.ir.parallel import ParallelDecoder, ClusterLocationInfo
-from bloqade._core.ir.analog_circuit import AnalogCircuit
-from bloqade._core.ir.control.sequence import Sequence
+from bloqade.core.ir.location import ListOfLocations, ParallelRegister
+from bloqade.core.compiler.codegen.hardware.lattice import GenerateLattice
+from bloqade.core.submission.capabilities import get_capabilities
+from bloqade.core.submission.ir.parallel import ParallelDecoder, ClusterLocationInfo
+from bloqade.core.ir.analog_circuit import AnalogCircuit
+from bloqade.core.ir.control.sequence import Sequence
 
 
 def test():

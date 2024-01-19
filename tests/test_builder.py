@@ -6,19 +6,19 @@
 #     prog = prog.location(i)
 # prog.linear(start=1.0, stop=2.0, duration="x")
 # import pytest
-import bloqade._core.ir as ir
-from bloqade._core.builder import waveform
+import bloqade.core.ir as ir
+from bloqade.core.builder import waveform
 
-# import bloqade._core.builder.backend as builder_backend
-import bloqade._core.ir.routine.quera as quera
-import bloqade._core.ir.routine.braket as braket
+# import bloqade.core.builder.backend as builder_backend
+import bloqade.core.ir.routine.quera as quera
+import bloqade.core.ir.routine.braket as braket
 from plum import NotFoundLookupError
 
-from bloqade._core.ir.control.waveform import to_waveform
-from bloqade._core.ir import rydberg, detuning, hyperfine, rabi
+from bloqade.core.ir.control.waveform import to_waveform
+from bloqade.core.ir import rydberg, detuning, hyperfine, rabi
 from bloqade import start, cast, var
 
-# from bloqade._core.ir.location import Square, Chain
+# from bloqade.core.ir.location import Square, Chain
 import numpy as np
 import pytest
 
@@ -137,7 +137,7 @@ def test_scale():
 
 
 def test_scale_location():
-    from bloqade._core.ir.control.field import Location
+    from bloqade.core.ir.control.field import Location
 
     prog = start.rydberg.detuning.location([1, 2], [1.2, 3.3])
 

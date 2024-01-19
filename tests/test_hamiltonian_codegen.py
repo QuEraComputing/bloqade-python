@@ -1,8 +1,8 @@
 from decimal import Decimal
 from itertools import combinations
 from bloqade.atom_arrangement import Chain
-from bloqade._core.compiler.codegen.python.emulator_ir import EmulatorProgramCodeGen
-from bloqade._core.emulate.codegen.hamiltonian import (
+from bloqade.core.compiler.codegen.python.emulator_ir import EmulatorProgramCodeGen
+from bloqade.core.emulate.codegen.hamiltonian import (
     CompileCache,
     RydbergHamiltonianCodeGen,
 )

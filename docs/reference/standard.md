@@ -106,17 +106,17 @@ flowchart TD
   click ProgramStart "../bloqade/#bloqade.start";
   click Geometry "../bloqade/atom_arrangement/";
   click Coupling "../bloqade/builder/drive/";
-  click Detuning "../bloqade/builder/field/#bloqade._core.builder.field.Detuning";
-  click Rabi "../bloqade/builder/field/#bloqade._core.builder.field.Rabi";
-  click Amplitude "../bloqade/builder/field/#bloqade._core.builder.field.Amplitude";
-  click Phase "../bloqade/builder/field/#bloqade._core.builder.field.Phase";
+  click Detuning "../bloqade/builder/field/#bloqade.core.builder.field.Detuning";
+  click Rabi "../bloqade/builder/field/#bloqade.core.builder.field.Rabi";
+  click Amplitude "../bloqade/builder/field/#bloqade.core.builder.field.Amplitude";
+  click Phase "../bloqade/builder/field/#bloqade.core.builder.field.Phase";
   click SpaceModulation "../bloqade/builder/spatial/";
   click Waveform "../bloqade/builder/waveform/";
   click Options "../bloqade/builder/pragmas/";
   click Services "../bloqade/builder/backend/";
-  click QuEraBackends "../bloqade/builder/backend/quera/#bloqade._core.builder.backend.quera.QuEraDeviceRoute";
-  click BraketBackends "../bloqade/builder/backend/braket/#bloqade._core.builder.backend.braket.BraketDeviceRoute";
-  click BloqadeBackends "../bloqade/builder/backend/bloqade/#bloqade._core.builder.backend.bloqade.BloqadeBackend";
-  click Execution "../bloqade/ir/routine/braket/#bloqade._core.ir.routine.braket.BraketRoutine";
+  click QuEraBackends "../bloqade/builder/backend/quera/#bloqade.core.builder.backend.quera.QuEraDeviceRoute";
+  click BraketBackends "../bloqade/builder/backend/braket/#bloqade.core.builder.backend.braket.BraketDeviceRoute";
+  click BloqadeBackends "../bloqade/builder/backend/bloqade/#bloqade.core.builder.backend.bloqade.BloqadeBackend";
+  click Execution "../bloqade/ir/routine/braket/#bloqade.core.ir.routine.braket.BraketRoutine";
 
 ```

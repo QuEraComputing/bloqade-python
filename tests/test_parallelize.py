@@ -1,5 +1,5 @@
 import pytest
-from bloqade._core.ir.location import Square
+from bloqade.core.ir.location import Square
 from bloqade import start
 
 

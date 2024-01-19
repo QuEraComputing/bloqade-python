@@ -1,5 +1,5 @@
 import pytest
-from bloqade._core.submission.ir.braket import to_braket_field
+from bloqade.core.submission.ir.braket import to_braket_field
 
 
 def test_to_braket_field_type_error():

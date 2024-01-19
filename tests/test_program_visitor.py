@@ -1,7 +1,7 @@
 # from bloqade import start
 from bloqade import start
-from bloqade._core.ir.location import Square
-from bloqade._core.ir.control.waveform import Linear
+from bloqade.core.ir.location import Square
+from bloqade.core.ir.control.waveform import Linear
 
 
 wv_linear = Linear(start=0, stop=4, duration=0.1)
