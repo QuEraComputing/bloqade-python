@@ -52,6 +52,11 @@ def test_wvfm_linear():
         "duration": cast(3.0),
     }
 
+    wf = Linear(start=1.0, stop=2.0, duration=0.0)
+
+    with pytest.raises(ValueError):
+        wf.eval_decimal(clock_s=Decimal("0.0"))
+
 
 def test_wvfm_constant():
     wf = Constant(value=1.0, duration=3.0)
