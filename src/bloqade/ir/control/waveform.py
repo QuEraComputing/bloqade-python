@@ -285,9 +285,14 @@ class Linear(Instruction):
         if clock_s > self.duration(**kwargs):
             return Decimal(0)
         else:
-            return (
-                (stop_value - start_value) / self.duration(**kwargs)
-            ) * clock_s + start_value
+            duration: Decimal = self.duration(**kwargs)
+            if duration.is_zero():
+                raise ValueError(
+                    f"Duration of linear waveform is zero: {duration}. "
+                    "Cannot divide by zero."
+                )
+
+            return ((stop_value - start_value) / duration) * clock_s + start_value
 
     def print_node(self):
         return "Linear"
