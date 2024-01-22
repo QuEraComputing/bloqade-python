@@ -2584,7 +2584,7 @@ files = [
 
 [[package]]
 name = "plum-dispatch"
-version = "2.3.0"
+version = "2.3.2"
 requires_python = ">=3.8"
 summary = "Multiple dispatch in Python"
 groups = ["default"]
@@ -2594,8 +2594,8 @@ dependencies = [
     "typing-extensions; python_version <= \"3.10\"",
 ]
 files = [
-    {file = "plum_dispatch-2.3.0-py3-none-any.whl", hash = "sha256:d2b11089f939f2f61af1e90a37ee1cfb55b8d5c0effb95f96544b7ef6163f7ee"},
-    {file = "plum_dispatch-2.3.0.tar.gz", hash = "sha256:4c6a3e28a2c672e3f6bb69b34c95b3f883843eeef45313ce49933fd736bcf7c0"},
+    {file = "plum_dispatch-2.3.2-py3-none-any.whl", hash = "sha256:96f519d416accf9a009117682f689114eb23e867bb6f977eed74ef85ef7fef9d"},
+    {file = "plum_dispatch-2.3.2.tar.gz", hash = "sha256:f49f00dfdf7ab0f16c9b85cc27cc5241ffb59aee02218bac671ec7c1ac65e139"},
 ]
 
 [[package]]
