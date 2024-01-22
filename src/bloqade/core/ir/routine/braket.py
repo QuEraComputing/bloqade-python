@@ -29,6 +29,8 @@ class BraketServiceOptions(RoutineBase):
 
 @dataclass(frozen=True, config=__pydantic_dataclass_config__)
 class BraketHardwareRoutine(RoutineBase):
+    """Object to compile and submit tasks to hardware via Braket's API."""
+
     backend: BraketBackend
 
     def _compile(
@@ -88,20 +90,18 @@ class BraketHardwareRoutine(RoutineBase):
         args: Tuple[LiteralType, ...] = (),
         name: Optional[str] = None,
         shuffle: bool = False,
-        **kwargs,
     ) -> RemoteBatch:
-        """
-        Compile to a RemoteBatch, which contain
-        Braket backend specific tasks, and run_async to Braket.
-
-        Note:
-            This is async.
+        """Compile and submit a batch of jobs to the device using Braket's API,
+        returning immediately after all tasks have been submitted.
 
         Args:
-            shots (int): number of shots
-            args (Tuple): Values of the parameter defined in `args`, defaults to ()
-            name (str | None): custom name of the batch, defaults to None
-            shuffle (bool): shuffle the order of jobs
+            shots (int): Number of shots.
+            args (Tuple[LiteralType, ...], optional): Value of arguments that where
+                differed until runtime via the `args([...])` method.
+                The order of the values matches the ordering of the input
+                to `args([...])`.
+            name (Optional[str], optional): Custom name of the batch
+            shuffle (bool, optional): Shuffle the order of jobs
 
         Return:
             RemoteBatch
@@ -109,7 +109,7 @@ class BraketHardwareRoutine(RoutineBase):
         """
 
         batch = self._compile(shots, args, name)
-        batch._submit(shuffle, **kwargs)
+        batch._submit(shuffle)
         return batch
 
     @beartype
@@ -119,29 +119,26 @@ class BraketHardwareRoutine(RoutineBase):
         args: Tuple[LiteralType, ...] = (),
         name: Optional[str] = None,
         shuffle: bool = False,
-        **kwargs,
     ) -> RemoteBatch:
-        """
-        Compile to a RemoteBatch, which contain
-        Braket backend specific tasks, run_async to Braket,
-        and wait until the results are coming back.
-
-        Note:
-            This is sync, and will wait until remote results
-            finished.
+        """Compile and submit a batch of jobs to the device using Braket's API,
+        waiting for all tasks to reach a terminal state, e.g. failed, canceled
+        or completed.
 
         Args:
-            shots (int): number of shots
-            args (Tuple): additional arguments
-            name (str): custom name of the batch
-            shuffle (bool): shuffle the order of jobs
+            shots (int): Number of shots
+            args (Tuple[LiteralType, ...], optional): Value of arguments that where
+                differed until runtime via the `args([...])` method.
+                The order of the values matches the ordering of the input
+                to `args([...])`.
+            name (Optional[str], optional): Custom name of the batch
+            shuffle (bool, optional): Shuffle the order of jobs
 
         Return:
             RemoteBatch
 
         """
 
-        batch = self.run_async(shots, args, name, shuffle, **kwargs)
+        batch = self.run_async(shots, args, name, shuffle)
         batch.pull()
         return batch
 
@@ -154,30 +151,13 @@ class BraketHardwareRoutine(RoutineBase):
         shuffle: bool = False,
         **kwargs,
     ):
-        """
-        Compile to a RemoteBatch, which contain
-        Braket backend specific tasks, run_async to Braket,
-        and wait until the results are coming back.
-
-        Note:
-            This is sync, and will wait until remote results
-            finished.
-
-        Args:
-            shots (int): number of shots
-            args: additional arguments for args variables.
-            name (str): custom name of the batch
-            shuffle (bool): shuffle the order of jobs
-
-        Return:
-            RemoteBatch
-
-        """
         return self.run(shots, args, name, shuffle, **kwargs)
 
 
 @dataclass(frozen=True, config=__pydantic_dataclass_config__)
 class BraketLocalEmulatorRoutine(RoutineBase):
+    """Object to compile and run tasks on Braket's local emulator."""
+
     def _compile(
         self, shots: int, args: Tuple[LiteralType, ...] = (), name: Optional[str] = None
     ) -> LocalBatch:
@@ -235,22 +215,24 @@ class BraketLocalEmulatorRoutine(RoutineBase):
         num_workers: Optional[int] = None,
         **kwargs,
     ) -> LocalBatch:
-        """
-        Compile to a LocalBatch, and run.
-        The LocalBatch contain tasks to run on local emulator.
-
-        Note:
-            This is sync, and will wait until remote results
-            finished.
+        """Compile and run a batch of tasks on Braket's local emulator.
 
         Args:
-            shots (int): number of shots
-            args: additional arguments for args variables.
-            multiprocessing (bool): enable multi-process
-            num_workers (int): number of workers to run the emulator
+            shots (int): Number of shots
+            args (Tuple[LiteralType, ...]): Value of arguments that where
+                differed until runtime via the `args([...])` method.
+                The order of the values matches the ordering of the input
+                to `args([...], optional)`.
+            name (Optional[str]): Custom name of the batch
+            multiprocessing (bool, optional): Run tasks in parallel
+            num_workers (Optional[int], optional): Number of workers to use for
+                multiprocessing. If None, the number of workers is equal to
+                the number of CPU cores.
+            **kwargs: Additional keyword arguments to pass to the
+                Braket local emulator.
 
         Return:
-            LocalBatch
+            RemoteBatch
 
         """
 
@@ -268,24 +250,6 @@ class BraketLocalEmulatorRoutine(RoutineBase):
         num_workers: Optional[int] = None,
         **kwargs,
     ):
-        """
-        Compile to a LocalBatch, and run.
-        The LocalBatch contain tasks to run on local emulator.
-
-        Note:
-            This is sync, and will wait until remote results
-            finished.
-
-        Args:
-            shots (int): number of shots
-            args: additional arguments for args variables.
-            multiprocessing (bool): enable multi-process
-            num_workers (int): number of workers to run the emulator
-
-        Return:
-            LocalBatch
-
-        """
         return self.run(
             shots,
             args,

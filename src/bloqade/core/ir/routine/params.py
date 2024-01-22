@@ -19,6 +19,8 @@ class VectorArg:
 
 @dataclass(frozen=True)
 class Params:
+    """Object that holds the parameters for a batch of tasks."""
+
     n_sites: int
     static_params: Dict[str, ParamType]
     batch_params: List[Dict[str, ParamType]]
@@ -26,6 +28,7 @@ class Params:
 
     @cached_property
     def num_args(self) -> int:
+        """Number of runtime arguments for this batch."""
         num_args = 0
         for arg in self.args_list:
             if isinstance(arg, VectorArg):
@@ -38,9 +41,11 @@ class Params:
 
     @cached_property
     def arg_names(self) -> Tuple[str]:
+        """A tuple of the names of the runtime arguments for this batch."""
         return tuple([arg.name for arg in self.args_list])
 
     def parse_args(self, *flattened_args) -> Dict[str, Decimal]:
+        """Parse the runtime arguments for this batch."""
         if len(flattened_args) != self.num_args:
             raise ValueError(
                 f"Expected {self.num_args} arguments, got {len(flattened_args)}."
@@ -61,6 +66,7 @@ class Params:
         return dict(zip(self.arg_names, args))
 
     def batch_assignments(self, *args) -> List[Dict[str, ParamType]]:
+        """Generate a list of dictionaries mapping parameter names to values."""
         flattened_args = self.parse_args(*args)
         return [{**flattened_args, **batch} for batch in self.batch_params]
 

@@ -44,6 +44,8 @@ class QuEraServiceOptions(RoutineBase):
 
 @dataclass(frozen=True, config=__pydantic_dataclass_config__)
 class QuEraHardwareRoutine(RoutineBase):
+    """Object for compiling and submitting tasks to hardware via QuEra's API."""
+
     backend: Union[QuEraBackend, MockBackend]
 
     def _compile(
@@ -101,25 +103,25 @@ class QuEraHardwareRoutine(RoutineBase):
         args: Tuple[LiteralType, ...] = (),
         name: Optional[str] = None,
         shuffle: bool = False,
-        **kwargs,
     ) -> RemoteBatch:
-        """
-        Compile to a RemoteBatch, which contain
-            QuEra backend specific tasks,
-            and run_async through QuEra service.
+        """Compile and submit a batch of jobs to the device using QuEra's API,
+        returning immediately after all tasks have been submitted.
 
         Args:
-            shots (int): number of shots
-            args (Tuple): additional arguments
-            name (str): custom name of the batch
-            shuffle (bool): shuffle the order of jobs
+            shots (int): Number of shots
+            args (Tuple[LiteralType, ...], optional): Value of arguments that where
+                differed until runtime via the `args([...])` method.
+                The order of the values matches the ordering of the input
+                to `args([...])`.
+            name (Optional[str], optional): Custom name of the batch
+            shuffle (bool, optional): Shuffle the order of jobs
 
         Return:
             RemoteBatch
 
         """
         batch = self._compile(shots, args, name)
-        batch._submit(shuffle, **kwargs)
+        batch._submit(shuffle)
         return batch
 
     @beartype
@@ -131,6 +133,23 @@ class QuEraHardwareRoutine(RoutineBase):
         shuffle: bool = False,
         **kwargs,
     ) -> RemoteBatch:
+        """Compile and submit a batch of jobs to the device using QuEra's API,
+        waiting for all tasks to reach a terminal state, e.g. failed, canceled
+        or completed.
+
+        Args:
+            shots (int): number of shots
+            args (Tuple[LiteralType, ...], optional): Value of arguments that where
+                differed until runtime via the `args([...])` method.
+                The order of the values matches the ordering of the input
+                to `args([...])`.
+            name (Optional[str], optional): custom name of the batch
+            shuffle (bool, optional): shuffle the order of jobs
+
+        Return:
+            RemoteBatch
+
+        """
         batch = self.run_async(shots, args, name, shuffle, **kwargs)
         batch.pull()
         return batch

@@ -18,15 +18,19 @@ if TYPE_CHECKING:
 
 class RoutineParse(Parse):
     def parse_register(self: "RoutineBase") -> Union[AtomArrangement, ParallelRegister]:
+        """Return the register associated with this program."""
         return self.circuit.register
 
     def parse_sequence(self: "RoutineBase") -> Sequence:
+        """Return the pulse sequence associated with this program."""
         return self.circuit.sequence
 
     def parse_circuit(self: "RoutineBase") -> AnalogCircuit:
+        """Return the circuit associated with this program."""
         return self.circuit
 
     def parse(self: "RoutineBase") -> "Routine":
+        """Return the routine associated with this program."""
         return self
 
 

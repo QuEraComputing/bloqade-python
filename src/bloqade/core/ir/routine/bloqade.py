@@ -28,6 +28,8 @@ class BloqadeServiceOptions(RoutineBase):
 
 @dataclass(frozen=True, config=__pydantic_dataclass_config__)
 class BloqadePythonRoutine(RoutineBase):
+    """Object for compiling and running tasks locally using bloqade's python backend."""
+
     @staticmethod
     def process_tasks(runner, tasks, results):
         while not tasks.empty():
@@ -126,28 +128,25 @@ class BloqadePythonRoutine(RoutineBase):
         Args:
             shots (int): number of shots after running state vector simulation
             args (Tuple[LiteralType, ...], optional): The values for parameters defined
-            in `args`. Defaults to ().
-            name (Optional[str], optional): Name to give this run. Defaults to None.
-            blockade_radius (float, optional): Use the Blockade subspace given a
-            particular radius. Defaults to 0.0.
-            waveform_runtime: (bool, optional): Use Numba to compile the waveforms,
-            Defaults to False.
+                in `args`.
+            name (Optional[str], optional): Name to give this run. None.
+                blockade_radius (float, optional): Use the Blockade subspace given a
+                particular radius. 0.0.
+            waveform_runtime: (str, optional): Specify which runtime to use for
+                waveforms, values are "interpret", "python" and "numba".
             interaction_picture (bool, optional): Use the interaction picture when
-            solving schrodinger equation. Defaults to False.
+                solving schrodinger equation.
             cache_matrices (bool, optional): Reuse previously evaluated matrcies when
-            possible. Defaults to False.
+                possible.
             multiprocessing (bool, optional): Use multiple processes to process the
-            batches. Defaults to False.
+                batches.
             num_workers (Optional[int], optional): Number of processes to run with
-            multiprocessing. Defaults to None.
-            solver_name (str, optional): Which SciPy Solver to use. Defaults to
-            "dop853".
-            atol (float, optional): Absolute tolerance for ODE solver. Defaults to
-            1e-14.
+                multiprocessing.
+            solver_name (str, optional): Which SciPy Solver to use.
+            atol (float, optional): Absolute tolerance for ODE solver.
             rtol (float, optional): Relative tolerance for adaptive step in ODE solver.
-            Defaults to 1e-7.
             nsteps (int, optional): Maximum number of steps allowed per integration
-            step. Defaults to 2_147_483_647, the maximum value.
+                step.
 
         Raises:
             ValueError: Cannot use multiprocessing and cache_matrices at the same time.
@@ -240,36 +239,34 @@ class BloqadePythonRoutine(RoutineBase):
         emulator
 
         Args:
-            callback (Callable[[StateVector, Metadata, RydbergHamiltonian, Any], Any]):
-            The callback function to run for each task in batch. See note below for more
-            details about the signature of the function.
+            callback (Callable):
+                The callback function to run for each task in batch. See note below for
+                more details about the signature of the function.
             program_args (Tuple[LiteralType, ...], optional): The values for parameters
-            defined in `args`. Defaults to ().
-            callback_args (Tuple[Any,...], optional): Extra arguments to pass into
+                defined in `args`.
+            callback_args (Tuple[Any, ...], optional): Extra arguments to pass into
             ignore_exceptions: (bool, optional) If `True` any exception raised during
-            a task will be saved instead of the resulting output of the callback,
-            otherwise the first exception by task number will be raised after *all*
-            tasks have executed. Defaults to False.
+                a task will be saved instead of the resulting output of the callback,
+                otherwise the first exception by task number will be raised after *all*
+                tasks have executed.
             blockade_radius (float, optional): Use the Blockade subspace given a
-            particular radius. Defaults to 0.0.
+                particular radius.
             waveform_runtime: (str, optional): Specify which runtime to use for
-            waveforms. Defaults to "interpret".
+                waveforms, values are "interpret", "python" and "numba".
             interaction_picture (bool, optional): Use the interaction picture when
-            solving schrodinger equation. Defaults to False.
+                solving schrodinger equation.
             cache_matrices (bool, optional): Reuse previously evaluated matrcies when
-            possible. Defaults to False.
+                possible.
             multiprocessing (bool, optional): Use multiple processes to process the
-            batches. Defaults to False.
-            num_workers (Optional[int], optional): Number of processes to run with
-            multiprocessing. Defaults to None.
-            solver_name (str, optional): Which SciPy Solver to use. Defaults to
-            "dop853".
-            atol (float, optional): Absolute tolerance for ODE solver. Defaults to
-            1e-14.
+                batches.
+            num_workers (`Optional[int]`, optional): Number of processes to run with
+                multiprocessing.
+            solver_name (str, optional): Which SciPy Solver to use, the options are:
+                "dop853", "dopri5", "lsoda".
+            atol (float, optional): Absolute tolerance for ODE solver.
             rtol (float, optional): Relative tolerance for adaptive step in ODE solver.
-            Defaults to 1e-7.
             nsteps (int, optional): Maximum number of steps allowed per integration
-            step. Defaults to 2_147_483_647, the maximum value.
+                step.
 
         Returns:
             List: List of resulting outputs from the callbacks
@@ -279,13 +276,14 @@ class BloqadePythonRoutine(RoutineBase):
             `ignore_exceptions=False`.
 
         Note:
-            For the `callback` function, first argument is the many-body wavefunction
-            as a 1D complex numpy array, the second argument is of type `Metadata` which
-            is a Named Tuple where the fields correspond to the parameters of that given
-            task, RydbergHamiltonian is the object that contains the Hamiltonian used to
-            generate the evolution for that task, Finally any optional positional
-            arguments are allowed after that. The return value can be anything, the
-            results will be collected in a list for each task in the batch.
+            For the `callback` function, first argument is the many-body wavefunction,
+            stored as a `StateVector` object. The second argument is of type `Metadata`
+            which is a Named Tuple where the fields correspond to the parameters of
+            that given task, `RydbergHamiltonian` is the object that contains the
+            Hamiltonian used to generate the evolution for that task, Finally any
+            optional positional arguments are allowed after that. The return value
+            can be anything, the results will be collected in a list for each task
+            in the batch.
 
 
         """
