@@ -269,7 +269,7 @@ class RydbergHamiltonian:
         Args:
             register (StateVector): The state vector to take average with
             time (Optional[float], optional): Time value to evaluate average at.
-            Defaults to duration of RydbergHamiltonian.
+                Defaults to duration of RydbergHamiltonian.
 
         Returns:
             float: average energy at time `time`
@@ -288,7 +288,7 @@ class RydbergHamiltonian:
         Args:
             register (StateVector): The state vector to take average and variance with
             time (Optional[float], optional): Time value to evaluate average at.
-            Defaults to duration of RydbergHamiltonian.
+                Defaults to duration of RydbergHamiltonian.
 
         Returns:
             Tuple[float, float]: average and variance of energy at time `time`
@@ -313,7 +313,7 @@ class RydbergHamiltonian:
         Args:
             register (StateVector): The state vector to take variance with
             time (Optional[float], optional): Time value to evaluate average at.
-            Defaults to duration of RydbergHamiltonian.
+                Defaults to duration of RydbergHamiltonian.
 
         Returns:
             complex: variance of energy at time `time` respectively.

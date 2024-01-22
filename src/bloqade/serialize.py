@@ -98,10 +98,10 @@ def loads(s: str, use_decimal: bool = True, **json_kwargs):
     Args:
         s (str): the string to load
         use_decimal (bool, optional): use decimal.Decimal for numbers. Defaults to True.
-        **json_kwargs: other arguments passed to json.loads
+        **json_kwargs (Any, optional): other arguments passed to json.loads
 
     Returns:
-        Any: the deserialized object
+        (Any): the deserialized object
     """
     load_bloqade()
     return json.loads(
@@ -116,10 +116,10 @@ def load(fp: Union[TextIO, str], use_decimal: bool = True, **json_kwargs):
     Args:
         fp (Union[TextIO, str]): the file path or file object
         use_decimal (bool, optional): use decimal.Decimal for numbers. Defaults to True.
-        **json_kwargs: other arguments passed to json.load
+        **json_kwargs (Any, optional): other arguments passed to json.load
 
     Returns:
-        Any: the deserialized object
+        (Any): the deserialized object
     """
     load_bloqade()
     if isinstance(fp, str):
@@ -150,7 +150,7 @@ def dumps(
     Args:
         o (Any): the object to serialize
         use_decimal (bool, optional): use decimal.Decimal for numbers. Defaults to True.
-        **json_kwargs: other arguments passed to json.dumps
+        **json_kwargs (Any, optional): other arguments passed to json.dumps
 
     Returns:
         str: the serialized object as a string
@@ -176,7 +176,7 @@ def save(
         o (Any): the object to serialize
         fp (Union[TextIO, str]): the file path or file object
         use_decimal (bool, optional): use decimal.Decimal for numbers. Defaults to True.
-        **json_kwargs: other arguments passed to json.dump
+        **json_kwargs (Any, optional): other arguments passed to json.dump
 
     Returns:
         None

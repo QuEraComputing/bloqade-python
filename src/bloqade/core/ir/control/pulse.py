@@ -14,6 +14,7 @@ from beartype.typing import List
 from pydantic.dataclasses import dataclass
 from bloqade.visualization import get_pulse_figure
 from bloqade.visualization import display_ir
+from bloqade.core.builder.typing import ParamType
 
 
 __all__ = [
@@ -192,9 +193,8 @@ class Pulse(PulseExpr):
     def figure(self, **assignments):
         return get_pulse_figure(self, **assignments)
 
-    def show(self, **assignments):
-        """
-        Interactive visualization of the Pulse
+    def show(self, **assignments: ParamType):
+        """Interactive visualization of the Pulse
 
         Args:
             **assignments: assigning the instance value (literal) to the

@@ -7,7 +7,7 @@ from itertools import combinations
 class ClusterLocationInfo(BaseModel):
     """Class that stores the mapping of batched jobs.
 
-    Args:
+    Attributes:
         cluster_index (int): the index of the cluster a site belongs to
         global_location_index (int): the index of the site in the multplexed system
         cluster_location_index (int): the index of the site in the original system

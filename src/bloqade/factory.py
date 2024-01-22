@@ -73,7 +73,7 @@ def piecewise_linear(durations: List[ScalarType], values: List[ScalarType]) -> W
 
     Raises:
         ValueError: If the length of `values` is not one greater than the length of
-        `durations`.
+            `durations`.
 
     Returns:
         Waveform: The piecewise linear waveform.
@@ -110,7 +110,7 @@ def piecewise_constant(
 
     Raises:
         ValueError: If the length of `values` is not the same as the length of
-        `durations`.
+            `durations`.
 
     Returns:
         Waveform: The piecewise linear waveform.

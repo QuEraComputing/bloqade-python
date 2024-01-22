@@ -46,7 +46,7 @@ class BuilderStream:
         Args:
             types (List[Type[Builder]]): List of types to move the stream pointer to
             skips (List[Type[Builder]] | None, optional): List of types to end the
-            stream scan
+                stream scan
 
         Returns:
             BuilderNode: The beginning of the stream which matches a type in `types`.

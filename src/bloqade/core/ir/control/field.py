@@ -259,7 +259,7 @@ class Field(FieldExpr):
         Interactive visualization of the Field
 
         Args:
-            **assignments: assigning the instance value (literal) to the
+            **assignments (ParamTypes): assigning the instance value (literal) to the
                 existing variables in the Field
 
         """

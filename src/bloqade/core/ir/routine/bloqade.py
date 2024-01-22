@@ -273,7 +273,7 @@ class BloqadePythonRoutine(RoutineBase):
 
         Raises:
             RuntimeError: Raises the first error that occurs, only if
-            `ignore_exceptions=False`.
+                `ignore_exceptions=False`.
 
         Note:
             For the `callback` function, first argument is the many-body wavefunction,
@@ -284,7 +284,6 @@ class BloqadePythonRoutine(RoutineBase):
             optional positional arguments are allowed after that. The return value
             can be anything, the results will be collected in a list for each task
             in the batch.
-
 
         """
         if multiprocessing:

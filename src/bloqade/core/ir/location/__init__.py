@@ -14,7 +14,7 @@ from .bravais import (
 start = ListOfLocations()
 """
 A Program starting point, alias of empty
-[`ListOfLocations`][bloqade.core.ir.location.list.ListOfLocations].
+[`ListOfLocations`][bloqade.core.ir.location.location.ListOfLocations].
 
 - Next possible steps to build your program are:
 - Specify which level coupling to address with:

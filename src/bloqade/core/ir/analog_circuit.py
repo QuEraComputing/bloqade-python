@@ -21,15 +21,16 @@ class AnalogCircuit:
         """Get the register of the program.
 
         Returns:
-            register (Union["AtomArrangement", "ParallelRegister"])
+            register (Union[AtomArrangement, ParallelRegister]): The register of the
+                program.
 
         Note:
             If the program is built with
-            [`parallelize()`][bloqade.core.builder.emit.Emit.parallelize],
+            [`parallelize()`][bloqade.core.builder.pragma.Parallelizable.parallelize],
             The the register will be a
-            [`ParallelRegister`][bloqade.core.ir.location.base.ParallelRegister].
+            [`ParallelRegister`][bloqade.core.ir.location.location.ParallelRegister].
             Otherwise it will be a
-            [`AtomArrangement`][bloqade.core.ir.location.base.AtomArrangement].
+            [`AtomArrangement`][bloqade.core.ir.location.location.AtomArrangement].
         """
         return self.atom_arrangement
 
@@ -71,7 +72,7 @@ class AnalogCircuit:
         """Interactive visualization of the program
 
         Args:
-            **assignments: assigning the instance value (literal) to the
+            **assignments (ParamType): assigning the instance value (literal) to the
                 existing variables in the program
 
         """

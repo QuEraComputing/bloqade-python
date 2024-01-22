@@ -169,7 +169,7 @@ class Sequence(SequenceExpr):
         Interactive visualization of the Sequence
 
         Args:
-            **assignments: assigning the instance value (literal) to the
+            **assignments (ParamType): assigning the instance value (literal) to the
                 existing variables in the Sequence
 
         """

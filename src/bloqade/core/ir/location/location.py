@@ -4,7 +4,7 @@ from bloqade.core.ir.scalar import Scalar, Literal, cast
 from bloqade.core.ir.tree_print import Printer
 
 from pydantic.dataclasses import dataclass
-from beartype.typing import List, Tuple, Generator, Union, Optional
+from beartype.typing import List, Tuple, Generator, Union, Optional, Any
 from beartype import beartype
 from enum import Enum
 from numpy.typing import NDArray
@@ -137,7 +137,7 @@ class AtomArrangement(ProgramStart):
     def show(self, **assignments) -> None:
         display_ir(self, assignments)
 
-    def rydberg_interaction(self, **assignments) -> NDArray:
+    def rydberg_interaction(self, **assignments: Any) -> NDArray:
         """calculate the Rydberg interaction matrix.
 
         Args:
@@ -498,18 +498,23 @@ class ParallelRegister(ProgramStart):
 
     @property
     def n_atoms(self):
+        """number of atoms (filled sites) in register before parallelization."""
         return self.atom_arrangement.n_atoms
 
     @property
     def n_sites(self):
+        """number of sites in the register before parallelization."""
+
         return self.atom_arrangement.n_sites
 
     @property
     def n_vacant(self):
+        """number of vacant sites in the register before parallelization."""
         return self.atom_arrangement.n_vacant
 
     @property
     def n_dims(self):
+        """Dimensionality of the register before parallelization."""
         return self.atom_arrangement.n_dims
 
     def __str__(self):
@@ -598,6 +603,8 @@ class ParallelRegisterInfo:
 
 @dataclass(init=False)
 class ListOfLocations(AtomArrangement):
+    """A free-form list of locations."""
+
     location_list: List[LocationInfo]
 
     @beartype

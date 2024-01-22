@@ -299,7 +299,7 @@ class Literal(Real):
 class Variable(Real):
     """Variable, which stores a variable name.
 
-    Args:
+    Attributes:
         name (str): variable instance.
 
     """

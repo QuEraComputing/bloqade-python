@@ -98,7 +98,7 @@ class Waveform(HashTrait, CanonicalizeTrait):
         """get figure of the plotting the waveform.
 
         Returns:
-            figure: a bokeh figure
+            figure (bokeh.Figure): a bokeh figure
         """
         return get_ir_figure(self, **assignments)
 

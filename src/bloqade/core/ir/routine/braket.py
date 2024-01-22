@@ -228,7 +228,7 @@ class BraketLocalEmulatorRoutine(RoutineBase):
             num_workers (Optional[int], optional): Number of workers to use for
                 multiprocessing. If None, the number of workers is equal to
                 the number of CPU cores.
-            **kwargs: Additional keyword arguments to pass to the
+            **kwargs (Any): Additional keyword arguments to pass to the
                 Braket local emulator.
 
         Return:

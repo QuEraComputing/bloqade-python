@@ -24,7 +24,6 @@ class Cell:
 
 @dataclass
 class BoundedBravais(AtomArrangement):
-    __match_args__ = ("shape", "lattice_spacing")
     """Base classe for Bravais lattices
     [`AtomArrangement`][bloqade.core.ir.location.base.AtomArrangement].
 
@@ -35,7 +34,6 @@ class BoundedBravais(AtomArrangement):
     - [`Lieb`][bloqade.core.ir.location.bravais.Lieb]
     - [`Kagome`][bloqade.core.ir.location.bravais.Kagome]
     - [`Rectangular`][bloqade.core.ir.location.bravais.Rectangular]
-
 
     """
 
@@ -105,7 +103,7 @@ class BoundedBravais(AtomArrangement):
         """dimension of the lattice
 
         Returns:
-            int: dimension of the lattice
+            (int): dimension of the lattice
 
         """
         return len(self.cell_vectors())
@@ -457,10 +455,10 @@ class Triangular(BoundedBravais):
 
 
     Args:
-        L (int): number of sites in linear direction. n_atoms = L * L.
-        L2 (Optional[int]): number of sites along a2 direction,
+        L1 (int): number of sites in a1 direction.
+        L2 (Optional[int], optional): number of sites along a2 direction,
             n_atoms = L1 * L2, default is L1.
-        lattice_spacing (Scalar, Real):
+        lattice_spacing (ScalarType, optional):
             lattice spacing. Defaults to 1.0.
 
 
