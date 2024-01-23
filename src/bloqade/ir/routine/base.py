@@ -8,7 +8,7 @@ from bloqade.ir.routine.params import Params
 
 from pydantic import ConfigDict
 from pydantic.dataclasses import dataclass
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, Union, Optional
 
 if TYPE_CHECKING:
     from bloqade.ir.routine.braket import BraketServiceOptions
@@ -27,11 +27,16 @@ class RoutineParse(Parse):
         return self.circuit
 
     def parse(self: "RoutineBase") -> "Routine":
+        if self.source is None:
+            raise ValueError("Cannot parse a routine without a source Builder.")
         return self
 
 
 class RoutineShow(Show):
     def show(self: "RoutineBase", batch_index: int = 0):
+        if self.source is None:
+            raise ValueError("Cannot show a routine without a source Builder.")
+
         return self.source.show(batch_index)
 
 
@@ -40,7 +45,7 @@ __pydantic_dataclass_config__ = ConfigDict(arbitrary_types_allowed=True)
 
 @dataclass(frozen=True, config=__pydantic_dataclass_config__)
 class RoutineBase(RoutineParse, RoutineShow):
-    source: Builder
+    source: Optional[Builder]
     circuit: AnalogCircuit
     params: Params
 
