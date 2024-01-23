@@ -80,6 +80,7 @@ def canonicalize_circuit(
     )
 
     circuit = AddPadding(level_couplings).visit(circuit)
+    # these two passes are equivalent to a constant propagation pass
     circuit = AssignToLiteral().visit(circuit)
     circuit = Canonicalizer().visit(circuit)
 
@@ -179,7 +180,7 @@ def generate_ahs_code(
     level_couplings: Dict,
     circuit: analog_circuit.AnalogCircuit,
 ) -> AHSComponents:
-    """6. generate ahs code
+    """5. generate ahs code
 
     Generates the AHS code for the given circuit. This includes generating the
     lattice data, global detuning, global amplitude, global phase, local
