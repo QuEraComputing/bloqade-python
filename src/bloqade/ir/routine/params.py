@@ -62,7 +62,11 @@ class Params:
 
     def batch_assignments(self, *args) -> List[Dict[str, ParamType]]:
         flattened_args = self.parse_args(*args)
-        return [{**flattened_args, **batch} for batch in self.batch_params]
+        if len(self.batch_params) == 0:
+            # handle case where there are no batch params
+            return [flattened_args]
+        else:
+            return [{**flattened_args, **batch} for batch in self.batch_params]
 
     def __str__(self):
         out = ""
