@@ -58,6 +58,18 @@ def test_error():
     assert loads(output_str).name == output.name
 
 
+def check_assign_dur_zero():
+    (
+        start.add_position([(0, 0), (0, 6)])
+        .rydberg.rabi.amplitude.uniform.piecewise_linear(
+            [0.1, "dur", 0.1], [0, 15, 15, 0]
+        )
+        .assign(dur=0)
+        .braket.local_emulator()
+        .run(100)
+    )
+
+
 """
 from bloqade.ir.location import Square
 if __name__ == "__main__":

@@ -4,10 +4,9 @@ from bloqade.ir import analog_circuit
 
 from bloqade.compiler.passes.hardware import (
     analyze_channels,
-    add_padding,
+    canonicalize_circuit,
     assign_circuit,
     validate_waveforms,
-    to_literal_and_canonicalize,
     generate_ahs_code,
 )
 
@@ -29,10 +28,9 @@ capabilities = get_capabilities()
 
 
 level_couplings = analyze_channels(circuit)
-circuit = add_padding(circuit, level_couplings)
+circuit = canonicalize_circuit(circuit, level_couplings)
 circuit = assign_circuit(circuit, assignments)
 validate_waveforms(level_couplings, circuit)
-circuit = to_literal_and_canonicalize(circuit)
 ahs_code = generate_ahs_code(capabilities, level_couplings, circuit)
 # 7. specialize to QuEra/Braket IR
 quera_ir, parallel_decoder = ahs_code.generate_quera_ir(shots=100)

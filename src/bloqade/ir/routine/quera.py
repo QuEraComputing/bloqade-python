@@ -54,10 +54,9 @@ class QuEraHardwareRoutine(RoutineBase):
     ) -> RemoteBatch:
         from bloqade.compiler.passes.hardware import (
             analyze_channels,
-            add_padding,
+            canonicalize_circuit,
             assign_circuit,
             validate_waveforms,
-            to_literal_and_canonicalize,
             generate_ahs_code,
             generate_quera_ir,
         )
@@ -72,10 +71,9 @@ class QuEraHardwareRoutine(RoutineBase):
             final_circuit, metadata = assign_circuit(circuit, assignments)
 
             level_couplings = analyze_channels(final_circuit)
-            final_circuit = add_padding(final_circuit, level_couplings)
+            final_circuit = canonicalize_circuit(final_circuit, level_couplings)
 
             validate_waveforms(level_couplings, final_circuit)
-            final_circuit = to_literal_and_canonicalize(final_circuit)
             ahs_components = generate_ahs_code(
                 capabilities, level_couplings, final_circuit
             )

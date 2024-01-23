@@ -54,7 +54,7 @@ def analyze_channels(circuit: analog_circuit.AnalogCircuit) -> Dict:
     return {sequence.rydberg: updated_fields}
 
 
-def add_padding(
+def canonicalize_circuit(
     circuit: analog_circuit.AnalogCircuit, level_couplings: Dict
 ) -> analog_circuit.AnalogCircuit:
     """2. Insert zero waveform in the explicit time intervals missing a waveform
@@ -73,9 +73,17 @@ def add_padding(
             intervals missing a waveform.
 
     """
-    from bloqade.compiler.rewrite.common import AddPadding
+    from bloqade.compiler.rewrite.common import (
+        AddPadding,
+        AssignToLiteral,
+        Canonicalizer,
+    )
 
-    return AddPadding(level_couplings=level_couplings).visit(circuit)
+    circuit = AddPadding(level_couplings).visit(circuit)
+    circuit = AssignToLiteral().visit(circuit)
+    circuit = Canonicalizer().visit(circuit)
+
+    return circuit
 
 
 def assign_circuit(
@@ -164,35 +172,6 @@ def validate_waveforms(
 
     if circuit.sequence.duration() == 0:
         raise ValueError("Circuit Duration must be be non-zero")
-
-
-def to_literal_and_canonicalize(
-    circuit: analog_circuit.AnalogCircuit,
-) -> analog_circuit.AnalogCircuit:
-    """5. convert to literals and canonicalize
-
-    This pass converts all assgined variables to literals, canonicalizes the
-    circuit and Flattens the Sequence structure. This should simplify
-    the circuit and make it faster to compile.
-
-    Args:
-        circuit: AnalogCircuit to convert to literals and canonicalize.
-
-    Returns:
-        circuit: AnalogCircuit with all literals and canonicalized.
-
-    """
-    from bloqade.compiler.rewrite.common import (
-        AssignToLiteral,
-        Canonicalizer,
-        FlattenCircuit,
-    )
-
-    circuit = AssignToLiteral().visit(circuit)
-    circuit = Canonicalizer().visit(circuit)
-    circuit = FlattenCircuit().visit(circuit)
-
-    return circuit
 
 
 def generate_ahs_code(
