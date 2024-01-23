@@ -58,7 +58,7 @@ def test_error():
     assert loads(output_str).name == output.name
 
 
-def check_assign_dur_zero():
+def test_assign_dur_zero_wf():
     (
         start.add_position([(0, 0), (0, 6)])
         .rydberg.rabi.amplitude.uniform.piecewise_linear(
@@ -66,8 +66,52 @@ def check_assign_dur_zero():
         )
         .assign(dur=0)
         .braket.local_emulator()
-        .run(100)
+        .run(shots=10)
     )
+
+
+def test_assign_dur_zero_pulse():
+    from bloqade.ir.control.sequence import rydberg, Sequence
+    from bloqade.ir.routine.base import Routine
+    from bloqade.ir.routine.params import Params
+    from bloqade.ir.analog_circuit import AnalogCircuit
+
+    atom_arrangement = start.add_position([(0, 0), (0, 6)])
+
+    seq_seg_1 = start.rydberg.detuning.uniform.linear(0, 15, 0.1).parse_sequence()
+    seq_seg_2 = start.rydberg.detuning.uniform.linear(15, 15, "dur").parse_sequence()
+    seq_seg_3 = start.rydberg.detuning.uniform.linear(15, 0, 0.1).parse_sequence()
+
+    pulse_seq_1 = seq_seg_1.pulses[rydberg]
+    pulse_seq_2 = seq_seg_2.pulses[rydberg]
+    pulse_seq_3 = seq_seg_3.pulses[rydberg]
+
+    pulse = pulse_seq_1.append(pulse_seq_2).append(pulse_seq_3)
+    sequence = Sequence(pulses={rydberg: pulse})
+    circuit = AnalogCircuit(atom_arrangement=atom_arrangement, sequence=sequence)
+
+    params = Params(2, {"dur": 0}, [], [])
+    routine = Routine(source=None, circuit=circuit, params=params)
+    routine.braket.local_emulator().run(shots=10)
+
+
+def test_assign_dur_zero_sequence():
+    from bloqade.ir.routine.base import Routine
+    from bloqade.ir.routine.params import Params
+    from bloqade.ir.analog_circuit import AnalogCircuit
+
+    atom_arrangement = start.add_position([(0, 0), (0, 6)])
+
+    seq_seg_1 = start.rydberg.detuning.uniform.linear(0, 15, 0.1).parse_sequence()
+    seq_seg_2 = start.rydberg.detuning.uniform.linear(15, 15, "dur").parse_sequence()
+    seq_seg_3 = start.rydberg.detuning.uniform.linear(15, 0, 0.1).parse_sequence()
+
+    sequence = seq_seg_1.append(seq_seg_2).append(seq_seg_3)
+    circuit = AnalogCircuit(atom_arrangement=atom_arrangement, sequence=sequence)
+
+    params = Params(2, {"dur": 0}, [], [])
+    routine = Routine(source=None, circuit=circuit, params=params)
+    routine.braket.local_emulator().run(shots=10)
 
 
 """
