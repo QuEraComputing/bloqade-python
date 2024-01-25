@@ -1,4 +1,3 @@
-from bloqade import save, load
 from bloqade.atom_arrangement import Chain
 import numpy as np
 

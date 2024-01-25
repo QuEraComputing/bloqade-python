@@ -3,7 +3,6 @@ import numpy as np
 
 
 def test_floquet_compile():
-    min_time_step = 0.05
 
     durations = cast(["ramp_time", "run_time", "ramp_time"])
 

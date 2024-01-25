@@ -1,4 +1,4 @@
-from bloqade import var, save
+from bloqade import var
 from bloqade.atom_arrangement import Chain
 import numpy as np
 
