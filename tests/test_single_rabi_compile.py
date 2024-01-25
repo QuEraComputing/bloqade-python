@@ -1,6 +1,7 @@
 from bloqade import start, cast
 import numpy as np
 
+
 def test_single_rabi_compile():
     durations = cast(["ramp_time", "run_time", "ramp_time"])
 
@@ -23,8 +24,12 @@ def test_single_rabi_compile():
     quera_aquila_target = rabi_oscillation_job.parallelize(24).quera.aquila()
     braket_aquila_target = rabi_oscillation_job.parallelize(24).braket.aquila()
 
-    targets = [bloqade_emu_target, braket_emu_target, quera_aquila_target, braket_aquila_target]
+    targets = [
+        bloqade_emu_target,
+        braket_emu_target,
+        quera_aquila_target,
+        braket_aquila_target,
+    ]
 
     for target in targets:
         target._compile(10)
-

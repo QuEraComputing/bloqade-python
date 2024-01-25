@@ -1,5 +1,6 @@
 from bloqade.atom_arrangement import Square
 
+
 def test_2d_state_compile():
     # Have atoms separated by 5.9 micrometers
     L = 3
@@ -11,7 +12,9 @@ def test_2d_state_compile():
 
     prog = (
         Square(L, lattice_spacing=lattice_spacing)
-        .rydberg.rabi.amplitude.uniform.piecewise_linear(durations, rabi_amplitude_values)
+        .rydberg.rabi.amplitude.uniform.piecewise_linear(
+            durations, rabi_amplitude_values
+        )
         .detuning.uniform.piecewise_linear(durations, rabi_detuning_values)
     )
 
@@ -22,7 +25,12 @@ def test_2d_state_compile():
     quera_aquila_target = batch.parallelize(24).quera.aquila()
     braket_aquila_target = batch.parallelize(24).braket.aquila()
 
-    targets = [bloqade_emu_target, braket_emu_target, quera_aquila_target, braket_aquila_target]
+    targets = [
+        bloqade_emu_target,
+        braket_emu_target,
+        quera_aquila_target,
+        braket_aquila_target,
+    ]
 
     for target in targets:
         target._compile(10)

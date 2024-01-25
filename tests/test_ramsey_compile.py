@@ -1,11 +1,13 @@
-
 from bloqade import start, cast
-from decimal import Decimal 
+from decimal import Decimal
 import numpy as np
+
 
 def test_ramsey_compile():
     plateau_time = (np.pi / 2 - 0.625) / 12.5
-    wf_durations = cast([0.05, plateau_time, 0.05, "run_time", 0.05, plateau_time, 0.05])
+    wf_durations = cast(
+        [0.05, plateau_time, 0.05, "run_time", 0.05, plateau_time, 0.05]
+    )
     rabi_wf_values = [0.0, 12.5, 12.5, 0.0] * 2  # repeat values twice
 
     ramsey_program = (
@@ -26,7 +28,12 @@ def test_ramsey_compile():
     quera_aquila_target = ramsey_job.parallelize(24).quera.aquila()
     braket_aquila_target = ramsey_job.parallelize(24).braket.aquila()
 
-    targets = [bloqade_emu_target, braket_emu_target, quera_aquila_target, braket_aquila_target]
+    targets = [
+        bloqade_emu_target,
+        braket_emu_target,
+        quera_aquila_target,
+        braket_aquila_target,
+    ]
 
     for target in targets:
         target._compile(10)

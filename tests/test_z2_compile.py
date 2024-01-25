@@ -17,7 +17,9 @@ def test_z2_compile():
 
     time_sweep_z2_prog = (
         Chain(n_atoms, lattice_spacing=lattice_spacing)
-        .rydberg.rabi.amplitude.uniform.piecewise_linear(durations, rabi_amplitude_values)
+        .rydberg.rabi.amplitude.uniform.piecewise_linear(
+            durations, rabi_amplitude_values
+        )
         .detuning.uniform.piecewise_linear(durations, rabi_detuning_values)
     )
 
@@ -34,7 +36,12 @@ def test_z2_compile():
     quera_aquila_target = time_sweep_z2_job.parallelize(24).quera.aquila()
     braket_aquila_target = time_sweep_z2_job.parallelize(24).braket.aquila()
 
-    targets = [bloqade_emu_target, braket_emu_target, quera_aquila_target, braket_aquila_target]
+    targets = [
+        bloqade_emu_target,
+        braket_emu_target,
+        quera_aquila_target,
+        braket_aquila_target,
+    ]
 
     for target in targets:
         target._compile(10)

@@ -3,10 +3,9 @@ import numpy as np
 
 
 def test_multi_rabi_compile():
-
     distance = 4.0
 
-    # Example defaults to option 7 
+    # Example defaults to option 7
     geometry = start.add_position(
         [
             (0, 0),
@@ -20,14 +19,12 @@ def test_multi_rabi_compile():
     )
 
     sequence = start.rydberg.rabi.amplitude.uniform.piecewise_linear(
-    durations=["ramp_time", "run_time", "ramp_time"],
-    values=[0.0, "rabi_drive", "rabi_drive", 0.0],
+        durations=["ramp_time", "run_time", "ramp_time"],
+        values=[0.0, "rabi_drive", "rabi_drive", 0.0],
     ).parse_sequence()
 
-        
     batch = (
-        geometry
-        .apply(sequence)
+        geometry.apply(sequence)
         .assign(ramp_time=0.06, rabi_drive=5)
         .batch_assign(run_time=0.05 * np.arange(21))
     )
@@ -37,8 +34,12 @@ def test_multi_rabi_compile():
     quera_aquila_target = batch.parallelize(24).quera.aquila()
     braket_aquila_target = batch.parallelize(24).braket.aquila()
 
-    targets = [bloqade_emu_target, braket_emu_target, quera_aquila_target, braket_aquila_target]
+    targets = [
+        bloqade_emu_target,
+        braket_emu_target,
+        quera_aquila_target,
+        braket_aquila_target,
+    ]
 
     for target in targets:
         target._compile(10)
-

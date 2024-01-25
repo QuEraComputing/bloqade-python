@@ -1,8 +1,8 @@
 from bloqade.atom_arrangement import Square
 import numpy as np
 
-def test_mis_compile():
 
+def test_mis_compile():
     rng = np.random.default_rng(1234)
 
     durations = [0.3, 1.6, 0.3]
@@ -10,7 +10,9 @@ def test_mis_compile():
     mis_udg_program = (
         Square(15, lattice_spacing=5.0)
         .apply_defect_density(0.3, rng=rng)
-        .rydberg.rabi.amplitude.uniform.piecewise_linear(durations, [0.0, 15.0, 15.0, 0.0])
+        .rydberg.rabi.amplitude.uniform.piecewise_linear(
+            durations, [0.0, 15.0, 15.0, 0.0]
+        )
         .detuning.uniform.piecewise_linear(
             durations, [-30, -30, "final_detuning", "final_detuning"]
         )

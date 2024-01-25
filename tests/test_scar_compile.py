@@ -1,9 +1,9 @@
-from bloqade import var, save 
+from bloqade import var, save
 from bloqade.atom_arrangement import Chain
 import numpy as np
 
-def test_scar_compile():
 
+def test_scar_compile():
     n_atoms = 11
     lattice_spacing = 6.1
     run_time = var("run_time")
@@ -41,7 +41,12 @@ def test_scar_compile():
     quera_aquila_target = batch.parallelize(24).quera.aquila()
     braket_aquila_target = batch.parallelize(24).braket.aquila()
 
-    targets = [bloqade_emu_target, braket_emu_target, quera_aquila_target, braket_aquila_target]
+    targets = [
+        bloqade_emu_target,
+        braket_emu_target,
+        quera_aquila_target,
+        braket_aquila_target,
+    ]
 
     for target in targets:
         target._compile(10)
