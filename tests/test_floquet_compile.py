@@ -3,7 +3,6 @@ import numpy as np
 
 
 def test_floquet_compile():
-
     durations = cast(["ramp_time", "run_time", "ramp_time"])
 
     def detuning_wf(t, drive_amplitude, drive_frequency):
