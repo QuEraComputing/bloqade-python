@@ -144,6 +144,39 @@ class Canonicalizer(BloqadeIRTransformer):
         else:
             return scalar.Div(lhs=lhs, rhs=rhs)
 
+    def visit_scalar_Slice(self, node: scalar.Slice):
+        expr = self.visit(node.expr)
+        interval = self.visit(node.interval)
+
+        start = interval.start
+        stop = interval.stop
+
+        if (
+            isinstance(expr, scalar.Literal)
+            and isinstance(start, scalar.Literal)
+            and isinstance(stop, scalar.Literal)
+        ):
+            start = start.value
+            stop = stop.value
+            expr = expr.value
+
+            if start > stop:
+                raise ValueError(
+                    f"Slice interval start {start} cannot be greater than stop {stop}"
+                )
+
+            if stop > expr:
+                raise ValueError(
+                    f"Slice interval stop {stop} cannot be greater than expr {expr}"
+                )
+
+            if start < 0:
+                raise ValueError(f"Slice interval start {start} cannot be less than 0")
+
+            return scalar.Literal(stop - start)
+
+        return node
+
     ########################################
     #    Waveform Canonicalization Pass    #
     ########################################
