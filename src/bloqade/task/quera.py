@@ -146,9 +146,9 @@ def _serialze(obj: QuEraTask) -> Dict[str, ParamType]:
                 exclude=set(["access_key", "secret_key", "session_token"])
             )
         },
-        "parallel_decoder": obj.parallel_decoder.dict()
-        if obj.parallel_decoder
-        else None,
+        "parallel_decoder": (
+            obj.parallel_decoder.dict() if obj.parallel_decoder else None
+        ),
         "task_result_ir": obj.task_result_ir.dict() if obj.task_result_ir else None,
     }
 
