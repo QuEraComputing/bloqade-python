@@ -39,9 +39,9 @@ MatrixTypes = Union[csr_matrix, IndexMapping, NDArray]
 class CompileCache:
     """This class is used to cache the results of the code generation."""
 
-    operator_cache: Dict[
-        Tuple[Register, LevelCoupling, OperatorData], MatrixTypes
-    ] = field(default_factory=dict)
+    operator_cache: Dict[Tuple[Register, LevelCoupling, OperatorData], MatrixTypes] = (
+        field(default_factory=dict)
+    )
     space_cache: Dict[Register, Tuple[Space, NDArray]] = field(default_factory=dict)
 
 
