@@ -230,6 +230,12 @@ def generate_ahs_code(
     extra_sm = set(level_couplings[sequence.rydberg][pulse.detuning]) - {field.Uniform}
 
     if extra_sm:
+        if capabilities is not None and capabilities.capabilities.rydberg.local is None:
+            raise ValueError(
+                "Device does not support local detuning, but the program has a "
+                "non-uniform spatial modulation for detuning."
+            )
+
         sm = extra_sm.pop()
 
         lattice_site_coefficients = GenerateLatticeSiteCoefficients(
