@@ -209,6 +209,11 @@ def generate_ahs_code(
         GeneratePiecewiseLinearChannel,
         GeneratePiecewiseConstantChannel,
     )
+    from bloqade.compiler.analysis.hardware import BasicLatticeValidation
+
+    if capabilities is not None:
+        # only validate the lattice if capabilities are provided
+        BasicLatticeValidation(capabilities).visit(circuit)
 
     ahs_lattice_data = GenerateLattice(capabilities).emit(circuit)
 

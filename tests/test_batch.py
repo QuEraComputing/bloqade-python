@@ -9,6 +9,7 @@ from bloqade.task.quera import QuEraTask
 from bloqade.task.braket import BraketTask
 from bloqade.submission.base import ValidationError
 from bloqade import dumps, loads
+from bloqade.atom_arrangement import Chain
 
 # import numpy as np
 
@@ -155,7 +156,7 @@ def test_base_classes():
 
 def test_metadata_filter_scalar():
     batch = (
-        start.add_position([(0, i * 6.1) for i in range(14)])
+        Chain(6, lattice_spacing=6.1)
         .rydberg.detuning.uniform.piecewise_linear(
             [0.1, 3.8, 0.1], [-20, -20, "d", "d"]
         )
@@ -211,7 +212,7 @@ def test_remote_batch_task_metric(permutation, BraketBackend):
     backend.submit_task.side_effect = list(map(str, range(6)))
 
     batch = (
-        start.add_position([(0, i * 6.1) for i in range(14)])
+        Chain(6, lattice_spacing=6.1)
         .rydberg.detuning.uniform.piecewise_linear(
             [0.1, 3.8, 0.1], [-20, -20, "d", "d"]
         )
@@ -251,7 +252,7 @@ def test_pull(BraketBackend):
     backend.task_results.return_value = mock_results(14)
 
     batch = (
-        start.add_position([(0, i * 6.1) for i in range(14)])
+        Chain(6, lattice_spacing=6.1)
         .rydberg.detuning.uniform.piecewise_linear(
             [0.1, 3.8, 0.1], [-20, -20, "d", "d"]
         )
@@ -294,7 +295,7 @@ def test_retrieve(BraketBackend):
     ]
 
     batch = (
-        start.add_position([(0, i * 6.1) for i in range(14)])
+        Chain(6, lattice_spacing=6.1)
         .rydberg.detuning.uniform.piecewise_linear(
             [0.1, 3.8, 0.1], [-20, -20, "d", "d"]
         )
@@ -325,7 +326,7 @@ def test_remove_invalid_tasks(BraketBackend):
     backend.task_status.return_value = QuEraTaskStatusCode.Unaccepted
 
     batch = (
-        start.add_position([(0, i * 6.1) for i in range(14)])
+        Chain(6, lattice_spacing=6.1)
         .rydberg.detuning.uniform.piecewise_linear(
             [0.1, 3.8, 0.1], [-20, -20, "d", "d"]
         )
@@ -365,7 +366,7 @@ def test_test_filters(BraketBackend):
     backend.task_results.return_value = mock_results(14)
 
     batch = (
-        start.add_position([(0, i * 6.1) for i in range(14)])
+        Chain(6, lattice_spacing=6.1)
         .rydberg.detuning.uniform.piecewise_linear(
             [0.1, 3.8, 0.1], [-20, -20, "d", "d"]
         )
@@ -405,7 +406,7 @@ def test_cancel_tasks(BraketBackend):
     backend.cancel_task.return_value = None
 
     batch = (
-        start.add_position([(0, i * 6.1) for i in range(14)])
+        Chain(6, lattice_spacing=6.1)
         .rydberg.detuning.uniform.piecewise_linear(
             [0.1, 3.8, 0.1], [-20, -20, "d", "d"]
         )
@@ -434,7 +435,7 @@ def test_resubmit_tasks(BraketBackend):
     backend.submit_task.side_effect = list(map(str, range(12)))
 
     batch = (
-        start.add_position([(0, i * 6.1) for i in range(14)])
+        Chain(6, lattice_spacing=6.1)
         .rydberg.detuning.uniform.piecewise_linear(
             [0.1, 3.8, 0.1], [-20, -20, "d", "d"]
         )
@@ -481,7 +482,7 @@ def test_report(BraketBackend):
     backend.task_results.return_value = mock_results(14)
 
     batch = (
-        start.add_position([(0, i * 6.1) for i in range(14)])
+        Chain(6, lattice_spacing=6.1)
         .rydberg.detuning.uniform.piecewise_linear(
             [0.1, 3.8, 0.1], [-20, -20, "d", "d"]
         )

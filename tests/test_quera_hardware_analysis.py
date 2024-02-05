@@ -9,13 +9,15 @@ from bloqade.compiler.analysis.hardware.piecewise_constant import (
 from bloqade.compiler.analysis.hardware.channels import ValidateChannels
 from bloqade.ir import analog_circuit
 from bloqade.compiler.rewrite.common.add_padding import AddPadding
+from bloqade.compiler.analysis.hardware.lattice import BasicLatticeValidation
 
 import bloqade.ir.control.sequence as sequence
 import bloqade.ir.control.pulse as pulse
 import bloqade.ir.control.field as field
 import bloqade.ir.control.waveform as waveform
+import bloqade.ir.location as location
 
-from bloqade import piecewise_constant, piecewise_linear, var, start
+from bloqade import piecewise_constant, piecewise_linear, var, start, cast
 
 
 @waveform.to_waveform(1)
@@ -398,3 +400,42 @@ def test_sequence_sad_path():
 
     with pytest.raises(ValueError):
         constant.scan(p4)
+
+
+def test_lattice_validation():
+    from bloqade.submission.capabilities import get_capabilities
+
+    capabilities = get_capabilities()
+
+    spacing = cast(10)
+
+    lattice = location.Square(4, 4, lattice_spacing=10)
+    parallel_lattice = location.ParallelRegister(lattice, spacing)
+
+    BasicLatticeValidation(capabilities).visit(lattice)
+    BasicLatticeValidation(capabilities).visit(parallel_lattice)
+
+    lattice = location.Square(10, 4, lattice_spacing=10)
+    parallel_lattice = location.ParallelRegister(lattice, spacing)
+
+    with pytest.raises(ValueError):
+        BasicLatticeValidation(capabilities).visit(lattice)
+
+    with pytest.raises(ValueError):
+        BasicLatticeValidation(capabilities).visit(parallel_lattice)
+
+    lattice = location.Square(4, 10, lattice_spacing=10)
+    parallel_lattice = location.ParallelRegister(lattice, spacing)
+
+    with pytest.raises(ValueError):
+        BasicLatticeValidation(capabilities).visit(lattice)
+
+    with pytest.raises(ValueError):
+        BasicLatticeValidation(capabilities).visit(parallel_lattice)
+
+    capabilities.capabilities.lattice.geometry.number_sites_max = 10
+    lattice = location.Square(5, 5, lattice_spacing=5)
+    parallel_lattice = location.ParallelRegister(lattice, spacing)
+
+    with pytest.raises(ValueError):
+        BasicLatticeValidation(capabilities).visit(lattice)
