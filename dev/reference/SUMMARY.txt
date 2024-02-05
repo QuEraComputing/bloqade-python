@@ -33,6 +33,7 @@
                 * [scan_variables](bloqade/compiler/analysis/common/scan_variables.md)
             * [hardware](bloqade/compiler/analysis/hardware/index.md)
                 * [channels](bloqade/compiler/analysis/hardware/channels.md)
+                * [lattice](bloqade/compiler/analysis/hardware/lattice.md)
                 * [piecewise_constant](bloqade/compiler/analysis/hardware/piecewise_constant.md)
                 * [piecewise_linear](bloqade/compiler/analysis/hardware/piecewise_linear.md)
             * [python](bloqade/compiler/analysis/python/index.md)

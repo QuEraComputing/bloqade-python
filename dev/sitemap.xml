@@ -296,6 +296,11 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
+         <loc>https://bloqade.quera.com/dev/reference/bloqade/compiler/analysis/hardware/lattice/</loc>
+         <lastmod>2024-02-05</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
          <loc>https://bloqade.quera.com/dev/reference/bloqade/compiler/analysis/hardware/piecewise_constant/</loc>
          <lastmod>2024-02-05</lastmod>
          <changefreq>daily</changefreq>
