@@ -29,27 +29,27 @@ files = [
 
 [[package]]
 name = "amazon-braket-schemas"
-version = "1.19.1.post0"
-requires_python = ">= 3.8"
+version = "1.20.2"
+requires_python = ">= 3.9"
 summary = "An open source library that contains the schemas for Amazon Braket"
 groups = ["default"]
 dependencies = [
     "pydantic<2.0.0,>=1.8.2",
 ]
 files = [
-    {file = "amazon-braket-schemas-1.19.1.post0.tar.gz", hash = "sha256:d34126bcbca68d5b9370a1d001ffa24fd0875b9af82f01c15fc077d9595faad8"},
-    {file = "amazon_braket_schemas-1.19.1.post0-py3-none-any.whl", hash = "sha256:89dca740342e95947f1b38af689ff1ba4d2ad719a61db97ae8272021234f4186"},
+    {file = "amazon-braket-schemas-1.20.2.tar.gz", hash = "sha256:85005d9e241f2d512b71692b601af39655d3033845bab8303234313d12227201"},
+    {file = "amazon_braket_schemas-1.20.2-py3-none-any.whl", hash = "sha256:b3c5d70f3f1ee5100770fe087f1cc129c82974b90f2f0aee87960cefbd83fac0"},
 ]
 
 [[package]]
 name = "amazon-braket-sdk"
-version = "1.69.0"
+version = "1.69.1"
 requires_python = ">= 3.9"
 summary = "An open source library for interacting with quantum computing devices on Amazon Braket"
 groups = ["default"]
 dependencies = [
     "amazon-braket-default-simulator>=1.19.1",
-    "amazon-braket-schemas>=1.19.1",
+    "amazon-braket-schemas>=1.20.2",
     "backoff",
     "boltons",
     "boto3>=1.28.53",
@@ -64,8 +64,8 @@ dependencies = [
     "sympy",
 ]
 files = [
-    {file = "amazon-braket-sdk-1.69.0.tar.gz", hash = "sha256:1341019f3349200c7e5a7abf80481c91d9c90230f7268b81db51ff8383d3f241"},
-    {file = "amazon_braket_sdk-1.69.0-py3-none-any.whl", hash = "sha256:c63fd862e328d5691344b5a90d19947998290052f4fa70995fc476d75a446c30"},
+    {file = "amazon-braket-sdk-1.69.1.tar.gz", hash = "sha256:c2f97a7eb56b06b0ea3a17f436beffba08d528ed07eacec73ad20898a5548355"},
+    {file = "amazon_braket_sdk-1.69.1-py3-none-any.whl", hash = "sha256:011f8a9e2bd5b750b4a4c1fbe653fc629b84c87bcf4f4e7747a7a284bcbeafbf"},
 ]
 
 [[package]]
@@ -952,7 +952,7 @@ files = [
 
 [[package]]
 name = "ipykernel"
-version = "6.29.1"
+version = "6.29.2"
 requires_python = ">=3.8"
 summary = "IPython Kernel for Jupyter"
 groups = ["dev", "doc"]
@@ -972,8 +972,8 @@ dependencies = [
     "traitlets>=5.4.0",
 ]
 files = [
-    {file = "ipykernel-6.29.1-py3-none-any.whl", hash = "sha256:e5dfba210fc9da74a5dae8fa6c41f816e11bd18d10381b2517d9a0d57cc987c4"},
-    {file = "ipykernel-6.29.1.tar.gz", hash = "sha256:1547352b32da95a2761011a8dac2af930c26a0703dfa07690d16b7d74dac0ba1"},
+    {file = "ipykernel-6.29.2-py3-none-any.whl", hash = "sha256:50384f5c577a260a1d53f1f59a828c7266d321c9b7d00d345693783f66616055"},
+    {file = "ipykernel-6.29.2.tar.gz", hash = "sha256:3bade28004e3ff624ed57974948116670604ac5f676d12339693f3142176d3f0"},
 ]
 
 [[package]]
@@ -1859,7 +1859,7 @@ files = [
 
 [[package]]
 name = "mkdocs-material"
-version = "9.5.7"
+version = "9.5.8"
 requires_python = ">=3.8"
 summary = "Documentation that simply works"
 groups = ["doc"]
@@ -1877,8 +1877,8 @@ dependencies = [
     "requests~=2.26",
 ]
 files = [
-    {file = "mkdocs_material-9.5.7-py3-none-any.whl", hash = "sha256:0be8ce8bcfebb52bae9b00cf9b851df45b8a92d629afcfd7f2c09b2dfa155ea3"},
-    {file = "mkdocs_material-9.5.7.tar.gz", hash = "sha256:16110292575d88a338d2961f3cb665cf12943ff8829e551a9b364f24019e46af"},
+    {file = "mkdocs_material-9.5.8-py3-none-any.whl", hash = "sha256:14563314bbf97da4bfafc69053772341babfaeb3329cde01d3e63cec03997af8"},
+    {file = "mkdocs_material-9.5.8.tar.gz", hash = "sha256:2a429213e83f84eda7a588e2b186316d806aac602b7f93990042f7a1f3d3cf65"},
 ]
 
 [[package]]
