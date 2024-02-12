@@ -56,5 +56,5 @@ class Parse(ParseRegister, ParseSequence, ParseCircuit, ParseRoutine):
 
 
 class Show:
-    def show(self, batch_id: int = 0):
-        display_builder(self, batch_id)
+    def show(self, batch_id: int = 0, *args):
+        display_builder(self, batch_id, *args)

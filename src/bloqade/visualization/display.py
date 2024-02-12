@@ -87,8 +87,8 @@ def builder_figure(builder, batch_id, *args):
     return row(field, column(reg, div))
 
 
-def display_builder(builder, batch_id):
-    fig = builder_figure(builder, batch_id)
+def display_builder(builder, batch_id, *args):
+    fig = builder_figure(builder, batch_id, *args)
     show(fig)
 
 
