@@ -8,3 +8,5 @@ coverage:
       default:
         target: auto
         threshold: 4%
+codecov:
+ token: 3910fc22-c1a3-4da6-9a0f-a7cfcface6cb
