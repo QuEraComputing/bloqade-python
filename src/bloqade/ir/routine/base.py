@@ -33,11 +33,21 @@ class RoutineParse(Parse):
 
 
 class RoutineShow(Show):
-    def show(self: "RoutineBase", batch_index: int = 0):
+    def show(self: "RoutineBase", *args, batch_index: int = 0):
+        """Show an interactive plot of the routine.
+
+        batch_index: int
+            which parameter set out of the batch to use. Default is 0.
+            If there are no batch parameters, use 0.
+
+        *args: Any
+            Specify the parameters that are defined in the `.args([...])` build step.
+
+        """
         if self.source is None:
             raise ValueError("Cannot show a routine without a source Builder.")
 
-        return self.source.show(batch_index)
+        return self.source.show(*args, batch_id=batch_index)
 
 
 __pydantic_dataclass_config__ = ConfigDict(arbitrary_types_allowed=True)
