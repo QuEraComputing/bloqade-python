@@ -20,17 +20,15 @@ def _import_submodules(package, recursive=True):
     if isinstance(package, str):
         package = importlib.import_module(package)
 
-    results = {}
     for loader, name, is_pkg in pkgutil.walk_packages(package.__path__):
         full_name = package.__name__ + "." + name
+        print(full_name, is_pkg)
         try:
-            results[full_name] = importlib.import_module(full_name)
+            importlib.import_module(full_name)
         except ModuleNotFoundError:
             continue
         if recursive and is_pkg:
-            results.update(_import_submodules(full_name))
-
-    return results
+            _import_submodules(full_name)
 
 
 def load_bloqade():
