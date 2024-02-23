@@ -8,7 +8,7 @@ import pytest
 def test_batch_error(*args):
     with pytest.raises(RemoteBatch.SubmissionException):
         (
-            Chain(5, 6.1)
+            Chain(5, lattice_spacing=6.1)
             .rydberg.detuning.uniform.linear(-10, 10, 3.0)
             .quera.mock(submission_error=True)
             .run_async(100)
@@ -28,7 +28,7 @@ def test_batch_error(*args):
 def test_batch_warn():
     with pytest.warns():
         (
-            Chain(5, 6.1)
+            Chain(5, lattice_spacing=6.1)
             .rydberg.detuning.uniform.linear(-10, 10, 3.0)
             .quera.mock(submission_error=True)
             .run_async(100, ignore_submission_error=True)

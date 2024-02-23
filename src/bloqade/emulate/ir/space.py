@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from numpy.typing import NDArray
-from typing import TYPE_CHECKING
+from beartype.typing import TYPE_CHECKING
 import numpy as np
 from enum import Enum
 

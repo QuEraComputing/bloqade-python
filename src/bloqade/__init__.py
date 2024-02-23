@@ -1,3 +1,8 @@
+try:
+    __import__("pkg_resources").declare_namespace(__name__)
+except ImportError:
+    __path__ = __import__("pkgutil").extend_path(__path__, __name__)
+
 from bloqade.ir import var, cast, Variable, Literal, start
 from bloqade.ir import to_waveform as waveform
 from bloqade.serialize import load, save, loads, dumps
@@ -31,8 +36,8 @@ def tree_depth(depth: int = None):
         int: current updated depth
     """
     if depth is not None:
-        _ir.tree_print.max_tree_depth = depth
-    return _ir.tree_print.max_tree_depth
+        _ir.tree_print.MAX_TREE_DEPTH = depth
+    return _ir.tree_print.MAX_TREE_DEPTH
 
 
 __all__ = [

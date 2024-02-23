@@ -96,7 +96,7 @@ class BraketTask(RemoteTask):
 
     def status(self) -> QuEraTaskStatusCode:
         if self.task_id is None:
-            return QuEraTaskStatusCode.Unaccepted
+            return QuEraTaskStatusCode.Unsubmitted
 
         return self.backend.task_status(self.task_id)
 
@@ -138,9 +138,9 @@ def _serialize(obj: BraketTask) -> Dict[str, Any]:
         "backend": obj.backend.dict(),
         "task_ir": obj.task_ir.dict(exclude_none=True, by_alias=True),
         "metadata": obj.metadata,
-        "parallel_decoder": obj.parallel_decoder.dict()
-        if obj.parallel_decoder
-        else None,
+        "parallel_decoder": (
+            obj.parallel_decoder.dict() if obj.parallel_decoder else None
+        ),
         "task_result_ir": obj.task_result_ir.dict() if obj.task_result_ir else None,
     }
 

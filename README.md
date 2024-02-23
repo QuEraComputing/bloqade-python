@@ -32,6 +32,10 @@ Bloqade makes writing analog quantum programs for neutral atom quantum computers
 
 Our interface is designed to guide our users through the process of defining an analog quantum program as well as different methods to run the program, whether it be real quantum hardware or an emulator. Bloqade also provides a simple interface for analyzing the results of the program, whether it is a single run, a batch of runs, or even some types of hybrid quantum-classical algorithms.
 
+## Direct feedback
+
+In order to better understand more about Bloqade users we would kindly ask that you take a few minutes fill out our online survey [here](https://share.hsforms.com/1FJjYan2VQC6NfrQ5IPAcewdrwvd).
+
 ## Installation
 
 You can install the package with `pip` in your Python environment of choice via:
@@ -81,7 +85,7 @@ adiabatic_durations = [0.4, 3.2, 0.4]
 max_detuning = var("max_detuning")
 # ...or implicitly inside the program definition.
 adiabatic_program = (
-    Square(3, "lattice_spacing")
+    Square(3, lattice_spacing="lattice_spacing")
     .rydberg.rabi.amplitude.uniform.piecewise_linear(
         durations=adiabatic_durations, values=[0.0, "max_rabi", "max_rabi", 0.0]
     )
@@ -127,42 +131,51 @@ Feel free to let your waveforms grow to your liking too!:
 from bloqade import start
 
 # Save your intermediate steps any way you like
-initial_geometry = start.add_position((0,0))
+initial_geometry = start.add_position((0, 0))
 target_rabi_wf = initial_geometry.rydberg.rabi.amplitude.uniform
-program_1 = target_rabi_wf.piecewise_linear(durations = [0.4, 2.1, 0.4], values = [0, 15.8, 15.8, 0])
+program_1 = target_rabi_wf.piecewise_linear(
+    durations=[0.4, 2.1, 0.4], values=[0, 15.8, 15.8, 0]
+)
 # Tinker with new ideas in a snap
-program_2 = target_rabi_wf.piecewise_linear(durations = [0.5, 1.0, 0.5], values = [0, 10.0, 11.0, 0]).constant(duration = 0.4, value = 5.1)
+program_2 = target_rabi_wf.piecewise_linear(
+    durations=[0.5, 1.0, 0.5], values=[0, 10.0, 11.0, 0]
+).constant(duration=0.4, value=5.1)
 
 ```
 
 Want to focus on building one part of your program first before others (or, just want that same Bloqade.jl flavor?) We've got you covered:
 
 ```python
-from bloqade import piecewise_linear
+from bloqade import piecewise_linear, var
 from bloqade.ir.location import Square
+import numpy as np
 
 # Create a geometry without worrying about pulses yet
-square_lattice = Square(3, "lattice_spacing")
+square_lattice = Square(3, lattice_spacing="lattice_spacing")
 
 # Develop your waveforms any way you like
 
 adiabatic_durations = [0.8, 2.4, 0.8]
-separate_rabi_amp_wf = piecewise_linear(durations = adiabatic_durations, values = [0.0, "max_rabi", "max_rabi", 0.0])
+separate_rabi_amp_wf = piecewise_linear(
+    durations=adiabatic_durations, values=[0.0, "max_rabi", "max_rabi", 0.0]
+)
 
 max_detuning = var("max_detuning")
-separate_rabi_detuning = piecewise_linear(durations = adiabatic_durations, values = [-max_detuning, -max_detuning, max_detuning, max_detuning])
+separate_rabi_detuning = piecewise_linear(
+    durations=adiabatic_durations,
+    values=[-max_detuning, -max_detuning, max_detuning, max_detuning],
+)
 
 # Now bring it all together!
 # And why not sprinkle in some parameter sweeps for fun?
 full_program = (
-    square_lattice.rydberg.rabi.amplitude.uniform
-    .apply(separate_rabi_amp_wf)
-    .detuning.uniform
-    .apply(separate_rabi_detuning)
-    .assign(max_rabi = 15.8,
-            max_detuning = 16.33)
-    .batch_assign(lattice_spacing = np.arange(4.0, 7.0, 0.5),
-                  max_rabi = np.linspace(2 * np.pi * 0.5, 2 * np.pi * 2.5, 6))
+    square_lattice.rydberg.rabi.amplitude.uniform.apply(separate_rabi_amp_wf)
+    .detuning.uniform.apply(separate_rabi_detuning)
+    .assign(max_rabi=15.8, max_detuning=16.33)
+    .batch_assign(
+        lattice_spacing=np.arange(4.0, 7.0, 0.5),
+        max_rabi=np.linspace(2 * np.pi * 0.5, 2 * np.pi * 2.5, 6),
+    )
 )
 ```
 

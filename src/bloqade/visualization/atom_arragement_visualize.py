@@ -24,7 +24,7 @@ def get_atom_arrangement_figure(atom_arng_ir, fig_kwargs=None, **assignments):
         y_min = min(y, y_min)
         x_max = max(x, x_max)
         y_max = max(y, y_max)
-        if location_info.filling is ir_loc.base.SiteFilling.filled:
+        if location_info.filling is ir_loc.location.SiteFilling.filled:
             xs_filled.append(x)
             ys_filled.append(y)
             labels_filled.append(idx)

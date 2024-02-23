@@ -1,38 +1,88 @@
-from bloqade.codegen.common.json import WaveformSerializer, BloqadeIRDeserializer
+from functools import cached_property
+from bloqade.compiler.codegen.common.json import (
+    BloqadeIRSerializer,
+    BloqadeIRDeserializer,
+)
 from bloqade.serialize import Serializer
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Any, Dict, List, Tuple, Optional
+from typing import Any, Dict, List, Tuple, Optional, Callable
 from enum import Enum
 from bloqade.ir.control.waveform import Waveform
 from bloqade.emulate.ir.atom_type import AtomType
 
 
-@dataclass(frozen=True)
+class WaveformRuntime(str, Enum):
+    Python = "python"
+    Numba = "numba"
+    Interpret = "interpret"
+
+
+@dataclass
 @Serializer.register
-class CompiledWaveform:
+class JITWaveform:
     assignments: Dict[str, Decimal]
     source: Waveform
+    runtime: WaveformRuntime = WaveformRuntime.Interpret
 
-    def __call__(self, t: float) -> float:
-        return self.source(t, **self.assignments)
+    @cached_property
+    def canonicalized_ir(self):
+        from bloqade.compiler.rewrite.common import (
+            AssignBloqadeIR,
+            AssignToLiteral,
+            Canonicalizer,
+        )
+        from bloqade.compiler.rewrite.python.waveform import NormalizeWaveformPython
+        from bloqade.compiler.analysis.common import AssignmentScan, ScanVariables
+
+        assignments = AssignmentScan(self.assignments).scan(self.source)
+        ast_assigned = AssignBloqadeIR(assignments).emit(self.source)
+        scan = ScanVariables().scan(ast_assigned)
+
+        if not scan.is_assigned:
+            missing_vars = scan.scalar_vars.union(scan.vector_vars)
+            raise ValueError(
+                "Missing assignments for variables:\n"
+                + ("\n".join(f"{var}" for var in missing_vars))
+                + "\n"
+            )
+
+        ast_normalized = NormalizeWaveformPython().visit(ast_assigned)
+        ast_literal = AssignToLiteral().visit(ast_normalized)
+        ast_canonicalized = Canonicalizer().visit(ast_literal)
+
+        return ast_canonicalized
+
+    def emit(self) -> Callable[[float], float]:
+        from bloqade.compiler.analysis.python.waveform import WaveformScan
+        from bloqade.compiler.codegen.python.waveform import CodegenPythonWaveform
+
+        if self.runtime is WaveformRuntime.Interpret:
+            return self.canonicalized_ir
+
+        scan_results = WaveformScan().scan(self.canonicalized_ir)
+        stub = CodegenPythonWaveform(
+            scan_results, jit_compiled=self.runtime is WaveformRuntime.Numba
+        ).compile(self.canonicalized_ir)
+
+        return stub
 
 
-@CompiledWaveform.set_serializer
-def _serialize(obj: CompiledWaveform) -> Dict[str, Any]:
+@JITWaveform.set_serializer
+def _serialize(obj: JITWaveform) -> Dict[str, Any]:
     return {
         "assignments": obj.assignments,
-        "source": WaveformSerializer().default(obj.source),
+        "source": BloqadeIRSerializer().default(obj.source),
     }
 
 
-@CompiledWaveform.set_deserializer
-def _deserializer(d: Dict[str, Any]) -> CompiledWaveform:
+@JITWaveform.set_deserializer
+def _deserializer(d: Dict[str, Any]) -> JITWaveform:
     from json import loads, dumps
 
     source_str = dumps(d["source"])
     d["source"] = loads(source_str, object_hook=BloqadeIRDeserializer.object_hook)
-    return CompiledWaveform(**d)
+    return JITWaveform(**d)
 
 
 class RabiOperatorType(int, Enum):
@@ -50,12 +100,18 @@ class RabiOperatorData:
         return hash(self.operator_type) ^ hash(frozenset(self.target_atoms.items()))
 
 
-@dataclass(frozen=True)
+@RabiOperatorData.set_deserializer
+def _deserializer(d: Dict[str, Any]) -> RabiOperatorData:
+    d["target_atoms"] = {int(k): v for k, v in d["target_atoms"].items()}
+    return RabiOperatorData(**d)
+
+
+@dataclass
 @Serializer.register
 class RabiTerm:
     operator_data: RabiOperatorData
-    amplitude: CompiledWaveform
-    phase: Optional[CompiledWaveform] = None
+    amplitude: JITWaveform
+    phase: Optional[JITWaveform] = None
 
 
 @dataclass(frozen=True)
@@ -67,14 +123,20 @@ class DetuningOperatorData:
         return hash(frozenset(self.target_atoms.items()))
 
 
-@dataclass(frozen=True)
+@DetuningOperatorData.set_deserializer
+def _deserializer(d: Dict[str, Any]) -> DetuningOperatorData:
+    d["target_atoms"] = {int(k): v for k, v in d["target_atoms"].items()}
+    return DetuningOperatorData(**d)
+
+
+@dataclass
 @Serializer.register
 class DetuningTerm:
     operator_data: DetuningOperatorData
-    amplitude: CompiledWaveform
+    amplitude: JITWaveform
 
 
-@dataclass(frozen=True)
+@dataclass
 @Serializer.register
 class Fields:
     detuning: List[DetuningTerm]
@@ -120,12 +182,19 @@ class Register:
             )
 
 
+@Register.set_deserializer
+def _deserializer(d: Dict[str, Any]) -> Register:
+    d["sites"] = [tuple(map(Decimal, map(str, site))) for site in d["sites"]]
+
+    return Register(**d)
+
+
 class LevelCoupling(str, Enum):
     Rydberg = "rydberg"
     Hyperfine = "hyperfine"
 
 
-@dataclass(frozen=True)
+@dataclass
 @Serializer.register
 class EmulatorProgram:
     register: Register
@@ -133,47 +202,53 @@ class EmulatorProgram:
     pulses: Dict[LevelCoupling, Fields]
 
 
+@EmulatorProgram.set_deserializer
+def _deserializer(d: Dict[str, Any]) -> EmulatorProgram:
+    d["duration"] = float(d["duration"])
+    return EmulatorProgram(**d)
+
+
 class Visitor:
-    def visit_emulator_program(self, ast: EmulatorProgram) -> Any:
+    def visit_emulator_program(self, node: EmulatorProgram) -> Any:
         raise NotImplementedError
 
-    def visit_compiled_waveform(self, ast: CompiledWaveform) -> Any:
+    def visit_compiled_waveform(self, node: JITWaveform) -> Any:
         raise NotImplementedError
 
-    def visit_fields(self, ast: Fields) -> Any:
+    def visit_fields(self, node: Fields) -> Any:
         raise NotImplementedError
 
-    def visit_detuning_operator_data(self, ast: DetuningOperatorData) -> Any:
+    def visit_detuning_operator_data(self, node: DetuningOperatorData) -> Any:
         raise NotImplementedError
 
-    def visit_rabi_operator_data(self, ast: RabiOperatorData) -> Any:
+    def visit_rabi_operator_data(self, node: RabiOperatorData) -> Any:
         raise NotImplementedError
 
-    def visit_detuning_term(self, ast: DetuningTerm) -> Any:
+    def visit_detuning_term(self, node: DetuningTerm) -> Any:
         raise NotImplementedError
 
-    def visit_rabi_term(self, ast: RabiTerm) -> Any:
+    def visit_rabi_term(self, node: RabiTerm) -> Any:
         raise NotImplementedError
 
-    def visit_register(self, ast: Register) -> Any:
+    def visit_register(self, node: Register) -> Any:
         raise NotImplementedError
 
-    def visit(self, ast) -> Any:
-        if isinstance(ast, EmulatorProgram):
-            return self.visit_emulator_program(ast)
-        elif isinstance(ast, Register):
-            return self.visit_register(ast)
-        elif isinstance(ast, Fields):
-            return self.visit_fields(ast)
-        elif isinstance(ast, RabiTerm):
-            return self.visit_rabi_term(ast)
-        elif isinstance(ast, DetuningTerm):
-            return self.visit_detuning_term(ast)
-        elif isinstance(ast, RabiOperatorData):
-            return self.visit_rabi_operator_data(ast)
-        elif isinstance(ast, DetuningOperatorData):
-            return self.visit_detuning_operator_data(ast)
-        elif isinstance(ast, CompiledWaveform):
-            return self.visit_compiled_waveform(ast)
+    def visit(self, node) -> Any:
+        if isinstance(node, EmulatorProgram):
+            return self.visit_emulator_program(node)
+        elif isinstance(node, Register):
+            return self.visit_register(node)
+        elif isinstance(node, Fields):
+            return self.visit_fields(node)
+        elif isinstance(node, RabiTerm):
+            return self.visit_rabi_term(node)
+        elif isinstance(node, DetuningTerm):
+            return self.visit_detuning_term(node)
+        elif isinstance(node, RabiOperatorData):
+            return self.visit_rabi_operator_data(node)
+        elif isinstance(node, DetuningOperatorData):
+            return self.visit_detuning_operator_data(node)
+        elif isinstance(node, JITWaveform):
+            return self.visit_compiled_waveform(node)
         else:
-            raise NotImplementedError(f"Unknown AST node type {type(ast)}: {ast!r}")
+            raise NotImplementedError(f"Unknown AST node type {type(node)}: {node!r}")
