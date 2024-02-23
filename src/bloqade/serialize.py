@@ -22,7 +22,6 @@ def _import_submodules(package, recursive=True):
 
     for loader, name, is_pkg in pkgutil.walk_packages(package.__path__):
         full_name = package.__name__ + "." + name
-        print(full_name, is_pkg)
         try:
             importlib.import_module(full_name)
         except ModuleNotFoundError:
