@@ -55,10 +55,11 @@ class Location(SpatialModulation):
         parent: Optional[Builder] = None,
     ) -> None:
         from bloqade.ir.scalar import cast
+        from bloqade.ir.control.field import Location
 
         super().__init__(parent)
         self._scaled_locations = {
-            label: cast(scale) for label, scale in zip(labels, scales)
+            Location(label): cast(scale) for label, scale in zip(labels, scales)
         }
 
     def __bloqade_ir__(self) -> "ScaledLocations":

@@ -2,6 +2,9 @@ from IPython.lib.pretty import PrettyPrinter as PP
 from bloqade.ir import Linear, Poly
 from io import StringIO
 from bloqade.ir.tree_print import Printer
+import bloqade.ir.tree_print as trp
+
+trp.color_enabled = False
 
 
 def test_printer():
@@ -99,18 +102,18 @@ def test_printer_nodes_compose_all():
         + "│     ⇒ Literal: 1\n"
         + "└─ +\n"
         + "   ├─ Slice\n"
-        + "   │  ├─ Poly\n"
-        + "   │  │  ├─ b\n"
-        + "   │  │  │  ⇒ Literal: 1\n"
-        + "   │  │  ├─ t\n"
-        + "   │  │  │  ⇒ Literal: 2\n"
-        + "   │  │  ├─ t^2\n"
-        + "   │  │  │  ⇒ Literal: 3\n"
-        + "   │  │  └─ duration\n"
-        + "   │  │     ⇒ Literal: 1\n"
-        + "   │  └─ Interval\n"
-        + "   │     └─ stop\n"
-        + "   │        ⇒ Literal: 0.5\n"
+        + "   │  ├─ Interval\n"
+        + "   │  │  └─ stop\n"
+        + "   │  │     ⇒ Literal: 0.5\n"
+        + "   │  └─ Poly\n"
+        + "   │     ├─ b\n"
+        + "   │     │  ⇒ Literal: 1\n"
+        + "   │     ├─ t\n"
+        + "   │     │  ⇒ Literal: 2\n"
+        + "   │     ├─ t^2\n"
+        + "   │     │  ⇒ Literal: 3\n"
+        + "   │     └─ duration\n"
+        + "   │        ⇒ Literal: 1\n"
         + "   └─ Linear\n"
         + "      ├─ start\n"
         + "      │  ⇒ Literal: 0\n"

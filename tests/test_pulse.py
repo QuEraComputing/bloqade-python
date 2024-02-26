@@ -1,9 +1,11 @@
+from collections import OrderedDict
 from bloqade.ir import Field, Uniform, Linear, Pulse, NamedPulse, detuning, rabi
 from bloqade.ir import Interval
 from bloqade import cast
 import pytest
 from io import StringIO
 from IPython.lib.pretty import PrettyPrinter as PP
+from bloqade.ir.control import pulse
 from bloqade.ir.control.pulse import (
     FieldName,
     RabiFrequencyAmplitude,
@@ -88,13 +90,16 @@ def test_pulse():
 
     ## make pulse, invalid field:
     with pytest.raises(TypeError):
-        Pulse({Uniform: 1.0})
+        Pulse.create({Uniform: 1.0})
 
     ## make pulse:
     ps1 = Pulse({detuning: f})
 
     assert ps1.print_node() == "Pulse"
     assert ps1.children() == {"Detuning": f}
+    assert ps1.duration == cast(3.0)
+
+    assert hash(ps1) == hash(Pulse) ^ hash(frozenset([(detuning, f)]))
 
     mystdout = StringIO()
     p = PP(mystdout)
@@ -124,9 +129,11 @@ def test_named_pulse():
     ps1 = Pulse({detuning: f})
     ps = NamedPulse("qq", ps1)
 
-    assert ps.children() == {"Name": "qq", "Pulse": ps1}
-
+    assert ps.children() == OrderedDict([("name", "qq"), ("pulse", ps1)])
     assert ps.print_node() == "NamedPulse"
+    assert ps.duration == cast(3.0)
+
+    assert hash(ps) == hash(NamedPulse) ^ hash(ps.name) ^ hash(ps.pulse)
 
     mystdout = StringIO()
     p = PP(mystdout)
@@ -135,9 +142,9 @@ def test_named_pulse():
 
     assert (
         mystdout.getvalue() == "NamedPulse\n"
-        "├─ Name\n"
+        "├─ name\n"
         "│  ⇒ qq\n"
-        "└─ Pulse\n"
+        "└─ pulse\n"
         "   ⇒ Pulse\n"
         "     └─ Detuning\n"
         "        ⇒ Field\n"
@@ -161,10 +168,12 @@ def test_slice_pulse():
     itvl = Interval(cast(0), cast(1.5))
 
     ## invoke slice
-    ps = ps1.slice(itvl)
+    ps = ps1[itvl.start : itvl.stop]
 
     assert ps.print_node() == "Slice"
-    assert ps.children() == {"Pulse": ps1, "Interval": itvl}
+    assert ps.children() == [itvl, ps1]
+    assert ps.duration == cast(3.0)[itvl.start : itvl.stop]
+    assert hash(ps) == hash(pulse.Slice) ^ hash(ps.pulse) ^ hash(ps.interval)
 
     mystdout = StringIO()
     p = PP(mystdout)
@@ -173,27 +182,25 @@ def test_slice_pulse():
 
     assert (
         mystdout.getvalue() == "Slice\n"
-        "├─ Pulse\n"
-        "│  ⇒ Pulse\n"
-        "│    └─ Detuning\n"
-        "│       ⇒ Field\n"
-        "│         └─ Drive\n"
-        "│            ├─ modulation\n"
-        "│            │  ⇒ UniformModulation\n"
-        "│            └─ waveform\n"
-        "│               ⇒ Linear\n"
-        "│                 ├─ start\n"
-        "│                 │  ⇒ Literal: 1.0\n"
-        "│                 ├─ stop\n"
-        "│                 │  ⇒ Variable: x\n"
-        "│                 └─ duration\n"
-        "│                    ⇒ Literal: 3.0\n"
-        "└─ Interval\n"
-        "   ⇒ Interval\n"
-        "     ├─ start\n"
-        "     │  ⇒ Literal: 0\n"
-        "     └─ stop\n"
-        "        ⇒ Literal: 1.5"
+        "├─ Interval\n"
+        "│  ├─ start\n"
+        "│  │  ⇒ Literal: 0\n"
+        "│  └─ stop\n"
+        "│     ⇒ Literal: 1.5\n"
+        "└─ Pulse\n"
+        "   └─ Detuning\n"
+        "      ⇒ Field\n"
+        "        └─ Drive\n"
+        "           ├─ modulation\n"
+        "           │  ⇒ UniformModulation\n"
+        "           └─ waveform\n"
+        "              ⇒ Linear\n"
+        "                ├─ start\n"
+        "                │  ⇒ Literal: 1.0\n"
+        "                ├─ stop\n"
+        "                │  ⇒ Variable: x\n"
+        "                └─ duration\n"
+        "                   ⇒ Literal: 3.0"
     )
 
 
@@ -205,11 +212,14 @@ def test_append_pulse():
     ps = ps1.append(ps1)
 
     assert ps.children() == [ps1, ps1]
+    assert ps.print_node() == "Append"
+    assert ps.duration == cast(6.0)
+    assert hash(ps) == hash(pulse.Append) ^ hash(tuple(ps.pulses))
 
     mystdout = StringIO()
     p = PP(mystdout)
 
-    ps._repr_pretty_(p, 10)
+    ps._repr_pretty_(p, 12)
     print(repr(mystdout.getvalue()))
     assert (
         mystdout.getvalue() == "Append\n"

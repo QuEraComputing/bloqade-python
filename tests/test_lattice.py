@@ -1,10 +1,13 @@
+from decimal import Decimal
 import bloqade.ir as ir
-from bloqade.ir.location import ListOfLocations, AtomArrangement
+from bloqade.ir.location import ListOfLocations, AtomArrangement, ParallelRegister
 from bloqade.ir.location import Square
 from bloqade.constants import RB_C6
 from bloqade import cast
 import pytest
 import numpy as np
+
+from bloqade.submission.capabilities import get_capabilities
 
 
 def test_rydberg_interactions():
@@ -113,3 +116,18 @@ def test_internal_base_listofloc():
 
     with pytest.raises(NotImplementedError):
         lattice.n_dims
+
+
+def test_parallel_register():
+    lat = ListOfLocations([(0, 0)])
+    reg = ParallelRegister(lat, cast(5))
+
+    capabilities = get_capabilities()
+    capabilities.capabilities.lattice.area.width = Decimal("1e-5")
+    capabilities.capabilities.lattice.area.height = Decimal("1e-5")
+
+    list_of_locations = reg._compile_to_list(capabilities)
+    expected = ListOfLocations().add_position(
+        [(0, 0), (0, 5), (0, 10), (5, 0), (5, 5), (5, 10), (10, 0), (10, 5), (10, 10)]
+    )
+    assert set(expected.enumerate()) == set(list_of_locations.enumerate())

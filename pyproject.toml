@@ -1,6 +1,6 @@
 [project]
 name = "bloqade"
-version = "0.10.0"
+version = "0.15.6"
 description = "Neutral atom software development kit"
 authors = [
     {name = "QuEra Computing Inc.", email = "info@quera.com"},
@@ -95,8 +95,10 @@ dev = [
     "jupytext>=1.14.5",
     "pytest-recording>=0.12.2",
     "vcrpy==4.4.0",
-    "pyinstrument>=4.5.3",
+    "pyinstrument>=4.6.1",
     "scikit-optimize>=0.9.0",
+    "matplotlib>=3.8.1",
+    "icecream>=2.1.3",
 ]
 
 [tool.pdm.scripts]
@@ -106,7 +108,7 @@ build = {cmd = "pdm build"}
 publish = {composite = ["build", "upload"]}
 test = {shell = "git clean -f && pytest tests"}
 coverage = {shell = "git clean -f && coverage run -m pytest tests/ && coverage xml && coverage report"}
-coverage-html = {shell = "git clean -f && coverage run -m pytest tests/ && coverage html && open htmlcov/index.html"}
+coverage-html = {shell = "git clean -f && coverage run -m pytest -x -vv tests/ && coverage html && open htmlcov/index.html"}
 doc = {cmd = "mkdocs serve"}
 doc_build = {cmd = "mkdocs build"}
 doc_deploy = {cmd = "pdm mike deploy --push --update-aliases dev"}

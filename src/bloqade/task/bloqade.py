@@ -36,6 +36,10 @@ class BloqadeTask(LocalTask):
     def result(self) -> QuEraTaskResults:
         return self.task_result_ir
 
+    @property
+    def nshots(self) -> int:
+        return self.shots
+
     def run(
         self,
         solver_name: str = "dop853",

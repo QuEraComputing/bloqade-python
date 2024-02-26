@@ -66,7 +66,7 @@ def liner(txt):
     return f"<p>{txt}</p>"
 
 
-def builder_figure(builder, batch_id):
+def builder_figure(builder, batch_id, *args):
     from bloqade.builder.parse.builder import Parser
 
     routine = Parser().parse(builder)
@@ -74,8 +74,8 @@ def builder_figure(builder, batch_id):
     analog_circ = routine.circuit
     metas = routine.params
 
-    kwargs = metas.static_params
-    kwargs.update(metas.batch_params[batch_id])
+    batch_params = metas.batch_assignments(*args)
+    kwargs = batch_params[batch_id]
 
     out = "<p>Assignments: </p>"
     for key, val in kwargs.items():
@@ -87,8 +87,8 @@ def builder_figure(builder, batch_id):
     return row(field, column(reg, div))
 
 
-def display_builder(builder, batch_id):
-    fig = builder_figure(builder, batch_id)
+def display_builder(builder, batch_id, *args):
+    fig = builder_figure(builder, batch_id, *args)
     show(fig)
 
 

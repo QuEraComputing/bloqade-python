@@ -122,3 +122,53 @@ def from_braket_status_codes(braket_message: str) -> QuEraTaskStatusCode:
         return QuEraTaskStatusCode.Enqueued
     else:
         return QuEraTaskStatusCode(braket_message.lower().capitalize())
+
+
+def to_quera_capabilities(paradigm):
+    import bloqade.submission.ir.capabilities as cp
+
+    rydberg_global = paradigm.rydberg.rydbergGlobal
+
+    return cp.QuEraCapabilities(
+        version=paradigm.braketSchemaHeader.version,
+        capabilities=cp.DeviceCapabilities(
+            task=cp.TaskCapabilities(
+                number_shots_min=1,
+                number_shots_max=1000,
+            ),
+            lattice=cp.LatticeCapabilities(
+                number_qubits_max=paradigm.qubitCount,
+                geometry=cp.LatticeGeometryCapabilities(
+                    spacing_radial_min=paradigm.lattice.geometry.spacingRadialMin,
+                    spacing_vertical_min=paradigm.lattice.geometry.spacingVerticalMin,
+                    position_resolution=paradigm.lattice.geometry.positionResolution,
+                    number_sites_max=paradigm.lattice.geometry.numberSitesMax,
+                ),
+                area=cp.LatticeAreaCapabilities(
+                    width=paradigm.lattice.area.width,
+                    height=paradigm.lattice.area.height,
+                ),
+            ),
+            rydberg=cp.RydbergCapabilities(
+                c6_coefficient=paradigm.rydberg.c6Coefficient,
+                global_=cp.RydbergGlobalCapabilities(
+                    rabi_frequency_max=rydberg_global.rabiFrequencyRange[0],
+                    rabi_frequency_min=rydberg_global.rabiFrequencyRange[1],
+                    rabi_frequency_resolution=rydberg_global.rabiFrequencyResolution,
+                    rabi_frequency_slew_rate_max=rydberg_global.rabiFrequencySlewRateMax,
+                    detuning_max=rydberg_global.detuningRange[0],
+                    detuning_min=rydberg_global.detuningRange[1],
+                    detuning_resolution=rydberg_global.detuningResolution,
+                    detuning_slew_rate_max=rydberg_global.detuningSlewRateMax,
+                    phase_min=rydberg_global.phaseRange[0],
+                    phase_max=rydberg_global.phaseRange[1],
+                    phase_resolution=rydberg_global.phaseResolution,
+                    time_min=rydberg_global.timeMin,
+                    time_max=rydberg_global.timeMax,
+                    time_resolution=rydberg_global.timeResolution,
+                    time_delta_min=rydberg_global.timeDeltaMin,
+                ),
+                local=None,
+            ),
+        ),
+    )

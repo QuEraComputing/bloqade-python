@@ -1,0 +1,15 @@
+on:
+  schedule:
+    - cron: '0 0 * * 0'
+
+name: Check markdown links
+jobs:
+  my-broken-link-checker:
+    name: Check broken links
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check
+        uses: ruzickap/action-my-broken-link-checker@v2
+        with:
+          url: https://bloqade.quera.com
+          cmd_params: "--buffer-size=8192 --exclude='https://github.com/QuEraComputing/bloqade-python/edit/' --exclude='https://fonts.gstatic.com'"

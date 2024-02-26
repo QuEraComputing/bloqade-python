@@ -167,6 +167,14 @@ class Printer:
         if color_enabled:
             if isinstance(node, ir.Variable):
                 node_str = self.colorcode.set_color(self.colorcode.CBLUE2, node_str)
+            elif isinstance(node, ir.scalar.AssignedVariable):
+                node_str = self.colorcode.set_color(self.colorcode.CGREEN2, node_str)
+            elif isinstance(node, ir.RunTimeVector):
+                node_str = self.colorcode.set_color(self.colorcode.CBLUE2, node_str)
+            elif isinstance(node, ir.AssignedRunTimeVector):
+                node_str = self.colorcode.set_color(self.colorcode.CGREEN, node_str)
+            elif isinstance(node, ir.Literal):
+                node_str = self.colorcode.set_color(self.colorcode.CYELLOW2, node_str)
 
         for i, line in enumerate(node_str.split("\n")):
             i != 0 and print(self.state.prefix)
@@ -187,13 +195,32 @@ class Printer:
         else:
             children = list(children)
 
-        while not len(children) == 0:
+        list_depth = 0
+        trunc_list_print = False
+        printed_list_trunc = False
+
+        trunc_list_depth = len(children) > 2 * MAX_TREE_DEPTH
+
+        while children:
             child_prefix = self.state.prefix
             if this_print_annotation:
                 annotation, child = children.pop(0)
             else:
                 child = children.pop(0)
                 annotation = None
+
+            list_depth += 1
+            trunc_list_print = trunc_list_depth and (
+                list_depth > MAX_TREE_DEPTH and len(children) >= MAX_TREE_DEPTH
+            )
+
+            if trunc_list_print:
+                if not printed_list_trunc:
+                    self.p.text(self.charset.trunc)
+                    self.p.text("\n")
+                    printed_list_trunc = True
+
+                continue
 
             self.p.text(self.state.prefix)
 
@@ -203,12 +230,10 @@ class Printer:
                     len(self.charset.skip) + len(self.charset.dash) + 1
                 )
 
-                if self.state.depth > 0 and self.state.last:
-                    is_last_leaf_child = True
-                elif self.state.depth == 0:
-                    is_last_leaf_child = True
-                else:
-                    is_last_leaf_child = False
+                is_last_leaf_child = (
+                    self.state.depth > 0 and self.state.last or self.state.depth == 0
+                )
+
             else:
                 self.p.text(self.charset.mid)
                 child_prefix += self.charset.skip + " " * (len(self.charset.dash) + 1)

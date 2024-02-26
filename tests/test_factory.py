@@ -23,7 +23,8 @@ from bloqade.ir import (
     Uniform,
 )
 from bloqade.ir.routine.base import Routine
-from bloqade.ir.routine.params import Params
+from bloqade.ir.routine.params import Params, ScalarArg
+
 import numpy as np
 from decimal import Decimal
 
@@ -198,7 +199,8 @@ def test_rydberg_h():
     )
 
     circuit = AnalogCircuit(register, sequence)
-    params = Params(static_params, batch_params, args)
+    args_list = tuple([ScalarArg(arg) for arg in args])
+    params = Params(register.n_sites, static_params, batch_params, args_list)
     expected_routine = Routine(source, circuit, params)
 
     # ignore because no equality implemented
@@ -236,3 +238,24 @@ def test_rydberg_h_2():
     print(AnalogCircuit(register, sequence))
 
     assert prog.parse_circuit() == AnalogCircuit(register, sequence)
+
+
+def test_rydberg_h_3():
+    from bloqade.atom_arrangement import Square
+
+    atom_pos = Square(4, lattice_spacing=5.0)
+
+    # dynamics
+    durations = [0.15, 3.7, 0.15]
+    delta_MHz = [-13.0, -13.0, 11.0, 11.0]
+    omega_MHz = [0.0, 2.5, 2.5, 0.0]
+
+    Delta = piecewise_linear(durations, [x * 2 * np.pi for x in delta_MHz])
+    Omega = piecewise_linear(durations, [x * 2 * np.pi for x in omega_MHz])
+
+    # create Hamiltonian
+    program = rydberg_h(atom_pos, detuning=Delta, amplitude=Omega, phase=None)
+
+    result = program.bloqade.python()._compile(10)
+
+    assert len(result.tasks) == 1

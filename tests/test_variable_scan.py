@@ -1,8 +1,8 @@
 from bloqade import start, var
 from bloqade.atom_arrangement import Chain
-from bloqade.ir.analysis.scan_variables import (
-    ScanVariablesAnalogCircuit,
+from bloqade.compiler.analysis.common.scan_variables import (
     ScanVariableResults,
+    ScanVariables,
 )
 import numpy as np
 
@@ -14,7 +14,7 @@ def test_1():
         return delta * np.sin(omega * t)
 
     circuit = (
-        Chain(15, "lattice_spacing")
+        Chain(15, lattice_spacing="lattice_spacing")
         .rydberg.detuning.scale("mask")
         .fn(detuning_wf, "t")
         .amplitude.uniform.constant(15, "t")
@@ -27,9 +27,12 @@ def test_1():
     scalar_vars = ["t", "omega", "delta", "m", "lattice_spacing", "a"]
     vector_vars = ["mask"]
     expected_result = ScanVariableResults(
-        scalar_vars=scalar_vars, vector_vars=vector_vars
+        scalar_vars=scalar_vars,
+        vector_vars=vector_vars,
+        assigned_scalar_vars=set(),
+        assigned_vector_vars=set(),
     )
-    assert expected_result == ScanVariablesAnalogCircuit().emit(circuit)
+    assert expected_result == ScanVariables().scan(circuit)
 
 
 def test_2():
@@ -62,6 +65,9 @@ def test_2():
     scalar_vars = ["t", "x", "y", "delta", "T", "omega_max", "a", "u", "b"]
     vector_vars = ["mask"]
     expected_result = ScanVariableResults(
-        scalar_vars=scalar_vars, vector_vars=vector_vars
+        scalar_vars=scalar_vars,
+        vector_vars=vector_vars,
+        assigned_scalar_vars=set(),
+        assigned_vector_vars=set(),
     )
-    assert expected_result == ScanVariablesAnalogCircuit().emit(circuit)
+    assert expected_result == ScanVariables().scan(circuit)

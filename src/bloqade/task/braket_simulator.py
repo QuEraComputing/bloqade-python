@@ -44,6 +44,10 @@ class BraketEmulatorTask(LocalTask):
 
         return self.task_result_ir
 
+    @property
+    def nshots(self):
+        return self.task_ir.nshots
+
 
 @BraketEmulatorTask.set_serializer
 def _serialize(obj: BraketEmulatorTask) -> Dict[str, Any]:

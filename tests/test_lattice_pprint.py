@@ -1,5 +1,5 @@
 from bloqade import start, cast
-from bloqade.ir.location import Square, Rectangular
+from bloqade.ir.location import Square, Rectangular, Chain
 import random
 import numpy as np
 import os
@@ -7,7 +7,7 @@ import bloqade.ir.tree_print as trp
 
 
 trp.color_enabled = False
-
+trp.MAX_TREE_DEPTH = 10
 
 PROJECT_RELATIVE_PPRINT_TESTS_OUTPUT_PATH = os.path.join(
     os.getcwd(), "tests/data/expected_pprint_output"
@@ -55,6 +55,114 @@ def test_list_of_locations_pprint():
         "   │  ⇒ Literal: 0\n"
         "   └─ y\n"
         "      ⇒ Literal: 9"
+    )
+
+
+def test_list_trun():
+    geo = Chain(20).add_position((-1, "a"))
+
+    assert str(geo) == (
+        "AtomArrangement\n"
+        "├─ Location: filled\n"
+        "│  ├─ x\n"
+        "│  │  ⇒ Literal: 0\n"
+        "│  └─ y\n"
+        "│     ⇒ Literal: 0\n"
+        "├─ Location: filled\n"
+        "│  ├─ x\n"
+        "│  │  ⇒ Literal: 1\n"
+        "│  └─ y\n"
+        "│     ⇒ Literal: 0\n"
+        "├─ Location: filled\n"
+        "│  ├─ x\n"
+        "│  │  ⇒ Literal: 2\n"
+        "│  └─ y\n"
+        "│     ⇒ Literal: 0\n"
+        "├─ Location: filled\n"
+        "│  ├─ x\n"
+        "│  │  ⇒ Literal: 3\n"
+        "│  └─ y\n"
+        "│     ⇒ Literal: 0\n"
+        "├─ Location: filled\n"
+        "│  ├─ x\n"
+        "│  │  ⇒ Literal: 4\n"
+        "│  └─ y\n"
+        "│     ⇒ Literal: 0\n"
+        "├─ Location: filled\n"
+        "│  ├─ x\n"
+        "│  │  ⇒ Literal: 5\n"
+        "│  └─ y\n"
+        "│     ⇒ Literal: 0\n"
+        "├─ Location: filled\n"
+        "│  ├─ x\n"
+        "│  │  ⇒ Literal: 6\n"
+        "│  └─ y\n"
+        "│     ⇒ Literal: 0\n"
+        "├─ Location: filled\n"
+        "│  ├─ x\n"
+        "│  │  ⇒ Literal: 7\n"
+        "│  └─ y\n"
+        "│     ⇒ Literal: 0\n"
+        "├─ Location: filled\n"
+        "│  ├─ x\n"
+        "│  │  ⇒ Literal: 8\n"
+        "│  └─ y\n"
+        "│     ⇒ Literal: 0\n"
+        "├─ Location: filled\n"
+        "│  ├─ x\n"
+        "│  │  ⇒ Literal: 9\n"
+        "│  └─ y\n"
+        "│     ⇒ Literal: 0\n"
+        "⋮\n"
+        "├─ Location: filled\n"
+        "│  ├─ x\n"
+        "│  │  ⇒ Literal: 11\n"
+        "│  └─ y\n"
+        "│     ⇒ Literal: 0\n"
+        "├─ Location: filled\n"
+        "│  ├─ x\n"
+        "│  │  ⇒ Literal: 12\n"
+        "│  └─ y\n"
+        "│     ⇒ Literal: 0\n"
+        "├─ Location: filled\n"
+        "│  ├─ x\n"
+        "│  │  ⇒ Literal: 13\n"
+        "│  └─ y\n"
+        "│     ⇒ Literal: 0\n"
+        "├─ Location: filled\n"
+        "│  ├─ x\n"
+        "│  │  ⇒ Literal: 14\n"
+        "│  └─ y\n"
+        "│     ⇒ Literal: 0\n"
+        "├─ Location: filled\n"
+        "│  ├─ x\n"
+        "│  │  ⇒ Literal: 15\n"
+        "│  └─ y\n"
+        "│     ⇒ Literal: 0\n"
+        "├─ Location: filled\n"
+        "│  ├─ x\n"
+        "│  │  ⇒ Literal: 16\n"
+        "│  └─ y\n"
+        "│     ⇒ Literal: 0\n"
+        "├─ Location: filled\n"
+        "│  ├─ x\n"
+        "│  │  ⇒ Literal: 17\n"
+        "│  └─ y\n"
+        "│     ⇒ Literal: 0\n"
+        "├─ Location: filled\n"
+        "│  ├─ x\n"
+        "│  │  ⇒ Literal: 18\n"
+        "│  └─ y\n"
+        "│     ⇒ Literal: 0\n"
+        "├─ Location: filled\n"
+        "│  ├─ x\n"
+        "│  │  ⇒ Literal: 19\n"
+        "│  └─ y\n"
+        "│     ⇒ Literal: 0\n"
+        "└─ Location: filled\n   "
+        "├─ x\n   │  ⇒ Literal: -1"
+        "\n   └─ y"
+        "\n      ⇒ Variable: a"
     )
 
 

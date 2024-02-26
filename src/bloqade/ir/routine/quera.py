@@ -6,7 +6,7 @@ from bloqade.builder.typing import LiteralType
 from bloqade.ir.routine.base import RoutineBase, __pydantic_dataclass_config__
 from bloqade.submission.quera import QuEraBackend
 from bloqade.submission.mock import MockBackend
-from bloqade.submission.quera_api_client.load_config import load_config
+from bloqade.submission.load_config import load_config
 from bloqade.task.batch import RemoteBatch
 from bloqade.task.quera import QuEraTask
 
@@ -52,25 +52,40 @@ class QuEraHardwareRoutine(RoutineBase):
         args: Tuple[LiteralType, ...] = (),
         name: Optional[str] = None,
     ) -> RemoteBatch:
-        from bloqade.codegen.common.assign_variables import AssignAnalogCircuit
-
-        from bloqade.ir.analysis.assignment_scan import AssignmentScan
-        from bloqade.codegen.hardware.quera import AHSCodegen
+        from bloqade.compiler.passes.hardware import (
+            analyze_channels,
+            canonicalize_circuit,
+            assign_circuit,
+            validate_waveforms,
+            generate_ahs_code,
+            generate_quera_ir,
+        )
 
         circuit, params = self.circuit, self.params
         capabilities = self.backend.get_capabilities()
-        circuit = AssignAnalogCircuit(params.static_params).visit(circuit)
 
         tasks = OrderedDict()
 
         for task_number, batch_params in enumerate(params.batch_assignments(*args)):
-            record_params = AssignmentScan(batch_params).emit(circuit)
-            final_circuit = AssignAnalogCircuit(record_params).visit(circuit)
-            result = AHSCodegen(shots, capabilities=capabilities).emit(final_circuit)
-            task_ir = result.quera_task_ir.discretize(capabilities)
-            metadata = {**params.static_params, **record_params}
+            assignments = {**batch_params, **params.static_params}
+            final_circuit, metadata = assign_circuit(circuit, assignments)
+
+            level_couplings = analyze_channels(final_circuit)
+            final_circuit = canonicalize_circuit(final_circuit, level_couplings)
+
+            validate_waveforms(level_couplings, final_circuit)
+            ahs_components = generate_ahs_code(
+                capabilities, level_couplings, final_circuit
+            )
+
+            task_ir = generate_quera_ir(ahs_components, shots).discretize(capabilities)
+
             tasks[task_number] = QuEraTask(
-                None, self.backend, task_ir, metadata, result.parallel_decoder
+                None,
+                self.backend,
+                task_ir,
+                metadata,
+                ahs_components.lattice_data.parallel_decoder,
             )
 
         batch = RemoteBatch(source=self.source, tasks=tasks, name=name)
