@@ -34,9 +34,10 @@ dependencies = [
 requires-python = ">=3.9,<3.13"
 readme = "README.md"
 license = {text = "MIT"}
+
 [project.optional-dependencies]
 doc = [
-    "mkdocs>=1.4.3",
+    "mkdocs>=1.5.3",
     "mkdocs-material>=9.1.9",
     "mkdocstrings[python]>=0.21.2",
     "mkdocs-minify-plugin>=0.6.4",
