@@ -19,14 +19,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python 3.9
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: 3.9
+          python-version: 3.12
       - uses: pdm-project/setup-pdm@v4
         name: Setup PDM
         with:
-          python-version: 3.9  # Version range or exact version of a Python version to use, the same as actions/setup-python
+          python-version: 3.12  # Version range or exact version of a Python version to use, the same as actions/setup-python
           # well we use virtualenv here
           # prerelease: true     # Allow prerelease versions to be installed
           # enable-pep582: true  # Enable PEP 582 package loading globally
@@ -38,7 +38,7 @@ jobs:
       - name: Upload Coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
           files: coverage.xml # optional
           fail_ci_if_error: true # optional (default = false)
           verbose: true # optional (default = false)
+          token: ${{ secrets.CODECOV_TOKEN }} # required

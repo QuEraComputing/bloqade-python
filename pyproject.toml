@@ -12,7 +12,8 @@ classifiers = [
     "Programming Language :: Python",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11"
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12"
 ]
 dependencies = [
     "juliacall>=0.9.14",
@@ -30,12 +31,13 @@ dependencies = [
     "plum-dispatch>=2.2.2",
     "numba>=0.58.0",
 ]
-requires-python = ">=3.9,<3.12"
+requires-python = ">=3.9,<3.13"
 readme = "README.md"
 license = {text = "MIT"}
+
 [project.optional-dependencies]
 doc = [
-    "mkdocs>=1.4.3",
+    "mkdocs>=1.5.3",
     "mkdocs-material>=9.1.9",
     "mkdocstrings[python]>=0.21.2",
     "mkdocs-minify-plugin>=0.6.4",

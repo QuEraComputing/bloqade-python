@@ -2,14 +2,35 @@ import simplejson as json
 from typing import Any
 from beartype.typing import Type, Callable, Dict, Union, TextIO
 from beartype import beartype
-
+import importlib
+import pkgutil
 
 __bloqade_package_loaded__ = False
 
 
+def _import_submodules(package, recursive=True):
+    """Import all submodules of a module, recursively,
+    including subpackages
+
+    :param package: package (name or actual module)
+    :type package: str | module
+    :rtype: dict[str, types.ModuleType]
+    """
+
+    if isinstance(package, str):
+        package = importlib.import_module(package)
+
+    for loader, name, is_pkg in pkgutil.walk_packages(package.__path__):
+        full_name = package.__name__ + "." + name
+        try:
+            importlib.import_module(full_name)
+        except ModuleNotFoundError:
+            continue
+        if recursive and is_pkg:
+            _import_submodules(full_name)
+
+
 def load_bloqade():
-    import pkgutil
-    import os
 
     # call this function to load all modules in this package
     # required because if no other modules are imported, the
@@ -19,11 +40,7 @@ def load_bloqade():
     # multiple calls
 
     if not __bloqade_package_loaded__:
-        path = os.path.abspath(os.path.join(os.path.dirname(__file__)))
-
-        for loader, module_name, _ in pkgutil.walk_packages([path]):
-            _module = loader.find_module(module_name).load_module(module_name)
-            globals()[module_name] = _module
+        _import_submodules("bloqade")
 
         globals()["__bloqade_package_loaded__"] = True
 
