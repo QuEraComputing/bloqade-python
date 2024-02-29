@@ -43,7 +43,7 @@ files = [
 
 [[package]]
 name = "amazon-braket-sdk"
-version = "1.70.3"
+version = "1.72.1"
 requires_python = ">= 3.9"
 summary = "An open source library for interacting with quantum computing devices on Amazon Braket"
 groups = ["default"]
@@ -64,8 +64,8 @@ dependencies = [
     "sympy",
 ]
 files = [
-    {file = "amazon-braket-sdk-1.70.3.tar.gz", hash = "sha256:e02486dc0d71e7750f8141714cf5f4d59a9aea11dfcdb420e6520c4419ca381e"},
-    {file = "amazon_braket_sdk-1.70.3-py3-none-any.whl", hash = "sha256:96733897f47bf20c2f186036bdf0c6ddfe04e71366dc31fbbf6ec3ecae8fa4a8"},
+    {file = "amazon-braket-sdk-1.72.1.tar.gz", hash = "sha256:b35f9d2163707e525342adb7c89719870ab22bffeb50ef6e22b7bc900c2ede3c"},
+    {file = "amazon_braket_sdk-1.72.1-py3-none-any.whl", hash = "sha256:0a5aaa0f4c6848b84c6e581f6d01f8ec15e636d72b581247b6e5e4e8cce5f37d"},
 ]
 
 [[package]]
@@ -1067,7 +1067,7 @@ files = [
 
 [[package]]
 name = "ipykernel"
-version = "6.29.2"
+version = "6.29.3"
 requires_python = ">=3.8"
 summary = "IPython Kernel for Jupyter"
 groups = ["dev", "doc"]
@@ -1087,8 +1087,8 @@ dependencies = [
     "traitlets>=5.4.0",
 ]
 files = [
-    {file = "ipykernel-6.29.2-py3-none-any.whl", hash = "sha256:50384f5c577a260a1d53f1f59a828c7266d321c9b7d00d345693783f66616055"},
-    {file = "ipykernel-6.29.2.tar.gz", hash = "sha256:3bade28004e3ff624ed57974948116670604ac5f676d12339693f3142176d3f0"},
+    {file = "ipykernel-6.29.3-py3-none-any.whl", hash = "sha256:5aa086a4175b0229d4eca211e181fb473ea78ffd9869af36ba7694c947302a21"},
+    {file = "ipykernel-6.29.3.tar.gz", hash = "sha256:e14c250d1f9ea3989490225cc1a542781b095a18a19447fcf2b5eaf7d0ac5bd2"},
 ]
 
 [[package]]
@@ -2064,7 +2064,7 @@ files = [
 
 [[package]]
 name = "mkdocstrings"
-version = "0.24.0"
+version = "0.24.1"
 requires_python = ">=3.8"
 summary = "Automatic documentation from sources, for MkDocs."
 groups = ["doc"]
@@ -2081,8 +2081,8 @@ dependencies = [
     "typing-extensions>=4.1; python_version < \"3.10\"",
 ]
 files = [
-    {file = "mkdocstrings-0.24.0-py3-none-any.whl", hash = "sha256:f4908560c10f587326d8f5165d1908817b2e280bbf707607f601c996366a2264"},
-    {file = "mkdocstrings-0.24.0.tar.gz", hash = "sha256:222b1165be41257b494a9d29b14135d2b7ca43f38161d5b10caae03b87bd4f7e"},
+    {file = "mkdocstrings-0.24.1-py3-none-any.whl", hash = "sha256:b4206f9a2ca8a648e222d5a0ca1d36ba7dee53c88732818de183b536f9042b5d"},
+    {file = "mkdocstrings-0.24.1.tar.gz", hash = "sha256:cc83f9a1c8724fc1be3c2fa071dd73d91ce902ef6a79710249ec8d0ee1064401"},
 ]
 
 [[package]]
@@ -2102,18 +2102,18 @@ files = [
 
 [[package]]
 name = "mkdocstrings"
-version = "0.24.0"
+version = "0.24.1"
 extras = ["python"]
 requires_python = ">=3.8"
 summary = "Automatic documentation from sources, for MkDocs."
 groups = ["doc"]
 dependencies = [
     "mkdocstrings-python>=0.5.2",
-    "mkdocstrings==0.24.0",
+    "mkdocstrings==0.24.1",
 ]
 files = [
-    {file = "mkdocstrings-0.24.0-py3-none-any.whl", hash = "sha256:f4908560c10f587326d8f5165d1908817b2e280bbf707607f601c996366a2264"},
-    {file = "mkdocstrings-0.24.0.tar.gz", hash = "sha256:222b1165be41257b494a9d29b14135d2b7ca43f38161d5b10caae03b87bd4f7e"},
+    {file = "mkdocstrings-0.24.1-py3-none-any.whl", hash = "sha256:b4206f9a2ca8a648e222d5a0ca1d36ba7dee53c88732818de183b536f9042b5d"},
+    {file = "mkdocstrings-0.24.1.tar.gz", hash = "sha256:cc83f9a1c8724fc1be3c2fa071dd73d91ce902ef6a79710249ec8d0ee1064401"},
 ]
 
 [[package]]
