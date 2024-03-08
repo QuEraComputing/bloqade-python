@@ -1,10 +1,10 @@
-<!-- <div align="center">
+<div align="center">
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/logo-dark.png">
   <source media="(prefers-color-scheme: light)" srcset="docs/assets/logo.png">
   <img src="docs/assets/logo.png" alt="Bloqade Logo">
 </picture>
-</div> -->
+</div>
 
 <div align="center">
   <img src="docs/assets/logo.png" alt="Bloqade Logo">
