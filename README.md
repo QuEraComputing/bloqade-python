@@ -1,11 +1,15 @@
-<div align="center">
+<!-- <div align="center">
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/logo-dark.png">
   <source media="(prefers-color-scheme: light)" srcset="docs/assets/logo.png">
   <img src="docs/assets/logo.png" alt="Bloqade Logo">
 </picture>
-</div>
+</div> -->
 
+<div align="center">
+  <img src="docs/assets/logo.png" alt="Bloqade Logo">
+</picture>
+  
 [![Latest Version](https://img.shields.io/pypi/v/bloqade.svg)](https://pypi.python.org/pypi/bloqade)
 [![Supported Python Versions](https://img.shields.io/pypi/pyversions/bloqade.svg)](https://pypi.python.org/pypi/bloqade)
 [![codecov](https://codecov.io/github/QuEraComputing/bloqade-python/graph/badge.svg?token=4YJFc45Jyl)](https://codecov.io/github/QuEraComputing/bloqade-python)
