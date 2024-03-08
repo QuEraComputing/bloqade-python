@@ -2,7 +2,7 @@
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/logo-dark.png">
   <source media="(prefers-color-scheme: light)" srcset="docs/assets/logo.png">
-  <img srcset="docs/assets/logo.png" alt="Bloqade Logo">
+  <img src="docs/assets/logo.png" alt="Bloqade Logo">
 </picture>
 </div>
 
