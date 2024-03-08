@@ -1,6 +1,10 @@
-
-![Bloqade logo](./doc/assest/logo-dark.png#gh-dark-mode-only)
-![Bloqade logo](./doc/assest/logo.png#gh-light-mode-only)
+<div align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/logo-dark.png">
+  <source media="(prefers-color-scheme: light)" srcset="docs/assets/logo.png">
+  <img srcset="docs/assets/logo.png" alt="Bloqade Logo">
+</picture>
+</div>
 
 [![Latest Version](https://img.shields.io/pypi/v/bloqade.svg)](https://pypi.python.org/pypi/bloqade)
 [![Supported Python Versions](https://img.shields.io/pypi/pyversions/bloqade.svg)](https://pypi.python.org/pypi/bloqade)
