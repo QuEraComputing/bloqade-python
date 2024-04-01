@@ -6,8 +6,8 @@ from bloqade.builder.base import Builder
 from bloqade.builder.parse.trait import Parse, Show
 from bloqade.ir.routine.params import Params
 
-from pydantic import ConfigDict
-from pydantic.dataclasses import dataclass
+from pydantic.v1 import ConfigDict
+from pydantic.v1.dataclasses import dataclass
 from typing import TYPE_CHECKING, Union, Optional
 
 if TYPE_CHECKING:

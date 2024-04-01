@@ -6,7 +6,7 @@ from bloqade.ir.visitor import BloqadeIRVisitor
 from beartype.typing import Optional
 import numpy as np
 from decimal import Decimal
-from pydantic.dataclasses import dataclass
+from pydantic.v1.dataclasses import dataclass
 from beartype.typing import List, Tuple
 
 

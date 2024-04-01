@@ -1,4 +1,4 @@
-from pydantic import PrivateAttr
+from pydantic.v1 import PrivateAttr
 from bloqade.submission.base import SubmissionBackend, ValidationError
 from bloqade.submission.ir.task_specification import (
     QuEraTaskSpecification,

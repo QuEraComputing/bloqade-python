@@ -1,5 +1,5 @@
 from functools import cached_property
-from pydantic.dataclasses import dataclass
+from pydantic.v1.dataclasses import dataclass
 from typing import Dict, List, Tuple, Union
 from decimal import Decimal
 

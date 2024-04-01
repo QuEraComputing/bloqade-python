@@ -14,7 +14,7 @@ from bloqade.submission.ir.task_results import (
 from bloqade.submission.ir.task_specification import QuEraTaskSpecification
 from braket.aws import AwsDevice, AwsQuantumTask
 from beartype.typing import Optional
-from pydantic import PrivateAttr
+from pydantic.v1 import PrivateAttr
 import bloqade
 
 

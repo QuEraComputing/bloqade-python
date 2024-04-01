@@ -5,7 +5,7 @@ from bloqade.builder.typing import LiteralType
 from bloqade.task.batch import LocalBatch
 from beartype import beartype
 from beartype.typing import Optional, Tuple, Callable, Dict, Any, List, NamedTuple
-from pydantic.dataclasses import dataclass
+from pydantic.v1.dataclasses import dataclass
 import numpy as np
 
 from bloqade.emulate.codegen.hamiltonian import CompileCache, RydbergHamiltonianCodeGen

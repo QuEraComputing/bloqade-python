@@ -4,7 +4,7 @@ from bloqade.ir.control.sequence import SequenceExpr
 from bloqade.ir.location.location import AtomArrangement, ParallelRegister
 from bloqade.ir.tree_print import Printer
 from beartype.typing import Union
-from pydantic.dataclasses import dataclass
+from pydantic.v1.dataclasses import dataclass
 
 
 # NOTE: this is just a dummy type bundle geometry and sequence

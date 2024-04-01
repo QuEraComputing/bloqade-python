@@ -4,7 +4,7 @@ from bloqade.ir.tree_print import Printer
 from bloqade.ir.control.waveform import Waveform
 from bloqade.ir.control.traits import HashTrait, CanonicalizeTrait
 from bloqade.visualization import get_field_figure
-from pydantic.dataclasses import dataclass
+from pydantic.v1.dataclasses import dataclass
 from beartype.typing import Dict, List, Optional
 from decimal import Decimal
 from bloqade.visualization import display_ir

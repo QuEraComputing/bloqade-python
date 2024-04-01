@@ -1,7 +1,7 @@
 from typing import Any, Optional
 import numpy as np
-from pydantic.dataclasses import dataclass
-from pydantic import ValidationError, validator
+from pydantic.v1.dataclasses import dataclass
+from pydantic.v1 import ValidationError, validator
 from .tree_print import Printer
 import re
 from decimal import Decimal

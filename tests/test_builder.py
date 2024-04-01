@@ -77,13 +77,13 @@ def test_add_position_dispatch():
     with pytest.raises(AssertionError):
         start.add_position(position_list, [True])
 
-    with pytest.raises(NotFoundLookupError):
+    with pytest.raises(TypeError):
         start.add_position(position_list, True)
 
-    with pytest.raises(NotFoundLookupError):
+    with pytest.raises(TypeError):
         start.add_position(position_list, np.array([True, True]))
 
-    with pytest.raises(NotFoundLookupError):
+    with pytest.raises(TypeError):
         start.add_position(position, [True, True])
 
 

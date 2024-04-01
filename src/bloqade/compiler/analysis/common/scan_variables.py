@@ -1,4 +1,4 @@
-from pydantic.dataclasses import dataclass
+from pydantic.v1.dataclasses import dataclass
 import bloqade.ir.scalar as scalar
 import bloqade.ir.control.field as field
 

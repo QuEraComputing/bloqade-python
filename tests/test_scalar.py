@@ -1,4 +1,4 @@
-from pydantic import ValidationError
+from pydantic.v1 import ValidationError
 from bloqade import cast, var
 import bloqade.ir.scalar as scalar
 import pytest

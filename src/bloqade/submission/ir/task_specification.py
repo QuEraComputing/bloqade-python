@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic.v1 import BaseModel
 from typing import Optional, List, Tuple
 from decimal import Decimal
 from bloqade.submission.ir.capabilities import QuEraCapabilities

@@ -3,8 +3,9 @@ from bloqade.builder.start import ProgramStart
 from bloqade.ir.scalar import Scalar, Literal, cast
 from bloqade.ir.tree_print import Printer
 
-from pydantic.dataclasses import dataclass
+from pydantic.v1.dataclasses import dataclass
 from beartype.typing import List, Tuple, Generator, Union, Optional
+from beartype.door import is_bearable
 from beartype import beartype
 from enum import Enum
 from numpy.typing import NDArray
@@ -14,7 +15,6 @@ from bloqade.visualization import display_ir
 
 from beartype.vale import Is
 from typing import Annotated
-from plum import dispatch
 import plotext as pltxt
 import sys
 import numpy as np
@@ -234,8 +234,8 @@ class AtomArrangement(ProgramStart):
 
         return ListOfLocations(location_list)
 
-    @dispatch
-    def _add_position(
+    ## enforce input is single tuple and filling is single boolean
+    def add_position_single_tupe(
         self, position: Tuple[ScalarType, ScalarType], filling: Optional[bool] = None
     ):
         if filling is None:
@@ -246,8 +246,8 @@ class AtomArrangement(ProgramStart):
 
         return ListOfLocations(location_list)
 
-    @dispatch
-    def _add_position(  # noqa: F811
+    ## enforce input is list of tuples and filling is list of booleans or none
+    def add_position_list_tuples(  # noqa: F811
         self,
         position: List[Tuple[ScalarType, ScalarType]],
         filling: Optional[List[bool]] = None,
@@ -268,8 +268,8 @@ class AtomArrangement(ProgramStart):
 
         return ListOfLocations(location_list)
 
-    @dispatch
-    def _add_position(  # noqa: F811
+    ## enforce input is numpy array and filling is numpy array or none
+    def add_position_ndarray(  # noqa: F811
         self, position: PositionArray, filling: Optional[BoolArray] = None
     ):
         return self.add_position(
@@ -333,7 +333,15 @@ class AtomArrangement(ProgramStart):
             shows your geometry in your web browser
 
         """
-        return self._add_position(position, filling)
+
+        if is_bearable(position, PositionArray) and is_bearable(filling, Optional[BoolArray]):
+            return self.add_position_ndarray(position, filling)
+        elif is_bearable(position, List[Tuple[ScalarType, ScalarType]]) and is_bearable(filling, Optional[List[bool]]):
+            return self.add_position_list_tuples(position, filling)
+        elif is_bearable(position, Tuple[ScalarType, ScalarType]) and is_bearable(filling, Optional[bool]):
+            return self.add_position_single_tupe(position, filling)
+        else:
+            raise TypeError("Invalid input types for add_position provided!")
 
     @beartype
     def apply_defect_count(

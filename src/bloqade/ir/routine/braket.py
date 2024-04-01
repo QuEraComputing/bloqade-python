@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from pydantic.dataclasses import dataclass
+from pydantic.v1.dataclasses import dataclass
 from beartype import beartype
 from beartype.typing import Optional, Tuple
 from bloqade.builder.typing import LiteralType

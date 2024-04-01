@@ -2,7 +2,7 @@ from bloqade.compiler.codegen.hardware.lattice import AHSLatticeData
 from bloqade.compiler.codegen.hardware.piecewise_linear import PiecewiseLinear
 from bloqade.compiler.codegen.hardware.piecewise_constant import PiecewiseConstant
 from beartype.typing import Optional, List
-from pydantic.dataclasses import dataclass
+from pydantic.v1.dataclasses import dataclass
 from decimal import Decimal
 
 
