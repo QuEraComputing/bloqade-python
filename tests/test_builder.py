@@ -12,7 +12,6 @@ from bloqade.builder import waveform
 # import bloqade.builder.backend as builder_backend
 import bloqade.ir.routine.quera as quera
 import bloqade.ir.routine.braket as braket
-from plum import NotFoundLookupError
 
 from bloqade.ir.control.waveform import to_waveform
 from bloqade.ir import rydberg, detuning, hyperfine, rabi

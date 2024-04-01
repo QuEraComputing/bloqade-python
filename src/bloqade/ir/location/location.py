@@ -334,11 +334,17 @@ class AtomArrangement(ProgramStart):
 
         """
 
-        if is_bearable(position, PositionArray) and is_bearable(filling, Optional[BoolArray]):
+        if is_bearable(position, PositionArray) and is_bearable(
+            filling, Optional[BoolArray]
+        ):
             return self.add_position_ndarray(position, filling)
-        elif is_bearable(position, List[Tuple[ScalarType, ScalarType]]) and is_bearable(filling, Optional[List[bool]]):
+        elif is_bearable(position, List[Tuple[ScalarType, ScalarType]]) and is_bearable(
+            filling, Optional[List[bool]]
+        ):
             return self.add_position_list_tuples(position, filling)
-        elif is_bearable(position, Tuple[ScalarType, ScalarType]) and is_bearable(filling, Optional[bool]):
+        elif is_bearable(position, Tuple[ScalarType, ScalarType]) and is_bearable(
+            filling, Optional[bool]
+        ):
             return self.add_position_single_tupe(position, filling)
         else:
             raise TypeError("Invalid input types for add_position provided!")
