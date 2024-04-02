@@ -6,7 +6,7 @@ from bloqade.ir.visitor import BloqadeIRVisitor
 
 from beartype.typing import List
 from beartype import beartype
-from pydantic.dataclasses import dataclass
+from pydantic.v1.dataclasses import dataclass
 from bisect import bisect_right, bisect_left
 from decimal import Decimal
 

@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from pydantic.dataclasses import dataclass
+from pydantic.v1.dataclasses import dataclass
 import json
 
 from bloqade.builder.typing import LiteralType

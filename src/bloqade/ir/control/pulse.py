@@ -11,7 +11,7 @@ from bloqade.ir.control.traits import (
     CanonicalizeTrait,
 )
 from beartype.typing import List
-from pydantic.dataclasses import dataclass
+from pydantic.v1.dataclasses import dataclass
 from bloqade.visualization import get_pulse_figure
 from bloqade.visualization import display_ir
 

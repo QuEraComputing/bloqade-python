@@ -1,5 +1,5 @@
 from functools import cached_property
-from pydantic.dataclasses import dataclass
+from pydantic.v1.dataclasses import dataclass
 from dataclasses import fields
 import numpy as np
 import itertools

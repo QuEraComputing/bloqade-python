@@ -12,7 +12,6 @@ from bloqade.builder import waveform
 # import bloqade.builder.backend as builder_backend
 import bloqade.ir.routine.quera as quera
 import bloqade.ir.routine.braket as braket
-from plum import NotFoundLookupError
 
 from bloqade.ir.control.waveform import to_waveform
 from bloqade.ir import rydberg, detuning, hyperfine, rabi
@@ -77,13 +76,13 @@ def test_add_position_dispatch():
     with pytest.raises(AssertionError):
         start.add_position(position_list, [True])
 
-    with pytest.raises(NotFoundLookupError):
+    with pytest.raises(TypeError):
         start.add_position(position_list, True)
 
-    with pytest.raises(NotFoundLookupError):
+    with pytest.raises(TypeError):
         start.add_position(position_list, np.array([True, True]))
 
-    with pytest.raises(NotFoundLookupError):
+    with pytest.raises(TypeError):
         start.add_position(position, [True, True])
 
 

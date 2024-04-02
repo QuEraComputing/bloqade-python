@@ -1,5 +1,5 @@
 from enum import Enum
-from pydantic import BaseModel, conlist, conint
+from pydantic.v1 import BaseModel, conlist, conint
 from typing import List, Tuple
 import numpy as np
 

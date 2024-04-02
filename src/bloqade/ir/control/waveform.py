@@ -19,7 +19,7 @@ from bloqade.ir.control.traits import (
 
 from bisect import bisect_left, bisect_right
 from decimal import Decimal
-from pydantic.dataclasses import dataclass
+from pydantic.v1.dataclasses import dataclass
 from beartype.typing import Any, Tuple, Union, List, Callable, Dict, Container
 from beartype import beartype
 from enum import Enum

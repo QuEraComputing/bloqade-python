@@ -5,7 +5,7 @@ import bloqade.ir.analog_circuit as analog_circuit
 
 from beartype.typing import List
 from beartype import beartype
-from pydantic.dataclasses import dataclass
+from pydantic.v1.dataclasses import dataclass
 from bisect import bisect_left, bisect_right
 from decimal import Decimal
 

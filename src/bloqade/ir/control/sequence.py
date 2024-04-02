@@ -10,7 +10,7 @@ from bloqade.ir.control.traits import (
 from bloqade.ir.scalar import Interval, Scalar, cast
 from bloqade.ir.tree_print import Printer
 
-from pydantic.dataclasses import dataclass
+from pydantic.v1.dataclasses import dataclass
 from beartype.typing import List, Dict
 from bloqade.visualization import get_ir_figure
 from bloqade.visualization import display_ir

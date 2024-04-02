@@ -1,6 +1,6 @@
 # Ported from the Julia language AbstractTrees.jl implementation: https://github.com/JuliaCollections/AbstractTrees.jl/blob/master/src/printing.jl
 
-from pydantic.dataclasses import dataclass
+from pydantic.v1.dataclasses import dataclass
 import sys
 import bloqade.ir as ir
 

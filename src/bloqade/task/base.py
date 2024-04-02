@@ -11,7 +11,7 @@ from bloqade.submission.ir.task_results import (
 from numpy.typing import NDArray
 import pandas as pd
 import numpy as np
-from pydantic.dataclasses import dataclass
+from pydantic.v1.dataclasses import dataclass
 from bloqade.submission.ir.parallel import ParallelDecoder
 import datetime
 from bloqade.visualization import display_report

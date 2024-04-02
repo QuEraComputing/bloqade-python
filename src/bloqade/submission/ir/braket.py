@@ -21,7 +21,7 @@ from bloqade.submission.ir.task_specification import (
     LocalField,
 )
 from typing import Tuple, Union, List
-from pydantic import BaseModel
+from pydantic.v1 import BaseModel
 from decimal import Decimal
 
 

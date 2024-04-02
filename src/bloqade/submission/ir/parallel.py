@@ -1,4 +1,4 @@
-from pydantic import BaseModel, validator, ValidationError
+from pydantic.v1 import BaseModel, validator, ValidationError
 
 from typing import List, Optional, Tuple
 from itertools import combinations
