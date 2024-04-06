@@ -226,7 +226,7 @@ class Report:
             output = np.unique(bitstring, axis=0, return_counts=True)
 
             count_list = [
-                ("".join(map(str, bitstring)), count)
+                ("".join(map(str, bitstring)), int(count))
                 for bitstring, count in zip(*output)
             ]
             count_list.sort(key=lambda x: x[1], reverse=True)
