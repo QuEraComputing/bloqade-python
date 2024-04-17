@@ -195,7 +195,6 @@ class Report:
 
         return bitstrings
 
-    @beartype
     def counts(
         self,
         filter_perfect_filling: bool = True,
