@@ -2,7 +2,7 @@ name: Update dependencies
 
 on:
   schedule:
-    - cron: "0 0 * * *"
+    - cron: "0 0 1 * *"
 
 # See: https://github.com/pdm-project/pdm/issues/1879
 env:
