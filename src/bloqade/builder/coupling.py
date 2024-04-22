@@ -10,6 +10,12 @@ class LevelCoupling(Builder):
         """
         Specify the [`Detuning`][bloqade.builder.field.Detuning] [`Field`][bloqade.builder.field.Field] of your program. You will be able to specify the spatial modulation afterwards.
 
+        Args:
+            None
+
+        Returns:
+            [`Detuning`][bloqade.builder.field.Detuning]: A program node representing the detuning field.
+
         ??? abstract "Background and Context"
 
             In the Many-Body Rydberg Hamiltonian:
