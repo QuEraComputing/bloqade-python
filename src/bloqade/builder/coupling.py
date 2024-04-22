@@ -9,7 +9,7 @@ class LevelCoupling(Builder):
     ) -> Detuning:
         """
         Specify the [`Detuning`][bloqade.builder.field.Detuning] [`Field`][bloqade.builder.field.Field] of your program. You will be able to specify the spatial modulation afterwards.
-        
+
         ??? abstract "Background and Context"
 
             In the Many-Body Rydberg Hamiltonian:
@@ -19,14 +19,14 @@ class LevelCoupling(Builder):
             $$
 
             The detuning is specified by the term $\Delta_j(t)$ and specifies how off-resonant the laser being applied to the atoms is from the atomic energy transition, which is driven by the Rabi frequency $\Omega_j(t)$.
-            
+
             The detuning may can be intrepreted as a field, which is the summation of one or more drives, with the drive being the sum of a waveform and spatial modulation:
 
             $$
             \sum_j \Delta_j(t)  = \sum_j \sum_a C^{a}_{j} f_{a}(t)
             $$
 
-            Note that the spatial modulation $C_{j}$ scales how much of the detuning waveform is experienced by the atom at site $j$. You can specify the scaling that all atoms feel to be 
+            Note that the spatial modulation $C_{j}$ scales how much of the detuning waveform is experienced by the atom at site $j$. You can specify the scaling that all atoms feel to be
             identical (global detuning) or you can specify different scaling for different atoms (local detuning).
 
         ??? example "Examples"
@@ -50,10 +50,10 @@ class LevelCoupling(Builder):
             rabi_field = coupling.rabi.amplitude.uniform.constant(duration = 1.0, value = 1.0)
             detuning = rabi_field.detuning
             ```
-        
+
 
         ??? info "Applications"
-        
+
             * [Single Qubit Floquet Dynamics](https://queracomputing.github.io/bloqade-python-examples/latest/examples/example-1-floquet/)
             * [Two Qubit Adiabatic Sweep](https://queracomputing.github.io/bloqade-python-examples/latest/examples/example-2-two-qubit-adiabatic/)
             * [1D Z2 State Preparation](https://queracomputing.github.io/bloqade-python-examples/latest/examples/example-3-time-sweep/)
