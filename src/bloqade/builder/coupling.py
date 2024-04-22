@@ -6,24 +6,61 @@ class LevelCoupling(Builder):
     @property
     def detuning(
         self,
-    ) -> Detuning:  # field is summation of one or more drives,
-        # waveform + spatial modulation = drive
+    ) -> Detuning:
         """
-        Specify the [`Detuning`][bloqade.builder.field.Detuning]
-         [`Field`][bloqade.builder.Field] of your program.
+        Specify the [`Detuning`][bloqade.builder.field.Detuning] [`Field`][bloqade.builder.field.Field] of your program. You will be able to specify the spatial modulation afterwards.
+        
+        ??? abstract "Background and Context"
 
-        A "field" is a summation of one or more "drives", with a drive being the sum
-        of a waveform and spatial modulation.
+            In the Many-Body Rydberg Hamiltonian:
 
-        You are currently building the spatial modulation component and will be
-        able to specify a waveform.
+            $$
+            \\frac{\mathcal{H}(t)}{\hbar} = \sum_j \\frac{\Omega_j(t)}{2} \left( e^{i \phi_j(t) } | g_j \\rangle  \langle r_j | + e^{-i \phi_j(t) } | r_j \\rangle  \langle g_j | \\right) - \sum_j \Delta_j(t) \hat{n}_j + \sum_{j < k} V_{jk} \hat{n}_j \hat{n}_k.
+            $$
 
-        - You can do this by:
-            - `...detuning.uniform`: To address all atoms in the field
-            - `...detuning.location(locations, scales)`: To address atoms at specific
-                locations via indices
-            - `...detuning.scale(coeffs)`
-                - To address all atoms with an individual scale factor
+            The detuning is specified by the term $\Delta_j(t)$ and specifies how off-resonant the laser being applied to the atoms is from the atomic energy transition, which is driven by the Rabi frequency $\Omega_j(t)$.
+            
+            The detuning may can be intrepreted as a field, which is the summation of one or more drives, with the drive being the sum of a waveform and spatial modulation:
+
+            $$
+            \sum_j \Delta_j(t)  = \sum_j \sum_a C^{a}_{j} f_{a}(t)
+            $$
+
+            Note that the spatial modulation $C_{j}$ scales how much of the detuning waveform is experienced by the atom at site $j$. You can specify the scaling that all atoms feel to be 
+            identical (global detuning) or you can specify different scaling for different atoms (local detuning).
+
+        ??? example "Examples"
+
+            ```python
+            from bloqade import start
+
+            # specify geometry, in this case just one atom
+            geometry = start.add_position(0,0)
+            # specify your coupling (either `rydberg` or `hyperfine`)
+            coupling = geometry.rydberg
+            # Begin specifying your detuning
+            coupling.detuning
+            ```
+        
+
+        ??? info "Applications"
+        
+            * [Single Qubit Floquet Dynamics](https://queracomputing.github.io/bloqade-python-examples/latest/examples/example-1-floquet/)
+            * [Two Qubit Adiabatic Sweep](https://queracomputing.github.io/bloqade-python-examples/latest/examples/example-2-two-qubit-adiabatic/)
+            * [1D Z~2 State Preparation](https://queracomputing.github.io/bloqade-python-examples/latest/examples/example-3-time-sweep/)
+            * [2D State Preparation](https://queracomputing.github.io/bloqade-python-examples/latest/examples/example-3-2d-ordered-state/)
+            * [Quantum Scar Dynamics](https://queracomputing.github.io/bloqade-python-examples/latest/examples/example-4-quantum-scar-dynamics/)
+            * [Solving the Maximal Independent Set Problem on defective King Graph](https://queracomputing.github.io/bloqade-python-examples/latest/examples/example-5-MIS-UDG/)
+
+
+        # Next Possible Steps
+
+        You may continue building your program via:
+
+        - [`uniform`][bloqade.builder.field.Detuning.uniform]: To address all atoms in the field
+        - [`location(locations, scales)`][bloqade.builder.field.Detuning.location]: To address atoms at specific
+            locations via indices
+        - [`scale(coeffs)`][bloqade.builder.field.Detuning.scale]: To address all atoms with an individual scale factor
 
         """
 
