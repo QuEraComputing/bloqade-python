@@ -35,11 +35,20 @@ class LevelCoupling(Builder):
             from bloqade import start
 
             # specify geometry, in this case just one atom
-            geometry = start.add_position(0,0)
+            geometry = start.add_position((0,0))
             # specify your coupling (either `rydberg` or `hyperfine`)
             coupling = geometry.rydberg
             # Begin specifying your detuning
             coupling.detuning
+            ```
+            Alternatively you may start with building your Rabi field and then reach the ability to build your detuning like so:
+
+            ```python
+            from bloqade import start
+            geometry = start.add_position((0,0))
+            coupling = geometry.rydberg
+            rabi_field = coupling.rabi.amplitude.uniform.constant(duration = 1.0, value = 1.0)
+            detuning = rabi_field.detuning
             ```
         
 
@@ -47,7 +56,7 @@ class LevelCoupling(Builder):
         
             * [Single Qubit Floquet Dynamics](https://queracomputing.github.io/bloqade-python-examples/latest/examples/example-1-floquet/)
             * [Two Qubit Adiabatic Sweep](https://queracomputing.github.io/bloqade-python-examples/latest/examples/example-2-two-qubit-adiabatic/)
-            * [1D Z~2 State Preparation](https://queracomputing.github.io/bloqade-python-examples/latest/examples/example-3-time-sweep/)
+            * [1D Z2 State Preparation](https://queracomputing.github.io/bloqade-python-examples/latest/examples/example-3-time-sweep/)
             * [2D State Preparation](https://queracomputing.github.io/bloqade-python-examples/latest/examples/example-3-2d-ordered-state/)
             * [Quantum Scar Dynamics](https://queracomputing.github.io/bloqade-python-examples/latest/examples/example-4-quantum-scar-dynamics/)
             * [Solving the Maximal Independent Set Problem on defective King Graph](https://queracomputing.github.io/bloqade-python-examples/latest/examples/example-5-MIS-UDG/)
