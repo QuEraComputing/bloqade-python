@@ -26,7 +26,7 @@ class LevelCoupling(Builder):
 
             The detuning is specified by the term $\Delta_j(t)$ and specifies how off-resonant the laser being applied to the atoms is from the atomic energy transition, which is driven by the Rabi frequency $\Omega_j(t)$.
 
-            The detuning may can be intrepreted as a field, which is the summation of one or more drives, with the drive being the sum of a waveform and spatial modulation:
+            The detuning is described by a field, which is the summation of one or more drives, with the drive being the sum of a waveform and spatial modulation:
 
             $$
             \sum_j \Delta_j(t)  = \sum_j \sum_a C^{a}_{j} f_{a}(t)
@@ -67,6 +67,32 @@ class LevelCoupling(Builder):
             * [Quantum Scar Dynamics](https://queracomputing.github.io/bloqade-python-examples/latest/examples/example-4-quantum-scar-dynamics/)
             * [Solving the Maximal Independent Set Problem on defective King Graph](https://queracomputing.github.io/bloqade-python-examples/latest/examples/example-5-MIS-UDG/)
 
+        ??? warning "Potential Pitfalls"
+
+            Bloqade allows you to build a field for the Detuning in the form of:
+
+            $$
+            \sum_j \Delta_j(t)  = \sum_j \sum_a C^{a}_{j} f_{a}(t)
+            $$
+
+            Where your field can contain multiple drives.
+
+            In reality the hardware only supports the following configuration:
+
+            $$
+            \Delta_{i}(t) = \Delta_{1}(t) + c_{i} \Delta_{2}(t)
+            $$
+
+            $$
+            c_i \in [0, 1]
+            $$
+
+            $$
+            \Delta_{2}(t) \leq 0
+            $$
+
+            Where $\Delta_{1}(t)$ is your global detuning (establishable via [`uniform`][bloqade.builder.field.Detuning.uniform]) and $\Delta_{2}(t)$ is your 
+            local detuning waveform with the spatial modulation $c_{i}$ establishable via [`location`][bloqade.builder.field.Detuning.location] or [`scale`][bloqade.builder.field.Detuning.scale].
 
         # Next Possible Steps
 
