@@ -91,7 +91,7 @@ class LevelCoupling(Builder):
             \Delta_{2}(t) \leq 0
             $$
 
-            Where $\Delta_{1}(t)$ is your global detuning (establishable via [`uniform`][bloqade.builder.field.Detuning.uniform]) and $\Delta_{2}(t)$ is your 
+            Where $\Delta_{1}(t)$ is your global detuning (establishable via [`uniform`][bloqade.builder.field.Detuning.uniform]) and $\Delta_{2}(t)$ is your
             local detuning waveform with the spatial modulation $c_{i}$ establishable via [`location`][bloqade.builder.field.Detuning.location] or [`scale`][bloqade.builder.field.Detuning.scale].
 
         # Next Possible Steps
