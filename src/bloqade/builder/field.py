@@ -14,26 +14,92 @@ class Field(Builder):
         Address all atoms as part of defining the spatial modulation component
         of a drive.
 
+        Args:
+            None
+        
+        Returns:
+            Uniform: A program node representing the uniform spatial modulation.
+        
+        ??? abstract "Background and Context"
+
+            Fields give you local (single-atom) control over the many-body Rydberg Hamiltonian.
+
+            They are a sum of one or more spatial modulations multiplied by a waveform:
+
+            $$
+            \\begin{align*}
+            & F_{i}(t) = \sum_{\\alpha} C_{i}^{\\alpha}f_{\\alpha}(t) 
+            \\\\
+            & C_{i}^{\\alpha} \in \mathbb{R} 
+            \\\\
+            & f_{\\alpha}(t) \colon \mathbb{R} \\to \mathbb{R}
+            \\end{align*}
+            $$
+
+            The $i$-th component of the field is used to generate the drive at the $i$-th site.
+
+            Note that the drive is only applied if the $i$-th site is filled with an atom.
+
+            You build fields in Bloqade by first specifying the spatial modulation followed by the waveform
+            it should be multiplied by.
+
+            In the case of a uniform spatial modulation, it can be interpreted as 
+            a constant scaling factor where $C_{i}^{\\alpha} = 1.0$.
+
+        ??? example "Examples"
+
+            `uniform` can be accessed by first specifying the desired level coupling 
+            followed by the field to begin constructing.
+
+            ```python
+            from bloqade import start
+            geometry = start.add_position((0,0))
+            coupling = geometry.rydberg
+            uniform_rabi_amplitude = coupling.rabi.amplitude.uniform
+            ```
+
+        ??? info "Applications"
+
+            * [Single Qubit Rabi Oscillations](https://queracomputing.github.io/bloqade-python-examples/latest/examples/example-1-rabi/)
+            * [Single Qubit Ramsey Protocol](https://queracomputing.github.io/bloqade-python-examples/latest/examples/example-1-ramsey/)
+            * [Single Qubit Floquet Dynamics](https://queracomputing.github.io/bloqade-python-examples/latest/examples/example-1-floquet/)
+            * [Two Qubit Adiabatic Sweep](https://queracomputing.github.io/bloqade-python-examples/latest/examples/example-2-two-qubit-adiabatic/)
+            * [Multi-qubit Blockaded Rabi Oscillations](https://queracomputing.github.io/bloqade-python-examples/latest/examples/example-2-multi-qubit-blockaded/)
+            * [Nonequilibrium Dynamics of nearly Blockaded Rydberg Atoms](https://queracomputing.github.io/bloqade-python-examples/latest/examples/example-2-nonequilibrium-dynamics-blockade-radius/)
+            * [1D Z2 State Preparation](https://queracomputing.github.io/bloqade-python-examples/latest/examples/example-3-time-sweep/)
+            * [2D State Preparation](https://queracomputing.github.io/bloqade-python-examples/latest/examples/example-3-2d-ordered-state/)
+            * [Quantum Scar Dynamics](https://queracomputing.github.io/bloqade-python-examples/latest/examples/example-4-quantum-scar-dynamics/)
+            * [Solving the Maximal Independent Set Problem on defective King Graph](https://queracomputing.github.io/bloqade-python-examples/latest/examples/example-5-MIS-UDG/)
+            * [Lattice Gauge Theory Simulation](https://queracomputing.github.io/bloqade-python-examples/latest/examples/example-6-lattice-gauge-theory/)
+
+        ??? warning "Potential Pitfalls"
+
+            # Global vs. Local Detuning
+
+            `uniform` and using [`location`][bloqade.builder.field.Field.location] where all atoms are targeted with a scaling of $1$ or [`scale`][bloqade.builder.field.Field.scale]
+            with similar behavior will lead to identical behavior in emulation but can have subtle differences on hardware as [`location`][bloqade.builder.field.Field.location]
+            and [`scale`][bloqade.builder.field.Field.scale] use a locally targeting laser while `uniform` uses a globally (all-atom) targeting laser.
+
+        # Reachable Via
+        
+        You may reach the `uniform` property from the following properties:
+
+        * [`detuning`][bloqade.builder.coupling.LevelCoupling.detuning]: Begin specifying the detuning field.
+        * [`amplitude`][bloqade.builder.field.Rabi.amplitude]: Begin specifying the Rabi Amplitude field.
+        * [`phase`][bloqade.builder.field.Rabi.phase]: Begin specifying the Rabi Phase field.
+
+        # Next Possible Steps
+        
         Next steps to build your program include choosing the waveform that
-        will be summed with the spatial modulation to create a drive.
+        will be multiplied with the spatial modulation.
 
-        The drive by itself, or the sum of subsequent drives (created by just
-        chaining the construction of drives) will become the field
-        (e.g. Detuning Field, Real-Valued Rabi Amplitude/Rabi Phase Field, etc.).
-
-        - You can now do:
-            - `...uniform.linear(start, stop, duration)` : to apply a linear waveform
-            - `...uniform.constant(value, duration)` : to apply a constant waveform
-            - `...uniform.poly([coefficients], duration)` : to apply a
-                polynomial waveform
-            - `...uniform.apply(wf:bloqade.ir.Waveform)`: to apply a
-            pre-defined waveform
-            - `...uniform.piecewise_linear([durations], [values])`:  to apply
-            a piecewise linear waveform
-            - `...uniform.piecewise_constant([durations], [values])`: to apply
-            a piecewise constant waveform
-            - `...uniform.fn(f(t,...))`: to apply a function as a waveform
-
+        * [`linear(start, stop, duration)`][bloqade.builder.waveform.WaveformAttachable.linear]: to construct a linear waveform
+        * [`constant(value, duration)`][bloqade.builder.waveform.WaveformAttachable.constant]: to construct a constant waveform
+        * [`poly([coefficients], duration)`][bloqade.builder.waveform.WaveformAttachable.poly]: to construct a polynomial waveform
+        * [`apply(waveform)`][bloqade.builder.waveform.WaveformAttachable.apply]: to apply a pre-defined waveform
+        * [`piecewise_linear([durations], [values])`][bloqade.builder.waveform.WaveformAttachable.piecewise_linear]: to construct a piecewise linear waveform
+        * [`piecewise_constant([durations], [values])`][bloqade.builder.waveform.WaveformAttachable.piecewise_constant]: to construct a piecewise constant waveform
+        * [`fn(f(t,...))`][bloqade.builder.waveform.WaveformAttachable.fn]: to apply a function as a waveform
         """
         from bloqade.builder.spatial import Uniform
 
@@ -64,99 +130,292 @@ class Field(Builder):
         labels: Union[List[int], int],
         scales: Union[List[ScalarType], ScalarType, None] = None,
     ) -> "Location":
-        """Address a single atom (or multiple) atoms.
+        """Address a a subset of atoms as part of defining the spatial modulation component of a drive
+        with a unique scaling factor for each of them.
 
-        Address a single atom (or multiple) as part of defining the spatial
-        modulation component of a drive. You can specify the atoms to target
-        as a list of labels and a list of scales. The scales are used to
-        multiply the waveform that is applied to the atom. You can also specify
-        a single label and scale to target a single atom.
+        Args:
+            labels (Union[List[int], int]): A list of site indices or a single site index to target.
+            scales (Union[List[ScalarType], ScalarType, None]): A list of scaling factors for each site or a single scaling factor to target all sites.
+
+        Returns:
+            Location: A program node representing the spatial modulation with unique scaling factors for some atoms.
+
+        ??? abstract "Background and Context"
+
+            Fields give you local (single-atom) control over the many-body Rydberg Hamiltonian.
+
+            They are a sum of one or more spatial modulations multiplied by a waveform:
+
+            $$
+            \\begin{align*}
+            & F_{i}(t) = \sum_{\\alpha} C_{i}^{\\alpha}f_{\\alpha}(t) 
+            \\\\
+            & C_{i}^{\\alpha} \in \mathbb{R} 
+            \\\\
+            & f_{\\alpha}(t) \colon \mathbb{R} \\to \mathbb{R}
+            \\end{align*}
+            $$
+
+            The $i$-th component of the field is used to generate the drive at the $i$-th site.
+
+            Note that the drive is only applied if the $i$-th site is filled with an atom.
+
+            You build fields in Bloqade by first specifying the spatial modulation followed by the waveform
+            it should be multiplied by.
+
+            In the case of a spatial modulation produced by `location`, you can provide a unique scaling factor scaling factor $C_{i}^{\\alpha}$ for each OR some sites $i$ in the system.
+
+        ??? example "Examples"
+
+            We start by creating a simple program with 3 atoms targeting the Rydberg level coupling and
+            we begin constructing the Rabi amplitude field:
+            
+            ```python
+            from bloqade import start
+            program = start.add_position([(0,0), (4,0), (8,0)]).rydberg.rabi.amplitude
+            ```
+
+            We can specify that we only want to target the first site with a scaling of $1.0$:
+            ```python
+            single_location_scaled = program.location(0)
+            ```
+
+            We may also specify that we want to target only the first site but with a different scaling:
+            ```python
+            custom_scaled_single_location = program.location(0, 0.5)
+            ```
+
+            We can also target a subset of the sites with a scaling of $1.0$:
+            ```python
+            multi_location_scaled = program.location([0, 2])
+            ```
+
+            And finally we can target a subset of sites with custom scaling coefficients:
+            ```python
+            custom_multi_location_scaled = program.location([0, 2], [0.5, 0.25])
+            ```
+        
+        ??? warning "Potential Pitfalls"
+
+            # Global vs. Local Detuning
+
+            [`uniform`][bloqade.builder.field.Detuning.uniform] and using `location` where all atoms are targeted with a scaling of $1$ or [`scale`][bloqade.builder.field.Field.scale]
+            with similar behavior in the construction of the Detuning field will lead to identical behavior in emulation but can have subtle differences on hardware as [`location`][bloqade.builder.field.Field.location]
+            and [`scale`][bloqade.builder.field.Field.scale] use a locally targeting laser while `uniform` uses a globally (all-atom) targeting laser.
+
+            # Number of Coefficients
+
+            The number of coefficients you provide should be equal to the number of atoms in your program. The first coefficient will target the first atom, the second coefficient will target the second atom, and so on.
+
+            # Hardware Differences
+
+            While you can build fields of the following form in Bloqade for the Rabi Amplitude, Rabi Phase, and Detuning of the many-body Rydberg Hamiltonian:
+
+            $$
+            \\begin{align*}
+            & F_{i}(t) = \sum_{\\alpha} C_{i}^{\\alpha}f_{\\alpha}(t) 
+            \\\\
+            & C_{i}^{\\alpha} \in \mathbb{R} 
+            \\\\
+            & f_{\\alpha}(t) \colon \mathbb{R} \\to \mathbb{R}
+            \\end{align*}
+            $$
+
+            The hardware only supports the following configuration for the Detuning field:
+
+            $$
+            \\begin{align*}
+            & \Delta_{i}(t) = \Delta_{1}(t) + c_{i} \Delta_{2}(t)
+            \\\\
+            & c_i \in [0, 1]
+            \\\\
+            & \Delta_{2}(t) \leq 0
+            \\end{align*}
+            $$
+
+            Where $\Delta_{1}(t)$ is your global detuning (establishable via [`uniform`][bloqade.builder.field.Detuning.uniform]) and $\Delta_{2}(t)$ is your
+            local detuning waveform with the spatial modulation $c_{i}$ establishable via [`location`][bloqade.builder.field.Detuning.location] or [`scale`][bloqade.builder.field.Detuning.scale].
+
+            For the Rabi Amplitude and Rabi Phase fields the hardware only supports [`uniform`][bloqade.builder.field.Detuning.uniform]:
+
+            $$
+            \\begin{align*}
+            & \Omega_{i}(t) = \Omega_{1}(t)
+            \\\\
+            & \phi_{i}(t) = \phi_{1}(t)
+            \\end{align*}
+            $$
+
+        # Reachable Via
+
+        You may reach the `location` property from the following properties:
+
+        * [`detuning`][bloqade.builder.coupling.LevelCoupling.detuning]: Begin specifying the detuning field.
+        * [`amplitude`][bloqade.builder.field.Rabi.amplitude]: Begin specifying the Rabi Amplitude field.
+        * [`phase`][bloqade.builder.field.Rabi.phase]: Begin specifying the Rabi Phase field.
+
+        # Next Possible Steps 
 
         Next steps to build your program include choosing the waveform that
-        will be summed with the spatial modulation to create a drive.
+        will be multiplied with the spatial modulation.
 
-        The drive by itself, or the sum of subsequent drives (created by just
-        chaining the construction of drives) will become the field.
-        (e.g. Detuning Field, Real-Valued Rabi Amplitude/Rabi Phase Field, etc.)
-
-        ### Usage Example:
-        ```
-        >>> prog = start.add_position([(0,0),(1,4),(2,8)]).rydberg.rabi
-        # to target a single atom with a waveform
-        >>> one_location_prog = prog.location(0)
-        # to target a single atom with a scale
-        >>> one_location_prog = prog.location(0, 0.5)
-        # to target multiple atoms with same waveform
-        >>> multi_location_prog = prog.location([0, 2])
-        # to target multiple atoms with different scales
-        >>> multi_location_prog = prog.location([0, 2], [0.5, "scale"])
-        ```
-
-        - You can now do:
-            - `...location(labels, scales).linear(start, stop, duration)` : to apply
-                a linear waveform
-            - `...location(labels, scales).constant(value, duration)` : to apply
-                a constant waveform
-            - `...location(labels, scales).poly([coefficients], duration)` : to apply
-                a polynomial waveform
-            - `...location(labels, scales).apply(wf:bloqade.ir.Waveform)`: to apply
-                a pre-defined waveform
-            - `...location(labels, scales).piecewise_linear([durations], [values])`:
-                to apply
-                a piecewise linear waveform
-            - `...location(labels, scales).piecewise_constant([durations], [values])`:
-                to apply
-                a piecewise constant waveform
-            - `...location(labels, scales).fn(f(t,..))`: to apply a function as a
-                waveform
+        * [`linear(start, stop, duration)`][bloqade.builder.waveform.WaveformAttachable.linear]: to construct a linear waveform
+        * [`constant(value, duration)`][bloqade.builder.waveform.WaveformAttachable.constant]: to construct a constant waveform
+        * [`poly([coefficients], duration)`][bloqade.builder.waveform.WaveformAttachable.poly]: to construct a polynomial waveform
+        * [`apply(waveform)`][bloqade.builder.waveform.WaveformAttachable.apply]: to apply a pre-defined waveform
+        * [`piecewise_linear([durations], [values])`][bloqade.builder.waveform.WaveformAttachable.piecewise_linear]: to construct a piecewise linear waveform
+        * [`piecewise_constant([durations], [values])`][bloqade.builder.waveform.WaveformAttachable.piecewise_constant]: to construct a piecewise constant waveform
+        * [`fn(f(t,...))`][bloqade.builder.waveform.WaveformAttachable.fn]: to apply a function as a waveform
 
         """
         return self._location(labels, scales)
 
     def scale(self, coeffs: Union[str, List[ScalarType]]) -> "Scale":
         """
-        Address all the atoms scaling each atom with an element of the list
-        or define a variable name for the scale list to be assigned later by
-        defining a `name` and using `assign` or `batch_assign` later.
+        Address all the atoms as part of a spatial modulation but 
+        with with a unique scaling factor for each of them.
+
+        Args:
+            coeffs (Union[str, List[ScalarType]]): A list of scaling factors for each atom or a variable to be assigned to later.
+
+        Returns:
+            Scale: A program node representing the spatial modulation with unique scaling factors for each atom.
+
+        ??? abstract "Background and Context"
+
+            Fields give you local (single-atom) control over the many-body Rydberg Hamiltonian.
+
+            They are a sum of one or more spatial modulations multiplied by a waveform:
+
+            $$
+            \\begin{align*}
+            & F_{i}(t) = \sum_{\\alpha} C_{i}^{\\alpha}f_{\\alpha}(t) 
+            \\\\
+            & C_{i}^{\\alpha} \in \mathbb{R} 
+            \\\\
+            & f_{\\alpha}(t) \colon \mathbb{R} \\to \mathbb{R}
+            \\end{align*}
+            $$
+
+            The $i$-th component of the field is used to generate the drive at the $i$-th site.
+
+            Note that the drive is only applied if the $i$-th site is filled with an atom.
+
+            You build fields in Bloqade by first specifying the spatial modulation followed by the waveform
+            it should be multiplied by.
+
+            In the case of a spatial modulation produced by `scale`, it can be interpreted as providing a 
+            unique scaling factor $C_{i}^{\\alpha}$ for each site $i$ in the system.
+
+        
+        ??? example "Examples"
+
+            We start by creating a simple program with 3 atoms targeting the Rydberg level coupling and 
+            we begin constructing the Rabi amplitude field:
+            
+            ```python
+            from bloqade import start
+            program = start.add_position([(0,0), (4,0), (8,0)]).rydberg.rabi.amplitude
+            ```
+
+            We can use a list of values to scale the subsequent waveform applied to each atom:
+
+            ```python
+            literally_scaled_program = program.scale([0.1, 0.2, 0.3])
+            ```
+
+            We can also use a variable that can then be assigned to at the end of program 
+            construction. Bloqade requires the field definition be complete (has a 
+            spatial modulation AND a waveform) before assignment is permitted.
+
+            ```python
+            variable_scaled_program = program.scale("scalings")
+            variable_scaled_program.constant(1.0, 1.0).assign(a = [0.1, 0.2, 0.3])
+            ```
+
+            You may also perform batch assignment to the variable should you want to
+            create multiple tasks with different scaling factors:
+
+            ```python
+            batch_scaled_program = program.scale("scalings")
+            batch_scaled_program.constant(1.0, 1.0).batch_assign(a = [[0.1, 0.2, 0.3], [0.2, 0.3, 0.4], [0.3, 0.4, 0.5]])
+            ```
+
+        ??? info "Applications"
+
+            * [Lattice Gauge Theory Simulation](https://queracomputing.github.io/bloqade-python-examples/latest/examples/example-6-lattice-gauge-theory/)
+
+        ??? warning "Potential Pitfalls"
+
+            # Global vs. Local Detuning
+
+            [`uniform`][bloqade.builder.field.Detuning.uniform] and using [`location`][bloqade.builder.field.Field.location] where all atoms are targeted with a scaling of $1$ or `scale`
+            with similar behavior in the construction of the Detuning field will lead to identical behavior in emulation but can have subtle differences on hardware as [`location`][bloqade.builder.field.Field.location]
+            and `scale` use a locally targeting laser  while [`uniform`][bloqade.builder.field.Detuning.uniform] uses a globally (all-atom) targeting laser.
+
+            # Number of Coefficients
+
+            The number of coefficients you provide should be equal to the number of atoms in your program. The first coefficient will target the first atom, the second coefficient will target the second atom, and so on.
+
+            # Hardware Differences
+
+            While you can build fields of the following form in Bloqade for the Rabi Amplitude, Rabi Phase, and Detuning of the many-body Rydberg Hamiltonian:
+
+            $$
+            \\begin{align*}
+            & F_{i}(t) = \sum_{\\alpha} C_{i}^{\\alpha}f_{\\alpha}(t) 
+            \\\\
+            & C_{i}^{\\alpha} \in \mathbb{R} 
+            \\\\
+            & f_{\\alpha}(t) \colon \mathbb{R} \\to \mathbb{R}
+            \\end{align*}
+            $$
+
+            The hardware only supports the following configuration for the Detuning field:
+
+            $$
+            \\begin{align*}
+            & \Delta_{i}(t) = \Delta_{1}(t) + c_{i} \Delta_{2}(t)
+            \\\\
+            & c_i \in [0, 1]
+            \\\\
+            & \Delta_{2}(t) \leq 0
+            \\end{align*}
+            $$
+
+            Where $\Delta_{1}(t)$ is your global detuning (establishable via [`uniform`][bloqade.builder.field.Detuning.uniform]) and $\Delta_{2}(t)$ is your
+            local detuning waveform with the spatial modulation $c_{i}$ establishable via [`location`][bloqade.builder.field.Detuning.location] or [`scale`][bloqade.builder.field.Detuning.scale].
+
+            For the Rabi Amplitude and Rabi Phase fields the hardware only supports [`uniform`][bloqade.builder.field.Detuning.uniform]:
+
+            $$
+            \\begin{align*}
+            & \Omega_{i}(t) = \Omega_{1}(t)
+            \\\\
+            & \phi_{i}(t) = \phi_{1}(t)
+            \\end{align*}
+            $$
+
+        # Reachable Via
+
+        You may reach the `scale` property from the following properties:
+
+        * [`detuning`][bloqade.builder.coupling.LevelCoupling.detuning]: Begin specifying the detuning field.
+        * [`amplitude`][bloqade.builder.field.Rabi.amplitude]: Begin specifying the Rabi Amplitude field.
+        * [`phase`][bloqade.builder.field.Rabi.phase]: Begin specifying the Rabi Phase field.
+
+        # Next Possible Steps 
 
         Next steps to build your program include choosing the waveform that
-        will be summed with the spatial modulation to create a drive.
+        will be multiplied with the spatial modulation.
 
-        The drive by itself, or the sum of subsequent drives (created by just
-        chaining the construction of drives) will become the field
-        (e.g. Detuning Field, Real-Valued Rabi Amplitude/Rabi Phase Field, etc.)
-
-        ### Usage Example:
-        ```
-        >>> prog = start.add_position([(0,0),(1,4),(2,8)]).rydberg.rabi
-
-        # assign a literal list of values to scale each atom
-        >>> one_location_prog = prog.scale([0.1, 0.2, 0.3])
-        # assign a variable name to be assigned later
-        >>> one_location_prog = prog.scale("a")
-        # "a" can be assigned in the END of the program during variable assignment
-        # using a list of values, indicating the scaling for each atom
-        >>> single_assignment = ...assign(a = [0.1, 0.2, 0.3])
-        # a list of lists, indicating a set of atoms should be targeted
-        # for each task in a batch.
-        >>> batch_assignment = ...batch_assign(a = [list_1, list_2, list_3,...])
-
-        ```
-
-        - You can now do:
-            - `...scale(coeffs).linear(start, stop, duration)` : to apply
-                a linear waveform
-            - `...scale(coeffs).constant(value, duration)` : to apply
-                a constant waveform
-            - `...scale(coeffs).poly([coefficients], duration)` : to apply
-                a polynomial waveform
-            - `...scale(coeffs).apply(wf:bloqade.ir.Waveform)`: to apply
-                a pre-defined waveform
-            - `...scale(coeffs).piecewise_linear(durations, values)`:  to
-                apply a piecewise linear waveform
-            - `...scale(coeffs).piecewise_constant(durations, values)`: to
-                apply a piecewise constant waveform
-            - `...scale(coeffs).fn(f(t,..))`: to apply a function as a waveform
+        * [`linear(start, stop, duration)`][bloqade.builder.waveform.WaveformAttachable.linear]: to construct a linear waveform
+        * [`constant(value, duration)`][bloqade.builder.waveform.WaveformAttachable.constant]: to construct a constant waveform
+        * [`poly([coefficients], duration)`][bloqade.builder.waveform.WaveformAttachable.poly]: to construct a polynomial waveform
+        * [`apply(waveform)`][bloqade.builder.waveform.WaveformAttachable.apply]: to apply a pre-defined waveform
+        * [`piecewise_linear([durations], [values])`][bloqade.builder.waveform.WaveformAttachable.piecewise_linear]: to construct a piecewise linear waveform
+        * [`piecewise_constant([durations], [values])`][bloqade.builder.waveform.WaveformAttachable.piecewise_constant]: to construct a piecewise constant waveform
+        * [`fn(f(t,...))`][bloqade.builder.waveform.WaveformAttachable.fn]: to apply a function as a waveform
 
         """
         from bloqade.builder.spatial import Scale
