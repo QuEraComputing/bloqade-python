@@ -279,6 +279,9 @@ def test_bloqade_filling():
     (a,) = result_1.report().counts()
     (b,) = result_2.report().counts()
 
+    # post-processing to match the keys in
+    # both dictionaries. This involves removing the
+    # the second and the third bits from the keys in a
     a_post_processed = type(a)()
 
     for key, value in a.items():
