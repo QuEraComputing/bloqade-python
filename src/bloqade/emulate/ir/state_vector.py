@@ -82,8 +82,10 @@ class StateVector:
     data: NDArray
     space: Space
 
-    @plum.dispatch
-    def local_trace(self, matrix: np.ndarray, site_indices: Tuple[int, int]) -> complex:
+    @plum.overload
+    def local_trace(
+        self, matrix: np.ndarray, site_indices: Tuple[int, int]
+    ) -> complex:  # noqa: F811
         from scipy.sparse import csc_array
 
         n_level = self.space.atom_type.n_level
@@ -101,7 +103,9 @@ class StateVector:
                     f" {self.space.n_sites} sites"
                 )
 
-        local_filling = self.space.geometry.filling[site_indices]
+        local_filling = [
+            self.space.geometry.filling[site_index] for site_index in site_indices
+        ]
 
         if local_filling[0] and local_filling[1]:
             csc = csc_array(matrix)
@@ -120,17 +124,20 @@ class StateVector:
         elif local_filling[0]:
             matrix = matrix.reshape(n_level, n_level, n_level, n_level)
             partial_matrix = np.einsum("ijik->jk", matrix)
+
             return self.local_trace(partial_matrix, site_indices[0])
+
         elif local_filling[1]:
             matrix = matrix.reshape(n_level, n_level, n_level, n_level)
             partial_matrix = np.einsum("jiki->jk", matrix)
+
             return self.local_trace(partial_matrix, site_indices[1])
+
         else:
-            return 0.0
+            return complex(0.0)
 
-    @plum.dispatch
+    @plum.overload
     def local_trace(self, matrix: np.ndarray, site_index: int) -> complex:  # noqa: F811
-
         n_level = self.space.atom_type.n_level
         shape = (n_level, n_level)
 
@@ -160,47 +167,16 @@ class StateVector:
 
         return complex(value.real, value.imag)
 
-    @plum.overload
+    @plum.dispatch
     def local_trace(  # noqa: F811
-        self,
-        matrix: np.ndarray,
-        site_indices: Tuple[int, int],
-    ) -> complex:
+        self, matrix: np.ndarray, site_index: Union[int, Tuple[int, int]]
+    ) -> complex:  # noqa: F811
         """return trace of an operator over the StateVector.
 
         Args:
             matrix (np.ndarray): Square matrix representing operator in the local
                 hilbert space.
-            site_indices (Tuple[int, int]): sites to apply two body operator to.
-
-        Returns:
-            complex: the trace of the operator over the state-vector.
-
-        Raises:
-            ValueError: Error is raised when the dimension of `operator` is not
-            consistent with `site` argument. The size of the operator must fit
-            the size of the local hilbert space of `site` depending on the number
-            of sites and the number of levels inside each atom, e.g. for two site
-            expectation value with a three level atom the operator must be a 9 by
-            9 array.
-
-            ValueError: Error is raised when the `site` argument is out of bounds.
-
-        """
-        ...
-
-    @plum.overload
-    def local_trace(  # noqa: F811
-        self,
-        matrix: np.ndarray,
-        site_index: int,
-    ) -> complex:
-        """return trace of an operator over the StateVector.
-
-        Args:
-            matrix (np.ndarray): Square matrix representing operator in the local
-                hilbert space.
-            site_index (int): sites to apply one body operator to.
+            site_index (int | Tuple[int, int]): sites to apply one body operator to.
 
         Returns:
             complex: the trace of the operator over the state-vector.

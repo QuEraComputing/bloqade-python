@@ -63,15 +63,12 @@ class BloqadeTask(LocalTask):
             self.shots, project_hyperfine=True, **options
         )
 
-        filling = self.emulator_ir.register.filling
-        filling = (
-            np.ones(shots_array.shape[1], dtype=bool) if filling is None else filling
-        )
+        filling = np.asarray(self.emulator_ir.register.filling, dtype=int)
         full_shot = np.zeros_like(filling, dtype=int)
 
         shot_outputs = []
         for shot in shots_array[:]:
-            full_shot[filling] = 1 - shot
+            full_shot[filling == 1] = 1 - shot
 
             shot_result = QuEraShotResult(
                 shot_status=QuEraShotStatusCode.Completed,

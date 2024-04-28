@@ -1,5 +1,5 @@
 from beartype.typing import Any, Dict, Optional
-import numpy as np
+
 from bloqade.builder.typing import LiteralType
 from bloqade.ir.location.location import AtomArrangement, SiteFilling
 from bloqade.ir.visitor import BloqadeIRVisitor
@@ -66,14 +66,14 @@ class EmulatorProgramCodeGen(BloqadeIRVisitor):
                 ThreeLevelAtom,
                 positions,
                 blockade_radius=self.blockade_radius,
-                filling=np.asarray(filling),
+                filling=filling,
             )
         else:
             self.register = Register(
                 TwoLevelAtom,
                 positions,
                 blockade_radius=self.blockade_radius,
-                filling=np.asarray(filling),
+                filling=filling,
             )
 
     def construct_detuning(self, node: Optional[field.Field]):
