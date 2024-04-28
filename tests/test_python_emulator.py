@@ -238,20 +238,50 @@ def test_bloqade_filling():
         .add_position((0, 6.1), filling=False)
         .add_position((6.1, 6.1), filling=True)
     )
+
+    durations = cast([0.1, 0.1, 0.1])
+    values = [0, 15, 15, 0]
+
     result_1 = (
-        geometry.rydberg.detuning.uniform.constant(-10, 0.1).bloqade.python().run(3)
+        geometry.rydberg.detuning.uniform.piecewise_linear(
+            durations, [-20, -20, "d", "d"]
+        )
+        .amplitude.location(0)
+        .piecewise_linear(durations, values)
+        .amplitude.location(2)
+        .piecewise_linear(durations, values)
+        .amplitude.location(1)
+        .piecewise_linear(durations, values)
+        .phase.location(0)
+        .constant(0.0, sum(durations))
+        .assign(d=10)
+        .bloqade.python()
+        .run(3)
     )
     result_2 = (
         geometry.remove_vacant_sites()
-        .rydberg.detuning.uniform.constant(-10, 0.1)
+        .rydberg.detuning.uniform.piecewise_linear(durations, [-20, -20, "d", "d"])
+        .amplitude.location(0)
+        .piecewise_linear(durations, values)
+        .amplitude.location(1)
+        .piecewise_linear(durations, values)
+        .phase.location(0)
+        .constant(0.0, sum(durations))
+        .assign(d=10)
         .bloqade.python()
         .run(3)
     )
 
-    (bitstrings_1,) = result_1.report().bitstrings()
-    (bitstrings_2,) = result_2.report().bitstrings()
+    (a,) = result_1.report().counts()
+    (b,) = result_2.report().counts()
 
-    assert np.array_equal(bitstrings_1[:, [0, 3]], bitstrings_2)
+    a_post_processed = type(a)()
+
+    for key, value in a.items():
+        new_bits = "".join((key[0], key[3]))
+        a_post_processed[new_bits] = value
+
+    KS_test(a_post_processed, b)
 
 
 if __name__ == "__main__":
