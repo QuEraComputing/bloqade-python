@@ -228,3 +228,31 @@ def test_bloqade_against_braket_2():
 
     for lhs, rhs in zip(a, b):
         KS_test(lhs, rhs)
+
+
+def test_bloqade_filling():
+
+    geometry = (
+        start.add_position((0, 0), filling=True)
+        .add_position((6.1, 0), filling=False)
+        .add_position((0, 6.1), filling=False)
+        .add_position((6.1, 6.1), filling=True)
+    )
+    result_1 = (
+        geometry.rydberg.detuning.uniform.constant(-10, 0.1).bloqade.python().run(3)
+    )
+    result_2 = (
+        geometry.remove_vacant_sites()
+        .rydberg.detuning.uniform.constant(-10, 0.1)
+        .bloqade.python()
+        .run(3)
+    )
+
+    (bitstrings_1,) = result_1.report().bitstrings()
+    (bitstrings_2,) = result_2.report().bitstrings()
+
+    assert np.array_equal(bitstrings_1[:, [0, 3]], bitstrings_2)
+
+
+if __name__ == "__main__":
+    test_bloqade_filling()
