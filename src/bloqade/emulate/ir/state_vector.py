@@ -104,7 +104,8 @@ class StateVector:
                 )
 
         local_filling = [
-            self.space.geometry.filling[site_index] for site_index in site_indices
+            self.space.geometry.geometry.filling[site_index]
+            for site_index in site_indices
         ]
 
         if local_filling[0] and local_filling[1]:
@@ -152,7 +153,7 @@ class StateVector:
                 f"{self.space.n_sites} sites"
             )
 
-        local_filling = self.space.geometry.filling[site_index]
+        local_filling = self.space.geometry.geometry.filling[site_index]
 
         if not local_filling:
             return complex(0.0)

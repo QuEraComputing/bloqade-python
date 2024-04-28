@@ -111,7 +111,7 @@ class Space:
 
     @property
     def n_sites(self) -> int:
-        return len(self.geometry.filling)
+        return len(self.geometry.geometry.sites)
 
     @property
     def state_type(self) -> np.dtype:
