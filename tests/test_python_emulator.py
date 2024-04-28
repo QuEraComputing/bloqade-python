@@ -250,7 +250,9 @@ def test_bloqade_filling():
         .piecewise_linear(durations, values)
         .amplitude.location(2)
         .piecewise_linear(durations, values)
-        .amplitude.location(1)
+        .amplitude.location(
+            1
+        )  # note this drive is ignored because it is not in the filling sites
         .piecewise_linear(durations, values)
         .phase.location(0)
         .constant(0.0, sum(durations))
@@ -258,6 +260,8 @@ def test_bloqade_filling():
         .bloqade.python()
         .run(3)
     )
+    # removing vacant sites implies 0 -> 0 and 2 -> 1 based
+    # on the order of how the sites are added
     result_2 = (
         geometry.remove_vacant_sites()
         .rydberg.detuning.uniform.piecewise_linear(durations, [-20, -20, "d", "d"])
