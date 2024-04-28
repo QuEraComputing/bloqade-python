@@ -7,10 +7,13 @@ from bloqade.compiler.codegen.common.json import (
 from bloqade.serialize import Serializer
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Any, Dict, List, Tuple, Optional, Callable
+from typing import Any, Dict, List, Tuple, Optional, Callable, TYPE_CHECKING
 from enum import Enum
 from bloqade.ir.control.waveform import Waveform
 from bloqade.emulate.ir.atom_type import AtomType
+
+if TYPE_CHECKING:
+    from bloqade.task.base import Geometry
 
 
 class WaveformRuntime(str, Enum):
@@ -152,11 +155,14 @@ class Register:
     atom_type: AtomType
     sites: List[Tuple[Decimal, Decimal]]
     blockade_radius: Decimal
-    filling: Optional[List[bool]] = None
+    geometry: Optional["Geometry"] = None
 
     def __post_init__(self):
-        if self.filling is None:
-            object.__setattr__(self, "filling", [True for _ in self.sites])
+        from bloqade.task.base import Geometry
+
+        if self.geometry is None:
+            geometry = Geometry(self.sites, len(self.sites) * [1])
+            object.__setattr__(self, "geometry", geometry)
 
     def __len__(self):
         return len(self.sites)

@@ -12,6 +12,7 @@ import bloqade.ir.control.sequence as sequence
 import bloqade.ir.control.pulse as pulse
 import bloqade.ir.control.waveform as waveform
 import bloqade.ir.control.field as field
+from bloqade.task.base import Geometry
 import bloqade.ir as ir
 from bloqade.emulate.ir.atom_type import ThreeLevelAtom, TwoLevelAtom
 from bloqade.emulate.ir.emulator import (
@@ -54,10 +55,12 @@ class EmulatorProgramCodeGen(BloqadeIRVisitor):
     def construct_register(self, node: AtomArrangement) -> Any:
         positions = []
         filling = []
+        sites = []
         for org_index, loc_info in enumerate(node.enumerate()):
             filling.append(loc_info.filling == SiteFilling.filled)
+            position = tuple([pos(**self.assignments) for pos in loc_info.position])
+            sites.append(position)
             if filling[-1]:
-                position = tuple([pos(**self.assignments) for pos in loc_info.position])
                 positions.append(position)
                 self.original_index.append(org_index)
 
@@ -66,14 +69,14 @@ class EmulatorProgramCodeGen(BloqadeIRVisitor):
                 ThreeLevelAtom,
                 positions,
                 blockade_radius=self.blockade_radius,
-                filling=filling,
+                geometry=Geometry(sites, filling),
             )
         else:
             self.register = Register(
                 TwoLevelAtom,
                 positions,
                 blockade_radius=self.blockade_radius,
-                filling=filling,
+                geometry=Geometry(sites, filling),
             )
 
     def construct_detuning(self, node: Optional[field.Field]):

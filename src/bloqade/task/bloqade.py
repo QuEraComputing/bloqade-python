@@ -30,9 +30,7 @@ class BloqadeTask(LocalTask):
     task_result_ir: Optional[QuEraTaskResults] = None
 
     def _geometry(self) -> Geometry:
-        sites = [tuple(map(float, site)) for site in self.emulator_ir.register.sites]
-
-        return Geometry(sites=sites, filling=[1 for _ in sites], parallel_decoder=None)
+        return self.emulator_ir.register.geometry
 
     def result(self) -> QuEraTaskResults:
         return self.task_result_ir
@@ -63,7 +61,9 @@ class BloqadeTask(LocalTask):
             self.shots, project_hyperfine=True, **options
         )
 
-        filling = np.asarray(self.emulator_ir.register.filling, dtype=int)
+        geometry = self.emulator_ir.register.geometry
+
+        filling = np.asarray(geometry.filling, dtype=int)
         full_shot = np.zeros_like(filling, dtype=int)
 
         shot_outputs = []
