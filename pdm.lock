@@ -5,7 +5,7 @@
 groups = ["default", "dev", "doc"]
 strategy = ["cross_platform", "inherit_metadata"]
 lock_version = "4.4.1"
-content_hash = "sha256:e6814e52f0916471a3e66e84cc7db1df2eb0e7fbdc579c2782430a47669a19bb"
+content_hash = "sha256:84eed562c36a88f6443e9407272b31867720ae9b67aa26a57b769415b2dd03de"
 
 [[package]]
 name = "amazon-braket-default-simulator"
@@ -43,7 +43,7 @@ files = [
 
 [[package]]
 name = "amazon-braket-sdk"
-version = "1.77.5"
+version = "1.78.0"
 requires_python = ">=3.9"
 summary = "An open source library for interacting with quantum computing devices on Amazon Braket"
 groups = ["default"]
@@ -64,8 +64,8 @@ dependencies = [
     "sympy",
 ]
 files = [
-    {file = "amazon_braket_sdk-1.77.5-py3-none-any.whl", hash = "sha256:8baa7469bf576328a1d5bd35856cccc8bbc9c19929b43b1bb34813ccef28c2fa"},
-    {file = "amazon_braket_sdk-1.77.5.tar.gz", hash = "sha256:d9ccbde214e7d1b581ea3ebed0cfb12d849c738698226693ae93799cac2e9379"},
+    {file = "amazon_braket_sdk-1.78.0-py3-none-any.whl", hash = "sha256:e6d11e9b8e71039ab75edc346df071fadd59c12943b6b8328b62b0b6a1227278"},
+    {file = "amazon_braket_sdk-1.78.0.tar.gz", hash = "sha256:9f0c49af85c4bd1be8ab190959f6bfa8625f8249543f0b471b1a3b36e24c6113"},
 ]
 
 [[package]]
