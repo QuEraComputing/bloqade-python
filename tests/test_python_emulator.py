@@ -240,25 +240,26 @@ def test_bloqade_filling():
     )
 
     durations = cast([0.1, 0.1, 0.1])
-    values = [0, 15, 15, 0]
+    values_1 = [0, 15, 15, 0]
+    values_2 = [0, 2, 15, 0]
+
+    shots = 1000
 
     result_1 = (
         geometry.rydberg.detuning.uniform.piecewise_linear(
             durations, [-20, -20, "d", "d"]
         )
         .amplitude.location(0)
-        .piecewise_linear(durations, values)
-        .amplitude.location(2)
-        .piecewise_linear(durations, values)
+        .piecewise_linear(durations, values_1)
+        .amplitude.location(3)
+        .piecewise_linear(durations, values_2)
         .amplitude.location(
             1
         )  # note this drive is ignored because the site is not filled
-        .piecewise_linear(durations, values)
-        .phase.location(0)
-        .constant(0.0, sum(durations))
+        .piecewise_linear(durations, values_2)
         .assign(d=10)
         .bloqade.python()
-        .run(3)
+        .run(shots)
     )
     # removing vacant sites implies 0 -> 0 and 2 -> 1 based
     # on the order of how the sites are added
@@ -266,14 +267,12 @@ def test_bloqade_filling():
         geometry.remove_vacant_sites()
         .rydberg.detuning.uniform.piecewise_linear(durations, [-20, -20, "d", "d"])
         .amplitude.location(0)
-        .piecewise_linear(durations, values)
+        .piecewise_linear(durations, values_1)
         .amplitude.location(1)
-        .piecewise_linear(durations, values)
-        .phase.location(0)
-        .constant(0.0, sum(durations))
+        .piecewise_linear(durations, values_2)
         .assign(d=10)
         .bloqade.python()
-        .run(3)
+        .run(shots)
     )
 
     (a,) = result_1.report().counts()
