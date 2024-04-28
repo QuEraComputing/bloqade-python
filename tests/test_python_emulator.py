@@ -252,7 +252,7 @@ def test_bloqade_filling():
         .piecewise_linear(durations, values)
         .amplitude.location(
             1
-        )  # note this drive is ignored because it is not in the filling sites
+        )  # note this drive is ignored because the site is not filled
         .piecewise_linear(durations, values)
         .phase.location(0)
         .constant(0.0, sum(durations))
