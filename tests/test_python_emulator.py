@@ -285,8 +285,8 @@ def test_bloqade_filling():
     a_post_processed = type(a)()
 
     for key, value in a.items():
-        new_bits = "".join((key[0], key[3]))
-        a_post_processed[new_bits] = value
+        new_key = "".join((key[0], key[3]))
+        a_post_processed[new_key] = value
 
     KS_test(a_post_processed, b)
 
