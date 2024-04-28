@@ -68,14 +68,13 @@ class BloqadeTask(LocalTask):
 
         shot_outputs = []
         for shot in shots_array[:]:
+            # flip the bits so that 1 = ground state and 0 = excited state
+            # and scatter shot results into the full shot array according to the filling
             full_shot[filling == 1] = 1 - shot
 
             shot_result = QuEraShotResult(
                 shot_status=QuEraShotStatusCode.Completed,
-                # TODO: make the pre_sesquence and post_sequence match the
-                # empty sites in the original definition of the register
                 pre_sequence=filling.tolist(),
-                # flip the bits so that 1 = ground state and 0 = excited state
                 post_sequence=full_shot.tolist(),
             )
             shot_outputs.append(shot_result)
