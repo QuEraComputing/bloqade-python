@@ -1,4 +1,5 @@
 from beartype.typing import Any, Dict, Optional
+import numpy as np
 from bloqade.builder.typing import LiteralType
 from bloqade.ir.location.location import AtomArrangement, SiteFilling
 from bloqade.ir.visitor import BloqadeIRVisitor
@@ -52,8 +53,10 @@ class EmulatorProgramCodeGen(BloqadeIRVisitor):
 
     def construct_register(self, node: AtomArrangement) -> Any:
         positions = []
+        filling = []
         for org_index, loc_info in enumerate(node.enumerate()):
-            if loc_info.filling == SiteFilling.filled:
+            filling.append(loc_info.filling == SiteFilling.filled)
+            if filling[-1]:
                 position = tuple([pos(**self.assignments) for pos in loc_info.position])
                 positions.append(position)
                 self.original_index.append(org_index)
@@ -63,12 +66,14 @@ class EmulatorProgramCodeGen(BloqadeIRVisitor):
                 ThreeLevelAtom,
                 positions,
                 blockade_radius=self.blockade_radius,
+                filling=np.asarray(filling),
             )
         else:
             self.register = Register(
                 TwoLevelAtom,
                 positions,
                 blockade_radius=self.blockade_radius,
+                filling=np.asarray(filling),
             )
 
     def construct_detuning(self, node: Optional[field.Field]):

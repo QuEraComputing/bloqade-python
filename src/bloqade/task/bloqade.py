@@ -17,6 +17,7 @@ from beartype.typing import Dict, Any
 from bloqade.builder.base import ParamType
 from dataclasses import dataclass
 from typing import Optional
+import numpy as np
 
 
 @dataclass
@@ -62,15 +63,23 @@ class BloqadeTask(LocalTask):
             self.shots, project_hyperfine=True, **options
         )
 
+        filling = self.emulator_ir.register.filling
+        filling = (
+            np.ones(shots_array.shape[1], dtype=bool) if filling is None else filling
+        )
+        full_shot = np.zeros_like(filling, dtype=int)
+
         shot_outputs = []
         for shot in shots_array[:]:
+            full_shot[filling] = 1 - shot
+
             shot_result = QuEraShotResult(
                 shot_status=QuEraShotStatusCode.Completed,
                 # TODO: make the pre_sesquence and post_sequence match the
                 # empty sites in the original definition of the register
-                pre_sequence=[1 for _ in shot],
+                pre_sequence=filling.tolist(),
                 # flip the bits so that 1 = ground state and 0 = excited state
-                post_sequence=list(1 - shot),
+                post_sequence=full_shot.tolist(),
             )
             shot_outputs.append(shot_result)
 

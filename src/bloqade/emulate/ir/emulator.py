@@ -1,4 +1,6 @@
 from functools import cached_property
+
+import numpy as np
 from bloqade.compiler.codegen.common.json import (
     BloqadeIRSerializer,
     BloqadeIRDeserializer,
@@ -10,6 +12,7 @@ from typing import Any, Dict, List, Tuple, Optional, Callable
 from enum import Enum
 from bloqade.ir.control.waveform import Waveform
 from bloqade.emulate.ir.atom_type import AtomType
+from numpy.typing import NDArray
 
 
 class WaveformRuntime(str, Enum):
@@ -151,6 +154,7 @@ class Register:
     atom_type: AtomType
     sites: List[Tuple[Decimal, Decimal]]
     blockade_radius: Decimal
+    filling: Optional[NDArray] = None
 
     def __len__(self):
         return len(self.sites)
@@ -182,10 +186,21 @@ class Register:
             )
 
 
+@Register.set_serializer
+def _serialize(obj: Register) -> Dict[str, Any]:
+    obj_dict = obj.__dict__.copy()
+    obj_dict["filling"] = (
+        None if obj_dict["filling"] is None else obj_dict["filling"].tolist()
+    )
+    return obj_dict
+
+
 @Register.set_deserializer
 def _deserializer(d: Dict[str, Any]) -> Register:
     d["sites"] = [tuple(map(Decimal, map(str, site))) for site in d["sites"]]
-
+    d["filling"] = (
+        np.asarray(d["filling"], dtype=bool) if d["filling"] is not None else None
+    )
     return Register(**d)
 
 
