@@ -2,24 +2,27 @@ from bokeh.models import (
     ColumnDataSource,
     Range1d,
     HoverTool,
-    LinearColorMapper, 
+    LinearColorMapper,
     Select,
-    CustomJS
+    CustomJS,
 )
 from bokeh.layouts import column
 from bokeh.plotting import figure
 import numpy as np
 from typing import List, Tuple
 
+
 def assemble_atom_arrgement_panel(atom_arrangement_plots: List, keys: List[str]):
-    
+
     out = column(*atom_arrangement_plots)
-    
+
     # 0 is always the filling
-    select = Select(title="display info", options=keys, value=keys[0]) 
-    select.js_on_change("value", 
-                        CustomJS(args=dict(figs=out.children, options=select.options, nelem=len(keys)), 
-                                code="""
+    select = Select(title="display info", options=keys, value=keys[0])
+    select.js_on_change(
+        "value",
+        CustomJS(
+            args=dict(figs=out.children, options=select.options, nelem=len(keys)),
+            code="""
                                     const val = this.value
                                     for(let i=0;i<nelem;i++){
                                         figs[i].visible=false;
@@ -27,20 +30,25 @@ def assemble_atom_arrgement_panel(atom_arrangement_plots: List, keys: List[str])
                                             figs[i].visible=true;
                                         }
                                     }
-                                """)
-                        )
-    
-    return column(select,out)
+                                """,
+        ),
+    )
+
+    return column(select, out)
 
 
-
-def get_atom_arrangement_figure(atom_arng_ir, colors: Tuple[List[int],List[float]]=(),  fig_kwargs=None, **assignments):
+def get_atom_arrangement_figure(
+    atom_arng_ir,
+    colors: Tuple[List[int], List[float]] = (),
+    fig_kwargs=None,
+    **assignments,
+):
     import bloqade.ir.location as ir_loc
 
     print("colors", colors)
 
     if len(colors) == 0:
-        color_sites, color_weights = [],[]
+        color_sites, color_weights = [], []
     else:
         color_sites, color_weights = colors
 
@@ -62,12 +70,12 @@ def get_atom_arrangement_figure(atom_arng_ir, colors: Tuple[List[int],List[float
             xs_filled.append(x)
             ys_filled.append(y)
             labels_filled.append(idx)
-            
+
             if idx in color_sites:
                 color_filled.append(color_weights[color_sites.index(idx)])
             else:
                 color_filled.append(0)
-            
+
         else:
             xs_vacant.append(x)
             ys_vacant.append(y)
@@ -83,12 +91,15 @@ def get_atom_arrangement_figure(atom_arng_ir, colors: Tuple[List[int],List[float
     else:
         length_scale = 1
 
-
     source_filled = ColumnDataSource(
-        data=dict(_x=xs_filled, _y=ys_filled, _labels=labels_filled, _colorwt=color_filled)
+        data=dict(
+            _x=xs_filled, _y=ys_filled, _labels=labels_filled, _colorwt=color_filled
+        )
     )
     source_vacant = ColumnDataSource(
-        data=dict(_x=xs_vacant, _y=ys_vacant, _labels=labels_vacant, _colorwt=color_vacant)
+        data=dict(
+            _x=xs_vacant, _y=ys_vacant, _labels=labels_vacant, _colorwt=color_vacant
+        )
     )
     source_all = ColumnDataSource(
         data=dict(
@@ -97,7 +108,6 @@ def get_atom_arrangement_figure(atom_arng_ir, colors: Tuple[List[int],List[float
             _labels=labels_vacant + labels_filled,
         )
     )
-    
 
     ## remove box_zoom since we don't want to change the scale
     if fig_kwargs is None:
@@ -131,10 +141,15 @@ def get_atom_arrangement_figure(atom_arng_ir, colors: Tuple[List[int],List[float
             ("index: ", "@_labels"),
         ]
     else:
-        #high = max(color_weights)
+        # high = max(color_weights)
         color_mapper = LinearColorMapper(palette="Magma256", low=0, high=1)
         p.circle(
-            "_x", "_y", source=source_filled, radius=0.015 * length_scale, fill_alpha=1, color={"field": "_colorwt", "transform": color_mapper},
+            "_x",
+            "_y",
+            source=source_filled,
+            radius=0.015 * length_scale,
+            fill_alpha=1,
+            color={"field": "_colorwt", "transform": color_mapper},
         )
         p.circle(
             "_x",
@@ -149,7 +164,7 @@ def get_atom_arrangement_figure(atom_arng_ir, colors: Tuple[List[int],List[float
         hover.tooltips = [
             ("(x,y)", "(@_x, @_y)"),
             ("index: ", "@_labels"),
-            ("weight:", "@_colorwt")
+            ("weight:", "@_colorwt"),
         ]
 
     p.circle(

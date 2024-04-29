@@ -1,5 +1,9 @@
 # from numbers import Real
-from bloqade.visualization import display_ir, get_atom_arrangement_figure, assemble_atom_arrgement_panel
+from bloqade.visualization import (
+    display_ir,
+    get_atom_arrangement_figure,
+    assemble_atom_arrgement_panel,
+)
 from bloqade.ir.control.sequence import SequenceExpr
 from bloqade.ir.location.location import AtomArrangement, ParallelRegister
 from bloqade.ir.tree_print import Printer
@@ -66,16 +70,15 @@ class AnalogCircuit:
     def figure(self, **assignments):
         fig_regs = []
         fig_keys = []
-        
+
         fig_reg = self.register.figure(**assignments)
         fig_seq = self.sequence.figure(**assignments)
-        
+
         fig_regs.append(fig_reg)
         fig_keys.append("Filling")
-        
+
         ## extract channel info from fig_seq, to analysis the SpatialModulation information
-        spmod_extracted_data: Dict[str, Tuple[List[int],List[float]]] = {}
-        
+        spmod_extracted_data: Dict[str, Tuple[List[int], List[float]]] = {}
 
         for tab in fig_seq.tabs:
             pulse_name = tab.title
@@ -84,33 +87,35 @@ class AnalogCircuit:
                 # extract SpMod:
                 field_name = field.children[0].text.strip()
                 spmod = field.children[1].children[0]
-                
+
                 Spmod_raw_data = pd.DataFrame(spmod.source.data)
-                
-                #exclude uniform
-                Spmod_raw_data = Spmod_raw_data[Spmod_raw_data.d1 != 'uni'] 
-                
+
+                # exclude uniform
+                Spmod_raw_data = Spmod_raw_data[Spmod_raw_data.d1 != "uni"]
+
                 channels = Spmod_raw_data.d0.unique()
-                if len(channels) ==0:
+                if len(channels) == 0:
                     continue
-                
+
                 for ch in channels:
                     ch_data = Spmod_raw_data[Spmod_raw_data.d0 == ch]
-                    
-                    sites = list(map(lambda x: int(x.split('[')[-1].split(']')[0]),ch_data.d1))
+
+                    sites = list(
+                        map(lambda x: int(x.split("[")[-1].split("]")[0]), ch_data.d1)
+                    )
                     values = list(ch_data.px.astype(float))
-                    
+
                     key = f"{pulse_name}.{field_name}.{ch}"
                     spmod_extracted_data[key] = (sites, values)
                 #
-                #print(channels)
-                
+                # print(channels)
+
         for key, colors in spmod_extracted_data.items():
             fig_reg = get_atom_arrangement_figure(self.register, colors, **assignments)
             fig_reg.visible = False
             fig_regs.append(fig_reg)
             fig_keys.append(key)
-            
+
         return fig_seq, assemble_atom_arrgement_panel(fig_regs, fig_keys)
 
     def show(self, **assignments):

@@ -11,7 +11,10 @@ if Use_bokeh:
         report_figure,
     )
     from .task_visualize import get_task_ir_figure
-    from .atom_arragement_visualize import get_atom_arrangement_figure, assemble_atom_arrgement_panel
+    from .atom_arragement_visualize import (
+        get_atom_arrangement_figure,
+        assemble_atom_arrgement_panel,
+    )
     from .ir_visualize import get_ir_figure, get_field_figure, get_pulse_figure
     from typing import List
 else:
@@ -33,11 +36,14 @@ else:
         raise Warning("Bokeh not installed", UserWarning)
 
     # atom arrangement
-    def get_atom_arrangement_figure(atom_arng_ir, colors=(), fig_kwargs=None, **assignments):
+    def get_atom_arrangement_figure(
+        atom_arng_ir, colors=(), fig_kwargs=None, **assignments
+    ):
         raise Warning("Bokeh not installed", UserWarning)
 
     def assemble_atom_arrgement_panel(atom_arrangement_plots, keys: List[str]):
         raise Warning("Bokeh not installed", UserWarning)
+
     # ir
     def get_ir_figure(ir, **assignments):
         raise Warning("Bokeh not installed", UserWarning)
