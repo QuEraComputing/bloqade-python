@@ -74,7 +74,7 @@ class Field(Builder):
 
         ??? warning "Potential Pitfalls"
 
-            # Global vs. Local Detuning
+            # Global vs. Local Detuning on Hardware
 
             `uniform` and using [`location`][bloqade.builder.field.Field.location] where all atoms are targeted with a scaling of $1$ or [`scale`][bloqade.builder.field.Field.scale]
             with similar behavior will lead to identical behavior in emulation but can have subtle differences on hardware as [`location`][bloqade.builder.field.Field.location]
@@ -197,7 +197,7 @@ class Field(Builder):
         
         ??? warning "Potential Pitfalls"
 
-            # Global vs. Local Detuning
+            # Global vs. Local Detuning on Hardware
 
             [`uniform`][bloqade.builder.field.Detuning.uniform] and using `location` where all atoms are targeted with a scaling of $1$ or [`scale`][bloqade.builder.field.Field.scale]
             with similar behavior in the construction of the Detuning field will lead to identical behavior in emulation but can have subtle differences on hardware as [`location`][bloqade.builder.field.Field.location]
@@ -347,7 +347,7 @@ class Field(Builder):
 
         ??? warning "Potential Pitfalls"
 
-            # Global vs. Local Detuning
+            # Global vs. Local Detuning on Hardware
 
             [`uniform`][bloqade.builder.field.Detuning.uniform] and using [`location`][bloqade.builder.field.Field.location] where all atoms are targeted with a scaling of $1$ or `scale`
             with similar behavior in the construction of the Detuning field will lead to identical behavior in emulation but can have subtle differences on hardware as [`location`][bloqade.builder.field.Field.location]
