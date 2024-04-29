@@ -205,7 +205,9 @@ class Field(Builder):
 
             # Number of Coefficients
 
-            The number of coefficients you provide should be equal to the number of atoms in your program. The first coefficient will target the first atom, the second coefficient will target the second atom, and so on.
+            The number of coefficients you provide should be equal to the number of sites in your program, 
+            even if some sites are not filled with an atom. 
+            The first coefficient will target the first site, the second coefficient will target the second site, and so on.
 
             # Hardware Differences
 
@@ -355,7 +357,8 @@ class Field(Builder):
 
             # Number of Coefficients
 
-            The number of coefficients you provide should be equal to the number of atoms in your program. The first coefficient will target the first atom, the second coefficient will target the second atom, and so on.
+            The number of coefficients you provide should equal the number of sites in your program, even if some sites are not filled with an atom. 
+            The first coefficient will target the first site, the second coefficient will target the second site, and so on.
 
             # Hardware Differences
 
