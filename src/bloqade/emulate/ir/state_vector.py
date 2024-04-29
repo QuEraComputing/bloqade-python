@@ -104,14 +104,14 @@ class StateVector:
                 )
 
         local_filling = [
-            self.space.geometry.geometry.filling[site_index]
+            self.space.program_register.geometry.filling[site_index]
             for site_index in site_indices
         ]
 
         if local_filling[0] and local_filling[1]:
             # map the full site index to the index in the active subspace
             site_indices = tuple(
-                self.space.geometry.full_index_to_index[site_index]
+                self.space.program_register.full_index_to_index[site_index]
                 for site_index in site_indices
             )
 
@@ -153,13 +153,13 @@ class StateVector:
                 f"{self.space.n_sites} sites"
             )
 
-        local_filling = self.space.geometry.geometry.filling[site_index]
+        local_filling = self.space.program_register.geometry.filling[site_index]
 
         if not local_filling:
             raise ValueError(f"Trying to measure site {site_index} which is empty.")
 
         # map the full site index to the index in the active subspace
-        site_index = self.space.geometry.full_index_to_index[site_index]
+        site_index = self.space.program_register.full_index_to_index[site_index]
 
         value = _expt_one_body_op(
             configs=self.space.configurations,

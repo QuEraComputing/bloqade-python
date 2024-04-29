@@ -20,13 +20,13 @@ class SpaceType(str, Enum):
 class Space:
     space_type: SpaceType
     atom_type: "AtomType"
-    geometry: "Register"
+    program_register: "Register"
     configurations: NDArray
 
     def __post_init__(self):
         from .emulator import Register
 
-        assert isinstance(self.geometry, Register)
+        assert isinstance(self.program_register, Register)
 
     @classmethod
     def create(cls, register: "Register"):
@@ -107,11 +107,11 @@ class Space:
 
     @property
     def n_atoms(self) -> int:
-        return len(self.geometry)
+        return len(self.program_register)
 
     @property
     def n_sites(self) -> int:
-        return len(self.geometry.geometry.sites)
+        return len(self.program_register.geometry.sites)
 
     @property
     def state_type(self) -> np.dtype:
