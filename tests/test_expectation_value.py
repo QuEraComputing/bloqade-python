@@ -65,11 +65,25 @@ def callback_two_atom(register, *_):
     np.testing.assert_almost_equal(exact_rabi_expt_1, rabi_expt_1)
 
 
-def test_expection_value_two_atom():
+def test_expectation_value_two_atom():
     omega = 2 * np.pi
     (
         start.add_position((0, 0))
         .add_position((0, 6.1))
+        .rydberg.rabi.amplitude.uniform.constant("omega", "run_time")
+        .assign(omega=omega)
+        .batch_assign(run_time=np.linspace(0, 2 * np.pi / omega, 11))
+        .bloqade.python()
+        .run_callback(callback=callback_two_atom)
+    )
+
+
+def test_expectation_value_two_atom_empty():
+    omega = 2 * np.pi
+    (
+        start.add_position((0, 0))
+        .add_position((0, 6.1))
+        .add_position((6.1, 6.1), filling=False)
         .rydberg.rabi.amplitude.uniform.constant("omega", "run_time")
         .assign(omega=omega)
         .batch_assign(run_time=np.linspace(0, 2 * np.pi / omega, 11))
@@ -104,6 +118,36 @@ def test_expectation_value_two_body():
         .batch_assign(run_time=np.linspace(0, 2 * np.pi / omega, 11))
         .bloqade.python()
         .run_callback(callback=callback_two_body)
+    )
+
+
+def callback_two_body_2(register, *_):
+    plus_op = np.array([[0.0, 1.0], [0.0, 0.0]])
+    minus_op = np.array([[0.0, 0.0], [1.0, 0.0]])
+
+    two_body_operator = np.kron(minus_op, plus_op)
+    # reverse order
+    full_body_operator = reduce(np.kron, [plus_op, minus_op])
+
+    corr = register.local_trace(two_body_operator, (0, 2))
+
+    expected_corr = np.vdot(register.data, full_body_operator.dot(register.data))
+    # print(corr, expected_corr)
+    np.testing.assert_almost_equal(corr, expected_corr)
+
+
+def test_expectation_value_two_body_empty():
+    omega = 2 * np.pi
+    # no error
+    (
+        start.add_position((0, 0))
+        .add_position((0, 6.1), filling=False)
+        .add_position((6.1, 6.1))
+        .rydberg.rabi.amplitude.uniform.constant("omega", "run_time")
+        .assign(omega=omega)
+        .batch_assign(run_time=np.linspace(0, 2 * np.pi / omega, 11))
+        .bloqade.python()
+        .run_callback(callback=callback_two_body_2)
     )
 
 
@@ -196,3 +240,59 @@ def test_internals_two_body(atom_type, i, j):
 
     exact_result = np.vdot(psi, density_op_space.dot(psi))
     np.testing.assert_almost_equal(exact_result, result)
+
+
+def error_tests(register, *_):
+    wrong_shape = np.array([[0.0, 0.0, 0.0], [0, 1, 0.0]])
+    correct_shape = np.zeros((2, 2))
+    correct_shape_2 = np.zeros((4, 4))
+
+    # wrong shape
+    with pytest.raises(ValueError):
+        register.local_trace(wrong_shape, 0)
+
+    # wrong shape
+    with pytest.raises(ValueError):
+        register.local_trace(wrong_shape, (0, 2))
+
+    # out of bounds
+    with pytest.raises(ValueError):
+        register.local_trace(correct_shape, 4)
+
+    # out of bounds
+    with pytest.raises(ValueError):
+        register.local_trace(correct_shape, -1)
+
+    # out of bounds
+    with pytest.raises(ValueError):
+        register.local_trace(correct_shape_2, (0, 4))
+
+    # out of bounds
+    with pytest.raises(ValueError):
+        register.local_trace(correct_shape_2, (-1, 1))
+
+    # measure empty site
+    with pytest.raises(ValueError):
+        register.local_trace(correct_shape, 1)
+
+    # measure empty site
+    with pytest.raises(ValueError):
+        register.local_trace(correct_shape_2, (1, 2))
+
+    # measure empty site
+    with pytest.raises(ValueError):
+        register.local_trace(correct_shape_2, (0, 1))
+
+
+def test_errors():
+    omega = 2 * np.pi
+    (
+        start.add_position((0, 0))
+        .add_position((0, 6.1), filling=False)
+        .add_position((6.1, 6.1))
+        .rydberg.rabi.amplitude.uniform.constant("omega", "run_time")
+        .assign(omega=omega)
+        .batch_assign(run_time=np.linspace(0, 2 * np.pi / omega, 11))
+        .bloqade.python()
+        .run_callback(callback=error_tests)
+    )

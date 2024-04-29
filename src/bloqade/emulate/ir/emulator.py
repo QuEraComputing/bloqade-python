@@ -5,7 +5,7 @@ from bloqade.compiler.codegen.common.json import (
     BloqadeIRDeserializer,
 )
 from bloqade.serialize import Serializer
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from decimal import Decimal
 from typing import Any, Dict, List, Tuple, Optional, Callable, TYPE_CHECKING
 from enum import Enum
@@ -156,6 +156,7 @@ class Register:
     sites: List[Tuple[Decimal, Decimal]]
     blockade_radius: Decimal
     geometry: Optional["Geometry"] = None
+    full_index_to_index: Dict[int, int] = field(init=False, default_factory=dict)
 
     def __post_init__(self):
         from bloqade.task.base import Geometry
@@ -163,6 +164,10 @@ class Register:
         if self.geometry is None:
             geometry = Geometry(self.sites, len(self.sites) * [1])
             object.__setattr__(self, "geometry", geometry)
+
+        for i, filling in enumerate(self.geometry.filling):
+            if filling:
+                self.full_index_to_index[i] = len(self.full_index_to_index)
 
     def __len__(self):
         return len(self.sites)
@@ -196,6 +201,7 @@ class Register:
 
 @Register.set_deserializer
 def _deserializer(d: Dict[str, Any]) -> Register:
+    d.pop("full_index_to_index")  # not needed for initialization
     d["sites"] = [tuple(map(Decimal, map(str, site))) for site in d["sites"]]
     return Register(**d)
 
