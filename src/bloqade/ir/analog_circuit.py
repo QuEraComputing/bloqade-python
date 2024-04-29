@@ -107,8 +107,6 @@ class AnalogCircuit:
 
                     key = f"{pulse_name}.{field_name}.{ch}"
                     spmod_extracted_data[key] = (sites, values)
-                #
-                # print(channels)
 
         for key, colors in spmod_extracted_data.items():
             fig_reg = get_atom_arrangement_figure(self.register, colors, **assignments)

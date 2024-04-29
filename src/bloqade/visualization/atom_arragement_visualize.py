@@ -45,8 +45,6 @@ def get_atom_arrangement_figure(
 ):
     import bloqade.ir.location as ir_loc
 
-    print("colors", colors)
-
     if len(colors) == 0:
         color_sites, color_weights = [], []
     else:
