@@ -22,22 +22,9 @@ class SpatialModulation(WaveformAttachable):
 
 class Uniform(SpatialModulation):
     """
-    The node specify a uniform spacial modulation. Which is ready to apply waveform
-    (See [`Waveform`][bloqade.builder.waveform] for available waveform options)
-
-    Examples:
-
-        - To hit this node from the start node:
-
-        >>> reg = bloqade.start.add_position([(0,0),(1,1),(2,2),(3,3)])
-        >>> loc = reg.rydberg.detuning.uniform
-
-        - Apply Linear waveform:
-
-        >>> wv = bloqade.ir.Linear(start=0,stop=1,duration=0.5)
-        >>> reg = bloqade.start.add_position([(0,0),(1,1),(2,2),(3,3)])
-        >>> loc = reg.rydberg.detuning.uniform.apply(wv)
-
+    Program node specifying a uniform spacial modulation in the program. Please refer to the 
+    [`uniform`][bloqade.builder.field.Field.uniform] attribute for more information on 
+    how to reach this node and steps to further build your program from this node.
     """
 
     def __bloqade_ir__(self) -> "UniformModulation":
@@ -47,6 +34,11 @@ class Uniform(SpatialModulation):
 
 
 class Location(SpatialModulation):
+    """ 
+    Program node specifying a non-uniform spatial modulation in the program. Please refer to the 
+    [`location`][bloqade.builder.field.Field.location] method for more information on 
+    how to reach this node and steps to further build your program from this node.
+    """
     @beartype
     def __init__(
         self,
@@ -69,6 +61,11 @@ class Location(SpatialModulation):
 
 
 class Scale(SpatialModulation):
+    """ 
+    Program node specifying a non-uniform spatial modulation in the program. Please refer to the 
+    [`scale`][bloqade.builder.field.Field.scale] method for more information on 
+    how to reach this node and steps to further build your program from this node.
+    """
     @beartype
     def __init__(
         self,
