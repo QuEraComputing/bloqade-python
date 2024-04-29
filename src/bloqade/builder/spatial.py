@@ -22,8 +22,8 @@ class SpatialModulation(WaveformAttachable):
 
 class Uniform(SpatialModulation):
     """
-    Program node specifying a uniform spacial modulation in the program. Please refer to the 
-    [`uniform`][bloqade.builder.field.Field.uniform] attribute for more information on 
+    Program node specifying a uniform spacial modulation in the program. Please refer to the
+    [`uniform`][bloqade.builder.field.Field.uniform] attribute for more information on
     how to reach this node and steps to further build your program from this node.
     """
 
@@ -34,11 +34,12 @@ class Uniform(SpatialModulation):
 
 
 class Location(SpatialModulation):
-    """ 
-    Program node specifying a non-uniform spatial modulation in the program. Please refer to the 
-    [`location`][bloqade.builder.field.Field.location] method for more information on 
+    """
+    Program node specifying a non-uniform spatial modulation in the program. Please refer to the
+    [`location`][bloqade.builder.field.Field.location] method for more information on
     how to reach this node and steps to further build your program from this node.
     """
+
     @beartype
     def __init__(
         self,
@@ -61,11 +62,12 @@ class Location(SpatialModulation):
 
 
 class Scale(SpatialModulation):
-    """ 
-    Program node specifying a non-uniform spatial modulation in the program. Please refer to the 
-    [`scale`][bloqade.builder.field.Field.scale] method for more information on 
+    """
+    Program node specifying a non-uniform spatial modulation in the program. Please refer to the
+    [`scale`][bloqade.builder.field.Field.scale] method for more information on
     how to reach this node and steps to further build your program from this node.
     """
+
     @beartype
     def __init__(
         self,
