@@ -23,6 +23,8 @@ class Scalar:
 
     ??? abstract "Background and Context"
 
+        # Variables and Expressions
+
         The Scalar type allows you to create variables which in turn can be used to create complex expressions.
 
         ```python
@@ -72,6 +74,24 @@ class Scalar:
         target_rydberg_rabi_amp_program = variable_position_program.rydberg.rabi.amplitude.uniform
         variable_waveform_program = target_rydberg_rabi_amp_program.piecewise_linear(durations=[0.6, 0.4, 0.6], values=["ramp", "hold", "ramp"])
         ```
+
+        # Scalar Literals
+
+        Scalar literals are a special type of scalar that can be used to avoid floating point rounding errors in your program. Instead of 
+        directly plugging in floating point numbers into your Bloqade program you may first convert them to scalar Literals and then use them in your program.
+
+        ```python
+        from bloqade import start, cast
+        geometry = start.add_position((0,0))
+        target_rydberg_rabi_amplitude = geometry.rydberg.rabi.amplitude.uniform
+
+        waveform_times = cast([0.4, 1.0, 0.4])
+        waveform_values = cast([0.0, 3.0, 3.0, 0.0])
+
+        waveform_applied = target_rydberg_rabi_amplitude.piecewise_linear(durations=waveform_times, values=waveform_values)
+        ```
+
+        # Scalar Grammar
 
         For more advanced users you can find the grammar for scalar expressions below:
         ```bnf
@@ -358,17 +378,69 @@ def check_variable_name(name: str) -> None:
 
 def cast(py) -> "Scalar":
     """
-    1. cast Real number (or list/tuple of Real numbers)
-    to [`Scalar Literal`][bloqade.ir.scalar.Literal].
-
-    2. cast str (or list/tuple of Real numbers)
-    to [`Scalar Variable`][bloqade.ir.scalar.Variable].
+    Converts certain python objects to [`Scalar`][bloqade.ir.scalar.Scalar] types.
 
     Args:
         py (Union[str,Real,Tuple[Real],List[Real]]): python object to cast
 
     Returns:
-        Scalar
+        Scalar: A Scalar variable or a Scalar literal, usable in more complex expressions.
+
+
+    ??? abstract "Background and Context"
+
+        Bloqade has its own [`Scalar`][bloqade.ir.scalar.Scalar] type which is used to represent and manipulate variables inside programs as well as create complex expressions.
+
+        `cast` allows you to create these Scalar types. Specifically, you can create:
+        * Scalar variables, which can be plugged into a Bloqade program and later assigned single or multiple values 
+        * Scalar literals, which can also be plugged into a Bloqade program with the benefit that you can avoid floating point rounding errors.
+
+        As an example, if you want to create a single variable you can do the following:
+
+        ```python
+        from bloqade import cast
+        my_var = cast("my_var") 
+        ```
+
+        You can also create a list or tuple of variables by providing a list or tuple of strings:
+
+        ```python 
+        from bloqade import cast
+        list_of_vars = cast(["var1", "var2", "var3"])
+        tuple_of_vars = cast(["var1", "var2", "var3"])
+        ```
+
+        As well as a single Scalar Literal or multiple through the same means:
+
+        ```python
+        from bloqade import cast
+        single_scalar_literal = cast(1.0)
+        multiple_scalar_literals = cast([1.0, 2.0, 3.0])
+        ```
+
+    ??? example "Examples"
+
+        In this example we take advantage of `cast` to first define a set of variables
+        which we can then `sum` over (using Python's standard `sum` implementation) to 
+        make it easier for us to define the duration of a subsequent waveform. 
+
+        ```python
+        from bloqade import cast, start
+
+        durations = cast(["ramp_time", "run_time", "ramp_time"])
+
+        geometry = start.add_position((0,0))
+        rydberg_rabi_amplitude = geometry.rydberg.rabi.amplitude.uniform
+        rabi_amplitude_waveform = rydberg_rabi_amplitude.piecewise_linear(durations=durations, values=[0, 3.0, 3.0, 0])
+        detuning_waveform = rabi_amplitude_waveform.detuning.uniform.constant(duration=sum(durations), value=1.0)
+        ```
+
+    ??? info "Applications"
+        * [Single Qubit Rabi Oscillations](https://queracomputing.github.io/bloqade-python-examples/latest/examples/example-1-rabi/)
+        * [Single Qubit Ramsey Protocol](https://queracomputing.github.io/bloqade-python-examples/latest/examples/example-1-ramsey/)
+        * [Single Qubit Floquet Dynamics](https://queracomputing.github.io/bloqade-python-examples/latest/examples/example-1-floquet/)
+        * [Two Qubit Adiabatic Sweep](https://queracomputing.github.io/bloqade-python-examples/latest/examples/example-2-two-qubit-adiabatic/)
+        * [Lattice Gauge Theory Simulation](https://queracomputing.github.io/bloqade-python-examples/latest/examples/example-6-lattice-gauge-theory/)
     """
     ret = trycast(py)
     if ret is None:
@@ -400,14 +472,56 @@ def trycast(py) -> Optional[Scalar]:
 
 
 def var(py: str) -> "Variable":
-    """cast string (or list/tuple of strings)
-    to [`Variable`][bloqade.ir.scalar.Variable].
+    """Convert a string or a list/tuple of strings to a [`Scalar`][bloqade.ir.scalar.Scalar] variable type.
 
     Args:
-        py (Union[str, List[str]]): a string or list/tuple of strings
+        py (Union[str, List[str], Tuple[str]]): a string or list/tuple of strings
 
     Returns:
-       Union[Variable]
+        Variable: a single Scalar variable or a list/tuple of Scalar variables.
+
+    ??? abstract "Background and Context"
+
+        Bloqade has its own [`Scalar`][bloqade.ir.scalar.Scalar] type which is used to represent and manipulate variables inside programs as well as create complex expressions.
+
+        `var` allows you to create these variables which can then be plugged into a Bloqade program and later assigned single or multiple values.
+
+        You can convert a single string to a variable:
+
+        ```python 
+        from bloqade import var
+        my_var = var("my_var")
+        ```
+
+        Or a list/tuple of strings into a list/tuple of variables:
+
+        ```python
+        from bloqade import var
+        multiple_vars = var(["var1", "var2", "var3"])
+        ```
+
+    ??? example "Examples"
+
+        Here we use `var` to create a set of variables and then assign values to them afterwards:
+
+        ```python
+        from bloqade import var
+        
+        durations = var(["ramp_time", "run_time", "ramp_time"])
+
+        geometry = start.add_position((0,0))
+        rydberg_rabi_amplitude = geometry.rydberg.rabi.amplitude.uniform
+        rabi_amplitude_waveform = rydberg_rabi_amplitude.piecewise_linear(durations=durations, values=[0, 3.0, 3.0, 0])
+        
+        assigned_variables = rabi_amplitude_waveform.assign(ramp_time=0.2, run_time=0.4)
+        ```
+
+    ??? info "Applications"
+
+        * [Two Qubit Adiabatic Sweep](https://queracomputing.github.io/bloqade-python-examples/latest/examples/example-2-two-qubit-adiabatic/)
+        * [Quantum Scar Dynamics](https://queracomputing.github.io/bloqade-python-examples/latest/examples/example-4-quantum-scar-dynamics/)
+        * [Solving the Maximal Independent Set Problem on defective King Graph](https://queracomputing.github.io/bloqade-python-examples/latest/examples/example-5-MIS-UDG/)
+
     """
     ret = tryvar(py)
     if ret is None:
@@ -434,6 +548,8 @@ class Real(Scalar):
 
 @dataclass(frozen=True)
 class Literal(Real):
+    """Scalar Literal type. See [Scalar][bloqade.ir.scalar.Scalar] for more information.
+    """
     value: Decimal
 
     def __call__(self, **assignments) -> Decimal:
@@ -454,11 +570,7 @@ class Literal(Real):
 
 @dataclass(frozen=True)
 class Variable(Real):
-    """Variable, which stores a variable name.
-
-    Args:
-        name (str): variable instance.
-
+    """Scalar Variable type. See [Scalar][bloqade.ir.scalar.Scalar] for more information.
     """
 
     name: str
