@@ -32,23 +32,23 @@ class Scalar:
         # create a variable with a name
         var = cast("var")
         # create arithmetic expression using the variable
-        scalar_expr = (var + 2) - 1 * 10 / 2 
+        scalar_expr = (var + 2) - 1 * 10 / 2
         # build more on the expression
         even_more_complex_expr = scalar_expr + 1
         ```
 
-        These standalone variables or expressions created with them can be plugged in almost anywhere in a 
+        These standalone variables or expressions created with them can be plugged in almost anywhere in a
         Bloqade program where a value is expected (see "Potential Pitfalls" below for where the scalar type cannot be used).
 
-        ```python  
+        ```python
         from bloqade import start
         simple_program = start.rydberg.rabi.amplitude.uniform
         apply_waveform = simple_program.constant(duration=1.0, value=scalar_expr)
         ```
 
         You can then assign values to variables by themselves or in expressions later in program construction using:
-        [`assign`][bloqade.builder.pragmas.Assignable.assign] and [`batch_assign`][bloqade.builder.pragmas.Assignable.assign] or 
-        delay assignment until runtime via [`args`][bloqade.builder.pragmas.AddArgs.args] and `run` on either a 
+        [`assign`][bloqade.builder.pragmas.Assignable.assign] and [`batch_assign`][bloqade.builder.pragmas.Assignable.assign] or
+        delay assignment until runtime via [`args`][bloqade.builder.pragmas.AddArgs.args] and `run` on either a
         [`BloqadePythonRoutine`][bloqade.ir.routine.bloqade.BloqadePythonRoutine] or [`BraketLocalEmulatorRoutine`][bloqade.ir.routine.braket.BraketLocalEmulatorRoutine]
 
         ```python
@@ -77,7 +77,7 @@ class Scalar:
 
         # Scalar Literals
 
-        Scalar literals are a special type of scalar that can be used to avoid floating point rounding errors in your program. Instead of 
+        Scalar literals are a special type of scalar that can be used to avoid floating point rounding errors in your program. Instead of
         directly plugging in floating point numbers into your Bloqade program you may first convert them to scalar Literals and then use them in your program.
 
         ```python
@@ -157,7 +157,7 @@ class Scalar:
         geometry = start.add_position([(0,0), (0, "atom_distance")])
         target_rydberg_rabi_amplitude = geometry.rydberg.rabi.amplitude.uniform
         waveform_applied = target_rydberg_rabi_amplitude.constant(duration=1.0, value="waveform_value")
-        
+
         variable_assigned_program = waveform_applied.batch_assign(waveform_value=[1.0, 2.0, 3.0], atom_distance=[1.0, 2.0, 3.0])
         ```
 
@@ -179,7 +179,7 @@ class Scalar:
         # No Scalars After Assignment
 
         Scalars cannot be plugged in to your program after you have called [`assign`][bloqade.builder.pragmas.Assignable.assign] or [`batch_assign`][bloqade.builder.pragmas.BatchAssignable.batch_assign] on a program.
-        
+
         # Parallelize Does Not Take Scalars
 
         The [`parallelize`][bloqade.builder.pragmas.Parallelizable.parallelize] method will only take a [`LiteralType`][bloqade.builder.typing.LiteralType] and not a Scalar type.
@@ -199,7 +199,7 @@ class Scalar:
         The resulting tasks generated will NOT follow the assignment pattern:
         ```
         Task 1:
-        - waveform_value = 1.0, atom_distance = 1.0 
+        - waveform_value = 1.0, atom_distance = 1.0
         Task 2:
         - waveform_value = 1.0, atom_distance = 2.0
         Task 3:
@@ -212,8 +212,8 @@ class Scalar:
         Instead, the tasks generated will consume the list of assigned values in parallel:
         ```
         Task 1:
-        - waveform_value = 1.0, atom_distance = 1.0 
-        Task 2: 
+        - waveform_value = 1.0, atom_distance = 1.0
+        Task 2:
         - waveform_value = 2.0, atom_distance = 2.0
         Task 3:
         - waveform_value = 3.0, atom_distance = 3.0
@@ -221,7 +221,7 @@ class Scalar:
 
         # Assigned Values to Variables Must Be Equal in Length
 
-        Due to the behavior mentioned above, if you assign to one variable a list of values with a certain length, 
+        Due to the behavior mentioned above, if you assign to one variable a list of values with a certain length,
         then the other variables in the program must also be assigned lists of the same length.
 
     """
@@ -392,19 +392,19 @@ def cast(py) -> "Scalar":
         Bloqade has its own [`Scalar`][bloqade.ir.scalar.Scalar] type which is used to represent and manipulate variables inside programs as well as create complex expressions.
 
         `cast` allows you to create these Scalar types. Specifically, you can create:
-        * Scalar variables, which can be plugged into a Bloqade program and later assigned single or multiple values 
+        * Scalar variables, which can be plugged into a Bloqade program and later assigned single or multiple values
         * Scalar literals, which can also be plugged into a Bloqade program with the benefit that you can avoid floating point rounding errors.
 
         As an example, if you want to create a single variable you can do the following:
 
         ```python
         from bloqade import cast
-        my_var = cast("my_var") 
+        my_var = cast("my_var")
         ```
 
         You can also create a list or tuple of variables by providing a list or tuple of strings:
 
-        ```python 
+        ```python
         from bloqade import cast
         list_of_vars = cast(["var1", "var2", "var3"])
         tuple_of_vars = cast(["var1", "var2", "var3"])
@@ -421,8 +421,8 @@ def cast(py) -> "Scalar":
     ??? example "Examples"
 
         In this example we take advantage of `cast` to first define a set of variables
-        which we can then `sum` over (using Python's standard `sum` implementation) to 
-        make it easier for us to define the duration of a subsequent waveform. 
+        which we can then `sum` over (using Python's standard `sum` implementation) to
+        make it easier for us to define the duration of a subsequent waveform.
 
         ```python
         from bloqade import cast, start
@@ -488,7 +488,7 @@ def var(py: str) -> "Variable":
 
         You can convert a single string to a variable:
 
-        ```python 
+        ```python
         from bloqade import var
         my_var = var("my_var")
         ```
@@ -506,13 +506,13 @@ def var(py: str) -> "Variable":
 
         ```python
         from bloqade import var
-        
+
         durations = var(["ramp_time", "run_time", "ramp_time"])
 
         geometry = start.add_position((0,0))
         rydberg_rabi_amplitude = geometry.rydberg.rabi.amplitude.uniform
         rabi_amplitude_waveform = rydberg_rabi_amplitude.piecewise_linear(durations=durations, values=[0, 3.0, 3.0, 0])
-        
+
         assigned_variables = rabi_amplitude_waveform.assign(ramp_time=0.2, run_time=0.4)
         ```
 
@@ -548,8 +548,8 @@ class Real(Scalar):
 
 @dataclass(frozen=True)
 class Literal(Real):
-    """Scalar Literal type. See [Scalar][bloqade.ir.scalar.Scalar] for more information.
-    """
+    """Scalar Literal type. See [Scalar][bloqade.ir.scalar.Scalar] for more information."""
+
     value: Decimal
 
     def __call__(self, **assignments) -> Decimal:
@@ -570,8 +570,7 @@ class Literal(Real):
 
 @dataclass(frozen=True)
 class Variable(Real):
-    """Scalar Variable type. See [Scalar][bloqade.ir.scalar.Scalar] for more information.
-    """
+    """Scalar Variable type. See [Scalar][bloqade.ir.scalar.Scalar] for more information."""
 
     name: str
 
