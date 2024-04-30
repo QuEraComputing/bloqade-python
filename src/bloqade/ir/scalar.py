@@ -19,7 +19,40 @@ __all__ = [
 
 @dataclass(frozen=True)
 class Scalar:
-    """Base class for all scalar expressions.
+    """Bloqade type used to represent and manipulate variables inside programs.
+
+    ??? abstract "Background and Context"
+
+        The Scalar type allows you to create variables which in turn can be used to create complex expressions.
+
+        ```python
+        from bloqade import cast
+        # create a variable with a name
+        var = cast("var")
+        # create arithmetic expression using the variable
+        scalar_expr = (var + 2) - 1 * 10 / 2 
+        # build more on the expression
+        even_more_complex_expr = scalar_expr + 1
+        ```
+
+        These standalone variables or expressions created with them can be plugged in almost anywhere in a 
+        Bloqade program where a value is expected (see "Potential Pitfalls" below for where the scalar type cannot be used).
+
+        ```python  
+        from bloqade import start
+        simple_program = start.rydberg.rabi.amplitude.uniform
+        apply_waveform = simple_program.constant(duration=1.0, value=scalar_expr)
+        ```
+
+        You can then assign values to variables by themselves or in expressions later in program construction using:
+        [`assign`][bloqade.builder.pragmas.Assignable.assign] and [`batch_assign`][bloqade.builder.pragmas.Assignable.assign] or 
+        delay assignment until runtime via [`args`][bloqade.builder.pragmas.AddArgs.args] and [`run`][]
+
+    ??? example "Example"
+
+    ??? info "Applications"
+
+    ??? warning "Potential Pitfalls"
 
     ```bnf
     <scalar> ::= <literal>
@@ -31,7 +64,7 @@ class Scalar:
     | <min>
     | <max>
     | <slice>
-    | <inverval>
+    | <interval>
 
     <mul> ::= <scalar> '*' <scalar>
     <add> ::= <scalar> '+' <scalar>
