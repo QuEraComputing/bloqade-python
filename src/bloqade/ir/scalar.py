@@ -19,7 +19,7 @@ __all__ = [
 
 @dataclass(frozen=True)
 class Scalar:
-    """Bloqade type used to represent and manipulate variables inside programs.
+    """Bloqade type used to represent and manipulate variables inside programs as well as create complex variable expressions.
 
     ??? abstract "Background and Context"
 
@@ -46,34 +46,164 @@ class Scalar:
 
         You can then assign values to variables by themselves or in expressions later in program construction using:
         [`assign`][bloqade.builder.pragmas.Assignable.assign] and [`batch_assign`][bloqade.builder.pragmas.Assignable.assign] or 
-        delay assignment until runtime via [`args`][bloqade.builder.pragmas.AddArgs.args] and [`run`][]
+        delay assignment until runtime via [`args`][bloqade.builder.pragmas.AddArgs.args] and `run` on either a 
+        [`BloqadePythonRoutine`][bloqade.ir.routine.bloqade.BloqadePythonRoutine] or [`BraketLocalEmulatorRoutine`][bloqade.ir.routine.braket.BraketLocalEmulatorRoutine]
 
-    ??? example "Example"
+        ```python
+        # Remember that "var" is the name we gave the variable in our previous expression
+        vars_single_assigned_program = apply_waveform.assign(var = 1.0)
+
+        # with batch assign you can assign multiple values to the variable to create multiple versions of the program
+        # which are then translated to individual quantum tasks.
+        vars_batch_assigned_program = apply_waveform.batch_assign(var = [1.0, 2.0, 3.0])
+
+        # using `args` you can delay assignment until runtime
+        runtime_assignment_program = apply_waveform.args([var]).bloqade.python().run(10, args=(1.0,))
+        ```
+
+        Bloqade is also smart enough to automatically create scalar types where strings are present in a program:
+
+        ```python
+        from bloqade import start
+        # Bloqade automatically turns the string in this position into a variable
+        variable_position_program = start.add_position((0, "y"))
+
+        # Strings inside waveforms can also be turned into variables
+        target_rydberg_rabi_amp_program = variable_position_program.rydberg.rabi.amplitude.uniform
+        variable_waveform_program = target_rydberg_rabi_amp_program.piecewise_linear(durations=[0.6, 0.4, 0.6], values=["ramp", "hold", "ramp"])
+        ```
+
+        For more advanced users you can find the grammar for scalar expressions below:
+        ```bnf
+        <scalar> ::= <literal>
+        | <variable>
+        | <default>
+        | <negative>
+        | <add>
+        | <mul>
+        | <min>
+        | <max>
+        | <slice>
+        | <interval>
+
+        <mul> ::= <scalar> '*' <scalar>
+        <add> ::= <scalar> '+' <scalar>
+        <min> ::= 'min' <scalar>+
+        <max> ::= 'max' <scalar>+
+        <slice> ::= <scalar expr> '[' <interval> ']'
+        <interval> ::= <scalar expr> '..' <scalar expr>
+        <real> ::= <literal> | <var>
+        ```
+
+    ??? example "Examples"
+
+        Assign a single value to a variable in a program:
+
+        ```python
+        from bloqade import start
+        geometry = start.add_position((0,0))
+        target_rydberg_rabi_amplitude = geometry.rydberg.rabi.amplitude.uniform
+        waveform_applied = target_rydberg_rabi_amplitude.constant(duration=1.0, value="waveform_value")
+        variables_assigned = waveform_applied.assign(waveform_value=1.0)
+        ```
+
+        Sweep over a range of values for an atom position in a program
+
+        ```python
+        from bloqade import start
+        # Use a string in position coordinate, Bloqade automatically converts it to a variable
+        variable_geometry = start.add_position([(0, 0), (0, "atom_distance")])
+        target_rydberg_rabi_amplitude = variable_geometry.rydberg.rabi.amplitude.uniform
+        waveform_applied = target_rydberg_rabi_amplitude.constant(duration=1.0, value=1.0)
+
+        # assign multiple values to multiple variables
+        variable_assigned_program = waveform_applied.batch_assign(atom_distance=[1.0, 2.0, 3.0])
+        ```
+
+        Sweep over a range of values for a waveform amplitude in a program:
+
+        ```python
+        from bloqade import start
+        geometry = start.add_position((0,0))
+        target_rydberg_rabi_amplitude = geometry.rydberg.rabi.amplitude.uniform
+        waveform_applied = target_rydberg_rabi_amplitude.piecewise_linear(duration=[0.4, 1.0, 0.4], value=[0, "hold", "hold", 0])
+
+        variable_assigned_program = waveform_applied.batch_assign(hold=[0.0, 1.0, 2.0])
+        ```
+
+        Sweep over multiple variables in parallel in a program
+        ```python
+        from bloqade import start
+        geometry = start.add_position([(0,0), (0, "atom_distance")])
+        target_rydberg_rabi_amplitude = geometry.rydberg.rabi.amplitude.uniform
+        waveform_applied = target_rydberg_rabi_amplitude.constant(duration=1.0, value="waveform_value")
+        
+        variable_assigned_program = waveform_applied.batch_assign(waveform_value=[1.0, 2.0, 3.0], atom_distance=[1.0, 2.0, 3.0])
+        ```
 
     ??? info "Applications"
+        * [Single Qubit Rabi Oscillations](https://queracomputing.github.io/bloqade-python-examples/latest/examples/example-1-rabi/)
+        * [Single Qubit Ramsey Protocol](https://queracomputing.github.io/bloqade-python-examples/latest/examples/example-1-ramsey/)
+        * [Single Qubit Floquet Dynamics](https://queracomputing.github.io/bloqade-python-examples/latest/examples/example-1-floquet/)
+        * [Two Qubit Adiabatic Sweep](https://queracomputing.github.io/bloqade-python-examples/latest/examples/example-2-two-qubit-adiabatic/)
+        * [Multi-qubit Blockaded Rabi Oscillations](https://queracomputing.github.io/bloqade-python-examples/latest/examples/example-2-multi-qubit-blockaded/)
+        * [Nonequilibrium Dynamics of nearly Blockaded Rydberg Atoms](https://queracomputing.github.io/bloqade-python-examples/latest/examples/example-2-nonequilibrium-dynamics-blockade-radius/)
+        * [1D Z2 State Preparation](https://queracomputing.github.io/bloqade-python-examples/latest/examples/example-3-time-sweep/)
+        * [2D State Preparation](https://queracomputing.github.io/bloqade-python-examples/latest/examples/example-3-2d-ordered-state/)
+        * [Quantum Scar Dynamics](https://queracomputing.github.io/bloqade-python-examples/latest/examples/example-4-quantum-scar-dynamics/)
+        * [Solving the Maximal Independent Set Problem on defective King Graph](https://queracomputing.github.io/bloqade-python-examples/latest/examples/example-5-MIS-UDG/)
+        * [Lattice Gauge Theory Simulation](https://queracomputing.github.io/bloqade-python-examples/latest/examples/example-6-lattice-gauge-theory/)
 
     ??? warning "Potential Pitfalls"
 
-    ```bnf
-    <scalar> ::= <literal>
-    | <variable>
-    | <default>
-    | <negative>
-    | <add>
-    | <mul>
-    | <min>
-    | <max>
-    | <slice>
-    | <interval>
+        # No Scalars After Assignment
 
-    <mul> ::= <scalar> '*' <scalar>
-    <add> ::= <scalar> '+' <scalar>
-    <min> ::= 'min' <scalar>+
-    <max> ::= 'max' <scalar>+
-    <slice> ::= <scalar expr> '[' <interval> ']'
-    <interval> ::= <scalar expr> '..' <scalar expr>
-    <real> ::= <literal> | <var>
-    ```
+        Scalars cannot be plugged in to your program after you have called [`assign`][bloqade.builder.pragmas.Assignable.assign] or [`batch_assign`][bloqade.builder.pragmas.BatchAssignable.batch_assign] on a program.
+        
+        # Parallelize Does Not Take Scalars
+
+        The [`parallelize`][bloqade.builder.pragmas.Parallelizable.parallelize] method will only take a [`LiteralType`][bloqade.builder.typing.LiteralType] and not a Scalar type.
+
+        # No Automatic Cartesian Product
+
+        If you have a program that has multiple variables like the one below:
+        ```python
+        from bloqade import start
+        geometry = start.add_position([(0,0), (0, "atom_distance")])
+        target_rydberg_rabi_amplitude = geometry.rydberg.rabi.amplitude.uniform
+        waveform_applied = target_rydberg_rabi_amplitude.constant(duration=1.0, value="waveform_value")
+
+        variables_assigned = waveform_applied.batch_assign(waveform_value=[1.0, 2.0, 3.0], atom_distance=[1.0, 2.0, 3.0])
+        ```
+
+        The resulting tasks generated will NOT follow the assignment pattern:
+        ```
+        Task 1:
+        - waveform_value = 1.0, atom_distance = 1.0 
+        Task 2:
+        - waveform_value = 1.0, atom_distance = 2.0
+        Task 3:
+        - waveform_value = 1.0, atom_distance = 3.0
+        Task 4:
+        - waveform_value = 2.0, atom_distance = 1.0
+        ...
+        ```
+
+        Instead, the tasks generated will consume the list of assigned values in parallel:
+        ```
+        Task 1:
+        - waveform_value = 1.0, atom_distance = 1.0 
+        Task 2: 
+        - waveform_value = 2.0, atom_distance = 2.0
+        Task 3:
+        - waveform_value = 3.0, atom_distance = 3.0
+        ```
+
+        # Assigned Values to Variables Must Be Equal in Length
+
+        Due to the behavior mentioned above, if you assign to one variable a list of values with a certain length, 
+        then the other variables in the program must also be assigned lists of the same length.
+
     """
 
     def __getitem__(self, s: slice) -> "Scalar":
@@ -305,12 +435,6 @@ class Real(Scalar):
 @dataclass(frozen=True)
 class Literal(Real):
     value: Decimal
-    """Scalar Literal, which stores a decimaal value instance.
-
-    Args:
-        value (Decimal): decimal value instance
-
-    """
 
     def __call__(self, **assignments) -> Decimal:
         return self.value
