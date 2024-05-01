@@ -376,7 +376,9 @@ def check_variable_name(name: str) -> None:
         raise ValidationError(f"string '{name}' is not a valid python identifier")
 
 
-def cast(py: Union[str, numbers.Real, Tuple[numbers.Real], List[numbers.Real]] ) -> Union["Scalar", List["Scalar"], Tuple["Scalar"]]:
+def cast(
+    py: Union[str, numbers.Real, Tuple[numbers.Real], List[numbers.Real]]
+) -> Union["Scalar", List["Scalar"], Tuple["Scalar"]]:
     """
     Converts certain python objects to [`Scalar`][bloqade.ir.scalar.Scalar] types.
 
@@ -471,7 +473,9 @@ def trycast(py) -> Optional[Scalar]:
         return
 
 
-def var(py: Union[str, List[str], Tuple[str]]) -> Union["Variable", List["Variable"], Tuple["Variable"]]:
+def var(
+    py: Union[str, List[str], Tuple[str]]
+) -> Union["Variable", List["Variable"], Tuple["Variable"]]:
     """Convert a string or a list/tuple of strings to a [`Scalar`][bloqade.ir.scalar.Scalar] variable type.
 
     Args:
