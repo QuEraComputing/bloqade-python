@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any, Optional, Union, List, Tuple
 import numpy as np
 from pydantic.v1.dataclasses import dataclass
 from pydantic.v1 import ValidationError, validator
@@ -376,15 +376,15 @@ def check_variable_name(name: str) -> None:
         raise ValidationError(f"string '{name}' is not a valid python identifier")
 
 
-def cast(py) -> "Scalar":
+def cast(py: Union[str, numbers.Real, Tuple[numbers.Real], List[numbers.Real]] ) -> Union["Scalar", List["Scalar"], Tuple["Scalar"]]:
     """
     Converts certain python objects to [`Scalar`][bloqade.ir.scalar.Scalar] types.
 
     Args:
-        py (Union[str,Real,Tuple[Real],List[Real]]): python object to cast
+        py (Union[str, Real, Tuple[Real], List[Real]]): python object to cast
 
     Returns:
-        Scalar: A Scalar variable or a Scalar literal, usable in more complex expressions.
+        A Scalar variable, literal, or collection of Scalars usable in more complex expressions.
 
 
     ??? abstract "Background and Context"
@@ -471,14 +471,14 @@ def trycast(py) -> Optional[Scalar]:
         return
 
 
-def var(py: str) -> "Variable":
+def var(py: Union[str, List[str], Tuple[str]]) -> Union["Variable", List["Variable"], Tuple["Variable"]]:
     """Convert a string or a list/tuple of strings to a [`Scalar`][bloqade.ir.scalar.Scalar] variable type.
 
     Args:
         py (Union[str, List[str], Tuple[str]]): a string or list/tuple of strings
 
     Returns:
-        Variable: a single Scalar variable or a list/tuple of Scalar variables.
+        a single Scalar variable or a list/tuple of Scalar variables.
 
     ??? abstract "Background and Context"
 
