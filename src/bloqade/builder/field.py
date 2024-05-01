@@ -232,6 +232,10 @@ class Field(Builder):
             & c_i \in [0, 1]
             \\\\
             & \Delta_{2}(t) \leq 0
+            \\\\
+            & \Delta_{2}(0)= \Delta_{2}(T) = 0 
+            \\\\
+            & T = \\text{Waveform Duration}
             \\end{align*}
             $$
 
@@ -383,6 +387,10 @@ class Field(Builder):
             & c_i \in [0, 1]
             \\\\
             & \Delta_{2}(t) \leq 0
+            \\\\
+            & \Delta_{2}(0)= \Delta_{2}(T) = 0 
+            \\\\
+            & T = \\text{Waveform Duration}
             \\end{align*}
             $$
 
