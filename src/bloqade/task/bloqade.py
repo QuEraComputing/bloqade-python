@@ -48,7 +48,7 @@ class BloqadeTask(LocalTask):
         nsteps: int = 2_147_483_647,
         interaction_picture: bool = False,
     ) -> "BloqadeTask":
-        
+
         if self.emulator_ir is None:
             raise TypeError("rerun of task is not possible after saving and reloading.")
 
