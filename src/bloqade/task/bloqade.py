@@ -48,6 +48,10 @@ class BloqadeTask(LocalTask):
         nsteps: int = 2_147_483_647,
         interaction_picture: bool = False,
     ) -> "BloqadeTask":
+        
+        if self.emulator_ir is None:
+            raise TypeError("rerun of task is not possible after saving and reloading.")
+
         hamiltonian = RydbergHamiltonianCodeGen(self.compile_cache).emit(
             self.emulator_ir
         )
@@ -82,10 +86,11 @@ class BloqadeTask(LocalTask):
 
 
 @BloqadeTask.set_serializer
-def _serialze(obj: BloqadeTask) -> Dict[str, Any]:
+def _serialize(obj: BloqadeTask) -> Dict[str, Any]:
     return {
         "shots": obj.shots,
-        "emulator_ir": obj.emulator_ir,
+        # "emulator_ir": obj.emulator_ir,
+        "emulator_ir": None,
         "metadata": obj.metadata,
         "task_result_ir": obj.task_result_ir.dict() if obj.task_result_ir else None,
     }
