@@ -18,7 +18,6 @@ from bloqade.builder.base import ParamType
 from dataclasses import dataclass
 from typing import Optional
 
-
 @dataclass
 @Serializer.register
 class BloqadeTask(LocalTask):
@@ -49,8 +48,6 @@ class BloqadeTask(LocalTask):
         interaction_picture: bool = False,
     ) -> "BloqadeTask":
 
-        if self.emulator_ir is None:
-            raise TypeError("rerun of task is not possible after saving and reloading.")
 
         hamiltonian = RydbergHamiltonianCodeGen(self.compile_cache).emit(
             self.emulator_ir
@@ -89,8 +86,7 @@ class BloqadeTask(LocalTask):
 def _serialize(obj: BloqadeTask) -> Dict[str, Any]:
     return {
         "shots": obj.shots,
-        # "emulator_ir": obj.emulator_ir,
-        "emulator_ir": None,
+        "emulator_ir" : obj.emulator_ir,
         "metadata": obj.metadata,
         "task_result_ir": obj.task_result_ir.dict() if obj.task_result_ir else None,
     }
