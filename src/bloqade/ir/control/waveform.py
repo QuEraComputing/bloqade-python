@@ -30,7 +30,6 @@ import scipy.integrate as integrate
 from bloqade.visualization import get_ir_figure
 from bloqade.visualization import display_ir
 from functools import cached_property
-from typing import Optional
 import warnings
 
 
