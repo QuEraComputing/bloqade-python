@@ -12,7 +12,7 @@ import numpy as np
 from typing import List, Tuple
 
 
-def assemble_atom_arrgement_panel(atom_arrangement_plots: List, keys: List[str]):
+def assemble_atom_arragement_panel(atom_arrangement_plots: List, keys: List[str]):
 
     out = column(*atom_arrangement_plots)
 
