@@ -31,6 +31,7 @@ from bloqade.visualization import get_ir_figure
 from bloqade.visualization import display_ir
 from functools import cached_property
 from typing import Optional
+import warnings
 
 
 @beartype
@@ -839,7 +840,7 @@ class Sample(Waveform):
     ```
     """
 
-    waveform: Optional[Waveform]
+    waveform: Waveform
     interpolation: Interpolation
     dt: Scalar
 
@@ -893,3 +894,16 @@ class Sample(Waveform):
 
     def children(self):
         return {"Waveform": self.waveform, "sample_step": self.dt}
+
+@dataclass(frozen=True)
+class NullWaveform(Waveform):
+    null_field: str
+
+    def __post_init__(self):
+        warnings.warn(
+            (
+                "The original program used a python function as a waveform that could not be serialized, "
+                "therefore it cannot be deserialized. However, all other data can be deserialized. "
+                "You will not be able to rerun this task!"
+            )
+        )

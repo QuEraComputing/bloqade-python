@@ -108,8 +108,15 @@ class BloqadeIRSerializer(json.JSONEncoder, BloqadeIRVisitor):
             )
         )
         return {
-            "pythonfn_waveform": {
-                "serialization_unsupported": "serialization_unsupported"
+            "null_waveform": {
+                "null_field": "null_value"
+            }
+        }
+    
+    def visit_waveform_NullWaveform(self, node: waveform.NullWaveform) -> Dict[str, Any]:
+        return {
+            "null_waveform": {
+                "null_field": "null_value"
             }
         }
 
@@ -394,16 +401,6 @@ class BloqadeIRSerializer(json.JSONEncoder, BloqadeIRVisitor):
             return super().default(obj)
 
 
-def python_fn_deserializer(**catch_kwargs):
-    warnings.warn(
-        (
-            "The original program used a python function as a waveform that could not be serialized, "
-            "therefore it cannot be deserialized. However, all other waveforms can be deserialized."
-        )
-    )
-    return None
-
-
 class BloqadeIRDeserializer:
     constructors = {
         "literal": scalar.Literal,
@@ -420,7 +417,7 @@ class BloqadeIRDeserializer:
         "constant": waveform.Constant,
         "linear": waveform.Linear,
         "poly": waveform.Poly,
-        "pythonfn_waveform": python_fn_deserializer,
+        "null_waveform": waveform.NullWaveform,
         "negative_waveform": waveform.Negative,
         "add_waveform": waveform.Add,
         "scale": waveform.Scale,
