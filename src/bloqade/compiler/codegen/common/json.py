@@ -107,18 +107,12 @@ class BloqadeIRSerializer(json.JSONEncoder, BloqadeIRVisitor):
                 "However, all other information will be serialized."
             )
         )
-        return {
-            "null_waveform": {
-                "null_field": "null_value"
-            }
-        }
-    
-    def visit_waveform_NullWaveform(self, node: waveform.NullWaveform) -> Dict[str, Any]:
-        return {
-            "null_waveform": {
-                "null_field": "null_value"
-            }
-        }
+        return {"null_waveform": {"null_field": "null_value"}}
+
+    def visit_waveform_NullWaveform(
+        self, node: waveform.NullWaveform
+    ) -> Dict[str, Any]:
+        return {"null_waveform": {"null_field": "null_value"}}
 
     def visit_waveform_Negative(self, node: waveform.Negative) -> Dict[str, Any]:
         return {"negative_waveform": {"waveform": self.visit(node.waveform)}}

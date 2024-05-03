@@ -895,6 +895,7 @@ class Sample(Waveform):
     def children(self):
         return {"Waveform": self.waveform, "sample_step": self.dt}
 
+
 @dataclass(frozen=True)
 class NullWaveform(Waveform):
     null_field: str
