@@ -99,11 +99,16 @@ class BloqadeIRSerializer(json.JSONEncoder, BloqadeIRVisitor):
         }
 
     def visit_waveform_PythonFn(self, node: waveform.PythonFn) -> Dict[str, Any]:
-        #raise ValueError("Bloqade does not support serialization of Python code.")
-        warnings.warn("""Bloqade does not support serialization of Python code.\
-                      Your program uses a python function as a waveform which cannot be serialized.\
-                      However, all other information will be serialized.""")
-        return {"pythonfn_waveform": {"serialization_unsupported":"serialization_unsupported"}}
+        # raise ValueError("Bloqade does not support serialization of Python code.")
+        warnings.warn(("Bloqade does not support serialization of Python code. "
+                       "Your program uses a python function as a waveform which cannot be serialized. "
+                       "However, all other information will be serialized.")
+        )
+        return {
+            "pythonfn_waveform": {
+                "serialization_unsupported": "serialization_unsupported"
+            }
+        }
 
     def visit_waveform_Negative(self, node: waveform.Negative) -> Dict[str, Any]:
         return {"negative_waveform": {"waveform": self.visit(node.waveform)}}
@@ -385,10 +390,16 @@ class BloqadeIRSerializer(json.JSONEncoder, BloqadeIRVisitor):
         else:
             return super().default(obj)
 
+
 def python_fn_deserializer(**catch_kwargs):
-    warnings.warn(("The original program used a python function as a waveform that could not be serialized, "
-                   "therefore it cannot be deserialized. However, all other waveforms can be deserialized."))
-    return None 
+    warnings.warn(
+        (
+            "The original program used a python function as a waveform that could not be serialized, "
+            "therefore it cannot be deserialized. However, all other waveforms can be deserialized."
+        )
+    )
+    return None
+
 
 class BloqadeIRDeserializer:
     constructors = {

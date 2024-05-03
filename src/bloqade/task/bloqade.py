@@ -18,6 +18,7 @@ from bloqade.builder.base import ParamType
 from dataclasses import dataclass
 from typing import Optional
 
+
 @dataclass
 @Serializer.register
 class BloqadeTask(LocalTask):
@@ -47,7 +48,6 @@ class BloqadeTask(LocalTask):
         nsteps: int = 2_147_483_647,
         interaction_picture: bool = False,
     ) -> "BloqadeTask":
-
 
         hamiltonian = RydbergHamiltonianCodeGen(self.compile_cache).emit(
             self.emulator_ir
@@ -86,7 +86,7 @@ class BloqadeTask(LocalTask):
 def _serialize(obj: BloqadeTask) -> Dict[str, Any]:
     return {
         "shots": obj.shots,
-        "emulator_ir" : obj.emulator_ir,
+        "emulator_ir": obj.emulator_ir,
         "metadata": obj.metadata,
         "task_result_ir": obj.task_result_ir.dict() if obj.task_result_ir else None,
     }
