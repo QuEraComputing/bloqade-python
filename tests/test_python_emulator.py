@@ -228,3 +228,67 @@ def test_bloqade_against_braket_2():
 
     for lhs, rhs in zip(a, b):
         KS_test(lhs, rhs)
+
+
+def test_bloqade_filling():
+
+    geometry = (
+        start.add_position((0, 0), filling=True)
+        .add_position((6.1, 0), filling=False)
+        .add_position((0, 6.1), filling=False)
+        .add_position((6.1, 6.1), filling=True)
+    )
+
+    durations = cast([0.1, 0.1, 0.1])
+    values_1 = [0, 15, 15, 0]
+    values_2 = [0, 2, 15, 0]
+
+    shots = 1000
+
+    result_1 = (
+        geometry.rydberg.detuning.uniform.piecewise_linear(
+            durations, [-20, -20, "d", "d"]
+        )
+        .amplitude.location(0)
+        .piecewise_linear(durations, values_1)
+        .amplitude.location(3)
+        .piecewise_linear(durations, values_2)
+        .amplitude.location(
+            1
+        )  # note this drive is ignored because the site is not filled
+        .piecewise_linear(durations, values_2)
+        .assign(d=10)
+        .bloqade.python()
+        .run(shots)
+    )
+    # removing vacant sites implies 0 -> 0 and 2 -> 1 based
+    # on the order of how the sites are added
+    result_2 = (
+        geometry.remove_vacant_sites()
+        .rydberg.detuning.uniform.piecewise_linear(durations, [-20, -20, "d", "d"])
+        .amplitude.location(0)
+        .piecewise_linear(durations, values_1)
+        .amplitude.location(1)
+        .piecewise_linear(durations, values_2)
+        .assign(d=10)
+        .bloqade.python()
+        .run(shots)
+    )
+
+    (a,) = result_1.report().counts()
+    (b,) = result_2.report().counts()
+
+    # post-processing to match the keys in
+    # both dictionaries. This involves removing the
+    # the second and the third bits from the keys in a
+    a_post_processed = type(a)()
+
+    for key, value in a.items():
+        new_key = "".join((key[0], key[3]))
+        a_post_processed[new_key] = value
+
+    KS_test(a_post_processed, b)
+
+
+if __name__ == "__main__":
+    test_bloqade_filling()
