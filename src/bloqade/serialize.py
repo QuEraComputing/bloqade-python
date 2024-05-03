@@ -2,6 +2,8 @@ import simplejson as json
 from typing import Any
 from beartype.typing import Type, Callable, Dict, Union, TextIO
 from beartype import beartype
+from typing_extensions import dataclass_transform
+
 import importlib
 import pkgutil
 
@@ -54,7 +56,8 @@ class Serializer(json.JSONEncoder):
 
     @staticmethod
     @beartype
-    def register(cls: Type):
+    @dataclass_transform()
+    def register(cls: Type) -> Type:
         @beartype
         def _deserializer(d: Dict[str, Any]) -> cls:
             return cls(**d)

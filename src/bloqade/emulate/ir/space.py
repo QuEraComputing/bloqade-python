@@ -20,8 +20,13 @@ class SpaceType(str, Enum):
 class Space:
     space_type: SpaceType
     atom_type: "AtomType"
-    geometry: "Register"
+    program_register: "Register"
     configurations: NDArray
+
+    def __post_init__(self):
+        from .emulator import Register
+
+        assert isinstance(self.program_register, Register)
 
     @classmethod
     def create(cls, register: "Register"):
@@ -49,7 +54,7 @@ class Space:
         if all(len(sub_list) == 0 for sub_list in check_atoms):
             # default to 32 bit if smaller than 32 bit
             configurations = np.arange(Ns, dtype=config_type)
-            return Space(SpaceType.FullSpace, atom_type, sites, configurations)
+            return cls(SpaceType.FullSpace, atom_type, register, configurations)
 
         states = np.arange(atom_type.n_level, dtype=config_type)
         configurations = states
@@ -87,7 +92,7 @@ class Space:
 
         configurations.sort()
 
-        return cls(SpaceType.SubSpace, atom_type, sites, configurations)
+        return cls(SpaceType.SubSpace, atom_type, register, configurations)
 
     @property
     def index_type(self) -> np.dtype:
@@ -102,7 +107,11 @@ class Space:
 
     @property
     def n_atoms(self) -> int:
-        return len(self.geometry)
+        return len(self.program_register)
+
+    @property
+    def n_sites(self) -> int:
+        return len(self.program_register.geometry.sites)
 
     @property
     def state_type(self) -> np.dtype:

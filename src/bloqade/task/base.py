@@ -1,4 +1,5 @@
 from collections import OrderedDict
+from typing import Any
 
 from beartype.typing import List, Sequence, Union, Dict, Optional, Tuple
 from beartype import beartype
@@ -13,15 +14,26 @@ import pandas as pd
 import numpy as np
 from pydantic.v1.dataclasses import dataclass
 from bloqade.submission.ir.parallel import ParallelDecoder
-import datetime
 from bloqade.visualization import display_report
+from bloqade.serialize import Serializer
+import datetime
 
 
+@Serializer.register
 @dataclass(frozen=True)
 class Geometry:
     sites: List[Tuple[float, float]]
     filling: List[int]
     parallel_decoder: Optional[ParallelDecoder] = None
+
+
+@Geometry.set_serializer
+def _geometry_serializer(obj: Geometry) -> Dict[str, Any]:
+    return {
+        "sites": obj.sites,
+        "filling": obj.filling,
+        "parallel_decoder": obj.parallel_decoder,
+    }
 
 
 class Task:
