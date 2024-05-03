@@ -2,7 +2,7 @@
 from bloqade.visualization import (
     display_ir,
     get_atom_arrangement_figure,
-    assemble_atom_arragement_panel,
+    assemble_atom_arrangement_panel,
 )
 from bloqade.ir.control.sequence import SequenceExpr
 from bloqade.ir.location.location import AtomArrangement, ParallelRegister
@@ -115,7 +115,7 @@ class AnalogCircuit:
             fig_regs.append(fig_reg)
             fig_keys.append(key)
 
-        return fig_seq, assemble_atom_arragement_panel(fig_regs, fig_keys)
+        return fig_seq, assemble_atom_arrangement_panel(fig_regs, fig_keys)
 
     def show(self, **assignments):
         """Interactive visualization of the program
