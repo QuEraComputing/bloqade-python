@@ -1,0 +1,36 @@
+abstract: '<h2>What''s Changed</h2>
+
+  <ul>
+
+  <li>Potential New Docstring Format by @johnzl-777 in https://github.com/QuEraComputing/bloqade-python/pull/929</li>
+
+  <li>chore: Update pdm.lock by @github-actions in https://github.com/QuEraComputing/bloqade-python/pull/938</li>
+
+  <li>Adding support for empty site filling in bloqade emulator. by @weinbe58 in https://github.com/QuEraComputing/bloqade-python/pull/931</li>
+
+  <li>Local spatial modulation display on register by @kaihsin in https://github.com/QuEraComputing/bloqade-python/pull/936</li>
+
+  </ul>
+
+  <p><strong>Full Changelog</strong>: https://github.com/QuEraComputing/bloqade-python/compare/0.15.10...v0.15.11</p>'
+authors:
+- affiliation: QuEra Computing Inc.
+  family-names: Weinberg
+  given-names: Phillip
+- affiliation: QuEra Computing Inc.
+  family-names: Wu
+  given-names: Kai-Hsin
+- affiliation: QuEra Computing Inc.
+  family-names: John Long
+- affiliation: QuEra Computing Inc.
+  family-names: Luo
+  given-names: Xiu-zhe (Roger)
+cff-version: 1.2.0
+date-released: '2024-05-04'
+doi: 10.5281/zenodo.11114110
+license:
+- cc-by-4.0
+repository-code: https://github.com/QuEraComputing/bloqade-python/tree/v0.15.11
+title: 'QuEraComputing/bloqade-python: v0.15.11'
+type: software
+version: v0.15.11
