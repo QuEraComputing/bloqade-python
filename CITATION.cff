@@ -1,18 +1,4 @@
-abstract: '<h2>What''s Changed</h2>
-
-  <ul>
-
-  <li>Potential New Docstring Format by @johnzl-777 in https://github.com/QuEraComputing/bloqade-python/pull/929</li>
-
-  <li>chore: Update pdm.lock by @github-actions in https://github.com/QuEraComputing/bloqade-python/pull/938</li>
-
-  <li>Adding support for empty site filling in bloqade emulator. by @weinbe58 in https://github.com/QuEraComputing/bloqade-python/pull/931</li>
-
-  <li>Local spatial modulation display on register by @kaihsin in https://github.com/QuEraComputing/bloqade-python/pull/936</li>
-
-  </ul>
-
-  <p><strong>Full Changelog</strong>: https://github.com/QuEraComputing/bloqade-python/compare/0.15.10...v0.15.11</p>'
+abstract: 'Bloqade is an SDK designed to make writing and analyzing the results of analog quantum programs on QuEra's neutral atom quantum computers as seamless and flexible as possible. Currently, QuEra's hardware is on Amazon Braket, the primary method of accessing QuEra's quantum hardware. Over the alpha phase, we plan to expand the emulator capabilities to include a performance Python emulator but also a direct integration with Julia via Bloqade.jl.'
 authors:
 - affiliation: QuEra Computing Inc.
   family-names: Weinberg
