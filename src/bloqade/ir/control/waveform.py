@@ -897,13 +897,7 @@ class Sample(Waveform):
 
 @dataclass(frozen=True)
 class NullWaveform(Waveform):
-    null_field: str
+    error_message: str
 
     def __post_init__(self):
-        warnings.warn(
-            (
-                "The original program used a python function as a waveform that could not be serialized, "
-                "therefore it cannot be deserialized. However, all other data can be deserialized. "
-                "You will not be able to rerun this task!"
-            )
-        )
+        warnings.warn(self.error_message)

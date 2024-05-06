@@ -99,20 +99,22 @@ class BloqadeIRSerializer(json.JSONEncoder, BloqadeIRVisitor):
         }
 
     def visit_waveform_PythonFn(self, node: waveform.PythonFn) -> Dict[str, Any]:
-        # raise ValueError("Bloqade does not support serialization of Python code.")
-        warnings.warn(
-            (
-                "Bloqade does not support serialization of Python code. "
-                "Your program uses a python function as a waveform which cannot be serialized. "
-                "However, all other information will be serialized."
-            )
+
+        python_function_name = node.fn.__name__
+
+        error_message = (
+            f"Python function {python_function_name} in the program cannot be serialized. "
+            "The rest of the program can be deserialized but you cannot rerun this task."
         )
-        return {"null_waveform": {"null_field": "null_value"}}
+
+        warnings.warn(error_message)
+
+        return {"null_waveform": {"error_message": error_message}}
 
     def visit_waveform_NullWaveform(
         self, node: waveform.NullWaveform
     ) -> Dict[str, Any]:
-        return {"null_waveform": {"null_field": "null_value"}}
+        return {"null_waveform": {"error_message": node.error_message}}
 
     def visit_waveform_Negative(self, node: waveform.Negative) -> Dict[str, Any]:
         return {"negative_waveform": {"waveform": self.visit(node.waveform)}}
