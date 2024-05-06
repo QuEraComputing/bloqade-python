@@ -16,6 +16,7 @@
 [![codecov](https://codecov.io/github/QuEraComputing/bloqade-python/graph/badge.svg?token=4YJFc45Jyl)](https://codecov.io/github/QuEraComputing/bloqade-python)
 ![CI](https://github.com/QuEraComputing/bloqade-python/actions/workflows/ci.yml/badge.svg)
 [![Documentation](https://img.shields.io/badge/Documentation-6437FF)](https://queracomputing.github.io/bloqade-python/latest/)
+[![DOI](https://zenodo.org/badge/629628885.svg)](https://zenodo.org/doi/10.5281/zenodo.11114109)
 
 # Welcome to Bloqade -- QuEra's Neutral Atom SDK
 
