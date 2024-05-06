@@ -56,6 +56,11 @@ class BloqadeIRVisitor:
                     if isinstance(key, BloqadeNodeTypes):
                         self.visit(key)
 
+    def visit_waveform_NullWaveform(self, node: _waveform.NullWaveform):
+        raise TypeError(
+            "Running a deserialized program that was serialized with an arbitrary python function is not supported!"
+        )
+
 
 class BloqadeIRTransformer(BloqadeIRVisitor):
     # Following the pattern from from python's node.NodeTransformer
