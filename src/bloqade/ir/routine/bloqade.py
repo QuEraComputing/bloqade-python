@@ -1,4 +1,4 @@
-from collections import OrderedDict, namedtuple
+from collections import OrderedDict, namedtuple, abc
 
 from bloqade.emulate.ir.emulator import EmulatorProgram
 from bloqade.ir.routine.base import RoutineBase, __pydantic_dataclass_config__
@@ -93,7 +93,7 @@ class BloqadePythonRoutine(RoutineBase):
             ).emit(emulator_ir)
 
             MetaData = namedtuple("MetaData", metadata_dict.keys())
-            metadata = MetaData(**{k: float(v) for k, v in metadata_dict.items()})
+            metadata = MetaData(**{k: self.cast_to_float(v) for k, v in metadata_dict.items()})
 
             zero_state = hamiltonian.space.zero_state(np.complex128)
             (register_data,) = AnalogGate(hamiltonian).apply(
@@ -104,6 +104,12 @@ class BloqadePythonRoutine(RoutineBase):
             return self.callback(
                 wrapped_register, metadata, hamiltonian, *self.callback_args
             )
+        
+        def cast_to_float(self, x):
+            if isinstance(x, abc.Sequence):
+                return [float(i) for i in x]
+            else:
+                return float(x)
 
     def _generate_ir(
         self, args, blockade_radius, waveform_runtime
@@ -427,7 +433,6 @@ class BloqadePythonRoutine(RoutineBase):
         waveform_runtime: str = "interpret",
         cache_matrices: bool = False,
     ) -> Iterator["HamiltonianData"]:
-        pass
 
         ir_iter = self._generate_ir(args, blockade_radius, waveform_runtime)
 
