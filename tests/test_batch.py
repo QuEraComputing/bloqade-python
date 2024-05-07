@@ -10,6 +10,7 @@ from bloqade.task.braket import BraketTask
 from bloqade.submission.base import ValidationError
 from bloqade import dumps, loads
 from bloqade.atom_arrangement import Chain
+from bloqade.ir.control.waveform import NullWaveform
 
 # import numpy as np
 
@@ -622,7 +623,7 @@ def test_quera_task(BraketBackend):
     assert backend.cancel_task.call_count == 1
 
 
-def test_serializer():
+def test_serializer_1():
     prog = (
         start.add_position((0, 0))
         .rydberg.detuning.uniform.piecewise_linear(
@@ -650,3 +651,40 @@ def test_serializer():
             assert task.metadata == new_batch.tasks[task_num].metadata
             assert task.task_result_ir == new_batch.tasks[task_num].task_result_ir
             assert task.nshots == new_batch.tasks[task_num].nshots
+
+
+# Test serialization, deserialization, and rerun of a batch that has a
+# python function as a waveform. Warnings should be issued on serialization
+# and deserialization with a full exception thrown on rerun.
+def test_serializer_2():
+
+    def detuning_wf(t, drive_amplitude, drive_frequency):
+        return drive_amplitude * np.sin(drive_frequency * t)
+
+    batch_with_python_fn = (
+        start.add_position((0, 0))
+        .rydberg.detuning.uniform.fn(detuning_wf, 4.0)
+        .sample(0.05, "linear")
+        .assign(drive_amplitude=15.0, drive_frequency=15.0)
+        .bloqade.python()
+        .run(1)
+    )
+
+    with pytest.warns(UserWarning):
+        json_str = dumps(batch_with_python_fn, use_decimal=True)
+
+    with pytest.warns(UserWarning):
+        new_batch = loads(json_str, use_decimal=True)
+
+    assert (
+        type(
+            new_batch.tasks[0]
+            .emulator_ir.pulses["rydberg"]
+            .detuning[0]
+            .amplitude.source.waveform
+        )
+        is NullWaveform
+    )
+
+    with pytest.raises(TypeError):
+        new_batch.rerun()

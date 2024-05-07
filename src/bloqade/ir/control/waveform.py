@@ -30,6 +30,7 @@ import scipy.integrate as integrate
 from bloqade.visualization import get_ir_figure
 from bloqade.visualization import display_ir
 from functools import cached_property
+import warnings
 
 
 @beartype
@@ -892,3 +893,11 @@ class Sample(Waveform):
 
     def children(self):
         return {"Waveform": self.waveform, "sample_step": self.dt}
+
+
+@dataclass(frozen=True)
+class NullWaveform(Waveform):
+    error_message: str
+
+    def __post_init__(self):
+        warnings.warn(self.error_message)
