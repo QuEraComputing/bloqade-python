@@ -22,6 +22,7 @@ from bloqade.ir.visitor import BloqadeIRVisitor, BloqadeNodeTypes
 import json
 
 from typing import Any, Dict
+import warnings
 
 
 class BloqadeIRSerializer(json.JSONEncoder, BloqadeIRVisitor):
@@ -98,7 +99,22 @@ class BloqadeIRSerializer(json.JSONEncoder, BloqadeIRVisitor):
         }
 
     def visit_waveform_PythonFn(self, node: waveform.PythonFn) -> Dict[str, Any]:
-        raise ValueError("Bloqade does not support serialization of Python code.")
+
+        python_function_name = node.fn.__name__
+
+        error_message = (
+            f"Python function {python_function_name} in the program cannot be serialized. "
+            "The rest of the program can be deserialized but you cannot rerun this task."
+        )
+
+        warnings.warn(error_message)
+
+        return {"null_waveform": {"error_message": error_message}}
+
+    def visit_waveform_NullWaveform(
+        self, node: waveform.NullWaveform
+    ) -> Dict[str, Any]:
+        return {"null_waveform": {"error_message": node.error_message}}
 
     def visit_waveform_Negative(self, node: waveform.Negative) -> Dict[str, Any]:
         return {"negative_waveform": {"waveform": self.visit(node.waveform)}}
@@ -397,6 +413,7 @@ class BloqadeIRDeserializer:
         "constant": waveform.Constant,
         "linear": waveform.Linear,
         "poly": waveform.Poly,
+        "null_waveform": waveform.NullWaveform,
         "negative_waveform": waveform.Negative,
         "add_waveform": waveform.Add,
         "scale": waveform.Scale,

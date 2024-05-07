@@ -17,7 +17,7 @@ aquila_capabilities = get_capabilities()
 # obtain maximum Rabi frequency as Decimal
 max_rabi = aquila_capabilities.capabilities.rydberg.global_.rabi_frequency_max
 
-# use that value in constructing a neat Rabi waveform 
+# use that value in constructing a neat Rabi waveform
 rabi_wf = piecewise_linear(durations = [0.5, 1.0, 0.5], values = [0, max_rabi, max_rabi, 0])
 ```
 

@@ -47,6 +47,7 @@ class BloqadeTask(LocalTask):
         nsteps: int = 2_147_483_647,
         interaction_picture: bool = False,
     ) -> "BloqadeTask":
+
         hamiltonian = RydbergHamiltonianCodeGen(self.compile_cache).emit(
             self.emulator_ir
         )
@@ -87,7 +88,7 @@ class BloqadeTask(LocalTask):
 
 
 @BloqadeTask.set_serializer
-def _serialze(obj: BloqadeTask) -> Dict[str, Any]:
+def _serialize(obj: BloqadeTask) -> Dict[str, Any]:
     return {
         "shots": obj.shots,
         "emulator_ir": obj.emulator_ir,
