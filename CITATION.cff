@@ -1,0 +1,23 @@
+abstract: "Bloqade is an SDK designed to make writing and analyzing the results of analog quantum programs on QuEra's neutral atom quantum computers as seamless and flexible as possible. Currently, QuEra's hardware is on Amazon Braket, the primary method of accessing QuEra's quantum hardware. Over the alpha phase, we plan to expand the emulator capabilities to include a performance Python emulator but also a direct integration with Julia via Bloqade.jl."
+authors:
+- affiliation: QuEra Computing Inc.
+  family-names: Weinberg
+  given-names: Phillip
+- affiliation: QuEra Computing Inc.
+  family-names: Wu
+  given-names: Kai-Hsin
+- affiliation: QuEra Computing Inc.
+  family-names: Long
+  given-names: John
+- affiliation: QuEra Computing Inc.
+  family-names: Luo
+  given-names: Xiu-zhe (Roger)
+cff-version: 1.2.0
+date-released: '2024-05-04'
+doi: 10.5281/zenodo.11114110
+license:
+- cc-by-4.0
+repository-code: https://github.com/QuEraComputing/bloqade-python/tree/v0.15.11
+title: 'QuEraComputing/bloqade-python: v0.15.11'
+type: software
+version: v0.15.11

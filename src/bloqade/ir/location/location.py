@@ -132,7 +132,7 @@ class AtomArrangement(ProgramStart):
 
     def figure(self, fig_kwargs=None, **assignments):
         """obtain a figure object from the atom arrangement."""
-        return get_atom_arrangement_figure(self, fig_kwargs, **assignments)
+        return get_atom_arrangement_figure(self, fig_kwargs=fig_kwargs, **assignments)
 
     def show(self, **assignments) -> None:
         display_ir(self, assignments)
