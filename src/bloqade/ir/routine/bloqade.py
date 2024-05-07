@@ -361,7 +361,10 @@ class BloqadePythonRoutine(RoutineBase):
 
         total_tasks = 0
         it_iter = self._generate_ir(program_args, blockade_radius, waveform_runtime)
-        for task_number, emulator_ir, metadata in it_iter:
+        for obj in it_iter:
+            task_number = obj[0]
+            emulator_ir = obj[1]
+            metadata = obj[2]
             total_tasks += 1
             tasks.put((task_number, (emulator_ir, metadata)))
 
