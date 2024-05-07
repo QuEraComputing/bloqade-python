@@ -93,7 +93,9 @@ class BloqadePythonRoutine(RoutineBase):
             ).emit(emulator_ir)
 
             MetaData = namedtuple("MetaData", metadata_dict.keys())
-            metadata = MetaData(**{k: self.cast_to_float(v) for k, v in metadata_dict.items()})
+            metadata = MetaData(
+                **{k: self.cast_to_float(v) for k, v in metadata_dict.items()}
+            )
 
             zero_state = hamiltonian.space.zero_state(np.complex128)
             (register_data,) = AnalogGate(hamiltonian).apply(
@@ -104,7 +106,7 @@ class BloqadePythonRoutine(RoutineBase):
             return self.callback(
                 wrapped_register, metadata, hamiltonian, *self.callback_args
             )
-        
+
         def cast_to_float(self, x):
             if isinstance(x, abc.Sequence):
                 return [float(i) for i in x]
