@@ -1,10 +1,22 @@
 from collections import OrderedDict, namedtuple
 
+from pydantic.v1 import PrivateAttr
+
+from bloqade.emulate.ir.emulator import EmulatorProgram
 from bloqade.ir.routine.base import RoutineBase, __pydantic_dataclass_config__
 from bloqade.builder.typing import LiteralType
 from bloqade.task.batch import LocalBatch
 from beartype import beartype
-from beartype.typing import Optional, Tuple, Callable, Dict, Any, List, NamedTuple
+from beartype.typing import (
+    Optional,
+    Tuple,
+    Callable,
+    Dict,
+    Any,
+    List,
+    NamedTuple,
+    Iterator,
+)
 from pydantic.v1.dataclasses import dataclass
 import numpy as np
 
@@ -17,6 +29,41 @@ import traceback
 class BloqadeServiceOptions(RoutineBase):
     def python(self):
         return BloqadePythonRoutine(self.source, self.circuit, self.params)
+
+
+@dataclass(frozen=True, config=__pydantic_dataclass_config__)
+class TaskData:
+    """Data class to hold the program ir and metadata for a given set of parameters"""
+
+    task_id: int
+    emulator_ir: EmulatorProgram
+    metadata_dict: Dict[str, LiteralType]
+
+    @property
+    def metadata(self) -> NamedTuple:
+        MetaData = namedtuple("MetaData", self.metadata_dict.keys())
+        return MetaData(**{k: float(v) for k, v in self.metadata_dict.items()})
+
+
+@dataclass(frozen=True, config=__pydantic_dataclass_config__)
+class HamiltonianData:
+    """Data class to hold the Hamiltonian and metadata for a given set of parameters"""
+
+    task_data: TaskData
+    compile_cache: Optional[CompileCache] = None
+    _hamiltonian: Optional[RydbergHamiltonian] = PrivateAttr(default=None)
+
+    @property
+    def hamiltonian(self) -> RydbergHamiltonian:
+        if self._hamiltonian is None:
+            self._hamiltonian = RydbergHamiltonianCodeGen(self.compile_cache).emit(
+                self.emulator_ir
+            )
+        return self._hamiltonian
+
+    @property
+    def metadata(self) -> NamedTuple:
+        return self.task_data.metadata
 
 
 @dataclass(frozen=True, config=__pydantic_dataclass_config__)
@@ -56,7 +103,9 @@ class BloqadePythonRoutine(RoutineBase):
                 wrapped_register, metadata, hamiltonian, *self.callback_args
             )
 
-    def _generate_ir(self, args, blockade_radius, waveform_runtime):
+    def _generate_ir(
+        self, args, blockade_radius, waveform_runtime
+    ) -> Iterator[Tuple[int, EmulatorProgram, Dict[str, LiteralType]]]:
         from bloqade.compiler.passes.emulator import (
             flatten,
             assign,
@@ -362,3 +411,12 @@ class BloqadePythonRoutine(RoutineBase):
             results.append(result)
 
         return results
+
+    def hamiltonian(
+        self,
+        *args: LiteralType,
+        blockade_radius: float = 0.0,
+        waveform_runtime: str = "interpret",
+        cache_matrices: bool = False,
+    ) -> Iterator["HamiltonianData"]:
+        pass
