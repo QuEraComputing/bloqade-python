@@ -30,6 +30,13 @@ class BloqadeServiceOptions(RoutineBase):
         return BloqadePythonRoutine(self.source, self.circuit, self.params)
 
 
+def cast_to_float(x):
+    if isinstance(x, abc.Sequence):
+        return [float(i) for i in x]
+    else:
+        return float(x)
+
+
 @dataclasses.dataclass(frozen=True)
 class TaskData:
     """Data class to hold the program ir and metadata for a given set of parameters"""
@@ -41,7 +48,7 @@ class TaskData:
     @property
     def metadata(self) -> NamedTuple:
         MetaData = namedtuple("MetaData", self.metadata_dict.keys())
-        return MetaData(**{k: float(v) for k, v in self.metadata_dict.items()})
+        return MetaData(**{k: cast_to_float(v) for k, v in self.metadata_dict.items()})
 
 
 @dataclasses.dataclass(frozen=True)
@@ -94,7 +101,7 @@ class BloqadePythonRoutine(RoutineBase):
 
             MetaData = namedtuple("MetaData", metadata_dict.keys())
             metadata = MetaData(
-                **{k: self.cast_to_float(v) for k, v in metadata_dict.items()}
+                **{k: cast_to_float(v) for k, v in metadata_dict.items()}
             )
 
             zero_state = hamiltonian.space.zero_state(np.complex128)
@@ -106,12 +113,6 @@ class BloqadePythonRoutine(RoutineBase):
             return self.callback(
                 wrapped_register, metadata, hamiltonian, *self.callback_args
             )
-
-        def cast_to_float(self, x):
-            if isinstance(x, abc.Sequence):
-                return [float(i) for i in x]
-            else:
-                return float(x)
 
     def _generate_ir(
         self, args, blockade_radius, waveform_runtime
