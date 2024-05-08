@@ -115,7 +115,7 @@ class BloqadePythonRoutine(RoutineBase):
             )
 
     def _generate_ir(
-        self, args, blockade_radius, waveform_runtime
+        self, args, blockade_radius, waveform_runtime, use_hyperfine
     ) -> Iterator[TaskData]:
         from bloqade.compiler.passes.emulator import (
             flatten,
@@ -130,7 +130,7 @@ class BloqadePythonRoutine(RoutineBase):
             assignment = {**params.static_params, **batch_param}
             metadata, final_circuit = assign(assignment, circuit)
             emulator_ir = generate_emulator_ir(
-                final_circuit, blockade_radius, waveform_runtime
+                final_circuit, blockade_radius, waveform_runtime, use_hyperfine
             )
             yield TaskData(task_number, emulator_ir, metadata)
 
@@ -142,6 +142,7 @@ class BloqadePythonRoutine(RoutineBase):
         blockade_radius: LiteralType = 0.0,
         cache_matrices: bool = False,
         waveform_runtime: str = "interpret",
+        use_hyperfine: bool = False,
     ) -> LocalBatch:
         from bloqade.task.bloqade import BloqadeTask
 
@@ -151,7 +152,9 @@ class BloqadePythonRoutine(RoutineBase):
             matrix_cache = None
 
         tasks = OrderedDict()
-        ir_iter = self._generate_ir(args, blockade_radius, waveform_runtime)
+        ir_iter = self._generate_ir(
+            args, blockade_radius, waveform_runtime, use_hyperfine
+        )
         for task_data in ir_iter:
             task_number = task_data.task_id
             emulator_ir = task_data.emulator_ir
@@ -291,6 +294,7 @@ class BloqadePythonRoutine(RoutineBase):
         atol: float = 1e-7,
         rtol: float = 1e-14,
         nsteps: int = 2_147_483_647,
+        use_hyperfine: bool = False,
     ) -> List:
         """Run state-vector simulation with a callback to access full state-vector from
         emulator
@@ -374,7 +378,9 @@ class BloqadePythonRoutine(RoutineBase):
         results = Queue()
 
         total_tasks = 0
-        ir_iter = self._generate_ir(program_args, blockade_radius, waveform_runtime)
+        ir_iter = self._generate_ir(
+            program_args, blockade_radius, waveform_runtime, use_hyperfine
+        )
         for task_data in ir_iter:
             task_number = task_data.task_id
             emulator_ir = task_data.emulator_ir
@@ -433,11 +439,14 @@ class BloqadePythonRoutine(RoutineBase):
         self,
         *args: LiteralType,
         blockade_radius: float = 0.0,
+        use_hyperfine: bool = False,
         waveform_runtime: str = "interpret",
         cache_matrices: bool = False,
     ) -> Iterator["HamiltonianData"]:
 
-        ir_iter = self._generate_ir(args, blockade_radius, waveform_runtime)
+        ir_iter = self._generate_ir(
+            args, blockade_radius, waveform_runtime, use_hyperfine
+        )
 
         if cache_matrices:
             compile_cache = CompileCache()
