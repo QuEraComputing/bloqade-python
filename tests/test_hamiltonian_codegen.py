@@ -55,6 +55,25 @@ def project_to_subspace(operator, configurations):
 ####################
 # Test uniform ops #
 ####################
+@pytest.mark.parametrize("L", L_VALUES)
+def test_2_level_uniform_detuning_hamiltonian_api(L):
+
+    program = Chain(L, lattice_spacing=6.1).rydberg.detuning.uniform.constant(1.0, 1.0)
+    hamiltonian_data = next(program.bloqade.python().hamiltonian())
+    hamiltonian = hamiltonian_data.hamiltonian
+
+    detuning_op = np.array([0, -1], dtype=int)
+
+    detuning = sum([get_manybody_op(i, L, detuning_op) for i in range(L)])
+
+    assert np.all(hamiltonian.detuning_ops[0].diagonal == detuning)
+
+    hamiltonian_data = next(program.bloqade.python().hamiltonian(blockade_radius=6.2))
+    hamiltonian = hamiltonian_data.hamiltonian
+
+    detuning_op_proj = project_to_subspace(detuning, hamiltonian.space.configurations)
+
+    assert np.all(hamiltonian.detuning_ops[0].diagonal == detuning_op_proj)
 
 
 @pytest.mark.parametrize("L", L_VALUES)
