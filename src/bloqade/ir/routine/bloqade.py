@@ -1,11 +1,22 @@
-from collections import OrderedDict, namedtuple
+from collections import OrderedDict, namedtuple, abc
 
+from bloqade.emulate.ir.emulator import EmulatorProgram
 from bloqade.ir.routine.base import RoutineBase, __pydantic_dataclass_config__
 from bloqade.builder.typing import LiteralType
 from bloqade.task.batch import LocalBatch
 from beartype import beartype
-from beartype.typing import Optional, Tuple, Callable, Dict, Any, List, NamedTuple
+from beartype.typing import (
+    Optional,
+    Tuple,
+    Callable,
+    Dict,
+    Any,
+    List,
+    NamedTuple,
+    Iterator,
+)
 from pydantic.v1.dataclasses import dataclass
+import dataclasses
 import numpy as np
 
 from bloqade.emulate.codegen.hamiltonian import CompileCache, RydbergHamiltonianCodeGen
@@ -17,6 +28,51 @@ import traceback
 class BloqadeServiceOptions(RoutineBase):
     def python(self):
         return BloqadePythonRoutine(self.source, self.circuit, self.params)
+
+
+def cast_to_float(x):
+    if isinstance(x, abc.Sequence):
+        return [float(i) for i in x]
+    else:
+        return float(x)
+
+
+@dataclasses.dataclass(frozen=True)
+class TaskData:
+    """Data class to hold the program ir and metadata for a given set of parameters"""
+
+    task_id: int
+    emulator_ir: EmulatorProgram
+    metadata_dict: Dict[str, LiteralType]
+
+    @property
+    def metadata(self) -> NamedTuple:
+        MetaData = namedtuple("MetaData", self.metadata_dict.keys())
+        return MetaData(**{k: cast_to_float(v) for k, v in self.metadata_dict.items()})
+
+
+@dataclasses.dataclass(frozen=True)
+class HamiltonianData:
+    """Data class to hold the Hamiltonian and metadata for a given set of parameters"""
+
+    task_data: TaskData
+    compile_cache: Optional[CompileCache] = None
+    _hamiltonian: Optional[RydbergHamiltonian] = dataclasses.field(
+        init=False, default=None
+    )
+
+    @property
+    def hamiltonian(self) -> RydbergHamiltonian:
+        if self._hamiltonian is None:
+            _hamiltonian = RydbergHamiltonianCodeGen(self.compile_cache).emit(
+                self.task_data.emulator_ir
+            )
+            object.__setattr__(self, "_hamiltonian", _hamiltonian)
+        return self._hamiltonian
+
+    @property
+    def metadata(self) -> NamedTuple:
+        return self.task_data.metadata
 
 
 @dataclass(frozen=True, config=__pydantic_dataclass_config__)
@@ -44,7 +100,9 @@ class BloqadePythonRoutine(RoutineBase):
             ).emit(emulator_ir)
 
             MetaData = namedtuple("MetaData", metadata_dict.keys())
-            metadata = MetaData(**{k: float(v) for k, v in metadata_dict.items()})
+            metadata = MetaData(
+                **{k: cast_to_float(v) for k, v in metadata_dict.items()}
+            )
 
             zero_state = hamiltonian.space.zero_state(np.complex128)
             (register_data,) = AnalogGate(hamiltonian).apply(
@@ -56,7 +114,9 @@ class BloqadePythonRoutine(RoutineBase):
                 wrapped_register, metadata, hamiltonian, *self.callback_args
             )
 
-    def _generate_ir(self, args, blockade_radius, waveform_runtime):
+    def _generate_ir(
+        self, args, blockade_radius, waveform_runtime, use_hyperfine
+    ) -> Iterator[TaskData]:
         from bloqade.compiler.passes.emulator import (
             flatten,
             assign,
@@ -70,9 +130,9 @@ class BloqadePythonRoutine(RoutineBase):
             assignment = {**params.static_params, **batch_param}
             metadata, final_circuit = assign(assignment, circuit)
             emulator_ir = generate_emulator_ir(
-                final_circuit, blockade_radius, waveform_runtime
+                final_circuit, blockade_radius, waveform_runtime, use_hyperfine
             )
-            yield task_number, emulator_ir, metadata
+            yield TaskData(task_number, emulator_ir, metadata)
 
     def _compile(
         self,
@@ -82,6 +142,7 @@ class BloqadePythonRoutine(RoutineBase):
         blockade_radius: LiteralType = 0.0,
         cache_matrices: bool = False,
         waveform_runtime: str = "interpret",
+        use_hyperfine: bool = False,
     ) -> LocalBatch:
         from bloqade.task.bloqade import BloqadeTask
 
@@ -91,8 +152,13 @@ class BloqadePythonRoutine(RoutineBase):
             matrix_cache = None
 
         tasks = OrderedDict()
-        it_iter = self._generate_ir(args, blockade_radius, waveform_runtime)
-        for task_number, emulator_ir, metadata in it_iter:
+        ir_iter = self._generate_ir(
+            args, blockade_radius, waveform_runtime, use_hyperfine
+        )
+        for task_data in ir_iter:
+            task_number = task_data.task_id
+            emulator_ir = task_data.emulator_ir
+            metadata = task_data.metadata_dict
             tasks[task_number] = BloqadeTask(shots, emulator_ir, metadata, matrix_cache)
 
         return LocalBatch(self.source, tasks, name)
@@ -228,6 +294,7 @@ class BloqadePythonRoutine(RoutineBase):
         atol: float = 1e-7,
         rtol: float = 1e-14,
         nsteps: int = 2_147_483_647,
+        use_hyperfine: bool = False,
     ) -> List:
         """Run state-vector simulation with a callback to access full state-vector from
         emulator
@@ -311,8 +378,13 @@ class BloqadePythonRoutine(RoutineBase):
         results = Queue()
 
         total_tasks = 0
-        it_iter = self._generate_ir(program_args, blockade_radius, waveform_runtime)
-        for task_number, emulator_ir, metadata in it_iter:
+        ir_iter = self._generate_ir(
+            program_args, blockade_radius, waveform_runtime, use_hyperfine
+        )
+        for task_data in ir_iter:
+            task_number = task_data.task_id
+            emulator_ir = task_data.emulator_ir
+            metadata = task_data.metadata_dict
             total_tasks += 1
             tasks.put((task_number, (emulator_ir, metadata)))
 
@@ -362,3 +434,24 @@ class BloqadePythonRoutine(RoutineBase):
             results.append(result)
 
         return results
+
+    def hamiltonian(
+        self,
+        *args: LiteralType,
+        blockade_radius: float = 0.0,
+        use_hyperfine: bool = False,
+        waveform_runtime: str = "interpret",
+        cache_matrices: bool = False,
+    ) -> Iterator[HamiltonianData]:
+
+        ir_iter = self._generate_ir(
+            args, blockade_radius, waveform_runtime, use_hyperfine
+        )
+
+        if cache_matrices:
+            compile_cache = CompileCache()
+        else:
+            compile_cache = None
+
+        for task_data in ir_iter:
+            yield HamiltonianData(task_data, compile_cache=compile_cache)
