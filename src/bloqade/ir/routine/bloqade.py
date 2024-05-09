@@ -442,7 +442,7 @@ class BloqadePythonRoutine(RoutineBase):
         use_hyperfine: bool = False,
         waveform_runtime: str = "interpret",
         cache_matrices: bool = False,
-    ) -> Iterator["HamiltonianData"]:
+    ) -> Iterator[HamiltonianData]:
 
         ir_iter = self._generate_ir(
             args, blockade_radius, waveform_runtime, use_hyperfine
