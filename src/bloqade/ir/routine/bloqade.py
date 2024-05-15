@@ -103,13 +103,10 @@ class BloqadePythonRoutine(RoutineBase):
             metadata = MetaData(
                 **{k: cast_to_float(v) for k, v in metadata_dict.items()}
             )
-
             zero_state = hamiltonian.space.zero_state(np.complex128)
-            (register_data,) = AnalogGate(hamiltonian).apply(
+            (wrapped_register,) = AnalogGate(hamiltonian).apply(
                 zero_state, **self.solver_args
             )
-            wrapped_register = StateVector(register_data, hamiltonian.space)
-
             return self.callback(
                 wrapped_register, metadata, hamiltonian, *self.callback_args
             )

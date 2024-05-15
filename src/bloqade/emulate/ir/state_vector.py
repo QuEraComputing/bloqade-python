@@ -8,7 +8,7 @@ from bloqade.emulate.sparse_operator import (
 )
 from dataclasses import dataclass, field
 from numpy.typing import NDArray
-from beartype.typing import List, Callable, Union, Optional, Tuple
+from beartype.typing import List, Callable, Union, Optional, Tuple, Iterator, Sequence
 from beartype.vale import IsAttr, IsEqual
 from typing import Annotated
 from beartype import beartype
@@ -197,6 +197,17 @@ class StateVector:
 
         """
         ...
+
+    def sample(self, shots: int, project_hyperfine: bool = True) -> NDArray:
+        """Sample the state vector and return bitstrings."""
+        return self.space.sample_state_vector(
+            self.data, shots, project_hyperfine=project_hyperfine
+        )
+
+    def normalize(self) -> None:
+        """Normalize the state vector."""
+        data = self.data
+        data /= np.linalg.norm(data)
 
 
 @dataclass(frozen=True)
@@ -465,94 +476,115 @@ class AnalogGate:
         elif solver_name in ["dop853", "dopri5"]:
             AnalogGate._error_check_dop(status_code)
 
+    def _check_args(
+        self,
+        state_vec: StateVector,
+        solver_name: str,
+        atol: float,
+        rtol: float,
+        nsteps: int,
+        times: Sequence[float],
+    ):
+        duration = self.hamiltonian.emulator_ir.duration
+        times = [duration] if len(times) == 0 else times
+        if state_vec is None:
+            state_vec = self.hamiltonian.space.zero_state(np.complex128)
+
+        if state_vec.space != self.hamiltonian.space:
+            raise ValueError("State vector not in the same space as the Hamiltonian.")
+
+        if solver_name not in AnalogGate.SUPPORTED_SOLVERS:
+            raise ValueError(f"'{solver_name}' not supported.")
+
+        if any(time > duration or time < 0.0 for time in times):
+            raise ValueError(
+                f"Times must be between 0 and duration {duration}. found {times}"
+            )
+
+        return state_vec, solver_name, atol, rtol, nsteps, times
+
     def _apply(
         self,
-        state: StateArray,
+        state_vec: StateVector,
         solver_name: str = "dop853",
         atol: float = 1e-7,
         rtol: float = 1e-14,
         nsteps: int = 2_147_483_647,
-        times: Union[List[float], RealArray] = [],
-    ):
-        if state is None:
-            state = self.hamiltonian.space.zero_state()
+        times: Sequence[float] = [],
+    ) -> Iterator[StateVector]:
 
-        if solver_name not in AnalogGate.SUPPORTED_SOLVERS:
-            raise ValueError(f"'{solver_name}' not supported.")
-
-        duration = self.hamiltonian.emulator_ir.duration
-
-        state = np.asarray(state).astype(np.complex128, copy=False)
+        state_vec, solver_name, atol, rtol, nsteps, times = self._check_args(
+            state_vec, solver_name, atol, rtol, nsteps, times
+        )
+        state_data = np.asarray(state_vec.data).astype(np.complex128, copy=False)
 
         solver = ode(self.hamiltonian._ode_real_kernel)
-        solver.set_f_params(np.zeros_like(state, dtype=np.complex128))
-        solver.set_initial_value(state.view(np.float64))
+        solver.set_f_params(np.zeros_like(state_data, dtype=np.complex128))
+        solver.set_initial_value(state_data.view(np.float64))
         solver.set_integrator(solver_name, atol=atol, rtol=rtol, nsteps=nsteps)
 
-        if any(time >= duration or time < 0.0 for time in times):
-            raise ValueError("Times must be between 0 and duration.")
-
-        times = [*times, duration]
-
         for time in times:
-            if time == 0.0:
-                yield state
+            if solver.t == time:
+                yield StateVector(solver.y.view(np.complex128), self.hamiltonian.space)
                 continue
+
             solver.integrate(time)
             AnalogGate._error_check(solver_name, solver.get_return_code())
-            yield solver.y.view(np.complex128)
 
-    def _apply_interation_picture(
+            yield StateVector(solver.y.view(np.complex128), self.hamiltonian.space)
+
+    def _apply_interaction_picture(
         self,
-        state: StateArray,
+        state_vec: StateVector,
         solver_name: str = "dop853",
         atol: float = 1e-7,
         rtol: float = 1e-14,
         nsteps: int = 2_147_483_647,
-        times: Union[List[float], RealArray] = [],
-    ):
-        if state is None:
-            state = self.hamiltonian.space.zero_state()
+        times: Sequence[float] = [],
+    ) -> Iterator[StateVector]:
 
-        if solver_name not in AnalogGate.SUPPORTED_SOLVERS:
-            raise ValueError(f"'{solver_name}' not supported.")
-
-        duration = self.hamiltonian.emulator_ir.duration
-
-        state = np.asarray(state).astype(np.complex128, copy=False)
+        state_vec, solver_name, atol, rtol, nsteps, times = self._check_args(
+            state_vec, solver_name, atol, rtol, nsteps, times
+        )
+        state_data = np.asarray(state_vec.data).astype(np.complex128, copy=False)
 
         solver = ode(self.hamiltonian._ode_real_kernel_int)
-        solver.set_f_params(np.zeros_like(state, dtype=np.complex128))
-        solver.set_initial_value(state.view(np.float64))
+        solver.set_f_params(np.zeros_like(state_data, dtype=np.complex128))
+        solver.set_initial_value(state_data.view(np.float64))
         solver.set_integrator(solver_name, atol=atol, rtol=rtol, nsteps=nsteps)
 
-        if any(time >= duration or time < 0.0 for time in times):
-            raise ValueError("Times must be between 0 and duration.")
-
-        times = [*times, duration]
+        state_vec_t = state_vec
 
         for time in times:
-            if time == 0.0:
-                yield state
+            if time == solver.t:
+                # if the time is the same as the current time,
+                # do not call the integrator, just yield state
+                yield state_vec_t
                 continue
+
             solver.integrate(time)
             AnalogGate._error_check(solver_name, solver.get_return_code())
+            # go back to the schrodinger picture
             u = np.exp(-1j * time * self.hamiltonian.rydberg)
-            yield u * solver.y.view(np.complex128)
+            state_vec_t = StateVector(
+                u * solver.y.view(np.complex128), self.hamiltonian.space
+            )
+            # yield the state vector in the schrodinger picture
+            yield state_vec_t
 
     @beartype
     def apply(
         self,
-        state: StateArray,
+        state: StateVector,
         solver_name: str = "dop853",
         atol: float = 1e-7,
         rtol: float = 1e-14,
         nsteps: int = 2_147_483_647,
-        times: Union[List[float], RealArray] = [],
+        times: Union[Sequence[float], RealArray] = [],
         interaction_picture: bool = False,
     ):
         if interaction_picture:
-            return self._apply_interation_picture(
+            return self._apply_interaction_picture(
                 state,
                 solver_name=solver_name,
                 atol=atol,
@@ -580,7 +612,7 @@ class AnalogGate:
         nsteps: int = 2_147_483_647,
         interaction_picture: bool = False,
         project_hyperfine: bool = True,
-    ):
+    ) -> NDArray[np.uint8]:
         """Run the emulation with all atoms in the ground state,
         sampling the final state vector."""
 
@@ -594,8 +626,6 @@ class AnalogGate:
 
         state = self.hamiltonian.space.zero_state()
         (result,) = self.apply(state, **options)
-        result /= np.linalg.norm(result)
+        result.normalize()
 
-        return self.hamiltonian.space.sample_state_vector(
-            result, shots, project_hyperfine=project_hyperfine
-        )
+        return result.sample(shots, project_hyperfine=project_hyperfine)
