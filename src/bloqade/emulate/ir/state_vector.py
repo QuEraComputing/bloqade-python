@@ -14,6 +14,7 @@ from typing import Annotated
 from beartype import beartype
 import numpy as np
 from scipy.integrate import ode
+from scipy.sparse import csr_matrix, diags
 from numba import njit
 
 SparseOperator = Union[IndexMapping, SparseMatrixCSR, SparseMatrixCSC]
@@ -239,6 +240,16 @@ class RabiOperator:
 
         return output
 
+    def tocsr(self, time: float) -> csr_matrix:
+        amplitude = self.amplitude(time) / 2
+        if self.phase is None:
+            return self.op.tocsr() * amplitude
+
+        amplitude: np.complexfloating = amplitude * np.exp(1j * self.phase(time))
+        mat = self.op.tocsr() * amplitude
+
+        return mat + mat.T.conj()
+
 
 @dataclass(frozen=True)
 class RydbergHamiltonian:
@@ -389,6 +400,27 @@ class RydbergHamiltonian:
 
         _, var = self.average_and_variance(register, time)
         return var
+
+    def tocsr(self, time: float) -> csr_matrix:
+        """Return the Hamiltonian as a csr matrix at time `time`.
+
+        Args:
+            time (float): time to evaluate the Hamiltonian at.
+
+        Returns:
+            csr_matrix: The Hamiltonian as a csr matrix.
+
+        """
+        diagonal = sum(
+            (detuning.get_diagonal(time) for detuning in self.detuning_ops),
+            start=self.rydberg,
+        )
+
+        hamiltonian = diags(diagonal).tocsr()
+        for rabi_op in self.rabi_ops:
+            hamiltonian += rabi_op.tocsr(time)
+
+        return hamiltonian
 
     @plum.dispatch
     def expectation_value(  # noqa: F811
