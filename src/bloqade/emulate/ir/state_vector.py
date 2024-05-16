@@ -244,9 +244,11 @@ class StateVector:
 
             for index, state_int in enumerate(
                 self.space.configurations[upper_index:],
-                start=self.size - MAX_PRINT_SIZE // 2,
+                start=self.space.size - MAX_PRINT_SIZE // 2,
             ):
-                fock_state = self.atom_type.integer_to_string(state_int, self.n_atoms)
+                fock_state = self.space.atom_type.integer_to_string(
+                    state_int, self.space.n_atoms
+                )
                 output = output + fmt.format(
                     index=index, fock_state=fock_state, coeff=self.data[index]
                 )
