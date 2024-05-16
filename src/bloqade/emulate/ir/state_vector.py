@@ -1,6 +1,6 @@
 import plum
 from bloqade.emulate.ir.emulator import EmulatorProgram
-from bloqade.emulate.ir.space import Space
+from bloqade.emulate.ir.space import Space, MAX_PRINT_SIZE
 from bloqade.emulate.sparse_operator import (
     IndexMapping,
     SparseMatrixCSC,
@@ -170,7 +170,7 @@ class StateVector:
             op=matrix,
         )
 
-        return complex(value.real, value.imag)
+        return complex(value.real, value.imag) / self.norm()
 
     @plum.dispatch
     def local_trace(  # noqa: F811
@@ -209,6 +209,49 @@ class StateVector:
         """Normalize the state vector."""
         data = self.data
         data /= np.linalg.norm(data)
+
+    def norm(self) -> float:
+        """Return the norm of the state vector."""
+        return np.linalg.norm(self.data)
+
+    def __str__(self) -> str:
+        output = ""
+
+        n_digits = len(str(self.space.size - 1))
+        fmt = "{{index: >{}d}}. {{fock_state:s}}  {{coeff:}}\n".format(n_digits)
+        if self.space.size < MAX_PRINT_SIZE:
+            for index, state_int in enumerate(self.space.configurations):
+                fock_state = self.space.atom_type.integer_to_string(
+                    state_int, self.space.n_atoms
+                )
+                output = output + fmt.format(
+                    index=index, fock_state=fock_state, coeff=self.data[index]
+                )
+
+        else:
+            lower_index = MAX_PRINT_SIZE // 2 + (MAX_PRINT_SIZE % 2)
+            upper_index = self.space.size - MAX_PRINT_SIZE // 2
+
+            for index, state_int in enumerate(self.space.configurations[:lower_index]):
+                fock_state = self.space.atom_type.integer_to_string(
+                    state_int, self.space.n_atoms
+                )
+                output = output + fmt.format(
+                    index=index, fock_state=fock_state, coeff=self.data[index]
+                )
+
+            output += (n_digits * "  ") + "...\n"
+
+            for index, state_int in enumerate(
+                self.space.configurations[upper_index:],
+                start=self.size - MAX_PRINT_SIZE // 2,
+            ):
+                fock_state = self.atom_type.integer_to_string(state_int, self.n_atoms)
+                output = output + fmt.format(
+                    index=index, fock_state=fock_state, coeff=self.data[index]
+                )
+
+        return output
 
 
 @dataclass(frozen=True)
@@ -542,7 +585,7 @@ class AnalogGate:
         atol: float = 1e-7,
         rtol: float = 1e-14,
         nsteps: int = 2_147_483_647,
-        times: Sequence[float] = [],
+        times: Sequence[float] = (),
     ) -> Iterator[StateVector]:
 
         state_vec, solver_name, atol, rtol, nsteps, times = self._check_args(
@@ -572,7 +615,7 @@ class AnalogGate:
         atol: float = 1e-7,
         rtol: float = 1e-14,
         nsteps: int = 2_147_483_647,
-        times: Sequence[float] = [],
+        times: Sequence[float] = (),
     ) -> Iterator[StateVector]:
 
         state_vec, solver_name, atol, rtol, nsteps, times = self._check_args(
@@ -612,7 +655,7 @@ class AnalogGate:
         atol: float = 1e-7,
         rtol: float = 1e-14,
         nsteps: int = 2_147_483_647,
-        times: Union[Sequence[float], RealArray] = [],
+        times: Union[Sequence[float], RealArray] = (),
         interaction_picture: bool = False,
     ):
         if interaction_picture:

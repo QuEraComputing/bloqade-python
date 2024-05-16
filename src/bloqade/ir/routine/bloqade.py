@@ -14,6 +14,7 @@ from beartype.typing import (
     List,
     NamedTuple,
     Iterator,
+    Sequence,
 )
 from pydantic.v1.dataclasses import dataclass
 import dataclasses
@@ -73,6 +74,33 @@ class HamiltonianData:
     @property
     def metadata(self) -> NamedTuple:
         return self.task_data.metadata
+
+    def zero_state(self, dtype: np.dtype) -> StateVector:
+        return self.hamiltonian.space.zero_state(dtype)
+
+    def evolve(
+        self,
+        state: Optional[StateVector] = None,
+        solver_name: str = "dop853",
+        atol: float = 1e-7,
+        rtol: float = 1e-14,
+        nsteps: int = 2147483647,
+        times: Sequence[float] = [],
+        interaction_picture: bool = False,
+    ) -> Iterator[StateVector]:
+        state = self.zero_state(np.complex128) if state is None else state
+
+        U = AnalogGate(self.hamiltonian)
+
+        return U.apply(
+            state,
+            times=times,
+            solver_name=solver_name,
+            atol=atol,
+            rtol=rtol,
+            nsteps=nsteps,
+            interaction_picture=interaction_picture,
+        )
 
 
 @dataclass(frozen=True, config=__pydantic_dataclass_config__)
