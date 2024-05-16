@@ -77,9 +77,19 @@ class BloqadeEmulation:
         """The metadata for the given task data."""
         return self.task_data.metadata
 
-    def zero_state(self, dtype: np.dtype) -> StateVector:
+    def zero_state(self, dtype: np.dtype = np.float64) -> StateVector:
         """Return the zero state for the given Hamiltonian."""
         return self.hamiltonian.space.zero_state(dtype)
+
+    def fock_state(
+        self, fock_state_str: str, dtype: np.dtype = np.float64
+    ) -> StateVector:
+        """Return the fock state for the given Hamiltonian."""
+        index = self.hamiltonian.space.fock_state_to_index(fock_state_str)
+        print(index)
+        data = np.zeros(self.hamiltonian.space.size, dtype=dtype)
+        data[index] = 1
+        return StateVector(data, self.hamiltonian.space)
 
     def evolve(
         self,
