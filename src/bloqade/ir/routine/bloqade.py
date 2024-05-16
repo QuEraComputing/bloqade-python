@@ -64,6 +64,7 @@ class HamiltonianData:
 
     @property
     def hamiltonian(self) -> RydbergHamiltonian:
+        """Return the Hamiltonian object for the given task data."""
         if self._hamiltonian is None:
             _hamiltonian = RydbergHamiltonianCodeGen(self.compile_cache).emit(
                 self.task_data.emulator_ir
@@ -73,9 +74,11 @@ class HamiltonianData:
 
     @property
     def metadata(self) -> NamedTuple:
+        """The metadata for the given task data."""
         return self.task_data.metadata
 
     def zero_state(self, dtype: np.dtype) -> StateVector:
+        """Return the zero state for the given Hamiltonian."""
         return self.hamiltonian.space.zero_state(dtype)
 
     def evolve(
@@ -85,9 +88,32 @@ class HamiltonianData:
         atol: float = 1e-7,
         rtol: float = 1e-14,
         nsteps: int = 2147483647,
-        times: Sequence[float] = [],
+        times: Sequence[float] = (),
         interaction_picture: bool = False,
     ) -> Iterator[StateVector]:
+        """Evolve an initial state vector using the Hamiltonian
+
+        Args:
+            state (Optional[StateVector], optional): The initial state vector to
+            evolve. if not provided, the zero state will be used. Defaults to None.
+            solver_name (str, optional): Which SciPy Solver to use. Defaults to
+            "dop853".
+            atol (float, optional): Absolute tolerance for ODE solver. Defaults
+            to 1e-14.
+            rtol (float, optional): Relative tolerance for adaptive step in
+            ODE solver. Defaults to 1e-7.
+            nsteps (int, optional): Maximum number of steps allowed per integration
+            step. Defaults to 2147483647.
+            times (Sequence[float], optional): The times to evaluate the state vector
+            at. Defaults to (). If not provided the state will be evaluated at
+            the end of the bloqade program.
+            interaction_picture (bool, optional): Use the interaction picture when
+            solving schrodinger equation. Defaults to False.
+
+        Returns:
+            Iterator[StateVector]: An iterator of the state vectors at each time step.
+
+        """
         state = self.zero_state(np.complex128) if state is None else state
 
         U = AnalogGate(self.hamiltonian)
