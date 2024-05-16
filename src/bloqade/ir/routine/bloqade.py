@@ -53,7 +53,7 @@ class TaskData:
 
 
 @dataclasses.dataclass(frozen=True)
-class HamiltonianData:
+class BloqadeEmulation:
     """Data class to hold the Hamiltonian and metadata for a given set of parameters"""
 
     task_data: TaskData
@@ -493,7 +493,7 @@ class BloqadePythonRoutine(RoutineBase):
         use_hyperfine: bool = False,
         waveform_runtime: str = "interpret",
         cache_matrices: bool = False,
-    ) -> List[HamiltonianData]:
+    ) -> List[BloqadeEmulation]:
 
         ir_iter = self._generate_ir(
             args, blockade_radius, waveform_runtime, use_hyperfine
@@ -505,6 +505,6 @@ class BloqadePythonRoutine(RoutineBase):
             compile_cache = None
 
         return [
-            HamiltonianData(task_data, compile_cache=compile_cache)
+            BloqadeEmulation(task_data, compile_cache=compile_cache)
             for task_data in ir_iter
         ]
