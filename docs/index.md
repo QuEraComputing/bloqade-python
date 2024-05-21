@@ -14,11 +14,11 @@
 
 ## What is Bloqade?
 
-Bloqade is an open-source Python SDK created by [QuEra Computing Inc.](https://www.quera.com/) inspired by its Julia-based SDK [Bloqade.jl](https://queracomputing.github.io/Bloqade.jl/dev/). It's designed to make writing and analyzing the results of analog quantum programs on QuEra's Neutral Atom Quantum Computers as easy as possible. It allows you to define custom atom geometries and waveforms that enable fine control over the time evolution of a many-body neutral atom system in both emulation and real hardware. Bloqade interfaces with the [AWS Braket](https://aws.amazon.com/braket/) cloud service where QuEra's Quantum Computer *Aquila* is hosted, enabling you to submit programs as well as retrieve and analyze real hardware results with one tool.
+Bloqade is a Python SDK for [QuEra's](https://www.quera.com/) neutral atom quantum computer *Aquila* (check out our [paper](https://arxiv.org/abs/2306.11727)!). It's designed to make writing and analyzing the results of [analog quantum programs]() on *Aquila* as easy as possible. It features [custom atom geometries](index.md#customizable-atom-geometries) and [flexible waveform definitions](index.md#flexible-pulse-sequence-construction) in both [emulation and real hardware](index.md#hardware-and-emulation-backends). Bloqade interfaces with the [AWS Braket](https://aws.amazon.com/braket/) cloud service where *Aquila*  is hosted, enabling you to submit programs as well as retrieve and analyze real hardware results all-in-one.
 
 ## Installation
 
-You can install the package with `pip` in your Python environment of choice via:
+You can install the package with [`pip`](https://pip.pypa.io/en/stable/) in your Python environment of choice via:
 
 ```sh
 pip install bloqade
@@ -26,23 +26,49 @@ pip install bloqade
 
 ## A Glimpse of Bloqade
 
-Let's try a simple example where we drive a [Rabi Oscillation](https://en.wikipedia.org/wiki/Rabi_cycle) on a single Neutral Atom. Don't worry if you're unfamiliar with the Many-Body Neutral Atom physics, (you can check out our Background for more information!) the goal here is to just give you a taste of what Bloqade can do.
+Let's try a simple example where we drive a [Rabi oscillation][rabi-oscillation-wiki] on a single [neutral atom](). Don't worry if you're unfamiliar with [neutral atom]() physics, (you can check out our Background for more information!) the goal here is to just give you a taste of what Bloqade can do.
 
-We start by defining where our atoms go, otherwise known as the *atom geometry*. In this particular example we only need a single atom so we'll go ahead and just do the following:
+We start by defining where our atoms go, otherwise known as the *atom geometry*. In this particular example we will use a small Honeycomb lattice:
 
 ```python
-from bloqade import start
+from bloqade.atom_arrangement import Honeycomb
 
-geometry = start.add_position((0,0))
+geometry = Honeycomb(2, lattice_spacing = 10.0)
 ```
 
-We now define a waveform (part of our *pulse sequence*) for the time profile of the Rabi Drive targeting the Rydberg-Ground level transition, which causes the Rabi Oscillations. We choose a constant waveform with a value of pi/2 rad/us and a duration of 1.0 us.
-This produces a pi/2 rotation on the Bloch Sphere meaning our final measurements should be split 50/50 between the ground and Rydberg state.
+We can verify what the atom geometry looks like by `.show()`'ing it: 
+
+```python
+geometry.show()
+```
+
+<div align="center">
+<picture>
+  <img src="assets/index/geometry-visualization.png" style="width: 50%" alt="Geometry Visualization">
+</picture>
+</div>
+
+We now define what the [time evolution]() looks like using a *pulse sequence*. The pulse sequence here is the time profile of the Rabi Drive targeting the ground-Rydberg two level transition, which causes the [Rabi oscillations][rabi-oscillation-wiki]. We choose a constant waveform with a value of $\frac{\pi}{2} \text{rad}/\text{us}$ and a duration of $1.0 \,\text{us}$.
+This produces a $\frac{\pi}{2}$ rotation on the [Bloch sphere](https://en.wikipedia.org/wiki/Bloch_sphere) meaning our final measurements should be split 50/50 between the ground and Rydberg state.
 
 ```python
 from math import pi
-rabi_program = geometry.rydberg.rabi.amplitude.uniform.constant(value=pi/2, duration=1.0)
+rabi_program = (
+  geometry
+  .rydberg.rabi.amplitude.uniform
+  .constant(value=pi/2, duration=1.0)
+)
 ```
+<!--explain what uniform is-->
+Here `rabi.amplitude` means exactly what it is, the Rabi amplitude term of the [Hamiltonian](). `uniform` refers to applying the waveform uniformly across all the atom locations. 
+
+We can visualize what our program looks like again with `.show()`:
+
+<div align="center">
+<picture>
+  <img src="assets/index/program-visualization.png" alt="Program Visualization">
+</picture>
+</div>
 
 We can now run the program through Bloqade's built-in emulator to get some results. We designate that we want the program to be run and measurements performed 100 times:
 
@@ -62,14 +88,25 @@ Which gives us:
 [OrderedDict([('0', 55), ('1', 45)])]
 ```
 
-If we want to submit our program to hardware we'll need to adjust the waveform as there is a constraint the Rabi Amplitude waveform must start and end at zero. 
-This is easy to do as we can build off the atom geometry we saved previously but apply a piecewise linear waveform;
+If we want to submit our program to hardware we'll need to adjust the waveform as there is a constraint the Rabi amplitude waveform must start and end at zero. 
+This is easy to do as we can build off the atom geometry we saved previously but apply a piecewise linear waveform:
 
 ```python
-hardware_rabi_program = geometry.rydberg.rabi.amplitude.uniform.piecewise_linear(values = [0, pi/2, pi/2, 0], durations = [0.06, 1.0, 0.06])
-```
+hardware_rabi_program = (
+  geometry
+  .rydberg.rabi.amplitude.uniform
+  .piecewise_linear(values = [0, pi/2, pi/2, 0], durations = [0.06, 1.0, 0.06])
+)
 
-Now instead of using the built-in Bloqade emulator we submit the program to the *Aquila* quantum computer hosted on Braket. You will need to use the [AWS CLI](https://aws.amazon.com/cli/) to obtain credentials from your AWS account 
+hardware_rabi_program.show()
+```
+<div align="center">
+<picture>
+  <img src="assets/index/hardware-program-visualization.png" alt="Hardware Program Visualization">
+</picture>
+</div>
+
+Now instead of using the built-in Bloqade emulator we submit the program to *Aquila*. You will need to use the [AWS CLI](https://aws.amazon.com/cli/) to obtain credentials from your AWS account 
 or set the proper environment variables before hand. 
 
 ```python
@@ -84,9 +121,39 @@ You can do the exact same analysis you do on emulation results with hardware res
 hardware_bitstring_counts = hardware_results.report().counts()
 ```
 
+If you want to try the above at once, we collected the above steps into the snippet below:
+
+```python
+from math import pi
+from bloqade.atom_arrangement import Honeycomb
+
+geometry = Honeycomb(2, lattice_spacing = 10.0)
+rabi_program = (
+  geometry
+  .rydberg.rabi.amplitude.uniform
+  .constant(value=pi/2, duration=1.0)
+)
+emulation_results = rabi_program.bloqade.python().run(100) 
+bitstring_counts = emulation_results.report().counts()
+
+hardware_rabi_program = (
+  geometry
+  .rydberg.rabi.amplitude.uniform
+  .piecewise_linear(values = [0, pi/2, pi/2, 0], durations = [0.06, 1.0, 0.06])
+)
+hardware_results = hardware_rabi_program.braket.aquila.run_async(100)
+hardware_bitstring_counts = hardware_results.report().counts()
+```
+
+<br>
+<br>
+
 ## Features
 
+
 ### Customizable Atom Geometries 
+
+<!--show that you can add_position on predefined geometries-->
 
 You can easily explore a number of common geometric lattices with Bloqade's `atom_arrangement`'s:
 
@@ -99,7 +166,14 @@ geometry_3 = Chain(5)
 geometry_4 = Kagome(3)
 ```
 
-Or if you've got something more custom in mind, you can roll your own geometries out too:
+
+If you're not satisfied with the [Bravais lattices](https://en.wikipedia.org/wiki/Bravais_lattice) we also allow you to modify existing Bravais lattices as follows:
+
+```python
+geometry_5 = Kagome(3).add_position((10,11))
+```
+
+You can also build your geometry completely from scratch:
 
 ```python
 from bloqade import start
@@ -148,8 +222,10 @@ from math import pi
 
 geometry = Square(3, lattice_spacing = 6.5)
 target_rabi_amplitude = geometry.rydberg.rabi.amplitude.uniform
-program = target_rabi_amplitude.piecewise_linear(values = [0, pi/2, pi/2, 0], durations = [0.06, 1.0, 0.06])
-
+program = (
+  target_rabi_amplitude
+  .piecewise_linear(values = [0, pi/2, pi/2, 0], durations = [0.06, 1.0, 0.06])
+)
 emulation_results = program.bloqade.python().run(100)
 ```
 
@@ -169,8 +245,10 @@ import numpy as np
 
 geometry = start.add_position((0,0))
 target_rabi_amplitude = geometry.rydberg.rabi.amplitude.uniform
-rabi_oscillation_program = target_rabi_amplitude.piecewise_linear(durations = [0.06, "run_time", 0.06], values = [0, 15, 15, 0])
-
+rabi_oscillation_program = (
+  target_rabi_amplitude
+  .piecewise_linear(durations = [0.06, "run_time", 0.06], values = [0, 15, 15, 0])
+)
 rabi_oscillation_job = rabi_oscillation_program.batch_assign(run_time=np.linspace(0, 3, 101))
 
 emulation_results = rabi_oscillation_job.bloqade.python().run(100)
@@ -196,7 +274,7 @@ task_number
 [101 rows x 1 columns]
 ```
 
-### Fast Results Analysis
+### Quick Results Analysis
 
 Want to just see some plots of your results? `.show()` will show you the way!
 
@@ -208,9 +286,14 @@ rabi_detuning_values = [-16.33, -16.33, 42.66, 42.66]
 durations = [0.8, 2.4, 0.8]
 
 geometry = Square(3, lattice_spacing=5.9)
-rabi_amplitude_waveform = geometry.rydberg.rabi.amplitude.uniform.piecewise_linear(durations, rabi_amplitude_values)
-program = rabi_amplitude_waveform.detuning.uniform.piecewise_linear(durations, rabi_detuning_values)
-
+rabi_amplitude_waveform = (
+  geometry
+  .rydberg.rabi.amplitude.uniform.piecewise_linear(durations, rabi_amplitude_values)
+)
+program = (
+  rabi_amplitude_waveform
+  .detuning.uniform.piecewise_linear(durations, rabi_detuning_values)
+)
 emulation_results = program.bloqade.python().run(100)
 emulation_results.report().show()
 ```
@@ -218,4 +301,6 @@ emulation_results.report().show()
 
 ## Contributing to Bloqade
 
-Bloqade is released under the [Apache License, Version 2.0](https://github.com/QuEraComputing/bloqade-python/blob/main/LICENSE). If you'd like the chance to shape the future of neutral atom quantum computation, see our [Contributing Guide](contributing/index.md) for more info!
+Bloqade is released under the [Apache License, Version 2.0](https://github.com/QuEraComputing/bloqade-python/blob/main/LICENSE). If you'd like the chance to shape the future of [neutral atom]() quantum computation, see our [Contributing Guide](contributing/index.md) for more info!
+
+[rabi-oscillation-wiki]: https://en.wikipedia.org/wiki/Rabi_cycle
