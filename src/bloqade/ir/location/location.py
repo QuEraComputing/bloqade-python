@@ -373,7 +373,7 @@ class AtomArrangement(ProgramStart):
         # you may also chain apply_defect_count calls
         >>> reg.apply_defect_count(2, custom_rng)
         # you can also use apply_defect_count on custom geometries
-        >>> from bloqade import start
+        >>> from bloqade.ui import start
         >>> start.add_position([(0,0), (1,1)]).apply_defect_count(1, custom_rng)
         ```
 
@@ -450,7 +450,7 @@ class AtomArrangement(ProgramStart):
         # you may also chain apply_defect_density calls
         >>> reg.apply_defect_count(0.1, custom_rng)
         # you can also use apply_defect_density on custom geometries
-        >>> from bloqade import start
+        >>> from bloqade.ui import start
         >>> start.add_position([(0,0), (1,1)])
         .apply_defect_density(0.5, custom_rng)
         ```

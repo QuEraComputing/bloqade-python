@@ -1,5 +1,5 @@
 import pytest
-from bloqade import start
+from bloqade.ui import start
 import numpy as np
 from unittest.mock import patch
 from bloqade.submission.ir.task_results import QuEraTaskStatusCode, QuEraTaskResults
@@ -8,7 +8,7 @@ from bloqade.task.base import Geometry
 from bloqade.task.quera import QuEraTask
 from bloqade.task.braket import BraketTask
 from bloqade.submission.base import ValidationError
-from bloqade import dumps, loads
+from bloqade.ui import dumps, loads
 from bloqade.atom_arrangement import Chain
 from bloqade.ir.control.waveform import NullWaveform
 

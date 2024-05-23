@@ -17,7 +17,7 @@ import bloqade.ir.control.field as field
 import bloqade.ir.control.waveform as waveform
 import bloqade.ir.location as location
 
-from bloqade import piecewise_constant, piecewise_linear, var, start, cast
+from bloqade.ui import piecewise_constant, piecewise_linear, var, start, cast
 
 
 @waveform.to_waveform(1)

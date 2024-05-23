@@ -1,6 +1,6 @@
 # import pytest
 import pytest
-from bloqade import start
+from bloqade.ui import start
 from bloqade.serialize import loads, dumps
 
 # import numpy as np

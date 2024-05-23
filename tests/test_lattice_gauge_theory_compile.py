@@ -1,4 +1,4 @@
-from bloqade import cast, piecewise_linear
+from bloqade.ui import cast, piecewise_linear
 from bloqade.ir.location import Chain
 
 import numpy as np

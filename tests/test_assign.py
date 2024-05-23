@@ -1,4 +1,4 @@
-from bloqade import piecewise_linear, start, var, cast
+from bloqade.ui import piecewise_linear, start, var, cast
 from bloqade.atom_arrangement import Chain
 from bloqade.ir import (
     rydberg,

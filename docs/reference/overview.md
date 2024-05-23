@@ -4,7 +4,7 @@ You may have noticed from the [Getting Started](../home/getting_started.md) and 
 that Bloqade uses this interesting, dot-intensive syntax.
 
 ```python
-from bloqade import start
+from bloqade.ui import start
 
 prog = start.add_position((0,0)).rydberg.rabi.amplitude.uniform.constant(1,1)
 ```

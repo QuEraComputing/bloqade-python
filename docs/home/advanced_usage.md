@@ -46,7 +46,7 @@ When calling the `scale` method, you can pass either a list of real values or a 
 
 
 ```python
-from bloqade import start
+from bloqade.ui import start
 
 program = (
     start.add_position([(0, 0), (0, 5)])

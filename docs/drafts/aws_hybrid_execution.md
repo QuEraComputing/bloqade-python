@@ -46,7 +46,7 @@ Many near-term applications for QC as well as AHS require some notion of paramet
 You can also create stand-alone variables which have a basic symbolic representation that support some arithmetic operations that are useful for more advanced AHS applications. For example, say I have a piecewise linear pulse that has variable segments but I have another constant waveform running for the total time of the other waveform. I can sum the durations of each segment of the piecewise linear waveform to get the total duration and use that to construct the constant waveform.
 
 ```python
-from bloqade import var, start
+from bloqade.ui import var, start
 
 rabi_durations = [0.1, var("run_time"), 0.1]
 total_time = sum(rabi_durations)
@@ -111,7 +111,7 @@ While having a clean, readable syntax is great, there is always going to be the 
 We also provide some visualization of your AHS program in the terminal:
 
 ```ipython
-In [1]: from bloqade import start
+In [1]: from bloqade.ui import start
    ...:
    ...: program = (
    ...:     start.add_position((0, 0))
@@ -235,7 +235,7 @@ One of the most common issues when running AHS (or just QC in general) is saving
 > capitalize ID [name=jzlong]
 
 ```python
-from bloqade import save, load
+from bloqade.ui import save, load
 
 # define program
 ...
@@ -287,7 +287,7 @@ Like most of the Bloqade programs we begin by importing the necessary components
 
 ```python
 import numpy as np
-from bloqade import RB_C6, save, start, var
+from bloqade.ui import RB_C6, save, start, var
 from bloqade.atom_arrangement import Square
 from braket.devices import Devices
 from braket.aws import AwsDevice
@@ -520,7 +520,7 @@ Full source code:
 
 ```python=
 import numpy as np
-from bloqade import RB_C6, save, start, var
+from bloqade.ui import RB_C6, save, start, var
 from bloqade.atom_arrangement import Square
 from braket.devices import Devices
 from braket.aws import AwsDevice

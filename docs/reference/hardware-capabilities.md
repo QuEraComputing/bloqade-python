@@ -9,7 +9,7 @@ During program development, it can be quite handy to know what true hardware cap
 An example of using `get_capabilities()` is presented below:
 
 ```python
-from bloqade import get_capabilities, piecewise_linear
+from bloqade.ui import get_capabilities, piecewise_linear
 
 # get capabilities for Aquila
 aquila_capabilities = get_capabilities()

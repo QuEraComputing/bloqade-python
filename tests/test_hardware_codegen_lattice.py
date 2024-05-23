@@ -1,7 +1,7 @@
 from decimal import Decimal
 
 import pytest
-from bloqade import cast
+from bloqade.ui import cast
 from bloqade.ir.location import ListOfLocations, ParallelRegister
 from bloqade.compiler.codegen.hardware.lattice import GenerateLattice
 from bloqade.submission.capabilities import get_capabilities

@@ -1,5 +1,5 @@
 from bloqade.serialize import dumps, loads
-from bloqade import start
+from bloqade.ui import start
 from bloqade.task.quera import QuEraTask
 from bloqade.task.braket import BraketTask
 from bloqade.submission.quera import QuEraBackend

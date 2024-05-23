@@ -19,7 +19,7 @@ from bloqade.ir import (
     TricubeKernel,
     CosineKernel,
 )
-from bloqade import cast
+from bloqade.ui import cast
 from bloqade.ir.scalar import Interval
 from bloqade.ir.control.waveform import PythonFn, Append, Slice, Sample
 from bloqade.ir.control.waveform import SmoothingKernel, Waveform

@@ -8,7 +8,7 @@ import bloqade.ir.control.waveform as wf
 from unittest.mock import patch
 import numpy as np
 import numba
-from bloqade import start
+from bloqade.ui import start
 
 
 def f(t):

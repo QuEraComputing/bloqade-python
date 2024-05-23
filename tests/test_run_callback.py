@@ -1,4 +1,4 @@
-from bloqade import start
+from bloqade.ui import start
 from bloqade.compiler.codegen.python.emulator_ir import EmulatorProgramCodeGen
 from bloqade.emulate.codegen.hamiltonian import RydbergHamiltonianCodeGen
 from bloqade.emulate.ir.state_vector import AnalogGate

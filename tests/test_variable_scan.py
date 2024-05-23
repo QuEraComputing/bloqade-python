@@ -1,4 +1,4 @@
-from bloqade import start, var
+from bloqade.ui import start, var
 from bloqade.atom_arrangement import Chain
 from bloqade.compiler.analysis.common.scan_variables import (
     ScanVariableResults,

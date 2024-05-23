@@ -38,7 +38,7 @@ class LevelCoupling(Builder):
         ??? example "Examples"
 
             ```python
-            from bloqade import start
+            from bloqade.ui import start
 
             # specify geometry, in this case just one atom
             geometry = start.add_position((0,0))
@@ -50,7 +50,7 @@ class LevelCoupling(Builder):
             Alternatively you may start with building your Rabi field and then reach the ability to build your detuning like so:
 
             ```python
-            from bloqade import start
+            from bloqade.ui import start
             geometry = start.add_position((0,0))
             coupling = geometry.rydberg
             rabi_field = coupling.rabi.amplitude.uniform.constant(duration = 1.0, value = 1.0)

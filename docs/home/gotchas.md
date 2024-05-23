@@ -9,7 +9,7 @@ This page is dedicated to cataloguing those anti-patterns and what you can do in
 You might be tempted to define lattice-based geometries through the following means:
 
 ```python
-from bloqade import start
+from bloqade.ui import start
 
 spacing = 4.0
 geometry = start.add_positions(
@@ -49,7 +49,7 @@ custom_circuit_2.y(5).cz(0,2)...
 In Bloqade Python this is unnecessary because at every step of your program an immutable object is returned which means you can save it and not have to worry about mutating any internal state.
 
 ```python
-from bloqade import start
+from bloqade.ui import start
 base_program = start.add_position((0,0)).rydberg.rabi.amplitude.uniform
 # Just recycle your base program! No `copy` needed!
 new_program_1 = base_program.constant(duration=5.0, value=5.0)

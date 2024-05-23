@@ -1,4 +1,4 @@
-from bloqade import start
+from bloqade.ui import start
 import numpy as np
 from bloqade.emulate.ir.space import Space
 from bloqade.emulate.ir.emulator import Register

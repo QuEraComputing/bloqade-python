@@ -8,7 +8,7 @@ from bloqade.ir.location.bravais import (
     Chain,
 )
 from bloqade.ir.location.bravais import Cell
-from bloqade import cast
+from bloqade.ui import cast
 from math import sqrt
 from bloqade.compiler.codegen.common.json import BloqadeIRSerializer
 

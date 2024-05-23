@@ -12,7 +12,7 @@ from bloqade.compiler.codegen.hardware.piecewise_constant import (
 from bloqade.compiler.codegen.hardware.lattice_site_coefficients import (
     GenerateLatticeSiteCoefficients,
 )
-from bloqade import piecewise_linear, piecewise_constant, start
+from bloqade.ui import piecewise_linear, piecewise_constant, start
 import numpy as np
 from decimal import Decimal
 

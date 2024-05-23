@@ -1,5 +1,5 @@
 import pytest
-from bloqade import (
+from bloqade.ui import (
     waveform,
     rydberg_h,
     piecewise_linear,

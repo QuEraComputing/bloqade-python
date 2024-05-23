@@ -3,7 +3,7 @@ import bloqade.ir as ir
 from bloqade.ir.location import ListOfLocations, AtomArrangement, ParallelRegister
 from bloqade.ir.location import Square
 from bloqade.constants import RB_C6
-from bloqade import cast
+from bloqade.ui import cast
 import pytest
 import numpy as np
 

@@ -308,7 +308,7 @@ class WaveformAttachable(Builder):
         ```
         >>> prog = start.add_position((0,0)).rydberg.detuning.uniform
         # build our waveform independently of the main program
-        >>> from bloqade import piecewise_linear
+        >>> from bloqade.ui import piecewise_linear
         >>> wf = piecewise_linear(durations=[0.3, 2.5, 0.3],
         values=[0.0, 2.0, 2.0, 0.0])
         >>> prog.apply(wf)
@@ -714,7 +714,7 @@ class Sliceable:
         ### Usage Example:
         ```
         # define a program with a waveform of interest
-        >>> from bloqade import start
+        >>> from bloqade.ui import start
         >>> prog = start.add_position((0,0)).rydberg.rabi.amplitude.uniform
         >>> prog_with_wf = prog.piecewise_linear(durations=[0.3, 2.0, 0.3],
         values=[0.0, 2.0, 2.0, 0.0])
@@ -809,7 +809,7 @@ class Recordable:
         ### Usage Example:
         ```
         # define program of interest
-        >>> from bloqade import start
+        >>> from bloqade.ui import start
         >>> prog = start.rydberg.rabi.amplitude.uniform
         >>> prog_with_wf = prog.piecewise_linear(durations=[0.3, 2.0, 0.3],
         values=[0.0, 2.0, 2.0, 0.0])

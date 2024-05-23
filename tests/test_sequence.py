@@ -15,7 +15,7 @@ from bloqade.ir.control import sequence
 from bloqade.ir.control.sequence import NamedSequence
 from bloqade.ir import Interval
 import pytest
-from bloqade import cast
+from bloqade.ui import cast
 from io import StringIO
 from IPython.lib.pretty import PrettyPrinter as PP
 import bloqade.ir.tree_print as trp

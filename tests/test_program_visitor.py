@@ -1,5 +1,5 @@
-# from bloqade import start
-from bloqade import start
+# from bloqade.ui import start
+from bloqade.ui import start
 from bloqade.ir.location import Square
 from bloqade.ir.control.waveform import Linear
 

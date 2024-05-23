@@ -80,7 +80,7 @@ Let Bloqade handle keeping track of all the variations while you focus on becomi
 Did we mention you can throw your program at hardware and emulation and still keep your parameter sweeps?
 
 ```python
-from bloqade import var
+from bloqade.ui import var
 from bloqade.atom_arrangement import Square
 
 import numpy as np
@@ -134,7 +134,7 @@ You can save any intermediate steps in your program construction, enabling you t
 Feel free to let your waveforms grow to your liking too!:
 
 ```python
-from bloqade import start
+from bloqade.ui import start
 
 # Save your intermediate steps any way you like
 initial_geometry = start.add_position((0, 0))
@@ -152,7 +152,7 @@ program_2 = target_rabi_wf.piecewise_linear(
 Want to focus on building one part of your program first before others (or, just want that same Bloqade.jl flavor?) We've got you covered:
 
 ```python
-from bloqade import piecewise_linear, var
+from bloqade.ui import piecewise_linear, var
 from bloqade.ir.location import Square
 import numpy as np
 

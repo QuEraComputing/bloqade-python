@@ -2,7 +2,7 @@ import bloqade.ir.control.waveform as waveform
 import bloqade.ir.control.field as field
 import bloqade.ir.control.pulse as pulse
 import bloqade.ir.control.sequence as sequence
-from bloqade import var
+from bloqade.ui import var
 
 # from bloqade.ir.scalar import var
 

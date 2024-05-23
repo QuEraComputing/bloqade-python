@@ -1,4 +1,4 @@
-from bloqade import start, var, cast, dumps, loads
+from bloqade.ui import start, var, cast, dumps, loads
 from bloqade.atom_arrangement import Chain
 import numpy as np
 from beartype.typing import Dict

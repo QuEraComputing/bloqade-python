@@ -11,12 +11,12 @@ from bloqade.ir import (
 )
 from bloqade.ir.control.field import Drive
 import pytest
-from bloqade import cast
+from bloqade.ui import cast
 from io import StringIO
 from IPython.lib.pretty import PrettyPrinter as PP
 
 import bloqade.ir.tree_print as trp
-from bloqade import tree_depth
+from bloqade.ui import tree_depth
 
 trp.color_enabled = False
 

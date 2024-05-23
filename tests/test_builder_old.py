@@ -1,5 +1,5 @@
 from bloqade.ir import Linear
-from bloqade import start
+from bloqade.ui import start
 
 wf = Linear(start=1.0, stop="x", duration=3.0)
 

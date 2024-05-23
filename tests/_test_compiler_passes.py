@@ -1,4 +1,4 @@
-from bloqade import start
+from bloqade.ui import start
 from bloqade.submission.capabilities import get_capabilities
 from bloqade.ir import analog_circuit
 

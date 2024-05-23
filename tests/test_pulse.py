@@ -1,7 +1,7 @@
 from collections import OrderedDict
 from bloqade.ir import Field, Uniform, Linear, Pulse, NamedPulse, detuning, rabi
 from bloqade.ir import Interval
-from bloqade import cast
+from bloqade.ui import cast
 import pytest
 from io import StringIO
 from IPython.lib.pretty import PrettyPrinter as PP

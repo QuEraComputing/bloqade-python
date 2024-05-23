@@ -42,7 +42,7 @@ class Serializable:
             JSON string
 
         """
-        from bloqade import dumps
+        from bloqade.ui import dumps
 
         return dumps(self, **options)
 
@@ -468,7 +468,7 @@ class RemoteBatch(Serializable, Filter):
     def _submit(
         self, shuffle_submit_order: bool = True, ignore_submission_error=False, **kwargs
     ) -> "RemoteBatch":
-        from bloqade import save
+        from bloqade.ui import save
 
         # online, non-blocking
         if shuffle_submit_order:

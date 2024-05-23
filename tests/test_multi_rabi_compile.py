@@ -1,4 +1,4 @@
-from bloqade import start
+from bloqade.ui import start
 import numpy as np
 
 

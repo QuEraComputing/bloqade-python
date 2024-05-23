@@ -14,7 +14,7 @@ from bloqade.compiler.codegen.python.emulator_ir import (
     JITWaveform,
     LevelCoupling,
 )
-from bloqade import start
+from bloqade.ui import start
 from bloqade.ir.control.sequence import rydberg
 from bloqade.ir.control.pulse import detuning, rabi
 from bloqade.ir.control.field import Location, RunTimeVector, ScaledLocations, Uniform

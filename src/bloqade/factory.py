@@ -161,7 +161,7 @@ def rydberg_h(
         Routine: An object that can be used to dispatch a rydberg program to
             multiple backends.
     """
-    from bloqade import start
+    from bloqade.ui import start
     from bloqade.atom_arrangement import AtomArrangement
 
     if isinstance(atoms_positions, AtomArrangement):

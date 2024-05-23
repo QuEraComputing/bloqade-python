@@ -1,4 +1,4 @@
-from bloqade import start, cast, var
+from bloqade.ui import start, cast, var
 import numpy as np
 
 

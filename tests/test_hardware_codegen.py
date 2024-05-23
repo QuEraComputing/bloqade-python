@@ -1,4 +1,4 @@
-# from bloqade import start
+# from bloqade.ui import start
 from bloqade.ir import location, cast, Interpolation
 from bloqade.ir import Constant, Linear, Poly, PythonFn, Sample
 import pytest

@@ -1,4 +1,4 @@
-from bloqade import start, cast
+from bloqade.ui import start, cast
 from bloqade.ir.location import Square, Rectangular, Chain
 import random
 import numpy as np

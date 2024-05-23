@@ -2,7 +2,7 @@
 A basic AHS program contains two main parts: the __atom geometry__ and  __pulse sequence__. There are many ways to specify the atom Geometry, from a simple list of positions to Bravais lattices. The pulse sequence is defined as time-dependent functions for the detuning, Rabi amplitude, and Rabi phase for the driving between the energy levels of the atoms. Bloqade supports both two and three-level driving schemes. However, QuEra's flagship AHS device _Aquila_ only supports the two-level drive. Let's start by defining a simple two-level Rabi drive with a detuning:
 
 ```python
-from bloqade import start
+from bloqade.ui import start
 
 program = (
     start.add_position((0, 0))
@@ -20,7 +20,7 @@ result = program.bloqade.python().run(100)
 Where the integer is the total number of shots to simulate. You cannot execute this code on the real hardware because the Rabi amplitude must start and end at 0. To do this, we need to add a ramp to the Rabi amplitude:
 
 ```python
-from bloqade import start
+from bloqade.ui import start
 
 program = (
     start.add_position((0, 0))

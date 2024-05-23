@@ -15,7 +15,7 @@ import bloqade.ir.routine.braket as braket
 
 from bloqade.ir.control.waveform import to_waveform
 from bloqade.ir import rydberg, detuning, hyperfine, rabi
-from bloqade import start, cast, var
+from bloqade.ui import start, cast, var
 
 # from bloqade.ir.location import Square, Chain
 import numpy as np

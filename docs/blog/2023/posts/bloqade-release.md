@@ -45,7 +45,7 @@ You used to have to manually crank out variations of your program with different
 Bloqade eliminates this with its own support for variables that can later be assigned single values or a whole sequence of values for trivial parameter sweeping. This isn't some feature that's constrained to a certain backend, you can take your program with all its variables and submit it to your choice of emulator or our hardware directly.
 
 ```python
-from bloqade import var
+from bloqade.ui import var
 from bloqade.atom_arrangement import Square
 
 import numpy as np

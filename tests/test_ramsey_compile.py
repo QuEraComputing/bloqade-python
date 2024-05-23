@@ -1,4 +1,4 @@
-from bloqade import start, cast
+from bloqade.ui import start, cast
 from decimal import Decimal
 import numpy as np
 

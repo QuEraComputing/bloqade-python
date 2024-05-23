@@ -10,7 +10,7 @@ program = (
 The analog pulse sequence is defined through the `.` syntax starting with which level coupling to drive `rydberg` or `hyperfine`. Next, specify the `detuning`, `rabi.amplitude`, and `rabi.phase`. After this, you specify the spatial modulation of that waveform, e.g. the relative scale factor that each atom feels from a given waveform. Finally, you select the temporal modulation of the waveform. You can build the pulses in various ways. Because we use the `.` to split up the different parts of the pulse program, Bloqade will only give you valid options for the next part of the pulse program. For example, to define a simple two-level Rabi drive with a detuning:
 
 ```python
-from bloqade import start
+from bloqade.ui import start
 
 program = (
     start.add_position((0, 0))
@@ -22,7 +22,7 @@ program = (
 There are some helpful shortcuts for generating piecewise linear and piecewise constant waveforms. For example, to define a piecewise linear Rabi amplitude that starts at 0 ramps up to 15 rad/us, stays at 15 rad/us for 1.1 us, and then ramps back down to 0 we just need two lists. The first list is the durations of each linear segment in us, and the second is the Rabi amplitude in rad/us. The i-th element in `durations` is the duration between `values[i]` and `values[i+1]`.
 
 ```python
-from bloqade import start
+from bloqade.ui import start
 
 program = (
     start.add_position((0, 0))
@@ -46,7 +46,7 @@ It is easy to add hyperfine drives to your program. Select your program's `.hype
 This is all very nice, but tracking individual tasks when doing parameter scans is annoying. Bloqade takes care of this by allowing you to parameterize the pulse sequences. For example, we want to sweep over the Rabi drive's drive time. In that case, you can insert strings into the fields to turn those into variables or make an explicit variable object:
 
 ```python
-from bloqade import start, var
+from bloqade.ui import start, var
 
 run_time = var("run_time")
 
@@ -111,7 +111,7 @@ During the program execution on the hardware atoms may sometimes not end up in e
 Another helpful method is `report.list_param(param_string)`, which returns a list of values for the particular parameter given as a string in the function's input. This data is useful for plotting parameter scans. For example, if we want to plot the Rydberg density as a function of the Rabi drive time we can do the following:
 
 ```python
-from bloqade import start
+from bloqade.ui import start
 import matplotlib.pyplot as plt
 import numpy as np
 
