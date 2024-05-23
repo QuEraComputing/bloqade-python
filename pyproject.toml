@@ -77,7 +77,7 @@ exclude = [
     "node_modules",
     "venv",
 ]
-dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+lint.dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 # Assume Python 3.9.
 target-version = "py39"
 
