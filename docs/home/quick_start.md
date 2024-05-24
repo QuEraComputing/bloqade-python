@@ -9,35 +9,43 @@ All the sections below are self-contained, you can click on the links in the Tab
 
 As you develop your Bloqade program, you are expected to rely on pop-up "hints" provided in your development environment to help you determine what the next part of your program should be.
 
+### VS Code
+
 In [VS Code](https://code.visualstudio.com/) this is automatic, just type the `.` and see what options pop up:
 
 <div align="center">
 <picture>
-  <img src="/assets/quick_start/vscode-hints.gif" style="width: 80%" alt="VSCode Hints">
+  <img src="/assets/quick_start/vscode-hints.gif" alt="VSCode Hints">
 </picture>
 </div>
+
+### JetBrains PyCharm
 
 The same goes for [JetBrains PyCharm](https://www.jetbrains.com/pycharm/):
 
 <div align="center">
 <picture>
-  <img src="/assets/quick_start/pycharm-hints.gif" style="width: 80%" alt="PyCharm Hints">
+  <img src="/assets/quick_start/pycharm-hints.gif" alt="PyCharm Hints">
 </picture>
 </div>
+
+### Jupyter Notebook 
 
 In a [Jupyter Notebook](https://jupyter.org/) you'll need to type `.` and then hit tab for the hints to appear:
 
 <div align="center">
 <picture>
-  <img src="/assets/quick_start/jupyter-hints.gif" style="width: 60%" alt="Jupyter Notebook Hints">
+  <img src="/assets/quick_start/jupyter-hints.gif" alt="Jupyter Notebook Hints">
 </picture>
 </div>
+
+### IPython
 
 The same goes for [IPython](https://ipython.readthedocs.io/en/stable/):
 
 <div align="center">
 <picture>
-  <img src="/assets/quick_start/ipython-hints.gif" style="width: 80%" alt="IPython Hints">
+  <img src="/assets/quick_start/ipython-hints.gif" alt="IPython Hints">
 </picture>
 </div>
 
@@ -183,9 +191,9 @@ run_times = np.linspace(1.0, 2.0, 10)
 vars_assigned_program = sliced_program.batch_assign(run_time=run_times)
 ```
 
-This program will run fine in [emulation](#emulation) but due to hardware constraints certain waveforms (such as those targeting the Rabi Amplitude), the waveform needs to start and end at $0 \,\text{rad/us}. Thus, there needs to be a way to slice our waveform but also add an end component to that waveform. `.record` in Bloqade lets you literally "record" the value at the end of a `.slice` and then use it to construct further parts of the waveform.
+This program will run fine in [emulation](#emulation) but due to hardware constraints certain waveforms (such as those targeting the Rabi Amplitude), the waveform needs to start and end at $0 \,\text{rad}/\text{us}$. Thus, there needs to be a way to slice our waveform but also add an end component to that waveform. `.record` in Bloqade lets you literally "record" the value at the end of a `.slice` and then use it to construct further parts of the waveform.
 
-In the program below the waveform is still sliced but with the help of `.record` a linear segment that pulls the waveform down to $0.0 \,\text{rad/us}$ from whatever its current value at the slice is in $0.7 \,\text{us}$ is added. 
+In the program below the waveform is still sliced but with the help of `.record` a linear segment that pulls the waveform down to $0.0 \,\text{rad}/\text{us}$ from whatever its current value at the slice is in $0.7 \,\text{us}$ is added. 
 
 ```python
 from bloqade import start
@@ -242,9 +250,8 @@ program_2  = geometry_2.apply(pulse_sequence)
 
 ## Emulation
 
-* Refer back to background that it is performing time evolution of hamiltonian simulation
-
 When you've completed the definition of your program you can use Bloqade's own emulator to get results.
+The emulation performs the [time evolution]() of the [analog Rydberg Hamiltonian]().
 Here we say we want to the program to be run and measurements obtained 1000 times.
 
 ```python
@@ -266,8 +273,6 @@ results = your_program.bloqade.python().run(1000)
 
 ## Submitting to Hardware
 
-* cross reference all code with proper docstring
-
 To submit your program to hardware ensure you have your AWS Braket credentials loaded. You will need to use the [AWS CLI]() to do this.
 
 Then it's just a matter of selecting the *Aquila* on Braket backend. Before going any further Bloqade provides two options for running your program on actul hardware:
@@ -286,6 +291,7 @@ We can see the status of our program via:
 ```python
 async_results.fetch()
 ```
+Which gives us the Task ID, a unique identifier for the task as well as the status of the task. In the example below the task is `Enqueued` meaning it has been successfully created and is awaiting execution on the cloud. When the task is actually running on hardware, the status will change to `Running`.
 ```
                                              task ID    status  shots
 0  arn:aws:braket:us-east-1:XXXXXXXXXXXX:quantum-...  Enqueued    100
@@ -331,7 +337,9 @@ report.counts()
 report.rydberg_densities()
 ```
 ```
-report.rydberg_densities()
+                 0      1
+task_number              
+0            0.053  0.054
 ```
 
 And can also provide useful visual information such as the state of your atoms and the bitstring distribution via:
@@ -459,7 +467,7 @@ program = detuning_waveform.assign(a=0.5, b=1.2, c=0.5)
 
 ## Saving and Loading Results
 
-You can save and load your results from emulation or hardware using the `save` and `load` functions. Your results as well as the original program you used to generate the program will be saved in JSON format.
+You can save your results in JSON format using Bloqade's `save` function:
 
 ```python
 from bloqade import start, save
@@ -471,6 +479,9 @@ hardware_results = your_program.braket.aquila.run_async(100)
 save(emulation_results, "emulation_results.json") 
 save(hardware_results, "hardware_results.json") 
 ```
+
+And later reload them into Python using the `load` function:
+
 ```python
 from bloqade import load
 emulation_results = load("emulation_results.json")
