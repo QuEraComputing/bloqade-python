@@ -11,7 +11,7 @@ edit_uri: 'edit/main/docs/'
 nav:
   - Home:
     - index.md
-    - Bloqade 101: home/bloqade_101.md
+    - Quickstart: home/quick_start.md
     - Getting Started: home/getting_started.md
     - Advanced Usage: home/advanced_usage.md
     - Gotchas: home/gotchas.md
@@ -85,6 +85,7 @@ extra_css:
   - stylesheets/extra.css
 
 plugins:
+  - autorefs
   - search:
       separator: '[\s\-,:!=\[\: )"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
   - gen-files:
