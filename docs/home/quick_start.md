@@ -13,7 +13,7 @@ In [VS Code](https://code.visualstudio.com/) this is automatic, just type the `.
 
 <div align="center">
 <picture>
-  <img src="assets/quick_start/vscode-hints.gif" style="width: 80%" alt="VSCode Hints">
+  <img src="/assets/quick_start/vscode-hints.gif" style="width: 80%" alt="VSCode Hints">
 </picture>
 </div>
 
@@ -21,7 +21,7 @@ The same goes for [JetBrains PyCharm](https://www.jetbrains.com/pycharm/):
 
 <div align="center">
 <picture>
-  <img src="assets/quick_start/pycharm-hints.gif" style="width: 80%" alt="PyCharm Hints">
+  <img src="/assets/quick_start/pycharm-hints.gif" style="width: 80%" alt="PyCharm Hints">
 </picture>
 </div>
 
@@ -29,7 +29,7 @@ In a [Jupyter Notebook](https://jupyter.org/) you'll need to type `.` and then h
 
 <div align="center">
 <picture>
-  <img src="assets/quick_start/jupyter-hints.gif" style="width: 60%" alt="Jupyter Notebook Hints">
+  <img src="/assets/quick_start/jupyter-hints.gif" style="width: 60%" alt="Jupyter Notebook Hints">
 </picture>
 </div>
 
@@ -37,7 +37,7 @@ The same goes for [IPython](https://ipython.readthedocs.io/en/stable/):
 
 <div align="center">
 <picture>
-  <img src="assets/quick_start/ipython-hints.gif" style="width: 80%" alt="IPython Hints">
+  <img src="/assets/quick_start/ipython-hints.gif" style="width: 80%" alt="IPython Hints">
 </picture>
 </div>
 
