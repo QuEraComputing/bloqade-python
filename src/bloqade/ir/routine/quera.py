@@ -10,7 +10,7 @@ from bloqade.submission.load_config import load_config
 from bloqade.task.batch import RemoteBatch
 from bloqade.task.quera import QuEraTask
 
-from beartype.typing import Tuple, Union, Optional, NamedTuple, List
+from beartype.typing import Tuple, Union, Optional, NamedTuple, List, Dict, Any
 from beartype import beartype
 from requests import Response, request
 
@@ -92,6 +92,7 @@ class CustomSubmissionRoutine(RoutineBase):
         json_body_template: str,
         method: str = "POST",
         args: Tuple[LiteralType] = (),
+        request_options: Dict[str, Any] = {},
     ) -> List[Tuple[NamedTuple, Response]]:
         """Compile to QuEraTaskSpecification and submit to a custom service.
 
@@ -103,6 +104,8 @@ class CustomSubmissionRoutine(RoutineBase):
             method (str): http method to be used. Defaults to "POST".
             args (Tuple[LiteralType]): additional arguments to be passed into the
             compiler coming from `args` option of the build. Defaults to ().
+            **request_options: additional options to be passed into the request method,
+            Note the `json` option will be overwritten by the `json_body_template`.
 
         Returns:
             List[Tuple[NamedTuple, Response]]: List of parameters for each batch in
@@ -129,9 +132,10 @@ class CustomSubmissionRoutine(RoutineBase):
 
         out = []
         for metadata, task_ir in self._compile(shots, args):
-            response = request(
-                method, url, json=json_body_template.format(task_ir=task_ir.json())
+            request_options.update(
+                json=json_body_template.format(task_ir=task_ir.json())
             )
+            response = request(method, url, **request_options)
             out.append((metadata, response))
 
         return out
