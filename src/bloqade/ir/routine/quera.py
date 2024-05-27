@@ -1,4 +1,4 @@
-from collections import OrderedDict
+from collections import OrderedDict, namedtuple
 from pydantic.v1.dataclasses import dataclass
 import json
 
@@ -10,8 +10,9 @@ from bloqade.submission.load_config import load_config
 from bloqade.task.batch import RemoteBatch
 from bloqade.task.quera import QuEraTask
 
-from beartype.typing import Tuple, Union, Optional
+from beartype.typing import Tuple, Union, Optional, NamedTuple, List
 from beartype import beartype
+from requests import Response, request
 
 
 @dataclass(frozen=True, config=__pydantic_dataclass_config__)
@@ -40,6 +41,100 @@ class QuEraServiceOptions(RoutineBase):
     ) -> "QuEraHardwareRoutine":
         backend = MockBackend(state_file=state_file, submission_error=submission_error)
         return QuEraHardwareRoutine(self.source, self.circuit, self.params, backend)
+
+    @property
+    def custom(self) -> "CustomSubmissionRoutine":
+        return CustomSubmissionRoutine(self.source, self.circuit, self.params)
+
+
+@dataclass(frozen=True, config=__pydantic_dataclass_config__)
+class CustomSubmissionRoutine(RoutineBase):
+    def _compile(
+        self,
+        shots: int,
+        args: Tuple[LiteralType, ...] = (),
+    ):
+        from bloqade.compiler.passes.hardware import (
+            analyze_channels,
+            canonicalize_circuit,
+            assign_circuit,
+            validate_waveforms,
+            generate_ahs_code,
+            generate_quera_ir,
+        )
+        from bloqade.factory import get_capabilities
+
+        circuit, params = self.circuit, self.params
+        capabilities = get_capabilities()
+
+        for batch_params in params.batch_assignments(*args):
+            assignments = {**batch_params, **params.static_params}
+            final_circuit, metadata = assign_circuit(circuit, assignments)
+
+            level_couplings = analyze_channels(final_circuit)
+            final_circuit = canonicalize_circuit(final_circuit, level_couplings)
+
+            validate_waveforms(level_couplings, final_circuit)
+            ahs_components = generate_ahs_code(
+                capabilities, level_couplings, final_circuit
+            )
+
+            task_ir = generate_quera_ir(ahs_components, shots).discretize(capabilities)
+
+            MetaData = namedtuple("MetaData", metadata.keys())
+
+            yield MetaData(**metadata), task_ir
+
+    def submit(
+        self,
+        shots: int,
+        url: str,
+        json_body_template: str,
+        method: str = "POST",
+        args: Tuple[LiteralType] = (),
+    ) -> List[Tuple[NamedTuple, Response]]:
+        """Compile to QuEraTaskSpecification and submit to a custom service.
+
+        Args:
+            shots (int): number of shots
+            url (str): url of the custom service
+            json_body_template (str): json body template, must contain '{task_ir}'
+            to be replaced by QuEraTaskSpecification
+            method (str): http method to be used. Defaults to "POST".
+            args (Tuple[LiteralType]): additional arguments to be passed into the
+            compiler coming from `args` option of the build. Defaults to ().
+
+        Returns:
+            List[Tuple[NamedTuple, Response]]: List of parameters for each batch in
+            the task and the response from the post request.
+
+        Examples:
+
+        Here is a simple example of how to use this method.
+
+        ```python
+        >>> body_template = "{"token": "my_token", "task": {task_ir}}"
+        >>> responses = (
+            program.quera.custom.submit(
+                100,
+                "http://my_custom_service.com",
+                body_template
+            )
+        )
+        ```
+        """
+
+        if r"{task_ir}" not in json_body_template:
+            raise ValueError(r"body_template must contain '{task_ir}'")
+
+        out = []
+        for metadata, task_ir in self._compile(shots, args):
+            response = request(
+                method, url, json=json_body_template.format(task_ir=task_ir.json())
+            )
+            out.append((metadata, response))
+
+        return out
 
 
 @dataclass(frozen=True, config=__pydantic_dataclass_config__)
