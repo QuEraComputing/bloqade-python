@@ -23,7 +23,7 @@ In the analog mode supported by Bloqade and Aquila you control your computation 
 
 ### Digital Mode
 
-In the Digital Mode individual or multiple groups of qubits are controlled by applying *gates* (individual unitary operations). For [neutral atoms](#neutral-atom-qubits), this digital mode can be accomplished with the introduction of [hyperfine coupling](#hyperfine-coupling), enabling a quantum state to be stored for long periods of time while also allowing for multi-qubit gates.
+In the Digital Mode individual or multiple groups of qubits are controlled by applying *gates* (individual unitary operations). For [neutral atoms](#neutral-atom-qubits), this digital mode can be accomplished with the introduction of hyperfine coupling, enabling a quantum state to be stored for long periods of time while also allowing for multi-qubit gates.
 
 ## Rydberg Many-Body Hamiltonian
 
