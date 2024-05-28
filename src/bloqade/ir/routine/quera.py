@@ -112,8 +112,7 @@ class CustomSubmissionRoutine(RoutineBase):
             the task and the response from the post request.
 
         Examples:
-
-        Here is a simple example of how to use this method.
+            Here is a simple example of how to use this method.
 
         ```python
         >>> body_template = "{"token": "my_token", "task": {task_ir}}"
