@@ -1,12 +1,13 @@
 from dataclasses import dataclass
 from numpy.typing import NDArray
-from beartype.typing import TYPE_CHECKING
+from beartype.typing import TYPE_CHECKING, Any
 import numpy as np
 from enum import Enum
 
 if TYPE_CHECKING:
     from .emulator import Register
     from .atom_type import AtomType
+    from .state_vector import StateVector
 
 MAX_PRINT_SIZE = 30
 
@@ -27,6 +28,12 @@ class Space:
         from .emulator import Register
 
         assert isinstance(self.program_register, Register)
+
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, Space):
+            return False
+
+        return self.program_register == other.program_register
 
     @classmethod
     def create(cls, register: "Register"):
@@ -193,10 +200,12 @@ class Space:
                 self.configurations[index], self.n_atoms
             )
 
-    def zero_state(self, dtype=np.float64) -> NDArray:
+    def zero_state(self, dtype=np.float64) -> "StateVector":
+        from .state_vector import StateVector
+
         state = np.zeros(self.size, dtype=dtype)
         state[0] = 1.0
-        return state
+        return StateVector(state, self)
 
     def sample_state_vector(
         self, state_vector: NDArray, n_samples: int, project_hyperfine: bool = True
