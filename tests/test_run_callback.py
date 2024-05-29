@@ -30,8 +30,8 @@ def test_run_callback():
         callback, multiprocessing=True, num_workers=1
     )
 
-    np.testing.assert_equal(expected_result, result_single)
-    np.testing.assert_equal(expected_result, result_multi)
+    np.testing.assert_equal(expected_result.data, result_single.data)
+    np.testing.assert_equal(expected_result.data, result_multi.data)
 
 
 def callback_exception(*args):
