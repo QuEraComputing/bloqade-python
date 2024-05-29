@@ -1,5 +1,6 @@
 import pytest
 from bloqade import start
+from bloqade.atom_arrangement import Chain
 import numpy as np
 from itertools import product
 
@@ -36,41 +37,35 @@ def test_fock_state():
 
 
 @pytest.mark.parametrize(
-    ["phi", "interaction"], product(np.linspace(0, 2 * np.pi, 11), [True, False])
+    ["N", "phi", "interaction"],
+    product([1, 2, 3, 4, 5], np.linspace(0, 2 * np.pi, 4), [True, False]),
 )
-def test_solution(phi: float, interaction: bool):
+def test_solution(N: int, phi: float, interaction: bool):
     rabi_freq = 2 * np.pi
-    if phi == 0:
+    program = (
+        Chain(N, lattice_spacing=6)
+        .rydberg.detuning.uniform.constant(1.0, 4.0)
+        .amplitude.uniform.constant(rabi_freq, 4)
+    )
 
-        program = (
-            start.add_position((0, 0))
-            .rydberg.rabi.amplitude.uniform.constant(rabi_freq, 4)
-            .detuning.uniform.constant(1.0, 4.0)
-            .bloqade.python()
-        )
-    else:
-        program = (
-            start.add_position((0, 0))
-            .rydberg.rabi.amplitude.uniform.constant(rabi_freq, 4)
-            .rabi.phase.uniform.constant(phi, 4)
-            .detuning.uniform.constant(1.0, 4.0)
-            .bloqade.python()
-        )
-    [emu] = program.hamiltonian()
+    if phi != 0:
+        program = program.phase.uniform.constant(phi, 4)
+
+    [emu] = program.bloqade.python().hamiltonian()
 
     times = np.linspace(0, 4, 101)
     state_iter = emu.evolve(times=times, interaction_picture=interaction)
 
-    h = emu.hamiltonian.tocsr(0).toarray()
+    h = emu.hamiltonian.tocsr(0)
 
-    e, v = np.linalg.eigh(h)
-    psi0 = np.zeros(2)
-    psi0[0] = 1
+    e, v = np.linalg.eigh(h.toarray())
+
+    psi0 = emu.zero_state().data
 
     for state, time in zip(state_iter, times):
         assert str(state)
         expected_data = v @ (np.diag(np.exp(-1j * e * time)) @ (v.T @ psi0))
-        data = state.data.copy()
+        data = state.data
 
         expected_average = np.vdot(expected_data, h.dot(expected_data))
         expected_variance = (
@@ -81,8 +76,14 @@ def test_solution(phi: float, interaction: bool):
         variance = emu.hamiltonian.variance(state, time=time)
         average_2, variance_2 = emu.hamiltonian.average_and_variance(state, time=time)
 
-        assert np.allclose(data, expected_data)
-        assert np.allclose(average, expected_average)
-        assert np.allclose(average_2, expected_average)
-        assert np.allclose(variance, expected_variance)
-        assert np.allclose(variance_2, expected_variance)
+        assert np.allclose(data, expected_data), "failed at time {}".format(time)
+        assert np.allclose(average, expected_average), "failed at time {}".format(time)
+        assert np.allclose(average_2, expected_average), "failed at time {}".format(
+            time
+        )
+        assert np.allclose(variance, expected_variance), "failed at time {}".format(
+            time
+        )
+        assert np.allclose(variance_2, expected_variance), "failed at time {}".format(
+            time
+        )
