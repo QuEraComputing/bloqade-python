@@ -9,8 +9,12 @@ if TYPE_CHECKING:
     from bloqade.submission.ir.capabilities import QuEraCapabilities
 
 
-def get_capabilities() -> "QuEraCapabilities":
+def get_capabilities(use_experimental: bool = False) -> "QuEraCapabilities":
     """Get the device capabilities for Aquila
+
+    Args:
+        use_experimental (bool): Get experimental capabilities instead of
+            standard ones. By default value is False.
 
     Returns:
         QuEraCapabilities: capabilities object for Aquila device.
@@ -28,7 +32,9 @@ def get_capabilities() -> "QuEraCapabilities":
     from bloqade.submission.capabilities import get_capabilities
 
     # manually convert to units
-    return get_capabilities().scale_units(Decimal("1e6"), Decimal("1e-6"))
+    return get_capabilities(use_experimental=use_experimental).scale_units(
+        Decimal("1e6"), Decimal("1e-6")
+    )
 
 
 @beartype
