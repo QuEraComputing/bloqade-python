@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from bloqade.submission.ir.capabilities import QuEraCapabilities
 
 
-def get_capabilities(use_experimental=False) -> "QuEraCapabilities":
+def get_capabilities(use_experimental: bool = False) -> "QuEraCapabilities":
     """Get the device capabilities for Aquila
 
     Args:
