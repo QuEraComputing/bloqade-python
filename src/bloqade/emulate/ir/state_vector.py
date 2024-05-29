@@ -467,31 +467,6 @@ class RydbergHamiltonian:
 
         return hamiltonian
 
-    @plum.dispatch
-    def expectation_value(  # noqa: F811
-        self, register: np.ndarray, operator: np.ndarray, site_indices: int
-    ) -> complex:
-        """Calculate expectation values of one and two body operators.
-
-        Args:
-            register (np.ndarray): Register to evaluate expectation value with
-            operator (np.ndarray): Operator to take expectation value of.
-            site_indices (int, Tuple[int, int]): site/sites to evaluate `operator` at.
-                It can either a single integer or a tuple of two integers for one and
-                two body operator respectively.
-
-        Raises:
-            ValueError: Error is raised when the dimension of `operator` is not
-            consistent with `site` argument. The size of the operator must fit the
-            size of the local hilbert space of `site` depending on the number of sites
-            and the number of levels inside each atom, e.g. for two site expectation v
-            alue with a three level atom the operator must be a 9 by 9 array.
-
-        Returns:
-            complex: The expectation value.
-        """
-        self._check_register(register)
-
 
 @dataclass(frozen=True)
 class AnalogGate:
