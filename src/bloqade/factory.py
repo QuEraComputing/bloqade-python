@@ -14,8 +14,8 @@ def get_capabilities(use_experimental=False) -> "QuEraCapabilities":
 
     Args:
         use_experimental (bool): Get experimental capabilities instead of
-            standard ones. By default value is False. 
-    
+            standard ones. By default value is False.
+
     Returns:
         QuEraCapabilities: capabilities object for Aquila device.
 
@@ -32,7 +32,9 @@ def get_capabilities(use_experimental=False) -> "QuEraCapabilities":
     from bloqade.submission.capabilities import get_capabilities
 
     # manually convert to units
-    return get_capabilities(use_experimental=use_experimental).scale_units(Decimal("1e6"), Decimal("1e-6"))
+    return get_capabilities(use_experimental=use_experimental).scale_units(
+        Decimal("1e6"), Decimal("1e-6")
+    )
 
 
 @beartype
