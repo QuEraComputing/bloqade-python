@@ -12,6 +12,7 @@ if TYPE_CHECKING:
     from bloqade.ir.routine.base import Routine
     from bloqade.builder.base import Builder
 
+
 class ParseRegister:
     """
     A class providing functionality to parse the arrangement of atoms in the program.
@@ -36,6 +37,7 @@ class ParseRegister:
         from bloqade.builder.parse.builder import Parser
 
         return Parser().parse_register(self)
+
 
 class ParseSequence:
     """
@@ -62,6 +64,7 @@ class ParseSequence:
 
         return Parser().parse_sequence(self)
 
+
 class ParseCircuit:
     """
     A class providing functionality to parse the analog circuit from the program.
@@ -86,6 +89,7 @@ class ParseCircuit:
         from bloqade.builder.parse.builder import Parser
 
         return Parser().parse_circuit(self)
+
 
 class ParseRoutine:
     """
@@ -112,16 +116,11 @@ class ParseRoutine:
 
         return Parser().parse(self)
 
+
 class Parse(ParseRegister, ParseSequence, ParseCircuit, ParseRoutine):
     """
     A composite class inheriting from ParseRegister, ParseSequence, ParseCircuit, and ParseRoutine.
     Provides a unified interface for parsing different components of the program.
-
-    Example:
-        >>> class MyBuilder(Parse):
-        ...     pass
-        >>> builder = MyBuilder()
-        >>> n_atoms = builder.n_atoms
     """
 
     @property
@@ -137,6 +136,12 @@ class Parse(ParseRegister, ParseSequence, ParseCircuit, ParseRoutine):
 
         Note:
             If the register is of type ParallelRegister, the number of atoms is extracted from its internal register.
+
+        Example:
+            >>> class MyBuilder(Parse):
+            ...     pass
+            >>> builder = MyBuilder()
+            >>> n_atoms = builder.n_atoms
         """
         register = self.parse_register()
 
@@ -145,20 +150,15 @@ class Parse(ParseRegister, ParseSequence, ParseCircuit, ParseRoutine):
         else:
             return register.n_atoms
 
+
 class Show:
     """
-    A class providing functionality to display the builder with given arguments and batch ID.
-
-    Example:
-        >>> class MyBuilder(Show):
-        ...     pass
-        >>> builder = MyBuilder()
-        >>> builder.show()
+    A mixin class providing functionality to display the builder with given arguments and batch ID.
     """
 
     def show(self, *args, batch_id: int = 0):
         """
-        Display the builder with the given arguments and batch ID.
+        Display the current program being defined with the given arguments and batch ID.
 
         Args:
             *args: Additional arguments for display.
@@ -166,5 +166,13 @@ class Show:
 
         Note:
             This method uses the `display_builder` function to render the builder's state.
+
+        Example:
+            >>> class MyBuilder(Show):
+            ...     pass
+            >>> builder = MyBuilder()
+            >>> builder.show()
+            >>> builder.show(batch_id=1)
+            >>> builder.show('arg1', 'arg2', batch_id=2)
         """
         display_builder(self, batch_id, *args)

@@ -1,12 +1,9 @@
 """
-Module for parsing quantum computing program components into intermediate representation (IR) using the bloqade library.
+Module for parsing builder definitions into intermediate representation (IR) using the bloqade library.
 
 This module provides a Parser class for parsing various components of a quantum computing program, including atom arrangements,
 pulse sequences, analog circuits, and routines. It also defines utility functions for reading addresses, waveforms, drives,
 sequences, registers, and pragmas from a builder stream.
-
-Classes:
-    Parser: A class for parsing quantum computing program components into intermediate representation (IR).
 """
 
 from bloqade.builder.base import Builder

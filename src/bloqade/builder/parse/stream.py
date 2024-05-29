@@ -4,10 +4,6 @@ Module for managing a stream of builder nodes.
 This module provides classes to represent builder nodes and builder streams. A builder node is a single
 element in the stream, representing a step in a construction process. A builder stream is a sequence
 of builder nodes, allowing traversal and manipulation of the construction steps.
-
-Classes:
-    BuilderNode: Represents a single node in the builder stream.
-    BuilderStream: Represents a stream of builder nodes.
 """
 
 from dataclasses import dataclass
