@@ -1,4 +1,5 @@
 from collections import OrderedDict, namedtuple
+import time
 from pydantic.v1.dataclasses import dataclass
 import json
 
@@ -42,7 +43,6 @@ class QuEraServiceOptions(RoutineBase):
         backend = MockBackend(state_file=state_file, submission_error=submission_error)
         return QuEraHardwareRoutine(self.source, self.circuit, self.params, backend)
 
-    @property
     def custom(self) -> "CustomSubmissionRoutine":
         return CustomSubmissionRoutine(self.source, self.circuit, self.params)
 
@@ -62,7 +62,7 @@ class CustomSubmissionRoutine(RoutineBase):
             generate_ahs_code,
             generate_quera_ir,
         )
-        from bloqade.factory import get_capabilities
+        from bloqade.submission.capabilities import get_capabilities
 
         circuit, params = self.circuit, self.params
         capabilities = get_capabilities()
@@ -80,7 +80,6 @@ class CustomSubmissionRoutine(RoutineBase):
             )
 
             task_ir = generate_quera_ir(ahs_components, shots).discretize(capabilities)
-
             MetaData = namedtuple("MetaData", metadata.keys())
 
             yield MetaData(**metadata), task_ir
@@ -93,6 +92,7 @@ class CustomSubmissionRoutine(RoutineBase):
         method: str = "POST",
         args: Tuple[LiteralType] = (),
         request_options: Dict[str, Any] = {},
+        sleep_time: float = 0.1,
     ) -> List[Tuple[NamedTuple, Response]]:
         """Compile to QuEraTaskSpecification and submit to a custom service.
 
@@ -100,22 +100,28 @@ class CustomSubmissionRoutine(RoutineBase):
             shots (int): number of shots
             url (str): url of the custom service
             json_body_template (str): json body template, must contain '{task_ir}'
+            which is a placeholder for a string representation of the task ir.
+            The task ir string will be inserted into the template with
+            `json_body_template.format(task_ir=task_ir_string)`.
             to be replaced by QuEraTaskSpecification
             method (str): http method to be used. Defaults to "POST".
             args (Tuple[LiteralType]): additional arguments to be passed into the
             compiler coming from `args` option of the build. Defaults to ().
-            **request_options: additional options to be passed into the request method,
-            Note the `json` option will be overwritten by the `json_body_template`.
+            request_options: additional options to be passed into the request method,
+            Note the `data` option will be overwritten by the
+            `json_body_template.format(task_ir=task_ir_string)`.
+            sleep_time (float): time to sleep between each request. Defaults to 0.1.
 
         Returns:
             List[Tuple[NamedTuple, Response]]: List of parameters for each batch in
             the task and the response from the post request.
 
         Examples:
-            Here is a simple example of how to use this method.
+            Here is a simple example of how to use this method. Note the body_template
+            has double curly braces on the outside to escape the string formatting.
 
         ```python
-        >>> body_template = "{"token": "my_token", "task": {task_ir}}"
+        >>> body_template = "{{"token": "my_token", "task": {task_ir}}}"
         >>> responses = (
             program.quera.custom.submit(
                 100,
@@ -129,13 +135,26 @@ class CustomSubmissionRoutine(RoutineBase):
         if r"{task_ir}" not in json_body_template:
             raise ValueError(r"body_template must contain '{task_ir}'")
 
+        partial_eval = json_body_template.format(task_ir='"task_ir"')
+        try:
+            _ = json.loads(partial_eval)
+        except json.JSONDecodeError as e:
+            raise ValueError(
+                "body_template must be a valid json template. "
+                'When evaluating template with task_ir="task_ir", '
+                f"the template evaluated to: {partial_eval!r}.\n"
+                f"JSONDecodeError: {e}"
+            )
+
         out = []
         for metadata, task_ir in self._compile(shots, args):
-            request_options.update(
-                json=json_body_template.format(task_ir=task_ir.json())
+            json_request_body = json_body_template.format(
+                task_ir=task_ir.json(exclude_none=True, exclude_unset=True)
             )
+            request_options.update(data=json_request_body)
             response = request(method, url, **request_options)
             out.append((metadata, response))
+            time.sleep(sleep_time)
 
         return out
 
