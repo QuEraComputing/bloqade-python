@@ -14,6 +14,7 @@ from beartype.typing import (
     List,
     NamedTuple,
     Iterator,
+    Sequence,
 )
 from pydantic.v1.dataclasses import dataclass
 import dataclasses
@@ -52,7 +53,7 @@ class TaskData:
 
 
 @dataclasses.dataclass(frozen=True)
-class HamiltonianData:
+class BloqadeEmulation:
     """Data class to hold the Hamiltonian and metadata for a given set of parameters"""
 
     task_data: TaskData
@@ -63,6 +64,7 @@ class HamiltonianData:
 
     @property
     def hamiltonian(self) -> RydbergHamiltonian:
+        """Return the Hamiltonian object for the given task data."""
         if self._hamiltonian is None:
             _hamiltonian = RydbergHamiltonianCodeGen(self.compile_cache).emit(
                 self.task_data.emulator_ir
@@ -72,7 +74,68 @@ class HamiltonianData:
 
     @property
     def metadata(self) -> NamedTuple:
+        """The metadata for the given task data."""
         return self.task_data.metadata
+
+    def zero_state(self, dtype: np.dtype = np.float64) -> StateVector:
+        """Return the zero state for the given Hamiltonian."""
+        return self.hamiltonian.space.zero_state(dtype)
+
+    def fock_state(
+        self, fock_state_str: str, dtype: np.dtype = np.float64
+    ) -> StateVector:
+        """Return the fock state for the given Hamiltonian."""
+        index = self.hamiltonian.space.fock_state_to_index(fock_state_str)
+        data = np.zeros(self.hamiltonian.space.size, dtype=dtype)
+        data[index] = 1
+        return StateVector(data, self.hamiltonian.space)
+
+    def evolve(
+        self,
+        state: Optional[StateVector] = None,
+        solver_name: str = "dop853",
+        atol: float = 1e-7,
+        rtol: float = 1e-14,
+        nsteps: int = 2147483647,
+        times: Sequence[float] = (),
+        interaction_picture: bool = False,
+    ) -> Iterator[StateVector]:
+        """Evolve an initial state vector using the Hamiltonian
+
+        Args:
+            state (Optional[StateVector], optional): The initial state vector to
+            evolve. if not provided, the zero state will be used. Defaults to None.
+            solver_name (str, optional): Which SciPy Solver to use. Defaults to
+            "dop853".
+            atol (float, optional): Absolute tolerance for ODE solver. Defaults
+            to 1e-14.
+            rtol (float, optional): Relative tolerance for adaptive step in
+            ODE solver. Defaults to 1e-7.
+            nsteps (int, optional): Maximum number of steps allowed per integration
+            step. Defaults to 2147483647.
+            times (Sequence[float], optional): The times to evaluate the state vector
+            at. Defaults to (). If not provided the state will be evaluated at
+            the end of the bloqade program.
+            interaction_picture (bool, optional): Use the interaction picture when
+            solving schrodinger equation. Defaults to False.
+
+        Returns:
+            Iterator[StateVector]: An iterator of the state vectors at each time step.
+
+        """
+        state = self.zero_state(np.complex128) if state is None else state
+
+        U = AnalogGate(self.hamiltonian)
+
+        return U.apply(
+            state,
+            times=times,
+            solver_name=solver_name,
+            atol=atol,
+            rtol=rtol,
+            nsteps=nsteps,
+            interaction_picture=interaction_picture,
+        )
 
 
 @dataclass(frozen=True, config=__pydantic_dataclass_config__)
@@ -103,13 +166,10 @@ class BloqadePythonRoutine(RoutineBase):
             metadata = MetaData(
                 **{k: cast_to_float(v) for k, v in metadata_dict.items()}
             )
-
             zero_state = hamiltonian.space.zero_state(np.complex128)
-            (register_data,) = AnalogGate(hamiltonian).apply(
+            (wrapped_register,) = AnalogGate(hamiltonian).apply(
                 zero_state, **self.solver_args
             )
-            wrapped_register = StateVector(register_data, hamiltonian.space)
-
             return self.callback(
                 wrapped_register, metadata, hamiltonian, *self.callback_args
             )
@@ -442,7 +502,7 @@ class BloqadePythonRoutine(RoutineBase):
         use_hyperfine: bool = False,
         waveform_runtime: str = "interpret",
         cache_matrices: bool = False,
-    ) -> Iterator[HamiltonianData]:
+    ) -> List[BloqadeEmulation]:
 
         ir_iter = self._generate_ir(
             args, blockade_radius, waveform_runtime, use_hyperfine
@@ -453,5 +513,7 @@ class BloqadePythonRoutine(RoutineBase):
         else:
             compile_cache = None
 
-        for task_data in ir_iter:
-            yield HamiltonianData(task_data, compile_cache=compile_cache)
+        return [
+            BloqadeEmulation(task_data, compile_cache=compile_cache)
+            for task_data in ir_iter
+        ]
