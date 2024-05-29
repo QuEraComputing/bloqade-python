@@ -43,7 +43,7 @@ The [Rydberg Many-Body Hamiltonian](#rydberg-many-body-hamiltonian) already impl
 
 *Fields* in Bloqade give you local (single-atom) control over the many-body Rydberg Hamiltonian.
 
-They are a sum of one or more *spatial modulations*, which can be thought of as a scaling factor per atom site, multiplied by a waveform:
+They are a sum of one or more *spatial modulations*, which allows you to *scale* the amplitude of the waveform across the different sites in the system:
 
 $$
 F_{i}(t) = \sum_{\alpha} C_{i}^{\alpha}f_{\alpha}(t) 
