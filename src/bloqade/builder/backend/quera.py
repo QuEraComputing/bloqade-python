@@ -126,3 +126,14 @@ class QuEraDeviceRoute(Builder):
         return self.parse().quera.mock(
             state_file=state_file, submission_error=submission_error
         )
+
+    def custom(self):
+        """
+        Specify custom backend
+
+        Return:
+            CustomSubmissionRoutine
+
+        """
+
+        return self.parse().quera.custom()
