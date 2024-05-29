@@ -358,26 +358,26 @@ class RydbergHamiltonian:
 
     def _apply(
         self,
-        register_data: np.ndarray,
+        register: np.ndarray,
         time: Optional[float] = None,
         output: Optional[NDArray] = None,
     ) -> np.ndarray:
-        self._check_register(register_data)
+        self._check_register(register)
 
         if time is None:
             time = self.emulator_ir.duration
 
         if output is None:
-            output = np.zeros_like(register_data, dtype=np.complex128)
+            output = np.zeros_like(register, dtype=np.complex128)
 
         diagonal = sum(
             (detuning.get_diagonal(time) for detuning in self.detuning_ops),
+            start=self.rydberg,
         )
 
-        np.multiply(diagonal, register_data, out=output)
-
+        np.multiply(diagonal, register, out=output)
         for rabi_op in self.rabi_ops:
-            rabi_op.dot(register_data, output, time)
+            rabi_op.dot(register, output, time)
 
         return output
 
@@ -463,7 +463,7 @@ class RydbergHamiltonian:
 
         hamiltonian = diags(diagonal).tocsr()
         for rabi_op in self.rabi_ops:
-            hamiltonian += rabi_op.tocsr(time)
+            hamiltonian = hamiltonian + rabi_op.tocsr(time)
 
         return hamiltonian
 
