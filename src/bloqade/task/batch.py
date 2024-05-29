@@ -497,7 +497,6 @@ class RemoteBatch(Serializable, Filter):
 
         Returns:
             RemoteBatch: The RemoteBatch instance with tasks submitted.
-
         """
         from bloqade import save
 
