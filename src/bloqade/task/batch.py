@@ -1,5 +1,6 @@
 from decimal import Decimal
 from numbers import Real
+from typing import Literal
 from bloqade.builder.typing import LiteralType
 from bloqade.serialize import Serializer
 from bloqade.task.base import Report
@@ -216,6 +217,22 @@ class LocalBatch(Serializable, Filter):
     def _run(
         self, multiprocessing: bool = False, num_workers: Optional[int] = None, **kwargs
     ):
+        """
+        Private method to run tasks in the batch.
+
+        Args:
+            multiprocessing (bool, optional): If True, tasks are run in parallel using multiple processes.
+                If False, tasks are run sequentially in a single process. Defaults to False.
+            num_workers (Optional[int], optional): The maximum number of processes that can be used to
+                execute the given calls if multiprocessing is True. If None, the number of workers will be the number of processors on the machine.
+            **kwargs: Arbitrary keyword arguments passed to the task's run method.
+
+        Raises:
+            ValueError: If num_workers is not None and multiprocessing is False.
+
+        Returns:
+            self: The instance of the batch with tasks run.
+        """
         if multiprocessing:
             from concurrent.futures import ProcessPoolExecutor as Pool
 
@@ -468,6 +485,20 @@ class RemoteBatch(Serializable, Filter):
     def _submit(
         self, shuffle_submit_order: bool = True, ignore_submission_error=False, **kwargs
     ) -> "RemoteBatch":
+        """
+        Private method to submit tasks in the RemoteBatch.
+
+        Args:
+            shuffle_submit_order (bool, optional): If True, tasks are submitted in a random order.
+                If False, tasks are submitted in the order they were added to the batch. Defaults to True.
+            ignore_submission_error (bool, optional): If True, submission errors are ignored and the method continues to submit the remaining tasks.
+                If False, the method stops at the first submission error. Defaults to False.
+            **kwargs: Arbitrary keyword arguments.
+
+        Returns:
+            RemoteBatch: The RemoteBatch instance with tasks submitted.
+
+        """
         from bloqade import save
 
         # online, non-blocking
@@ -565,7 +596,22 @@ class RemoteBatch(Serializable, Filter):
         return RemoteBatch(self.source, new_task_results, name=self.name)
 
     @beartype
-    def remove_tasks(self, *status_codes: str) -> "RemoteBatch":
+    def remove_tasks(
+        self,
+        *status_codes: Literal[
+            "Created",
+            "Running",
+            "Completed",
+            "Failed",
+            "Cancelled",
+            "Executing",
+            "Enqueued",
+            "Accepted",
+            "Unaccepted",
+            "Partial",
+            "Unsubmitted",
+        ],
+    ) -> "RemoteBatch":
         """
         Remove Tasks with specify status_codes.
 
