@@ -179,7 +179,7 @@ def plot_register_ryd_dense(geo, ryds):
             labels_vacant.append(idx)
             density_vacant.append(density)
 
-    if len(geo.sites) > 0:
+    if len(geo.sites) > 1:
         length_scale = np.inf
         for i, site_i in enumerate(geo.sites):
             for site_j in geo.sites[i + 1 :]:
@@ -221,7 +221,7 @@ def plot_register_ryd_dense(geo, ryds):
         title="rydberg density",
     )
     radius = get_radius(length_scale, x_min, x_max, y_min, y_max)
-    window_size = max(x_max - x_min, y_max - y_min)
+    window_size = max(x_max - x_min, y_max - y_min, 1)
 
     p.x_range = Range1d(x_min - length_scale, x_min + window_size + length_scale)
     p.y_range = Range1d(y_min - length_scale, y_min + window_size + length_scale)
@@ -291,8 +291,9 @@ def plot_register_bits(geo):
         xs.append(x)
         bits.append(0)
         labels.append(idx)
+    print(x_min, x_max, y_min, y_max)
 
-    if len(geo.sites) > 0:
+    if len(geo.sites) > 1:
         length_scale = np.inf
         for i, site_i in enumerate(geo.sites):
             for site_j in geo.sites[i + 1 :]:
@@ -328,7 +329,7 @@ def plot_register_bits(geo):
     # interpolate between a scale for small lattices
     # and a scale for larger lattices
     radius = get_radius(length_scale, x_min, x_max, y_min, y_max)
-    window_size = max(x_max - x_min, y_max - y_min)
+    window_size = max(x_max - x_min, y_max - y_min, 1)
 
     p.x_range = Range1d(x_min - length_scale, x_min + window_size + length_scale)
     p.y_range = Range1d(y_min - length_scale, y_min + window_size + length_scale)
