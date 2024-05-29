@@ -64,6 +64,6 @@ Note that the drive is only applied if the $i$-th site is filled with an atom.
 You build fields in Bloqade by first specifying the spatial modulation followed by the waveform
 it should be multiplied by.
 
-In the case of a uniform spatial modulation, it can be interpreted as 
+In the case of a *uniform* spatial modulation, it can be interpreted as 
 a constant scaling factor where $C_{i}^{\alpha} = 1.0$.
 
