@@ -68,5 +68,21 @@ def test_solution(phi: float, interaction: bool):
     psi0[0] = 1
 
     for state, time in zip(state_iter, times):
-        psi_t = v @ (np.diag(np.exp(-1j * e * time)) @ (v.T @ psi0))
-        assert np.allclose(state.data, psi_t)
+        assert str(state)
+        expected_data = v @ (np.diag(np.exp(-1j * e * time)) @ (v.T @ psi0))
+        data = state.data.copy()
+
+        expected_average = np.vdot(expected_data, h.dot(expected_data))
+        expected_variance = (
+            np.vdot(expected_data, (h @ h).dot(expected_data)) - expected_average**2
+        )
+
+        average = emu.hamiltonian.average(state, time=time)
+        variance = emu.hamiltonian.variance(state, time=time)
+        average_2, variance_2 = emu.hamiltonian.average_and_variance(state, time=time)
+
+        assert np.allclose(data, expected_data)
+        assert np.allclose(average, expected_average)
+        assert np.allclose(average_2, expected_average)
+        assert np.allclose(variance, expected_variance)
+        assert np.allclose(variance_2, expected_variance)
