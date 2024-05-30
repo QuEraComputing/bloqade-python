@@ -24,6 +24,7 @@ if TYPE_CHECKING:
     from bloqade.ir.routine.base import Routine
     from bloqade.ir.analog_circuit import AnalogCircuit
 
+
 class Parser:
     """A class for parsing quantum computing program components into intermediate representation (IR)."""
 
