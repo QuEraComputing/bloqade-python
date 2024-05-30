@@ -10,6 +10,7 @@ from dataclasses import dataclass
 from typing import Optional, List, Type
 from bloqade.builder.base import Builder
 
+
 @dataclass
 class BuilderNode:
     """A node in the builder stream."""
@@ -20,6 +21,7 @@ class BuilderNode:
     def __repr__(self) -> str:
         """Representation of the BuilderNode."""
         return repr(self.node)
+
 
 @dataclass
 class BuilderStream:
