@@ -1,3 +1,11 @@
+"""
+Module for parsing builder definitions into intermediate representation (IR) using the bloqade library.
+
+This module provides a Parser class for parsing various components of a quantum computing program, including atom arrangements,
+pulse sequences, analog circuits, and routines. It also defines utility functions for reading addresses, waveforms, drives,
+sequences, registers, and pragmas from a builder stream.
+"""
+
 from bloqade.builder.base import Builder
 from bloqade.builder.coupling import LevelCoupling, Rydberg, Hyperfine
 from bloqade.builder.sequence_builder import SequenceBuilder
@@ -18,6 +26,8 @@ if TYPE_CHECKING:
 
 
 class Parser:
+    """A class for parsing quantum computing program components into intermediate representation (IR)."""
+
     stream: Optional["BuilderStream"] = None
     vector_node_names: Set[str] = set()
     sequence: ir.Sequence = ir.Sequence.create()
@@ -27,6 +37,7 @@ class Parser:
     order: Tuple[str, ...] = ()
 
     def reset(self, builder: Builder):
+        """Reset the parser's state."""
         self.stream = BuilderStream.create(builder)
         self.vector_node_names = set()
         self.sequence = ir.Sequence.create()
@@ -36,6 +47,15 @@ class Parser:
         self.order = ()
 
     def read_address(self, stream) -> Tuple[LevelCoupling, Field, BuilderNode]:
+        """
+        Read an address from the builder stream.
+
+        Args:
+            stream: The builder stream.
+
+        Returns:
+            Tuple[LevelCoupling, Field, BuilderNode]: A tuple containing the level coupling, field, and spatial modulation.
+        """
         spatial = stream.read_next([Location, Uniform, Scale])
         curr = spatial
 
@@ -62,6 +82,15 @@ class Parser:
             return (None, None, spatial)
 
     def read_waveform(self, head: BuilderNode) -> Tuple[ir.Waveform, BuilderNode]:
+        """
+        Read a waveform from the builder stream.
+
+        Args:
+            head (BuilderNode): The head of the builder stream.
+
+        Returns:
+            Tuple[ir.Waveform, BuilderNode]: A tuple containing the waveform and the next builder node.
+        """
         curr = head
         waveform = None
         while curr is not None:
@@ -103,6 +132,15 @@ class Parser:
         return waveform, curr
 
     def read_drive(self, head) -> ir.Field:
+        """
+        Read a drive from the builder stream.
+
+        Args:
+            head: The head of the builder stream.
+
+        Returns:
+            ir.Field: The drive field.
+        """
         if head is None:
             return ir.Field({})
 
@@ -112,6 +150,12 @@ class Parser:
         return ir.Field({sm: wf})
 
     def read_sequence(self) -> ir.Sequence:
+        """
+        Read a sequence from the builder stream.
+
+        Returns:
+            ir.Sequence: The parsed sequence.
+        """
         if isinstance(self.stream.curr.node, SequenceBuilder):
             # case with sequence builder object.
             self.sequence = self.stream.read().node._sequence
@@ -146,6 +190,12 @@ class Parser:
         return self.sequence
 
     def read_register(self) -> ir.AtomArrangement:
+        """
+        Read an atom arrangement register from the builder stream.
+
+        Returns:
+            ir.AtomArrangement: The parsed atom arrangement.
+        """
         # register is always head of the stream
         register_node = self.stream.read()
         self.register = register_node.node
@@ -153,6 +203,7 @@ class Parser:
         return self.register
 
     def read_pragmas(self) -> None:
+        """Read pragmas from the builder stream."""
         pragma_types = (
             Assign,
             BatchAssign,
@@ -199,17 +250,44 @@ class Parser:
     def parse_register(
         self, builder: Builder
     ) -> Union[ir.AtomArrangement, ir.ParallelRegister]:
+        """
+        Parse an atom arrangement register from the builder.
+
+        Args:
+            builder (Builder): The builder instance.
+
+        Returns:
+            Union[ir.AtomArrangement, ir.ParallelRegister]: The parsed atom arrangement or parallel register.
+        """
         self.reset(builder)
         self.read_register()
         self.read_pragmas()
         return self.register
 
     def parse_sequence(self, builder: Builder) -> ir.Sequence:
+        """
+        Parse a sequence from the builder.
+
+        Args:
+            builder (Builder): The builder instance.
+
+        Returns:
+            ir.Sequence: The parsed sequence.
+        """
         self.reset(builder)
         self.read_sequence()
         return self.sequence
 
     def parse_circuit(self, builder: Builder) -> "AnalogCircuit":
+        """
+        Parse an analog circuit from the builder.
+
+        Args:
+            builder (Builder): The builder instance.
+
+        Returns:
+            AnalogCircuit: The parsed analog circuit.
+        """
         from bloqade.ir.analog_circuit import AnalogCircuit
 
         self.reset(builder)
@@ -221,6 +299,15 @@ class Parser:
         return circuit
 
     def parse(self, builder: Builder) -> "Routine":
+        """
+        Parse a routine from the builder.
+
+        Args:
+            builder (Builder): The builder instance.
+
+        Returns:
+            Routine: The parsed routine.
+        """
         from bloqade.ir.analog_circuit import AnalogCircuit
         from bloqade.ir.routine.params import Params, ScalarArg, VectorArg
         from bloqade.ir.routine.base import Routine

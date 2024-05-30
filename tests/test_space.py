@@ -696,14 +696,14 @@ def test_zero_state():
     space = Space.create(register)
     print(space)
 
-    assert np.all(space.zero_state() == np.array([1, 0, 0, 0, 0, 0, 0, 0]))
+    assert np.all(space.zero_state().data == np.array([1, 0, 0, 0, 0, 0, 0, 0]))
 
     positions = [(0, 0), (0, 1), (1, 0)]
     register = Register(TwoLevelAtom, positions, 1)
     space = Space.create(register)
     print(space)
 
-    assert np.all(space.zero_state() == np.array([1, 0, 0, 0, 0]))
+    assert np.all(space.zero_state().data == np.array([1, 0, 0, 0, 0]))
 
 
 @patch("bloqade.emulate.ir.space.np.random.choice")

@@ -101,6 +101,7 @@ dev = [
     "scikit-optimize>=0.9.0",
     "matplotlib>=3.8.1",
     "icecream>=2.1.3",
+    "tqdm>=4.66.4",
 ]
 
 [tool.pdm.scripts]
