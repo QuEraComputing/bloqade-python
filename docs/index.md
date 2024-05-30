@@ -14,7 +14,7 @@
 
 ## What is Bloqade?
 
-Bloqade is a Python SDK for [QuEra's](https://www.quera.com/) neutral atom quantum computer *Aquila* (check out our [paper](https://arxiv.org/abs/2306.11727)!). It's designed to make writing and analyzing the results of [analog quantum programs]() on *Aquila* as easy as possible. It features [custom atom geometries](index.md#customizable-atom-geometries) and [flexible waveform definitions](index.md#flexible-pulse-sequence-construction) in both [emulation and real hardware](index.md#hardware-and-emulation-backends). Bloqade interfaces with the [AWS Braket](https://aws.amazon.com/braket/) cloud service where *Aquila*  is hosted, enabling you to submit programs as well as retrieve and analyze real hardware results all-in-one.
+Bloqade is a Python SDK for [QuEra's](https://www.quera.com/) neutral atom quantum computer *Aquila* (check out our [paper](https://arxiv.org/abs/2306.11727)!). It's designed to make writing and analyzing the results of [analog quantum programs](home/background.md#analog-vs-digital-quantum-computing) on *Aquila* as easy as possible. It features [custom atom geometries](index.md#customizable-atom-geometries) and [flexible waveform definitions](index.md#flexible-pulse-sequence-construction) in both [emulation and real hardware](index.md#hardware-and-emulation-backends). Bloqade interfaces with the [AWS Braket](https://aws.amazon.com/braket/) cloud service where *Aquila*  is hosted, enabling you to submit programs as well as retrieve and analyze real hardware results all-in-one.
 
 ## Installation
 
@@ -26,7 +26,7 @@ pip install bloqade
 
 ## A Glimpse of Bloqade
 
-Let's try a simple example where we drive a [Rabi oscillation][rabi-oscillation-wiki] on a single [neutral atom](). Don't worry if you're unfamiliar with [neutral atom]() physics, (you can check out our Background for more information!) the goal here is to just give you a taste of what Bloqade can do.
+Let's try a simple example where we drive a [Rabi oscillation][rabi-oscillation-wiki] on a single [neutral atom][neutral-atom-qubits]. Don't worry if you're unfamiliar with [neutral atom][neutral-atom-qubits] physics, (you can check out our Background for more information!) the goal here is to just give you a taste of what Bloqade can do.
 
 We start by defining where our atoms go, otherwise known as the *atom geometry*. In this particular example we will use a small Honeycomb lattice:
 
@@ -48,7 +48,7 @@ geometry.show()
 </picture>
 </div>
 
-We now define what the [time evolution]() looks like using a *pulse sequence*. The pulse sequence here is the time profile of the Rabi Drive targeting the ground-Rydberg two level transition, which causes the [Rabi oscillations][rabi-oscillation-wiki]. We choose a constant waveform with a value of $\frac{\pi}{2} \text{rad}/\text{us}$ and a duration of $1.0 \,\text{us}$.
+We now define what the [time evolution][rydberg-hamiltonian] looks like using a *pulse sequence*. The pulse sequence here is the time profile of the Rabi Drive targeting the ground-Rydberg two level transition, which causes the [Rabi oscillations][rabi-oscillation-wiki]. We choose a constant waveform with a value of $\frac{\pi}{2} \text{rad}/\text{us}$ and a duration of $1.0 \,\text{us}$.
 This produces a $\frac{\pi}{2}$ rotation on the [Bloch sphere](https://en.wikipedia.org/wiki/Bloch_sphere) meaning our final measurements should be split 50/50 between the ground and Rydberg state.
 
 ```python
@@ -60,7 +60,7 @@ rabi_program = (
 )
 ```
 <!--explain what uniform is-->
-Here `rabi.amplitude` means exactly what it is, the Rabi amplitude term of the [Hamiltonian](). `uniform` refers to applying the waveform uniformly across all the atom locations. 
+Here `rabi.amplitude` means exactly what it is, the Rabi amplitude term of the [Hamiltonian][rydberg-hamiltonian]. `uniform` refers to applying the waveform uniformly across all the atom locations. 
 
 We can visualize what our program looks like again with `.show()`:
 
@@ -152,8 +152,6 @@ hardware_bitstring_counts = hardware_results.report().counts()
 
 
 ### Customizable Atom Geometries 
-
-<!--show that you can add_position on predefined geometries-->
 
 You can easily explore a number of common geometric lattices with Bloqade's `atom_arrangement`'s:
 
@@ -301,6 +299,8 @@ emulation_results.report().show()
 
 ## Contributing to Bloqade
 
-Bloqade is released under the [Apache License, Version 2.0](https://github.com/QuEraComputing/bloqade-python/blob/main/LICENSE). If you'd like the chance to shape the future of [neutral atom]() quantum computation, see our [Contributing Guide](contributing/index.md) for more info!
+Bloqade is released under the [Apache License, Version 2.0](https://github.com/QuEraComputing/bloqade-python/blob/main/LICENSE). If you'd like the chance to shape the future of [neutral atom][neutral-atom-qubits] quantum computation, see our [Contributing Guide](contributing/index.md) for more info!
 
 [rabi-oscillation-wiki]: https://en.wikipedia.org/wiki/Rabi_cycle
+[neutral-atom-qubits]: home/background.md#neutral-atom-qubits
+[rydberg-hamiltonian]: home/background.md#rydberg-many-body-hamiltonian

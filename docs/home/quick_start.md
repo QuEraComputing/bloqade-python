@@ -1,6 +1,3 @@
-<!--If anything gets too long, break it into a separate section-->
-<!-- users will jump to the stuff they want, they won't scroll through it all-->
-<!-- Follow Configurations.jl structure -->
 # Quick Start
 
 All the sections below are self-contained, you can click on the links in the Table of Contents to read the relevant parts. 
@@ -103,10 +100,10 @@ After you've [defined a geometry](#defining-atom-geometry) you:
 
 * Specify which level coupling to drive: `rydberg` or `hyperfine`
 * Specify `detuning`, `rabi.amplitude` or `rabi.phase`
-* Specify the [spatial modulation]()
+* Specify the [spatial modulation][local-control]
 
 Which then leads you to the ability to specify a waveform of interest and begin constructing your pulse sequence. 
-In the example below, we target the ground-Rydberg level coupling to drive with uniform [spatial modulation]() for the Rabi amplitude. Our waveform is a piecewise linear one which ramps from $0$ to $5 \,\text{rad/us}$, holds that value for $1 \,\text{us}$ and then ramps back down to $0 \,\text{rad/us}$.
+In the example below, we target the ground-Rydberg level coupling to drive with uniform [spatial modulation][local-control] for the Rabi amplitude. Our waveform is a piecewise linear one which ramps from $0$ to $5 \,\text{rad/us}$, holds that value for $1 \,\text{us}$ and then ramps back down to $0 \,\text{rad/us}$.
 
 ```python
 from bloqade import start
@@ -129,7 +126,7 @@ You aren't restricted to just piecewise linear waveforms however, you can also s
 
 ## Arbitrary Functions as Waveforms
 
-For more complex waveforms it may provde to be tedious trying to chain together a large number of [`piecewise_constant`]() or [`piecewise_linear`]() methods and instead easier to just define the waveform as a function of time.
+For more complex waveforms it may provide to be tedious trying to chain together a large number of [`piecewise_constant`]() or [`piecewise_linear`]() methods and instead easier to just define the waveform as a function of time.
 
 Bloqade lets you easily plug in an arbitrary function with `.fn`:
 
@@ -251,7 +248,7 @@ program_2  = geometry_2.apply(pulse_sequence)
 ## Emulation
 
 When you've completed the definition of your program you can use Bloqade's own emulator to get results.
-The emulation performs the [time evolution]() of the [analog Rydberg Hamiltonian]().
+The emulation performs the [time evolution][rydberg-hamiltonian] of the [analog Rydberg Hamiltonian][rydberg-hamiltonian].
 Here we say we want to the program to be run and measurements obtained 1000 times.
 
 ```python
@@ -275,7 +272,7 @@ results = your_program.bloqade.python().run(1000)
 
 To submit your program to hardware ensure you have your AWS Braket credentials loaded. You will need to use the [AWS CLI]() to do this.
 
-Then it's just a matter of selecting the *Aquila* on Braket backend. Before going any further Bloqade provides two options for running your program on actul hardware:
+Then it's just a matter of selecting the *Aquila* on Braket backend. Before going any further Bloqade provides two options for running your program on actual hardware:
 
 * Using `.run` is blocking, meaning you will not be able to execute anything else while Bloqade waits for results
 * Using `.run_async` lets you submit to hardware and continue any further execution, while also letting you query the status of your program in the queue.
@@ -487,3 +484,6 @@ from bloqade import load
 emulation_results = load("emulation_results.json")
 hardware_results = load("hardware_results.json")
 ```
+
+[local-control]: background.md#local-control
+[rydberg-hamiltonian]: background.md#rydberg-many-body-hamiltonian
