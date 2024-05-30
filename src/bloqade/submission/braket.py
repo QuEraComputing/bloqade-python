@@ -42,12 +42,12 @@ class BraketBackend(SubmissionBackend):
         except BotoCoreError:
             warnings.warn(
                 "Could not retrieve device capabilities from braket API. "
-                "Using local capabiltiiies file for Aquila."
+                "Using local capabilities file for Aquila."
             )
         except ClientError:
             warnings.warn(
                 "Could not retrieve device capabilities from braket API. "
-                "Using local capabiltiiies file for Aquila."
+                "Using local capabilities file for Aquila."
             )
 
         return super().get_capabilities()
