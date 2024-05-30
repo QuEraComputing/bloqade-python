@@ -34,6 +34,9 @@ class BraketBackend(SubmissionBackend):
     def get_capabilities(self, use_experimental: bool = False) -> QuEraCapabilities:
         from botocore.exceptions import BotoCoreError, ClientError
 
+        if use_experimental:
+            return super().get_capabilities(use_experimental)
+
         try:
             return to_quera_capabilities(self.device.properties.paradigm)
         except BotoCoreError:
@@ -47,7 +50,7 @@ class BraketBackend(SubmissionBackend):
                 "Using local capabiltiiies file for Aquila."
             )
 
-        return super().get_capabilities(use_experimental)
+        return super().get_capabilities()
 
     def submit_task(self, task_ir: QuEraTaskSpecification) -> str:
         shots, ahs_program = to_braket_task(task_ir)
