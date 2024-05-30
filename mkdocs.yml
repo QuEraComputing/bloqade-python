@@ -12,6 +12,7 @@ nav:
   - Home:
     - index.md
     - Quickstart: home/quick_start.md
+    - Background: home/background.md
     - Getting Started: home/getting_started.md
     - Advanced Usage: home/advanced_usage.md
     - Gotchas: home/gotchas.md
