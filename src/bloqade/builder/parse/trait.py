@@ -18,10 +18,13 @@ class ParseRegister:
     A class providing functionality to parse the arrangement of atoms in the program.
 
     Example:
-        >>> class MyBuilder(ParseRegister):
-        ...     pass
-        >>> builder = MyBuilder()
-        >>> atom_arrangement = builder.parse_register()
+
+    ```python
+    >>> class MyBuilder(ParseRegister):
+    ...     pass
+    >>> builder = MyBuilder()
+    >>> atom_arrangement = builder.parse_register()
+    ```
     """
 
     def parse_register(self: "Builder") -> Union["AtomArrangement", "ParallelRegister"]:
@@ -44,10 +47,13 @@ class ParseSequence:
     A class providing functionality to parse the pulse sequence part of the program.
 
     Example:
-        >>> class MyBuilder(ParseSequence):
-        ...     pass
-        >>> builder = MyBuilder()
-        >>> sequence = builder.parse_sequence()
+
+    ```python
+    >>> class MyBuilder(ParseSequence):
+    ...     pass
+    >>> builder = MyBuilder()
+    >>> sequence = builder.parse_sequence()
+    ```
     """
 
     def parse_sequence(self: "Builder") -> "Sequence":
@@ -70,10 +76,13 @@ class ParseCircuit:
     A class providing functionality to parse the analog circuit from the program.
 
     Example:
-        >>> class MyBuilder(ParseCircuit):
-        ...     pass
-        >>> builder = MyBuilder()
-        >>> analog_circuit = builder.parse_circuit()
+
+    ```python
+    >>> class MyBuilder(ParseCircuit):
+    ...     pass
+    >>> builder = MyBuilder()
+    >>> analog_circuit = builder.parse_circuit()
+    ```
     """
 
     def parse_circuit(self: "Builder") -> "AnalogCircuit":
@@ -96,10 +105,13 @@ class ParseRoutine:
     A class providing functionality to parse the program and return a Routine object.
 
     Example:
-        >>> class MyBuilder(ParseRoutine):
-        ...     pass
-        >>> builder = MyBuilder()
-        >>> routine = builder.parse()
+
+    ```python
+    >>> class MyBuilder(ParseRoutine):
+    ...     pass
+    >>> builder = MyBuilder()
+    >>> routine = builder.parse()
+    ```
     """
 
     def parse(self: "Builder") -> "Routine":
@@ -138,10 +150,13 @@ class Parse(ParseRegister, ParseSequence, ParseCircuit, ParseRoutine):
             If the register is of type ParallelRegister, the number of atoms is extracted from its internal register.
 
         Example:
-            >>> class MyBuilder(Parse):
-            ...     pass
-            >>> builder = MyBuilder()
-            >>> n_atoms = builder.n_atoms
+        
+        ```python
+        >>> class MyBuilder(Parse):
+        ...     pass
+        >>> builder = MyBuilder()
+        >>> n_atoms = builder.n_atoms
+        ```
         """
         register = self.parse_register()
 
@@ -168,11 +183,14 @@ class Show:
             This method uses the `display_builder` function to render the builder's state.
 
         Example:
-            >>> class MyBuilder(Show):
-            ...     pass
-            >>> builder = MyBuilder()
-            >>> builder.show()
-            >>> builder.show(batch_id=1)
-            >>> builder.show('arg1', 'arg2', batch_id=2)
+
+        ```python
+        >>> class MyBuilder(Show):
+        ...     pass
+        >>> builder = MyBuilder()
+        >>> builder.show()
+        >>> builder.show(batch_id=1)
+        >>> builder.show('arg1', 'arg2', batch_id=2)
+        ```
         """
         display_builder(self, batch_id, *args)
