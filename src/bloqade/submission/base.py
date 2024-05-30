@@ -15,8 +15,8 @@ class SubmissionBackend(BaseModel):
     class Config:
         extra = Extra.forbid
 
-    def get_capabilities(self) -> QuEraCapabilities:
-        return get_capabilities()
+    def get_capabilities(self, use_experimental: bool = False) -> QuEraCapabilities:
+        return get_capabilities(use_experimental)
 
     def validate_task(
         self, task_ir: Union[BraketTaskSpecification, QuEraTaskSpecification]

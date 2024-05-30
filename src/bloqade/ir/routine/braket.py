@@ -34,6 +34,7 @@ class BraketHardwareRoutine(RoutineBase):
     def _compile(
         self,
         shots: int,
+        use_experimental: bool = False,
         args: Tuple[LiteralType, ...] = (),
         name: Optional[str] = None,
     ) -> RemoteBatch:
@@ -47,7 +48,7 @@ class BraketHardwareRoutine(RoutineBase):
             generate_quera_ir,
         )
 
-        capabilities = self.backend.get_capabilities()
+        capabilities = self.backend.get_capabilities(use_experimental)
 
         circuit, params = self.circuit, self.params
 
@@ -85,6 +86,7 @@ class BraketHardwareRoutine(RoutineBase):
         shots: int,
         args: Tuple[LiteralType, ...] = (),
         name: Optional[str] = None,
+        use_experimental: bool = False,
         shuffle: bool = False,
         **kwargs,
     ) -> RemoteBatch:
@@ -99,6 +101,7 @@ class BraketHardwareRoutine(RoutineBase):
             shots (int): number of shots
             args (Tuple): Values of the parameter defined in `args`, defaults to ()
             name (str | None): custom name of the batch, defaults to None
+            use_experimental (bool): Use experimental hardware capabilities
             shuffle (bool): shuffle the order of jobs
 
         Return:
@@ -106,7 +109,7 @@ class BraketHardwareRoutine(RoutineBase):
 
         """
 
-        batch = self._compile(shots, args, name)
+        batch = self._compile(shots, use_experimental, args, name)
         batch._submit(shuffle, **kwargs)
         return batch
 
@@ -116,6 +119,7 @@ class BraketHardwareRoutine(RoutineBase):
         shots: int,
         args: Tuple[LiteralType, ...] = (),
         name: Optional[str] = None,
+        use_experimental: bool = False,
         shuffle: bool = False,
         **kwargs,
     ) -> RemoteBatch:
@@ -139,7 +143,7 @@ class BraketHardwareRoutine(RoutineBase):
 
         """
 
-        batch = self.run_async(shots, args, name, shuffle, **kwargs)
+        batch = self.run_async(shots, args, name, use_experimental, shuffle, **kwargs)
         batch.pull()
         return batch
 
