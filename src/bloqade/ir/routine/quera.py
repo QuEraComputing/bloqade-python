@@ -219,7 +219,7 @@ class QuEraHardwareRoutine(RoutineBase):
         shots: int,
         args: Tuple[LiteralType, ...] = (),
         name: Optional[str] = None,
-        use_experimental: bool = False, 
+        use_experimental: bool = False,
         shuffle: bool = False,
         **kwargs,
     ) -> RemoteBatch:
