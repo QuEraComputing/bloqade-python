@@ -153,6 +153,7 @@ class BraketHardwareRoutine(RoutineBase):
         *args: LiteralType,
         shots: int = 1,
         name: Optional[str] = None,
+        use_experimental: bool = False,
         shuffle: bool = False,
         **kwargs,
     ):
@@ -175,7 +176,7 @@ class BraketHardwareRoutine(RoutineBase):
             RemoteBatch
 
         """
-        return self.run(shots, args, name, shuffle, **kwargs)
+        return self.run(shots, args, name, use_experimental, shuffle, **kwargs)
 
 
 @dataclass(frozen=True, config=__pydantic_dataclass_config__)

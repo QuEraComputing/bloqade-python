@@ -169,6 +169,7 @@ class QuEraHardwareRoutine(RoutineBase):
     def _compile(
         self,
         shots: int,
+        use_experimental: bool = False,
         args: Tuple[LiteralType, ...] = (),
         name: Optional[str] = None,
     ) -> RemoteBatch:
@@ -182,7 +183,7 @@ class QuEraHardwareRoutine(RoutineBase):
         )
 
         circuit, params = self.circuit, self.params
-        capabilities = self.backend.get_capabilities()
+        capabilities = self.backend.get_capabilities(use_experimental)
 
         tasks = OrderedDict()
 
@@ -218,6 +219,7 @@ class QuEraHardwareRoutine(RoutineBase):
         shots: int,
         args: Tuple[LiteralType, ...] = (),
         name: Optional[str] = None,
+        use_experimental: bool = False, 
         shuffle: bool = False,
         **kwargs,
     ) -> RemoteBatch:
@@ -236,7 +238,7 @@ class QuEraHardwareRoutine(RoutineBase):
             RemoteBatch
 
         """
-        batch = self._compile(shots, args, name)
+        batch = self._compile(shots, use_experimental, args, name)
         batch._submit(shuffle, **kwargs)
         return batch
 
@@ -246,10 +248,11 @@ class QuEraHardwareRoutine(RoutineBase):
         shots: int,
         args: Tuple[LiteralType, ...] = (),
         name: Optional[str] = None,
+        use_experimental: bool = False,
         shuffle: bool = False,
         **kwargs,
     ) -> RemoteBatch:
-        batch = self.run_async(shots, args, name, shuffle, **kwargs)
+        batch = self.run_async(shots, args, name, use_experimental, shuffle, **kwargs)
         batch.pull()
         return batch
 
@@ -259,7 +262,8 @@ class QuEraHardwareRoutine(RoutineBase):
         *args: LiteralType,
         shots: int = 1,
         name: Optional[str] = None,
+        use_experimental: bool = False,
         shuffle: bool = False,
         **kwargs,
     ) -> RemoteBatch:
-        return self.run(shots, args, name, shuffle, **kwargs)
+        return self.run(shots, args, name, use_experimental, shuffle, **kwargs)
