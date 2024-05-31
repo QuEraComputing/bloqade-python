@@ -1,6 +1,7 @@
 from bloqade.builder.base import Builder
 from bloqade.builder.field import Rabi, Detuning
 
+
 class LevelCoupling(Builder):
     @property
     def detuning(self) -> Detuning:
@@ -13,9 +14,6 @@ class LevelCoupling(Builder):
 
         Returns:
             [`Detuning`][bloqade.builder.field.Detuning]: A program node representing the detuning field.
-
-        Raises:
-            None
 
         Note:
             The detuning specifies how off-resonant the laser being applied to the atoms is from the atomic energy transition, driven by the Rabi frequency.
@@ -30,9 +28,10 @@ class LevelCoupling(Builder):
 
             - Next Possible Steps
             You may continue building your program via:
-            - `uniform`: To address all atoms in the field
-            - `location(locations, scales)`: To address atoms at specific locations via indices
-            - `scale(coeffs)`: To address all atoms with an individual scale factor
+            - [`uniform`][bloqade.builder.field.Detuning.uniform]: To address all atoms in the field
+            - [`location(locations, scales)`][bloqade.builder.field.Detuning.location]: To address atoms at specific
+            locations via indices
+            - [`scale(coeffs)`][bloqade.builder.field.Detuning.scale]: To address all atoms with an individual scale factor
         """
 
         return Detuning(self)
@@ -45,15 +44,12 @@ class LevelCoupling(Builder):
 
         The Rabi field is composed of a real-valued Amplitude and Phase field.
 
-        
+
         Args:
             None
 
         Returns:
             Rabi: A program node representing the Rabi field.
-
-        Raises:
-            None
 
         Note:
             Next possible steps to build your program are
