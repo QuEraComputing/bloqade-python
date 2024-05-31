@@ -22,6 +22,14 @@ import datetime
 @Serializer.register
 @dataclass(frozen=True)
 class Geometry:
+    """Class representing geometry of an atom arrangement.
+
+    Members:
+        sites (List[Tuple[float, float]]): Atom site arrangement
+        filling (List[int]): Which sites are filled
+        parallel_decoder: Decoder object for decoding Geometry object
+    """
+
     sites: List[Tuple[float, float]]
     filling: List[int]
     parallel_decoder: Optional[ParallelDecoder] = None
@@ -95,9 +103,9 @@ class LocalTask(Task):
         raise NotImplementedError
 
 
-# Report is now just a helper class for
-# organize and analysis data:
 class Report:
+    """Report is a helper class for organizing and analysing data"""
+
     dataframe: pd.DataFrame
     metas: List[Dict]
     geos: List[Geometry]
@@ -133,6 +141,7 @@ class Report:
 
     @property
     def markdown(self) -> str:
+        """Get the markdown representation of the dataframe"""
         return self.dataframe.to_markdown()
 
     def _filter(
@@ -142,6 +151,15 @@ class Report:
         filter_perfect_filling: bool = True,
         clusters: Union[tuple[int, int], Sequence[Tuple[int, int]]] = [],
     ):
+        """
+        Filter the tasks
+
+        Args:
+            task_number (Optional[int]): task number. Defaults to None.
+            filter_perfect_filling (bool): whether return will
+            only contain perfect filling shots. Defaults to True.
+            clusters: cluster of atom sites
+        """
         mask = np.ones(len(self.dataframe), dtype=bool)
 
         if task_number is not None:
@@ -234,6 +252,15 @@ class Report:
         """
 
         def generate_counts(bitstring):
+            """Get the counts associated with a particular bitstring
+
+            Args:
+            bitstring: Bitstring representation
+            only contain perfect filling shots. Defaults to True.
+
+            Return:
+                counts associated with a particular bitstring
+            """
             output = np.unique(bitstring, axis=0, return_counts=True)
 
             count_list = [
