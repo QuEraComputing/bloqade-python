@@ -66,21 +66,21 @@ class Filter:
         Create a Batch object that has tasks filtered based on the values of metadata.
 
         Args:
-            __match_any__ (bool): 
-                If True, then a task will be included 
+            __match_any__ (bool):
+                If True, then a task will be included
                 if it matches any of the metadata filters.
-                If False, then a task will be included only if it 
+                If False, then a task will be included only if it
                 matches all of the metadata filters. Defaults to False.
-            **metadata (MetadataFilterType): 
-                The metadata to filter on. 
-                The keys are the metadata names and 
+            **metadata (MetadataFilterType):
+                The metadata to filter on.
+                The keys are the metadata names and
                 the values (as a set) are the values to filter on.
                 The elements in the set can be Real, Decimal, Tuple[Real], or Tuple[Decimal].
 
         Returns:
-            Union["LocalBatch", "RemoteBatch"]: 
+            Union["LocalBatch", "RemoteBatch"]:
                 A Batch object with the filtered tasks,
-                either LocalBatch or RemoteBatch depending 
+                either LocalBatch or RemoteBatch depending
                 on the type of self.
         """
 
@@ -486,10 +486,10 @@ class RemoteBatch(Filter):
         Rerun all tasks or failed tasks in the RemoteBatch.
 
         Args:
-            __rerun_all__ (bool): If True, rerun all tasks. 
+            __rerun_all__ (bool): If True, rerun all tasks.
                                   If False, rerun only failed tasks. Defaults to False.
             multiprocessing (bool): Whether to use multiprocessing. Defaults to False.
-            num_workers (Optional[int]): Number of workers to use if multiprocessing. 
+            num_workers (Optional[int]): Number of workers to use if multiprocessing.
                                          Defaults to None.
             **kwargs: Additional arguments to pass to the task run method.
 
