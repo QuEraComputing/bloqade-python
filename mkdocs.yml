@@ -12,8 +12,12 @@ nav:
   - Home:
     - index.md
     - Quickstart: home/quick_start.md
-    - Getting Started: home/getting_started.md
-    - Advanced Usage: home/advanced_usage.md
+    - Background: home/background.md
+    - Geometry: home/geometry.md
+    - Waveforms: home/waveforms.md
+    - Visualization: home/visualization.md
+    - Emulation: home/emulation.md
+    - Submission: home/submission.md
     - Gotchas: home/gotchas.md
   - Tutorials: 'https://queracomputing.github.io/bloqade-python-examples/latest/'
   - Reference:
