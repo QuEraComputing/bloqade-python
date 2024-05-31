@@ -72,10 +72,14 @@ class Assignable:
         - Next steps:
             - `...assign(assignments).bloqade`: select the bloqade local emulator backend
             - `...assign(assignments).braket`: select braket local emulator or QuEra hardware
-            - `...assign(assignments).device(specifier_string)`: select backend by specifying a string
-            - `...assign(assignments).batch_assign(assignments)`: assign multiple values for a parameter sweep
-            - `...assign(assignments).parallelize(cluster_spacing)`: parallelize the program register
-            - `...assign(assignments).args([previously_defined_vars])`: defer value assignment to runtime
+            - `...assign(assignments).device(specifier_string)`: select backend by specifying a 
+            string
+            - `...assign(assignments).batch_assign(assignments)`: assign multiple values for a 
+            parameter sweep
+            - `...assign(assignments).parallelize(cluster_spacing)`: parallelize the program 
+            register
+            - `...assign(assignments).args([previously_defined_vars])`: defer value assignment to 
+            runtime
         """
         from bloqade.builder.assign import Assign
 
@@ -113,15 +117,19 @@ class BatchAssignable:
         ```
         >>> reg = start.add_position([(0,0), (0, "atom_distance")])
         >>> prog = reg.rydberg.rabi.amplitude.uniform.constant("value", 5.0)
-        >>> var_assigned_prog = prog.batch_assign(value=[1.0, 2.0, 3.0], atom_distance=[1.0, 2.0, 3.0])
+        >>> var_assigned_prog = prog.batch_assign(value=[1.0, 2.0, 3.0], 
+        atom_distance=[1.0, 2.0, 3.0])
         ```
 
         - Next steps:
             - `...batch_assign(assignments).bloqade`: select the bloqade local emulator backend
             - `...batch_assign(assignments).braket`: select braket local emulator or QuEra hardware
-            - `...batch_assign(assignments).device(specifier_string)`: select backend by specifying a string
-            - `...batch_assign(assignments).parallelize(cluster_spacing)`: parallelize the program register
-            - `...batch_assign(assignments).args([previously_defined_vars])`: defer value assignment to runtime
+            - `...batch_assign(assignments).device(specifier_string)`: select backend by specifying 
+            a string
+            - `...batch_assign(assignments).parallelize(cluster_spacing)`: parallelize the program 
+            register
+            - `...batch_assign(assignments).args([previously_defined_vars])`: defer value assignment 
+            to runtime
         """
         from bloqade.builder.assign import BatchAssign, ListAssign
 
@@ -166,8 +174,10 @@ class Parallelizable:
 
         - Next steps:
             - `...parallelize(cluster_spacing).bloqade`: select the bloqade local emulator backend
-            - `...parallelize(cluster_spacing).braket`: select braket local emulator or QuEra hardware on the cloud
-            - `...parallelize(cluster_spacing).device(specifier_string)`: select backend by specifying a string
+            - `...parallelize(cluster_spacing).braket`: select braket local emulator or QuEra 
+            hardware on the cloud
+            - `...parallelize(cluster_spacing).device(specifier_string)`: select backend by 
+            specifying a string
         """
         from bloqade.builder.parallelize import Parallelize
 
