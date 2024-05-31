@@ -24,7 +24,7 @@ import datetime
 class Geometry:
     """Class representing geometry of an atom arrangement.
 
-    Members:
+    Attributes:
         sites (List[Tuple[float, float]]): Atom site arrangement
         filling (List[int]): Which sites are filled
         parallel_decoder: Decoder object for decoding Geometry object
