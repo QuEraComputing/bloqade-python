@@ -1,12 +1,3 @@
-"""
-Module for managing Braket tasks in the bloqade framework.
-
-This module defines the BraketTask class, which represents a task that can be submitted
-to a Braket backend. It includes methods for task submission, validation, fetching results,
-checking status, and cancellation. Additionally, serialization and deserialization
-functions are provided for the BraketTask class.
-"""
-
 import warnings
 from dataclasses import dataclass, field
 from beartype.typing import Dict, Optional, Any
@@ -22,9 +13,6 @@ from bloqade.submission.base import ValidationError
 from bloqade.submission.ir.task_results import QuEraTaskResults, QuEraTaskStatusCode
 
 
-## keep the old conversion for now,
-## we will remove conversion btwn QuEraTask <-> BraketTask,
-## and specialize/dispatching here.
 @dataclass
 @Serializer.register
 class BraketTask(RemoteTask):
@@ -63,14 +51,25 @@ class BraketTask(RemoteTask):
 
         Raises:
             ValueError: If the task is already submitted and force is False.
+
+        Example:
+            >>> backend = BraketBackend(...)  # Create a backend instance
+            >>> task_ir = QuEraTaskSpecification(...)  # Create a task specification
+            >>> metadata = {"key": "value"}  # Metadata for the task
+            >>> braket_task = BraketTask(
+            ...     task_id=None,
+            ...     backend=backend,
+            ...     task_ir=task_ir,
+            ...     metadata=metadata,
+            ... )
+            >>> braket_task.submit()
+            >>> print(f"Task submitted with ID: {braket_task.task_id}")
         """
         if not force:
             if self.task_id is not None:
                 raise ValueError(f"the task is already submitted with {self.task_id}")
         self.task_id = self.backend.submit_task(self.task_ir)
-
         self.task_result_ir = QuEraTaskResults(task_status=QuEraTaskStatusCode.Enqueued)
-
         return self
 
     def validate(self) -> str:
@@ -78,13 +77,19 @@ class BraketTask(RemoteTask):
         Validates the task specification.
 
         Returns:
-            str: An empty string if validation is successful,otherwise the validation error message.
+            str: An empty string if validation is successful, otherwise the validation error message.
+
+        Example:
+            >>> validation_error = braket_task.validate()
+            >>> if validation_error:
+            ...     print(f"Validation Error: {validation_error}")
+            ... else:
+            ...     print("Task is valid.")
         """
         try:
             self.backend.validate_task(self.task_ir)
         except ValidationError as e:
             return str(e)
-
         return ""
 
     def fetch(self) -> "BraketTask":
@@ -96,10 +101,17 @@ class BraketTask(RemoteTask):
 
         Raises:
             ValueError: If the task is not yet submitted.
+
+        Example:
+            >>> try:
+            ...     braket_task.fetch()
+            ...     results = braket_task.result()
+            ...     print(f"Task results: {results}")
+            ... except ValueError as e:
+            ...     print(e)
         """
         if self.task_result_ir.task_status is QuEraTaskStatusCode.Unsubmitted:
             raise ValueError("Task ID not found.")
-
         if self.task_result_ir.task_status in [
             QuEraTaskStatusCode.Completed,
             QuEraTaskStatusCode.Partial,
@@ -108,13 +120,11 @@ class BraketTask(RemoteTask):
             QuEraTaskStatusCode.Cancelled,
         ]:
             return self
-
         status = self.status()
         if status in [QuEraTaskStatusCode.Completed, QuEraTaskStatusCode.Partial]:
             self.task_result_ir = self.backend.task_results(self.task_id)
         else:
             self.task_result_ir = QuEraTaskResults(task_status=status)
-
         return self
 
     def pull(self) -> "BraketTask":
@@ -126,12 +136,18 @@ class BraketTask(RemoteTask):
 
         Raises:
             ValueError: If the task ID is not found.
+
+        Example:
+            >>> try:
+            ...     braket_task.pull()
+            ...     results = braket_task.result()
+            ...     print(f"Task results: {results}")
+            ... except ValueError as e:
+            ...     print(e)
         """
         if self.task_id is None:
             raise ValueError("Task ID not found.")
-
         self.task_result_ir = self.backend.task_results(self.task_id)
-
         return self
 
     def result(self) -> QuEraTaskResults:
@@ -140,6 +156,10 @@ class BraketTask(RemoteTask):
 
         Returns:
             QuEraTaskResults: The task results.
+
+        Example:
+            >>> results = braket_task.result()
+            >>> print(f"Task results: {results}")
         """
         if self.task_result_ir is None:
             pass
@@ -149,7 +169,6 @@ class BraketTask(RemoteTask):
                 and self.task_result_ir.task_status != QuEraTaskStatusCode.Completed
             ):
                 self.pull()
-
         return self.task_result_ir
 
     def status(self) -> QuEraTaskStatusCode:
@@ -158,10 +177,13 @@ class BraketTask(RemoteTask):
 
         Returns:
             QuEraTaskStatusCode: The status of the task.
+
+        Example:
+            >>> status = braket_task.status()
+            >>> print(f"Task status: {status.name}")
         """
         if self.task_id is None:
             return QuEraTaskStatusCode.Unsubmitted
-
         return self.backend.task_status(self.task_id)
 
     def cancel(self) -> None:
@@ -173,11 +195,17 @@ class BraketTask(RemoteTask):
 
         Raises:
             Warning: If the task ID is not found.
+
+        Example:
+            >>> try:
+            ...     braket_task.cancel()
+            ...     print("Task cancelled.")
+            ... except Warning as w:
+            ...     print(w)
         """
         if self.task_id is None:
             warnings.warn("Cannot cancel task, missing task id.")
             return
-
         self.backend.cancel_task(self.task_id)
 
     @property
@@ -187,6 +215,9 @@ class BraketTask(RemoteTask):
 
         Returns:
             int: The number of shots.
+
+        Example:
+            >>> print(f"Number of shots: {braket_task.nshots}")
         """
         return self.task_ir.nshots
 
@@ -196,6 +227,10 @@ class BraketTask(RemoteTask):
 
         Returns:
             Geometry: The geometry of the task lattice.
+
+        Example:
+            >>> geometry = braket_task._geometry()
+            >>> print(f"Task geometry: {geometry}")
         """
         return Geometry(
             sites=self.task_ir.lattice.sites,
@@ -209,6 +244,10 @@ class BraketTask(RemoteTask):
 
         Returns:
             bool: True if the task results exist and are completed, otherwise False.
+
+        Example:
+            >>> result_exists = braket_task._result_exists()
+            >>> print(f"Result exists: {result_exists}")
         """
         if self.task_result_ir is None:
             return False
@@ -221,15 +260,6 @@ class BraketTask(RemoteTask):
 
 @BraketTask.set_serializer
 def _serialize(obj: BraketTask) -> Dict[str, Any]:
-    """
-    Serializes the BraketTask instance to a dictionary.
-
-    Args:
-        obj (BraketTask): The task instance to serialize.
-
-    Returns:
-        Dict[str, Any]: The serialized dictionary representation of the task.
-    """
     return {
         "task_id": obj.task_id,
         "backend": obj.backend.dict(),
@@ -244,15 +274,6 @@ def _serialize(obj: BraketTask) -> Dict[str, Any]:
 
 @BraketTask.set_deserializer
 def _deserialize(d: Dict[str, Any]) -> BraketTask:
-    """
-    Deserializes a dictionary to a BraketTask instance.
-
-    Args:
-        d (Dict[str, Any]): The dictionary to deserialize.
-
-    Returns:
-        BraketTask: The deserialized task instance.
-    """
     d["backend"] = BraketBackend(**d["backend"])
     d["task_ir"] = QuEraTaskSpecification(**d["task_ir"])
     d["parallel_decoder"] = (
