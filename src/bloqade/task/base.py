@@ -110,7 +110,58 @@ class LocalTask(Task):
 
 
 class Report:
-    """Report is a helper class for organizing and analysing data"""
+    """Report is a helper class for organizing and analysing data
+
+    ### Analyzing Results using `Report` object
+    When you've retrieved your results from either emulation
+    or hardware you can generate a `.report()`:
+
+    ```python
+    report = results.report()
+    ```
+
+    For the examples below we analyze the results of a two atom program.
+
+    The report contains useful information such as:
+
+    * The raw bitstrings measured per each execution of the program
+    ```python
+    report.bitstrings()
+    ```
+
+    ```text
+    [array([[1, 1],
+            [1, 1],
+            [1, 1],
+            ...,
+            [1, 1],
+            [1, 1],
+            [1, 0]], dtype=int8)]
+    ```
+
+    * The number of times each unique bitstring occurred:
+    ```python
+    report.counts()
+    ```
+
+    ```text
+    [OrderedDict([('11', 892), ('10', 59), ('01', 49)])]
+    ```
+
+    * The Rydberg Density for each atom
+    ```python
+    report.rydberg_densities()
+    ```
+
+
+    ```python
+    report.counts()
+    ```
+
+    ```text
+    [OrderedDict([('11', 892), ('10', 59), ('01', 49)])]
+    ```
+    """
 
     dataframe: pd.DataFrame
     metas: List[Dict]
