@@ -248,16 +248,7 @@ class Report:
 
         """
 
-        def generate_counts(bitstring):
-            """Get the counts associated with a particular bitstring
-
-            Args:
-            bitstring: Bitstring representation
-            only contain perfect filling shots. Defaults to True.
-
-            Return:
-                counts associated with a particular bitstring
-            """
+        def _generate_counts(bitstring):
             output = np.unique(bitstring, axis=0, return_counts=True)
 
             count_list = [
@@ -270,7 +261,7 @@ class Report:
             return count
 
         return list(
-            map(generate_counts, self.bitstrings(filter_perfect_filling, clusters))
+            map(_generate_counts, self.bitstrings(filter_perfect_filling, clusters))
         )
 
     @beartype
