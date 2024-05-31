@@ -1,3 +1,14 @@
+"""
+This module defines the BloqadeTask class, which is used to execute quantum tasks using the 
+Bloqade emulator. It also provides serialization and deserialization methods for the BloqadeTask 
+instances.
+"""
+
+from dataclasses import dataclass
+from typing import Optional
+import numpy as np
+from beartype.typing import Dict, Any
+
 from bloqade.serialize import Serializer
 from bloqade.task.base import Geometry, LocalTask
 from bloqade.emulate.ir.emulator import EmulatorProgram
@@ -13,16 +24,23 @@ from bloqade.submission.ir.task_results import (
     QuEraTaskStatusCode,
     QuEraShotStatusCode,
 )
-from beartype.typing import Dict, Any
 from bloqade.builder.base import ParamType
-from dataclasses import dataclass
-from typing import Optional
-import numpy as np
 
 
 @dataclass
 @Serializer.register
 class BloqadeTask(LocalTask):
+    """
+    Represents a quantum task to be executed on the Bloqade emulator.
+
+    Attributes:
+        shots (int): The number of shots to be executed.
+        emulator_ir (EmulatorProgram): The emulation program to be executed.
+        metadata (Dict[str, ParamType]): Metadata associated with the task.
+        compile_cache (Optional[CompileCache]): Cache for compiled code.
+        task_result_ir (Optional[QuEraTaskResults]): Results of the task execution.
+    """
+
     shots: int
     emulator_ir: EmulatorProgram
     metadata: Dict[str, ParamType]
@@ -30,13 +48,31 @@ class BloqadeTask(LocalTask):
     task_result_ir: Optional[QuEraTaskResults] = None
 
     def _geometry(self) -> Geometry:
+        """
+        Returns the geometry of the qubit register.
+
+        Returns:
+            Geometry: The geometry of the qubit register.
+        """
         return self.emulator_ir.register.geometry
 
     def result(self) -> QuEraTaskResults:
+        """
+        Returns the results of the task execution.
+
+        Returns:
+            QuEraTaskResults: The results of the task execution.
+        """
         return self.task_result_ir
 
     @property
     def nshots(self) -> int:
+        """
+        Returns the number of shots to be executed.
+
+        Returns:
+            int: The number of shots to be executed.
+        """
         return self.shots
 
     def run(
@@ -47,7 +83,22 @@ class BloqadeTask(LocalTask):
         nsteps: int = 2_147_483_647,
         interaction_picture: bool = False,
     ) -> "BloqadeTask":
+        """
+        Runs the quantum task using the specified solver and options.
 
+        Args:
+            solver_name (str): The name of the solver to be used. Default is "dop853".
+            atol (float): Absolute tolerance for the solver. Default is 1e-14.
+            rtol (float): Relative tolerance for the solver. Default is 1e-7.
+            nsteps (int): Maximum number of steps for the solver. Default is 2_147_483_647.
+            interaction_picture (bool): Whether to use the interaction picture. Default is False.
+
+        Returns:
+            BloqadeTask: The current instance with updated task results.
+
+        Raises:
+            ValueError: If there is an error during the execution of the task.
+        """
         hamiltonian = RydbergHamiltonianCodeGen(self.compile_cache).emit(
             self.emulator_ir
         )
@@ -89,6 +140,15 @@ class BloqadeTask(LocalTask):
 
 @BloqadeTask.set_serializer
 def _serialize(obj: BloqadeTask) -> Dict[str, Any]:
+    """
+    Serializes a BloqadeTask object to a dictionary.
+
+    Args:
+        obj (BloqadeTask): The BloqadeTask object to be serialized.
+
+    Returns:
+        Dict[str, Any]: The serialized representation of the BloqadeTask object.
+    """
     return {
         "shots": obj.shots,
         "emulator_ir": obj.emulator_ir,
@@ -99,6 +159,15 @@ def _serialize(obj: BloqadeTask) -> Dict[str, Any]:
 
 @BloqadeTask.set_deserializer
 def _deserialize(d: Dict[str, Any]) -> BloqadeTask:
+    """
+    Deserializes a dictionary to a BloqadeTask object.
+
+    Args:
+        d (Dict[str, Any]): The dictionary to be deserialized.
+
+    Returns:
+        BloqadeTask: The deserialized BloqadeTask object.
+    """
     d["task_result_ir"] = (
         QuEraTaskResults(**d["task_result_ir"]) if d["task_result_ir"] else None
     )
