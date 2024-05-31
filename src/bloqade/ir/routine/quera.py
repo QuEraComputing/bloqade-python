@@ -52,6 +52,7 @@ class CustomSubmissionRoutine(RoutineBase):
     def _compile(
         self,
         shots: int,
+        use_experimental: bool = False,
         args: Tuple[LiteralType, ...] = (),
     ):
         from bloqade.compiler.passes.hardware import (
@@ -65,7 +66,7 @@ class CustomSubmissionRoutine(RoutineBase):
         from bloqade.submission.capabilities import get_capabilities
 
         circuit, params = self.circuit, self.params
-        capabilities = get_capabilities()
+        capabilities = get_capabilities(use_experimental)
 
         for batch_params in params.batch_assignments(*args):
             assignments = {**batch_params, **params.static_params}
@@ -92,6 +93,7 @@ class CustomSubmissionRoutine(RoutineBase):
         method: str = "POST",
         args: Tuple[LiteralType] = (),
         request_options: Dict[str, Any] = {},
+        use_experimental: bool = False,
         sleep_time: float = 0.1,
     ) -> List[Tuple[NamedTuple, Response]]:
         """Compile to QuEraTaskSpecification and submit to a custom service.
@@ -110,6 +112,7 @@ class CustomSubmissionRoutine(RoutineBase):
             request_options: additional options to be passed into the request method,
             Note the `data` option will be overwritten by the
             `json_body_template.format(task_ir=task_ir_string)`.
+            use_experimental (bool): Enable experimental hardware capabilities
             sleep_time (float): time to sleep between each request. Defaults to 0.1.
 
         Returns:
@@ -147,7 +150,7 @@ class CustomSubmissionRoutine(RoutineBase):
             )
 
         out = []
-        for metadata, task_ir in self._compile(shots, args):
+        for metadata, task_ir in self._compile(shots, use_experimental, args):
             json_request_body = json_body_template.format(
                 task_ir=task_ir.json(exclude_none=True, exclude_unset=True)
             )
@@ -166,6 +169,7 @@ class QuEraHardwareRoutine(RoutineBase):
     def _compile(
         self,
         shots: int,
+        use_experimental: bool = False,
         args: Tuple[LiteralType, ...] = (),
         name: Optional[str] = None,
     ) -> RemoteBatch:
@@ -179,7 +183,7 @@ class QuEraHardwareRoutine(RoutineBase):
         )
 
         circuit, params = self.circuit, self.params
-        capabilities = self.backend.get_capabilities()
+        capabilities = self.backend.get_capabilities(use_experimental)
 
         tasks = OrderedDict()
 
@@ -215,6 +219,7 @@ class QuEraHardwareRoutine(RoutineBase):
         shots: int,
         args: Tuple[LiteralType, ...] = (),
         name: Optional[str] = None,
+        use_experimental: bool = False,
         shuffle: bool = False,
         **kwargs,
     ) -> RemoteBatch:
@@ -233,7 +238,7 @@ class QuEraHardwareRoutine(RoutineBase):
             RemoteBatch
 
         """
-        batch = self._compile(shots, args, name)
+        batch = self._compile(shots, use_experimental, args, name)
         batch._submit(shuffle, **kwargs)
         return batch
 
@@ -243,10 +248,11 @@ class QuEraHardwareRoutine(RoutineBase):
         shots: int,
         args: Tuple[LiteralType, ...] = (),
         name: Optional[str] = None,
+        use_experimental: bool = False,
         shuffle: bool = False,
         **kwargs,
     ) -> RemoteBatch:
-        batch = self.run_async(shots, args, name, shuffle, **kwargs)
+        batch = self.run_async(shots, args, name, use_experimental, shuffle, **kwargs)
         batch.pull()
         return batch
 
@@ -256,7 +262,8 @@ class QuEraHardwareRoutine(RoutineBase):
         *args: LiteralType,
         shots: int = 1,
         name: Optional[str] = None,
+        use_experimental: bool = False,
         shuffle: bool = False,
         **kwargs,
     ) -> RemoteBatch:
-        return self.run(shots, args, name, shuffle, **kwargs)
+        return self.run(shots, args, name, use_experimental, shuffle, **kwargs)
