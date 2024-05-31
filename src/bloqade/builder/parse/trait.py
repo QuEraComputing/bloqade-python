@@ -150,7 +150,7 @@ class Parse(ParseRegister, ParseSequence, ParseCircuit, ParseRoutine):
             If the register is of type ParallelRegister, the number of atoms is extracted from its internal register.
 
         Example:
-        
+
         ```python
         >>> class MyBuilder(Parse):
         ...     pass
