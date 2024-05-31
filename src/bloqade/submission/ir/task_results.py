@@ -20,17 +20,17 @@ class QuEraTaskStatusCode(str, Enum):
     An Enum representing the various states a task can be in within the QuEra system.
 
     Attributes:
-    - Created: The task has been created but not yet started.
-    - Running: The task is currently running.
-    - Completed: The task has completed successfully.
-    - Failed: The task has failed.
-    - Cancelled: The task has been cancelled.
-    - Executing: The task is currently being executed.
-    - Enqueued: The task is in the queue waiting to be executed.
-    - Accepted: The task has been accepted for execution.
-    - Unaccepted: The task has not been accepted for execution.
-    - Partial: The task has partially completed.
-    - Unsubmitted: The task has not been submitted for execution.
+        Created: The task has been created but not yet started.
+        Running: The task is currently running.
+        Completed: The task has completed successfully.
+        Failed: The task has failed.
+        Cancelled: The task has been cancelled.
+        Executing: The task is currently being executed.
+        Enqueued: The task is in the queue waiting to be executed.
+        Accepted: The task has been accepted for execution.
+        Unaccepted: The task has not been accepted for execution.
+        Partial: The task has partially completed.
+        Unsubmitted: The task has not been submitted for execution.
     """
 
     Created = "Created"
