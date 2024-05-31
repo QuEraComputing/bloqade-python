@@ -1,3 +1,7 @@
+"""
+This module provides classes for building and managing quantum programs using the Bloqade library.
+"""
+
 from beartype.typing import List, Dict, Union, TYPE_CHECKING
 from bloqade.builder.typing import LiteralType, ParamType
 from bloqade.ir.scalar import Variable
@@ -10,6 +14,23 @@ if TYPE_CHECKING:
 
 class AddArgs:
     def args(self, args_list: List[Union[str, Variable]]) -> "Args":
+        """
+        Add arguments to the current program.
+
+        Args:
+            args_list (List[Union[str, Variable]]): List of argument names or Variable
+                objects to be added.
+
+        Returns:
+            Args: A new instance of the Args class with the specified arguments.
+
+        Raises:
+            TypeError: If args_list contains invalid types.
+
+        Note:
+            This method is useful for deferring the value assignment of certain
+            variables to runtime.
+        """
         from bloqade.builder.args import Args
 
         return Args(args_list, self)
@@ -20,10 +41,21 @@ class Assignable:
         """
         Assign values to variables declared previously in the program.
 
-        This is reserved for variables that should only take single values OR
-        for spatial modulations that were created with `.scale(str)` in which case
-        you can pass in a list. This is the ONLY circumstance in which multiple
-        values are allowed.
+        Args:
+            **assignments: Key-value pairs where the key is the variable name and
+                the value is the value to assign.
+
+        Returns:
+            Assign: A new instance of the Assign class with the specified
+                assignments.
+
+        Raises:
+            ValueError: If an invalid assignment is provided.
+
+        Note:
+            This is reserved for variables that should take single values or for
+            spatial modulations created with `.scale(str)`. After assigning values,
+            you can choose a backend for emulation or execution.
 
         ### Usage Examples:
         ```
@@ -32,27 +64,22 @@ class Assignable:
         ...       .add_position([(0,0),(1,1),(2,2),(3,3)])
         # define variables in program
         >>> seq = reg.rydberg.detuning.uniform
-        ...       .linear(start="ival",stop=1,duration="span_time")
+        ...       .linear(start="ival", stop=1, duration="span_time")
         # assign values to variables
-        >>> seq = seq.assign(span_time = 0.5, ival = 0.0)
+        >>> seq = seq.assign(span_time=0.5, ival=0.0)
         ```
 
-        - You can now:
-            - `...assign(assignments).bloqade`: select the bloqade local
-                emulator backend
-            - `...assign(assignments).braket`: select braket local emulator or
-                QuEra hardware
-            - `...assign(assignments).device(specifier_string)`: select backend
-                by specifying a string
-        - Assign multiple values to a single variable for a parameter sweep:
-            - `...assign(assignments).batch_assign(assignments)`:
-        - Parallelize the program register, duplicating the geometry and waveform
-            sequence to take advantage of all available
-          space/qubits on the QPU:
-            - `...assign(assignments).parallelize(cluster_spacing)`
-        - Defer value assignment of certain variables to runtime:
-            - `...assign(assignments).args([previously_defined_vars])`
-
+        - Next steps:
+            - `...assign(assignments).bloqade`: select the bloqade local emulator backend
+            - `...assign(assignments).braket`: select braket local emulator or QuEra hardware
+            - `...assign(assignments).device(specifier_string)`: select backend by specifying a
+            string
+            - `...assign(assignments).batch_assign(assignments)`: assign multiple values for a
+            parameter sweep
+            - `...assign(assignments).parallelize(cluster_spacing)`: parallelize the program
+            register
+            - `...assign(assignments).args([previously_defined_vars])`: defer value assignment to
+            runtime
         """
         from bloqade.builder.assign import Assign
 
@@ -66,39 +93,43 @@ class BatchAssignable:
         **assignments: List[ParamType],
     ) -> Union["BatchAssign", "ListAssign"]:
         """
+        Assign multiple values to variables for creating a parameter sweep.
 
-        Assign multiple values to a single variable to create a parameter sweep.
+        Args:
+            __batch_params (List[Dict[str, ParamType]], optional): List of dictionaries
+                where each dictionary contains variable assignments for one set of parameters.
+            **assignments (List[ParamType]): Key-value pairs where the key is the variable
+                name and the value is a list of values to assign.
 
-        Bloqade automatically handles the multiple programs this would generate
-        and treats it as object with unified results for easy post-processing.
+        Returns:
+            Union[BatchAssign, ListAssign]: A new instance of BatchAssign or ListAssign
+                class with the specified assignments.
 
-        NOTE: if you assign multiple values to multiple variables in your program,
-        the values must be of the same length. Bloqade will NOT do a Cartesian product
-        (e.g. if "var1" is assigned [1,2,3] and "var2" is assigned [4,5,6] then the
-        resulting programs will have assignments [1,4], [2,5], [3,6]).
+        Raises:
+            ValueError: If both __batch_params and assignments are provided.
+
+        Note:
+            Bloqade handles the multiple programs generated by this method and treats them
+            as a unified object for easy post-processing. Ensure all lists of values are of
+            the same length as Bloqade will not perform a Cartesian product.
 
         ### Usage Example:
         ```
         >>> reg = start.add_position([(0,0), (0, "atom_distance")])
         >>> prog = reg.rydberg.rabi.amplitude.uniform.constant("value", 5.0)
-        >>> var_assigned_prog = prog.batch_assign(value = [1.0, 2.0, 3.0],
-        atom_distance = [1.0, 2.0, 3.0])
+        >>> var_assigned_prog = prog.batch_assign(value=[1.0, 2.0, 3.0],
+        atom_distance=[1.0, 2.0, 3.0])
         ```
 
-        - Next steps are:
-            - `...batch_assign(assignments).bloqade`: select the bloqade
-                local emulator backend
-            - `...batch_assign(assignments).braket`: select braket local
-            emulator or QuEra hardware
-            - `...batch_assign(assignments).device(specifier_string)`: select
-            backend by specifying a string
-        - Parallelize the program register, duplicating the geometry and waveform
-          sequence to take advantage of all available
-          space/qubits on the QPU:
-            - `...batch_assign(assignments).parallelize(cluster_spacing)`
-        - Defer value assignment of certain variables to runtime:
-            - `...batch_assign(assignments).args([previously_defined_vars])`
-
+        - Next steps:
+            - `...batch_assign(assignments).bloqade`: select the bloqade local emulator backend
+            - `...batch_assign(assignments).braket`: select braket local emulator or QuEra hardware
+            - `...batch_assign(assignments).device(specifier_string)`: select backend by specifying
+            a string
+            - `...batch_assign(assignments).parallelize(cluster_spacing)`: parallelize the program
+            register
+            - `...batch_assign(assignments).args([previously_defined_vars])`: defer value assignment
+            to runtime
         """
         from bloqade.builder.assign import BatchAssign, ListAssign
 
@@ -114,29 +145,39 @@ class BatchAssignable:
 class Parallelizable:
     def parallelize(self, cluster_spacing: LiteralType) -> "Parallelize":
         """
+        Parallelize the current problem by duplicating the geometry to utilize
+        all available space/qubits on hardware.
 
-        Parallelize the current problem (register and sequence) by duplicating
-        the geometry to take advantage of all available space/qubits on hardware.
+        Args:
+            cluster_spacing (LiteralType): Specifies the spacing between clusters
+                in micrometers.
 
-        The singular argument lets you specify how far apart the clusters
-        should be in micrometers.
+        Returns:
+            Parallelize: A new instance of the Parallelize class with the specified
+                cluster spacing.
+
+        Raises:
+            ValueError: If the cluster_spacing is not a valid value.
+
+        Note:
+            After calling this method, you can choose a backend for emulation or
+            execution. Options include `bloqade` for a local emulator, `braket` for
+            a local emulator or QuEra hardware on the cloud, or specifying a device
+            with a string.
 
         ### Usage Example:
         ```
-        >>> reg = start.add_position((0,0)).rydberg.rabi.uniform.amplitude
-        .constant(1.0, 1.0)
+        >>> reg = start.add_position((0,0)).rydberg.rabi.uniform.amplitude.constant(1.0, 1.0)
         # copy-paste the geometry and waveforms
         >>> parallelized_prog = reg.parallelize(24)
         ```
 
-        - Your next steps are:
-             `...parallelize(cluster_spacing).bloqade`: select the bloqade
-                local emulator backend
-             `...parallelize(cluster_spacing).braket`: select braket
-                local emulator or QuEra hardware on the cloud
-             `...parallelize(cluster_spacing).device(specifier_string)`: select
-                backend by specifying a string
-
+        - Next steps:
+            - `...parallelize(cluster_spacing).bloqade`: select the bloqade local emulator backend
+            - `...parallelize(cluster_spacing).braket`: select braket local emulator or QuEra
+            hardware on the cloud
+            - `...parallelize(cluster_spacing).device(specifier_string)`: select backend by
+            specifying a string
         """
         from bloqade.builder.parallelize import Parallelize
 
