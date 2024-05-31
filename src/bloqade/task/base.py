@@ -153,13 +153,10 @@ class Report:
     report.rydberg_densities()
     ```
 
-
-    ```python
-    report.counts()
-    ```
-
     ```text
-    [OrderedDict([('11', 892), ('10', 59), ('01', 49)])]
+                    0      1
+    task_number
+    0            0.053  0.054
     ```
     """
 
@@ -248,6 +245,16 @@ class Report:
                 task in the report. Each element is an ndarray of shape
                 (nshots, nsites) where nshots is the number of shots for
                 the task and nsites is the number of sites in the task.
+                For example:
+                 ```text
+                [array([[1, 1],
+                        [1, 1],
+                        [1, 1],
+                        ...,
+                        [1, 1],
+                        [1, 1],
+                        [1, 0]], dtype=int8)]
+                ```
 
         Note:
             Note that nshots may vary between tasks if filter_perfect_filling
@@ -292,6 +299,11 @@ class Report:
                 task in the report. Each element is an ndarray of shape
                 (nshots, nsites) where nshots is the number of shots for
                 the task and nsites is the number of sites in the task.
+                For example:
+
+            ```text
+                [OrderedDict([('11', 892), ('10', 59), ('01', 49)])]
+            ```
 
         Note:
             Note that nshots may vary between tasks if filter_perfect_filling
@@ -332,7 +344,12 @@ class Report:
 
         Return:
             per-site rydberg density for each task as a pandas DataFrame or Series.
-
+            For example:
+            ```text
+            0      1
+            task_number
+            0            0.053  0.054
+            ````
         """
         mask = self._filter(
             filter_perfect_filling=filter_perfect_filling, clusters=clusters
