@@ -12,8 +12,6 @@ from itertools import product
 import traceback
 import datetime
 import sys
-import os
-import warnings
 from dataclasses import dataclass, field
 import pandas as pd
 import numpy as np
@@ -34,7 +32,6 @@ from bloqade.builder.base import Builder
 from bloqade.submission.ir.task_results import (
     QuEraShotStatusCode,
     QuEraTaskStatusCode,
-    QuEraTaskResults,
 )
 
 # from bloqade.submission.base import ValidationError
