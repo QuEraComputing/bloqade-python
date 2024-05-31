@@ -3,22 +3,23 @@ This module defines the BraketEmulatorTask class which integrates with the AWS B
 to run and manage quantum tasks, and serialize/deserialize task information.
 """
 
-from bloqade.serialize import Serializer
-from bloqade.builder.base import ParamType
-from .base import LocalTask
-from bloqade.submission.ir.task_results import QuEraTaskResults
+from dataclasses import dataclass
+from braket.devices import LocalSimulator
+from beartype.typing import Dict, Optional, Any
 from bloqade.submission.ir.braket import (
     from_braket_task_results,
     BraketTaskSpecification,
 )
 from bloqade.task.base import Geometry
-from braket.devices import LocalSimulator
-from beartype.typing import Dict, Optional, Any
-from dataclasses import dataclass
+from bloqade.serialize import Serializer
+from bloqade.builder.base import ParamType
+from bloqade.submission.ir.task_results import QuEraTaskResults
+from .base import LocalTask
 
 ## keep the old conversion for now,
 ## we will remove conversion btwn QuEraTask <-> BraketTask,
 ## and specialize/dispatching here.
+
 
 @dataclass
 @Serializer.register
@@ -57,7 +58,7 @@ class BraketEmulatorTask(LocalTask):
 
         Returns:
             BraketEmulatorTask: The current instance with the task results updated.
-        
+
         Example:
             >>> task_spec = BraketTaskSpecification(...)  # Task specification setup
             >>> metadata = {"param1": value1, "param2": value2}
@@ -82,7 +83,7 @@ class BraketEmulatorTask(LocalTask):
 
         Raises:
             ValueError: If the task has not been submitted yet.
-        
+
         Example:
             >>> task_spec = BraketTaskSpecification(...)  # Task specification setup
             >>> metadata = {"param1": value1, "param2": value2}
@@ -111,6 +112,7 @@ class BraketEmulatorTask(LocalTask):
         """
         return self.task_ir.nshots
 
+
 @BraketEmulatorTask.set_serializer
 def _serialize(obj: BraketEmulatorTask) -> Dict[str, Any]:
     return {
@@ -118,6 +120,7 @@ def _serialize(obj: BraketEmulatorTask) -> Dict[str, Any]:
         "metadata": obj.metadata,
         "task_result_ir": obj.task_result_ir.dict() if obj.task_result_ir else None,
     }
+
 
 @BraketEmulatorTask.set_deserializer
 def _serializer(d: Dict[str, Any]) -> BraketEmulatorTask:
