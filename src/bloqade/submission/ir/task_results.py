@@ -88,7 +88,7 @@ class TaskProbabilities(BaseModel):
     def simulate_task_results(self, shots: int = 1) -> "QuEraTaskResults":
         """Simulate the task results as probabilties.
 
-        Arguments:
+        Args:
             shots (int): Number of shots, Defaults to 1
         """
         bit_strings, probabilities = zip(*self.probabilities)
