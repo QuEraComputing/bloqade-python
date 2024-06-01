@@ -1,3 +1,6 @@
+"""Module to represent the various enums and classes to assist with task
+results after execution on QuEra system."""
+
 from enum import Enum
 from pydantic.v1 import BaseModel, conlist, conint
 from typing import List, Tuple
@@ -9,6 +12,16 @@ __all__ = ["QuEraTaskResults", "TaskProbabilities"]
 
 
 class QuEraShotStatusCode(str, Enum):
+    """
+    An Enum representing the status code the task executed on the QuEra system.
+
+    Attributes:
+        Completed: The task has completed successfully.
+        MissingPreSequence = Pre sequence is missing for the task
+        MissingPostSequence = Post sequence is missing for the task
+        MissingMeasurement = Measurement is missing for the task
+    """
+
     Completed = "Completed"
     MissingPreSequence = "MissingPreSequence"
     MissingPostSequence = "MissingPostSequence"
@@ -47,15 +60,37 @@ class QuEraTaskStatusCode(str, Enum):
 
 
 class QuEraShotResult(BaseModel):
+    """Object representing results after executing a task in QuEra system.
+
+    Attributes:
+        shot_status (QuEraShotStatusCode): status code of task
+            after running on QuEra system. Defaults to
+            `QuEraShotStatusCode.MissingMeasurement`
+        pre_sequence: Set of preprocessing instructions.
+        post_sequence: Set of preprocessing instructions.
+    """
+
     shot_status: QuEraShotStatusCode = QuEraShotStatusCode.MissingMeasurement
     pre_sequence: conlist(conint(ge=0, le=1), min_items=0) = []
     post_sequence: conlist(conint(ge=0, le=1), min_items=0) = []
 
 
 class TaskProbabilities(BaseModel):
+    """The task results as probabilties.
+
+    Attributes:
+        probabilities (List[Tuple[Tuple[str, str], float]]):
+            task results as probabilities
+    """
+
     probabilities: List[Tuple[Tuple[str, str], float]]
 
-    def simulate_task_results(self, shots=1) -> "QuEraTaskResults":
+    def simulate_task_results(self, shots: int = 1) -> "QuEraTaskResults":
+        """Simulate the task results as probabilties.
+
+        Arguments:
+            shots (int): Number of shots, Defaults to 1
+        """
         bit_strings, probabilities = zip(*self.probabilities)
 
         indices = np.random.choice(len(probabilities), p=probabilities, size=shots)
@@ -79,6 +114,15 @@ class TaskProbabilities(BaseModel):
 
 
 class QuEraTaskResults(BaseModel):
+    """Object representing results after executing a task in QuEra system.
+
+    Attributes:
+        task_status (QuEraShotStatusCode): states of task in the QuEra system.
+            Defaults to `QuEraShotStatusCode.Failed`
+        shot_outputs (conlist(QuEraShotResult, min_items=0)):
+            list representing shot outputs from QuEra system.
+    """
+
     task_status: QuEraTaskStatusCode = QuEraTaskStatusCode.Failed
     shot_outputs: conlist(QuEraShotResult, min_items=0) = []
 
