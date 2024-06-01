@@ -1,3 +1,6 @@
+"""Helper functions related to IR submission
+co-ordinations between Bloqade and Braket"""
+
 import braket.ir.ahs as braket_ir
 from braket.ahs.pattern import Pattern
 from braket.timings import TimeSeries
@@ -6,31 +9,49 @@ from braket.ahs.analog_hamiltonian_simulation import AnalogHamiltonianSimulation
 from braket.ahs.driving_field import DrivingField
 from braket.ahs.shifting_field import ShiftingField
 from braket.ahs.field import Field
-
 from braket.task_result import AnalogHamiltonianSimulationTaskResult
+
+import bloqade.submission.ir.capabilities as cp
 from bloqade.submission.ir.task_results import (
     QuEraTaskResults,
     QuEraTaskStatusCode,
     QuEraShotResult,
     QuEraShotStatusCode,
 )
-
 from bloqade.submission.ir.task_specification import (
     QuEraTaskSpecification,
     GlobalField,
     LocalField,
 )
+
 from typing import Tuple, Union, List
 from pydantic.v1 import BaseModel
 from decimal import Decimal
 
 
 class BraketTaskSpecification(BaseModel):
+    """Class representing geometry of an atom arrangement.
+
+    Attributes:
+        nshots (int): Number of shots
+        program (braket_ir.Program): IR(Intermediate Representation)
+            program suitable for braket
+    """
+
     nshots: int
     program: braket_ir.Program
 
 
 def to_braket_time_series(times: List[Decimal], values: List[Decimal]) -> TimeSeries:
+    """Converts to `TimeSeries` object supported by Braket.
+
+    Args:
+        times (List[Decimal]): Times of the value.
+        values (List[Decimal]): Corresponding values to add to the time series
+
+    Returns:
+        An object of the type `braket.timings.TimeSeries`
+    """
     time_series = TimeSeries()
     for time, value in zip(times, values):
         time_series.put(time, value)
@@ -39,6 +60,18 @@ def to_braket_time_series(times: List[Decimal], values: List[Decimal]) -> TimeSe
 
 
 def to_braket_field(quera_field: Union[GlobalField, LocalField]) -> Field:
+    """Converts to `TimeSeries` object supported by Braket.
+
+    Args:
+        quera_field (Union[GlobalField, LocalField)]:
+            Field supported by Quera
+
+    Returns:
+        An object of the type `braket.ahs.field.Field`
+
+    Raises:
+        TypeError: If field is not of the type `GlobalField` or `LocalField`.
+    """
     if isinstance(quera_field, GlobalField):
         times = quera_field.times
         values = quera_field.values
@@ -56,6 +89,12 @@ def to_braket_field(quera_field: Union[GlobalField, LocalField]) -> Field:
 
 
 def extract_braket_program(quera_task_ir: QuEraTaskSpecification):
+    """Extracts the Braket program.
+
+    Args:
+        quera_task_ir (QuEraTaskSpecification):
+            Quera IR(Intermediate representation) of the task.
+    """
     lattice = quera_task_ir.lattice
 
     rabi_amplitude = (
@@ -90,11 +129,31 @@ def extract_braket_program(quera_task_ir: QuEraTaskSpecification):
 def to_braket_task(
     quera_task_ir: QuEraTaskSpecification,
 ) -> Tuple[int, AnalogHamiltonianSimulation]:
+    """Converts to `Tuple[int, AnalogHamiltonianSimulation]` object supported by Braket.
+
+    Args:
+        quera_task_ir (QuEraTaskSpecification):
+            Quera IR(Intermediate representation) of the task.
+
+    Returns:
+        An tuple  of the type `Tuple[int, AnalogHamiltonianSimulation]`.
+    """
     braket_ahs_program = extract_braket_program(quera_task_ir)
     return quera_task_ir.nshots, braket_ahs_program
 
 
 def to_braket_task_ir(quera_task_ir: QuEraTaskSpecification) -> BraketTaskSpecification:
+    """Converts quera IR(Intermendiate Representation) to
+    to `BraketTaskSpecification` object.
+
+    Args:
+        quera_task_ir (QuEraTaskSpecification):
+            Quera IR(Intermediate representation) of the task.
+
+    Returns:
+        An object of the type `BraketTaskSpecification` in Braket SDK
+
+    """
     nshots, braket_ahs_program = to_braket_task(quera_task_ir)
     return BraketTaskSpecification(nshots=nshots, program=braket_ahs_program.to_ir())
 
@@ -102,6 +161,15 @@ def to_braket_task_ir(quera_task_ir: QuEraTaskSpecification) -> BraketTaskSpecif
 def from_braket_task_results(
     braket_task_results: AnalogHamiltonianSimulationTaskResult,
 ) -> QuEraTaskResults:
+    """Get the `QuEraTaskResults` object for working with Bloqade SDK.
+
+    Args:
+        braket_task_results: AnalogHamiltonianSimulationTaskResult
+            Quantum task result of braket system
+
+    Returns:
+        An object of the type `Field` in Braket SDK.
+    """
     shot_outputs = []
     for measurement in braket_task_results.measurements:
         shot_outputs.append(
@@ -117,16 +185,35 @@ def from_braket_task_results(
     )
 
 
-def from_braket_status_codes(braket_message: str) -> QuEraTaskStatusCode:
-    if braket_message == str("QUEUED"):
+def from_braket_status_codes(braket_status: str) -> QuEraTaskStatusCode:
+    """Gets the `QuEraTaskStatusCode` object for working with Bloqade SDK.
+
+    Args:
+        braket_status: str
+            The value of status in metadata() in the Amazon Braket.
+            `GetQuantumTask` operation. If use_cached_value is True,
+            the value most recently returned from
+            `GetQuantumTask` operation is used
+
+    Returns:
+        An object of the type `Field` in Braket SDK
+    """
+    if braket_status == str("QUEUED"):
         return QuEraTaskStatusCode.Enqueued
     else:
-        return QuEraTaskStatusCode(braket_message.lower().capitalize())
+        return QuEraTaskStatusCode(braket_status.lower().capitalize())
 
 
-def to_quera_capabilities(paradigm):
-    import bloqade.submission.ir.capabilities as cp
+def to_quera_capabilities(paradigm) -> cp.QuEraCapabilities:
+    """Converts to `QuEraCapabilities` object supported by Braket.
 
+    Args:
+        paradigm:
+            Bracket paradigm
+
+    Returns:
+        An object of the type `QuEraCapabilities` in Bloqade SDK.
+    """
     rydberg_global = paradigm.rydberg.rydbergGlobal
 
     return cp.QuEraCapabilities(
