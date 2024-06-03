@@ -135,14 +135,14 @@ class Report:
             [1, 1],
     ```
 
-    * The number of times each unique bitstring occurred:
+    The number of times each unique bitstring occurred:
     ```python
     >>> report.counts()
 
     [OrderedDict([('11', 892), ('10', 59), ('01', 49)])]
     ```
 
-    * The Rydberg Density for each atom
+    The Rydberg Density for each atom
     ```python
     >>> report.rydberg_densities()
 
