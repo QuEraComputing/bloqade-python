@@ -116,7 +116,7 @@ class QuEraTask(RemoteTask):
 
     def pull(self) -> "QuEraTask":
         """
-        Forcefully pulls the task results from the backend.
+        Blocks execution until task is in a stopped state, e.g. Completed, Cancelled, Failed, etc.
 
         Returns:
             QuEraTask: The task with updated results.
