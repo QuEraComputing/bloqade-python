@@ -18,7 +18,7 @@ import numpy as np
 
 from beartype.typing import Union, Optional, Dict, Any, List
 from beartype import beartype
-
+from typing import Literal
 from bloqade.builder.typing import LiteralType
 from bloqade.serialize import Serializer
 from bloqade.task.base import Report
@@ -226,20 +226,20 @@ class LocalBatch(Serializable, Filter):
         self, multiprocessing: bool = False, num_workers: Optional[int] = None, **kwargs
     ):
         """
-        Internal method to run tasks in the LocalBatch.
+        Private method to run tasks in the batch.
 
         Args:
-            multiprocessing (bool): Whether to use multiprocessing. Defaults to False.
-            num_workers (Optional[int]): Number of workers to use if multiprocessing.
-                                        Defaults to None.
-            **kwargs: Additional arguments to pass to the task run method.
+            multiprocessing (bool, optional): If True, tasks are run in parallel using multiple processes.
+                If False, tasks are run sequentially in a single process. Defaults to False.
+            num_workers (Optional[int], optional): The maximum number of processes that can be used to
+                execute the given calls if multiprocessing is True. If None, the number of workers will be the number of processors on the machine.
+            **kwargs: Arbitrary keyword arguments passed to the task's run method.
 
         Raises:
-            ValueError: If num_workers is specified but multiprocessing is not enabled.
+            ValueError: If num_workers is not None and multiprocessing is False.
 
         Returns:
-            LocalBatch: Updated LocalBatch with run tasks.
-
+            self: The instance of the batch with tasks run.
         """
         if multiprocessing:
             from concurrent.futures import ProcessPoolExecutor as Pool
@@ -361,7 +361,365 @@ class RemoteBatch(Filter):
     )
     _resolved_at: Optional[str] = None
 
+
     def report(self) -> Report:
+
+    class SubmissionException(Exception):
+        pass
+
+    @property
+    def total_nshots(self):
+        """
+        Total number of shots of all tasks in the RemoteBatch
+
+        Return:
+            number of shots
+
+        """
+        nshots = 0
+        for task in self.tasks.values():
+            nshots += task.task_ir.nshots
+        return nshots
+
+    def cancel(self) -> "RemoteBatch":
+        """
+        Cancel all the tasks in the Batch.
+
+        Return:
+            self
+
+        """
+        # cancel all jobs
+        for task in self.tasks.values():
+            task.cancel()
+
+        return self
+
+    def fetch(self) -> "RemoteBatch":
+        """
+        Fetch the tasks in the Batch.
+
+        Note:
+            Fetching will update the status of tasks,
+            and only pull the results for those tasks
+            that have completed.
+
+        Return:
+            self
+
+        """
+        # online, non-blocking
+        # pull the results only when its ready
+        for task in self.tasks.values():
+            task.fetch()
+
+        return self
+
+    def retrieve(self) -> "RemoteBatch":
+        """Retrieve missing task results.
+
+        Note:
+            Retrieve will update the status of tasks,
+            and only pull the results for those tasks
+            that have completed.
+
+        Return:
+            self
+
+        """
+        # partially online, sometimes blocking
+        # pull the results for tasks that have
+        # not been pulled already.
+        for task in self.tasks.values():
+            if not task._result_exists():
+                task.pull()
+
+        return self
+
+    def pull(self) -> "RemoteBatch":
+        """
+        Pull results of the tasks in the Batch.
+
+        Note:
+            Pulling will pull the results for the tasks.
+            If a given task(s) has not been completed, wait
+            until it finished.
+
+        Return:
+            self
+        """
+        # online, blocking
+        # pull the results. if its not ready, hanging
+        for task in self.tasks.values():
+            task.pull()
+
+        return self
+
+    def __repr__(self) -> str:
+        return str(self.tasks_metric())
+
+    def tasks_metric(self) -> pd.DataFrame:
+        """
+        Get current tasks status metric
+
+        Return:
+            dataframe with ["task id", "status", "shots"]
+
+        """
+        # [TODO] more info on current status
+        # offline, non-blocking
+        tid = []
+        data = []
+        for int, task in self.tasks.items():
+            tid.append(int)
+
+            dat = [None, None, None]
+            dat[0] = task.task_id
+            if task.task_result_ir is not None:
+                dat[1] = task.task_result_ir.task_status.name
+            dat[2] = task.task_ir.nshots
+            data.append(dat)
+
+        return pd.DataFrame(data, index=tid, columns=["task ID", "status", "shots"])
+
+    def remove_invalid_tasks(self) -> "RemoteBatch":
+        """
+        Create a RemoteBatch object that
+        contain tasks from current Batch,
+        with all Unaccepted tasks removed.
+
+        Return:
+            RemoteBatch
+
+        """
+        return self.remove_tasks("Unaccepted")
+
+        # return RemoteBatch(new_tasks, name=self.name)
+
+    @beartype
+    def resubmit(self, shuffle_submit_order: bool = True) -> "RemoteBatch":
+        """
+        Resubmit all the tasks in the RemoteBatch
+
+        Return:
+            self
+
+        """
+        # online, non-blocking
+        self._submit(shuffle_submit_order, force=True)
+        return self
+
+    def _submit(
+        self, shuffle_submit_order: bool = True, ignore_submission_error=False, **kwargs
+    ) -> "RemoteBatch":
+        """
+        Private method to submit tasks in the RemoteBatch.
+
+        Args:
+            shuffle_submit_order (bool, optional): If True, tasks are submitted in a random order.
+                If False, tasks are submitted in the order they were added to the batch. Defaults to True.
+            ignore_submission_error (bool, optional): If True, submission errors are ignored and the method continues to submit the remaining tasks.
+                If False, the method stops at the first submission error. Defaults to False.
+            **kwargs: Arbitrary keyword arguments.
+
+        Returns:
+            RemoteBatch: The RemoteBatch instance with tasks submitted.
+        """
+        from bloqade import save
+
+        # online, non-blocking
+        if shuffle_submit_order:
+            submission_order = np.random.permutation(list(self.tasks.keys()))
+        else:
+            submission_order = list(self.tasks.keys())
+
+        # submit tasks in random order but store them
+        # in the original order of tasks.
+        # futures = OrderedDict()
+
+        ## upon submit() should validate for Both backends
+        ## and throw errors when fail.
+        errors = BatchErrors()
+        shuffled_tasks = OrderedDict()
+        for task_index in submission_order:
+            task = self.tasks[task_index]
+            shuffled_tasks[task_index] = task
+            try:
+                task.submit(**kwargs)
+            except BaseException as error:
+                # record the error in the error dict
+                errors.task_errors[int(task_index)] = TaskError(
+                    exception_type=error.__class__.__name__,
+                    stack_trace=traceback.format_exc(),
+                )
+
+                task.task_result_ir = QuEraTaskResults(
+                    task_status=QuEraTaskStatusCode.Unaccepted
+                )
+
+        self.tasks = shuffled_tasks  # permute order using dump way
+
+        if len(errors.task_errors) > 0:
+            time_stamp = datetime.datetime.now()
+
+            if "win" in sys.platform:
+                time_stamp = str(time_stamp).replace(":", "~")
+
+            if self.name:
+                future_file = f"{self.name}-partial-batch-future-{time_stamp}.json"
+                error_file = f"{self.name}-partial-batch-errors-{time_stamp}.json"
+            else:
+                future_file = f"partial-batch-future-{time_stamp}.json"
+                error_file = f"partial-batch-errors-{time_stamp}.json"
+
+            cwd = os.getcwd()
+            # cloud_batch_result.save_json(future_file, indent=2)
+            # saving ?
+
+            save(errors, error_file)
+            save(self, future_file)
+
+            if ignore_submission_error:
+                warnings.warn(
+                    "One or more error(s) occured during submission, please see "
+                    "the following files for more information:\n"
+                    f"  - {os.path.join(cwd, future_file)}\n"
+                    f"  - {os.path.join(cwd, error_file)}\n",
+                    RuntimeWarning,
+                )
+            else:
+                raise RemoteBatch.SubmissionException(
+                    str(errors)
+                    + "\n"
+                    + "One or more error(s) occured during submission, please see "
+                    "the following files for more information:\n"
+                    f"  - {os.path.join(cwd, future_file)}\n"
+                    f"  - {os.path.join(cwd, error_file)}\n"
+                )
+
+        else:
+            # TODO: think about if we should automatically save successful submissions
+            #       as well.
+            pass
+
+    @beartype
+    def get_tasks(self, *status_codes: str) -> "RemoteBatch":
+        """
+        Get Tasks with specify status_codes.
+
+        Return:
+            RemoteBatch
+
+        """
+        # offline:
+        st_codes = [QuEraTaskStatusCode(x) for x in status_codes]
+
+        new_task_results = OrderedDict()
+        for task_number, task in self.tasks.items():
+            if task.task_result_ir.task_status in st_codes:
+                new_task_results[task_number] = task
+
+        return RemoteBatch(self.source, new_task_results, name=self.name)
+
+    @beartype
+    def remove_tasks(
+        self,
+        *status_codes: Literal[
+            "Created",
+            "Running",
+            "Completed",
+            "Failed",
+            "Cancelled",
+            "Executing",
+            "Enqueued",
+            "Accepted",
+            "Unaccepted",
+            "Partial",
+            "Unsubmitted",
+        ],
+    ) -> "RemoteBatch":
+        """
+        Remove Tasks with specify status_codes.
+
+        Return:
+            RemoteBatch
+
+        """
+        # offline:
+
+        st_codes = [QuEraTaskStatusCode(x) for x in status_codes]
+
+        new_results = OrderedDict()
+        for task_number, task in self.tasks.items():
+            if task.task_result_ir.task_status in st_codes:
+                continue
+
+            new_results[task_number] = task
+
+        return RemoteBatch(self.source, new_results, self.name)
+
+    def get_failed_tasks(self) -> "RemoteBatch":
+        """
+        Create a RemoteBatch object that
+        contain failed tasks from current Batch.
+
+        failed tasks with following status codes:
+
+        1. Failed
+        2. Unaccepted
+
+        Return:
+            RemoteBatch
+
+        """
+        # statuses that are in a state that are
+        # completed because of an error
+        statuses = ["Failed", "Unaccepted"]
+        return self.get_tasks(*statuses)
+
+    def remove_failed_tasks(self) -> "RemoteBatch":
+        """
+        Create a RemoteBatch object that
+        contain tasks from current Batch,
+        with failed tasks removed.
+
+        failed tasks with following status codes:
+
+        1. Failed
+        2. Unaccepted
+
+        Return:
+            RemoteBatch
+
+        """
+        # statuses that are in a state that will
+        # not run going forward because of an error
+        statuses = ["Failed", "Unaccepted"]
+        return self.remove_tasks(*statuses)
+
+    def get_finished_tasks(self) -> "RemoteBatch":
+        """
+        Create a RemoteBatch object that
+        contain finished tasks from current Batch.
+
+        Tasks consider finished with following status codes:
+
+        1. Failed
+        2. Unaccepted
+        3. Completed
+        4. Partial
+        5. Cancelled
+
+        Return:
+            RemoteBatch
+
+        """
+        # statuses that are in a state that will
+        # not run going forward for any reason
+        statuses = ["Completed", "Failed", "Unaccepted", "Partial", "Cancelled"]
+        return self.get_tasks(*statuses)
+
+    def get_completed_tasks(self) -> "RemoteBatch":
         """
         Generate analysis report based on currently completed tasks in the RemoteBatch.
 
