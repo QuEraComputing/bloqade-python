@@ -140,15 +140,6 @@ class BloqadeTask(LocalTask):
 
 @BloqadeTask.set_serializer
 def _serialize(obj: BloqadeTask) -> Dict[str, Any]:
-    """
-    Serializes a BloqadeTask object to a dictionary.
-
-    Args:
-        obj (BloqadeTask): The BloqadeTask object to be serialized.
-
-    Returns:
-        Dict[str, Any]: The serialized representation of the BloqadeTask object.
-    """
     return {
         "shots": obj.shots,
         "emulator_ir": obj.emulator_ir,
@@ -159,15 +150,6 @@ def _serialize(obj: BloqadeTask) -> Dict[str, Any]:
 
 @BloqadeTask.set_deserializer
 def _deserialize(d: Dict[str, Any]) -> BloqadeTask:
-    """
-    Deserializes a dictionary to a BloqadeTask object.
-
-    Args:
-        d (Dict[str, Any]): The dictionary to be deserialized.
-
-    Returns:
-        BloqadeTask: The deserialized BloqadeTask object.
-    """
     d["task_result_ir"] = (
         QuEraTaskResults(**d["task_result_ir"]) if d["task_result_ir"] else None
     )
