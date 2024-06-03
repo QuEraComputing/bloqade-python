@@ -124,7 +124,7 @@ class Report:
 
     The report contains useful information such as:
 
-    * The raw bitstrings measured per each execution of the program
+    The raw bitstrings measured per each execution of the program
     ```python
     >>> report.bitstrings()
     [array([[1, 1],
