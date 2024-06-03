@@ -8,6 +8,7 @@ enabling tasks to be easily saved and loaded.
 
 import warnings
 from dataclasses import dataclass, field
+from beartype.typing import Dict, Optional, Union, Any
 from bloqade.serialize import Serializer
 from bloqade.submission.mock import MockBackend
 from bloqade.task.base import Geometry, RemoteTask
@@ -18,8 +19,6 @@ from bloqade.submission.ir.task_specification import QuEraTaskSpecification
 from bloqade.submission.ir.parallel import ParallelDecoder
 from bloqade.submission.quera import QuEraBackend
 from bloqade.builder.base import ParamType
-
-from beartype.typing import Dict, Optional, Union, Any
 
 
 @dataclass
