@@ -1,6 +1,13 @@
-from pydantic.v1 import BaseModel
+"""
+This module defines data models for QuEra task specifications using the Pydantic library. 
+It includes models for various components such as Rabi frequency amplitude, Rabi frequency phase,
+detuning, and lattice configurations. These models support discretization based on task capabilities
+and provide methods for visualization.
+"""
+
 from typing import Optional, List, Tuple
 from decimal import Decimal
+from pydantic.v1 import BaseModel
 from bloqade.submission.ir.capabilities import QuEraCapabilities
 from bloqade.visualization import display_task_ir, get_task_ir_figure
 
@@ -12,6 +19,16 @@ FloatType = Decimal
 
 
 def discretize_list(list_of_values: list, resolution: FloatType):
+    """
+    Discretizes a list of values based on the given resolution.
+
+    Args:
+       list_of_values (list): List of values to be discretized.
+       resolution (FloatType): Resolution to which values should be discretized.
+
+    Returns:
+       list: Discretized list of values.
+    """
     resolution = Decimal(str(float(resolution)))
     return [round(Decimal(value) / resolution) * resolution for value in list_of_values]
 
@@ -51,6 +68,15 @@ class RabiFrequencyAmplitude(BaseModel):
         return hash((RabiFrequencyAmplitude, self.global_))
 
     def discretize(self, task_capabilities: QuEraCapabilities):
+        """
+        Discretizes the global field values based on the task capabilities.
+
+        Args:
+           task_capabilities (QuEraCapabilities): Capabilities of the task for discretization.
+
+        Returns:
+           RabiFrequencyAmplitude: Discretized Rabi frequency amplitude.
+        """
         global_time_resolution = (
             task_capabilities.capabilities.rydberg.global_.time_resolution
         )
@@ -66,6 +92,12 @@ class RabiFrequencyAmplitude(BaseModel):
         )
 
     def _get_data_source(self):
+        """
+        Prepares data source for visualization.
+
+        Returns:
+           dict: Data source dictionary for visualization.
+        """
         # isolate this for binding glyph later
         # required by visualization
         src = {
@@ -77,9 +109,21 @@ class RabiFrequencyAmplitude(BaseModel):
         return src
 
     def figure(self, **fig_kwargs):
+        """
+        Generates figure for the Rabi frequency amplitude.
+
+        Args:
+           **fig_kwargs: Additional keyword arguments for figure customization.
+
+        Returns:
+           Figure: Visualization figure for the Rabi frequency amplitude.
+        """
         return get_task_ir_figure(self, **fig_kwargs)
 
     def show(self):
+        """
+        Displays the Rabi frequency amplitude.
+        """
         display_task_ir(self)
 
 
@@ -94,6 +138,15 @@ class RabiFrequencyPhase(BaseModel):
         return hash((RabiFrequencyPhase, self.global_))
 
     def discretize(self, task_capabilities: QuEraCapabilities):
+        """
+        Discretizes the global field values based on the task capabilities.
+
+        Args:
+           task_capabilities (QuEraCapabilities): Capabilities of the task for discretization.
+
+        Returns:
+           RabiFrequencyPhase: Discretized Rabi frequency phase.
+        """
         global_time_resolution = (
             task_capabilities.capabilities.rydberg.global_.time_resolution
         )
@@ -109,6 +162,12 @@ class RabiFrequencyPhase(BaseModel):
         )
 
     def _get_data_source(self):
+        """
+        Prepares data source for visualization.
+
+        Returns:
+           dict: Data source dictionary for visualization.
+        """
         # isolate this for binding glyph later
         src = {
             "times_phase": [float(i) for i in self.global_.times],
@@ -118,11 +177,23 @@ class RabiFrequencyPhase(BaseModel):
         return src
 
     def figure(self, **fig_kwargs):
+        """
+        Generates figure for the Rabi frequency phase.
+
+        Args:
+           **fig_kwargs: Additional keyword arguments for figure customization.
+
+        Returns:
+           Figure: Visualization figure for the Rabi frequency phase.
+        """
         ## fig_kwargs is for extra tuning when assemble
         ## e.g. calling from QuEraTaskSpecification.figure()
         return get_task_ir_figure(self, **fig_kwargs)
 
     def show(self):
+        """
+        Displays the Rabi frequency phase.
+        """
         # we dont need fig_kwargs when display alone
         display_task_ir(self)
 
@@ -139,6 +210,15 @@ class Detuning(BaseModel):
         return hash((Detuning, self.global_, self.local))
 
     def discretize(self, task_capabilities: QuEraCapabilities):
+        """
+        Discretizes the global and local field values based on the task capabilities.
+
+        Args:
+           task_capabilities (QuEraCapabilities): Capabilities of the task for discretization.
+
+        Returns:
+           Detuning: Discretized detuning fields.
+        """
         global_time_resolution = (
             task_capabilities.capabilities.rydberg.global_.time_resolution
         )
@@ -165,6 +245,12 @@ class Detuning(BaseModel):
         )
 
     def _get_data_source(self):
+        """
+        Prepares data source for visualization.
+
+        Returns:
+           dict: Data source dictionary for visualization.
+        """
         # isolate this for binding glyph later
         src = {
             "times_detune": [float(i) for i in self.global_.times],
@@ -175,9 +261,21 @@ class Detuning(BaseModel):
         return src
 
     def global_figure(self, **fig_kwargs):
+        """
+        Generates figure for the global detuning.
+
+        Args:
+           **fig_kwargs: Additional keyword arguments for figure customization.
+
+        Returns:
+           Figure: Visualization figure for the global detuning.
+        """
         return get_task_ir_figure(self, **fig_kwargs)
 
     def show_global(self):
+        """
+        Displays the global detuning.
+        """
         display_task_ir(self)
 
 
@@ -197,6 +295,15 @@ class RydbergHamiltonian(BaseModel):
         )
 
     def discretize(self, task_capabilities: QuEraCapabilities):
+        """
+        Discretizes the Rydberg Hamiltonian based on the task capabilities.
+
+        Args:
+           task_capabilities (QuEraCapabilities): Capabilities of the task for discretization.
+
+        Returns:
+           RydbergHamiltonian: Discretized Rydberg Hamiltonian.
+        """
         return RydbergHamiltonian(
             rabi_frequency_amplitude=self.rabi_frequency_amplitude.discretize(
                 task_capabilities
@@ -215,6 +322,15 @@ class EffectiveHamiltonian(BaseModel):
         return hash((EffectiveHamiltonian, self.rydberg))
 
     def discretize(self, task_capabilities: QuEraCapabilities):
+        """
+        Discretizes the effective Hamiltonian based on the task capabilities.
+
+        Args:
+           task_capabilities (QuEraCapabilities): Capabilities of the task for discretization.
+
+        Returns:
+           EffectiveHamiltonian: Discretized effective Hamiltonian.
+        """
         return EffectiveHamiltonian(rydberg=self.rydberg.discretize(task_capabilities))
 
 
@@ -226,6 +342,15 @@ class Lattice(BaseModel):
         return hash((Lattice, tuple(self.sites), tuple(self.filling)))
 
     def discretize(self, task_capabilities: QuEraCapabilities):
+        """
+        Discretizes the lattice sites based on the task capabilities.
+
+        Args:
+           task_capabilities (QuEraCapabilities): Capabilities of the task for discretization.
+
+        Returns:
+           Lattice: Discretized lattice.
+        """
         position_resolution = (
             task_capabilities.capabilities.lattice.geometry.position_resolution
         )
@@ -235,11 +360,23 @@ class Lattice(BaseModel):
         )
 
     def figure(self, **fig_kwargs):
+        """
+        Generates figure for the lattice.
+
+        Args:
+           **fig_kwargs: Additional keyword arguments for figure customization.
+
+        Returns:
+           Figure: Visualization figure for the lattice.
+        """
         ## use ir.Atom_oarrangement's plotting:
         ## covert unit to m -> um
         return get_task_ir_figure(self, **fig_kwargs)
 
     def show(self):
+        """
+        Displays the lattice.
+        """
         display_task_ir(self)
 
 
@@ -259,6 +396,15 @@ class QuEraTaskSpecification(BaseModel):
         )
 
     def discretize(self, task_capabilities: QuEraCapabilities):
+        """
+        Discretizes the task specification based on the task capabilities.
+
+        Args:
+           task_capabilities (QuEraCapabilities): Capabilities of the task for discretization.
+
+        Returns:
+           QuEraTaskSpecification: Discretized task specification.
+        """
         return QuEraTaskSpecification(
             nshots=self.nshots,
             lattice=self.lattice.discretize(task_capabilities),
@@ -268,7 +414,16 @@ class QuEraTaskSpecification(BaseModel):
         )
 
     def figure(self):
+        """
+        Generates figure for the task specification.
+
+        Returns:
+           Figure: Visualization figure for the task specification.
+        """
         return get_task_ir_figure(self)
 
     def show(self):
+        """
+        Displays the task specification.
+        """
         display_task_ir(self)
