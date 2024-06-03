@@ -218,15 +218,7 @@ class QuEraTask(RemoteTask):
 
 @QuEraTask.set_serializer
 def _serialze(obj: QuEraTask) -> Dict[str, ParamType]:
-    """
-    Serializes the QuEraTask object.
 
-    Args:
-        obj (QuEraTask): The QuEraTask object to serialize.
-
-    Returns:
-        Dict[str, ParamType]: The serialized QuEraTask object.
-    """
     return {
         "task_id": obj.task_id if obj.task_id is not None else None,
         "task_ir": obj.task_ir.dict(by_alias=True, exclude_none=True),
@@ -245,15 +237,6 @@ def _serialze(obj: QuEraTask) -> Dict[str, ParamType]:
 
 @QuEraTask.set_deserializer
 def _deserializer(d: Dict[str, Any]) -> QuEraTask:
-    """
-    Deserializes a dictionary into a QuEraTask object.
-
-    Args:
-        d (Dict[str, Any]): The dictionary to deserialize.
-
-    Returns:
-        QuEraTask: The deserialized QuEraTask object.
-    """
     d["task_ir"] = QuEraTaskSpecification(**d["task_ir"])
     d["task_result_ir"] = (
         QuEraTaskResults(**d["task_result_ir"]) if d["task_result_ir"] else None
