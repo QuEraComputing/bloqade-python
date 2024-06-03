@@ -191,7 +191,7 @@ def from_braket_status_codes(braket_status: str) -> QuEraTaskStatusCode:
     Args:
         braket_status: str
             The value of status in metadata() in the Amazon Braket.
-            `GetQuantumTask` operation. If use_cached_value is True,
+            `GetQuantumTask` operation. If `use_cached_value` is `True`,
             the value most recently returned from
             `GetQuantumTask` operation is used
 
