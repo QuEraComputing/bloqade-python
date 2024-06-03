@@ -133,34 +133,19 @@ class Report:
             ...,
             [1, 1],
             [1, 1],
-            [1, 0]], dtype=int8)]
-    ```
-
-    ```text
-    [array([[1, 1],
-            [1, 1],
-            [1, 1],
-            ...,
-            [1, 1],
-            [1, 1],
-            [1, 0]], dtype=int8)]
     ```
 
     * The number of times each unique bitstring occurred:
     ```python
-    report.counts()
-    ```
+    >>> report.counts()
 
-    ```text
     [OrderedDict([('11', 892), ('10', 59), ('01', 49)])]
     ```
 
     * The Rydberg Density for each atom
     ```python
-    report.rydberg_densities()
-    ```
+    >>> report.rydberg_densities()
 
-    ```text
                     0      1
     task_number
     0            0.053  0.054
@@ -253,7 +238,7 @@ class Report:
                 (nshots, nsites) where nshots is the number of shots for
                 the task and nsites is the number of sites in the task.
                 For example:
-                 ```text
+                ```python3
                 [array([[1, 1],
                         [1, 1],
                         [1, 1],
@@ -308,7 +293,7 @@ class Report:
                 the task and nsites is the number of sites in the task.
                 For example:
 
-            ```text
+            ```python
                 [OrderedDict([('11', 892), ('10', 59), ('01', 49)])]
             ```
 
@@ -352,7 +337,7 @@ class Report:
         Return:
             per-site rydberg density for each task as a pandas DataFrame or Series.
             For example:
-            ```text
+            ```python
             0      1
             task_number
             0            0.053  0.054
