@@ -126,7 +126,14 @@ class Report:
 
     * The raw bitstrings measured per each execution of the program
     ```python
-    report.bitstrings()
+    >>> report.bitstrings()
+    [array([[1, 1],
+            [1, 1],
+            [1, 1],
+            ...,
+            [1, 1],
+            [1, 1],
+            [1, 0]], dtype=int8)]
     ```
 
     ```text
