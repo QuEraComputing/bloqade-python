@@ -112,7 +112,7 @@ class LocalTask(Task):
 class Report:
     """Report is a helper class for organizing and analysing data
 
-    ### Analyzing Results using `Report` object
+    ### Analyzing Results
     When you've retrieved your results from either emulation
     or hardware you can generate a `.report()`:
 
@@ -287,15 +287,14 @@ class Report:
                 all clusters are used, defaults to [].
 
         Returns:
-            bitstrings (list of ndarray): list corresponding to each
+            counts (list of OrderedDict[str, int]): list corresponding to each
                 task in the report. Each element is an ndarray of shape
                 (nshots, nsites) where nshots is the number of shots for
                 the task and nsites is the number of sites in the task.
                 For example:
-
-            ```python
-                [OrderedDict([('11', 892), ('10', 59), ('01', 49)])]
-            ```
+                ```python
+                    [OrderedDict([('11', 892), ('10', 59), ('01', 49)])]
+                ```
 
         Note:
             Note that nshots may vary between tasks if filter_perfect_filling
@@ -334,14 +333,15 @@ class Report:
                 cluster index to filter shots from. If none are provided
                 all clusters are used, defaults to [].
 
-        Return:
-            per-site rydberg density for each task as a pandas DataFrame or Series.
-            For example:
-            ```python
-            0      1
-            task_number
-            0            0.053  0.054
-            ````
+        Returns:
+            rydberg_densities (Union[pd.Series, pd.DataFrame]):
+                per-site rydberg density for each task as a pandas DataFrame or Series.
+                For example:
+                ```python
+                0      1
+                task_number
+                0            0.053  0.054
+                ```
         """
         mask = self._filter(
             filter_perfect_filling=filter_perfect_filling, clusters=clusters
