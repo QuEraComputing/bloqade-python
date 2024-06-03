@@ -41,11 +41,11 @@ class QuEraBackend(SubmissionBackend):
 
         return self._queue_api
 
-    def get_capabilities(self) -> QuEraCapabilities:
+    def get_capabilities(self, use_experimental: bool = False) -> QuEraCapabilities:
         try:
             return QuEraCapabilities(**self.queue_api.get_capabilities())
         except BaseException:
-            return super().get_capabilities()
+            return super().get_capabilities(use_experimental)
 
     def submit_task(self, task_ir: QuEraTaskSpecification) -> str:
         return self.queue_api.submit_task(
