@@ -26,8 +26,8 @@ class BraketBackend(SubmissionBackend):
     programs on Braket backend.
 
     Attributes:
-    device_arn(str): AWS arn for quantum program execution.
-        Defaults to `"arn:aws:braket:us-east-1::device/qpu/quera/Aquila"`
+        device_arn (str): AWS arn for quantum program execution.
+            Defaults to `"arn:aws:braket:us-east-1::device/qpu/quera/Aquila"`
     """
 
     device_arn: str = "arn:aws:braket:us-east-1::device/qpu/quera/Aquila"
@@ -35,8 +35,9 @@ class BraketBackend(SubmissionBackend):
 
     @property
     def device(self) -> AwsDevice:
-        """Amazon Braket implementation of a device. Use this class to retrieve
-        the latest metadata about the device and to run a quantum task on the device.
+        """`AwsDevice`: Amazon Braket implementation of a device. Use this class to
+        retrieve the latest metadata about the device and to run a quantum task
+        on the device.
         """
         if self._device is None:
             self._device = AwsDevice(self.device_arn)
@@ -47,12 +48,14 @@ class BraketBackend(SubmissionBackend):
 
     def get_capabilities(self, use_experimental: bool = False) -> QuEraCapabilities:
         """Get the capabilities of the QuEra backend.
+
         Args:
-        use_experimental (bool): Whether to use experimental capabilities of
-            the backend system. Defaults to `False`.
+            use_experimental (bool): Whether to use experimental capabilities of
+                the backend system. Defaults to `False`.
+
         Returns:
-        An object to the type `QuEraCapabilities`, representing the capabilities
-        of the selected QuEra backend.
+            capabilities (`QuEraCapabilities`): capabilities
+                of the selected QuEra backend.
         """
         from botocore.exceptions import BotoCoreError, ClientError
 
@@ -80,13 +83,13 @@ class BraketBackend(SubmissionBackend):
         accepted by Braket.
 
         Args:
-        task_ir (QuEraTaskSpecification): task IR(Intermediate Represetation)
-        suitable for QuEra backend. It will be converted to appropriate
-        IR(Intermediate Represetation) accepted by Braket backend
+            task_ir (QuEraTaskSpecification): task IR(Intermediate Represetation)
+                suitable for QuEra backend. It will be converted to appropriate
+                IR(Intermediate Represetation) accepted by Braket backend
 
         Returns:
-        Task id as a result of executing IR(Intermediate Represetation)
-        on the Braket backend.
+            task_id (str): Task id as a result of executing
+            IR(Intermediate Represetation) on the Braket backend.
         """
         shots, ahs_program = to_braket_task(task_ir)
         task = self.device.run(ahs_program, shots=shots)
@@ -96,18 +99,19 @@ class BraketBackend(SubmissionBackend):
         """Get the result of the task by using the task id of Braket backend.
 
         Args:
-        task_id (str): task id after executing program on the Braket backend.
+            task_id (str): task id after executing program on the Braket backend.
 
         Returns:
-        Task result of the type `QuEraTaskResults` from task id
-        of the Braket backend.
+            task_result (`QuEraTaskResults`): Gets the task result using task id
+                of the Braket backend.
         """
         return from_braket_task_results(AwsQuantumTask(task_id).result())
 
     def cancel_task(self, task_id: str) -> None:
         """Cancels the task submitted to the Braket backend.
+
         Args:
-        task_id (str): task id after executing program on the Bracket backend.
+            task_id (str): task id after executing program on the Bracket backend.
         """
         AwsQuantumTask(task_id).cancel()
 
@@ -115,11 +119,11 @@ class BraketBackend(SubmissionBackend):
         """Get the status of the task submitted by using the task id of Braket backend.
 
         Args:
-        task_id (str): task id after executing program on the Braket backend.
+            task_id (str): task id after executing program on the Braket backend.
 
         Returns:
-        Task status of the type `QuEraTaskStatusCode` by using the task id
-        of the Braket backend.
+            status_code (QuEraTaskStatusCode): Task status by using the task id
+                of the Braket backend.
         """
         return from_braket_status_codes(AwsQuantumTask(task_id).state())
 
@@ -127,15 +131,15 @@ class BraketBackend(SubmissionBackend):
         """Validates the task submitted to the QuEra backend.
 
         Args:
-        task_ir (QuEraTaskSpecification): task IR(Intermediate Represetation)
-        suitable for QuEra backend. It will be converted to appropriate
-        IR(Intermediate Representation) accepted by Braket backend.
+            task_ir (QuEraTaskSpecification): task IR(Intermediate Represetation)
+                suitable for QuEra backend. It will be converted to appropriate
+                IR(Intermediate Representation) accepted by Braket backend.
 
         Raises:
-        ValidationError: For tasks that fail validation.
+            ValidationError: For tasks that fail validation.
 
-        Notes:
-        Currently, it's a no-op.
+        Note:
+            Currently, it's a no-op.
         """
         pass
 
