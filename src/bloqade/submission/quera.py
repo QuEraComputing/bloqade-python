@@ -18,29 +18,29 @@ class QuEraBackend(SubmissionBackend):
     """Class to represent QuEra backend.
 
     Attributes:
-    api_hostname (str): API of the host.
-    qpu_id (str): QPU id.
-    api_stage (str): API version. Defaults to "v0"
-    virtual_queue (Optional[str]) = Virtual queue in QuEra backend.
-        Defaults to `None`.
-    proxy (Optional[str]): proxy for Quera backend. Defaults to `None`.
-    # Sigv4Request arguments
-    region (Optional[str]): Sigv4Request argument for region of QuEra backend.
-        Defaults to `None`.
-    access_key (Optional[str]): Sigv4Request argument representing the access
-        key required to access QuEra backend. Defaults to `None`.
-    secret_key (Optional[str]): Sigv4Request argument representing the secret
-        key required to access QuEra backend. Defaults to `None`.
-    session_token (Optional[str]): Sigv4Request argument representing the session
-        token of the QuEra backend. Defaults to `None`.
-    session_expires (Optional[int]) = Sigv4Request argument representing the
-        expiration timestamp for the session on QuEra backend. Defaults to `None`.
-    role_arn (Optional[str]) = Role of the user accessing QuEra backend.
-        Defaults to `None`.
-    role_session_name (Optional[str]) = Role session name for QuEra backend.
-        Defaults to `None`.
-    profile (Optional[str]) = User profile for QuEra backend.
-        Defaults to `None`.
+        api_hostname (str): API of the host.
+        qpu_id (str): QPU id.
+        api_stage (str): API version. Defaults to "v0"
+        virtual_queue (Optional[str]) = Virtual queue in QuEra backend.
+            Defaults to `None`.
+        proxy (Optional[str]): proxy for Quera backend. Defaults to `None`.
+        # Sigv4Request arguments
+        region (Optional[str]): Sigv4Request argument for region of QuEra backend.
+            Defaults to `None`.
+        access_key (Optional[str]): Sigv4Request argument representing the access
+            key required to access QuEra backend. Defaults to `None`.
+        secret_key (Optional[str]): Sigv4Request argument representing the secret
+            key required to access QuEra backend. Defaults to `None`.
+        session_token (Optional[str]): Sigv4Request argument representing the session
+            token of the QuEra backend. Defaults to `None`.
+        session_expires (Optional[int]) = Sigv4Request argument representing the
+            expiration timestamp for the session on QuEra backend. Defaults to `None`.
+        role_arn (Optional[str]) = Role of the user accessing QuEra backend.
+            Defaults to `None`.
+        role_session_name (Optional[str]) = Role session name for QuEra backend.
+            Defaults to `None`.
+        profile (Optional[str]) = User profile for QuEra backend.
+            Defaults to `None`.
     """
 
     api_hostname: str
@@ -61,6 +61,7 @@ class QuEraBackend(SubmissionBackend):
 
     @property
     def queue_api(self):
+        """TODO: Document"""
         if self._queue_api is None:
             try:
                 from qcs.api_client.api import QueueApi
@@ -76,12 +77,12 @@ class QuEraBackend(SubmissionBackend):
         """Get the capabilities of the QuEra backend.
 
         Args:
-        use_experimental (bool): Whether to use experimental capabilities of
-            the QuEra system. Defaults to `False`.
+            use_experimental (bool): Whether to use experimental capabilities of
+                the QuEra system. Defaults to `False`.
 
         Returns:
-        An object to the type `QuEraCapabilities`, representing the capabilities
-        of the selected QuEra backend.
+            capabilities (QuEraCapabilities): capabilities of the selected
+                QuEra backend.
         """
         try:
             return QuEraCapabilities(**self.queue_api.get_capabilities())
@@ -92,12 +93,12 @@ class QuEraBackend(SubmissionBackend):
         """Submit the task to the QuEra backend.
 
         Args:
-        task_ir (QuEraTaskSpecification): task IR(Intermediate Represetation)
-        to be executed on the QuEra backend.
+            task_ir (QuEraTaskSpecification): task IR(Intermediate Represetation)
+                to be executed on the QuEra backend.
 
         Returns:
-        Task id as a result of executing IR(Intermediate Represetation)
-        on the QuEra backend.
+            task_id (str): Task id as a result of executing
+                IR(Intermediate Represetation) on the QuEra backend.
         """
         return self.queue_api.submit_task(
             task_ir.json(by_alias=True, exclude_none=True, exclude_unset=True)
@@ -108,10 +109,11 @@ class QuEraBackend(SubmissionBackend):
         by using the task id.
 
         Args:
-        task_id (str): task id after executing program on the QuEra backend.
+            task_id (str): task id after executing program on the QuEra backend.
 
         Returns:
-        Task result of the task by using the task id.
+            task_result (QuEraTaskResults):
+                Final result of the task by using the task id.
         """
         return QuEraTaskResults(**self.queue_api.poll_task_results(task_id))
 
@@ -119,7 +121,7 @@ class QuEraBackend(SubmissionBackend):
         """Cancels the task submitted to the QuEra backend.
 
         Args:
-        task_id (str): task id after executing program on the QuEra backend.
+            task_id (str): task id after executing program on the QuEra backend.
         """
         self.queue_api.cancel_task_in_queue(task_id)
 
@@ -128,10 +130,10 @@ class QuEraBackend(SubmissionBackend):
         by using the task id.
 
         Args:
-        task_id (str): task id after executing program on the QuEra backend.
+            task_id (str): task id after executing program on the QuEra backend.
 
         Returns:
-        Task status of the task by using the task id.
+            task_status (QuEraTaskStatusCode): status of the task by using the task id.
         """
         return_body = self.queue_api.get_task_status_in_queue(task_id)
         return QuEraTaskStatusCode(return_body)
@@ -140,11 +142,11 @@ class QuEraBackend(SubmissionBackend):
         """Validates the task submitted to the QuEra backend.
 
         Args:
-        task_ir (QuEraTaskSpecification): task IR(Intermediate Represetation)
-        to be executed on the QuEra backend.
+            task_ir (QuEraTaskSpecification): task IR(Intermediate Represetation)
+                to be executed on the QuEra backend.
 
         Raises:
-        ValidationError: For tasks that fail validation.
+            ValidationError: For tasks that fail validation.
         """
         try:
             self.queue_api.validate_task(
@@ -159,12 +161,12 @@ class QuEraBackend(SubmissionBackend):
         """Update the credentials
 
         Args:
-        access_key (Optional[str]): Sigv4Request argument representing the access
-            key required to access QuEra backend. Defaults to `None`.
-        secret_key (Optional[str]): Sigv4Request argument representing the secret
-            key required to access QuEra backend. Defaults to `None`.
-        session_token (Optional[str]): Sigv4Request argument representing the session
-            token of the QuEra backend. Defaults to `None`.
+            access_key (Optional[str]): Sigv4Request argument representing the access
+                key required to access QuEra backend. Defaults to `None`
+            secret_key (Optional[str]): Sigv4Request argument representing the secret
+                key required to access QuEra backend. Defaults to `None`
+            session_token (Optional[str]): Sigv4Request argument representing the
+                session token of the QuEra backend. Defaults to `None`
         """
         if secret_key is not None:
             self.secret_key = secret_key
