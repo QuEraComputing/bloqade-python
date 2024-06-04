@@ -142,7 +142,7 @@ class QuEraBackend(SubmissionBackend):
         """Validates the task submitted to the QuEra backend.
 
         Args:
-            task_ir (QuEraTaskSpecification): task IR(Intermediate Represetation)
+            task_ir (QuEraTaskSpecification): task IR(Intermediate Representation)
                 to be executed on the QuEra backend.
 
         Raises:
