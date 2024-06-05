@@ -79,17 +79,16 @@ class BraketBackend(SubmissionBackend):
 
     def submit_task(self, task_ir: QuEraTaskSpecification) -> str:
         """Submit the task to the Braket backend. It converts task
-        IR(Intermediate Representation) of the QuEra system to suitable format
+        IR of the QuEra system to suitable format
         accepted by Braket.
 
         Args:
-            task_ir (QuEraTaskSpecification): task IR(Intermediate Represetation)
-                suitable for QuEra backend. It will be converted to appropriate
-                IR(Intermediate Represetation) accepted by Braket backend
+            task_ir (QuEraTaskSpecification): task IR suitable for QuEra backend.
+                It will be converted to appropriate IR accepted by Braket backend.
 
         Returns:
             task_id (str): Task id as a result of executing
-            IR(Intermediate Represetation) on the Braket backend.
+                IR on the Braket backend.
         """
         shots, ahs_program = to_braket_task(task_ir)
         task = self.device.run(ahs_program, shots=shots)
@@ -131,9 +130,9 @@ class BraketBackend(SubmissionBackend):
         """Validates the task submitted to the QuEra backend.
 
         Args:
-            task_ir (QuEraTaskSpecification): task IR(Intermediate Represetation)
-                suitable for QuEra backend. It will be converted to appropriate
-                IR(Intermediate Representation) accepted by Braket backend.
+            task_ir (QuEraTaskSpecification): task IR suitable for
+                QuEra backend. It will be converted to appropriate
+                IR accepted by Braket backend.
 
         Raises:
             ValidationError: For tasks that fail validation.
