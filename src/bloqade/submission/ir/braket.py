@@ -208,7 +208,7 @@ def to_quera_capabilities(paradigm) -> cp.QuEraCapabilities:
     """Converts to `QuEraCapabilities` object supported by Braket.
 
     Args:
-        paradigm: Bracket paradigm
+        paradigm: The `paradigm` property of the `AwsDevice` object for Aquila
 
     Returns:
         An object of the type `QuEraCapabilities` in Bloqade SDK.
