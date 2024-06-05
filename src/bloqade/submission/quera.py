@@ -93,12 +93,12 @@ class QuEraBackend(SubmissionBackend):
         """Submit the task to the QuEra backend.
 
         Args:
-            task_ir (QuEraTaskSpecification): task IR(Intermediate Represetation)
-                to be executed on the QuEra backend.
+            task_ir (QuEraTaskSpecification): task IR to be
+                executed on the QuEra backend.
 
         Returns:
             task_id (str): Task id as a result of executing
-                IR(Intermediate Represetation) on the QuEra backend.
+                IR on the QuEra backend.
         """
         return self.queue_api.submit_task(
             task_ir.json(by_alias=True, exclude_none=True, exclude_unset=True)
@@ -142,8 +142,8 @@ class QuEraBackend(SubmissionBackend):
         """Validates the task submitted to the QuEra backend.
 
         Args:
-            task_ir (QuEraTaskSpecification): task IR(Intermediate Representation)
-                to be executed on the QuEra backend.
+            task_ir (QuEraTaskSpecification): task IR to be
+                executed on the QuEra backend.
 
         Raises:
             ValidationError: For tasks that fail validation.
