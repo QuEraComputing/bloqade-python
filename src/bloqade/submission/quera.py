@@ -61,7 +61,6 @@ class QuEraBackend(SubmissionBackend):
 
     @property
     def queue_api(self):
-        """TODO: Document"""
         if self._queue_api is None:
             try:
                 from qcs.api_client.api import QueueApi
