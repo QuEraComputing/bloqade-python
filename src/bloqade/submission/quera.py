@@ -113,6 +113,10 @@ class QuEraBackend(SubmissionBackend):
         Returns:
             task_result (QuEraTaskResults):
                 Final result of a task previously submitted by using the task id.
+
+        Note:
+            This is a blocking call, meaning the function will not
+                return till the task has stopped.
         """
         return QuEraTaskResults(**self.queue_api.poll_task_results(task_id))
 
