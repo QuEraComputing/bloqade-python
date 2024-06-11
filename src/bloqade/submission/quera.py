@@ -89,7 +89,7 @@ class QuEraBackend(SubmissionBackend):
             return super().get_capabilities(use_experimental)
 
     def submit_task(self, task_ir: QuEraTaskSpecification) -> str:
-        """Submit the task to the QuEra backend.
+        """Submit a task to the QuEra backend.
 
         Args:
             task_ir (QuEraTaskSpecification): task IR to be
@@ -112,12 +112,12 @@ class QuEraBackend(SubmissionBackend):
 
         Returns:
             task_result (QuEraTaskResults):
-                Final result of the task by using the task id.
+                Final result of a task previously submitted by using the task id.
         """
         return QuEraTaskResults(**self.queue_api.poll_task_results(task_id))
 
     def cancel_task(self, task_id: str):
-        """Cancels the task submitted to the QuEra backend.
+        """Cancels a task previously submitted to the QuEra backend.
 
         Args:
             task_id (str): task id after executing program on the QuEra backend.
@@ -125,14 +125,15 @@ class QuEraBackend(SubmissionBackend):
         self.queue_api.cancel_task_in_queue(task_id)
 
     def task_status(self, task_id: str) -> QuEraTaskStatusCode:
-        """Get the status of the task submitted to the QuEra backend
+        """Get the status of a task previously submitted to the QuEra backend
         by using the task id.
 
         Args:
             task_id (str): task id after executing program on the QuEra backend.
 
         Returns:
-            task_status (QuEraTaskStatusCode): status of the task by using the task id.
+            task_status (QuEraTaskStatusCode):
+                status of a task previously by using the task id.
         """
         return_body = self.queue_api.get_task_status_in_queue(task_id)
         return QuEraTaskStatusCode(return_body)
