@@ -89,7 +89,29 @@ class TaskProbabilities(BaseModel):
         """Simulate the task results as probabilties.
 
         Args:
-            shots (int): Number of shots, Defaults to 1
+            shots (int): Number of shots, Defaults to 1.
+
+        Returns:
+            task_result (QuEraTaskResults): Result of task simulation
+                For example:
+                ```python
+                {
+                    "task_status": "Completed",
+                    "shot_outputs": [
+                        {
+                        "shot_status": "Completed",
+                        "pre_sequence": [1],
+                        "post_sequence": [1]
+                        },
+                        ....
+                        {
+                        "shot_status": "Completed",
+                        "pre_sequence": [1],
+                        "post_sequence": [1]
+                        }
+                    ],
+                }
+                ```
         """
         bit_strings, probabilities = zip(*self.probabilities)
 
