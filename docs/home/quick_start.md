@@ -10,41 +10,25 @@ As you develop your Bloqade program, you are expected to rely on pop-up "hints" 
 
 In [VS Code](https://code.visualstudio.com/) this is automatic, just type the `.` and see what options pop up:
 
-<div align="center">
-<picture>
-  <img src="../assets/quick_start/vscode-hints.gif" alt="VSCode Hints">
-</picture>
-</div>
+![VSCode Hints](../assets/quick_start/vscode-hints.gif)
 
 ### JetBrains PyCharm
 
 The same goes for [JetBrains PyCharm](https://www.jetbrains.com/pycharm/):
 
-<div align="center">
-<picture>
-  <img src="../assets/quick_start/pycharm-hints.gif" alt="PyCharm Hints">
-</picture>
-</div>
+![PyCharm Hints](../assets/quick_start/pycharm-hints.gif)
 
 ### Jupyter Notebook 
 
 In a [Jupyter Notebook](https://jupyter.org/) you'll need to type `.` and then hit tab for the hints to appear:
 
-<div align="center">
-<picture>
-  <img src="../assets/quick_start/jupyter-hints.gif" alt="Jupyter Notebook Hints">
-</picture>
-</div>
+![Jupyter Hints](../assets/quick_start/jupyter-hints.gif)
 
 ### IPython
 
 The same goes for [IPython](https://ipython.readthedocs.io/en/stable/):
 
-<div align="center">
-<picture>
-  <img src="../assets/quick_start/ipython-hints.gif" alt="IPython Hints">
-</picture>
-</div>
+![IPython Hints](../assets/quick_start/ipython-hints.gif)
 
 ## Defining Atom Geometry
 
