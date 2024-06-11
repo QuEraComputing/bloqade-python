@@ -104,6 +104,10 @@ class BraketBackend(SubmissionBackend):
         Returns:
             task_result (`QuEraTaskResults`): Gets the task result a task
                 previously submitted using task id of the Braket backend.
+
+        Note:
+            This is a blocking call, meaning the function will not
+                return till the task has stopped.
         """
         return from_braket_task_results(AwsQuantumTask(task_id).result())
 
