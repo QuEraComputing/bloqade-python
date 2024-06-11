@@ -104,7 +104,7 @@ class QuEraBackend(SubmissionBackend):
         )
 
     def task_results(self, task_id: str) -> QuEraTaskResults:
-        """Get the status of the task submitted to the QuEra backend
+        """Get the status of a task previously submitted to the QuEra backend
         by using the task id.
 
         Args:
