@@ -46,11 +46,10 @@ You can easily visualize your geometries as well with `.show()`:
 ```python
 more_complex_geometry.show()
 ```
-<div align="center">
-<picture>
-  <img src="../assets/quick_start/geometry-visualization.png" style="width: 50%" alt="Geometry Visualization">
-</picture>
-</div>
+<figure markdown="span">
+![IPython Hints](../assets/quick_start/geometry-visualization.png){ width="50%" }
+</figure>
+
 
 You can also add positions to a pre-defined geometry:
 
