@@ -95,19 +95,20 @@ class BraketBackend(SubmissionBackend):
         return task.id
 
     def task_results(self, task_id: str) -> QuEraTaskResults:
-        """Get the result of the task by using the task id of Braket backend.
+        """Get the result of a task previously submitted by using the
+        task id of Braket backend.
 
         Args:
             task_id (str): task id after executing program on the Braket backend.
 
         Returns:
-            task_result (`QuEraTaskResults`): Gets the task result using task id
-                of the Braket backend.
+            task_result (`QuEraTaskResults`): Gets the task result a task
+                previously submitted using task id of the Braket backend.
         """
         return from_braket_task_results(AwsQuantumTask(task_id).result())
 
     def cancel_task(self, task_id: str) -> None:
-        """Cancels the task submitted to the Braket backend.
+        """Cancels a task previously submitted to the Braket backend.
 
         Args:
             task_id (str): task id after executing program on the Bracket backend.
@@ -115,14 +116,15 @@ class BraketBackend(SubmissionBackend):
         AwsQuantumTask(task_id).cancel()
 
     def task_status(self, task_id: str) -> QuEraTaskStatusCode:
-        """Get the status of the task submitted by using the task id of Braket backend.
+        """Get the status of a task previously submitted by using
+        the task id of Braket backend.
 
         Args:
             task_id (str): task id after executing program on the Braket backend.
 
         Returns:
             status_code (QuEraTaskStatusCode): Task status by using the task id
-                of the Braket backend.
+                of of a task previously submitted to the Braket backend.
         """
         return from_braket_status_codes(AwsQuantumTask(task_id).state())
 
