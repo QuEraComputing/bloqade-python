@@ -1,6 +1,26 @@
+"""
+This module defines classes and methods for managing and processing batches of tasks
+in both local and remote contexts. The main classes provided are `LocalBatch` and 
+`RemoteBatch`, which handle task execution, reporting, and error management.
+"""
+
+import os
+import warnings
 from decimal import Decimal
 from numbers import Real
+from collections import OrderedDict
+from collections.abc import Sequence
+from itertools import product
+import traceback
+import datetime
+import sys
+from dataclasses import dataclass, field
 from typing import Literal
+import pandas as pd
+import numpy as np
+
+from beartype.typing import Union, Optional, Dict, Any, List
+from beartype import beartype
 from bloqade.builder.typing import LiteralType
 from bloqade.serialize import Serializer
 from bloqade.task.base import Report
@@ -19,28 +39,14 @@ from bloqade.submission.ir.task_results import (
 
 # from bloqade.submission.base import ValidationError
 
-from beartype.typing import Union, Optional, Dict, Any, List
-from beartype import beartype
-from collections import OrderedDict
-from collections.abc import Sequence
-from itertools import product
-import traceback
-import datetime
-import sys
-import os
-import warnings
-import pandas as pd
-import numpy as np
-from dataclasses import dataclass, field
-
 
 class Serializable:
     def json(self, **options) -> str:
         """
         Serialize the object to JSON string.
 
-        Return:
-            JSON string
+        Returns:
+            str: JSON string
 
         """
         from bloqade import dumps
@@ -56,24 +62,26 @@ class Filter:
     def filter_metadata(
         self, __match_any__: bool = False, **metadata: MetadataFilterType
     ) -> Union["LocalBatch", "RemoteBatch"]:
-        """Create a Batch object that has tasks filtered based on the
-        values of metadata.
+        """
+        Create a Batch object that has tasks filtered based on the values of metadata.
 
         Args:
-            __match_any__: if True, then a task will be included if it
-                matches any of the metadata filters. If False, then a
-                task will be included only if it matches all of the
-                metadata filters. Defaults to False.
+            __match_any__ (bool):
+                If True, then a task will be included
+                if it matches any of the metadata filters.
+                If False, then a task will be included only if it
+                matches all of the metadata filters. Defaults to False.
+            **metadata (MetadataFilterType):
+                The metadata to filter on.
+                The keys are the metadata names and
+                the values (as a set) are the values to filter on.
+                The elements in the set can be Real, Decimal, Tuple[Real], or Tuple[Decimal].
 
-            **metadata: the metadata to filter on. The keys are the metadata
-                names and the values (as a set) are the values to filter on.
-                The elements in the set can be Real, Decimal, Tuple[Real], or
-                Tuple[Decimal].
-
-        Return:
-            type(self): a Batch object with the filtered tasks, either
-                LocalBatch or RemoteBatch depending on the type of self
-
+        Returns:
+            Union["LocalBatch", "RemoteBatch"]:
+                A Batch object with the filtered tasks,
+                either LocalBatch or RemoteBatch depending
+                on the type of self.
         """
 
         def convert_to_decimal(element):
@@ -121,14 +129,12 @@ class LocalBatch(Serializable, Filter):
 
     def report(self) -> Report:
         """
-        Generate analysis report base on currently
-        completed tasks in the LocalBatch.
+        Generate analysis report based on currently completed tasks in the LocalBatch.
 
-        Return:
-            Report
+        Returns:
+            Report: Analysis report.
 
         """
-
         ## this potentially can be specialize/disatch
         ## offline
         index = []
@@ -205,11 +211,16 @@ class LocalBatch(Serializable, Filter):
         """
         Rerun all the tasks in the LocalBatch.
 
-        Return:
-            Report
+        Args:
+            multiprocessing (bool): Whether to use multiprocessing. Defaults to False.
+            num_workers (Optional[int]): Number of workers to use if multiprocessing.
+                                        Defaults to None.
+            **kwargs: Additional arguments to pass to the task run method.
+
+        Returns:
+            Report: Analysis report.
 
         """
-
         return self._run(
             multiprocessing=multiprocessing, num_workers=num_workers, **kwargs
         )
@@ -221,10 +232,12 @@ class LocalBatch(Serializable, Filter):
         Private method to run tasks in the batch.
 
         Args:
-            multiprocessing (bool, optional): If True, tasks are run in parallel using multiple processes.
-                If False, tasks are run sequentially in a single process. Defaults to False.
-            num_workers (Optional[int], optional): The maximum number of processes that can be used to
-                execute the given calls if multiprocessing is True. If None, the number of workers will be the number of processors on the machine.
+            multiprocessing (bool, optional):
+            If True, tasks are run in parallel using multiple processes.
+            If False, tasks are run sequentially in a single process. Defaults to False.
+            num_workers (Optional[int], optional): The maximum number of processes that can be used
+            to execute the given calls if multiprocessing is True.
+            If None, the number of workers will be the number of processors on the machine.
             **kwargs: Arbitrary keyword arguments passed to the task's run method.
 
         Raises:
@@ -257,6 +270,16 @@ class LocalBatch(Serializable, Filter):
 
 @LocalBatch.set_serializer
 def _serialize(obj: LocalBatch) -> Dict[str, Any]:
+    """
+    Serialize LocalBatch object.
+
+    Args:
+        obj (LocalBatch): LocalBatch object to serialize.
+
+    Returns:
+        Dict[str, Any]: Serialized data.
+
+    """
     return {
         "source": None,
         "tasks": [(k, v) for k, v in obj.tasks.items()],
@@ -266,6 +289,16 @@ def _serialize(obj: LocalBatch) -> Dict[str, Any]:
 
 @LocalBatch.set_deserializer
 def _deserializer(d: Dict[str, Any]) -> LocalBatch:
+    """
+    Deserialize data into LocalBatch object.
+
+    Args:
+        d (Dict[str, Any]): Data to deserialize.
+
+    Returns:
+        LocalBatch: Deserialized LocalBatch object.
+
+    """
     d["tasks"] = OrderedDict(d["tasks"])
     return LocalBatch(**d)
 
@@ -286,10 +319,30 @@ class BatchErrors(Serializable):
 
     @beartype
     def print_errors(self, task_indices: Union[List[int], int]) -> str:
+        """
+        Print errors for specified tasks.
+
+        Args:
+            task_indices (Union[List[int], int]): List of task indices or a single task index.
+
+        Returns:
+            str: Errors as string.
+
+        """
         return str(self.get_errors(task_indices))
 
     @beartype
     def get_errors(self, task_indices: Union[List[int], int]):
+        """
+        Get errors for specified tasks.
+
+        Args:
+            task_indices (Union[List[int], int]): List of task indices or a single task index.
+
+        Returns:
+            BatchErrors: BatchErrors object containing the errors for specified tasks.
+
+        """
         return BatchErrors(
             task_errors=OrderedDict(
                 [
@@ -300,42 +353,18 @@ class BatchErrors(Serializable):
             )
         )
 
-    def __str__(self) -> str:
-        output = ""
-        for task_index, task_error in self.task_errors.items():
-            output += (
-                f"Task {task_index} failed to submit with error: "
-                f"{task_error.exception_type}\n"
-                f"{task_error.stack_trace}"
-            )
 
-        return output
-
-
-@BatchErrors.set_serializer
-def _serialize(self: BatchErrors) -> Dict[str, List]:
-    return {
-        "task_errors": [
-            (task_number, task_error)
-            for task_number, task_error in self.task_errors.items()
-        ]
-    }
-
-
-@BatchErrors.set_deserializer
-def _deserialize(obj: dict) -> BatchErrors:
-    return BatchErrors(task_errors=OrderedDict(obj["task_errors"]))
-
-
-# this class get collection of tasks
-# basically behaves as a psudo queuing system
-# the user only need to store this objecet
 @dataclass
 @Serializer.register
-class RemoteBatch(Serializable, Filter):
-    source: Builder
-    tasks: Union[OrderedDict[int, QuEraTask], OrderedDict[int, BraketTask]]
+class RemoteBatch(Filter):
+    tasks: OrderedDict[int, Union[QuEraTask, BraketTask]]
+    id: Optional[str] = None
+    _errors: BatchErrors = field(default_factory=BatchErrors)
     name: Optional[str] = None
+    _created_at: str = field(
+        default_factory=lambda: datetime.datetime.now().isoformat()
+    )
+    _resolved_at: Optional[str] = None
 
     class SubmissionException(Exception):
         pass
@@ -490,9 +519,13 @@ class RemoteBatch(Serializable, Filter):
 
         Args:
             shuffle_submit_order (bool, optional): If True, tasks are submitted in a random order.
-                If False, tasks are submitted in the order they were added to the batch. Defaults to True.
-            ignore_submission_error (bool, optional): If True, submission errors are ignored and the method continues to submit the remaining tasks.
-                If False, the method stops at the first submission error. Defaults to False.
+                If False, tasks are submitted in the order they were added to the batch.
+                Defaults to True.
+            ignore_submission_error (bool, optional):
+                If True, submission errors are ignored and the method continues to submit the
+                remaining tasks.
+                If False, the method stops at the first submission error.
+                Defaults to False.
             **kwargs: Arbitrary keyword arguments.
 
         Returns:
@@ -694,52 +727,21 @@ class RemoteBatch(Serializable, Filter):
 
     def get_completed_tasks(self) -> "RemoteBatch":
         """
-        Create a RemoteBatch object that
-        contain completed tasks from current Batch.
+        Generate analysis report based on currently completed tasks in the RemoteBatch.
 
-        Tasks consider completed with following status codes:
-
-        1. Completed
-        2. Partial
-
-        Return:
-            RemoteBatch
+        Returns:
+            Report: Analysis report.
 
         """
-        statuses = [
-            "Completed",
-            "Partial",
-        ]
-        return self.get_tasks(*statuses)
-
-    def report(self) -> "Report":
-        """
-        Generate analysis report base on currently
-        completed tasks in the RemoteBatch.
-
-        Return:
-            Report
-
-        """
-        ## this potentially can be specialize/disatch
-        ## offline
-        index = []
-        data = []
         metas = []
         geos = []
 
+        def status(task):
+            return task.result().status
+
+        index = []
+        data = []
         for task_number, task in self.tasks.items():
-            ## fliter not existing results tasks:
-            if (task.task_id is None) or (not task._result_exists()):
-                continue
-
-            ## filter has result but is not correctly completed.
-            if task.task_result_ir.task_status not in [
-                QuEraTaskStatusCode.Completed,
-                QuEraTaskStatusCode.Partial,
-            ]:
-                continue
-
             geometry = task.geometry
             perfect_sorting = "".join(map(str, geometry.filling))
             parallel_decoder = geometry.parallel_decoder
@@ -801,17 +803,184 @@ class RemoteBatch(Serializable, Filter):
 
         return rept
 
+    def resolve(self):
+        """
+        Resolve tasks in the RemoteBatch.
+
+        Raises:
+            NotImplementedError: If task resolution is not implemented for a task.
+
+        Returns:
+            RemoteBatch: Updated RemoteBatch with resolved tasks.
+
+        """
+        for task_number, task in self.tasks.items():
+            try:
+                result = task.result()
+                if result.status == QuEraTaskStatusCode.Completed:
+                    continue
+
+                if not result or (
+                    result.status
+                    in [QuEraTaskStatusCode.Pending, QuEraTaskStatusCode.Unknown]
+                ):
+                    task.resolve()
+
+            except Exception:
+                exc_type, exc_value, exc_tb = sys.exc_info()
+                tb_str = "".join(traceback.format_tb(exc_tb))
+                self._errors.task_errors[task_number] = TaskError(
+                    exception_type=str(exc_type), stack_trace=tb_str
+                )
+
+        self._resolved_at = datetime.datetime.now().isoformat()
+        return self
+
+    def rerun(
+        self,
+        __rerun_all__: bool = False,
+        multiprocessing: bool = False,
+        num_workers: Optional[int] = None,
+        **kwargs,
+    ):
+        """
+        Rerun all tasks or failed tasks in the RemoteBatch.
+
+        Args:
+            __rerun_all__ (bool): If True, rerun all tasks.
+                                  If False, rerun only failed tasks. Defaults to False.
+            multiprocessing (bool): Whether to use multiprocessing. Defaults to False.
+            num_workers (Optional[int]): Number of workers to use if multiprocessing.
+                                         Defaults to None.
+            **kwargs: Additional arguments to pass to the task run method.
+
+        Returns:
+            RemoteBatch: Updated RemoteBatch with rerun tasks.
+
+        """
+        return self._run(
+            __rerun_all__=__rerun_all__,
+            multiprocessing=multiprocessing,
+            num_workers=num_workers,
+            **kwargs,
+        )
+
+    def _run(
+        self,
+        __rerun_all__: bool = False,
+        multiprocessing: bool = False,
+        num_workers: Optional[int] = None,
+        **kwargs,
+    ):
+        """
+        Internal method to run tasks in the RemoteBatch.
+
+        Args:
+            __rerun_all__ (bool): If True, rerun all tasks. If False, rerun only failed tasks.
+                                    Defaults to False.
+            multiprocessing (bool): Whether to use multiprocessing. Defaults to False.
+            num_workers (Optional[int]): Number of workers to use if multiprocessing.
+                                        Defaults to None.
+            **kwargs: Additional arguments to pass to the task run method.
+
+        Raises:
+            ValueError: If num_workers is specified but multiprocessing is not enabled.
+
+        Returns:
+            RemoteBatch: Updated RemoteBatch with run tasks.
+
+        """
+        if multiprocessing:
+            from concurrent.futures import ProcessPoolExecutor as Pool
+
+            with Pool(max_workers=num_workers) as pool:
+                futures = OrderedDict()
+                for task_number, task in enumerate(self.tasks.values()):
+                    if (
+                        not __rerun_all__
+                        and task_number not in self._errors.task_errors
+                    ):
+                        continue
+
+                    futures[task_number] = pool.submit(task.run, **kwargs)
+
+                for task_number, future in futures.items():
+                    self.tasks[task_number] = future.result()
+
+        else:
+            if num_workers is not None:
+                raise ValueError(
+                    "num_workers is only used when multiprocessing is enabled."
+                )
+            for task_number, task in self.tasks.items():
+                if not __rerun_all__ and task_number not in self._errors.task_errors:
+                    continue
+
+                task.run(**kwargs)
+
+        return self
+
+    def print_errors(self, task_indices: Union[List[int], int]) -> str:
+        """
+        Print errors for specified tasks.
+
+        Args:
+            task_indices (Union[List[int], int]): List of task indices or a single task index.
+
+        Returns:
+            str: Errors as string.
+
+        """
+        return self._errors.print_errors(task_indices)
+
+    def get_errors(self, task_indices: Union[List[int], int]):
+        """
+        Get errors for specified tasks.
+
+        Args:
+            task_indices (Union[List[int], int]): List of task indices or a single task index.
+
+        Returns:
+            BatchErrors: BatchErrors object containing the errors for specified tasks.
+
+        """
+        return self._errors.get_errors(task_indices)
+
 
 @RemoteBatch.set_serializer
-def _serialize(obj: RemoteBatch) -> Dict[str, Any]:
+def _serialize_remote(obj: RemoteBatch) -> Dict[str, Any]:
+    """
+    Serialize RemoteBatch object.
+
+    Args:
+        obj (RemoteBatch): RemoteBatch object to serialize.
+
+    Returns:
+        Dict[str, Any]: Serialized data.
+
+    """
     return {
-        "source": None,
         "tasks": [(k, v) for k, v in obj.tasks.items()],
+        "id": obj.id,
         "name": obj.name,
+        "created_at": obj._created_at,
+        "resolved_at": obj._resolved_at,
+        "errors": obj._errors,
     }
 
 
 @RemoteBatch.set_deserializer
-def _deserialize(d: Dict[str, Any]) -> RemoteBatch:
+def _deserialize_remote(d: Dict[str, Any]) -> RemoteBatch:
+    """
+    Deserialize data into RemoteBatch object.
+
+    Args:
+        d (Dict[str, Any]): Data to deserialize.
+
+    Returns:
+        RemoteBatch: Deserialized RemoteBatch object.
+
+    """
     d["tasks"] = OrderedDict(d["tasks"])
+    d["errors"] = d.pop("errors")
     return RemoteBatch(**d)
