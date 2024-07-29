@@ -131,7 +131,7 @@ def test_scale():
     # print(type(list(seq.pulses.keys())[0]))
     Loc1 = list(seq.pulses[rydberg].fields[detuning].drives.keys())[0]
 
-    assert type(Loc1) == ir.ScaledLocations
+    assert type(Loc1) is ir.ScaledLocations
     assert Loc1.value[ir.Location(1)] == cast(1.2)
 
 
@@ -250,7 +250,7 @@ def test_record():
         .record("detuning")
     )
 
-    assert type(prog) == waveform.Record
+    assert type(prog) is waveform.Record
 
     seq = prog.parse_sequence()
     assert seq.pulses[rydberg].fields[detuning].drives[
