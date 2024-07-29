@@ -298,8 +298,8 @@ class RabiOperator:
 
 @dataclass(frozen=True)
 class RydbergHamiltonian:
-    """Hamiltonian for a given task. 
-    With the `RydbergHamiltonian` you can convert the Hamiltonian to CSR matrix form 
+    """Hamiltonian for a given task.
+    With the `RydbergHamiltonian` you can convert the Hamiltonian to CSR matrix form
     as well as obtaining the average energy/variance of a register.
 
     Attributes:
@@ -311,6 +311,7 @@ class RydbergHamiltonian:
         detuning_ops (List[DetuningOperator]): Detuning Operators of the Hamiltonian
         rabi_ops (List[RabiOperator]): Rabi Operators of the Hamiltonian
     """
+
     emulator_ir: EmulatorProgram
     space: Space
     rydberg: NDArray
