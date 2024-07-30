@@ -503,7 +503,31 @@ class BloqadePythonRoutine(RoutineBase):
         waveform_runtime: str = "interpret",
         cache_matrices: bool = False,
     ) -> List[BloqadeEmulation]:
+        """
+        Generates a list of BloqadeEmulation objects which contain the Hamiltonian of your program.
 
+        If you have a variable(s) in your program you have assigned multiple values via `batch_assign()`
+        there will be multiple `BloqadeEmulation` objects, one for each value. On the other hand
+        if the program only assumes a singular value per each variable, there will only be
+        one `BloqadeEmulation` object but it will still be encapsulated in a list.
+
+
+        Args:
+            *args (LiteralType): If your program has a variable that was declared as run-time assignable
+                via `.args` you may pass a value to it here. If there are multiple
+                variables declared via `.args` the order in which you assign values to those variables
+                through this argument should follow the order in which the declaration occurred.
+            blockade_radius (float): The radius in which atoms blockade eachother. Default value is 0.0 micrometers.
+            use_hyperfine (bool): Should the Hamiltonian account for hyperfine levels. Default value is False.
+            waveform_runtime (str): Specify which runtime to use for waveforms. If "numba" is specify the waveform
+                is compiled, otherwise it is interpreted via the "interpret" argument. Defaults to "interpret".
+            cache_matrices (bool): Speed up Hamiltonian generation by reusing data (when possible) from previously generated Hamiltonians.
+                Default value is False.
+
+        Returns:
+
+
+        """
         ir_iter = self._generate_ir(
             args, blockade_radius, waveform_runtime, use_hyperfine
         )
