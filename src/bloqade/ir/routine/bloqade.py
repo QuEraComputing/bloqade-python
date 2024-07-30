@@ -525,7 +525,7 @@ class BloqadePythonRoutine(RoutineBase):
                 Default value is False.
 
         Returns:
-
+            List[BloqadeEmulation]
 
         """
         ir_iter = self._generate_ir(
