@@ -81,7 +81,7 @@ def test_addlocs_on_square():
     lattice1 = lattice.add_position([(9, 6), (4, 4)])
 
     # type(lattice)
-    assert type(lattice1) == ir.location.ListOfLocations
+    assert type(lattice1) is ir.location.ListOfLocations
 
     positions1 = set(map(lambda info: info.position, lattice1.enumerate()))
     positions_expected1 = set(cast([(0, 0), (1, 0), (0, 1), (1, 1), (9, 6), (4, 4)]))
@@ -94,7 +94,7 @@ def test_addlocs_filling_options():
     lattice = lattice.add_position([(9, 6), (4, 4)], filling=[False, True])
 
     # type(lattice)
-    assert type(lattice) == ir.location.ListOfLocations
+    assert type(lattice) is ir.location.ListOfLocations
 
     for info in lattice.enumerate():
         if info.position == cast((9, 6)):

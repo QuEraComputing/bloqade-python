@@ -22,6 +22,14 @@ import datetime
 @Serializer.register
 @dataclass(frozen=True)
 class Geometry:
+    """Class representing geometry of an atom arrangement.
+
+    Attributes:
+        sites (List[Tuple[float, float]]): Atom site arrangement
+        filling (List[int]): Which sites are filled
+        parallel_decoder: Decoder object for decoding Geometry object
+    """
+
     sites: List[Tuple[float, float]]
     filling: List[int]
     parallel_decoder: Optional[ParallelDecoder] = None
@@ -48,6 +56,10 @@ class Task:
 
 
 class RemoteTask(Task):
+    """`Task` to use for remote executions to run the program on Quera
+    Quantum Computers.
+    """
+
     def validate(self) -> None:
         raise NotImplementedError
 
@@ -86,6 +98,8 @@ class RemoteTask(Task):
 
 
 class LocalTask(Task):
+    """`Task` to use for local executions for simulation purposes.."""
+
     def result(self):
         # need a new results type
         # for emulator jobs
@@ -95,9 +109,49 @@ class LocalTask(Task):
         raise NotImplementedError
 
 
-# Report is now just a helper class for
-# organize and analysis data:
 class Report:
+    """Report is a helper class for organizing and analysing data
+
+    ### Analyzing Results
+    When you've retrieved your results from either emulation
+    or hardware you can generate a `.report()`:
+
+    ```python
+    report = results.report()
+    ```
+
+    For the examples below we analyze the results of a two atom program.
+
+    The report contains useful information such as:
+
+    The raw bitstrings measured per each execution of the program
+    ```python
+    >>> report.bitstrings()
+    [array([[1, 1],
+            [1, 1],
+            [1, 1],
+            ...,
+            [1, 1],
+            [1, 1],
+    ```
+
+    The number of times each unique bitstring occurred:
+    ```python
+    >>> report.counts()
+
+    [OrderedDict([('11', 892), ('10', 59), ('01', 49)])]
+    ```
+
+    The Rydberg Density for each atom
+    ```python
+    >>> report.rydberg_densities()
+
+                    0      1
+    task_number
+    0            0.053  0.054
+    ```
+    """
+
     dataframe: pd.DataFrame
     metas: List[Dict]
     geos: List[Geometry]
@@ -133,6 +187,7 @@ class Report:
 
     @property
     def markdown(self) -> str:
+        """Get the markdown representation of the dataframe"""
         return self.dataframe.to_markdown()
 
     def _filter(
@@ -172,16 +227,26 @@ class Report:
 
         Args:
             filter_perfect_filling (bool): whether return will
-            only contain perfect filling shots. Defaults to True.
+                only contain perfect filling shots. Defaults to True.
             clusters: (tuple[int, int], Sequence[Tuple[int, int]]):
-            cluster index to filter shots from. If none are provided
-            all clusters are used, defaults to [].
+                cluster index to filter shots from. If none are provided
+                all clusters are used, defaults to [].
 
         Returns:
             bitstrings (list of ndarray): list corresponding to each
-            task in the report. Each element is an ndarray of shape
-            (nshots, nsites) where nshots is the number of shots for
-            the task and nsites is the number of sites in the task.
+                task in the report. Each element is an ndarray of shape
+                (nshots, nsites) where nshots is the number of shots for
+                the task and nsites is the number of sites in the task.
+                For example:
+                ```python3
+                [array([[1, 1],
+                        [1, 1],
+                        [1, 1],
+                        ...,
+                        [1, 1],
+                        [1, 1],
+                        [1, 0]], dtype=int8)]
+                ```
 
         Note:
             Note that nshots may vary between tasks if filter_perfect_filling
@@ -216,16 +281,20 @@ class Report:
 
         Args:
             filter_perfect_filling (bool): whether return will
-            only contain perfect filling shots. Defaults to True.
+                only contain perfect filling shots. Defaults to True.
             clusters: (tuple[int, int], Sequence[Tuple[int, int]]):
-            cluster index to filter shots from. If none are provided
-            all clusters are used, defaults to [].
+                cluster index to filter shots from. If none are provided
+                all clusters are used, defaults to [].
 
         Returns:
-            bitstrings (list of ndarray): list corresponding to each
-            task in the report. Each element is an ndarray of shape
-            (nshots, nsites) where nshots is the number of shots for
-            the task and nsites is the number of sites in the task.
+            counts (list of OrderedDict[str, int]): list corresponding to each
+                task in the report. Each element is an ndarray of shape
+                (nshots, nsites) where nshots is the number of shots for
+                the task and nsites is the number of sites in the task.
+                For example:
+                ```python
+                    [OrderedDict([('11', 892), ('10', 59), ('01', 49)])]
+                ```
 
         Note:
             Note that nshots may vary between tasks if filter_perfect_filling
@@ -233,7 +302,7 @@ class Report:
 
         """
 
-        def generate_counts(bitstring):
+        def _generate_counts(bitstring):
             output = np.unique(bitstring, axis=0, return_counts=True)
 
             count_list = [
@@ -246,7 +315,7 @@ class Report:
             return count
 
         return list(
-            map(generate_counts, self.bitstrings(filter_perfect_filling, clusters))
+            map(_generate_counts, self.bitstrings(filter_perfect_filling, clusters))
         )
 
     @beartype
@@ -259,11 +328,20 @@ class Report:
 
         Args:
             filter_perfect_filling (bool, optional): whether return will
-            only contain perfect filling shots. Defaults to True.
+                only contain perfect filling shots. Defaults to True.
+            clusters: (tuple[int, int], Sequence[Tuple[int, int]]):
+                cluster index to filter shots from. If none are provided
+                all clusters are used, defaults to [].
 
-        Return:
-            per-site rydberg density for each task as a pandas DataFrame or Series.
-
+        Returns:
+            rydberg_densities (Union[pd.Series, pd.DataFrame]):
+                per-site rydberg density for each task as a pandas DataFrame or Series.
+                For example:
+                ```python
+                0      1
+                task_number
+                0            0.053  0.054
+                ```
         """
         mask = self._filter(
             filter_perfect_filling=filter_perfect_filling, clusters=clusters
