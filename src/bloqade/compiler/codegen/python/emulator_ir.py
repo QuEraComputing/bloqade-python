@@ -369,6 +369,12 @@ class EmulatorProgramCodeGen(BloqadeIRVisitor):
         self, node: field.ScaledLocations
     ) -> Dict[int, Decimal]:
         target_atoms = {}
+        for location in node.value.keys():
+            if location.value >= self.n_sites or location.value < 0:
+                raise ValueError(
+                    f"Location {location.value} is out of bounds for register with "
+                    f"{self.n_sites} sites."
+                )
 
         for new_index, original_index in enumerate(self.original_index):
             value = node.value.get(field.Location(original_index))
