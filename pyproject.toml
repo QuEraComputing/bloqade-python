@@ -17,7 +17,7 @@ classifiers = [
 ]
 dependencies = [
     "juliacall>=0.9.14",
-    "numpy>=1.25.2",
+    "numpy>=2.0.2",
     "pydantic>=2.0",
     "scipy>=1.9.3",
     "pandas>=2.1.0",
