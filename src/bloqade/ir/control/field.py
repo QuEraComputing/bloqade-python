@@ -122,7 +122,13 @@ class AssignedRunTimeVector(SpatialModulation):
         return get_ir_figure(self, **assginment)
 
     def _get_data(self, **assignment):
-        return [self.name], ["vec"]
+        locs = []
+        values = []
+        for i, v in enumerate(self.value):
+            locs.append(f"{self.name or 'value'}[{i}]")
+            values.append(str(v))
+
+        return locs, values
 
     def show(self, **assignment):
         display_ir(self, **assignment)

@@ -81,6 +81,9 @@ class AnalogCircuit:
         # analysis the SpatialModulation information
         spmod_extracted_data: Dict[str, Tuple[List[int], List[float]]] = {}
 
+        def process_names(x):
+            return int(x.split("[")[-1].split("]")[0])
+
         for tab in fig_seq.tabs:
             pulse_name = tab.title
             field_plots = tab.child.children
@@ -101,9 +104,7 @@ class AnalogCircuit:
                 for ch in channels:
                     ch_data = Spmod_raw_data[Spmod_raw_data.d0 == ch]
 
-                    sites = list(
-                        map(lambda x: int(x.split("[")[-1].split("]")[0]), ch_data.d1)
-                    )
+                    sites = list(map(process_names, ch_data.d1))
                     values = list(ch_data.px.astype(float))
 
                     key = f"{pulse_name}.{field_name}.{ch}"
