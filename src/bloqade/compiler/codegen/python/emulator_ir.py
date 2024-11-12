@@ -338,6 +338,12 @@ class EmulatorProgramCodeGen(BloqadeIRVisitor):
         self, node: field.RunTimeVector
     ) -> Dict[int, Decimal]:
         value = self.assignments[node.name]
+        for new_index, original_index in enumerate(self.original_index):
+            if original_index >= len(value):
+                raise ValueError(
+                    f"Index {original_index} is out of bounds for the runtime vector {node.name}"
+                )
+
         return {
             new_index: Decimal(str(value[original_index]))
             for new_index, original_index in enumerate(self.original_index)
@@ -347,6 +353,12 @@ class EmulatorProgramCodeGen(BloqadeIRVisitor):
     def visit_field_AssignedRunTimeVector(
         self, node: field.AssignedRunTimeVector
     ) -> Dict[int, Decimal]:
+        for new_index, original_index in enumerate(self.original_index):
+            if original_index >= len(node.value):
+                raise ValueError(
+                    f"Index {original_index} is out of bounds for the mask vector."
+                )
+
         return {
             new_index: Decimal(str(node.value[original_index]))
             for new_index, original_index in enumerate(self.original_index)
@@ -357,7 +369,6 @@ class EmulatorProgramCodeGen(BloqadeIRVisitor):
         self, node: field.ScaledLocations
     ) -> Dict[int, Decimal]:
         target_atoms = {}
-
         for location in node.value.keys():
             if location.value >= self.n_sites or location.value < 0:
                 raise ValueError(
