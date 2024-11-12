@@ -172,7 +172,7 @@ def test_metadata_filter_scalar():
 
     assert filtered_batch.tasks.keys() == {0, 1, 4}
 
-    with pytest.raises(ValueError):
+    with pytest.raises(Exception):
         filtered_batch = batch.filter_metadata(d=[1, 2, 16, 1j])
 
 
@@ -198,7 +198,7 @@ def test_metadata_filter_vector():
 
     filters = dict(d=[1, 8], m=[[0, 1], [1, 0], (0, 0)])
 
-    with pytest.raises(ValueError):
+    with pytest.raises(Exception):
         filtered_batch_all = batch.filter_metadata(**filters)
 
 

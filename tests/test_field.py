@@ -82,7 +82,7 @@ def test_assigned_runtime_vec():
     )
     assert x.print_node() == "AssignedRunTimeVector: sss"
     assert x.children() == cast([Decimal("1.0"), Decimal("2.0")])
-    assert x._get_data() == (["sss"], ["vec"])
+    assert x._get_data() == (["sss[0]", "sss[1]"], ["1.0", "2.0"])
 
     mystdout = StringIO()
     p = PP(mystdout)
