@@ -36,7 +36,7 @@ jobs:
         run: |
           pdm run coverage
       - name: Upload Coverage to Codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           files: coverage.xml # optional
           fail_ci_if_error: true # optional (default = false)
