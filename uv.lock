@@ -12,47 +12,22 @@ resolution-markers = [
 name = "amazon-braket-default-simulator"
 version = "1.33.0"
 source = { registry = "https://pypi.org/simple" }
-resolution-markers = [
-    "python_full_version < '3.11'",
-]
 dependencies = [
     { name = "amazon-braket-schemas", version = "1.28.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
-    { name = "antlr4-python3-runtime", marker = "python_full_version < '3.11'" },
-    { name = "numba", marker = "python_full_version < '3.11'" },
+    { name = "amazon-braket-schemas", version = "1.29.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
+    { name = "antlr4-python3-runtime" },
+    { name = "numba" },
     { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
-    { name = "opt-einsum", marker = "python_full_version < '3.11'" },
-    { name = "pydantic", marker = "python_full_version < '3.11'" },
+    { name = "numpy", version = "2.4.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
+    { name = "opt-einsum" },
+    { name = "pydantic" },
     { name = "scipy", version = "1.15.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
-    { name = "sympy", marker = "python_full_version < '3.11'" },
+    { name = "scipy", version = "1.17.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
+    { name = "sympy" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/b5/30/dc9c77788afd591325f2da116c1b4e9ad74909ed6b038c75898e47934944/amazon_braket_default_simulator-1.33.0.tar.gz", hash = "sha256:b70d72b9a15dac102c28af64a0f7182dd8fc855f29ff9d93ba2920a2bb4d3879", size = 187907, upload-time = "2026-01-19T16:15:46.183Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/3a/3e/c657bf649dd00edbc2c0fac1184dc87422de09f113255535ea7843ede308/amazon_braket_default_simulator-1.33.0-py3-none-any.whl", hash = "sha256:7fa115cdc284e12a4894dd7ef452352b9742340c87842aee37ac44d51ca1e200", size = 229965, upload-time = "2026-01-19T16:15:44.182Z" },
-]
-
-[[package]]
-name = "amazon-braket-default-simulator"
-version = "1.34.1"
-source = { registry = "https://pypi.org/simple" }
-resolution-markers = [
-    "python_full_version >= '3.11' and sys_platform == 'win32'",
-    "python_full_version >= '3.11' and sys_platform == 'emscripten'",
-    "python_full_version >= '3.11' and sys_platform != 'emscripten' and sys_platform != 'win32'",
-]
-dependencies = [
-    { name = "amazon-braket-schemas", version = "1.29.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
-    { name = "antlr4-python3-runtime", marker = "python_full_version >= '3.11'" },
-    { name = "numba", marker = "python_full_version >= '3.11'" },
-    { name = "numpy", version = "2.4.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
-    { name = "opt-einsum", marker = "python_full_version >= '3.11'" },
-    { name = "pydantic", marker = "python_full_version >= '3.11'" },
-    { name = "scipy", version = "1.17.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
-    { name = "setuptools", marker = "python_full_version >= '3.11'" },
-    { name = "sympy", marker = "python_full_version >= '3.11'" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/69/35/2af151d1dd0316d84bfbf72970b9c4543688cd35e4578fdcc7d4049de043/amazon_braket_default_simulator-1.34.1.tar.gz", hash = "sha256:137f61bdefd5507aacf49c3979ae7bbdc44dace322f224b97ab7da391cfeec17", size = 187875, upload-time = "2026-02-23T17:46:23.143Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/b4/20/6f874d46a179cbcab3f2ab79f75f78578da930c8a0ca1cb698bef2de84c2/amazon_braket_default_simulator-1.34.1-py3-none-any.whl", hash = "sha256:b78523499c05d71043d78898c713af1736a276b12f64c4d5a327fb3ec84fdc4f", size = 229876, upload-time = "2026-02-23T17:46:21.314Z" },
 ]
 
 [[package]]
@@ -95,7 +70,7 @@ resolution-markers = [
     "python_full_version < '3.11'",
 ]
 dependencies = [
-    { name = "amazon-braket-default-simulator", version = "1.33.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
+    { name = "amazon-braket-default-simulator", marker = "python_full_version < '3.11'" },
     { name = "amazon-braket-schemas", version = "1.28.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "backoff", marker = "python_full_version < '3.11'" },
     { name = "backports-entry-points-selectable", marker = "python_full_version < '3.11'" },
@@ -125,7 +100,7 @@ resolution-markers = [
     "python_full_version >= '3.11' and sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 dependencies = [
-    { name = "amazon-braket-default-simulator", version = "1.34.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
+    { name = "amazon-braket-default-simulator", marker = "python_full_version >= '3.11'" },
     { name = "amazon-braket-schemas", version = "1.29.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "backoff", marker = "python_full_version >= '3.11'" },
     { name = "backports-entry-points-selectable", marker = "python_full_version >= '3.11'" },
@@ -3988,11 +3963,11 @@ wheels = [
 
 [[package]]
 name = "setuptools"
-version = "81.0.0"
+version = "83.0.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/0d/1c/73e719955c59b8e424d015ab450f51c0af856ae46ea2da83eba51cc88de1/setuptools-81.0.0.tar.gz", hash = "sha256:487b53915f52501f0a79ccfd0c02c165ffe06631443a886740b91af4b7a5845a", size = 1198299, upload-time = "2026-02-06T21:10:39.601Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/34/26/f5d29e25ffdb535afef2d35cdb55b325298f96debd670da4c325e08d70f4/setuptools-83.0.0.tar.gz", hash = "sha256:025bccbbf0fa05b6192bc64ae1e7b16e001fd6d6d4d5de03c97b1c1ade523bef", size = 1154254, upload-time = "2026-07-04T15:31:22.699Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e1/e3/c164c88b2e5ce7b24d667b9bd83589cf4f3520d97cad01534cd3c4f55fdb/setuptools-81.0.0-py3-none-any.whl", hash = "sha256:fdd925d5c5d9f62e4b74b30d6dd7828ce236fd6ed998a08d81de62ce5a6310d6", size = 1062021, upload-time = "2026-02-06T21:10:37.175Z" },
+    { url = "https://files.pythonhosted.org/packages/5d/40/e1e72872c6354b306daef1703549e8e83b4d43cfea356311bf722a043752/setuptools-83.0.0-py3-none-any.whl", hash = "sha256:29b23c360f22f414dc7336bb39178cc7bcbf6021ed2733cde173f09dba19abb3", size = 1008090, upload-time = "2026-07-04T15:31:20.885Z" },
 ]
 
 [[package]]
