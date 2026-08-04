@@ -24,7 +24,7 @@ jobs:
           check-name: 'Deploy dev documentation'
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           wait-interval: 10
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Install uv
