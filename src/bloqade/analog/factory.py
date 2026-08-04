@@ -35,7 +35,7 @@ def get_capabilities(use_experimental: bool = False) -> "QuEraCapabilities":
 
     from bloqade.analog.submission.capabilities import get_capabilities
 
-    # manually convert to units
+    # Manually convert to units
     return get_capabilities(use_experimental=use_experimental).scale_units(
         Decimal("1e6"), Decimal("1e-6")
     )
