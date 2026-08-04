@@ -116,7 +116,7 @@ Now instead of using the built-in Bloqade emulator we submit the program to *Aqu
 or set the proper environment variables before hand.
 
 ```python
-hardware_results = hardware_rabi_program.braket.aquila.run_async(100)
+hardware_results = hardware_rabi_program.braket.aquila().run_async(100)
 ```
 
 `.run_async` is a non-blocking version of the standard `.run` method, allowing you to continue work while waiting for results from *Aquila*. `.run_async` immediately returns an object you can query for the status of your tasks in the queue as well.
@@ -147,7 +147,7 @@ hardware_rabi_program = (
   .rydberg.rabi.amplitude.uniform
   .piecewise_linear(values = [0, pi/2, pi/2, 0], durations = [0.06, 1.0, 0.06])
 )
-hardware_results = hardware_rabi_program.braket.aquila.run_async(100)
+hardware_results = hardware_rabi_program.braket.aquila().run_async(100)
 hardware_bitstring_counts = hardware_results.report().counts()
 ```
 
